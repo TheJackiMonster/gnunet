@@ -23,6 +23,7 @@
  * @author Omar Tarabai
  * @author Christian Grothoff
  */
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_protocols.h"
@@ -93,6 +94,47 @@ struct GNUNET_PEERSTORE_Handle
    */
   uint32_t last_op_id;
 
+};
+
+/**
+* Context for a add hello uri request.
+*/
+struct GNUNET_PEERSTORE_StoreHelloContext
+{
+  /**
+   * Peerstore handle.
+   */
+  struct GNUNET_PEERSTORE_Handle *h;
+
+  /**
+   * Function to call with information.
+   */
+  GNUNET_PEERSTORE_Continuation cont;
+
+  /**
+   * Closure for @e callback.
+   */
+  void *cont_cls;
+
+  /**
+   * Hello uri which was request for storing.
+   */
+  struct GNUNET_MessageHeader *hello;
+
+  /**
+   * The peer id for the hello.
+   */
+  struct GNUNET_PeerIdentity pid;
+
+  /**
+   * Store operation for the merge
+   */
+  struct GNUNET_PEERSTORE_StoreContext *sc;
+
+  /**
+   * The iteration for the merge
+   */
+  struct GNUNET_PEERSTORE_IterateContext *ic;
 };
 
 /**
@@ -635,7 +677,7 @@ handle_iterate_result (void *cls, const struct PeerstoreRecordMessage *msg)
  */
 void
 GNUNET_PEERSTORE_iteration_next (struct GNUNET_PEERSTORE_IterateContext *ic,
-                               uint64_t limit)
+                                 uint64_t limit)
 {
   struct GNUNET_MQ_Envelope *ev;
   struct PeerstoreIterationNextMessage *inm;
@@ -686,11 +728,11 @@ GNUNET_PEERSTORE_iteration_stop (struct GNUNET_PEERSTORE_IterateContext *ic)
 
 struct GNUNET_PEERSTORE_IterateContext *
 GNUNET_PEERSTORE_iteration_start (struct GNUNET_PEERSTORE_Handle *h,
-                                const char *sub_system,
-                                const struct GNUNET_PeerIdentity *peer,
-                                const char *key,
-                                GNUNET_PEERSTORE_Processor callback,
-                                void *callback_cls)
+                                  const char *sub_system,
+                                  const struct GNUNET_PeerIdentity *peer,
+                                  const char *key,
+                                  GNUNET_PEERSTORE_Processor callback,
+                                  void *callback_cls)
 {
   struct GNUNET_MQ_Envelope *ev;
   struct PeerstoreIterationStartMessage *srm;
@@ -806,14 +848,47 @@ hello_store_success (void *cls, int success)
          "Storing hello uri failed\n");
     huc->cont (huc->cont_cls, success);
     GNUNET_free (huc->hello);
-    GNUNET_free (huc->pid);
     GNUNET_free (huc);
     return;
   }
   huc->cont (huc->cont_cls, GNUNET_OK);
   GNUNET_free (huc->hello);
-  GNUNET_free (huc->pid);
   GNUNET_free (huc);
+}
+
+
+static void
+hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
+                const char *emsg)
+{
+  struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
+  struct GNUNET_TIME_Absolute hello_exp =
+    GNUNET_HELLO_builder_get_expiration_time (huc->hello);
+  if (NULL == record)
+  {
+    /** If we ever get here, we are newer than the existing record
+     *  or the only/first record.
+     */
+    huc->sc = GNUNET_PEERSTORE_store (huc->h,
+                                      "peerstore",
+                                      &huc->pid,
+                                      GNUNET_PEERSTORE_HELLO_KEY,
+                                      huc->hello,
+                                      ntohs (huc->hello->size),
+                                      hello_exp,
+                                      GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY,
+                                      &hello_store_success,
+                                      huc);
+    return;
+  }
+  if (GNUNET_TIME_absolute_cmp (record->expiry, >, hello_exp))
+  {
+    huc->cont (huc->cont_cls, GNUNET_OK);
+    GNUNET_PEERSTORE_iteration_stop (huc->ic);
+    GNUNET_free (huc->hello);
+    GNUNET_free (huc);
+    return;
+  }
 }
 
 
@@ -830,7 +905,6 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
   struct GNUNET_TIME_Absolute hello_exp =
     GNUNET_HELLO_builder_get_expiration_time (msg);
   struct GNUNET_TIME_Absolute huc_exp;
-  uint16_t pid_size;
   uint16_t size_msg = ntohs (msg->size);
 
   if (NULL == builder)
@@ -847,24 +921,17 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
   huc_exp =
     GNUNET_HELLO_builder_get_expiration_time (huc->hello);
   pid = GNUNET_HELLO_builder_get_id (builder);
-  pid_size = sizeof (struct GNUNET_PeerIdentity);
-  huc->pid = GNUNET_malloc (pid_size);
-  GNUNET_memcpy (huc->pid, pid, pid_size);
+  huc->pid = *pid;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Adding hello for peer %s with expiration %s msg size %u\n",
-       GNUNET_i2s (huc->pid),
+       GNUNET_i2s (&huc->pid),
        GNUNET_STRINGS_absolute_time_to_string (huc_exp),
        size_msg);
-  huc->sc = GNUNET_PEERSTORE_store (h,
-                                    "peerstore",
-                                    huc->pid,
-                                    GNUNET_PEERSTORE_HELLO_KEY,
-                                    huc->hello,
-                                    ntohs (huc->hello->size),
-                                    hello_exp,
-                                    GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY,
-                                    &hello_store_success,
-                                    huc);
+
+  huc->ic = GNUNET_PEERSTORE_iteration_start (h, "peerstore", &huc->pid,
+                                              GNUNET_PEERSTORE_HELLO_KEY,
+                                              &hello_add_iter,
+                                              huc);
   GNUNET_HELLO_builder_free (builder);
   return huc;
 }
@@ -874,9 +941,11 @@ void
 GNUNET_PEERSTORE_hello_add_cancel (struct
                                    GNUNET_PEERSTORE_StoreHelloContext *huc)
 {
-  GNUNET_PEERSTORE_store_cancel (huc->sc);
+  if (NULL != huc->sc)
+    GNUNET_PEERSTORE_store_cancel (huc->sc);
+  if (NULL != huc->ic)
+    GNUNET_PEERSTORE_iteration_stop (huc->ic);
   GNUNET_free (huc->hello);
-  GNUNET_free (huc->pid);
   GNUNET_free (huc);
 }
 

@@ -138,6 +138,26 @@ struct Hostlist
   uint32_t times_used;
 };
 
+/**
+* Context for a add hello uri request.
+*/
+struct StoreHelloEntry
+{
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct StoreHelloEntry *prev;
+
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct StoreHelloEntry *next;
+
+  /**
+   * Store hello ctx
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *sc;
+};
 
 /**
  * Our configuration.
@@ -232,12 +252,12 @@ static struct GNUNET_TIME_Absolute end_time;
 /**
  * Head of the linkd list to store the store context for hellos.
  */
-static struct GNUNET_PEERSTORE_StoreHelloContext *shc_head;
+static struct StoreHelloEntry *she_head;
 
 /**
  * Tail of the linkd list to store the store context for hellos.
  */
-static struct GNUNET_PEERSTORE_StoreHelloContext *shc_tail;
+static struct StoreHelloEntry *she_tail;
 
 /**
  * Head of the linked list used to store hostlists
@@ -323,16 +343,17 @@ static struct GNUNET_PEERSTORE_Handle *peerstore;
 static void
 shc_cont (void *cls, int success)
 {
-  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls =  cls;
+  struct StoreHelloEntry *she =  cls;
 
+  she->sc = NULL;
   if (GNUNET_YES == success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Hostlist entry stored successfully!\n");
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hostlist entry!\n");
-  GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
-  GNUNET_free (shc_cls);
+  GNUNET_CONTAINER_DLL_remove (she_head, she_tail, she);
+  GNUNET_free (she);
 }
 
 
@@ -349,8 +370,7 @@ static size_t
 callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
 {
   static char download_buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
-  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
-  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls;
+  struct StoreHelloEntry *she;
   const char *cbuf = ptr;
   const struct GNUNET_MessageHeader *msg;
   size_t total;
@@ -414,18 +434,17 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
       1,
       GNUNET_NO);
     stat_hellos_obtained++;
-    shc_cls = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContextClosure);
-    shc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                      msg,
-                                      shc_cont,
-                                      shc_cls);
-    if (NULL != shc)
+    she = GNUNET_new (struct StoreHelloEntry);
+    she->sc = GNUNET_PEERSTORE_hello_add (peerstore,
+                                           msg,
+                                           shc_cont,
+                                           she);
+    if (NULL != she->sc)
     {
-      shc_cls->shc = shc;
-      GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+      GNUNET_CONTAINER_DLL_insert (she_head, she_tail, she);
     }
     else
-      GNUNET_free (shc_cls);
+      GNUNET_free (she);
     memmove (download_buffer, &download_buffer[msize], download_pos - msize);
     download_pos -= msize;
   }
@@ -1042,28 +1061,40 @@ download_hostlist ()
   CURL_EASY_SETOPT (curl, CURLOPT_FOLLOWLOCATION, 1);
 #ifdef CURLOPT_REDIR_PROTOCOLS_STR
   if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS_STR, "https"));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl,
+                                                 CURLOPT_REDIR_PROTOCOLS_STR,
+                                                 "https"));
   else
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS_STR, "http,https"));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl,
+                                                 CURLOPT_REDIR_PROTOCOLS_STR,
+                                                 "http,https"));
 #else
 #ifdef CURLOPT_REDIR_PROTOCOLS
   if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTPS));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS,
+                                                 CURLPROTO_HTTPS));
   else
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_REDIR_PROTOCOLS,
+                                                 CURLPROTO_HTTP
+                                                 | CURLPROTO_HTTPS));
 #endif
 #endif
 #ifdef CURLOPT_PROTOCOLS_STR
   if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR, "https"));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR,
+                                                 "https"));
   else
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR, "http,https"));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS_STR,
+                                                 "http,https"));
 #else
 #ifdef CURLOPT_PROTOCOLS
   if (0 == strncasecmp (current_url, "https://", strlen ("https://")))
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS,
+                                                 CURLPROTO_HTTPS));
   else
-    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS));
+    GNUNET_assert (CURLE_OK == curl_easy_setopt (curl, CURLOPT_PROTOCOLS,
+                                                 CURLPROTO_HTTP
+                                                 | CURLPROTO_HTTPS));
 #endif
 #endif
   CURL_EASY_SETOPT (curl, CURLOPT_MAXREDIRS, 4);
@@ -1784,13 +1815,14 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
 void
 GNUNET_HOSTLIST_client_stop ()
 {
-  struct GNUNET_PEERSTORE_StoreHelloContext *pos;
+  struct StoreHelloEntry *pos;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Hostlist client shutdown\n");
-  while (NULL != (pos = shc_head))
+  while (NULL != (pos = she_head))
   {
-    GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, pos);
-    GNUNET_PEERSTORE_hello_add_cancel (pos);
+    GNUNET_CONTAINER_DLL_remove (she_head, she_tail, pos);
+    GNUNET_PEERSTORE_hello_add_cancel (pos->sc);
+    GNUNET_free (pos);
   }
   if (NULL != sget)
   {

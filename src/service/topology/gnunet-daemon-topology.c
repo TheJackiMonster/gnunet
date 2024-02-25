@@ -107,6 +107,26 @@ struct Peer
 
 };
 
+/**
+* Context for a add hello uri request.
+*/
+struct StoreHelloEntry
+{
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct StoreHelloEntry *prev;
+
+  /**
+   * Kept (also) in a DLL.
+   */
+  struct StoreHelloEntry *next;
+
+  /**
+   * Store hello ctx
+   */
+  struct GNUNET_PEERSTORE_StoreHelloContext *sc;
+};
 
 /**
  * The task to delayed start the notification process intially.
@@ -182,12 +202,12 @@ static unsigned int target_connection_count;
 /**
  * Head of the linkd list to store the store context for hellos.
  */
-static struct GNUNET_PEERSTORE_StoreHelloContext *shc_head;
+static struct StoreHelloEntry *she_head;
 
 /**
  * Tail of the linkd list to store the store context for hellos.
  */
-static struct GNUNET_PEERSTORE_StoreHelloContext *shc_tail;
+static struct StoreHelloEntry *she_tail;
 
 /**
  * Free all resources associated with the given peer.
@@ -730,9 +750,11 @@ static void
 error_cb (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              _ ("Error in communication with PEERSTORE service to monitor.\n"));
+              _ (
+                "Error in communication with PEERSTORE service to monitor.\n"));
   return;
 }
+
 
 static void
 sync_cb (void *cls)
@@ -741,6 +763,7 @@ sync_cb (void *cls)
               _ ("Finished initial PEERSTORE iteration in monitor.\n"));
   return;
 }
+
 
 /**
  * PEERSTORE calls this function to let us know about a possible peer
@@ -886,16 +909,17 @@ check_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 shc_cont (void *cls, int success)
 {
-  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls =  cls;
+  struct StoreHelloEntry *she =  cls;
 
+  she->sc = NULL;
   if (GNUNET_YES == success)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Hello stored successfully!\n");
   else
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Error storing hello!\n");
-  GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, shc_cls->shc);
-  GNUNET_free (shc_cls);
+  GNUNET_CONTAINER_DLL_remove (she_head, she_tail, she);
+  GNUNET_free (she);
 }
 
 
@@ -909,8 +933,7 @@ shc_cont (void *cls, int success)
 static void
 handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 {
-  struct GNUNET_PEERSTORE_StoreHelloContext *shc;
-  struct GNUNET_PEERSTORE_StoreHelloContextClosure *shc_cls;
+  struct StoreHelloEntry *she;
   const struct GNUNET_PeerIdentity *other = cls;
   struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
     message);
@@ -923,15 +946,14 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
                             1,
                             GNUNET_NO);
   GNUNET_HELLO_builder_from_msg (message);
-  shc_cls = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContextClosure);
-  shc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, shc_cls);
-  if (NULL != shc)
+  she = GNUNET_new (struct StoreHelloEntry);
+  she->sc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, she);
+  if (NULL != she->sc)
   {
-    shc_cls->shc = shc;
-    GNUNET_CONTAINER_DLL_insert (shc_head, shc_tail, shc);
+    GNUNET_CONTAINER_DLL_insert (she_head, she_tail, she);
   }
   else
-    GNUNET_free (shc_cls);
+    GNUNET_free (she);
   GNUNET_HELLO_builder_free (builder);
 }
 
@@ -945,13 +967,15 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
 static void
 cleaning_task (void *cls)
 {
-  struct GNUNET_PEERSTORE_StoreHelloContext *pos;
+  struct StoreHelloEntry *pos;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Topology shutdown\n");
-  while (NULL != (pos = shc_head))
+  while (NULL != (pos = she_head))
   {
-    GNUNET_CONTAINER_DLL_remove (shc_head, shc_tail, pos);
-    GNUNET_PEERSTORE_hello_add_cancel (pos);
+    GNUNET_CONTAINER_DLL_remove (she_head, she_tail, pos);
+    if (NULL != pos->sc)
+      GNUNET_PEERSTORE_hello_add_cancel (pos->sc);
+    GNUNET_free (pos);
   }
   if (NULL != peerstore_notify)
   {
