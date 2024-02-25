@@ -106,11 +106,6 @@ struct Plugin
   sqlite3_stmt *select_peerstoredata_by_all;
 
   /**
-   * Precompiled SQL for selecting from peerstoredata
-   */
-  sqlite3_stmt *upsert_peerstoredata_later_expiry;
-
-  /**
    * Precompiled SQL for deleting expired
    * records from peerstoredata
    */
@@ -438,40 +433,15 @@ peerstore_sqlite_store_record (void *cls,
                                      key);
   }
 
-  if (GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY == options)
+  stmt = plugin->insert_peerstoredata;
+  if (GNUNET_OK !=
+      GNUNET_SQ_bind (stmt,
+                      params))
   {
-    struct GNUNET_SQ_QueryParam params_upsert[] = {
-      GNUNET_SQ_query_param_fixed_size (value, size),
-      GNUNET_SQ_query_param_absolute_time (&expiry),
-      GNUNET_SQ_query_param_string (sub_system),
-      GNUNET_SQ_query_param_auto_from_type (peer),
-      GNUNET_SQ_query_param_string (key),
-      GNUNET_SQ_query_param_absolute_time (&expiry),
-      GNUNET_SQ_query_param_end
-    };
-    stmt = plugin->upsert_peerstoredata_later_expiry;
-    if (GNUNET_OK !=
-        GNUNET_SQ_bind (stmt,
-                        params_upsert))
-    {
-      LOG_SQLITE (plugin,
-                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                  "sqlite3_bind");
-      GNUNET_assert (0);
-    }
-  }
-  else
-  {
-    stmt = plugin->insert_peerstoredata;
-    if (GNUNET_OK !=
-        GNUNET_SQ_bind (stmt,
-                        params))
-    {
-      LOG_SQLITE (plugin,
-                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                  "sqlite3_bind");
-      GNUNET_assert (0);
-    }
+    LOG_SQLITE (plugin,
+                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                "sqlite3_bind");
+    GNUNET_assert (0);
   }
   if (SQLITE_DONE != sqlite3_step (stmt))
   {
@@ -640,16 +610,6 @@ database_setup (struct Plugin *plugin)
                "INSERT INTO peerstoredata (sub_system, peer_id, key, value, expiry)"
                " VALUES (?,?,?,?,?);",
                &plugin->insert_peerstoredata);
-  sql_prepare (plugin->dbh,
-               "UPDATE peerstoredata"
-               " SET"
-               " value = ?,"
-               " expiry = ?"
-               " WHERE sub_system = ?"
-               " AND peer_id = ?"
-               " AND key = ?"
-               " AND expiry < ?",
-               &plugin->upsert_peerstoredata_later_expiry);
   sql_prepare (plugin->dbh,
                "SELECT uid,sub_system,peer_id,key,value,expiry FROM peerstoredata"
                " WHERE sub_system = ?"

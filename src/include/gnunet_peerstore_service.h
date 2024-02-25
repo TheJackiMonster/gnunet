@@ -110,10 +110,6 @@ enum GNUNET_PEERSTORE_StoreOption
    */
   GNUNET_PEERSTORE_STOREOPTION_REPLACE = 1,
 
-  /**
-   * Upserts values. Replaces if expiry is later than existing.
-   */
-  GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY = 2
 };
 
 /**

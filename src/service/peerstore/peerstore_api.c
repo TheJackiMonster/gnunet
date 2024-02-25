@@ -876,7 +876,7 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
                                       huc->hello,
                                       ntohs (huc->hello->size),
                                       hello_exp,
-                                      GNUNET_PEERSTORE_STOREOPTION_UPSERT_LATER_EXPIRY,
+                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                       &hello_store_success,
                                       huc);
     return;
