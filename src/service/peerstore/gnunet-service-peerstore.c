@@ -282,10 +282,12 @@ static struct Monitor *monitors_tail;
 static struct GNUNET_NotificationContext *monitor_nc;
 
 /**
- * Perform the actual shutdown operations
+ * Task run during shutdown.
+ *
+ * @param cls unused
  */
 static void
-do_shutdown ()
+shutdown_task (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Shutting down peerstore, bye.\n");
@@ -305,21 +307,6 @@ do_shutdown ()
     GNUNET_notification_context_destroy (monitor_nc);
     monitor_nc = NULL;
   }
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-
-/**
- * Task run during shutdown.
- *
- * @param cls unused
- */
-static void
-shutdown_task (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Priming PEERSTORE for shutdown.\n");
-  do_shutdown ();
 }
 
 
@@ -896,6 +883,7 @@ handle_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *msm)
                                monitors_tail,
                                mc);
   GNUNET_SERVICE_client_mark_monitor (mc->pc->client);
+  GNUNET_SERVICE_client_continue (mc->pc->client);
   GNUNET_notification_context_add (monitor_nc, mc->pc->mq);
   if (mc->in_first_iteration)
     mc->task = GNUNET_SCHEDULER_add_now (&monitor_iteration_next, mc);
@@ -1091,6 +1079,7 @@ client_disconnect_cb (void *cls,
   {
     if (pc != mo->pc)
       continue;
+    GNUNET_CONTAINER_DLL_remove (monitors_head, monitors_tail, mo);
     if (NULL != mo->task)
     {
       GNUNET_SCHEDULER_cancel (mo->task);

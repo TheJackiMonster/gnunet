@@ -714,7 +714,7 @@ GNUNET_PEERSTORE_iteration_stop (struct GNUNET_PEERSTORE_IterateContext *ic)
               "Sending PEERSTORE_ITERATION_STOP message\n");
   if (NULL != ic->h->mq)
   {
-    ev = GNUNET_MQ_msg (ism, GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_END);
+    ev = GNUNET_MQ_msg (ism, GNUNET_MESSAGE_TYPE_PEERSTORE_ITERATE_STOP);
     ism->rid = htons (ic->rid);
     if (NULL != ic->h->mq)
       GNUNET_MQ_send (ic->h->mq, ev);
