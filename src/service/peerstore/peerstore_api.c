@@ -864,7 +864,7 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
   struct GNUNET_TIME_Absolute hello_exp =
     GNUNET_HELLO_builder_get_expiration_time (huc->hello);
-  if (NULL == record)
+  if ((NULL == record) && (NULL == emsg))
   {
     /** If we ever get here, we are newer than the existing record
      *  or the only/first record.
@@ -881,6 +881,12 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
                                       huc);
     return;
   }
+  if (NULL != emsg)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR, "%s\n", emsg);
+    GNUNET_PEERSTORE_iteration_next (huc->ic, 1);
+    return;
+  }
   if (GNUNET_TIME_absolute_cmp (record->expiry, >, hello_exp))
   {
     huc->cont (huc->cont_cls, GNUNET_OK);
@@ -889,6 +895,7 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     GNUNET_free (huc);
     return;
   }
+  GNUNET_PEERSTORE_iteration_next (huc->ic, 1);
 }
 
 

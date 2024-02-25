@@ -646,7 +646,7 @@ handle_iterate_stop (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received ITERATION_STOP message\n");
-  rid = ntohl (zis_msg->rid);
+  rid = ntohs (zis_msg->rid);
   for (ic = pc->op_head; NULL != ic; ic = ic->next)
     if (ic->request_id == rid)
       break;
