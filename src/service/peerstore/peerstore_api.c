@@ -889,6 +889,9 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   }
   if (GNUNET_TIME_absolute_cmp (record->expiry, >, hello_exp))
   {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Not storing hello for %s since we seem to have a newer version on record.\n",
+         GNUNET_i2s (&huc->pid));
     huc->cont (huc->cont_cls, GNUNET_OK);
     GNUNET_PEERSTORE_iteration_stop (huc->ic);
     GNUNET_free (huc->hello);

@@ -198,6 +198,7 @@ reconnect (struct GNUNET_PEERSTORE_Monitor *mc)
   struct GNUNET_MQ_Envelope *env;
   struct PeerstoreMonitorStartMessage *sm;
   size_t key_len = 0;
+  size_t ss_size = 0;
 
   if (NULL != mc->mq)
   {
@@ -213,9 +214,11 @@ reconnect (struct GNUNET_PEERSTORE_Monitor *mc)
     return;
   if (NULL != mc->key)
     key_len = strlen (mc->key) + 1;
+  if (NULL != mc->sub_system)
+    ss_size = strlen (mc->sub_system) + 1;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending MONITOR_START\n");
   env = GNUNET_MQ_msg_extra (sm,
-                             htons (key_len),
+                             htons (key_len) + htons (ss_size),
                              GNUNET_MESSAGE_TYPE_PEERSTORE_MONITOR_START);
   sm->iterate_first = htons (mc->iterate_first);
   if (NULL != mc->peer)
@@ -223,8 +226,11 @@ reconnect (struct GNUNET_PEERSTORE_Monitor *mc)
     sm->peer = *mc->peer;
     sm->peer_set = htons (GNUNET_YES);
   }
+  if (NULL != mc->sub_system)
+    GNUNET_memcpy (&sm[1], mc->sub_system, ss_size);
+  sm->sub_system_size = htons (ss_size);
   if (NULL != mc->key)
-    GNUNET_memcpy (&sm[1], mc->key, key_len);
+    GNUNET_memcpy (((char*) &sm[1]) + ss_size, mc->key, key_len);
   sm->key_size = htons (key_len);
   GNUNET_MQ_send (mc->mq, env);
 }
@@ -255,7 +261,7 @@ GNUNET_PEERSTORE_monitor_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
   mc->key = key;
   mc->peer = peer;
   mc->iterate_first = iterate_first;
-  mc->sub_system = sub_system;
+  mc->sub_system = GNUNET_strdup (sub_system);
   mc->cfg = cfg;
   reconnect (mc);
   if (NULL == mc->mq)

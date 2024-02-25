@@ -5750,6 +5750,13 @@ store_pi (void *cls)
     GNUNET_free (address_uri);
     return;
   }
+  else
+  {
+
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Storing our address `%s'\n",
+                address_uri);
+  }
   // FIXME hello_mono_time used here?? What about expiration in ale?
   GNUNET_HELLO_sign_address (ale->address,
                              ale->nt,
