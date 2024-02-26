@@ -34,6 +34,16 @@
 static int monitor_connections;
 
 /**
+ * Option -i.
+ */
+static int show_pid;
+
+/**
+ * Option -s.
+ */
+static int show_conns;
+
+/**
  * Handle to the CORE monitor.
  */
 static struct GNUNET_CORE_MonitorHandle *mh;
@@ -184,14 +194,18 @@ run (void *cls,
     return;
   }
   GNUNET_CRYPTO_eddsa_key_get_public (&pk, &pub);
-  fprintf (stdout,
-           _ ("Local peer: %s\n\n"),
-           GNUNET_i2s ((struct GNUNET_PeerIdentity*) &pub));
-  mh = GNUNET_CORE_monitor_start (cfg, &monitor_cb, NULL);
-  if (NULL == mh)
+  if (show_pid)
+    fprintf (stdout,
+             _ ("Current local peer identity: %s\n"),
+             GNUNET_i2s_full ((struct GNUNET_PeerIdentity*) &pub));
+  if (show_conns || monitor_connections)
   {
-    fprintf (stderr, "%s", _ ("Failed to connect to CORE service!\n"));
-    return;
+    mh = GNUNET_CORE_monitor_start (cfg, &monitor_cb, NULL);
+    if (NULL == mh)
+    {
+      fprintf (stderr, "%s", _ ("Failed to connect to CORE service!\n"));
+      return;
+    }
   }
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
 }
@@ -215,6 +229,20 @@ main (int argc, char *const *argv)
       gettext_noop (
         "provide information about all current connections (continuously)"),
       &monitor_connections),
+    GNUNET_GETOPT_option_flag (
+      'i',
+      "show-identity",
+      gettext_noop (
+        "Show our current peer identity"
+        ),
+      &show_pid),
+    GNUNET_GETOPT_option_flag (
+      's',
+      "connection-status",
+      gettext_noop (
+        "Show current connections"
+        ),
+      &show_conns),
     GNUNET_GETOPT_OPTION_END };
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
