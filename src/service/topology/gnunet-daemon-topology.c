@@ -270,8 +270,6 @@ attempt_connect (struct Peer *pos)
     strength = 0;
   if (NULL != pos->mq)
     strength *= 2; /* existing connections preferred */
-  if (strength == pos->strength)
-    return; /* nothing to do */
   if (NULL != pos->ash)
   {
     GNUNET_TRANSPORT_application_suggest_cancel (pos->ash);
