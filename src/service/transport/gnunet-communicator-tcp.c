@@ -1407,11 +1407,12 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   }
   queue->rekey_monotonic_time = rekey->monotonic_time;
   queue->rekey_monotime_get = GNUNET_PEERSTORE_iteration_start (peerstore,
-                                                              "transport_tcp_communicator",
-                                                              &queue->target,
-                                                              GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
-                                                              &rekey_monotime_cb,
-                                                              queue);
+                                                                "transport_tcp_communicator",
+                                                                &queue->target,
+                                                                GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_REKEY,
+                                                                &
+                                                                rekey_monotime_cb,
+                                                                queue);
   gcry_cipher_close (queue->in_cipher);
   queue->rekeyed = GNUNET_YES;
   setup_in_cipher (&rekey->ephemeral, queue);
@@ -2127,8 +2128,19 @@ queue_read (void *cls)
     }
     /* try again */
     left = GNUNET_TIME_absolute_get_remaining (queue->timeout);
-    queue->read_task =
-      GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read, queue);
+    if (0 != left.rel_value_us)
+    {
+      queue->read_task =
+        GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read, queue);
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Queue %p was idle for %s, disconnecting\n",
+                queue,
+                GNUNET_STRINGS_relative_time_to_string (
+                  GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
+                  GNUNET_YES));
+    queue_finish (queue);
     return;
   }
   if (0 == rcvd)
@@ -2199,7 +2211,6 @@ queue_read (void *cls)
     if (max_queue_length > queue->backpressure)
     {
       /* continue reading */
-      left = GNUNET_TIME_absolute_get_remaining (queue->timeout);
       queue->read_task =
         GNUNET_SCHEDULER_add_read_net (left, queue->sock, &queue_read, queue);
     }
@@ -2859,11 +2870,11 @@ decrypt_and_check_tc (struct Queue *queue,
   if (GNUNET_YES == ret)
     queue->handshake_monotime_get =
       GNUNET_PEERSTORE_iteration_start (peerstore,
-                                      "transport_tcp_communicator",
-                                      &queue->target,
-                                      GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
-                                      &handshake_monotime_cb,
-                                      queue);
+                                        "transport_tcp_communicator",
+                                        &queue->target,
+                                        GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE,
+                                        &handshake_monotime_cb,
+                                        queue);
   return ret;
 }
 
