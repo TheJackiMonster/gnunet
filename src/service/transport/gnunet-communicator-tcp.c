@@ -1273,6 +1273,7 @@ rekey_monotime_store_cb (void *cls, int success)
                 "Failed to store rekey monotonic time in PEERSTORE!\n");
   }
   queue->rekey_monotime_sc = NULL;
+  GNUNET_PEERSTORE_iteration_next (queue->rekey_monotime_get, 1);
 }
 
 
@@ -1318,6 +1319,8 @@ rekey_monotime_cb (void *cls,
                 "Queue from %s dropped, rekey monotime in the past\n",
                 GNUNET_i2s (&queue->target));
     GNUNET_break (0);
+    GNUNET_PEERSTORE_iteration_stop (queue->rekey_monotime_get);
+    queue->rekey_monotime_get = NULL;
     queue_finish (queue);
     return;
   }
@@ -1332,7 +1335,6 @@ rekey_monotime_cb (void *cls,
                                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                                      &rekey_monotime_store_cb,
                                                      queue);
-  GNUNET_PEERSTORE_iteration_next (queue->rekey_monotime_get, 1);
 }
 
 
@@ -1432,6 +1434,7 @@ handshake_ack_monotime_store_cb (void *cls, int success)
                 "Failed to store handshake ack monotonic time in PEERSTORE!\n");
   }
   queue->handshake_ack_monotime_sc = NULL;
+  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
@@ -1477,6 +1480,8 @@ handshake_ack_monotime_cb (void *cls,
                 "Queue from %s dropped, handshake ack monotime in the past\n",
                 GNUNET_i2s (&queue->target));
     GNUNET_break (0);
+    GNUNET_PEERSTORE_iteration_stop (queue->handshake_ack_monotime_get);
+    queue->handshake_ack_monotime_get = NULL;
     queue_finish (queue);
     return;
   }
@@ -1489,10 +1494,8 @@ handshake_ack_monotime_cb (void *cls,
                             sizeof(*handshake_ack_monotonic_time),
                             GNUNET_TIME_UNIT_FOREVER_ABS,
                             GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                            &
-                            handshake_ack_monotime_store_cb,
+                            &handshake_ack_monotime_store_cb,
                             queue);
-  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
@@ -1949,12 +1952,9 @@ try_handle_plaintext (struct Queue *queue)
     queue->handshake_ack_monotime_get = GNUNET_PEERSTORE_iteration_start (
       peerstore,
       "transport_tcp_communicator",
-      &queue->
-      target
-      ,
+      &queue->target,
       GNUNET_PEERSTORE_TRANSPORT_TCP_COMMUNICATOR_HANDSHAKE_ACK,
-      &
-      handshake_ack_monotime_cb,
+      &handshake_ack_monotime_cb,
       queue);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2745,6 +2745,7 @@ handshake_monotime_store_cb (void *cls, int success)
                 "Failed to store handshake monotonic time in PEERSTORE!\n");
   }
   queue->handshake_monotime_sc = NULL;
+  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
@@ -2796,6 +2797,8 @@ handshake_monotime_cb (void *cls,
                 "Queue from %s dropped, handshake monotime in the past\n",
                 GNUNET_i2s (&queue->target));
     GNUNET_break (0);
+    GNUNET_PEERSTORE_iteration_stop (queue->handshake_ack_monotime_get);
+    queue->handshake_ack_monotime_get = NULL;
     queue_finish (queue);
     return;
   }
@@ -2811,7 +2814,6 @@ handshake_monotime_cb (void *cls,
                                                          &
                                                          handshake_monotime_store_cb,
                                                          queue);
-  GNUNET_PEERSTORE_iteration_next (queue->handshake_ack_monotime_get, 1);
 }
 
 
