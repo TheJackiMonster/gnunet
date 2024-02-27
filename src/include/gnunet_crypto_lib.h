@@ -1677,6 +1677,9 @@ GNUNET_CRYPTO_edx25519_key_create_from_seed (
 /**
  * @ingroup crypto
  * Create a new private key.  Clear with #GNUNET_CRYPTO_ecdhe_key_clear().
+ * This is X25519 DH (RFC 7748 Section 5) and corresponds to
+ * X25519(a,9).
+ * See #GNUNET_CRYPTO_ecc_ecdh for the DH function.
  *
  * @param[out] pk set to fresh private key;
  */
@@ -1962,6 +1965,9 @@ GNUNET_CRYPTO_ecc_scalar_from_int (int64_t val,
 /**
  * @ingroup crypto
  * Derive key material from a public and a private ECC key.
+ * This is X25519 DH (RFC 7748 Section 5) and corresponds to
+ * H(X25519(b,X25519(a,9))) where b := priv, pub := X25519(a,9),
+ * and a := #GNUNET_CRYPTO_ecdhe_key_create().
  *
  * @param priv private key to use for the ECDH (x)
  * @param pub public key to use for the ECDH (yG)
@@ -1978,6 +1984,10 @@ GNUNET_CRYPTO_ecc_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
  * @ingroup crypto
  * Derive key material from a ECDH public key and a private EdDSA key.
  * Dual to #GNUNET_CRRYPTO_ecdh_eddsa.
+ * This uses the Ed25519 private seed as X25519 seed.
+ * As such, this also is a X25519 DH (see #GNUNET_CRYPTO_ecc_ecdh).
+ * NOTE: Whenever you can get away with it, use separate key pairs
+ * for signing and encryption (DH)!
  *
  * @param priv private key from EdDSA to use for the ECDH (x)
  * @param pub public key to use for the ECDH (yG)
@@ -2126,6 +2136,10 @@ GNUNET_CRYPTO_ecdsa_ecdh (const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
  * @ingroup crypto
  * Derive key material from a EdDSA public key and a private ECDH key.
  * Dual to #GNUNET_CRRYPTO_eddsa_ecdh.
+ * This converts the Edwards25519 public key @a pub to a Curve25519
+ * public key before computing a X25519 DH (see #GNUNET_CRYPTO_ecc_ecdh).
+ * NOTE: Whenever you can get away with it, use separate key pairs
+ * for signing and encryption (DH)!
  *
  * @param priv private key to use for the ECDH (y)
  * @param pub public key from EdDSA to use for the ECDH (X=h(x)G)
