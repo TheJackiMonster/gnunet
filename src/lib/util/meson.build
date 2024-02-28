@@ -84,6 +84,7 @@ libgnunetutil = library('gnunetutil',
         soversion: '15',
         version: '15.0.0',
         dependencies: [
+          lgmp_dep,
           mhd_dep,
           sodium_dep,
           gcrypt_dep,
