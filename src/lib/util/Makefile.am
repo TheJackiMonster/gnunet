@@ -141,6 +141,7 @@ libgnunetutil_la_LIBADD = \
   $(Z_LIBS) \
   -lunistring \
   -lsodium \
+  -lgmp \
   $(XLIB) \
   $(PTHREAD)
 
