@@ -19,6 +19,8 @@ RUN apt-get update -yqq && \
 		   make \
 		   python3-sphinx \
 		   python3-sphinx-book-theme \
+		   python3-sphinx-multiversion \
+                   python3-sphinx-rtd-theme \
                    texinfo \
 		   autopoint \
 		   curl \
