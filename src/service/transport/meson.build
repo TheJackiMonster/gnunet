@@ -475,27 +475,27 @@ endforeach
 
 test('test_communicator_basic-unix', testcommunicator_basic_unix,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 test('test_communicator_basic-tcp', testcommunicator_basic_tcp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 test('test_communicator_basic-udp', testcommunicator_basic_udp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 if quic_dep.found() and get_option('experimental')
   test('test_communicator_basic-quic', testcommunicator_basic_quic,
        workdir: meson.current_build_dir(),
-       suite: ['transport', 'communicator'])
+       suite: ['transport', 'communicator'], is_parallel: false)
 endif
 test('test_communicator_rekey-tcp', testcommunicator_rekey_tcp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 test('test_communicator_rekey-udp', testcommunicator_rekey_udp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 test('test_communicator_backchannel-udp', testcommunicator_backchannel_udp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
 test('test_communicator_bidirect-tcp', testcommunicator_bidirect_tcp,
      workdir: meson.current_build_dir(),
-     suite: ['transport', 'communicator'])
+     suite: ['transport', 'communicator'], is_parallel: false)
