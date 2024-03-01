@@ -35,6 +35,8 @@ static struct GNUNET_PEERSTORE_Handle *h;
 
 static struct GNUNET_PEERSTORE_Monitor *wc;
 
+static struct GNUNET_PEERSTORE_StoreContext *sr;
+
 static char *ss = "test_peerstore_api_watch";
 
 static char *k = "test_peerstore_api_watch_key";
@@ -46,8 +48,11 @@ static struct GNUNET_PeerIdentity p;
 static void
 finish (void *cls)
 {
+  if (NULL != sr)
+    GNUNET_PEERSTORE_store_cancel (sr);
+  if (NULL != wc)
+    GNUNET_PEERSTORE_monitor_stop (wc);
   GNUNET_PEERSTORE_disconnect (h);
-  GNUNET_PEERSTORE_monitor_stop(wc);
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -55,16 +60,16 @@ finish (void *cls)
 static void
 cont (void *cls)
 {
-  GNUNET_PEERSTORE_store (h,
-                          ss,
-                          &p,
-                          k,
-                          val,
-                          strlen (val) + 1,
-                          GNUNET_TIME_UNIT_FOREVER_ABS,
-                          GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                          NULL,
-                          NULL);
+  sr = GNUNET_PEERSTORE_store (h,
+                               ss,
+                               &p,
+                               k,
+                               val,
+                               strlen (val) + 1,
+                               GNUNET_TIME_UNIT_FOREVER_ABS,
+                               GNUNET_PEERSTORE_STOREOPTION_REPLACE,
+                               NULL,
+                               NULL);
 }
 
 
@@ -76,7 +81,11 @@ watch_cb (void *cls,
           const char *emsg)
 {
   GNUNET_assert (NULL == emsg);
-  GNUNET_assert (GNUNET_YES != initial_iteration);
+  if (GNUNET_YES == initial_iteration)
+  {
+    GNUNET_PEERSTORE_monitor_next (wc, 1);
+    return;
+  }
   if (NULL == record)
   {
     GNUNET_break (0);
@@ -98,12 +107,14 @@ sync_cb (void *cls)
   initial_iteration = GNUNET_NO;
 }
 
+
 static void
 error_cb (void *cls)
 {
   // Never reach this
   GNUNET_assert (0);
 }
+
 
 static void
 run (void *cls,
