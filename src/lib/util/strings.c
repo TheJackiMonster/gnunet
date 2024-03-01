@@ -37,7 +37,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-strings", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-strings", syscall)
+        GNUNET_log_from_strerror (kind, "util-strings", syscall)
 
 
 size_t
@@ -1511,11 +1511,10 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
     while (';' != routeList[pos])
       pos++;
     slash = pos;
-    while ( (slash >= start) &&
+    while ( (slash > start) &&
             (routeList[slash] != '/') )
       slash--;
-
-    if (slash < start)
+    if (slash <= start)
     {
       memset (&result[i].netmask,
               0xFF,
@@ -1558,9 +1557,11 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
              (bits > 128) )
         {
           if (0 == ret)
+          {
             LOG (GNUNET_ERROR_TYPE_WARNING,
                  _ ("Wrong format `%s' for netmask\n"),
-                 &routeList[slash + 1]);
+                 &routeList[slash]);
+          }
           else
           {
             errno = save;
@@ -1698,7 +1699,7 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define cvtfind(a)                        \
-  ((((a) >= 'A') && ((a) <= 'Z'))         \
+        ((((a) >= 'A') && ((a) <= 'Z'))         \
    ? (a) - 'A'                          \
    : (((a) >= 'a') && ((a) <= 'z'))     \
    ? (a) - 'a' + 26                 \
@@ -1708,15 +1709,15 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define CHECK_CRLF                                                \
-  while ( (data[i] == '\r') || (data[i] == '\n') )                \
-  {                                                               \
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
-                "ignoring CR/LF\n");                              \
-    i++;                                                          \
-    if (i >= len) {                                               \
-      goto END;                                                   \
-    }                                                             \
-  }
+        while ( (data[i] == '\r') || (data[i] == '\n') )                \
+        {                                                               \
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
+                      "ignoring CR/LF\n");                              \
+          i++;                                                          \
+          if (i >= len) {                                               \
+            goto END;                                                   \
+          }                                                             \
+        }
 
 
 size_t

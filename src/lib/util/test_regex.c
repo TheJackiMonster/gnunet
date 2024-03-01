@@ -109,10 +109,14 @@ test_policy6toregex (const char *policy,
   r = GNUNET_TUN_ipv6policy2regex (policy);
   if (NULL == r)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to parse `%s'\n",
+                policy);
     GNUNET_break (0);
     return 1;
   }
-  if (0 != strcmp (regex, r))
+  if (0 != strcmp (regex,
+                   r))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Expected: `%s' but got: `%s'\n",
