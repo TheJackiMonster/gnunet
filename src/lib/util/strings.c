@@ -1504,8 +1504,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
   pos = 0;
   for (size_t i = 0; i < count; i++)
   {
-    size_t start;
-    size_t slash;
+    ssize_t start;
+    ssize_t slash;
 
     start = pos;
     while (';' != routeList[pos])
@@ -1554,7 +1554,7 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
                            "%u%c",
                            &bits,
                            &dummy)) ||
-             (bits > 128) )
+             (bits > 128))
         {
           if (0 == ret)
           {
