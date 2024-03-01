@@ -394,6 +394,7 @@ test_crypto_edx25519_LDADD = \
  test_crypto_elligator.c
 test_crypto_elligator_LDADD = \
  libgnunetutil.la \
+ -lsodium \
  $(LIBGCRYPT_LIBS)
 
 test_crypto_ecc_dlog_SOURCES = \
