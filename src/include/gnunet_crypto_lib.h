@@ -973,7 +973,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
 #define GNUNET_CRYPTO_hash_from_string(enc, result) \
-  GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
+        GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
 
 
 /**
@@ -2215,15 +2215,15 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_eddsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_eddsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 
@@ -2277,15 +2277,15 @@ GNUNET_CRYPTO_eddsa_sign_raw (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 /**
@@ -2324,15 +2324,15 @@ GNUNET_CRYPTO_edx25519_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
-                                                 &(ps)->purpose,   \
-                                                 sig));            \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                       &(ps)->purpose,   \
+                                                       sig));            \
 } while (0)
 
 
@@ -2726,13 +2726,13 @@ GNUNET_CRYPTO_ecdhe_elligator_initialize (void);
  * @param pk private key for generating valid public key
  */
 int
-  GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
-                                                     pub[
-                                                       crypto_scalarmult_SCALARBYTES
-                                                     ],
-                                                     struct
-                                                     GNUNET_CRYPTO_EcdhePrivateKey
-                                                     *pk);
+GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
+                                                   pub[
+                                                     crypto_scalarmult_SCALARBYTES
+                                                   ],
+                                                   struct
+                                                   GNUNET_CRYPTO_EcdhePrivateKey
+                                                   *pk);
 
 
 /**
@@ -2741,13 +2741,12 @@ int
  *
  * @param repr representative of the public key
  * @param pk Curve25519 private key
+ * @return GNUNET_OK if creation successful
  */
-int
-GNUNET_CRYPTO_ecdhe_elligator_key_create (struct
-                                          GNUNET_CRYPTO_ElligatorRepresentative
-                                          *repr,
-                                          struct GNUNET_CRYPTO_EcdhePrivateKey
-                                          *pk);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdhe_elligator_key_create (
+  struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
+  struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
 
 
 /**
@@ -4233,15 +4232,15 @@ GNUNET_CRYPTO_sign_raw_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_sign(priv,ps,sig) do {                \
-    /* check size is set correctly */                                     \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
-    /* check 'ps' begins with the purpose */                              \
-    GNUNET_static_assert (((void*) (ps)) ==                               \
-                          ((void*) &(ps)->purpose));                      \
-    GNUNET_assert (GNUNET_OK ==                                           \
-                   GNUNET_CRYPTO_sign_ (priv,               \
-                                        &(ps)->purpose,             \
-                                        sig));                      \
+          /* check size is set correctly */                                     \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+          /* check 'ps' begins with the purpose */                              \
+          GNUNET_static_assert (((void*) (ps)) ==                               \
+                                ((void*) &(ps)->purpose));                      \
+          GNUNET_assert (GNUNET_OK ==                                           \
+                         GNUNET_CRYPTO_sign_ (priv,               \
+                                              &(ps)->purpose,             \
+                                              sig));                      \
 } while (0)
 
 

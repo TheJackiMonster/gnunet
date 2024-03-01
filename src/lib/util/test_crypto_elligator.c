@@ -1,22 +1,9 @@
-#include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_signatures.h"
 #include <gcrypt.h>
 #include <stdio.h>
 #include <sodium.h>
 
 #define ITER 25
-
-// For debugging purposes
-static void
-printLittleEndianHex (const unsigned char *arr, size_t length)
-{
-  for (size_t i = 0; i < length; ++i)
-  {
-    printf ("%02X", arr[i]);
-  }
-  printf ("\n");
-}
 
 
 // Test vector from https://github.com/Kleshni/Elligator-2/blob/master/test-vectors.c
