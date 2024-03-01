@@ -42,7 +42,7 @@ gnunet-identity -D $MY_EGO -c test_gns_lookup.conf
 gnunet-arm -e -c test_gns_lookup.conf
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 
-{ read RES_B; read RES_S;} <<< "${RES_B_S}"
+{ read RES_A1; read RES_A2; read RES_B; read RES_S;} <<< "${RES_B_S}"
 if [ "$RES_B" = "$RES_S" ]
 then
   echo "Failed to resolve to diffrent TXT records, got '$RES_B' and '$RES_S'."
