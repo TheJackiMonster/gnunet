@@ -7,5 +7,8 @@ SUBDIRS = \
   lib \
 	plugin \
 	service \
-	cli \
-	contrib
+	cli
+
+if HAVE_EXPERIMENTAL
+	SUBDIRS += contrib
+endif
