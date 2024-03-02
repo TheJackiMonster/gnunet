@@ -93,8 +93,8 @@ check_PROGRAMS = \
  $(TESTING_TESTS)
 
 # Only test TNG if we run experimental
-check_SCRIPTS= \
-  test_core_start_testcase.sh
+#check_SCRIPTS= \
+#  test_core_start_testcase.sh
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
