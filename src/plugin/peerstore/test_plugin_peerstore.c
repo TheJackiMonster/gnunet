@@ -96,6 +96,7 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
 static void
 test_record (void *cls,
+             uint64_t seq,
              const struct GNUNET_PEERSTORE_Record *record,
              const char *error)
 {
@@ -130,6 +131,7 @@ get_record (struct GNUNET_PEERSTORE_PluginFunctions *psp,
                                        "subsys",
                                        identity,
                                        "key",
+                                       0, 1,
                                        &test_record,
                                        (void *) identity));
 }

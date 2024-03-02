@@ -26,7 +26,7 @@
 #include <regex.h>
 #include <time.h>
 #include "regex_internal_lib.h"
-#include "regex_block_lib.h"
+#include "../../plugin/regex/regex_block_lib.h"
 #include "regex_internal.h"
 
 /**
