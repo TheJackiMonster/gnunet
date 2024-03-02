@@ -95,10 +95,11 @@ EXTRA_DIST = \
   test_scalarproduct.conf \
   $(check_SCRIPTS)
 
-check_SCRIPTS = \
-  test_scalarproduct.sh \
-  test_scalarproduct_negative.sh \
-  test_scalarproduct_negativezero.sh
+# Need deprecated and removed testbed profiler
+#check_SCRIPTS = \
+#  test_scalarproduct.sh \
+#  test_scalarproduct_negative.sh \
+#  test_scalarproduct_negativezero.sh
 
 check_PROGRAMS = \
   # test_ecc_scalarproduct
