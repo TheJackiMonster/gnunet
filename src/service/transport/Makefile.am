@@ -293,15 +293,16 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 check_PROGRAMS = \
- test_communicator_basic-unix \
  test_communicator_basic-tcp \
  test_communicator_basic-udp \
- test_communicator_basic-quic \
  test_communicator_rekey-tcp \
  test_communicator_rekey-udp \
  test_communicator_backchannel-udp \
  test_communicator_bidirect-tcp
 
+if HAVE_EXPERIMENTAL
+check_PROGRAMS += test_communicator_basic-quic \
+ test_communicator_basic-unix
 check_SCRIPTS= \
   test_transport_start_testcase.sh \
   test_transport_simple_send_performance.sh \
@@ -313,19 +314,13 @@ check_SCRIPTS= \
   test_transport_udp_backchannel.sh \
   test_transport_simple_send_dv_circle.sh \
   test_transport_simple_send_dv_inverse.sh
+endif
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = \
   $(check_SCRIPTS) \
-  test_communicator_basic-unix \
-  test_communicator_basic-tcp \
-  test_communicator_basic-quic \
-  test_communicator_basic-udp \
-  test_communicator_rekey-tcp \
-  test_communicator_rekey-udp \
-  test_communicator_backchannel-udp \
-  test_communicator_bidirect-tcp
+  $(check_PROGRAMS)
 endif
 
 

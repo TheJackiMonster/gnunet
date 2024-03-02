@@ -159,6 +159,7 @@ src/lib/util/crypto_ecc_dlog.c
 src/lib/util/crypto_ecc_gnsrecord.c
 src/lib/util/crypto_ecc_setup.c
 src/lib/util/crypto_edx25519.c
+src/lib/util/crypto_elligator.c
 src/lib/util/crypto_hash.c
 src/lib/util/crypto_hash_file.c
 src/lib/util/crypto_hkdf.c
