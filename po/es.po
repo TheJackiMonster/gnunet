@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-02-23 20:29+0100\n"
+"POT-Creation-Date: 2024-03-02 14:38+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -295,80 +295,88 @@ msgstr "proveer información acerca de un túnel en particular"
 msgid "Provide information about all tunnels"
 msgstr "proveer información acerca de un túnel en particular"
 
-#: src/cli/core/gnunet-core.c:91
+#: src/cli/core/gnunet-core.c:101
 #, fuzzy
 msgid "fresh connection"
 msgstr "# amigos conectados"
 
-#: src/cli/core/gnunet-core.c:95
+#: src/cli/core/gnunet-core.c:105
 msgid "key sent"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:99
+#: src/cli/core/gnunet-core.c:109
 #, fuzzy
 msgid "key received"
 msgstr "# claves de sesión recibidas"
 
-#: src/cli/core/gnunet-core.c:103
+#: src/cli/core/gnunet-core.c:113
 #, fuzzy
 msgid "connection established"
 msgstr "Colección detenida.\n"
 
-#: src/cli/core/gnunet-core.c:107
+#: src/cli/core/gnunet-core.c:117
 msgid "rekeying"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:111
+#: src/cli/core/gnunet-core.c:121
 #, fuzzy
 msgid "disconnected"
 msgstr "Desconectado de"
 
-#: src/cli/core/gnunet-core.c:120
+#: src/cli/core/gnunet-core.c:130
 #, fuzzy
 msgid "Connection to CORE service lost (reconnecting)"
 msgstr ""
 "El cliente se desconectó del servicio principal, tratando de reconectar.\n"
 
-#: src/cli/core/gnunet-core.c:124
+#: src/cli/core/gnunet-core.c:134
 #, fuzzy
 msgid "unknown state"
 msgstr "<tiempo desconocido>"
 
-#: src/cli/core/gnunet-core.c:129
+#: src/cli/core/gnunet-core.c:139
 #, fuzzy, c-format
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr "%24s: %-17s %4s   (%u conexiones en total)\n"
 
-#: src/cli/core/gnunet-core.c:160
+#: src/cli/core/gnunet-core.c:170
 #, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr "Parámetro no válido «%s» en la línea de comandos\n"
 
-#: src/cli/core/gnunet-core.c:171 src/service/core/gnunet-service-core.c:926
+#: src/cli/core/gnunet-core.c:181 src/service/core/gnunet-service-core.c:926
 msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 "Al servicio principal le falta la configuración de la clave de máquina "
 "(HOSTKEY).  Saliendo.\n"
 
-#: src/cli/core/gnunet-core.c:188
+#: src/cli/core/gnunet-core.c:199
 #, fuzzy, c-format
-msgid ""
-"Local peer: %s\n"
-"\n"
-msgstr "Yo soy el par «%s».\n"
+msgid "Current local peer identity: %s\n"
+msgstr "Se produjo un fallo al procesar la identidad del par «%s»\n"
 
-#: src/cli/core/gnunet-core.c:193
+#: src/cli/core/gnunet-core.c:206
 #, fuzzy
 msgid "Failed to connect to CORE service!\n"
 msgstr "¡Se produjo un fallo al conectar con el servicio DHT!\n"
 
 # Miguel: ¿Quizá continuamente fuese mejor?
-#: src/cli/core/gnunet-core.c:216 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:230 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr ""
 "provee información sobre todas las conexiones actuales (de forma continua)"
 
-#: src/cli/core/gnunet-core.c:226
+#: src/cli/core/gnunet-core.c:236
+#, fuzzy
+msgid "Show our current peer identity"
+msgstr "identidad del par"
+
+#: src/cli/core/gnunet-core.c:243
+#, fuzzy
+msgid "Show current connections"
+msgstr "# conexiones activas"
+
+#: src/cli/core/gnunet-core.c:254
 msgid "Print information about connected peers."
 msgstr "Imprime información sobre los pares conectados."
 
@@ -4090,7 +4098,7 @@ msgstr "Notación de red no válida (no termina con «;»: «%s»)\n"
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Formato «%s» erroneo para máscara de red\n"
 
-#: src/lib/util/strings.c:1596
+#: src/lib/util/strings.c:1597
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Formato «%s» erroneo para red\n"
@@ -4141,7 +4149,7 @@ msgstr "«%s» falló en %s:%u con el error: %s"
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
 #: src/plugin/namestore/plugin_namestore_sqlite.c:948
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:597
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:567
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
 msgstr "Imposible inicializar SQLite: %s.\n"
@@ -4402,21 +4410,21 @@ msgstr "Se produjo un fallo al inciar «%s» en «%s»\n"
 msgid "SQlite database running\n"
 msgstr "Base de datos sqlite ejecutándose\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:515
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:485
 #, fuzzy, c-format
 msgid ""
 "Error executing SQL query: %s\n"
 "  %s\n"
 msgstr "Error abriendo fichero «%s»: %s\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:550
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:520
 #, fuzzy, c-format
 msgid ""
 "Error preparing SQL query: %s\n"
 "  %s\n"
 msgstr "Error leyendo de «%s»: %s\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:633
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:603
 #, fuzzy, c-format
 msgid "Unable to create indices: %s.\n"
 msgstr "Se produjo un fallo al crear los índices\n"
@@ -4675,8 +4683,8 @@ msgstr "# bytes de «payload» descifrados"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:484
 #: src/service/fs/gnunet-service-fs_cp.c:1377
-#: src/service/topology/gnunet-daemon-topology.c:533
-#: src/service/topology/gnunet-daemon-topology.c:615
+#: src/service/topology/gnunet-daemon-topology.c:551
+#: src/service/topology/gnunet-daemon-topology.c:633
 msgid "# peers connected"
 msgstr "# pares conectados"
 
@@ -5764,7 +5772,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1044
+#: src/service/topology/gnunet-daemon-topology.c:1066
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Se produjo un fallo al conectar con el servicio «%s».\n"
@@ -6139,14 +6147,14 @@ msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
 #: src/service/gns/gnunet-gns-proxy.c:116
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:560
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:788
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:797
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:851
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:863
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:973
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1097
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1105
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:807
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:816
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:870
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:882
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:992
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1128
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1136
 #, c-format
 msgid "%s failed at %s:%d: `%s'\n"
 msgstr "%s falló en %s:%d: «%s».\n"
@@ -6388,34 +6396,34 @@ msgstr "proveer un servidor de listas de máquinas"
 msgid "GNUnet hostlist server and client"
 msgstr "Servidor y cliente GNUnet de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:370
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:390
 msgid "# bytes downloaded from hostlist servers"
 msgstr "# bytes descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:392
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:412
 msgid "# invalid HELLOs downloaded from hostlist servers"
 msgstr "# «HELLO» no válidos descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:396
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:416
 #, c-format
 msgid "Invalid `%s' message received from hostlist at `%s'\n"
 msgstr "Mensaje «%s» no válido recibido de la lista de máquinas en «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:413
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:433
 msgid "# valid HELLOs downloaded from hostlist servers"
 msgstr "# «HELLO» válidos descargados de servidores de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:693
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1489
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:712
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1520
 msgid "# advertised hostlist URIs"
 msgstr "# URI de listas de máquinas anunciadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:725
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:744
 #, c-format
 msgid "# advertised URI `%s' downloaded"
 msgstr "# URI anunciadas «%s» descargadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:768
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:787
 #, c-format
 msgid ""
 "Advertised hostlist with URI `%s' could not be downloaded. Advertised URI "
@@ -6424,119 +6432,119 @@ msgstr ""
 "Lista de máquinas anunciada con la URI «%s» no pudo ser descargada. La URI "
 "anunciada es descartada.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:902
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:921
 #, c-format
 msgid "Timeout trying to download hostlist from `%s'\n"
 msgstr ""
 "Finalizado el plazo mientras se intentaba bajar lista de máquinas de «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:917
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:936
 #, c-format
 msgid "Download limit of %u bytes exceeded, stopping download\n"
 msgstr "Límite de descarga de %u bytes superado, parando descarga\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:937
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:956
 #, c-format
 msgid "Download of hostlist from `%s' failed: `%s'\n"
 msgstr "Descarga de lista de máquinas de «%s» fallida: «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:943
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:962
 #, c-format
 msgid "Download of hostlist `%s' completed.\n"
 msgstr "Descarga de lista de máquinas «%s» completada.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:951
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:970
 #, c-format
 msgid "Adding successfully tested hostlist `%s' datastore.\n"
 msgstr "Añadiendo el almacén de datos de la lista de máquinas probada «%s».\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1007
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1026
 #, c-format
 msgid "Bootstrapping using hostlist at `%s'.\n"
 msgstr "Inicializando usando lista de máquinas en «%s».\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1016
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1035
 msgid "# hostlist downloads initiated"
 msgstr "# descargas de listas de máquinas iniciadas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1175
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1761
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1206
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1792
 msgid "# milliseconds between hostlist downloads"
 msgstr "# milisegundos entre descargas de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1185
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1216
 #, c-format
 msgid "Have %u/%u connections.  Will consider downloading hostlist in %s\n"
 msgstr ""
 "Hay %u/%u conexiones.  Se considerará descargar una lista de máquinas en %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1243
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1264
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1274
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1295
 msgid "# active connections"
 msgstr "# conexiones activas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1425
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1456
 #, c-format
 msgid "Loading saved hostlist entries from file `%s' \n"
 msgstr "Cargando entradas guardadas de listas de máquinas del fichero «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1430
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1461
 #, c-format
 msgid "Hostlist file `%s' does not exist\n"
 msgstr "El fichero de listas de máquinas «%s» no existe\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1441
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1472
 #, c-format
 msgid "Could not open file `%s' for reading to load hostlists: %s\n"
 msgstr ""
 "No se pudo abrir el fichero «%s» en modo lectura para cargar las listas de "
 "máquinas: %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1482
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1513
 #, c-format
 msgid "%u hostlist URIs loaded from file\n"
 msgstr "%u URI de listas de máquinas cargadas del fichero\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1485
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1516
 msgid "# hostlist URIs read from file"
 msgstr "# URI de listas de máquinas leídas de fichero"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1536
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1567
 #, c-format
 msgid "Could not open file `%s' for writing to save hostlists: %s\n"
 msgstr ""
 "No se pudo abrir el fichero «%s» en modo escritura para almacenar las listas "
 "de máquinas: %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1543
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1574
 #, c-format
 msgid "Writing %u hostlist URIs to `%s'\n"
 msgstr "Escribiendo %u URI de listas de máquinas a «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1576
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1595
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1607
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1626
 #, c-format
 msgid "Error writing hostlist URIs to file `%s'\n"
 msgstr "Error escribiendo URI de listas de máquinas al fichero «%s»\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1589
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1620
 msgid "# hostlist URIs written to file"
 msgstr "# URI de listas de máquinas escritas a fichero"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1690
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1721
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1719
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1750
 msgid "Learning is enabled on this peer\n"
 msgstr "El aprendizaje está habilitado en este par\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1732
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1763
 msgid "Learning is not enabled on this peer\n"
 msgstr "El aprendizaje no está habilitado en este par\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1746
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1777
 #, c-format
 msgid ""
 "Since learning is not enabled on this peer, hostlist file `%s' was removed\n"
@@ -6593,7 +6601,7 @@ msgid "# hostlist advertisements send"
 msgstr "# anuncios de listas de máquinas enviados"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:765
+#: src/service/topology/gnunet-daemon-topology.c:786
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr ""
@@ -6906,43 +6914,43 @@ msgstr "comando «external-ip» no encontrado\n"
 msgid "`upnpc' command not found\n"
 msgstr "comando «upnpc» no encontrado\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1152
+#: src/service/peerstore/gnunet-service-peerstore.c:1141
 #, fuzzy, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Se produjo un fallo al procesar «HELLO» en el fichero «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1225
+#: src/service/peerstore/gnunet-service-peerstore.c:1214
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "No se pudo leer el fichero de la lista negra «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1244
+#: src/service/peerstore/gnunet-service-peerstore.c:1233
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr "Importando HELLO de «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1255
+#: src/service/peerstore/gnunet-service-peerstore.c:1244
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:532
+#: src/service/peerstore/peerstore_api.c:574
 #, fuzzy
 msgid "Unexpected store response.\n"
 msgstr "Respuesta inesperada a la operación '%s'.\n"
 
-#: src/service/peerstore/peerstore_api.c:564
+#: src/service/peerstore/peerstore_api.c:606
 #, fuzzy
 msgid "Unexpected iteration response.\n"
 msgstr "El formato de salida es desconocido, ésto no debería pasar.\n"
 
-#: src/service/peerstore/peerstore_api.c:610
+#: src/service/peerstore/peerstore_api.c:652
 #, fuzzy
 msgid ""
 "Unexpected iteration response, no iterating client found, discarding "
 "message.\n"
 msgstr "El formato de salida es desconocido, ésto no debería pasar.\n"
 
-#: src/service/peerstore/peerstore_api.c:620
+#: src/service/peerstore/peerstore_api.c:662
 #: src/service/peerstore/peerstore_api_monitor.c:164
 #, fuzzy
 msgid "Received a malformed response from service."
@@ -7307,45 +7315,45 @@ msgstr "El fichero de topología %s no tiene datos\n"
 msgid "Topology file %s cannot be read\n"
 msgstr "El fichero de topología %s no puede ser leido\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:268
+#: src/service/topology/gnunet-daemon-topology.c:286
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# peticiones de conexión requeridas al servicio de transporte"
 
 # gossiped??
-#: src/service/topology/gnunet-daemon-topology.c:462
+#: src/service/topology/gnunet-daemon-topology.c:480
 msgid "# HELLO messages gossipped"
 msgstr "# Mensajes «HELLO» rumoreados"
 
-#: src/service/topology/gnunet-daemon-topology.c:733
+#: src/service/topology/gnunet-daemon-topology.c:752
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr ""
 "Error en la comunicación con el servicio de información de pares (PEERINFO): "
 "%s\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:741
+#: src/service/topology/gnunet-daemon-topology.c:761
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:848
+#: src/service/topology/gnunet-daemon-topology.c:869
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "¡Se produjo un fallo al conectar con el servicio principal, no se puede "
 "gestionar la topología!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:922
+#: src/service/topology/gnunet-daemon-topology.c:943
 msgid "# HELLO messages received"
 msgstr "# mensajes «HELLO» recibidos"
 
-#: src/service/topology/gnunet-daemon-topology.c:1073
+#: src/service/topology/gnunet-daemon-topology.c:1095
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3764
+#: src/service/transport/gnunet-communicator-tcp.c:3777
 #: src/service/transport/gnunet-communicator-udp.c:3408
-#: src/service/transport/gnunet-service-transport.c:12121
+#: src/service/transport/gnunet-service-transport.c:12128
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
@@ -7357,7 +7365,7 @@ msgstr ""
 msgid "GNUnet QUIC communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-tcp.c:4101
+#: src/service/transport/gnunet-communicator-tcp.c:4114
 #, fuzzy
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -7681,6 +7689,12 @@ msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#, fuzzy, c-format
+#~ msgid ""
+#~ "Local peer: %s\n"
+#~ "\n"
+#~ msgstr "Yo soy el par «%s».\n"
 
 #, fuzzy
 #~ msgid "duration of the profiling"
@@ -8115,10 +8129,6 @@ msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 #, c-format
 #~ msgid "Quota for network `%11s' (in/out): %10s / %10s\n"
 #~ msgstr "Cuota para la red «%11s» (entrada/salida): %10s / %10s\n"
-
-#, c-format
-#~ msgid "Failed to parse peer identity `%s'\n"
-#~ msgstr "Se produjo un fallo al procesar la identidad del par «%s»\n"
 
 #, fuzzy, c-format
 #~ msgid "Please select one operation: %s or %s or %s or %s or %s\n"

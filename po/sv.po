@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-02-23 20:29+0100\n"
+"POT-Creation-Date: 2024-03-02 14:38+0100\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -287,76 +287,83 @@ msgstr "Skriv ut information om GNUnets motparter."
 msgid "Provide information about all tunnels"
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/cli/core/gnunet-core.c:91
+#: src/cli/core/gnunet-core.c:101
 #, fuzzy
 msgid "fresh connection"
 msgstr "# av anslutna parter"
 
-#: src/cli/core/gnunet-core.c:95
+#: src/cli/core/gnunet-core.c:105
 msgid "key sent"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:99
+#: src/cli/core/gnunet-core.c:109
 #, fuzzy
 msgid "key received"
 msgstr "# sessionnycklar vägrade"
 
-#: src/cli/core/gnunet-core.c:103
+#: src/cli/core/gnunet-core.c:113
 #, fuzzy
 msgid "connection established"
 msgstr "Samling stoppad.\n"
 
-#: src/cli/core/gnunet-core.c:107
+#: src/cli/core/gnunet-core.c:117
 msgid "rekeying"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:111
+#: src/cli/core/gnunet-core.c:121
 #, fuzzy
 msgid "disconnected"
 msgstr "\"%s\" ansluten till \"%s\".\n"
 
-#: src/cli/core/gnunet-core.c:120
+#: src/cli/core/gnunet-core.c:130
 msgid "Connection to CORE service lost (reconnecting)"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:124
+#: src/cli/core/gnunet-core.c:134
 #, fuzzy
 msgid "unknown state"
 msgstr "Okänt fel"
 
-#: src/cli/core/gnunet-core.c:129
+#: src/cli/core/gnunet-core.c:139
 #, c-format
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:160
+#: src/cli/core/gnunet-core.c:170
 #, fuzzy, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr "Ogiltiga kommandoradsargument:\n"
 
-#: src/cli/core/gnunet-core.c:171 src/service/core/gnunet-service-core.c:926
+#: src/cli/core/gnunet-core.c:181 src/service/core/gnunet-service-core.c:926
 #, fuzzy
 msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr "GNUnet-konfiguration"
 
-#: src/cli/core/gnunet-core.c:188
+#: src/cli/core/gnunet-core.c:199
 #, fuzzy, c-format
-msgid ""
-"Local peer: %s\n"
-"\n"
-msgstr "Jag är ändpunkt \"%s\".\n"
+msgid "Current local peer identity: %s\n"
+msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/cli/core/gnunet-core.c:193
+#: src/cli/core/gnunet-core.c:206
 #, fuzzy
 msgid "Failed to connect to CORE service!\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/cli/core/gnunet-core.c:216 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:230 src/service/transport/gnunet-transport.c:1389
 #, fuzzy
 msgid "provide information about all current connections (continuously)"
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/cli/core/gnunet-core.c:226
+#: src/cli/core/gnunet-core.c:236
+msgid "Show our current peer identity"
+msgstr ""
+
+#: src/cli/core/gnunet-core.c:243
+#, fuzzy
+msgid "Show current connections"
+msgstr "Nätverksanslutning"
+
+#: src/cli/core/gnunet-core.c:254
 #, fuzzy
 msgid "Print information about connected peers."
 msgstr "Skriv ut information om GNUnets motparter."
@@ -4004,7 +4011,7 @@ msgstr "Ogiltig nätverksnotation (slutar inte med \";\": \"%s\")\n"
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Fel format \"%s\" för nätmask: %s\n"
 
-#: src/lib/util/strings.c:1596
+#: src/lib/util/strings.c:1597
 #, fuzzy, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Fel format \"%s\" för nätverk: %s\n"
@@ -4053,7 +4060,7 @@ msgstr "\"%s\" misslyckades vid %s:%d med fel: %s\n"
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
 #: src/plugin/namestore/plugin_namestore_sqlite.c:948
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:597
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:567
 #, fuzzy, c-format
 msgid "Unable to initialize SQLite: %s.\n"
 msgstr "Kunde inte initiera SQLite.\n"
@@ -4290,21 +4297,21 @@ msgstr "Fel vid %s:%d.\n"
 msgid "SQlite database running\n"
 msgstr ""
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:515
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:485
 #, fuzzy, c-format
 msgid ""
 "Error executing SQL query: %s\n"
 "  %s\n"
 msgstr "Fel vid skapandet av användare"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:550
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:520
 #, fuzzy, c-format
 msgid ""
 "Error preparing SQL query: %s\n"
 "  %s\n"
 msgstr "Fel vid skapandet av användare"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:633
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:603
 #, fuzzy, c-format
 msgid "Unable to create indices: %s.\n"
 msgstr "Kunde inte skapa namnrymd \"%s\" (existerar?).\n"
@@ -4568,8 +4575,8 @@ msgstr "# byte dekrypterade"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:484
 #: src/service/fs/gnunet-service-fs_cp.c:1377
-#: src/service/topology/gnunet-daemon-topology.c:533
-#: src/service/topology/gnunet-daemon-topology.c:615
+#: src/service/topology/gnunet-daemon-topology.c:551
+#: src/service/topology/gnunet-daemon-topology.c:633
 #, fuzzy
 msgid "# peers connected"
 msgstr "# av anslutna parter"
@@ -5619,7 +5626,7 @@ msgstr "GNUnet-konfiguration"
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1044
+#: src/service/topology/gnunet-daemon-topology.c:1066
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Misslyckades att initiera tjänsten \"%s\".\n"
@@ -5999,14 +6006,14 @@ msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
 #: src/service/gns/gnunet-gns-proxy.c:116
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:560
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:788
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:797
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:851
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:863
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:973
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1097
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1105
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:807
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:816
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:870
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:882
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:992
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1128
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1136
 #, fuzzy, c-format
 msgid "%s failed at %s:%d: `%s'\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
@@ -6241,150 +6248,150 @@ msgstr ""
 msgid "GNUnet hostlist server and client"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:370
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:390
 msgid "# bytes downloaded from hostlist servers"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:392
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:412
 msgid "# invalid HELLOs downloaded from hostlist servers"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:396
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:416
 #, fuzzy, c-format
 msgid "Invalid `%s' message received from hostlist at `%s'\n"
 msgstr "Ogiltigt meddelande mottogs den %s:%d."
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:413
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:433
 msgid "# valid HELLOs downloaded from hostlist servers"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:693
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1489
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:712
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1520
 msgid "# advertised hostlist URIs"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:725
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:744
 #, c-format
 msgid "# advertised URI `%s' downloaded"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:768
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:787
 #, c-format
 msgid ""
 "Advertised hostlist with URI `%s' could not be downloaded. Advertised URI "
 "gets dismissed.\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:902
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:921
 #, fuzzy, c-format
 msgid "Timeout trying to download hostlist from `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:917
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:936
 #, c-format
 msgid "Download limit of %u bytes exceeded, stopping download\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:937
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:956
 #, fuzzy, c-format
 msgid "Download of hostlist from `%s' failed: `%s'\n"
 msgstr ""
 "Uppladdning av \"%s\" klar, aktuell genomsnittshastighet är %8.3f kbps.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:943
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:962
 #, fuzzy, c-format
 msgid "Download of hostlist `%s' completed.\n"
 msgstr ""
 "Uppladdning av \"%s\" klar, aktuell genomsnittshastighet är %8.3f kbps.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:951
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:970
 #, c-format
 msgid "Adding successfully tested hostlist `%s' datastore.\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1007
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1026
 #, c-format
 msgid "Bootstrapping using hostlist at `%s'.\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1016
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1035
 msgid "# hostlist downloads initiated"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1175
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1761
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1206
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1792
 msgid "# milliseconds between hostlist downloads"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1185
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1216
 #, c-format
 msgid "Have %u/%u connections.  Will consider downloading hostlist in %s\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1243
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1264
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1274
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1295
 #, fuzzy
 msgid "# active connections"
 msgstr "Nätverksanslutning"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1425
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1456
 #, fuzzy, c-format
 msgid "Loading saved hostlist entries from file `%s' \n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1430
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1461
 #, fuzzy, c-format
 msgid "Hostlist file `%s' does not exist\n"
 msgstr "antal meddelanden att använda per iteration"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1441
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1472
 #, fuzzy, c-format
 msgid "Could not open file `%s' for reading to load hostlists: %s\n"
 msgstr "Kunde inte slå upp \"%s\": %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1482
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1513
 #, c-format
 msgid "%u hostlist URIs loaded from file\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1485
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1516
 msgid "# hostlist URIs read from file"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1536
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1567
 #, fuzzy, c-format
 msgid "Could not open file `%s' for writing to save hostlists: %s\n"
 msgstr "Kunde inte slå upp \"%s\": %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1543
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1574
 #, fuzzy, c-format
 msgid "Writing %u hostlist URIs to `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1576
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1595
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1607
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1626
 #, c-format
 msgid "Error writing hostlist URIs to file `%s'\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1589
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1620
 msgid "# hostlist URIs written to file"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1690
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1721
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1719
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1750
 msgid "Learning is enabled on this peer\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1732
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1763
 msgid "Learning is not enabled on this peer\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1746
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1777
 #, c-format
 msgid ""
 "Since learning is not enabled on this peer, hostlist file `%s' was removed\n"
@@ -6438,7 +6445,7 @@ msgid "# hostlist advertisements send"
 msgstr ""
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:765
+#: src/service/topology/gnunet-daemon-topology.c:786
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Skriv ut information om GNUnets motparter."
@@ -6736,43 +6743,43 @@ msgstr ""
 msgid "`upnpc' command not found\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1152
+#: src/service/peerstore/gnunet-service-peerstore.c:1141
 #, fuzzy, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1225
+#: src/service/peerstore/gnunet-service-peerstore.c:1214
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1244
+#: src/service/peerstore/gnunet-service-peerstore.c:1233
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1255
+#: src/service/peerstore/gnunet-service-peerstore.c:1244
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:532
+#: src/service/peerstore/peerstore_api.c:574
 #, fuzzy
 msgid "Unexpected store response.\n"
 msgstr "Oväntat svar till \"%s\" operation.\n"
 
-#: src/service/peerstore/peerstore_api.c:564
+#: src/service/peerstore/peerstore_api.c:606
 #, fuzzy
 msgid "Unexpected iteration response.\n"
 msgstr "Utdataformat är inte känt, detta bör inte hända.\n"
 
-#: src/service/peerstore/peerstore_api.c:610
+#: src/service/peerstore/peerstore_api.c:652
 #, fuzzy
 msgid ""
 "Unexpected iteration response, no iterating client found, discarding "
 "message.\n"
 msgstr "Utdataformat är inte känt, detta bör inte hända.\n"
 
-#: src/service/peerstore/peerstore_api.c:620
+#: src/service/peerstore/peerstore_api.c:662
 #: src/service/peerstore/peerstore_api_monitor.c:164
 #, fuzzy
 msgid "Received a malformed response from service."
@@ -7126,41 +7133,41 @@ msgstr ""
 msgid "Topology file %s cannot be read\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:268
+#: src/service/topology/gnunet-daemon-topology.c:286
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# byte mottogs via TCP"
 
-#: src/service/topology/gnunet-daemon-topology.c:462
+#: src/service/topology/gnunet-daemon-topology.c:480
 msgid "# HELLO messages gossipped"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:733
+#: src/service/topology/gnunet-daemon-topology.c:752
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/service/topology/gnunet-daemon-topology.c:741
+#: src/service/topology/gnunet-daemon-topology.c:761
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:848
+#: src/service/topology/gnunet-daemon-topology.c:869
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:922
+#: src/service/topology/gnunet-daemon-topology.c:943
 #, fuzzy
 msgid "# HELLO messages received"
 msgstr "# krypterade PONG-meddelanden mottagna"
 
-#: src/service/topology/gnunet-daemon-topology.c:1073
+#: src/service/topology/gnunet-daemon-topology.c:1095
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3764
+#: src/service/transport/gnunet-communicator-tcp.c:3777
 #: src/service/transport/gnunet-communicator-udp.c:3408
-#: src/service/transport/gnunet-service-transport.c:12121
+#: src/service/transport/gnunet-service-transport.c:12128
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
@@ -7169,7 +7176,7 @@ msgstr "GNUnet-konfiguration"
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4101
+#: src/service/transport/gnunet-communicator-tcp.c:4114
 msgid "GNUnet TCP communicator"
 msgstr ""
 
@@ -7486,6 +7493,12 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Failed to connect to the namestore!\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
+#, fuzzy, c-format
+#~ msgid ""
+#~ "Local peer: %s\n"
+#~ "\n"
+#~ msgstr "Jag är ändpunkt \"%s\".\n"
+
 #, fuzzy
 #~ msgid "timeout for the profiling"
 #~ msgstr "ange prioritet för innehållet"
@@ -7724,10 +7737,6 @@ msgstr "Misslyckades att ansluta till gnunetd.\n"
 #, fuzzy, c-format
 #~ msgid "Removed address of peer `%s' with plugin `%s'\n"
 #~ msgstr "Tillgängliga transport(er): %s\n"
-
-#, fuzzy, c-format
-#~ msgid "Failed to parse peer identity `%s'\n"
-#~ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 
 #, fuzzy
 #~ msgid "Cannot connect to ATS service, exiting...\n"

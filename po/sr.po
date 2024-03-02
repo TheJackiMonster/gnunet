@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-02-23 20:29+0100\n"
+"POT-Creation-Date: 2024-03-02 14:38+0100\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -286,76 +286,84 @@ msgstr "обезбеђује податке о свим парњацима"
 msgid "Provide information about all tunnels"
 msgstr "обезбеђује податке о свим тунелима"
 
-#: src/cli/core/gnunet-core.c:91
+#: src/cli/core/gnunet-core.c:101
 #, fuzzy
 msgid "fresh connection"
 msgstr "# пријатељи су повезани"
 
-#: src/cli/core/gnunet-core.c:95
+#: src/cli/core/gnunet-core.c:105
 msgid "key sent"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:99
+#: src/cli/core/gnunet-core.c:109
 #, fuzzy
 msgid "key received"
 msgstr "# Резултати су примљени"
 
-#: src/cli/core/gnunet-core.c:103
+#: src/cli/core/gnunet-core.c:113
 #, fuzzy
 msgid "connection established"
 msgstr "Веза је успостављена.\n"
 
-#: src/cli/core/gnunet-core.c:107
+#: src/cli/core/gnunet-core.c:117
 msgid "rekeying"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:111
+#: src/cli/core/gnunet-core.c:121
 #, fuzzy
 msgid "disconnected"
 msgstr "Прекинута је веза са"
 
-#: src/cli/core/gnunet-core.c:120
+#: src/cli/core/gnunet-core.c:130
 #, fuzzy
 msgid "Connection to CORE service lost (reconnecting)"
 msgstr ""
 "Веза са услугом конверзације је изгубљена, покушавам поново да се повежем\n"
 
-#: src/cli/core/gnunet-core.c:124
+#: src/cli/core/gnunet-core.c:134
 #, fuzzy
 msgid "unknown state"
 msgstr "<непознато време>"
 
-#: src/cli/core/gnunet-core.c:129
+#: src/cli/core/gnunet-core.c:139
 #, fuzzy, c-format
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr "%24s: %-17s %4s   (укупно повезивања: %u)\n"
 
-#: src/cli/core/gnunet-core.c:160
+#: src/cli/core/gnunet-core.c:170
 #, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr "Неисправан аргумент линије наредби „%s“\n"
 
-#: src/cli/core/gnunet-core.c:171 src/service/core/gnunet-service-core.c:926
+#: src/cli/core/gnunet-core.c:181 src/service/core/gnunet-service-core.c:926
 msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 "Услузи језгра недостаје поставка подешавања КЉУЧА_ДОМАЋИНА.  Излазим.\n"
 
-#: src/cli/core/gnunet-core.c:188
+#: src/cli/core/gnunet-core.c:199
 #, fuzzy, c-format
-msgid ""
-"Local peer: %s\n"
-"\n"
-msgstr "Ја сам парњак „%s“.\n"
+msgid "Current local peer identity: %s\n"
+msgstr "Нисам успео да обрадим идентитет парњака „%s“\n"
 
-#: src/cli/core/gnunet-core.c:193
+#: src/cli/core/gnunet-core.c:206
 msgid "Failed to connect to CORE service!\n"
 msgstr "Нисам успео да се повежем са ЈЕЗГРЕНОМ услугом!\n"
 
-#: src/cli/core/gnunet-core.c:216 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:230 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr "обезбеђује податке о свим тренутним везама (непрекидно)"
 
-#: src/cli/core/gnunet-core.c:226
+#: src/cli/core/gnunet-core.c:236
+#, fuzzy
+msgid "Show our current peer identity"
+msgstr "идентитет парњака"
+
+#: src/cli/core/gnunet-core.c:243
+#, fuzzy
+msgid "Show current connections"
+msgstr "# активних веза"
+
+#: src/cli/core/gnunet-core.c:254
 msgid "Print information about connected peers."
 msgstr "Исписује податке о повезаним парњацима."
 
@@ -4037,7 +4045,7 @@ msgstr "Неисправна напомена мреже (не завршава 
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Погрешан формат „%s“ за мрежну маску\n"
 
-#: src/lib/util/strings.c:1596
+#: src/lib/util/strings.c:1597
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Погрешан формат „%s“ за мрежу\n"
@@ -4085,7 +4093,7 @@ msgstr "„%s“ није успело на %s:%u са грешком: %s"
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
 #: src/plugin/namestore/plugin_namestore_sqlite.c:948
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:597
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:567
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
 msgstr "Не могу да покренем СКуЛајт: %s.\n"
@@ -4327,7 +4335,7 @@ msgstr "Нисам успео да покренем „%s“ на „%s“\n"
 msgid "SQlite database running\n"
 msgstr "База података Скулајта ради\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:515
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:485
 #, c-format
 msgid ""
 "Error executing SQL query: %s\n"
@@ -4336,7 +4344,7 @@ msgstr ""
 "Грешка извршавања СКуЛ упита: %s\n"
 "  %s\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:550
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:520
 #, c-format
 msgid ""
 "Error preparing SQL query: %s\n"
@@ -4345,7 +4353,7 @@ msgstr ""
 "Грешка припремања СКуЛ упита: %s\n"
 "  %s\n"
 
-#: src/plugin/peerstore/plugin_peerstore_sqlite.c:633
+#: src/plugin/peerstore/plugin_peerstore_sqlite.c:603
 #, fuzzy, c-format
 msgid "Unable to create indices: %s.\n"
 msgstr "Нисам успео да направим индексе\n"
@@ -4596,8 +4604,8 @@ msgstr "# бајтови утовара су дешифровани"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:484
 #: src/service/fs/gnunet-service-fs_cp.c:1377
-#: src/service/topology/gnunet-daemon-topology.c:533
-#: src/service/topology/gnunet-daemon-topology.c:615
+#: src/service/topology/gnunet-daemon-topology.c:551
+#: src/service/topology/gnunet-daemon-topology.c:633
 msgid "# peers connected"
 msgstr "# парњаци су повезани"
 
@@ -5649,7 +5657,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1044
+#: src/service/topology/gnunet-daemon-topology.c:1066
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Нисам успео да се повежем са „%s“ услугом.\n"
@@ -6019,14 +6027,14 @@ msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr "Овај програм ће увести неке ГНС ауторитете у ваш ГНС смештај назива."
 
 #: src/service/gns/gnunet-gns-proxy.c:116
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:560
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:788
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:797
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:851
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:863
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:973
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1097
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1105
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:807
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:816
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:870
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:882
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:992
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1128
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1136
 #, c-format
 msgid "%s failed at %s:%d: `%s'\n"
 msgstr "„%s“ није успело на %s:%d: „%s“\n"
@@ -6260,34 +6268,34 @@ msgstr "обезбеђује сервер списка домаћина"
 msgid "GNUnet hostlist server and client"
 msgstr "Сервер и клијент списка домаћина ГНУнет-а"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:370
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:390
 msgid "# bytes downloaded from hostlist servers"
 msgstr "# бајтови су преузети са сервера списка домаћина"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:392
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:412
 msgid "# invalid HELLOs downloaded from hostlist servers"
 msgstr "# неисправни „HELLO“-и су преузети са сервера списка домаћина"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:396
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:416
 #, c-format
 msgid "Invalid `%s' message received from hostlist at `%s'\n"
 msgstr "Неисправна „%s“ порука је примљена са списка домаћина на „%s“\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:413
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:433
 msgid "# valid HELLOs downloaded from hostlist servers"
 msgstr "# исправни „HELLO“-и су преузети са сервера списка домаћина"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:693
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1489
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:712
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1520
 msgid "# advertised hostlist URIs"
 msgstr "# рекламиране путање списка домаћина"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:725
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:744
 #, c-format
 msgid "# advertised URI `%s' downloaded"
 msgstr "# рекламирана путања „%s“ је преузета"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:768
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:787
 #, c-format
 msgid ""
 "Advertised hostlist with URI `%s' could not be downloaded. Advertised URI "
@@ -6296,117 +6304,117 @@ msgstr ""
 "Рекламирани списак домаћина са путањом „%s“ се не може преузети. Рекламирана "
 "путања је одбачена.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:902
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:921
 #, c-format
 msgid "Timeout trying to download hostlist from `%s'\n"
 msgstr "Време је истекло у покушају преузимања списка домаћина са „%s“\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:917
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:936
 #, c-format
 msgid "Download limit of %u bytes exceeded, stopping download\n"
 msgstr ""
 "Ограничење преузимања од %u бајта је премашено, заустављам преузимање\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:937
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:956
 #, c-format
 msgid "Download of hostlist from `%s' failed: `%s'\n"
 msgstr "Преузимање списка доамаћина са „%s“ није успело: „%s“\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:943
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:962
 #, c-format
 msgid "Download of hostlist `%s' completed.\n"
 msgstr "Преузимање списка домаћина „%s“ је завршено.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:951
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:970
 #, c-format
 msgid "Adding successfully tested hostlist `%s' datastore.\n"
 msgstr "Додаје успешно тестирани смештај података „%s“ списка домаћина.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1007
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1026
 #, c-format
 msgid "Bootstrapping using hostlist at `%s'.\n"
 msgstr "Вршим почетно подизање помоћу списка домаћина на „%s“.\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1016
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1035
 msgid "# hostlist downloads initiated"
 msgstr "# преузимања списка домаћина су започета"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1175
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1761
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1206
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1792
 msgid "# milliseconds between hostlist downloads"
 msgstr "# милисекунди између преузимања списка домаћина"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1185
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1216
 #, c-format
 msgid "Have %u/%u connections.  Will consider downloading hostlist in %s\n"
 msgstr "Имам %u/%u везе.  Размотрићу преузимање списка домаћина за %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1243
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1264
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1274
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1295
 msgid "# active connections"
 msgstr "# активних веза"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1425
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1456
 #, c-format
 msgid "Loading saved hostlist entries from file `%s' \n"
 msgstr "Учитавам сачуване уносе списка домаћина из датотеке „%s“ \n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1430
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1461
 #, c-format
 msgid "Hostlist file `%s' does not exist\n"
 msgstr "Датотека списка домаћина „%s“ не постоји\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1441
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1472
 #, c-format
 msgid "Could not open file `%s' for reading to load hostlists: %s\n"
 msgstr ""
 "Не могу да отворим датотеку „%s“ за читање да утоварим спискове домаћина: "
 "%s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1482
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1513
 #, c-format
 msgid "%u hostlist URIs loaded from file\n"
 msgstr "УРИ-и %u списка домаћина су учитани из датотеке\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1485
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1516
 msgid "# hostlist URIs read from file"
 msgstr "# УРИ-и списка домаћина су учитани из датотеке"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1536
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1567
 #, c-format
 msgid "Could not open file `%s' for writing to save hostlists: %s\n"
 msgstr ""
 "Не могу да отворим датотеку „%s“ за писање да сачувам спискове домаћина: %s\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1543
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1574
 #, c-format
 msgid "Writing %u hostlist URIs to `%s'\n"
 msgstr "Уписујем УРИ-је %u списка домаћина у „%s“\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1576
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1595
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1607
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1626
 #, c-format
 msgid "Error writing hostlist URIs to file `%s'\n"
 msgstr "Грешка писања УРИ-а списка домаћина у датотеку „%s“\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1589
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1620
 msgid "# hostlist URIs written to file"
 msgstr "# УРИ-и списка домаћина су записани у датотеку"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1690
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1721
 #, c-format
 msgid "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"
 msgstr ""
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1719
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1750
 msgid "Learning is enabled on this peer\n"
 msgstr "Учење је укључено на овом парњаку\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1732
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1763
 msgid "Learning is not enabled on this peer\n"
 msgstr "Учење није укључено на овом парњаку\n"
 
-#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1746
+#: src/service/hostlist/gnunet-daemon-hostlist_client.c:1777
 #, c-format
 msgid ""
 "Since learning is not enabled on this peer, hostlist file `%s' was removed\n"
@@ -6461,7 +6469,7 @@ msgid "# hostlist advertisements send"
 msgstr "# рекламе списка домаћина су послате"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:765
+#: src/service/topology/gnunet-daemon-topology.c:786
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
@@ -6761,42 +6769,42 @@ msgstr "нисам нашао наредбу „external-ip“\n"
 msgid "`upnpc' command not found\n"
 msgstr "нисам нашао „upnpc“ наредбу\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1152
+#: src/service/peerstore/gnunet-service-peerstore.c:1141
 #, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“: %s\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1225
+#: src/service/peerstore/gnunet-service-peerstore.c:1214
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Не могу да отворим „%s“.\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1244
+#: src/service/peerstore/gnunet-service-peerstore.c:1233
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr "Увозим „HELLO“-е из „%s“\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1255
+#: src/service/peerstore/gnunet-service-peerstore.c:1244
 msgid "Skipping import of included HELLOs\n"
 msgstr "Прескачем увоз укључених „HELLO“-а\n"
 
-#: src/service/peerstore/peerstore_api.c:532
+#: src/service/peerstore/peerstore_api.c:574
 #, fuzzy
 msgid "Unexpected store response.\n"
 msgstr "Неочекивано време за одговор са „fs“ услуге."
 
-#: src/service/peerstore/peerstore_api.c:564
+#: src/service/peerstore/peerstore_api.c:606
 #, fuzzy
 msgid "Unexpected iteration response.\n"
 msgstr "Неочекивано време за одговор са „fs“ услуге."
 
-#: src/service/peerstore/peerstore_api.c:610
+#: src/service/peerstore/peerstore_api.c:652
 msgid ""
 "Unexpected iteration response, no iterating client found, discarding "
 "message.\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:620
+#: src/service/peerstore/peerstore_api.c:662
 #: src/service/peerstore/peerstore_api_monitor.c:164
 #, fuzzy
 msgid "Received a malformed response from service."
@@ -7137,41 +7145,41 @@ msgstr "Датотека размештаја „%s“ нема података
 msgid "Topology file %s cannot be read\n"
 msgstr "Не могу да прочитам датотеку размештаја „%s“\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:268
+#: src/service/topology/gnunet-daemon-topology.c:286
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# захтеви везе су издати преносу"
 
-#: src/service/topology/gnunet-daemon-topology.c:462
+#: src/service/topology/gnunet-daemon-topology.c:480
 msgid "# HELLO messages gossipped"
 msgstr "# „HELLO“ поруке су наклопљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:733
+#: src/service/topology/gnunet-daemon-topology.c:752
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:741
+#: src/service/topology/gnunet-daemon-topology.c:761
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:848
+#: src/service/topology/gnunet-daemon-topology.c:869
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "Нисам успео да се повежем са услугом језгра, не могу да радим размештајем!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:922
+#: src/service/topology/gnunet-daemon-topology.c:943
 msgid "# HELLO messages received"
 msgstr "# „HELLO“ поруке су примљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:1073
+#: src/service/topology/gnunet-daemon-topology.c:1095
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3764
+#: src/service/transport/gnunet-communicator-tcp.c:3777
 #: src/service/transport/gnunet-communicator-udp.c:3408
-#: src/service/transport/gnunet-service-transport.c:12121
+#: src/service/transport/gnunet-service-transport.c:12128
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Услузи преноса недостају поставке подешавања кључа. Излазим.\n"
 
@@ -7179,7 +7187,7 @@ msgstr "Услузи преноса недостају поставке поде
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4101
+#: src/service/transport/gnunet-communicator-tcp.c:4114
 msgid "GNUnet TCP communicator"
 msgstr ""
 
@@ -7486,6 +7494,12 @@ msgstr "Нисам успео да реплицирам блок у остави
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
+
+#, fuzzy, c-format
+#~ msgid ""
+#~ "Local peer: %s\n"
+#~ "\n"
+#~ msgstr "Ја сам парњак „%s“.\n"
 
 #, fuzzy
 #~ msgid "timeout for the profiling"
@@ -8024,10 +8038,6 @@ msgstr "Нисам успео да се повежем са смештајем �
 #, c-format
 #~ msgid "Quota for network `%11s' (in/out): %10s / %10s\n"
 #~ msgstr "Квота за мрежу „%11s“ (улаз/излаз): %10s / %10s\n"
-
-#, c-format
-#~ msgid "Failed to parse peer identity `%s'\n"
-#~ msgstr "Нисам успео да обрадим идентитет парњака „%s“\n"
 
 #, fuzzy, c-format
 #~ msgid "Please select one operation: %s or %s or %s or %s or %s\n"
