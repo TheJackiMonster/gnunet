@@ -10,9 +10,7 @@ endif
 
 
 EXTRA_DIST = \
-  reclaim.conf \
-  test_reclaim_defaults.conf \
-  test_reclaim.conf
+  reclaim.conf
 
 pkgcfgdir= $(pkgdatadir)/config.d/
 
