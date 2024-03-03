@@ -37,7 +37,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-strings", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-        GNUNET_log_from_strerror (kind, "util-strings", syscall)
+  GNUNET_log_from_strerror (kind, "util-strings", syscall)
 
 
 size_t
@@ -1504,8 +1504,8 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
   pos = 0;
   for (size_t i = 0; i < count; i++)
   {
-    ssize_t start;
-    ssize_t slash;
+    size_t start;
+    size_t slash;
 
     start = pos;
     while (';' != routeList[pos])
@@ -1699,7 +1699,7 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define cvtfind(a)                        \
-        ((((a) >= 'A') && ((a) <= 'Z'))         \
+  ((((a) >= 'A') && ((a) <= 'Z'))         \
    ? (a) - 'A'                          \
    : (((a) >= 'a') && ((a) <= 'z'))     \
    ? (a) - 'a' + 26                 \
@@ -1709,15 +1709,15 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define CHECK_CRLF                                                \
-        while ( (data[i] == '\r') || (data[i] == '\n') )                \
-        {                                                               \
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
-                      "ignoring CR/LF\n");                              \
-          i++;                                                          \
-          if (i >= len) {                                               \
-            goto END;                                                   \
-          }                                                             \
-        }
+  while ( (data[i] == '\r') || (data[i] == '\n') )                \
+  {                                                               \
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
+                "ignoring CR/LF\n");                              \
+    i++;                                                          \
+    if (i >= len) {                                               \
+      goto END;                                                   \
+    }                                                             \
+  }
 
 
 size_t

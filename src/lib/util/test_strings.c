@@ -43,7 +43,7 @@
 #define URLENCODE_TEST_VECTOR_PLAIN "Asbjlaw=ljsdlasjd?人aslkdsa"
 
 #define URLENCODE_TEST_VECTOR_ENCODED \
-        "Asbjlaw\%3Dljsdlasjd\%3F\%E4\%BA\%BAaslkdsa"
+  "Asbjlaw\%3Dljsdlasjd\%3F\%E4\%BA\%BAaslkdsa"
 
 int
 main (int argc, char *argv[])
@@ -57,6 +57,11 @@ main (int argc, char *argv[])
   struct GNUNET_TIME_Relative rt;
   struct GNUNET_TIME_Relative rtx;
   const char *hdir;
+  struct GNUNET_STRINGS_IPv6NetworkPolicy *pol;
+
+  pol = GNUNET_STRINGS_parse_ipv6_policy ("::1;");
+  GNUNET_assert (NULL != pol);
+  GNUNET_free (pol);
 
   GNUNET_log_setup ("test_strings", "ERROR", NULL);
   sprintf (buf, "4 %s", _ (/* size unit */ "b"));
