@@ -1,5 +1,18 @@
 #!/bin/bash
 # This file is in the public domain.
+
+if ! which certutil > /dev/null
+then
+    echo "certutil required"
+    exit 77
+fi
+
+if ! which openssl > /dev/null
+then
+    echo "certutil required"
+    exit 77
+fi
+
 TEST_DOMAIN="www.test"
 GNUNET_TMP="$(gnunet-config -f -s PATHS -o GNUNET_TMP)"
 PROXY_CACERT="$(gnunet-config -f -c test_gns_proxy.conf -s gns-proxy -o PROXY_CACERT)"
