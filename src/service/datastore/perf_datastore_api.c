@@ -507,7 +507,8 @@ run_continuation (void *cls)
     break;
 
   case RP_ERROR:
-    GNUNET_DATASTORE_disconnect (datastore, GNUNET_YES);
+    GNUNET_DATASTORE_disconnect (datastore,
+                                 GNUNET_YES);
     GNUNET_free (crc);
     ok = 1;
     break;

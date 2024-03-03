@@ -262,7 +262,8 @@ run_continuation (void *cls)
   case RP_DONE:
     GNUNET_assert (0 == crc->i);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Finished, disconnecting\n");
-    GNUNET_DATASTORE_disconnect (datastore, GNUNET_YES);
+    GNUNET_DATASTORE_disconnect (datastore,
+                                 GNUNET_YES);
     GNUNET_free (crc);
     ok = 0;
   }
@@ -270,7 +271,9 @@ run_continuation (void *cls)
 
 
 static void
-run_tests (void *cls, int success, struct GNUNET_TIME_Absolute min_expiration,
+run_tests (void *cls,
+           int success,
+           struct GNUNET_TIME_Absolute min_expiration,
            const char *msg)
 {
   struct CpsRunContext *crc = cls;
@@ -280,11 +283,13 @@ run_tests (void *cls, int success, struct GNUNET_TIME_Absolute min_expiration,
     fprintf (stderr,
              "Test 'put' operation failed with error `%s' database likely not setup, skipping test.\n",
              msg);
-    GNUNET_DATASTORE_disconnect (datastore, GNUNET_YES);
+    GNUNET_DATASTORE_disconnect (datastore,
+                                 GNUNET_YES);
     GNUNET_free (crc);
     return;
   }
-  GNUNET_SCHEDULER_add_now (&run_continuation, crc);
+  GNUNET_SCHEDULER_add_now (&run_continuation,
+                            crc);
 }
 
 

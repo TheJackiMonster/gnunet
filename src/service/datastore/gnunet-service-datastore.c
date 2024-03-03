@@ -1078,11 +1078,13 @@ handle_remove (void *cls, const struct DataMessage *dm)
  * @param message the actual message
  */
 static void
-handle_drop (void *cls, const struct GNUNET_MessageHeader *message)
+handle_drop (void *cls,
+             const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_SERVICE_Client *client = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Processing DROP request\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Processing DROP request\n");
   do_drop = GNUNET_YES;
   GNUNET_SERVICE_client_continue (client);
 }
@@ -1330,7 +1332,8 @@ cleaning_task (void *cls)
   }
   if (GNUNET_YES == do_drop)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Dropping database!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Dropping database!\n");
     plugin->api->drop (plugin->api->cls);
     payload = 0;
     last_sync++;
