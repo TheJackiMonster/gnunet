@@ -22,6 +22,7 @@
  * @brief testcase for namestore: Import a lot of records
  * @author Martin Schanzenbach
  */
+#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
 

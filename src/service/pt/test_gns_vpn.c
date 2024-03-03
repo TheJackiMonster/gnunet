@@ -603,12 +603,23 @@ identity_cb (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Creating `www` record\n");
-  qe = GNUNET_NAMESTORE_records_store (namestore,
-                                       zone_key,
-                                       "www",
-                                       1, &rd,
-                                       &commence_testing,
-                                       NULL);
+  {
+    struct GNUNET_NAMESTORE_RecordInfo ri = {
+      .a_label = "www",
+      .a_rd_count = 1,
+      .a_rd = &rd
+    };
+    unsigned int did_sent;
+
+    qe = GNUNET_NAMESTORE_records_store (namestore,
+                                         zone_key,
+                                         1,
+                                         &ri,
+                                         &did_sent,
+                                         &commence_testing,
+                                         NULL);
+    GNUNET_assert (1 == did_sent);
+  }
   GNUNET_free_nz ((void **) rd.data);
   GNUNET_free (rd_string);
 }

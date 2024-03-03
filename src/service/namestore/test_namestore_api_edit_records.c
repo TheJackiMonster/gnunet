@@ -21,6 +21,7 @@
  * @file namestore/test_namestore_api_edit_records.c
  * @brief testcase for namestore_api.c: Multiple clients work with record set.
  */
+#include "platform.h"
 #include "gnunet_error_codes.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_scheduler_lib.h"

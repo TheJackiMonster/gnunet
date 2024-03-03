@@ -21,6 +21,7 @@
  * @file namestore/test_namestore_api_monitoring_existing.c
  * @brief testcase for zone monitoring functionality: add records first, then monitor
  */
+#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
 

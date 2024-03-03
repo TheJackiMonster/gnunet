@@ -21,6 +21,7 @@
  * @file namestore/test_namestore_api_zone_to_name.c
  * @brief testcase for zone to name translation
  */
+#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
 

@@ -22,6 +22,7 @@
  * @brief testcase for zone iteration functionality: iterate all zones
  * @author Christian Grothoff
  */
+#include "platform.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_testing_lib.h"
 
