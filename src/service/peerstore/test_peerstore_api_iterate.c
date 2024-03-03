@@ -21,7 +21,6 @@
  * @file peerstore/test_peerstore_api_iterate.c
  * @brief testcase for peerstore iteration operation
  */
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
@@ -90,11 +89,11 @@ iter2_cb (void *cls,
   GNUNET_assert (count == 2);
   count = 0;
   ic = GNUNET_PEERSTORE_iteration_start (h,
-                                       ss,
-                                       NULL,
-                                       NULL,
-                                       &iter3_cb,
-                                       NULL);
+                                         ss,
+                                         NULL,
+                                         NULL,
+                                         &iter3_cb,
+                                         NULL);
 }
 
 
@@ -118,11 +117,11 @@ iter1_cb (void *cls,
   GNUNET_assert (count == 1);
   count = 0;
   ic = GNUNET_PEERSTORE_iteration_start (h,
-                                       ss,
-                                       &p1,
-                                       NULL,
-                                       &iter2_cb,
-                                       NULL);
+                                         ss,
+                                         &p1,
+                                         NULL,
+                                         &iter2_cb,
+                                         NULL);
 }
 
 
@@ -160,10 +159,10 @@ store_cont (void *cls, int success)
   {
     count = 0;
     ic = GNUNET_PEERSTORE_iteration_start (h,
-                                         ss,
-                                         &p1,
-                                         k1,
-                                         &iter1_cb, NULL);
+                                           ss,
+                                           &p1,
+                                           k1,
+                                           &iter1_cb, NULL);
     return;
   }
   count++;

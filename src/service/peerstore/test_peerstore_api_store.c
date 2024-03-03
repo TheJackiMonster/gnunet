@@ -21,8 +21,8 @@
  * @file peerstore/test_peerstore_api_store.c
  * @brief testcase for peerstore store operation
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_testing_lib.h"
 
@@ -80,11 +80,11 @@ test3_cont (void *cls,
     return;
   count = 0;
   ic = GNUNET_PEERSTORE_iteration_start (h,
-                                       subsystem,
-                                       &pid,
-                                       key,
-                                       &test3_cont2,
-                                       NULL);
+                                         subsystem,
+                                         &pid,
+                                         key,
+                                         &test3_cont2,
+                                         NULL);
 }
 
 
@@ -137,10 +137,10 @@ test2_cont (void *cls, int success)
     return;
   count = 0;
   ic = GNUNET_PEERSTORE_iteration_start (h,
-                                       subsystem,
-                                       &pid, key,
-                                       &test2_cont2,
-                                       NULL);
+                                         subsystem,
+                                         &pid, key,
+                                         &test2_cont2,
+                                         NULL);
 }
 
 
@@ -195,11 +195,11 @@ test1_cont (void *cls, int success)
     return;
   count = 0;
   ic = GNUNET_PEERSTORE_iteration_start (h,
-                                       subsystem,
-                                       &pid,
-                                       key,
-                                       &test1_cont2,
-                                       NULL);
+                                         subsystem,
+                                         &pid,
+                                         key,
+                                         &test1_cont2,
+                                         NULL);
 }
 
 
