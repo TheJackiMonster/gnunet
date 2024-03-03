@@ -122,23 +122,6 @@ testGeneratePkScalarMult (void)
 
 
 /*
-* Test Description: Simply testing, if function goes through.
-*/
-static int
-testKeyPairEasy (void)
-{
-  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  int i = GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
-  if (i == GNUNET_SYSERR)
-  {
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
-
-
-/*
 * Test Description: After generating a valid private key and the corresponding representative with
 * GNUNET_CRYPTO_ecdhe_elligator_key_create(), check if using the direct map results in the corresponding public key.
 */
@@ -148,20 +131,15 @@ testInverseDirect (void)
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePublicKey point;
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  int i = GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
-  if (i == -1)
-  {
-    return GNUNET_SYSERR;
-  }
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
 
   unsigned char pub[crypto_scalarmult_SCALARBYTES];
-  bool highY;
   if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pub, &pk) == -1)
   {
     return GNUNET_SYSERR;
   }
 
-  GNUNET_CRYPTO_ecdhe_elligator_decoding (&point, &highY, &repr);
+  GNUNET_CRYPTO_ecdhe_elligator_decoding (&point, NULL, &repr);
 
   if (memcmp (pub, point.q_y, sizeof(point.q_y)) != 0)
   {
@@ -194,14 +172,7 @@ testTimeKeyGenerate (void)
   {
     fprintf (stderr, "%s", ".");
     fflush (stderr);
-    if (GNUNET_SYSERR ==
-        GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk))
-    {
-      fprintf (stderr,
-               "GNUNET_CRYPTO_ecdhe_elligator_key_create SYSERR\n");
-      ok = GNUNET_SYSERR;
-    }
-    // printLittleEndianHex(repr.r,32);
+    GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
   }
   printf ("%d encoded public keys generated in %s\n",
           ITER,
@@ -218,20 +189,12 @@ testTimeDecoding (void)
   struct GNUNET_CRYPTO_EcdhePublicKey point;
   struct GNUNET_CRYPTO_ElligatorRepresentative repr[ITER];
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  bool high_y;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
 
   for (unsigned int i = 0; i < ITER; i++)
   {
-    if (GNUNET_SYSERR ==
-        GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr[i], &pk))
-    {
-      fprintf (stderr,
-               "GNUNET_CRYPTO_ecdhe_elligator_key_create SYSERR\n");
-      ok = GNUNET_SYSERR;
-      continue;
-    }
+    GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr[i], &pk);
   }
 
   fprintf (stderr, "%s", "W");
@@ -242,7 +205,7 @@ testTimeDecoding (void)
     fprintf (stderr, "%s", ".");
     fflush (stderr);
     if (false ==
-        GNUNET_CRYPTO_ecdhe_elligator_decoding (&point, &high_y, &repr[i]))
+        GNUNET_CRYPTO_ecdhe_elligator_decoding (&point, NULL, &repr[i]))
     {
       fprintf (stderr,
                "GNUNET_CRYPTO_ecdhe_elligator_decoding SYSERR\n");
@@ -287,11 +250,6 @@ main (int argc, char *argv[])
   if (GNUNET_OK != testGeneratePkScalarMult ())
   {
     printf ("generate PK failed!");
-    failure_count++;
-  }
-  if (GNUNET_OK != testKeyPairEasy ())
-  {
-    printf ("key generation doesn't work!");
     failure_count++;
   }
   if (GNUNET_OK != testInverseDirect ())

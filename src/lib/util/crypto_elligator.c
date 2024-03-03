@@ -451,9 +451,18 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
                                         GNUNET_CRYPTO_ElligatorRepresentative *
                                         representative)
 {
+  // if sign of direct map transformation not needed whether throw it away
+  bool high_y_local;
+  bool *high_y_ptr;
+  if (NULL == high_y)
+    high_y_ptr = &high_y_local;
+  else
+    high_y_ptr = high_y;
+
   representative->r[31] &= 63;
+  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"Print high_y\n");
   return GNUNET_CRYPTO_ecdhe_elligator_direct_map ((uint8_t *) point->q_y,
-                                                   high_y,
+                                                   high_y_ptr,
                                                    (uint8_t *) representative->r);
 }
 
@@ -536,10 +545,9 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
                                                    *pk)
 {
   // eHigh
-  // Note crypto_scalarmult_ed25519_base clamps the scalar (here pk->d). TODO: test this
-  // TODO: if pk-d is zero cryto_scalarmult... return -1, otherwise 0. Problem if 0? Unlikely anyway
+  // crypto_scalarmult_ed25519_base clamps the scalar pk->d and return only 0 if pk->d is zero
   unsigned char eHigh[crypto_scalarmult_SCALARBYTES] = {0};
-  crypto_scalarmult_ed25519_base (eHigh, pk->d);
+  GNUNET_assert (0 == crypto_scalarmult_ed25519_base (eHigh, pk->d));
 
   // eLow: choose a random point of low order
   int sLow = (pk->d)[0] % 8;
@@ -553,13 +561,6 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
     return GNUNET_SYSERR;
   }
 
-  // Convert point in Ed25519 to Montgomery point
-  // TODO: libsodium convert function doesn't work. Figure out why. Maybe because we work on the whole curve rather than the prime subgroup.
-  /*if (crypto_sign_ed25519_pk_to_curve25519 (pub, edPub) == -1)
-  {
-    return -1;
-  }*/
-
   if (Elligator_2_Curve25519_convert_from_Ed25519 (pub, edPub) == false)
   {
     return GNUNET_SYSERR;
@@ -568,86 +569,7 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
 }
 
 
-/**
-Doesn't work because crypto_scalarmult clamps the scalar. We don't want this.
-Unfortunately a "noclamp" version of multiplication is only available for edwards25519 in libsodium.
-We therefore can't implement the second (alternative) method for generate_public_key.
-Keeping this code for discussion. Delete later.
-
-// Curve25519 point (only x-coordinate) which is needed for the alternativ method of
-//GNUNET_CRYPTO_ecdhe_elligator_generate_public_key_alternativ
-static const unsigned char kPoint[] = {
-  0xD8, 0x86, 0x1A, 0xA2, 0x78, 0x7A, 0xD9, 0x26,
-  0x8B, 0x74, 0x74, 0xB6, 0x82, 0xE3, 0xBE, 0xC3,
-  0xCE, 0x36, 0x9A, 0x1E, 0x5E, 0x31, 0x47, 0xA2,
-  0x6D, 0x37, 0x7C, 0xFD, 0x20, 0xB5, 0xDF, 0x75
-};
-
-// Curve25519 order of prime order subgroup
-static const unsigned char L[] = {
-  0xED, 0xD3, 0xF5, 0x5C, 0x1A, 0x63, 0x12, 0x58,
-  0xD6, 0x9C, 0xF7, 0xA2, 0xDE, 0xF9, 0xDE, 0x14,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10
-};
-
-static void multiplyLittleEndianArray(const unsigned char *input, int multiplier, unsigned char *output, int arraySize) {
-    int carry = 0;
-
-    for (int i = 0; i < arraySize; ++i) {
-        int result = input[i] * multiplier + carry;
-        output[i] = result & 0xFF;  // Store the lower 8 bits in the output array
-        carry = result >> 8;        // Carry the remaining bits to the next iteration
-    }
-}
-
-static void addLittleEndianArrays(const unsigned char *array1, const unsigned char *array2, unsigned char *result, int arraySize) {
-    int carry = 0;
-
-    for (int i = 0; i < arraySize; ++i) {
-        int sum = array1[i] + array2[i] + carry;
-        result[i] = sum & 0xFF;  // Store the lower 8 bits in the result array
-        carry = sum >> 8;        // Carry the remaining bits to the next iteration
-    }
-}
-
-Would call GNUNET_CRYPTO_ecdhe_key_create (struct GNUNET_CRYPTO_EcdhePrivateKey *pk) for pk which is not clamped
-Following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key
-int
-GNUNET_CRYPTO_ecdhe_elligator_generate_public_key_alternativ (unsigned char
-                                                   pub[
-                                                     crypto_scalarmult_SCALARBYTES
-                                                   ],
-                                                   struct
-                                                   GNUNET_CRYPTO_EcdhePrivateKey
-                                                   *pk)
-{
-  unsigned char sClamp[crypto_scalarmult_BYTES] = {0};
-  memcpy(sClamp, pk->d, sizeof(sClamp));
-  sClamp[0] &= 248;
-  sClamp[31] &= 127;
-  sClamp[31] |= 64;
-
-  unsigned char sLow[crypto_scalarmult_BYTES] = {0};
-  int multiplier = (pk->d)[0] % 8;
-  multiplyLittleEndianArray(L, multiplier, sLow, 32);
-  unsigned char sDirty[crypto_scalarmult_BYTES] = {0};
-  addLittleEndianArrays(sClamp, sLow, sDirty, 32);
-
-  int check =  crypto_scalarmult(pub, sDirty,
-                      kPoint);
-
-  if (check == -1)
-  {
-    printf("crypto_scalarmult didn't work\n");
-    return -1;
-  }
-
-  return 0;
-}
-**/
-
-enum GNUNET_GenericReturnValue
+void
 GNUNET_CRYPTO_ecdhe_elligator_key_create (
   struct GNUNET_CRYPTO_ElligatorRepresentative  *repr,
   struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
@@ -665,10 +587,12 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                                 pk,
                                 sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-    if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pub, pk) ==
-        GNUNET_SYSERR)
+
+    // Continue if generate_public_key fails
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pub, pk))
     {
-      return GNUNET_SYSERR;
+      continue;
     }
 
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
@@ -695,5 +619,4 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
   {
     repr->r[31] |= 64;
   }
-  return GNUNET_OK;
 }
