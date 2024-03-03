@@ -22,11 +22,10 @@
  * @brief test for helper library for handling URI-based HELLOs
  * @author Christian Grothoff
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_signatures.h"
-#include "gnunet_hello_uri_lib.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_hello_uri_lib.h"
 
 
 /**
