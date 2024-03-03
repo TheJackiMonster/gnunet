@@ -55,6 +55,19 @@ finish (void *cls)
 }
 
 
+/**
+ * Continuation called with a status result.
+ *
+ * @param cls closure
+ * @param success #GNUNET_OK or #GNUNET_SYSERR
+ */
+static void
+cont2 (void *cls, int success)
+{
+  sr = NULL;
+}
+
+
 static void
 cont (void *cls)
 {
@@ -66,7 +79,7 @@ cont (void *cls)
                                strlen (val) + 1,
                                GNUNET_TIME_UNIT_FOREVER_ABS,
                                GNUNET_PEERSTORE_STOREOPTION_REPLACE,
-                               NULL,
+                               &cont2,
                                NULL);
 }
 
