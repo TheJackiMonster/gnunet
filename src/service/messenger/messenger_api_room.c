@@ -30,6 +30,7 @@
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
+#include "messenger_api_message_control.h"
 #include <string.h>
 
 struct GNUNET_MESSENGER_Room*
@@ -59,6 +60,8 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
   room->links = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
   init_queue_messages (&(room->queue));
+
+  room->control = create_message_control (room);
 
   return room;
 }
@@ -93,6 +96,8 @@ void
 destroy_room (struct GNUNET_MESSENGER_Room *room)
 {
   GNUNET_assert (room);
+
+  destroy_message_control (room->control);
 
   clear_queue_messages (&(room->queue));
   clear_list_tunnels (&(room->entries));
@@ -135,6 +140,15 @@ is_room_available (const struct GNUNET_MESSENGER_Room *room)
     return GNUNET_YES;
   else
     return GNUNET_NO;
+}
+
+
+struct GNUNET_MESSENGER_Handle*
+get_room_handle (struct GNUNET_MESSENGER_Room *room)
+{
+  GNUNET_assert (room);
+
+  return room->handle;
 }
 
 

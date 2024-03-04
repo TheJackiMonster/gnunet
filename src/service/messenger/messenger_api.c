@@ -34,6 +34,7 @@
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
+#include "messenger_api_message_control.h"
 #include "messenger_api_message_kind.h"
 #include "messenger_api_room.h"
 #include "messenger_api_util.h"
@@ -295,22 +296,16 @@ handle_recv_message (void *cls,
     goto skip_message;
   }
 
-  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store (
-    handle);
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Raw contact from sender and context: (%s : %s)\n",
               GNUNET_h2s (sender), GNUNET_h2s_full (context));
 
-  struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
-    store, context, sender);
-
-  handle_room_message (room, contact, &message, hash, flags);
-
-  if (flags & GNUNET_MESSENGER_FLAG_RECENT)
-    update_room_last_message (room, hash);
-
-  callback_room_message (room, hash);
+  process_message_control (room->control,
+                           sender,
+                           context,
+                           hash,
+                           &message,
+                           flags);
 
 skip_message:
   cleanup_message (&message);

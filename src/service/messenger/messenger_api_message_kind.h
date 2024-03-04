@@ -19,12 +19,12 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/gnunet-service-messenger_message_kind.h
- * @brief GNUnet MESSENGER service
+ * @file src/messenger/messenger_api_message_kind.h
+ * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
-#ifndef GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
-#define GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
+#ifndef GNUNET_MESSENGER_API_MESSAGE_KIND_H
+#define GNUNET_MESSENGER_API_MESSAGE_KIND_H
 
 #include "gnunet_messenger_service.h"
 #include "gnunet_reclaim_lib.h"
@@ -136,4 +136,4 @@ create_message_delete (const struct GNUNET_HashCode *hash,
 struct GNUNET_MESSENGER_Message*
 create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier);
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
+#endif //GNUNET_MESSENGER_API_MESSAGE_KIND_H
