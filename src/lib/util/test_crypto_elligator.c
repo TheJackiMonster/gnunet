@@ -226,20 +226,22 @@ testTimeDecoding (void)
 static int
 elligatorKEM ()
 {
-  struct GNUNET_CRYPTO_EddsaPrivateKey pk;
-  struct GNUNET_CRYPTO_EddsaPublicKey pub;
-  GNUNET_CRYPTO_eddsa_key_create (&pk);
-  GNUNET_CRYPTO_eddsa_key_get_public (&pk,&pub);
+  struct GNUNET_CRYPTO_EddsaPrivateKey pk_receiver;
+  struct GNUNET_CRYPTO_EddsaPublicKey pub_receiver;
+  GNUNET_CRYPTO_eddsa_key_create (&pk_receiver);
+  GNUNET_CRYPTO_eddsa_key_get_public (&pk_receiver, &pub_receiver);
 
-  struct GNUNET_CRYPTO_ElligatorRepresentative r;
+  struct GNUNET_CRYPTO_ElligatorRepresentative r_sender;
 
   // Sender side
   struct GNUNET_HashCode key_material_encaps;
-  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&pub, &r, &key_material_encaps);
+  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&pub_receiver, &r_sender,
+                                            &key_material_encaps);
 
   // Receiving side
   struct GNUNET_HashCode key_material_decaps;
-  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (&pk,&r,&key_material_decaps);
+  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (&pk_receiver, &r_sender,
+                                            &key_material_decaps);
 
   if (memcmp (&(key_material_encaps.bits),&(key_material_decaps.bits),
               sizeof(key_material_encaps.bits)) != 0)

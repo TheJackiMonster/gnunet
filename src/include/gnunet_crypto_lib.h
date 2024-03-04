@@ -2692,7 +2692,7 @@ bool
 GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
                                         GNUNET_CRYPTO_EcdhePublicKey *point,
                                         bool *high_y,
-                                        struct
+                                        const struct
                                         GNUNET_CRYPTO_ElligatorRepresentative *
                                         seriliazed_representative);
 
@@ -2749,10 +2749,10 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
 
 /**
  * @ingroup crypto
- * Carries out ecdh encapsulation with given public key and a freshly created ephemeral key pair. Ephemeral public key is given as a representative.
+ * Carries out ecdh encapsulation with given public key and the private key from a freshly created ephemeral key pair.
  *
  * Following the terminology in https://eprint.iacr.org/2021/509.pdf
- * @param pub receivers edwards curve public key (X)
+ * @param pub given edwards curve public key (X)
  * @param r representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
  * @param key_material where to write the key material H(aX)=H(x(aG))
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
@@ -2767,18 +2767,18 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
 
 /**
  * @ingroup crypto
- * Carries out ecdh decapsulation with given private key and the representative of received public key.
+ * Carries out ecdh decapsulation with own private key and the representative of the received public key.
  *
  * Following the terminology in https://eprint.iacr.org/2021/509.pdf
  * @param priv own private key (x)
- * @param r received representative (direct_map(r)=A=aG)
+ * @param r received representative r, from which we can obtain the public key A (direct_map(r)=A=aG)
  * @param key_material where to write the key material H(xA)=H(a(xG))
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_elligator_kem_decaps (const struct
                                           GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                          struct
+                                          const struct
                                           GNUNET_CRYPTO_ElligatorRepresentative
                                           *r,
                                           struct GNUNET_HashCode *key_material);

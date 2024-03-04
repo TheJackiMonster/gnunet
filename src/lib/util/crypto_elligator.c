@@ -447,11 +447,11 @@ bool
 GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
                                         GNUNET_CRYPTO_EcdhePublicKey *point,
                                         bool *high_y,
-                                        struct
+                                        const struct
                                         GNUNET_CRYPTO_ElligatorRepresentative *
                                         representative)
 {
-  // if sign of direct map transformation not needed whether throw it away
+  // if sign of direct map transformation not needed throw it away
   bool high_y_local;
   bool *high_y_ptr;
   if (NULL == high_y)
@@ -459,11 +459,13 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
   else
     high_y_ptr = high_y;
 
-  representative->r[31] &= 63;
+  struct GNUNET_CRYPTO_ElligatorRepresentative r_tmp;
+  memcpy (&r_tmp, &representative->r, sizeof(r_tmp.r));
+  r_tmp.r[31] &= 63;
   // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"Print high_y\n");
   return GNUNET_CRYPTO_ecdhe_elligator_direct_map ((uint8_t *) point->q_y,
                                                    high_y_ptr,
-                                                   (uint8_t *) representative->r);
+                                                   (uint8_t *) r_tmp.r);
 }
 
 
@@ -630,21 +632,18 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
                                           *r,
                                           struct GNUNET_HashCode *key_material)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk_eph;
-  struct GNUNET_CRYPTO_EcdhePublicKey pub_eph;
+  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
 
-  GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk_eph);
-  // TODO: probably makes more sense if key_create outputs ecdhe pub instead of repr because ecdhe pub is needed for ecdh on senders side.
-  GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub_eph, NULL, r);
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
 
-  return GNUNET_CRYPTO_ecdh_eddsa (&sk_eph, pub, key_material);
+  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
 }
 
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_elligator_kem_decaps (const struct
                                           GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                          struct
+                                          const struct
                                           GNUNET_CRYPTO_ElligatorRepresentative
                                           *r,
                                           struct GNUNET_HashCode *key_material)

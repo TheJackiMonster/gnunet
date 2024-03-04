@@ -198,9 +198,9 @@ struct UdpHandshakeSignature
 struct InitialKX
 {
   /**
-   * Ephemeral key for KX.
+   * Representative of ephemeral key for KX.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_ElligatorRepresentative representative;
 
   /**
    * HMAC for the following encrypted message, using GCM.  HMAC uses
@@ -1330,6 +1330,27 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
 
 
 /**
+ * Setup shared secret for decryption for initial handshake.
+ *
+ * @param representative of ephemeral key we received from the other peer
+ * @return new shared secret
+ */
+static struct SharedSecret *
+setup_initial_shared_secret_dec (const struct
+                                 GNUNET_CRYPTO_ElligatorRepresentative *
+                                 representative)
+{
+  struct SharedSecret *ss;
+
+  ss = GNUNET_new (struct SharedSecret);
+  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (my_private_key, representative,
+                                            &ss->master);
+  calculate_cmac (ss);
+  return ss;
+}
+
+
+/**
  * Setup new shared secret for encryption using KEM.
  *
  * @param[out] ephemeral ephemeral key to be sent to other peer (encapsulated key from KEM)
@@ -1344,6 +1365,35 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
   struct GNUNET_HashCode k;
 
   GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
+  ss = GNUNET_new (struct SharedSecret);
+  memcpy (&ss->master, &k, sizeof (k));
+  calculate_cmac (ss);
+  ss->receiver = receiver;
+  GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
+  receiver->num_secrets++;
+  GNUNET_STATISTICS_update (stats, "# Secrets active", 1, GNUNET_NO);
+  return ss;
+}
+
+
+/**
+ * Setup new shared secret for encryption using KEM for initial handshake.
+ *
+ * @param[out] representative of ephemeral key to be sent to other peer (encapsulated key from KEM)
+ * @param[in,out] receiver queue to initialize encryption key for
+ * @return new shared secret
+ */
+static struct SharedSecret *
+setup_initial_shared_secret_ephemeral (struct
+                                       GNUNET_CRYPTO_ElligatorRepresentative *
+                                       representative,
+                                       struct ReceiverAddress *receiver)
+{
+  struct SharedSecret *ss;
+  struct GNUNET_HashCode k;
+
+  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&receiver->target.public_key,
+                                            representative, &k);
   ss = GNUNET_new (struct SharedSecret);
   memcpy (&ss->master, &k, sizeof (k));
   calculate_cmac (ss);
@@ -2072,7 +2122,7 @@ sock_read (void *cls)
       struct SenderAddress *sender;
 
       kx = (const struct InitialKX *) buf;
-      ss = setup_shared_secret_dec (&kx->ephemeral);
+      ss = setup_initial_shared_secret_dec (&kx->representative);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Before DEC\n");
 
@@ -2097,7 +2147,11 @@ sock_read (void *cls)
                   "Before VERIFY\n");
 
       uc = (const struct UDPConfirmation *) pbuf;
-      if (GNUNET_OK != verify_confirmation (&kx->ephemeral, uc))
+
+      struct GNUNET_CRYPTO_EcdhePublicKey pub_ephemeral;
+      GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub_ephemeral, NULL,
+                                              &kx->representative);
+      if (GNUNET_OK != verify_confirmation (&pub_ephemeral, uc)) // TODO: need ephemeral instead of representative
       {
         GNUNET_break_op (0);
         GNUNET_free (ss);
@@ -2330,8 +2384,10 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   reschedule_receiver_timeout (receiver);
 
   /* setup key material */
-
-  ss = setup_shared_secret_ephemeral (&uhs.ephemeral, receiver);
+  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
+  ss = setup_initial_shared_secret_ephemeral (&repr, receiver);
+  GNUNET_CRYPTO_ecdhe_elligator_decoding (&uhs.ephemeral, NULL,
+                                          &repr);
 
   if (receiver->num_secrets > MAX_SECRETS)
   {
@@ -2371,7 +2427,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   dpos += msize;
   do_pad (out_cipher, &dgram[dpos], sizeof(dgram) - dpos);
   /* Datagram starts with kx */
-  kx.ephemeral = uhs.ephemeral;
+  kx.representative = repr;
   GNUNET_assert (
     0 == gcry_cipher_gettag (out_cipher, kx.gcm_tag, sizeof(kx.gcm_tag)));
   gcry_cipher_close (out_cipher);
@@ -3466,6 +3522,7 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
+  GNUNET_CRYPTO_ecdhe_elligator_initialize ();
   static const struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
