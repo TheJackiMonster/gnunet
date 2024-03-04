@@ -223,6 +223,34 @@ testTimeDecoding (void)
 }
 
 
+static int
+elligatorKEM ()
+{
+  struct GNUNET_CRYPTO_EddsaPrivateKey pk;
+  struct GNUNET_CRYPTO_EddsaPublicKey pub;
+  GNUNET_CRYPTO_eddsa_key_create (&pk);
+  GNUNET_CRYPTO_eddsa_key_get_public (&pk,&pub);
+
+  struct GNUNET_CRYPTO_ElligatorRepresentative r;
+
+  // Sender side
+  struct GNUNET_HashCode key_material_encaps;
+  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&pub, &r, &key_material_encaps);
+
+  // Receiving side
+  struct GNUNET_HashCode key_material_decaps;
+  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (&pk,&r,&key_material_decaps);
+
+  if (memcmp (&(key_material_encaps.bits),&(key_material_decaps.bits),
+              sizeof(key_material_encaps.bits)) != 0)
+  {
+    return GNUNET_SYSERR;
+  }
+
+  return GNUNET_OK;
+}
+
+
 /*
 *More tests to implement:
 * Adding more test vectors from different sources for inverse and direct map
@@ -265,6 +293,12 @@ main (int argc, char *argv[])
   if (GNUNET_OK != testTimeDecoding ())
   {
     printf ("Time measurement of decoding failed!");
+    failure_count++;
+  }
+
+  if (GNUNET_OK != elligatorKEM ())
+  {
+    printf ("Elligator KEM failed!");
     failure_count++;
   }
 

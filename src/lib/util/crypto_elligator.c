@@ -620,3 +620,36 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
     repr->r[31] |= 64;
   }
 }
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
+                                          GNUNET_CRYPTO_EddsaPublicKey *pub,
+                                          struct
+                                          GNUNET_CRYPTO_ElligatorRepresentative
+                                          *r,
+                                          struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePrivateKey sk_eph;
+  struct GNUNET_CRYPTO_EcdhePublicKey pub_eph;
+
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk_eph);
+  // TODO: probably makes more sense if key_create outputs ecdhe pub instead of repr because ecdhe pub is needed for ecdh on senders side.
+  GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub_eph, NULL, r);
+
+  return GNUNET_CRYPTO_ecdh_eddsa (&sk_eph, pub, key_material);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_decaps (const struct
+                                          GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                                          struct
+                                          GNUNET_CRYPTO_ElligatorRepresentative
+                                          *r,
+                                          struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePublicKey pub;
+  GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub, NULL, r);
+  return GNUNET_CRYPTO_eddsa_ecdh (priv, &pub, key_material);
+}

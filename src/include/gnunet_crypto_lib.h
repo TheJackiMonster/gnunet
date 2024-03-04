@@ -2747,6 +2747,42 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
   struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
   struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
 
+/**
+ * @ingroup crypto
+ * Carries out ecdh encapsulation with given public key and a freshly created ephemeral key pair. Ephemeral public key is given as a representative.
+ *
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf
+ * @param pub receivers edwards curve public key (X)
+ * @param r representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
+ * @param key_material where to write the key material H(aX)=H(x(aG))
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
+                                          GNUNET_CRYPTO_EddsaPublicKey *pub,
+                                          struct
+                                          GNUNET_CRYPTO_ElligatorRepresentative
+                                          *r,
+                                          struct GNUNET_HashCode *key_material);
+
+/**
+ * @ingroup crypto
+ * Carries out ecdh decapsulation with given private key and the representative of received public key.
+ *
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf
+ * @param priv own private key (x)
+ * @param r received representative (direct_map(r)=A=aG)
+ * @param key_material where to write the key material H(xA)=H(a(xG))
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_decaps (const struct
+                                          GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                                          struct
+                                          GNUNET_CRYPTO_ElligatorRepresentative
+                                          *r,
+                                          struct GNUNET_HashCode *key_material);
+
 
 /**
  * Output the given MPI value to the given buffer in network
