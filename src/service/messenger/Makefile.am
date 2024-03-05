@@ -37,6 +37,7 @@ libgnunetmessenger_la_SOURCES = \
   messenger_api_contact.c messenger_api_contact.h \
   messenger_api_contact_store.c messenger_api_contact_store.h \
   messenger_api_message.c messenger_api_message.h \
+  messenger_api_message_control.c messenger_api_message_control.h \
   messenger_api_message_kind.c messenger_api_message_kind.h \
   messenger_api_list_tunnels.c messenger_api_list_tunnels.h \
   messenger_api_queue_messages.c messenger_api_queue_messages.h \

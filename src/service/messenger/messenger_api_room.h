@@ -32,8 +32,10 @@
 
 #include "gnunet_messenger_service.h"
 
+#include "messenger_api_handle.h"
 #include "messenger_api_list_tunnels.h"
 #include "messenger_api_contact.h"
+#include "messenger_api_message_control.h"
 #include "messenger_api_queue_messages.h"
 
 struct GNUNET_MESSENGER_RoomMessageEntry
@@ -66,6 +68,8 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_CONTAINER_MultiHashMap *links;
 
   struct GNUNET_MESSENGER_QueueMessages queue;
+
+  struct GNUNET_MESSENGER_MessageControl *control;
 };
 
 typedef void (*GNUNET_MESSENGER_RoomLinkDeletion) (struct
@@ -102,6 +106,15 @@ destroy_room (struct GNUNET_MESSENGER_Room *room);
  */
 enum GNUNET_GenericReturnValue
 is_room_available (const struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Returns the messenger handle of the <i>room</i>.
+ *
+ * @param[in,out] room Room
+ * @return Messenger handle or NULL
+ */
+struct GNUNET_MESSENGER_Handle*
+get_room_handle (struct GNUNET_MESSENGER_Room *room);
 
 /**
  * Returns the member id of the <i>room</i>'s sender.

@@ -19,8 +19,8 @@
  */
 /**
  * @author Tobias Frisch
- * @file src/messenger/gnunet-service-messenger_message_kind.c
- * @brief GNUnet MESSENGER service
+ * @file src/messenger/messenger_api_message_kind.c
+ * @brief messenger api: client and service implementation of GNUnet MESSENGER service
  */
 
 #include "messenger_api_message_kind.h"
