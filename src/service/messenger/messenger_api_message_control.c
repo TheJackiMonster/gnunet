@@ -183,7 +183,7 @@ iterate_message_control (void *cls,
                          const struct GNUNET_ShortHashCode *key,
                          void *value)
 {
-  GNUNET_assert ((cls) && (key) && (value));
+  GNUNET_assert ((key) && (value));
 
   struct GNUNET_MESSENGER_MessageControlQueue *queue = value;
 
@@ -221,6 +221,9 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
 
   struct GNUNET_CONTAINER_MultiShortmap *map = NULL;
   const struct GNUNET_ShortHashCode *id = &(message->header.sender_id);
+
+  if (GNUNET_YES == is_peer_message(message))
+    map = control->peer_messages;
 
   switch (message->header.kind)
   {
