@@ -365,6 +365,7 @@ src/service/messenger/messenger_api_contact_store.c
 src/service/messenger/messenger_api_handle.c
 src/service/messenger/messenger_api_list_tunnels.c
 src/service/messenger/messenger_api_message.c
+src/service/messenger/messenger_api_message_control.c
 src/service/messenger/messenger_api_message_kind.c
 src/service/messenger/messenger_api_queue_messages.c
 src/service/messenger/messenger_api_room.c

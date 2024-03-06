@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-03-02 14:38+0100\n"
+"POT-Creation-Date: 2024-03-06 12:08+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -4007,7 +4007,7 @@ msgstr "demonizar (desasociar del terminal)"
 
 #: src/lib/util/service.c:2036 src/lib/util/service.c:2048
 #: src/lib/util/service.c:2298 src/lib/util/service.c:2310
-#: src/service/transport/transport-testing-communicator.c:1055
+#: src/service/transport/transport-testing-communicator.c:1056
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
@@ -4814,7 +4814,7 @@ msgstr "Espacio insuficiente para satisfacer la petición"
 #: src/service/datastore/gnunet-service-datastore.c:626
 #: src/service/datastore/gnunet-service-datastore.c:677
 #: src/service/datastore/gnunet-service-datastore.c:820
-#: src/service/datastore/gnunet-service-datastore.c:1428
+#: src/service/datastore/gnunet-service-datastore.c:1431
 msgid "# reserved"
 msgstr "# reservado"
 
@@ -4866,7 +4866,7 @@ msgid "# REMOVE requests received"
 msgstr "# peticiones «REMOVE» recibidas"
 
 # Miguel: ¿Cómo traducir «payload»? ¿Código cargado?
-#: src/service/datastore/gnunet-service-datastore.c:1107
+#: src/service/datastore/gnunet-service-datastore.c:1109
 #, fuzzy, c-format
 msgid ""
 "Datastore payload must have been inaccurate (%lld < %lld). Recomputing it.\n"
@@ -4874,63 +4874,63 @@ msgstr ""
 "El «payload» del almacén de datos es impreciso (%lld < %lld).  Intentando "
 "repararlo.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1112
-#: src/service/datastore/gnunet-service-datastore.c:1281
+#: src/service/datastore/gnunet-service-datastore.c:1114
+#: src/service/datastore/gnunet-service-datastore.c:1283
 #, c-format
 msgid "New payload: %lld\n"
 msgstr ""
 
-#: src/service/datastore/gnunet-service-datastore.c:1167
+#: src/service/datastore/gnunet-service-datastore.c:1169
 #, c-format
 msgid "Loading `%s' datastore plugin\n"
 msgstr "Cargando el módulo del almacén de datos «%s»\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1176
+#: src/service/datastore/gnunet-service-datastore.c:1178
 #, c-format
 msgid "Failed to load datastore plugin for `%s'\n"
 msgstr ""
 "Se produjo un fallo al inicializar el módulo del almacén de datos para «%s»\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1236
+#: src/service/datastore/gnunet-service-datastore.c:1238
 msgid "Bloomfilter construction complete.\n"
 msgstr "Construcción de «bloomfilter» completa.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1288
+#: src/service/datastore/gnunet-service-datastore.c:1290
 msgid "Rebuilding bloomfilter.  Please be patient.\n"
 msgstr "Reconstruyendo «bloomfilter».  Por favor, tenga paciencia.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1298
+#: src/service/datastore/gnunet-service-datastore.c:1300
 msgid "Plugin does not support get_keys function. Please fix!\n"
 msgstr "El módulo no soporta la función «get_keys». Por favor, corríjalo.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1463
+#: src/service/datastore/gnunet-service-datastore.c:1466
 #, c-format
 msgid "# bytes used in file-sharing datastore `%s'"
 msgstr "# bytes usados en el almacén de ficheros compartidos «%s»"
 
-#: src/service/datastore/gnunet-service-datastore.c:1472
+#: src/service/datastore/gnunet-service-datastore.c:1475
 msgid "# quota"
 msgstr "# cuota"
 
-#: src/service/datastore/gnunet-service-datastore.c:1475
+#: src/service/datastore/gnunet-service-datastore.c:1478
 msgid "# cache size"
 msgstr "# tamaño de la caché"
 
-#: src/service/datastore/gnunet-service-datastore.c:1491
+#: src/service/datastore/gnunet-service-datastore.c:1494
 #, c-format
 msgid "Could not use specified filename `%s' for bloomfilter.\n"
 msgstr ""
 "No se pudo usar el nombre de fichero especificado «%s» para «bloomfilter».\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1512
-#: src/service/datastore/gnunet-service-datastore.c:1534
+#: src/service/datastore/gnunet-service-datastore.c:1515
+#: src/service/datastore/gnunet-service-datastore.c:1537
 #, c-format
 msgid "Failed to remove bogus bloomfilter file `%s'\n"
 msgstr ""
 "Se produjo un fallo al borrar el fichero de configuración defectuoso de "
 "«bloomfilter» «%s»:\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1573
+#: src/service/datastore/gnunet-service-datastore.c:1576
 msgid "Failed to initialize bloomfilter.\n"
 msgstr "Se produjo un fallo al inicializar «bloomfilter».\n"
 
@@ -7352,7 +7352,7 @@ msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3777
-#: src/service/transport/gnunet-communicator-udp.c:3408
+#: src/service/transport/gnunet-communicator-udp.c:3464
 #: src/service/transport/gnunet-service-transport.c:12128
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
@@ -7370,7 +7370,7 @@ msgstr "Configurador Gtk de GNUnet"
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-udp.c:3483
+#: src/service/transport/gnunet-communicator-udp.c:3540
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"

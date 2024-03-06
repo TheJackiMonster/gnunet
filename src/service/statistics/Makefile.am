@@ -84,6 +84,5 @@ test_statistics_api_watch_zero_value_LDADD = \
 #	$(AWK) -v bdir="$(bindir)" -v py="$(PYTHON)" -v awkay="$(AWK_BINARY)" -v pfx="$(prefix)" -v prl="$(PERL)" -v sysconfdirectory="$(sysconfdir)" -v pkgdatadirectory="$(pkgdatadir)" -f $(top_srcdir)/scripts/dosubst.awk < $(srcdir)/test_gnunet_statistics.py.in > test_gnunet_statistics.py
 #	chmod +x test_gnunet_statistics.py
 #
-#EXTRA_DIST = \
-#  test_statistics_api_data.conf \
-#  test_gnunet_statistics.py.in
+EXTRA_DIST = \
+  test_statistics_api_data.conf
