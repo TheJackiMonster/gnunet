@@ -1,3 +1,26 @@
+v0.21.0:
+  - Reworked PEERSTORE API
+  - Added record flag for maintenance records
+  - ensure traits can be generated with subsystem-specific prefixes for the symbols
+  - libgnunettesting first major testing NG refactor towards getting dependency structure streamlined
+  - Remove single-use API macro GNUNET_VA_ARG_ENUM
+  - major revision of blind signature API
+  - Introduced closure to hold store context when caling function to add hello in peerstore.
+  - Added DDLs for handling GNUNET_PEERSTORE_StoreHelloContext
+  - Removed old hello functionality.
+  - Refactoring components under src/ into lib/, plugin/, cli/ and service/
+  - add support for encoding/decoding double values as part of JSON to libgnunetjson
+  - Changed method GNUNET_HELLO_builder_get_expiration_time to not need parameter GNUNET_HELLO_Builder.
+  - Code moved to the core package to get rid of circular dependencies.
+  - Moved code to testing to have more generic test setup, which can be used not only from within transport.
+  - The old hello design replaced by the new  hello design.
+  - Added api to get notified when hellos are stored with peerstore service.
+  - Added api to store hellos with peerstore service.
+  - Changed new hello uri api to allow to change the expiration time
+  - Moved start peer command to testing subsystem.
+  - Removed all usage of old transport api, beside peerinfo tool, gnunet-transport cli and usage in transport layer itself.
+  - Added __attribute__((deprecated)) to the old transport API
+
 v0.20.0:
   - GNUNET_TESTING_get_testname_from_underscore renamed to GNUNET_STRINGS_get_suffix_from_binary_name and moved from libgnunettesting to libgnuneutil
   - Move GNUNET_s into libgnunetutil.
