@@ -67,7 +67,7 @@
  * How often do we scan for changes to our network interfaces?
  */
 #define INTERFACE_SCAN_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we believe our addresses to remain up (before
@@ -76,7 +76,7 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 #define WORKING_QUEUE_INTERVALL \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,1)
 
 /**
  * AES key size.
