@@ -26,7 +26,7 @@ IMMEDIATE_START = YES
 BINARY = gnunet-communicator-udp
 BINDTO = 2086
 DISABLE_V6 = NO
-IMMEDIATE_START = YES
+IMMEDIATE_START = NO
 
 [communicator-quic]
 BINDTO = 127.0.0.1
