@@ -296,13 +296,13 @@ check_PROGRAMS = \
  test_communicator_basic-tcp \
  test_communicator_basic-udp \
  test_communicator_rekey-tcp \
- test_communicator_rekey-udp \
- test_communicator_backchannel-udp \
  test_communicator_bidirect-tcp
 
 if HAVE_EXPERIMENTAL
 check_PROGRAMS += test_communicator_basic-quic \
- test_communicator_basic-unix
+ test_communicator_basic-unix \
+ test_communicator_rekey-udp \
+ test_communicator_backchannel-udp
 check_SCRIPTS= \
   test_transport_start_testcase.sh \
   test_transport_simple_send_performance.sh \
