@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016, 2020 GNUnet e.V.
+   Copyright (C) 2014-2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -1122,6 +1122,90 @@ GNUNET_PQ_result_spec_uint64 (const char *name,
 
 
 /**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param row row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_int64 (void *cls,
+               PGresult *result,
+               int row,
+               const char *fname,
+               size_t *dst_size,
+               void *dst)
+{
+  int64_t *udst = dst;
+  const int64_t *res;
+  int fnum;
+
+  (void) cls;
+  fnum = PQfnumber (result,
+                    fname);
+  if (fnum < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Field %s missing in result\n",
+                fname);
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (PQgetisnull (result,
+                   row,
+                   fnum))
+    return GNUNET_NO;
+
+  GNUNET_assert (NULL != dst);
+  if (sizeof(int64_t) != *dst_size)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (sizeof(int64_t) !=
+      PQgetlength (result,
+                   row,
+                   fnum))
+  {
+    GNUNET_break (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Got length %u for field `%s'\n",
+                PQgetlength (result,
+                             row,
+                             fnum),
+                fname);
+    return GNUNET_SYSERR;
+  }
+  res = (int64_t *) PQgetvalue (result,
+                                row,
+                                fnum);
+  *udst = GNUNET_ntohll (*res);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_int64 (const char *name,
+                             int64_t *i64)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_int64,
+    .dst = (void *) i64,
+    .dst_size = sizeof(*i64),
+    .fname = name
+  };
+
+  return res;
+}
+
+
+/**
  * Closure for the array result specifications.  Contains type information
  * for the generic parser extract_array_generic and out-pointers for the results.
  */
@@ -1180,13 +1264,13 @@ extract_array_generic (
   *((void **) dst) = NULL;
 
   #define FAIL_IF(cond) \
-          do { \
-            if ((cond)) \
-            { \
-              GNUNET_break (! (cond)); \
-              goto FAIL; \
-            } \
-          } while (0)
+  do { \
+    if ((cond)) \
+    { \
+      GNUNET_break (! (cond)); \
+      goto FAIL; \
+    } \
+  } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);

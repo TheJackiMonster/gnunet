@@ -338,6 +338,63 @@ GNUNET_PQ_query_param_uint64 (const uint64_t *x)
  * @return -1 on error, number of offsets used in @a scratch otherwise
  */
 static int
+qconv_int64 (void *cls,
+             const void *data,
+             size_t data_len,
+             void *param_values[],
+             int param_lengths[],
+             int param_formats[],
+             unsigned int param_length,
+             void *scratch[],
+             unsigned int scratch_length)
+{
+  const int64_t *u_hbo = data;
+  int64_t *u_nbo;
+
+  (void) scratch;
+  (void) scratch_length;
+  GNUNET_break (NULL == cls);
+  if (1 != param_length)
+    return -1;
+  u_nbo = GNUNET_new (int64_t);
+  scratch[0] = u_nbo;
+  *u_nbo = GNUNET_htonll (*u_hbo);
+  param_values[0] = (void *) u_nbo;
+  param_lengths[0] = sizeof(int64_t);
+  param_formats[0] = 1;
+  return 1;
+}
+
+
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_int64 (const int64_t *x)
+{
+  struct GNUNET_PQ_QueryParam res = {
+    .conv = &qconv_int64,
+    .data = x,
+    .size = sizeof(*x),
+    .num_params = 1
+  };
+
+  return res;
+}
+
+
+/**
+ * Function called to convert input argument into SQL parameters.
+ *
+ * @param cls closure
+ * @param data pointer to input argument
+ * @param data_len number of bytes in @a data (if applicable)
+ * @param[out] param_values SQL data to set
+ * @param[out] param_lengths SQL length data to set
+ * @param[out] param_formats SQL format data to set
+ * @param param_length number of entries available in the @a param_values, @a param_lengths and @a param_formats arrays
+ * @param[out] scratch buffer for dynamic allocations (to be done via #GNUNET_malloc()
+ * @param scratch_length number of entries left in @a scratch
+ * @return -1 on error, number of offsets used in @a scratch otherwise
+ */
+static int
 qconv_rsa_public_key (void *cls,
                       const void *data,
                       size_t data_len,
