@@ -13,6 +13,12 @@ configure_file(input : 'dht.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
+configure_file(input : 'dhtu.conf',
+               output : 'dhtu.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 if get_option('monolith')
   foreach p : libgnunetdht_src + gnunetservicedht_src
     gnunet_src += 'dht/' + p

@@ -10,6 +10,9 @@ libexecdir= $(pkglibdir)/libexec/
 pkgcfg_DATA = \
   dht.conf
 
+dist_pkgcfg_DATA = \
+  dhtu.conf
+
 if USE_COVERAGE
   AM_CFLAGS = --coverage -O0
   XLIB = -lgcov
