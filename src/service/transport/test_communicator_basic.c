@@ -183,7 +183,8 @@ open_queue (void *cls)
   {
     queue_est = GNUNET_YES;
     GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (tc_hs[PEER_A],
-                                                                &peer_id[PEER_B],
+                                                                &peer_id[PEER_B]
+                                                                ,
                                                                 address);
   }
   else
@@ -372,18 +373,24 @@ process_statistics (void *cls,
                     uint64_t value,
                     int is_persistent)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Statistic: Name %s and value %" PRIu64 "\n",
               name,
               value);
   if ((0 == strcmp ("rekey", test_name)) && (0 == strcmp (
                                                "# rekeying successful",
-                                               name)) && (0 == value))
+                                               name)))
   {
-    ret = 2;
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "No successful rekeying!\n");
-    GNUNET_SCHEDULER_shutdown ();
+    if (0 == value)
+    {
+      ret = 2;
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "No successful rekeying!\n");
+      GNUNET_SCHEDULER_shutdown ();
+    }
+    LOG (GNUNET_ERROR_TYPE_MESSAGE,
+         "Successful rekeys: %llu\n",
+         (unsigned long long) value);
   }
   if ((0 == strcmp ("backchannel", test_name)) &&
       (0 == strcmp (
@@ -594,7 +601,7 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
                                                   tc_h);
       if (NULL != rekey_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (rekey_stats[peer_nr]);
-      rekey_stats[peer_nr] = GNUNET_STATISTICS_get (stats[0],
+      rekey_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
                                                     "C-UDP",
                                                     "# rekeying successful",
                                                     process_statistics_rekey_done,

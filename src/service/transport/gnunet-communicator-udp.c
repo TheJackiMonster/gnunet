@@ -1260,7 +1260,8 @@ setup_cipher (const struct GNUNET_HashCode *msec,
 
   GNUNET_assert (0 ==
                  gcry_cipher_open (cipher,
-                                   GCRY_CIPHER_AES256 /* low level: go for speed */,
+                                   GCRY_CIPHER_AES256 /* low level: go for speed */
+                                   ,
                                    GCRY_CIPHER_MODE_GCM,
                                    0 /* flags */));
   get_iv_key (msec, serial, key, iv);
@@ -1677,7 +1678,7 @@ try_handle_plaintext (struct SenderAddress *sender,
     ss_rekey->sender = sender;
     GNUNET_CONTAINER_DLL_insert (sender->ss_head, sender->ss_tail, ss_rekey);
     sender->num_secrets++;
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Received rekey secret with cmac %s\n",
                 GNUNET_h2s (&(ss_rekey->cmac)));
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1692,13 +1693,18 @@ try_handle_plaintext (struct SenderAddress *sender,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have %u acks available.\n",
                 ss_rekey->sender->acks_available);
+    GNUNET_STATISTICS_update (stats,
+                              "# rekeying successful",
+                              1,
+                              GNUNET_NO);
     ss_rekey->sender->kce_send_ack_on_finish = GNUNET_YES;
     ss_rekey->override_available_acks = GNUNET_YES;
     // FIXME
-    ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+    kce_generate_cb (ss_rekey);
+    /*ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
       kce_generate_cb,
-      ss_rekey);
+      ss_rekey);*/
     // FIXME: Theoretically, this could be an Ack
     buf_pos += ntohs (hdr->size);
     bytes_remaining -= ntohs (hdr->size);
@@ -2568,7 +2574,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     {
       if (ss->rekey_initiated == GNUNET_NO)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Injecting rekey for ss with byte sent %lu\n",
                     (unsigned long) ss->bytes_sent);
         create_rekey (receiver, ss, &rekey);
