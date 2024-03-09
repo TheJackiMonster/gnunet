@@ -207,6 +207,11 @@ run (void *cls,
       return;
     }
   }
+  if (! show_pid && ! show_conns && ! monitor_connections)
+  {
+    fprintf (stderr, "%s", _ ("No argument given.\n"));
+    return;
+  }
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
 }
 
