@@ -373,10 +373,10 @@ process_statistics (void *cls,
                     uint64_t value,
                     int is_persistent)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Statistic: Name %s and value %" PRIu64 "\n",
-              name,
-              value);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Statistic: Name %s and value %" PRIu64 "\n",
+       name,
+       value);
   if ((0 == strcmp ("rekey", test_name)) && (0 == strcmp (
                                                "# rekeying successful",
                                                name)))
@@ -410,11 +410,17 @@ process_statistics (void *cls,
          name))
       && (6000 > value))
   {
-    ret = 2;
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Not enough BOX messages! (want: %u, have %llu)\n",
-                6000, (unsigned long long) value);
-    GNUNET_SCHEDULER_shutdown ();
+    if (6000 > value)
+    {
+      ret = 2;
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Not enough BOX messages! (want: %u, have %llu)\n",
+                  6000, (unsigned long long) value);
+      GNUNET_SCHEDULER_shutdown ();
+    }
+    LOG (GNUNET_ERROR_TYPE_MESSAGE,
+         "Successful messages in BOX: %llu\n",
+         (unsigned long long) value);
   }
   return GNUNET_OK;
 }
@@ -591,11 +597,13 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
                                                            "backchannel",
                                                            test_name))) )
     {
+      LOG (GNUNET_ERROR_TYPE_ERROR, "Getting statistics...\n");
       if (NULL != box_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (box_stats[peer_nr]);
       box_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
                                                   "C-UDP",
-                                                  "# messages decrypted with BOX",
+                                                  //"# messages decrypted with BOX",
+                                                  NULL,
                                                   process_statistics_box_done,
                                                   &process_statistics,
                                                   tc_h);

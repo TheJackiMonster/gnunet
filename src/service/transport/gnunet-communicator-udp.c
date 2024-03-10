@@ -93,7 +93,7 @@
  */
 #define GCM_TAG_SIZE (128 / 8)
 
-#define GENERATE_AT_ONCE 16
+#define GENERATE_AT_ONCE 64
 
 /**
  * If we fall below this number of available KCNs,
@@ -920,7 +920,6 @@ kce_destroy (struct KeyCacheEntry *kce)
   struct SharedSecret *ss = kce->ss;
 
   ss->active_kce_count--;
-  ss->sender->acks_available--;
   GNUNET_CONTAINER_DLL_remove (ss->kce_head, ss->kce_tail, kce);
   GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multishortmap_remove (key_cache,
                                                                       &kce->kid,
@@ -1011,8 +1010,10 @@ secret_destroy (struct SharedSecret *ss)
     GNUNET_CONTAINER_DLL_remove (sender->ss_head, sender->ss_tail, ss);
     sender->num_secrets--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "%u sender->num_secrets\n",
-                sender->num_secrets);
+                "%u sender->num_secrets %u allowed %u used, %u available\n",
+                sender->num_secrets, ss->sequence_allowed, ss->sequence_used,
+                sender->acks_available);
+    sender->acks_available -= (ss->sequence_allowed - ss->sequence_used);
     if (NULL != ss->sender->kce_task)
     {
       GNUNET_SCHEDULER_cancel (ss->sender->kce_task);
@@ -1712,7 +1713,10 @@ try_handle_plaintext (struct SenderAddress *sender,
     if (0 == purge_secrets (sender->ss_tail))
     {
       // No secret purged. Delete oldest.
-      secret_destroy (sender->ss_tail);
+      if (sender->num_secrets > MAX_SECRETS)
+      {
+        secret_destroy (sender->ss_tail);
+      }
     }
     break;
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK:
@@ -1752,6 +1756,9 @@ decrypt_box (const struct UDPBox *box,
              struct KeyCacheEntry *kce)
 {
   struct SharedSecret *ss = kce->ss;
+  struct SharedSecret *ss_c = ss->sender->ss_tail;
+  struct SharedSecret *ss_tmp;
+  int ss_destroyed = 0;
   char out_buf[box_len - sizeof(*box)];
 
   GNUNET_assert (NULL != ss->sender);
@@ -1768,10 +1775,14 @@ decrypt_box (const struct UDPBox *box,
                               1,
                               GNUNET_NO);
     kce_destroy (kce);
+    ss->sender->acks_available--;
     return;
   }
   kce_destroy (kce);
   kce = NULL;
+  ss->bytes_sent += box_len;
+  ss->sender->acks_available--;
+  ss->sequence_used++;
   GNUNET_STATISTICS_update (stats,
                             "# bytes decrypted with BOX",
                             sizeof(out_buf),
@@ -1784,6 +1795,27 @@ decrypt_box (const struct UDPBox *box,
               "decrypted UDPBox with kid %s\n",
               GNUNET_sh2s (&box->kid));
   try_handle_plaintext (ss->sender, out_buf, sizeof(out_buf));
+
+  while (NULL != ss_c)
+  {
+    if (ss_c->bytes_sent >= rekey_max_bytes)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Removing SS because rekey bytes reached.\n");
+      ss_tmp = ss_c->prev;
+      if (ss == ss_c)
+        ss_destroyed = 1;
+      secret_destroy (ss_c);
+      ss_c = ss_tmp;
+      continue;
+    }
+    ss_c = ss_c->prev;
+  }
+  if (1 == ss_destroyed)
+    return;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Sender has %u ack left.\n",
+              ss->sender->acks_available);
   if ((KCN_THRESHOLD > ss->sender->acks_available) &&
       (NULL == ss->sender->kce_task) &&
       (GNUNET_YES == ss->sender->kce_task_finished))
@@ -2191,7 +2223,10 @@ sock_read (void *cls)
       if (0 == purge_secrets (sender->ss_tail))
       {
         // No secret purged. Delete oldest.
-        secret_destroy (sender->ss_tail);
+        if (sender->num_secrets > MAX_SECRETS)
+        {
+          secret_destroy (sender->ss_tail);
+        }
       }
     }
   }
@@ -2392,7 +2427,10 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   if (0 == purge_secrets (receiver->ss_tail))
   {
     // No secret purged. Delete oldest.
-    secret_destroy (receiver->ss_tail);
+    if (receiver->num_secrets > MAX_SECRETS)
+    {
+      secret_destroy (receiver->ss_tail);
+    }
   }
 
   setup_cipher (&ss->master, 0, &out_cipher);
