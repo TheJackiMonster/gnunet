@@ -1321,6 +1321,7 @@ rekey_monotime_cb (void *cls,
     GNUNET_break (0);
     GNUNET_PEERSTORE_iteration_stop (queue->rekey_monotime_get);
     queue->rekey_monotime_get = NULL;
+    // FIXME: Why should we try to gracefully finish here??
     queue_finish (queue);
     return;
   }
@@ -1402,6 +1403,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
         &queue->target.public_key))
   {
     GNUNET_break (0);
+    // FIXME Why should we try to gracefully finish here?
     queue_finish (queue);
     return;
   }
@@ -1483,6 +1485,7 @@ handshake_ack_monotime_cb (void *cls,
     GNUNET_break (0);
     GNUNET_PEERSTORE_iteration_stop (queue->handshake_ack_monotime_get);
     queue->handshake_ack_monotime_get = NULL;
+    // FIXME: Why should we try to gracefully finish here?
     queue_finish (queue);
     return;
   }
@@ -1908,8 +1911,7 @@ try_handle_plaintext (struct Queue *queue)
     if (sizeof(*tca) > queue->pread_off)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Handling plaintext size of tca greater than pread offset.\n")
-      ;
+                  "Handling plaintext size of tca greater than pread offset.\n");
       return 0;
     }
     if (ntohs (hdr->size) != sizeof(*tca))
@@ -2123,7 +2125,7 @@ queue_read (void *cls)
     if ((EAGAIN != errno) && (EINTR != errno))
     {
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_DEBUG, "recv");
-      queue_finish (queue);
+      queue_destroy (queue);
       return;
     }
     /* try again */
@@ -2140,7 +2142,7 @@ queue_read (void *cls)
                 GNUNET_STRINGS_relative_time_to_string (
                   GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
                   GNUNET_YES));
-    queue_finish (queue);
+    queue_destroy (queue);
     return;
   }
   if (0 == rcvd)
@@ -2222,7 +2224,7 @@ queue_read (void *cls)
               GNUNET_STRINGS_relative_time_to_string (
                 GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT,
                 GNUNET_YES));
-  queue_finish (queue);
+  queue_destroy (queue);
 }
 
 

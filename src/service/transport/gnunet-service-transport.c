@@ -3898,8 +3898,7 @@ free_queue (struct Queue *queue)
                                 tc->details.communicator.queue_tail,
                                 queue);
   maxxed = (COMMUNICATOR_TOTAL_QUEUE_LIMIT <=
-            tc->details.communicator.
-            total_queue_length);
+            tc->details.communicator.total_queue_length);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Cleaning up queue with length %u\n",
               queue->queue_length);
@@ -3915,9 +3914,6 @@ free_queue (struct Queue *queue)
     }
     GNUNET_free (qe);
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Cleaning up queue with length %u\n",
-              queue->queue_length);
   GNUNET_assert (0 == queue->queue_length);
   if ((maxxed) && (COMMUNICATOR_TOTAL_QUEUE_LIMIT >
                    tc->details.communicator.total_queue_length))
