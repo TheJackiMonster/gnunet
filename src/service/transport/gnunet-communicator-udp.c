@@ -2559,8 +2559,8 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     size_t payload_len = sizeof(struct UDPBox) + receiver->d_mtu;
     if (ss->sequence_used >= ss->sequence_allowed)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Skipping ss because no acks to use.\n");
+      //  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+      //              "Skipping ss because no acks to use.\n");
       continue;
     }
     if (ss->bytes_sent >= rekey_max_bytes)
@@ -2980,7 +2980,7 @@ do_shutdown (void *cls)
   }
   if (NULL != stats)
   {
-    GNUNET_STATISTICS_destroy (stats, GNUNET_NO);
+    GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
   }
   if (NULL != my_private_key)

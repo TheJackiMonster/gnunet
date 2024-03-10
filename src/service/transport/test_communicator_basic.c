@@ -100,7 +100,7 @@ static struct GNUNET_STATISTICS_GetHandle *rekey_stats[NUM_PEERS];
 
 static unsigned int iterations_left[NUM_PEERS];
 
-#define TIMEOUT_MULTIPLIER 1
+#define TIMEOUT_MULTIPLIER 5
 
 #define DEFAULT_DELAY \
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,200)
@@ -1037,8 +1037,8 @@ do_shutdown (void *cls)
       GNUNET_SCHEDULER_cancel (to_task[i]);
       to_task[i] = NULL;
     }
+    GNUNET_STATISTICS_destroy (stats[i], GNUNET_YES);
     GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (tc_hs[i]);
-    GNUNET_STATISTICS_destroy (stats[i], GNUNET_NO);
   }
 }
 

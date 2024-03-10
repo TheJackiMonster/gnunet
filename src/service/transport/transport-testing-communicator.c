@@ -773,7 +773,7 @@ shutdown_process (struct GNUNET_OS_Process *proc)
            "Error shutting down process with SIGERM and SIGKILL\n");
     }
   }
-  //GNUNET_break (GNUNET_OK == GNUNET_OS_process_wait (proc));
+  GNUNET_break (GNUNET_OK == GNUNET_OS_process_wait (proc));
   GNUNET_OS_process_destroy (proc);
 }
 

@@ -2737,6 +2737,7 @@ start_initial_kx_out (struct Queue *queue)
   struct GNUNET_CRYPTO_EcdhePublicKey epub;
   struct GNUNET_HashCode k;
 
+  // TODO: We could use the Elligator KEM here! https://bugs.gnunet.org/view.php?id=8065
   GNUNET_CRYPTO_eddsa_kem_encaps (&queue->target.public_key, &epub, &k);
   setup_out_cipher (queue, &k);
   transmit_kx (queue, &epub);
