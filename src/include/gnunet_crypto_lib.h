@@ -973,7 +973,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
 #define GNUNET_CRYPTO_hash_from_string(enc, result) \
-        GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
+  GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
 
 
 /**
@@ -2215,15 +2215,15 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_eddsa_sign_ (priv,                \
-                                                    &(ps)->purpose,      \
-                                                    sig));               \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_eddsa_sign_ (priv,                \
+                                              &(ps)->purpose,      \
+                                              sig));               \
 } while (0)
 
 
@@ -2277,15 +2277,15 @@ GNUNET_CRYPTO_eddsa_sign_raw (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
-                                                    &(ps)->purpose,      \
-                                                    sig));               \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
+                                              &(ps)->purpose,      \
+                                              sig));               \
 } while (0)
 
 /**
@@ -2324,15 +2324,15 @@ GNUNET_CRYPTO_edx25519_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
-          /* check size is set correctly */                              \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-          /* check 'ps' begins with the purpose */                       \
-          GNUNET_static_assert (((void*) (ps)) ==                        \
-                                ((void*) &(ps)->purpose));               \
-          GNUNET_assert (GNUNET_OK ==                                    \
-                         GNUNET_CRYPTO_edx25519_sign_ (priv,             \
-                                                       &(ps)->purpose,   \
-                                                       sig));            \
+    /* check size is set correctly */                              \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+    /* check 'ps' begins with the purpose */                       \
+    GNUNET_static_assert (((void*) (ps)) ==                        \
+                          ((void*) &(ps)->purpose));               \
+    GNUNET_assert (GNUNET_OK ==                                    \
+                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                 &(ps)->purpose,   \
+                                                 sig));            \
 } while (0)
 
 
@@ -2676,25 +2676,24 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
  * @param high_y destination set to "True" if corresponding y-coordinate is > 2 ^ 254 - 10
  */
 bool
-GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point, bool *high_y,
+GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point,
+                                          bool *high_y,
                                           uint8_t *representative);
 
 
 /**
  * @ingroup crypto
- * Clears the most significant bit and second most significant bit to the serialized representaive before applying elligator direct map.
+ * Clears the most significant bit and second most significant bit of the serialized representaive before applying elligator direct map.
  *
- * @param serialized_representative serialized version of an element of Curves25519's finite field
+ * @param representative serialized elligator representative of an element of Curves25519's finite field
  * @param point destination for the calculated point on the curve
  * @param high_y value pointed to will be set to true if corresponding y-coordinate is > 2 ^ 254 - 10, otherwise 0. Can be set to NULL if not needed.
  */
 bool
-GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
-                                        GNUNET_CRYPTO_EcdhePublicKey *point,
-                                        bool *high_y,
-                                        const struct
-                                        GNUNET_CRYPTO_ElligatorRepresentative *
-                                        seriliazed_representative);
+GNUNET_CRYPTO_ecdhe_elligator_decoding (
+  struct GNUNET_CRYPTO_EcdhePublicKey *point,
+  bool *high_y,
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *representative);
 
 /**
  * @ingroup crypto
@@ -2706,33 +2705,24 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
  * @param representative destination for the calculated element of the finite field
  */
 bool
-GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative, const
-                                           uint8_t *point,
+GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative,
+                                           const uint8_t *point,
                                            bool high_y);
 
 
 /**
-* Initializes the elligator library
-* THis function is thread safe
-*/
-void
-GNUNET_CRYPTO_ecdhe_elligator_initialize (void);
-
-/**
  * @ingroup crypto
- * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point.
+ * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point
+ * following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key
  *
  * @param pub valid public key for elligator inverse map
  * @param pk private key for generating valid public key
+ * @return GNUNET_OK on success
  */
-int
-GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
-                                                   pub[
-                                                     crypto_scalarmult_SCALARBYTES
-                                                   ],
-                                                   struct
-                                                   GNUNET_CRYPTO_EcdhePrivateKey
-                                                   *pk);
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (
+  struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+  struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
 
 
 /**
@@ -2758,12 +2748,10 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
-                                          GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                          struct
-                                          GNUNET_CRYPTO_ElligatorRepresentative
-                                          *r,
-                                          struct GNUNET_HashCode *key_material);
+GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
+  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  struct GNUNET_HashCode *key_material);
 
 /**
  * @ingroup crypto
@@ -2776,12 +2764,10 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (const struct
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_decaps (const struct
-                                          GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                          const struct
-                                          GNUNET_CRYPTO_ElligatorRepresentative
-                                          *r,
-                                          struct GNUNET_HashCode *key_material);
+GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  struct GNUNET_HashCode *key_material);
 
 
 /**
@@ -4267,15 +4253,15 @@ GNUNET_CRYPTO_sign_raw_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_sign(priv,ps,sig) do {                \
-          /* check size is set correctly */                                     \
-          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
-          /* check 'ps' begins with the purpose */                              \
-          GNUNET_static_assert (((void*) (ps)) ==                               \
-                                ((void*) &(ps)->purpose));                      \
-          GNUNET_assert (GNUNET_OK ==                                           \
-                         GNUNET_CRYPTO_sign_ (priv,               \
-                                              &(ps)->purpose,             \
-                                              sig));                      \
+    /* check size is set correctly */                                     \
+    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+    /* check 'ps' begins with the purpose */                              \
+    GNUNET_static_assert (((void*) (ps)) ==                               \
+                          ((void*) &(ps)->purpose));                      \
+    GNUNET_assert (GNUNET_OK ==                                           \
+                   GNUNET_CRYPTO_sign_ (priv,               \
+                                        &(ps)->purpose,             \
+                                        sig));                      \
 } while (0)
 
 

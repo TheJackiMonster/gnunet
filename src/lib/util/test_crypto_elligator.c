@@ -94,11 +94,11 @@ testGeneratePkScalarMult (void)
                               &pk,
                               sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
 
-  unsigned char pubWholeCurve[crypto_scalarmult_SCALARBYTES];
+  struct GNUNET_CRYPTO_EcdhePublicKey pubWholeCurve = {0};
   unsigned char pubPrimeCurve[crypto_scalarmult_SCALARBYTES];
 
-  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pubWholeCurve, &pk) ==
-      -1)
+  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (&pubWholeCurve,
+                                                         &pk) == -1)
   {
     return GNUNET_SYSERR;
   }
@@ -111,9 +111,9 @@ testGeneratePkScalarMult (void)
   // TODO: Currently utilizing ecdsa function for ecdhe testing, due to clamping. Clean this part later.
   struct GNUNET_CRYPTO_EcdsaPrivateKey clampedPk;
   GNUNET_CRYPTO_ecdsa_key_create (&clampedPk);
-  crypto_scalarmult_base (pubWholeCurve, clampedPk.d);
+  crypto_scalarmult_base (pubWholeCurve.q_y, clampedPk.d);
   crypto_scalarmult_base (pubPrimeCurve, clampedPk.d);
-  if (memcmp (pubWholeCurve, pubPrimeCurve, sizeof(pubWholeCurve)) != 0)
+  if (memcmp (pubWholeCurve.q_y, pubPrimeCurve, sizeof(pubWholeCurve)) != 0)
   {
     return GNUNET_SYSERR;
   }
@@ -133,15 +133,15 @@ testInverseDirect (void)
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
 
-  unsigned char pub[crypto_scalarmult_SCALARBYTES];
-  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pub, &pk) == -1)
+  struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
+  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (&pub, &pk) == -1)
   {
     return GNUNET_SYSERR;
   }
 
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&point, NULL, &repr);
 
-  if (memcmp (pub, point.q_y, sizeof(point.q_y)) != 0)
+  if (memcmp (pub.q_y, point.q_y, sizeof(point.q_y)) != 0)
   {
     return GNUNET_SYSERR;
   }
@@ -263,7 +263,6 @@ elligatorKEM ()
 int
 main (int argc, char *argv[])
 {
-  GNUNET_CRYPTO_ecdhe_elligator_initialize ();
 
   int failure_count = 0;
 
