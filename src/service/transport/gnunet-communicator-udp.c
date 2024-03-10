@@ -1490,8 +1490,8 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
 
   /* move ss to head to avoid discarding it anytime soon! */
 
-  GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
-  GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
+  // GNUNET_CONTAINER_DLL_remove (receiver->ss_head, receiver->ss_tail, ss);
+  // GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
 }
 
 
@@ -1701,7 +1701,7 @@ try_handle_plaintext (struct SenderAddress *sender,
     ss_rekey->override_available_acks = GNUNET_YES;
     // FIXME
     kce_generate_cb (ss_rekey);
-    /*ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
+    /* ss_rekey->sender->kce_task = GNUNET_SCHEDULER_add_delayed (
       WORKING_QUEUE_INTERVALL,
       kce_generate_cb,
       ss_rekey);*/
@@ -1709,13 +1709,10 @@ try_handle_plaintext (struct SenderAddress *sender,
     buf_pos += ntohs (hdr->size);
     bytes_remaining -= ntohs (hdr->size);
     pass_plaintext_to_core (sender, buf_pos, bytes_remaining);
-    if (sender->num_secrets > MAX_SECRETS)
+    if (0 == purge_secrets (sender->ss_tail))
     {
-      if (0 == purge_secrets (sender->ss_tail))
-      {
-        // No secret purged. Delete oldest.
-        secret_destroy (sender->ss_tail);
-      }
+      // No secret purged. Delete oldest.
+      secret_destroy (sender->ss_tail);
     }
     break;
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK:
@@ -2191,13 +2188,10 @@ sock_read (void *cls)
                                 1,
                                 GNUNET_NO);
       try_handle_plaintext (sender, &uc[1], sizeof(pbuf) - sizeof(*uc));
-      if (sender->num_secrets > MAX_SECRETS)
+      if (0 == purge_secrets (sender->ss_tail))
       {
-        if (0 == purge_secrets (sender->ss_tail))
-        {
-          // No secret purged. Delete oldest.
-          secret_destroy (sender->ss_tail);
-        }
+        // No secret purged. Delete oldest.
+        secret_destroy (sender->ss_tail);
       }
     }
   }
@@ -2395,13 +2389,10 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&uhs.ephemeral, NULL,
                                           &repr);
 
-  if (receiver->num_secrets > MAX_SECRETS)
+  if (0 == purge_secrets (receiver->ss_tail))
   {
-    if (0 == purge_secrets (receiver->ss_tail))
-    {
-      // No secret purged. Delete oldest.
-      secret_destroy (receiver->ss_tail);
-    }
+    // No secret purged. Delete oldest.
+    secret_destroy (receiver->ss_tail);
   }
 
   setup_cipher (&ss->master, 0, &out_cipher);
@@ -2554,13 +2545,20 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     }
   }
   /* begin "BOX" encryption method, scan for ACKs from tail! */
-  for (ss = receiver->ss_tail; NULL != ss; ss = ss->prev)
+  ss = receiver->ss_tail;
+  struct SharedSecret *ss_tmp;
+  while (NULL != ss)
   {
     size_t payload_len = sizeof(struct UDPBox) + receiver->d_mtu;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Considering SS %s sequence used: %u sequence allowed: %u bytes sent: %lu.\n",
+                GNUNET_h2s (&ss->master), ss->sequence_used,
+                ss->sequence_allowed, ss->bytes_sent);
     if (ss->sequence_used >= ss->sequence_allowed)
     {
       //  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
       //              "Skipping ss because no acks to use.\n");
+      ss = ss->prev;
       continue;
     }
     if (ss->bytes_sent >= rekey_max_bytes)
@@ -2568,6 +2566,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Skipping ss because rekey bytes reached.\n");
       // FIXME cleanup ss with too many bytes sent!
+      ss_tmp = ss->prev;
+      secret_destroy (ss);
+      ss = ss_tmp;
       continue;
     }
     if (ss->bytes_sent > rekey_max_bytes * 0.7)
