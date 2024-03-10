@@ -2075,7 +2075,7 @@ try_handle_plaintext (struct Queue *queue)
     }
     finz = *fin;
     memset (&finz.hmac, 0, sizeof(finz.hmac));
-    calculate_hmac (&queue->in_hmac, &rekeyz, sizeof(rekeyz), &tmac);
+    calculate_hmac (&queue->in_hmac, &finz, sizeof(finz), &tmac);
     if (0 != memcmp (&tmac, &fin->hmac, sizeof(tmac)))
     {
       GNUNET_break_op (0);
