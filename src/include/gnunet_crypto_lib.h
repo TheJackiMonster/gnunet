@@ -2664,22 +2664,6 @@ GNUNET_CRYPTO_edx25519_public_key_derive (
   size_t seedsize,
   struct GNUNET_CRYPTO_Edx25519PublicKey *result);
 
-/**
- * Note: Included in header for testing purposes. GNUNET_CRYPTO_ecdhe_elligator_decoding will be the correct API for the direct map.
- * TODO: Make static.
- * @ingroup crypto
- * Encodes an element of the underlying finite field, so called representative, of Curve25519 to a point on the curve
- * This transformation is deterministic
- *
- * @param representative element of the finite field
- * @param point destination for the calculated point on the curve
- * @param high_y destination set to "True" if corresponding y-coordinate is > 2 ^ 254 - 10
- */
-bool
-GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point,
-                                          bool *high_y,
-                                          uint8_t *representative);
-
 
 /**
  * @ingroup crypto
@@ -2687,9 +2671,9 @@ GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point,
  *
  * @param representative serialized elligator representative of an element of Curves25519's finite field
  * @param point destination for the calculated point on the curve
- * @param high_y value pointed to will be set to true if corresponding y-coordinate is > 2 ^ 254 - 10, otherwise 0. Can be set to NULL if not needed.
+ * @param high_y bool pointed to will be set to 'true' if corresponding y-coordinate is > 2 ^ 254 - 10, otherwise 0. Can be set to NULL if not needed.
  */
-bool
+void
 GNUNET_CRYPTO_ecdhe_elligator_decoding (
   struct GNUNET_CRYPTO_EcdhePublicKey *point,
   bool *high_y,
@@ -2697,23 +2681,25 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (
 
 /**
  * @ingroup crypto
- * Encodes a point on Curve25519 to a an element of the underlying finite field
- * This transformation is deterministic
+ * Encodes a point on Curve25519 to a an element of the underlying finite field.
+ * This transformation is deterministic.
  *
- * @param point a point on the curve
+ * @param r storage for the calculated representative
+ * @param pub a point on the curve
  * @param high_y encodes if y-coordinate is > 2 ^254 - 10, which determines the representative value out of two
- * @param representative destination for the calculated element of the finite field
+ * @return 'true' if the given point can be encoded into a representative. Otherwise 'false' is returned and the content of the representative storage is undefined
  */
 bool
-GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative,
-                                           const uint8_t *point,
-                                           bool high_y);
+GNUNET_CRYPTO_ecdhe_elligator_encoding (
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+  bool high_y);
 
 
 /**
  * @ingroup crypto
- * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point
- * following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key
+ * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point.
+ * Following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key.
  *
  * @param pub valid public key for elligator inverse map
  * @param pk private key for generating valid public key
@@ -2727,7 +2713,7 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (
 
 /**
  * @ingroup crypto
- * Generates a private key for Curve25519 and the elligator representative of the corresponding public key
+ * Generates a private key for Curve25519 and the elligator representative of the corresponding public key.
  *
  * @param repr representative of the public key
  * @param pk Curve25519 private key
@@ -2740,8 +2726,8 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
 /**
  * @ingroup crypto
  * Carries out ecdh encapsulation with given public key and the private key from a freshly created ephemeral key pair.
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
  *
- * Following the terminology in https://eprint.iacr.org/2021/509.pdf
  * @param pub given edwards curve public key (X)
  * @param r representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
  * @param key_material where to write the key material H(aX)=H(x(aG))
@@ -2756,8 +2742,8 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
 /**
  * @ingroup crypto
  * Carries out ecdh decapsulation with own private key and the representative of the received public key.
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
  *
- * Following the terminology in https://eprint.iacr.org/2021/509.pdf
  * @param priv own private key (x)
  * @param r received representative r, from which we can obtain the public key A (direct_map(r)=A=aG)
  * @param key_material where to write the key material H(xA)=H(a(xG))
