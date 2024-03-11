@@ -833,6 +833,11 @@ static struct GNUNET_CONTAINER_MultiHashMap *lt_map;
 static struct GNUNET_PeerIdentity my_identity;
 
 /**
+ * The rekey byte maximum
+ */
+static unsigned long long rekey_max_bytes;
+
+/**
  * The rekey interval
  */
 static struct GNUNET_TIME_Relative rekey_interval;
@@ -1560,7 +1565,7 @@ setup_out_cipher (struct Queue *queue, struct GNUNET_HashCode *dh)
   setup_cipher (dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
   queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
   queue->rekey_left_bytes =
-    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, REKEY_MAX_BYTES);
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, rekey_max_bytes);
 }
 
 
@@ -2036,6 +2041,14 @@ try_handle_plaintext (struct Queue *queue)
     size = ntohs (hdr->size) + sizeof(*box);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Handling plaintext, box processed!\n");
+    GNUNET_STATISTICS_update (stats,
+                              "# bytes decrypted with BOX",
+                              size,
+                              GNUNET_NO);
+    GNUNET_STATISTICS_update (stats,
+                              "# messages decrypted with BOX",
+                              1,
+                              GNUNET_NO);
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_REKEY:
@@ -2061,6 +2074,10 @@ try_handle_plaintext (struct Queue *queue)
     size = ntohs (hdr->size);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Handling plaintext, rekey processed!\n");
+    GNUNET_STATISTICS_update (stats,
+                              "# rekeying successful",
+                              1,
+                              GNUNET_NO);
     break;
 
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_FINISH:
@@ -3556,7 +3573,7 @@ do_shutdown (void *cls)
   }
   if (NULL != stats)
   {
-    GNUNET_STATISTICS_destroy (stats, GNUNET_NO);
+    GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
   }
   if (NULL != my_private_key)
@@ -3765,7 +3782,7 @@ init_socket (struct sockaddr *addr,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Bound to `%s'\n",
               GNUNET_a2s ((const struct sockaddr *) &in_sto, sto_len));
-  stats = GNUNET_STATISTICS_create ("C-TCP", cfg);
+  stats = GNUNET_STATISTICS_create ("communicator-tcp", cfg);
 
   if (NULL == is)
     is = GNUNET_NT_scanner_init ();
@@ -4008,14 +4025,25 @@ run (void *cls,
                                              COMMUNICATOR_CONFIG_SECTION,
                                              "MAX_QUEUE_LENGTH",
                                              &max_queue_length))
+  {
     max_queue_length = DEFAULT_MAX_QUEUE_LENGTH;
+  }
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_time (cfg,
                                            COMMUNICATOR_CONFIG_SECTION,
                                            "REKEY_INTERVAL",
                                            &rekey_interval))
+  {
     rekey_interval = DEFAULT_REKEY_INTERVAL;
-
+  }
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_number (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "REKEY_MAX_BYTES",
+                                             &rekey_max_bytes))
+  {
+    rekey_max_bytes = REKEY_MAX_BYTES;
+  }
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)
   {

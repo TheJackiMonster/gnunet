@@ -597,11 +597,32 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
                                                            "backchannel",
                                                            test_name))) )
     {
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Getting statistics...\n");
+      LOG (GNUNET_ERROR_TYPE_DEBUG, "Getting statistics UDP...\n");
       if (NULL != box_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (box_stats[peer_nr]);
       box_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
-                                                  "C-UDP",
+                                                  "communicator-udp",
+                                                  "# messages decrypted with BOX",
+                                                  process_statistics_box_done,
+                                                  &process_statistics,
+                                                  tc_h);
+      if (NULL != rekey_stats[peer_nr])
+        GNUNET_STATISTICS_get_cancel (rekey_stats[peer_nr]);
+      rekey_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
+                                                    "communicator-udp",
+                                                    "# rekeying successful",
+                                                    process_statistics_rekey_done,
+                                                    &process_statistics,
+                                                    tc_h);
+    }
+    else if ((0 == strcmp ("tcp", communicator_name)) && (0 == strcmp ("rekey",
+                                                                        test_name)))
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG, "Getting statistics... TCP\n");
+      if (NULL != box_stats[peer_nr])
+        GNUNET_STATISTICS_get_cancel (box_stats[peer_nr]);
+      box_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
+                                                  "communicator-tcp",
                                                   //"# messages decrypted with BOX",
                                                   NULL,
                                                   process_statistics_box_done,
@@ -610,7 +631,7 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
       if (NULL != rekey_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (rekey_stats[peer_nr]);
       rekey_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
-                                                    "C-UDP",
+                                                    "communicator-tcp",
                                                     "# rekeying successful",
                                                     process_statistics_rekey_done,
                                                     &process_statistics,
@@ -1084,7 +1105,13 @@ run (void *cls)
                                                         "backchannel",
                                                         test_name))) )
     {
-      stats[i] = GNUNET_STATISTICS_create ("C-UDP",
+      stats[i] = GNUNET_STATISTICS_create ("communicator-udp",
+                                           cfg_peers[i]);
+    }
+    else if ((0 == strcmp ("tcp", communicator_name)) && (0 == strcmp ("rekey",
+                                                                        test_name)))
+    {
+      stats[i] = GNUNET_STATISTICS_create ("communicator-tcp",
                                            cfg_peers[i]);
     }
     else if ((0 == strcmp ("bidirect", test_name)))

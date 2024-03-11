@@ -3491,7 +3491,7 @@ run (void *cls,
     GNUNET_break (0);
     my_port = 0;
   }
-  stats = GNUNET_STATISTICS_create ("C-UDP", cfg);
+  stats = GNUNET_STATISTICS_create ("communicator-udp", cfg);
   senders = GNUNET_CONTAINER_multipeermap_create (32, GNUNET_YES);
   receivers = GNUNET_CONTAINER_multipeermap_create (32, GNUNET_YES);
   senders_heap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
