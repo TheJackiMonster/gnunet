@@ -70,7 +70,6 @@ hello_iter_cb (void *cb_cls,
   GNUNET_PEERSTORE_iteration_stop (sps->pic);
   sps->pic = NULL;
   GNUNET_TESTING_async_finish (&sps->ac);
-  GNUNET_PEERSTORE_iteration_next (sps->pic, 1);
 }
 
 

@@ -352,7 +352,6 @@ hello_iter_cb (void *cb_cls,
     p->start_cb (p->start_cb_cls);
     p->start_cb = NULL;
   }
-  GNUNET_PEERSTORE_iteration_next (p->pic, 1);
 }
 
 
