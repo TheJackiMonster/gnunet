@@ -38,29 +38,30 @@
  */
 #define DEBUG_KX 0
 
+
 /**
  * How long do we wait for SET_KEY confirmation initially?
  */
 #define INITIAL_SET_KEY_RETRY_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
 
 /**
  * What is the minimum frequency for a PING message?
  */
 #define MIN_PING_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * How often do we rekey?
  */
 #define REKEY_FREQUENCY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 12)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 12)
 
 /**
  * What time difference do we tolerate?
  */
 #define REKEY_TOLERANCE \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * What is the maximum age of a message for us to consider processing
@@ -71,6 +72,56 @@
  */
 #define MAX_MESSAGE_AGE GNUNET_TIME_UNIT_DAYS
 
+
+#if CONG_CRYPTO_ENABLED
+GNUNET_NETWORK_STRUCT_BEGIN
+
+/**
+ * Encapsulation for encrypted messages exchanged between
+ * peers.  Followed by the actual encrypted data.
+ */
+struct EncryptedMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * The nonce.
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * The Poly1305 tag of the encrypted message
+   * (which is starting at @e sequence_number),
+   * used to verify message integrity. Everything after this value
+   * (excluding this value itself) will be encrypted and
+   * authenticated.  #ENCRYPTED_HEADER_SIZE must be set to the offset
+   * of the *next* field.
+   */
+  unsigned char tag[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /**
+   * Sequence number, in network byte order.  This field
+   * must be the first encrypted/decrypted field
+   */
+  uint32_t sequence_number GNUNET_PACKED;
+
+  /**
+   * Reserved, always zero.
+   */
+  uint32_t reserved GNUNET_PACKED;
+
+  /**
+   * Timestamp.  Used to prevent replay of ancient messages
+   * (recent messages are caught with the sequence number).
+   */
+  struct GNUNET_TIME_AbsoluteNBO timestamp;
+};
+GNUNET_NETWORK_STRUCT_END
+
+#else
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
@@ -118,13 +169,14 @@ struct EncryptedMessage
 };
 GNUNET_NETWORK_STRUCT_END
 
+#endif
 
 /**
  * Number of bytes (at the beginning) of `struct EncryptedMessage`
  * that are NOT encrypted.
  */
 #define ENCRYPTED_HEADER_SIZE \
-  (offsetof (struct EncryptedMessage, sequence_number))
+        (offsetof (struct EncryptedMessage, sequence_number))
 
 
 /**
@@ -167,6 +219,19 @@ struct GSC_KeyExchangeInfo
    */
   struct GNUNET_CRYPTO_EcdhePublicKey other_ephemeral_key;
 
+#if CONG_CRYPTO_ENABLED
+  /**
+   * Key we use to encrypt our messages for the other peer
+   * (initialized by us when we do the handshake).
+   */
+  unsigned char encrypt_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
+
+  /**
+   * Key we use to decrypt messages from the other peer
+   * (given to us by the other peer during the handshake).
+   */
+  unsigned char decrypt_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
+#else
   /**
    * Key we use to encrypt our messages for the other peer
    * (initialized by us when we do the handshake).
@@ -178,6 +243,7 @@ struct GSC_KeyExchangeInfo
    * (given to us by the other peer during the handshake).
    */
   struct GNUNET_CRYPTO_SymmetricSessionKey decrypt_key;
+#endif
 
   /**
    * At what time did the other peer generate the decryption key?
@@ -284,7 +350,7 @@ static struct GNUNET_SCHEDULER_Task *rekey_task;
  */
 static struct GNUNET_NotificationContext *nc;
 
-
+#if ! CONG_CRYPTO_ENABLED
 /**
  * Calculate seed value we should use for a message.
  *
@@ -300,6 +366,8 @@ calculate_seed (struct GSC_KeyExchangeInfo *kx)
     GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE, UINT32_MAX));
 }
 
+
+#endif
 
 /**
  * Inform all monitors about the KX state of the given peer.
@@ -321,6 +389,7 @@ monitor_notify_all (struct GSC_KeyExchangeInfo *kx)
 }
 
 
+#if ! CONG_CRYPTO_ENABLED
 /**
  * Derive an authentication key from "set key" information
  *
@@ -438,6 +507,49 @@ derive_pong_iv (struct GNUNET_CRYPTO_SymmetricInitializationVector *iv,
 }
 
 
+#endif
+
+
+#if CONG_CRYPTO_ENABLED
+/**
+ * Derive an XChacha20 key from key material
+ *
+ * @param sender peer identity of the sender
+ * @param receiver peer identity of the sender
+ * @param key_material high entropy key material to use
+ * @param skey set to derived session key
+ */
+static void
+derive_symmetric_key (const struct GNUNET_PeerIdentity *sender,
+                      const struct GNUNET_PeerIdentity *receiver,
+                      const struct GNUNET_HashCode *key_material,
+                      unsigned char *skey)
+{
+  static const char ctx[] = "xchacha20 key generation vector";
+
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Deriving XChaCha20 Key for %s to %s from %s\n",
+              GNUNET_i2s (sender),
+              GNUNET_i2s2 (receiver),
+              GNUNET_h2s (key_material));
+#endif
+  GNUNET_CRYPTO_kdf (skey,
+                     crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+                     ctx,
+                     sizeof(ctx),
+                     key_material,
+                     sizeof(struct GNUNET_HashCode),
+                     sender,
+                     sizeof(struct GNUNET_PeerIdentity),
+                     receiver,
+                     sizeof(struct GNUNET_PeerIdentity),
+                     NULL);
+}
+
+
+#else
+
 /**
  * Derive an AES key from key material
  *
@@ -478,6 +590,9 @@ derive_aes_key (const struct GNUNET_PeerIdentity *sender,
 }
 
 
+#endif
+
+#if ! CONG_CRYPTO_ENABLED
 /**
  * Encrypt size bytes from @a in and write the result to @a out.  Use the
  * @a kx key for outbound traffic of the given neighbour.
@@ -525,6 +640,9 @@ do_encrypt (struct GSC_KeyExchangeInfo *kx,
 }
 
 
+#endif
+
+#if ! CONG_CRYPTO_ENABLED
 /**
  * Decrypt size bytes from @a in and write the result to @a out.  Use
  * the @a kx key for inbound traffic of the given neighbour.  This
@@ -583,6 +701,8 @@ do_decrypt (struct GSC_KeyExchangeInfo *kx,
 }
 
 
+#endif
+
 /**
  * Send our key (and encrypted PING) to the other peer.
  *
@@ -620,23 +740,38 @@ setup_fresh_ping (struct GSC_KeyExchangeInfo *kx)
 {
   struct PingMessage pp;
   struct PingMessage *pm;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
   pm = &kx->ping;
   kx->ping_challenge =
     GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK, UINT32_MAX);
   pm->header.size = htons (sizeof(struct PingMessage));
   pm->header.type = htons (GNUNET_MESSAGE_TYPE_CORE_PING);
-  pm->iv_seed = calculate_seed (kx);
-  derive_iv (&iv, &kx->encrypt_key, pm->iv_seed, kx->peer);
   pp.challenge = kx->ping_challenge;
   pp.target = *kx->peer;
+#if CONG_CRYPTO_ENABLED
+  randombytes_buf (pm->nonce, sizeof (pm->nonce));
+  GNUNET_assert (0 ==
+                 crypto_aead_xchacha20poly1305_ietf_encrypt_detached (
+                   (unsigned char*) &pm->target,
+                   pm->tag,
+                   NULL,
+                   (unsigned char*) &pp.target,
+                   sizeof(pp.target) + sizeof (pp.challenge),
+                   NULL, 0,
+                   NULL,
+                   pm->nonce,
+                   kx->encrypt_key));
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  pm->iv_seed = calculate_seed (kx);
+  derive_iv (&iv, &kx->encrypt_key, pm->iv_seed, kx->peer);
   do_encrypt (kx,
               &iv,
               &pp.target,
               &pm->target,
               sizeof(struct PingMessage)
               - ((void *) &pm->target - (void *) pm));
+#endif
 }
 
 
@@ -718,7 +853,7 @@ handle_transport_notify_connect (void *cls,
                             gettext_noop ("# key exchanges initiated"),
                             1,
                             GNUNET_NO);
-  
+
   kx = GNUNET_new (struct GSC_KeyExchangeInfo);
   kx->mst = GNUNET_MST_create (&deliver_message, kx);
   kx->mq = mq;
@@ -830,8 +965,17 @@ derive_session_keys (struct GSC_KeyExchangeInfo *kx)
     GNUNET_break (0);
     return;
   }
-  derive_aes_key (&GSC_my_identity, kx->peer, &key_material, &kx->encrypt_key);
-  derive_aes_key (kx->peer, &GSC_my_identity, &key_material, &kx->decrypt_key);
+#if CONG_CRYPTO_ENABLED
+  derive_symmetric_key (&GSC_my_identity, kx->peer, &key_material, kx->
+                        encrypt_key);
+  derive_symmetric_key (kx->peer, &GSC_my_identity, &key_material, kx->
+                        decrypt_key);
+#else
+  derive_aes_key (&GSC_my_identity, kx->peer, &key_material, &kx->
+                  encrypt_key);
+  derive_aes_key (kx->peer, &GSC_my_identity, &key_material, &kx->
+                  decrypt_key);
+#endif
   memset (&key_material, 0, sizeof(key_material));
   /* fresh key, reset sequence numbers */
   kx->last_sequence_number_received = 0;
@@ -900,16 +1044,18 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
     return;
   }
   if (do_verify && ((ntohl (m->purpose.size) !=
-       sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
-       + sizeof(struct GNUNET_TIME_AbsoluteNBO)
-       + sizeof(struct GNUNET_TIME_AbsoluteNBO)
-       + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)
-       + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)) ||
-      (GNUNET_OK !=
-       GNUNET_CRYPTO_eddsa_verify_ (GNUNET_SIGNATURE_PURPOSE_SET_ECC_KEY,
-                                    &m->purpose,
-                                    &m->signature,
-                                    &m->origin_identity.public_key))))
+                     sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+                     + sizeof(struct GNUNET_TIME_AbsoluteNBO)
+                     + sizeof(struct GNUNET_TIME_AbsoluteNBO)
+                     + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)
+                     + sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)) ||
+                    (GNUNET_OK !=
+                     GNUNET_CRYPTO_eddsa_verify_ (
+                       GNUNET_SIGNATURE_PURPOSE_SET_ECC_KEY,
+                       &m->purpose,
+                       &m->signature,
+                       &m->origin_identity.public_key
+                       ))))
   {
     /* invalid signature */
     GNUNET_break_op (0);
@@ -941,7 +1087,8 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
       (unsigned long long) end_t.abs_value_us);
     GNUNET_STATISTICS_update (GSC_stats,
                               gettext_noop (
-                                "# EPHEMERAL_KEY messages rejected due to time"),
+                                "# EPHEMERAL_KEY messages rejected due to time")
+                              ,
                               1,
                               GNUNET_NO);
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
@@ -1071,7 +1218,6 @@ handle_ping (void *cls, const struct PingMessage *m)
   struct PongMessage tx;
   struct PongMessage *tp;
   struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PING messages received"),
@@ -1093,6 +1239,23 @@ handle_ping (void *cls, const struct PingMessage *m)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Core service receives PING request from `%s'.\n",
               GNUNET_i2s (kx->peer));
+#if CONG_CRYPTO_ENABLED
+  if (0 != crypto_aead_xchacha20poly1305_ietf_decrypt_detached (
+        (unsigned char*) &t.target,
+        NULL,
+        (unsigned char*) &m->target,
+        sizeof (m->target) + sizeof (m->challenge),
+        m->tag,
+        NULL, 0,
+        m->nonce,
+        kx->decrypt_key))
+  {
+    GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+    return;
+  }
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   derive_iv (&iv, &kx->decrypt_key, m->iv_seed, &GSC_my_identity);
   if (GNUNET_OK != do_decrypt (kx,
                                &iv,
@@ -1105,6 +1268,7 @@ handle_ping (void *cls, const struct PingMessage *m)
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
+#endif
   if (0 !=
       memcmp (&t.target, &GSC_my_identity, sizeof(struct GNUNET_PeerIdentity)))
   {
@@ -1127,6 +1291,21 @@ handle_ping (void *cls, const struct PingMessage *m)
   tx.challenge = t.challenge;
   tx.target = t.target;
   env = GNUNET_MQ_msg (tp, GNUNET_MESSAGE_TYPE_CORE_PONG);
+#if CONG_CRYPTO_ENABLED
+  randombytes_buf (tp->nonce, sizeof (tp->nonce));
+  GNUNET_assert (0 ==
+                 crypto_aead_xchacha20poly1305_ietf_encrypt_detached (
+                   (unsigned char*) &tp->challenge,
+                   tp->tag,
+                   NULL,
+                   (unsigned char*) &tx.challenge,
+                   sizeof(struct PongMessage)
+                   - ((void *) &tp->challenge - (void *) tp),
+                   NULL, 0,
+                   NULL,
+                   tp->nonce,
+                   kx->encrypt_key));
+#else
   tp->iv_seed = calculate_seed (kx);
   derive_pong_iv (&iv, &kx->encrypt_key, tp->iv_seed, t.challenge, kx->peer);
   do_encrypt (kx,
@@ -1135,6 +1314,7 @@ handle_ping (void *cls, const struct PingMessage *m)
               &tp->challenge,
               sizeof(struct PongMessage)
               - ((void *) &tp->challenge - (void *) tp));
+#endif
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PONG messages created"),
                             1,
@@ -1143,7 +1323,8 @@ handle_ping (void *cls, const struct PingMessage *m)
   if (NULL != kx->keep_alive_task)
   {
     GNUNET_SCHEDULER_cancel (kx->keep_alive_task);
-    kx->keep_alive_task = GNUNET_SCHEDULER_add_delayed (MIN_PING_FREQUENCY, &send_keep_alive, kx);
+    kx->keep_alive_task = GNUNET_SCHEDULER_add_delayed (MIN_PING_FREQUENCY, &
+                                                        send_keep_alive, kx);
   }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
@@ -1234,7 +1415,6 @@ handle_pong (void *cls, const struct PongMessage *m)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
   struct PongMessage t;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PONG messages received"),
@@ -1279,6 +1459,24 @@ handle_pong (void *cls, const struct PongMessage *m)
               GNUNET_i2s (kx->peer));
   /* mark as garbage, just to be sure */
   memset (&t, 255, sizeof(t));
+#if CONG_CRYPTO_ENABLED
+  if (0 != crypto_aead_xchacha20poly1305_ietf_decrypt_detached (
+        (unsigned char*) &t.challenge,
+        NULL,
+        (unsigned char*) &m->challenge,
+        sizeof(struct PongMessage)
+        - ((void *) &m->challenge - (void *) m),
+        m->tag,
+        NULL, 0,
+        m->nonce,
+        kx->decrypt_key))
+  {
+    GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+    return;
+  }
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   derive_pong_iv (&iv,
                   &kx->decrypt_key,
                   m->iv_seed,
@@ -1295,6 +1493,7 @@ handle_pong (void *cls, const struct PongMessage *m)
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
+#endif
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PONG messages decrypted"),
                             1,
@@ -1429,18 +1628,32 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
   struct EncryptedMessage *em; /* encrypted message */
   struct EncryptedMessage *ph; /* plaintext header */
   struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_AuthKey auth_key;
 
   ph = (struct EncryptedMessage *) pbuf;
   ph->sequence_number = htonl (++kx->last_sequence_number_sent);
-  ph->iv_seed = calculate_seed (kx);
   ph->reserved = 0;
   ph->timestamp = GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get ());
   GNUNET_memcpy (&ph[1], payload, payload_size);
   env = GNUNET_MQ_msg_extra (em,
                              payload_size,
                              GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE);
+#if CONG_CRYPTO_ENABLED
+  randombytes_buf (ph->nonce, sizeof (ph->nonce));
+  GNUNET_assert (0 ==
+                 crypto_aead_xchacha20poly1305_ietf_encrypt_detached (
+                   (unsigned char*) &em->sequence_number,
+                   em->tag,
+                   NULL,
+                   (unsigned char*) &ph->sequence_number,
+                   used - ENCRYPTED_HEADER_SIZE,
+                   NULL, 0,
+                   NULL,
+                   ph->nonce,
+                   kx->encrypt_key));
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  struct GNUNET_CRYPTO_AuthKey auth_key;
+  ph->iv_seed = calculate_seed (kx);
   em->iv_seed = ph->iv_seed;
   derive_iv (&iv, &kx->encrypt_key, ph->iv_seed, kx->peer);
   GNUNET_assert (GNUNET_OK == do_encrypt (kx,
@@ -1478,6 +1691,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                 GNUNET_h2s (&hc),
                 GNUNET_h2s2 (&em->hmac));
   }
+#endif
 #endif
   kx->has_excess_bandwidth = GNUNET_NO;
   GNUNET_MQ_send (kx->mq, env);
@@ -1518,11 +1732,8 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
   struct EncryptedMessage *pt; /* plaintext */
-  struct GNUNET_HashCode ph;
   uint32_t snum;
   struct GNUNET_TIME_Absolute t;
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_AuthKey auth_key;
   uint16_t size = ntohs (m->header.size);
   char buf[size] GNUNET_ALIGN;
 
@@ -1575,6 +1786,26 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                 GNUNET_i2s (kx->peer));
   }
 #endif
+
+#if CONG_CRYPTO_ENABLED
+  if (0 != crypto_aead_xchacha20poly1305_ietf_decrypt_detached (
+        (unsigned char*) &buf[ENCRYPTED_HEADER_SIZE],
+        NULL,
+        (unsigned char*) &m->sequence_number,
+        size - ENCRYPTED_HEADER_SIZE,
+        m->tag,
+        NULL, 0,
+        m->nonce,
+        kx->decrypt_key))
+  {
+    GNUNET_break_op (0);
+    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+    return;
+  }
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  struct GNUNET_CRYPTO_AuthKey auth_key;
+  struct GNUNET_HashCode ph;
   derive_auth_key (&auth_key, &kx->decrypt_key, m->iv_seed);
   GNUNET_CRYPTO_hmac (&auth_key,
                       &m->sequence_number,
@@ -1613,6 +1844,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
     GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
     return;
   }
+#endif
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Decrypted %u bytes from %s\n",
               (unsigned int) (size - ENCRYPTED_HEADER_SIZE),
@@ -1708,7 +1940,7 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
                               GNUNET_YES,
                               GNUNET_NO))
     GNUNET_break_op (0);
-  
+
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 

@@ -50,6 +50,10 @@ extern "C" {
  * Version number of GNUnet-core API.
  */
 #define GNUNET_CORE_VERSION 0x00000001
+/**
+ * Enable XChaCha20-Poly1305 crypto https://bugs.gnunet.org/view.php?id=8630
+ */
+#define CONG_CRYPTO_ENABLED 0
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
@@ -102,6 +106,89 @@ struct EphemeralKeyMessage
   struct GNUNET_PeerIdentity origin_identity;
 };
 
+#if CONG_CRYPTO_ENABLED
+/**
+ * We're sending an (encrypted) PING to the other peer to check if it
+ * can decrypt.  The other peer should respond with a PONG with the
+ * same content, except this time encrypted with the receiver's key.
+ */
+struct PingMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PING.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * XChaCha20 nonce
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * The Poly1305 tag of the encrypted message
+   * (which is starting at @e target),
+   * used to verify message integrity. Everything after this value
+   * (excluding this value itself) will be encrypted and
+   * authenticated.
+   */
+  unsigned char tag[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /**
+   * Intended target of the PING, used primarily to check
+   * that decryption actually worked.
+   */
+  struct GNUNET_PeerIdentity target;
+
+  /**
+   * Random number chosen to make replay harder.
+   */
+  uint32_t challenge GNUNET_PACKED;
+};
+
+
+/**
+ * Response to a PING.  Includes data from the original PING.
+ */
+struct PongMessage
+{
+  /**
+   * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * XChaCha20 nonce
+   */
+  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+
+  /**
+   * The Poly1305 tag of the encrypted message
+   * (which is starting at @e target),
+   * used to verify message integrity. Everything after this value
+   * (excluding this value itself) will be encrypted and
+   * authenticated.
+   */
+  unsigned char tag[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+
+  /**
+   * Random number to make replay attacks harder.
+   */
+  uint32_t challenge GNUNET_PACKED;
+
+  /**
+   * Reserved, always zero.
+   */
+  uint32_t reserved;
+
+  /**
+   * Intended target of the PING, used primarily to check
+   * that decryption actually worked.
+   */
+  struct GNUNET_PeerIdentity target;
+};
+
+#else
 
 /**
  * We're sending an (encrypted) PING to the other peer to check if it
@@ -164,6 +251,9 @@ struct PongMessage
    */
   struct GNUNET_PeerIdentity target;
 };
+
+#endif
+
 
 
 GNUNET_NETWORK_STRUCT_END
