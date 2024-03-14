@@ -457,6 +457,11 @@ struct Queue
   gcry_cipher_hd_t out_cipher;
 
   /**
+   * Key in hash map
+   */
+  struct GNUNET_HashCode key;
+
+  /**
    * Shared secret for HMAC verification on incoming data.
    */
   struct GNUNET_HashCode in_hmac;
@@ -820,7 +825,7 @@ static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 /**
  * Queues (map from peer identity to `struct Queue`)
  */
-static struct GNUNET_CONTAINER_MultiPeerMap *queue_map;
+static struct GNUNET_CONTAINER_MultiHashMap *queue_map;
 
 /**
  * ListenTasks (map from socket to `struct ListenTask`)
@@ -997,10 +1002,10 @@ queue_destroy (struct Queue *queue)
   }
   GNUNET_assert (
     GNUNET_YES ==
-    GNUNET_CONTAINER_multipeermap_remove (queue_map, &queue->target, queue));
+    GNUNET_CONTAINER_multihashmap_remove (queue_map, &queue->key, queue));
   GNUNET_STATISTICS_set (stats,
                          "# queues active",
-                         GNUNET_CONTAINER_multipeermap_size (queue_map),
+                         GNUNET_CONTAINER_multihashmap_size (queue_map),
                          GNUNET_NO);
   if (NULL != queue->read_task)
   {
@@ -2669,14 +2674,14 @@ boot_queue (struct Queue *queue)
 {
   queue->nt =
     GNUNET_NT_scanner_get_type (is, queue->address, queue->address_len);
-  (void) GNUNET_CONTAINER_multipeermap_put (
+  (void) GNUNET_CONTAINER_multihashmap_put (
     queue_map,
-    &queue->target,
+    &queue->key,
     queue,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
   GNUNET_STATISTICS_set (stats,
                          "# queues active",
-                         GNUNET_CONTAINER_multipeermap_size (queue_map),
+                         GNUNET_CONTAINER_multihashmap_size (queue_map),
                          GNUNET_NO);
   queue->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
@@ -3315,6 +3320,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   struct sockaddr_in6 *v6;
   unsigned int is_natd = GNUNET_NO;
   struct GNUNET_HashCode key;
+  struct GNUNET_HashCode queue_map_key;
+  struct GNUNET_HashContext *hsh;
+  struct Queue *queue;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Connecting to %s at %s\n",
@@ -3341,6 +3349,18 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
               "in %s\n",
               GNUNET_a2s (in, in_len));
 
+  hsh = GNUNET_CRYPTO_hash_context_start();
+  GNUNET_CRYPTO_hash_context_read (hsh, address, strlen (address));
+  GNUNET_CRYPTO_hash_context_read (hsh, peer, sizeof (*peer));
+  GNUNET_CRYPTO_hash_context_finish (hsh, &queue_map_key);
+  queue = GNUNET_CONTAINER_multihashmap_get(queue_map, &queue_map_key);
+
+  if (NULL != queue)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Queue for %s already exists or is in construction\n", address);
+    return GNUNET_SYSERR;
+  }
   switch (in->sa_family)
   {
   case AF_INET:
@@ -3422,7 +3442,6 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   else
   {
     struct GNUNET_NETWORK_Handle *sock;
-    struct Queue *queue;
 
     sock = GNUNET_NETWORK_socket_create (in->sa_family, SOCK_STREAM,
                                          IPPROTO_TCP);
@@ -3449,6 +3468,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 
     queue = GNUNET_new (struct Queue);
     queue->target = *peer;
+    queue->key = queue_map_key;
     queue->address = in;
     queue->address_len = in_len;
     queue->sock = sock;
@@ -3522,7 +3542,7 @@ get_lt_delete_it (void *cls,
  */
 static int
 get_queue_delete_it (void *cls,
-                     const struct GNUNET_PeerIdentity *target,
+                     const struct GNUNET_HashCode *target,
                      void *value)
 {
   struct Queue *queue = value;
@@ -3563,8 +3583,8 @@ do_shutdown (void *cls)
   GNUNET_CONTAINER_multihashmap_destroy (pending_reversals);
   GNUNET_CONTAINER_multihashmap_iterate (lt_map, &get_lt_delete_it, NULL);
   GNUNET_CONTAINER_multihashmap_destroy (lt_map);
-  GNUNET_CONTAINER_multipeermap_iterate (queue_map, &get_queue_delete_it, NULL);
-  GNUNET_CONTAINER_multipeermap_destroy (queue_map);
+  GNUNET_CONTAINER_multihashmap_iterate (queue_map, &get_queue_delete_it, NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (queue_map);
   if (NULL != ch)
   {
     GNUNET_TRANSPORT_communicator_address_remove_all (ch);
@@ -3835,7 +3855,7 @@ init_socket (struct sockaddr *addr,
               "map entry created\n");
 
   if (NULL == queue_map)
-    queue_map = GNUNET_CONTAINER_multipeermap_create (10, GNUNET_NO);
+    queue_map = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
 
   if (NULL == ch)
     ch = GNUNET_TRANSPORT_communicator_connect (cfg,
