@@ -527,6 +527,11 @@ struct SenderAddress
   socklen_t address_len;
 
   /**
+   * The address key for this entry.
+   */
+  struct GNUNET_HashCode key;
+
+  /**
    * Timeout for this sender.
    */
   struct GNUNET_TIME_Absolute timeout;
@@ -584,6 +589,11 @@ struct ReceiverAddress
    * To whom are we talking to.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * The address key for this entry.
+   */
+  struct GNUNET_HashCode key;
 
   /**
    * Shared secrets we received from @e target, first used is head.
@@ -768,12 +778,12 @@ static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 /**
  * Receivers (map from peer identity to `struct ReceiverAddress`)
  */
-static struct GNUNET_CONTAINER_MultiPeerMap *receivers;
+static struct GNUNET_CONTAINER_MultiHashMap *receivers;
 
 /**
  * Senders (map from peer identity to `struct SenderAddress`)
  */
-static struct GNUNET_CONTAINER_MultiPeerMap *senders;
+static struct GNUNET_CONTAINER_MultiHashMap *senders;
 
 /**
  * Expiration heap for senders (contains `struct SenderAddress`)
@@ -895,13 +905,13 @@ receiver_destroy (struct ReceiverAddress *receiver)
     receiver->d_qh = NULL;
   }
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CONTAINER_multipeermap_remove (receivers,
-                                                       &receiver->target,
+                 GNUNET_CONTAINER_multihashmap_remove (receivers,
+                                                       &receiver->key,
                                                        receiver));
   GNUNET_assert (receiver == GNUNET_CONTAINER_heap_remove_node (receiver->hn));
   GNUNET_STATISTICS_set (stats,
                          "# receivers active",
-                         GNUNET_CONTAINER_multipeermap_size (receivers),
+                         GNUNET_CONTAINER_multihashmap_size (receivers),
                          GNUNET_NO);
   GNUNET_free (receiver->address);
   GNUNET_free (receiver->foreign_addr);
@@ -1053,11 +1063,11 @@ sender_destroy (struct SenderAddress *sender)
   sender->sender_destroy_called = GNUNET_YES;
   GNUNET_assert (
     GNUNET_YES ==
-    GNUNET_CONTAINER_multipeermap_remove (senders, &sender->target, sender));
+    GNUNET_CONTAINER_multihashmap_remove (senders, &sender->key, sender));
   GNUNET_assert (sender == GNUNET_CONTAINER_heap_remove_node (sender->hn));
   GNUNET_STATISTICS_set (stats,
                          "# senders active",
-                         GNUNET_CONTAINER_multipeermap_size (senders),
+                         GNUNET_CONTAINER_multihashmap_size (senders),
                          GNUNET_NO);
   GNUNET_free (sender->address);
   GNUNET_free (sender);
@@ -1507,7 +1517,7 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
  * @return #GNUNET_YES to continue to iterate
  */
 static int
-handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
+handle_ack (void *cls, const struct GNUNET_HashCode *key, void *value)
 {
   const struct UDPAck *ack = cls;
   struct ReceiverAddress *receiver = value;
@@ -1518,7 +1528,7 @@ handle_ack (void *cls, const struct GNUNET_PeerIdentity *pid, void *value)
               "in handle ack with cmac %s\n",
               GNUNET_h2s (&ack->cmac));
 
-  (void) pid;
+  (void) key;
   for (struct SharedSecret *ss = receiver->ss_head; NULL != ss; ss = ss->next)
   {
     if (0 == memcmp (&ack->cmac, &ss->cmac, sizeof(struct GNUNET_HashCode)))
@@ -1722,8 +1732,8 @@ try_handle_plaintext (struct SenderAddress *sender,
   case GNUNET_MESSAGE_TYPE_COMMUNICATOR_UDP_ACK:
     /* lookup master secret by 'cmac', then update sequence_max */
     ack = (struct UDPAck*) buf_pos;
-    GNUNET_CONTAINER_multipeermap_get_multiple (receivers,
-                                                &sender->target,
+    GNUNET_CONTAINER_multihashmap_get_multiple (receivers,
+                                                &sender->key,
                                                 &handle_ack,
                                                 (void *) ack);
     /* There could be more messages after the ACK, handle those as well */
@@ -1854,32 +1864,6 @@ struct SearchContext
 
 
 /**
- * Find existing `struct SenderAddress` by matching addresses.
- *
- * @param cls a `struct SearchContext`
- * @param key ignored, must match already
- * @param value a `struct SenderAddress`
- * @return #GNUNET_YES if not found (continue to search), #GNUNET_NO if found
- */
-static int
-find_sender_by_address (void *cls,
-                        const struct GNUNET_PeerIdentity *key,
-                        void *value)
-{
-  struct SearchContext *sc = cls;
-  struct SenderAddress *sender = value;
-
-  if ((sender->address_len == sc->address_len) &&
-      (0 == memcmp (sender->address, sc->address, sender->address_len)))
-  {
-    sc->sender = sender;
-    return GNUNET_NO;   /* stop iterating! */
-  }
-  return GNUNET_YES;
-}
-
-
-/**
  * Create sender address for @a target.  Note that we
  * might already have one, so a fresh one is only allocated
  * if one does not yet exist for @a address.
@@ -1896,31 +1880,33 @@ setup_sender (const struct GNUNET_PeerIdentity *target,
               socklen_t address_len)
 {
   struct SenderAddress *sender;
-  struct SearchContext sc = { .address = address,
-                              .address_len = address_len,
-                              .sender = NULL };
+  struct GNUNET_HashContext *hsh;
+  struct GNUNET_HashCode sender_key;
 
-  GNUNET_CONTAINER_multipeermap_get_multiple (senders,
-                                              target,
-                                              &find_sender_by_address,
-                                              &sc);
-  if (NULL != sc.sender)
+  hsh = GNUNET_CRYPTO_hash_context_start ();
+  GNUNET_CRYPTO_hash_context_read (hsh, address, address_len);
+  GNUNET_CRYPTO_hash_context_read (hsh, target, sizeof(*target));
+  GNUNET_CRYPTO_hash_context_finish (hsh, &sender_key);
+
+  sender = GNUNET_CONTAINER_multihashmap_get (senders, &sender_key);
+  if (NULL != sender)
   {
-    reschedule_sender_timeout (sc.sender);
-    return sc.sender;
+    reschedule_sender_timeout (sender);
+    return sender;
   }
   sender = GNUNET_new (struct SenderAddress);
+  sender->key = sender_key;
   sender->target = *target;
   sender->address = GNUNET_memdup (address, address_len);
   sender->address_len = address_len;
-  (void) GNUNET_CONTAINER_multipeermap_put (
+  (void) GNUNET_CONTAINER_multihashmap_put (
     senders,
-    &sender->target,
+    &sender->key,
     sender,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
   GNUNET_STATISTICS_set (stats,
                          "# senders active",
-                         GNUNET_CONTAINER_multipeermap_size (receivers),
+                         GNUNET_CONTAINER_multihashmap_size (receivers),
                          GNUNET_NO);
   sender->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
@@ -2034,7 +2020,7 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed to recv from %s family %d failed sock %p\n",
                   GNUNET_a2s ((struct sockaddr*) &sa,
-                              sizeof (addr)),
+                              sizeof (*addr)),
                   addr->sa_family,
                   udp_sock);
       GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "recv");
@@ -2863,6 +2849,8 @@ static int
 mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 {
   struct ReceiverAddress *receiver;
+  struct GNUNET_HashContext *hsh;
+  struct GNUNET_HashCode receiver_key;
   const char *path;
   struct sockaddr *in;
   socklen_t in_len;
@@ -2877,14 +2865,29 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
 
+  hsh = GNUNET_CRYPTO_hash_context_start ();
+  GNUNET_CRYPTO_hash_context_read (hsh, in, in_len);
+  GNUNET_CRYPTO_hash_context_read (hsh, peer, sizeof(*peer));
+  GNUNET_CRYPTO_hash_context_finish (hsh, &receiver_key);
+
+  receiver = GNUNET_CONTAINER_multihashmap_get (receivers, &receiver_key);
+  if (NULL != receiver)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "receiver %s already exist or is begin connected to\n",
+                address);
+    return GNUNET_SYSERR;
+  }
+
   receiver = GNUNET_new (struct ReceiverAddress);
+  receiver->key = receiver_key;
   receiver->address = in;
   receiver->address_len = in_len;
   receiver->target = *peer;
   receiver->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
-  (void) GNUNET_CONTAINER_multipeermap_put (
+  (void) GNUNET_CONTAINER_multihashmap_put (
     receivers,
-    &receiver->target,
+    &receiver->key,
     receiver,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2897,7 +2900,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
                                                receiver->timeout.abs_value_us);
   GNUNET_STATISTICS_set (stats,
                          "# receivers active",
-                         GNUNET_CONTAINER_multipeermap_size (receivers),
+                         GNUNET_CONTAINER_multihashmap_size (receivers),
                          GNUNET_NO);
   receiver->foreign_addr =
     sockaddr_to_udpaddr_string (receiver->address, receiver->address_len);
@@ -2918,7 +2921,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
  */
 static int
 get_receiver_delete_it (void *cls,
-                        const struct GNUNET_PeerIdentity *target,
+                        const struct GNUNET_HashCode *target,
                         void *value)
 {
   struct ReceiverAddress *receiver = value;
@@ -2940,7 +2943,7 @@ get_receiver_delete_it (void *cls,
  */
 static int
 get_sender_delete_it (void *cls,
-                      const struct GNUNET_PeerIdentity *target,
+                      const struct GNUNET_HashCode *target,
                       void *value)
 {
   struct SenderAddress *sender = value;
@@ -2992,14 +2995,14 @@ do_shutdown (void *cls)
                   GNUNET_NETWORK_socket_close (udp_sock));
     udp_sock = NULL;
   }
-  GNUNET_CONTAINER_multipeermap_iterate (receivers,
+  GNUNET_CONTAINER_multihashmap_iterate (receivers,
                                          &get_receiver_delete_it,
                                          NULL);
-  GNUNET_CONTAINER_multipeermap_destroy (receivers);
-  GNUNET_CONTAINER_multipeermap_iterate (senders,
+  GNUNET_CONTAINER_multihashmap_destroy (receivers);
+  GNUNET_CONTAINER_multihashmap_iterate (senders,
                                          &get_sender_delete_it,
                                          NULL);
-  GNUNET_CONTAINER_multipeermap_destroy (senders);
+  GNUNET_CONTAINER_multihashmap_destroy (senders);
   GNUNET_CONTAINER_multishortmap_destroy (key_cache);
   GNUNET_CONTAINER_heap_destroy (senders_heap);
   GNUNET_CONTAINER_heap_destroy (receivers_heap);
@@ -3038,6 +3041,27 @@ do_shutdown (void *cls)
 }
 
 
+struct AckInfo
+{
+  const struct UDPAck *ack;
+
+  const struct GNUNET_PeerIdentity *sender;
+};
+
+static int
+handle_ack_by_sender (void *cls, const struct GNUNET_HashCode *key, void *value)
+{
+  struct ReceiverAddress *receiver = value;
+  struct AckInfo *ai = cls;
+
+  if (0 != GNUNET_memcmp(ai->sender, &receiver->target))
+  {
+    return GNUNET_YES;
+  }
+  handle_ack((void*) ai->ack, key, receiver);
+  return GNUNET_YES;
+}
+
 /**
  * Function called when the transport service has received a
  * backchannel message for this communicator (!) via a different return
@@ -3052,7 +3076,7 @@ enc_notify_cb (void *cls,
                const struct GNUNET_PeerIdentity *sender,
                const struct GNUNET_MessageHeader *msg)
 {
-  const struct UDPAck *ack;
+  struct AckInfo ai;
 
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3064,11 +3088,11 @@ enc_notify_cb (void *cls,
     GNUNET_break_op (0);
     return;
   }
-  ack = (const struct UDPAck *) msg;
-  GNUNET_CONTAINER_multipeermap_get_multiple (receivers,
-                                              sender,
-                                              &handle_ack,
-                                              (void *) ack);
+  ai.ack = (const struct UDPAck *) msg;
+  ai.sender = sender;
+  GNUNET_CONTAINER_multihashmap_iterate (receivers,
+                                         &handle_ack_by_sender,
+                                         &ai);
 }
 
 
@@ -3493,8 +3517,8 @@ run (void *cls,
     my_port = 0;
   }
   stats = GNUNET_STATISTICS_create ("communicator-udp", cfg);
-  senders = GNUNET_CONTAINER_multipeermap_create (32, GNUNET_YES);
-  receivers = GNUNET_CONTAINER_multipeermap_create (32, GNUNET_YES);
+  senders = GNUNET_CONTAINER_multihashmap_create (32, GNUNET_YES);
+  receivers = GNUNET_CONTAINER_multihashmap_create (32, GNUNET_YES);
   senders_heap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   receivers_heap =
     GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
