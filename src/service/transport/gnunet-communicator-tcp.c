@@ -27,6 +27,7 @@
  * - support NAT connection reversal method (#5529)
  * - support other TCP-specific NAT traversal methods (#5531)
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
@@ -885,28 +886,17 @@ struct GNUNET_RESOLVER_RequestHandle *resolve_request_handle;
 /**
  * Head of DLL with addresses we like to register at NAT servcie.
  */
-struct Addresses *addrs_head;
+static struct Addresses *addrs_head;
 
 /**
  * Head of DLL with addresses we like to register at NAT servcie.
  */
-struct Addresses *addrs_tail;
-
-/**
- * Head of DLL with ListenTasks.
- */
-struct ListenTask *lts_head;
-
-/**
- * Head of DLL with ListenTask.
- */
-struct ListenTask *lts_tail;
+static struct Addresses *addrs_tail;
 
 /**
  * Number of addresses in the DLL for register at NAT service.
  */
-int addrs_lens;
-
+static int addrs_lens;
 
 /**
  * Database for peer's HELLOs.
@@ -914,19 +904,24 @@ int addrs_lens;
 static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
- * A flag indicating we are already doing a shutdown.
+* A flag indicating we are already doing a shutdown.
+*/
+static int shutdown_running = GNUNET_NO;
+
+/**
+ * IPv6 disabled.
  */
-int shutdown_running = GNUNET_NO;
+static int disable_v6;
 
 /**
  * The port the communicator should be assigned to.
  */
-unsigned int bind_port;
+static unsigned int bind_port;
 
 /**
  *  Map of pending reversals.
  */
-struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
+static struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
 
 /**
  * We have been notified that our listen socket has something to
@@ -1921,7 +1916,8 @@ try_handle_plaintext (struct Queue *queue)
     if (sizeof(*tca) > queue->pread_off)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Handling plaintext size of tca greater than pread offset.\n");
+                  "Handling plaintext size of tca greater than pread offset.\n")
+      ;
       return 0;
     }
     if (ntohs (hdr->size) != sizeof(*tca))
@@ -2329,11 +2325,7 @@ tcp_address_to_sockaddr_port_only (const char *bindto, unsigned int *port)
 
   po = GNUNET_new (struct PortOnlyIpv4Ipv6);
 
-  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
-      (GNUNET_YES ==
-       GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                             COMMUNICATOR_CONFIG_SECTION,
-                                             "DISABLE_V6")))
+  if (GNUNET_YES == disable_v6)
   {
     i4 = GNUNET_malloc (sizeof(struct sockaddr_in));
     po->addr_ipv4 = tcp_address_to_sockaddr_numeric_v4 (&sock_len_ipv4, *i4,
@@ -2534,7 +2526,6 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 
   if (1 == inet_pton (AF_INET, start, &v4.sin_addr))
   {
-    // colon = strrchr (cp, ':');
     port = extract_port (bindto);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2545,7 +2536,6 @@ tcp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
   }
   else if (1 == inet_pton (AF_INET6, start, &v6.sin6_addr))
   {
-    // colon = strrchr (cp, ':');
     port = extract_port (bindto);
     in = tcp_address_to_sockaddr_numeric_v6 (sock_len, v6, port);
   }
@@ -3349,11 +3339,11 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
               "in %s\n",
               GNUNET_a2s (in, in_len));
 
-  hsh = GNUNET_CRYPTO_hash_context_start();
+  hsh = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_CRYPTO_hash_context_read (hsh, address, strlen (address));
   GNUNET_CRYPTO_hash_context_read (hsh, peer, sizeof (*peer));
   GNUNET_CRYPTO_hash_context_finish (hsh, &queue_map_key);
-  queue = GNUNET_CONTAINER_multihashmap_get(queue_map, &queue_map_key);
+  queue = GNUNET_CONTAINER_multihashmap_get (queue_map, &queue_map_key);
 
   if (NULL != queue)
   {
@@ -3386,6 +3376,13 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
     break;
 
   case AF_INET6:
+    if (GNUNET_YES == disable_v6)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "IPv6 disabled, skipping %s\n", address);
+      GNUNET_free (in);
+      return GNUNET_SYSERR;
+    }
     v6 = (struct sockaddr_in6 *) in;
     if (0 == v6->sin6_port)
     {
@@ -4063,6 +4060,15 @@ run (void *cls,
                                              &rekey_max_bytes))
   {
     rekey_max_bytes = REKEY_MAX_BYTES;
+  }
+  disable_v6 = GNUNET_NO;
+  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
+      (GNUNET_YES ==
+       GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "DISABLE_V6")))
+  {
+    disable_v6 = GNUNET_YES;
   }
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)
