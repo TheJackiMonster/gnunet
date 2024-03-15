@@ -1,3 +1,6 @@
+v0.21.1:
+  - Communicator and connectivity bugfixes
+
 v0.21.0:
   - Reworked PEERSTORE API
   - Added record flag for maintenance records
