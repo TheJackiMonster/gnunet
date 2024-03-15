@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-03-06 12:08+0100\n"
+"POT-Creation-Date: 2024-03-15 09:19+0100\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -349,21 +349,26 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 msgid "Failed to connect to CORE service!\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/cli/core/gnunet-core.c:230 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:212
+#, fuzzy
+msgid "No argument given.\n"
+msgstr "# byte mottogs via TCP"
+
+#: src/cli/core/gnunet-core.c:235 src/service/transport/gnunet-transport.c:1389
 #, fuzzy
 msgid "provide information about all current connections (continuously)"
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/cli/core/gnunet-core.c:236
+#: src/cli/core/gnunet-core.c:241
 msgid "Show our current peer identity"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:243
+#: src/cli/core/gnunet-core.c:248
 #, fuzzy
 msgid "Show current connections"
 msgstr "Nätverksanslutning"
 
-#: src/cli/core/gnunet-core.c:254
+#: src/cli/core/gnunet-core.c:259
 #, fuzzy
 msgid "Print information about connected peers."
 msgstr "Skriv ut information om GNUnets motparter."
@@ -7165,9 +7170,9 @@ msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3777
-#: src/service/transport/gnunet-communicator-udp.c:3464
-#: src/service/transport/gnunet-service-transport.c:12128
+#: src/service/transport/gnunet-communicator-tcp.c:3814
+#: src/service/transport/gnunet-communicator-udp.c:3562
+#: src/service/transport/gnunet-service-transport.c:12124
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
@@ -7176,11 +7181,11 @@ msgstr "GNUnet-konfiguration"
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4114
+#: src/service/transport/gnunet-communicator-tcp.c:4171
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3540
+#: src/service/transport/gnunet-communicator-udp.c:3637
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -7362,7 +7367,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:765
+#: src/service/transport/transport_api2_communication.c:773
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
