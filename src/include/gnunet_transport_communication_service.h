@@ -74,7 +74,7 @@ extern "C" {
  * @param address where to send the message, human-readable
  *        communicator-specific format, 0-terminated, UTF-8
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if the provided address is
- * invalid
+ * invalid, #GNUNET_NO if this address is already (beging) connected to.
  */
 typedef int (*GNUNET_TRANSPORT_CommunicatorMqInit) (
   void *cls,

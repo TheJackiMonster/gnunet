@@ -850,6 +850,11 @@ static struct GNUNET_NAT_Handle *nat;
  */
 static uint16_t my_port;
 
+/**
+ * IPv6 disabled or not.
+ */
+static int disable_v6;
+
 
 /**
  * An interface went away, stop broadcasting on it.
@@ -2245,11 +2250,7 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
                   bindto);
       return NULL;
     }
-    if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
-        (GNUNET_YES ==
-         GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                               COMMUNICATOR_CONFIG_SECTION,
-                                               "DISABLE_V6")))
+    if (GNUNET_YES == disable_v6)
     {
       struct sockaddr_in *i4;
 
@@ -2865,6 +2866,21 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   path = &address[strlen (COMMUNICATOR_ADDRESS_PREFIX "-")];
   in = udp_address_to_sockaddr (path, &in_len);
 
+  if (NULL == in)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to setup UDP socket address\n");
+    return GNUNET_SYSERR;
+  }
+  if ((AF_INET6 == in->sa_family) &&
+      (GNUNET_YES == disable_v6))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "IPv6 disabled, skipping %s\n", address);
+    GNUNET_free (in);
+    return GNUNET_SYSERR;
+  }
+
   hsh = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_CRYPTO_hash_context_read (hsh, in, in_len);
   GNUNET_CRYPTO_hash_context_read (hsh, peer, sizeof(*peer));
@@ -2874,9 +2890,9 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   if (NULL != receiver)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "receiver %s already exist or is begin connected to\n",
+                "receiver %s already exist or is being connected to\n",
                 address);
-    return GNUNET_SYSERR;
+    return GNUNET_NO;
   }
 
   receiver = GNUNET_new (struct ReceiverAddress);
@@ -3054,13 +3070,14 @@ handle_ack_by_sender (void *cls, const struct GNUNET_HashCode *key, void *value)
   struct ReceiverAddress *receiver = value;
   struct AckInfo *ai = cls;
 
-  if (0 != GNUNET_memcmp(ai->sender, &receiver->target))
+  if (0 != GNUNET_memcmp (ai->sender, &receiver->target))
   {
     return GNUNET_YES;
   }
-  handle_ack((void*) ai->ack, key, receiver);
+  handle_ack ((void*) ai->ack, key, receiver);
   return GNUNET_YES;
 }
+
 
 /**
  * Function called when the transport service has received a
@@ -3432,7 +3449,18 @@ run (void *cls,
                                            COMMUNICATOR_CONFIG_SECTION,
                                            "REKEY_MAX_BYTES",
                                            &rekey_max_bytes))
+  {
     rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
+  }
+  disable_v6 = GNUNET_NO;
+  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
+      (GNUNET_YES ==
+       GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "DISABLE_V6")))
+  {
+    disable_v6 = GNUNET_YES;
+  }
 
   in = udp_address_to_sockaddr (bindto, &in_len);
   if (NULL == in)
