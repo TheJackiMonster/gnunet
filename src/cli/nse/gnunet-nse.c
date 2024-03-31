@@ -26,6 +26,7 @@
 
 #include "platform.h"
 #include "gnunet_nse_service.h"
+#include <gnunet_util_lib.h>
 
 /**
  * The handle to the NSE service
@@ -36,6 +37,11 @@ static struct GNUNET_NSE_Handle *nse;
  * The program status; 0 for success.
  */
 static int status;
+
+/**
+ * Monitor flag.
+ */
+static int monitor;
 
 
 /**
@@ -73,11 +79,13 @@ handle_estimate (void *cls,
   (void) cls;
   status = 0;
   fprintf (stdout,
-           "%llu %f %f %f\n",
-           (unsigned long long) timestamp.abs_value_us,
+           "%s: #peers=%f (ld(#peers)=%f, stddev=%f)\n",
+           GNUNET_STRINGS_absolute_time_to_string (timestamp),
            GNUNET_NSE_log_estimate_to_n (estimate),
            estimate,
            std_dev);
+  if (! monitor)
+    GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -111,7 +119,12 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  static struct GNUNET_GETOPT_CommandLineOption options[] = {
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_flag ('m',
+                               "monitor",
+                               gettext_noop (
+                                 "Monitor and output current estimates"),
+                               &monitor),
     GNUNET_GETOPT_OPTION_END
   };
 
