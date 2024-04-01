@@ -2447,6 +2447,18 @@ select_loop (struct GNUNET_SCHEDULER_Handle *sh,
   }
   GNUNET_NETWORK_fdset_destroy (rs);
   GNUNET_NETWORK_fdset_destroy (ws);
+
+  if ( (NULL == context->scheduled_head) &&
+       (GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us ==
+        context->timeout.abs_value_us) )
+  {
+    /* Only remaining task has timeout of 'forever'.
+       We exit here more as sanity measure, as just
+       waiting forever isn't exactly useful. Still,
+       this is indicative of a bug in the client code. */
+    GNUNET_break (0);
+    return GNUNET_NO;
+  }
   return GNUNET_OK;
 }
 
