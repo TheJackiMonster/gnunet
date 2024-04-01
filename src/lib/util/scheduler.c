@@ -510,7 +510,9 @@ get_timeout ()
   return timeout;
 }
 
-static void remove_pass_end_marker ()
+
+static void
+remove_pass_end_marker ()
 {
   if (pass_end_marker.in_ready_list)
   {
@@ -521,7 +523,9 @@ static void remove_pass_end_marker ()
   }
 }
 
-static void set_work_priority (enum GNUNET_SCHEDULER_Priority p)
+
+static void
+set_work_priority (enum GNUNET_SCHEDULER_Priority p)
 {
   remove_pass_end_marker ();
   GNUNET_CONTAINER_DLL_insert_tail (ready_head[p],
@@ -531,6 +535,7 @@ static void set_work_priority (enum GNUNET_SCHEDULER_Priority p)
   pass_end_marker.in_ready_list = GNUNET_YES;
   work_priority = p;
 }
+
 
 /**
  * Put a task that is ready for execution into the ready queue.
@@ -711,7 +716,7 @@ shutdown_if_no_lifeness (void)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 select_loop (struct GNUNET_SCHEDULER_Handle *sh,
              struct DriverContext *context);
 
@@ -735,8 +740,9 @@ GNUNET_SCHEDULER_run (GNUNET_SCHEDULER_TaskCallback task,
                                                  task_cls,
                                                  GNUNET_SCHEDULER_REASON_STARTUP,
                                                  GNUNET_SCHEDULER_PRIORITY_DEFAULT);
-  select_loop (sh,
-               &context);
+  GNUNET_break (GNUNET_OK ==
+                select_loop (sh,
+                             &context));
   GNUNET_SCHEDULER_driver_done (sh);
   GNUNET_free (driver);
 }
@@ -2276,12 +2282,12 @@ GNUNET_SCHEDULER_driver_init (const struct GNUNET_SCHEDULER_Driver *driver)
 void
 GNUNET_SCHEDULER_driver_done (struct GNUNET_SCHEDULER_Handle *sh)
 {
-  GNUNET_assert (NULL == pending_head);
-  GNUNET_assert (NULL == pending_timeout_head);
-  GNUNET_assert (NULL == shutdown_head);
+  GNUNET_break (NULL == pending_head);
+  GNUNET_break (NULL == pending_timeout_head);
+  GNUNET_break (NULL == shutdown_head);
   for (int i = 0; i != GNUNET_SCHEDULER_PRIORITY_COUNT; ++i)
   {
-    GNUNET_assert (NULL == ready_head[i]);
+    GNUNET_break (NULL == ready_head[i]);
   }
   GNUNET_NETWORK_fdset_destroy (sh->rs);
   GNUNET_NETWORK_fdset_destroy (sh->ws);
@@ -2302,7 +2308,7 @@ GNUNET_SCHEDULER_driver_done (struct GNUNET_SCHEDULER_Handle *sh)
 }
 
 
-static int
+static enum GNUNET_GenericReturnValue
 select_loop (struct GNUNET_SCHEDULER_Handle *sh,
              struct DriverContext *context)
 {
