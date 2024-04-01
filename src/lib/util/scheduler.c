@@ -2449,6 +2449,7 @@ select_loop (struct GNUNET_SCHEDULER_Handle *sh,
   GNUNET_NETWORK_fdset_destroy (ws);
 
   if ( (NULL == context->scheduled_head) &&
+       (NULL != pending_timeout_head) &&
        (GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us ==
         context->timeout.abs_value_us) )
   {
