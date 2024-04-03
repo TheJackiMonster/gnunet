@@ -413,6 +413,9 @@ process_delete (void *cls, int success, const char *msg)
 static void
 iter_finished (void *cls)
 {
+  struct GNUNET_RECLAIM_AttributeListEntry *le;
+  char *attrs_tmp;
+  char *attr_str;
   char *data;
   size_t data_size;
   int type;
@@ -426,6 +429,34 @@ iter_finished (void *cls)
 
   if (issue_attrs)
   {
+    attrs_tmp = GNUNET_strdup (issue_attrs);
+    attr_str = strtok (attrs_tmp, ",");
+    while (NULL != attr_str)
+    {
+      le = attr_list->list_head;
+      while (le)
+      {
+        if (0 == strcasecmp (attr_str, le->attribute->name))
+          break;
+
+        le = le->next;
+      }
+
+      if (! le)
+      {
+        fprintf (stdout, "No such attribute ``%s''\n", attr_str);
+        break;
+      }
+      
+      attr_str = strtok (NULL, ",");
+    }
+    GNUNET_free (attrs_tmp);
+    if (NULL != attr_str)
+    {
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
+      return;
+    }
+
     reclaim_op = GNUNET_RECLAIM_ticket_issue (reclaim_handle,
                                               pkey,
                                               &rp_key,
