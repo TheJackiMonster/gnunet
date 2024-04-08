@@ -218,6 +218,25 @@ struct GNUNET_NAT_AddressChangeNotificationMessage
 };
 
 
+/**
+ * Message sent by client to add a global address.
+ */
+struct GNUNET_NAT_AddGlobalAddressMessage
+{
+  /**
+   * Header with type #GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Length of the address following the struct, in NBO.
+   */
+  unsigned int address_length;
+
+  /* Followed by the address to add */
+};
+
+
 GNUNET_NETWORK_STRUCT_END
 
 #endif

@@ -3216,6 +3216,11 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_NAT_ADDRESS_CHANGE 1064
 
 /**
+ * Message to ask NAT service to notify all clients about a new global address.
+ */
+#define GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS 1065
+
+/**
  * Message to ask NAT service to request autoconfiguration.
  */
 #define GNUNET_MESSAGE_TYPE_NAT_AUTO_REQUEST_CFG 1067

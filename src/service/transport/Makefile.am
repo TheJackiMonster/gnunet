@@ -184,6 +184,7 @@ gnunet_service_transport_LDADD = \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL)

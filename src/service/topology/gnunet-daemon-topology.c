@@ -452,18 +452,13 @@ schedule_next_hello (void *cls)
   fah.max_size = GNUNET_MAX_MESSAGE_SIZE - 1;
   fah.next_adv = GNUNET_TIME_UNIT_FOREVER_REL;
   GNUNET_CONTAINER_multipeermap_iterate (peers, &find_advertisable_hello, &fah);
-  pl->hello_delay_task =
-    GNUNET_SCHEDULER_add_delayed (fah.next_adv, &schedule_next_hello, pl);
   if (NULL == fah.result)
-    return;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "schedule_next_hello 2\n");
-  delay = GNUNET_TIME_absolute_get_remaining (pl->next_hello_allowed);
-  if (0 != delay.rel_value_us)
-    return;
+  {
+    pl->hello_delay_task =
+      GNUNET_SCHEDULER_add_delayed (fah.next_adv, &schedule_next_hello, pl);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "schedule_next_hello 3\n");
+    return;
+  }
   want = ntohs (fah.result->hello->size);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending HELLO with %u bytes for peer %s\n",
@@ -483,9 +478,8 @@ schedule_next_hello (void *cls)
   /* prepare to send the next one */
   pl->next_hello_allowed =
     GNUNET_TIME_relative_to_absolute (HELLO_ADVERTISEMENT_MIN_FREQUENCY);
-  if (NULL != pl->hello_delay_task)
-    GNUNET_SCHEDULER_cancel (pl->hello_delay_task);
-  pl->hello_delay_task = GNUNET_SCHEDULER_add_now (&schedule_next_hello, pl);
+  delay = GNUNET_TIME_absolute_get_remaining (pl->next_hello_allowed);
+  pl->hello_delay_task = GNUNET_SCHEDULER_add_delayed (delay, &schedule_next_hello, pl);
 }
 
 
@@ -937,7 +931,7 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
     message);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received encrypted HELLO from peer `%s'",
+              "Received encrypted HELLO from peer `%s'\n",
               GNUNET_i2s (other));
   GNUNET_STATISTICS_update (stats,
                             gettext_noop ("# HELLO messages received"),
@@ -1012,6 +1006,7 @@ cleaning_task (void *cls)
     GNUNET_STATISTICS_destroy (stats, GNUNET_NO);
     stats = NULL;
   }
+  GNUNET_free (my_private_key);
 }
 
 
