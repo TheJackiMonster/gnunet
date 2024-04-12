@@ -1,6 +1,12 @@
+gnunet (0.21.1-1) unstable; urgency=low
+
+  * Package for GNU Taler v0.10.0 release.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Fri, 12 Apr 2024 13:50:12 +0100
+
 gnunet (0.21.1) unstable; urgency=low
 
-  * Package for GNU Taler v0.10.0.
+  * Package for GNU Taler v0.10.0 pre-release.
 
  -- Christian Grothoff <grothoff@gnu.org>  Tue, 9 Apr 2024 13:50:12 +0100
 
