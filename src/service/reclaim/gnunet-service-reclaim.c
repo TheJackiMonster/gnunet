@@ -858,16 +858,21 @@ revoke_result_cb (void *cls, int32_t success)
  * Check revocation message format
  *
  * @param cls unused
- * @param im the message to check
+ * @param rm the message to check
  * @return GNUNET_OK if message is ok
  */
 static int
-check_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *im)
+check_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
 {
   uint16_t size;
+  size_t key_len;
+  size_t tkt_len;
 
-  size = ntohs (im->header.size);
-  if (size != sizeof(struct RevokeTicketMessage))
+  size = ntohs (rm->header.size);
+  key_len = ntohs (rm->key_len);
+  tkt_len = ntohs (rm->tkt_len);
+
+  if (size != sizeof(struct RevokeTicketMessage) + key_len + tkt_len)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
