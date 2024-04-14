@@ -77,6 +77,16 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
 {
   GNUNET_assert (handle);
 
+  clear_contact_store (get_handle_contact_store (handle));
+
+  if (handle->rooms)
+  {
+    GNUNET_CONTAINER_multihashmap_iterate (handle->rooms, iterate_destroy_room,
+                                           NULL);
+
+    GNUNET_CONTAINER_multihashmap_destroy (handle->rooms);
+  }
+
   if (handle->reconnect_task)
     GNUNET_SCHEDULER_cancel (handle->reconnect_task);
 
@@ -91,16 +101,6 @@ destroy_handle (struct GNUNET_MESSENGER_Handle *handle)
 
   if (handle->pubkey)
     GNUNET_free (handle->pubkey);
-
-  if (handle->rooms)
-  {
-    GNUNET_CONTAINER_multihashmap_iterate (handle->rooms, iterate_destroy_room,
-                                           NULL);
-
-    GNUNET_CONTAINER_multihashmap_destroy (handle->rooms);
-  }
-
-  clear_contact_store (get_handle_contact_store (handle));
 
   GNUNET_free (handle);
 }
