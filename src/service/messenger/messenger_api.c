@@ -750,13 +750,10 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
       link_room_message (room, &other, &hash);
     }
     else
-    {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Sending transcript aborted: Encryption failed!\n");
-
-      destroy_message (transcript);
-    }
-
+    
+    destroy_message (transcript);
   } while (message);
 
   return GNUNET_YES;
