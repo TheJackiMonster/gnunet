@@ -9,7 +9,8 @@ dist_pkgdata_DATA = \
   netjail/netjail_start.sh \
   netjail/netjail_stop.sh \
   netjail/topo.sh \
-  testing-ng/block.sh
+  testing-ng/block.sh \
+  testing-ng/emu_run.sh
 
 EXTRA_DIST = \
   get_version.sh \
@@ -30,5 +31,6 @@ install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/netjail_exec.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/topo.sh'
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/block.sh'
+	chmod o+x '$(DESTDIR)$(pkgdatadir)/emu_run.sh'
 
 ## EOF
