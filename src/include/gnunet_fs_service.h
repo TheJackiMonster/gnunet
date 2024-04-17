@@ -525,6 +525,17 @@ GNUNET_FS_uri_chk_get_file_size (const struct GNUNET_FS_Uri *uri);
 
 
 /**
+ * What is the hash of the original file's content
+ * that this URI refers to?
+ *
+ * @param uri the CHK URI to inspect
+ * @return hash of the file as specified in the CHK URI
+ */
+const struct GNUNET_HashCode*
+GNUNET_FS_uri_chk_get_file_hash (const struct GNUNET_FS_Uri *uri);
+
+
+/**
  * Is this a location URI?
  *
  * @param uri the uri to check
