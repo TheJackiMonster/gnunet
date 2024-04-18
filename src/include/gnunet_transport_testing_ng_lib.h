@@ -111,6 +111,51 @@ struct GNUNET_TESTING_StartPeerState
   struct GNUNET_PEERSTORE_IterateContext *pic;
 
   /**
+   * Task to search for log entry indicating the communicators started.
+   */
+  struct GNUNET_SCHEDULER_Task *log_task;
+
+  /**
+   * Task to start the request for the list of services.
+   */
+  struct GNUNET_SCHEDULER_Task *request_task;
+
+  /**
+   * Arm operation to get a list of the services, to check if all started.
+   */
+  struct GNUNET_ARM_Operation *op;
+
+  /**
+   * Handle for the arm service.
+   */
+  struct GNUNET_ARM_Handle *h;
+
+  /**
+   * Stream to read log file lines.
+   */
+  FILE *stream;
+
+  /**
+   * File handle for log file.
+   */
+  struct GNUNET_DISK_FileHandle *fh;
+  
+  /**
+   * Flag indicating, if there are services not started completely.
+   */
+  enum GNUNET_GenericReturnValue not_all_started;
+
+  /**
+   * Flag indicating if all (udo and tcp) communicators connected to transport service.
+   */
+  enum GNUNET_GenericReturnValue coms_started;
+
+  /**
+   * Number of communicators connecteds with transport service.
+   */
+  unsigned int num_coms_started;
+  
+  /**
    * Hello
    */
   char *hello;

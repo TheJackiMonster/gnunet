@@ -28,12 +28,215 @@
 #include "transport-testing-cmds.h"
 #include "gnunet_testing_ng_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
+#include "gnunet_arm_service.h"
 
+
+/**
+ * Maximum length allowed for line input.
+ */
+#define MAX_LINE_LENGTH 1024
 
 /**
  * Generic logging shortcut
  */
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
+
+
+/**
+ * Function called whenever we connect to or disconnect from ARM.
+ * Termiantes the process if we fail to connect to the service on
+ * our first attempt.
+ *
+ * @param cls closure
+ * @param connected #GNUNET_YES if connected, #GNUNET_NO if disconnected,
+ *                  #GNUNET_SYSERR on error.
+ */
+static void
+conn_status (void *cls,
+             int connected)
+{
+  (void) cls;
+  if (GNUNET_SYSERR == connected)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Fatal error initializing ARM API.\n"));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+}
+
+
+static void
+list_callback (void *cls,
+               enum GNUNET_ARM_RequestStatus rs,
+               unsigned int count,
+               const struct GNUNET_ARM_ServiceInfo *list);
+
+
+static void
+request_list (void *cls)
+{
+  struct GNUNET_TESTING_StartPeerState *sps = cls;
+  sps->op = GNUNET_ARM_request_service_list (sps->h,
+                                              &list_callback,
+                                              sps);
+}
+
+
+/**
+ * Function called with the list of running services. If all service have status started
+ * this command finishes. Otherwise the list is requested again.
+ *
+ * @param cls closure (unused)
+ * @param rs request status (success, failure, etc.)
+ * @param count number of services in the list
+ * @param list list of services managed by arm
+ */
+static void
+list_callback (void *cls,
+               enum GNUNET_ARM_RequestStatus rs,
+               unsigned int count,
+               const struct GNUNET_ARM_ServiceInfo *list)
+{
+  struct GNUNET_TESTING_StartPeerState *sps = cls;
+  enum GNUNET_GenericReturnValue not_all_started;
+
+  sps->op = NULL;
+  if (GNUNET_ARM_REQUEST_SENT_OK != rs)
+  {
+    char *msg;
+
+    GNUNET_asprintf (&msg,
+                     "%s",
+                     _ ("Failed to request a list of services: %s\n"));
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "%s\n",
+         msg);
+    GNUNET_free (msg);
+    GNUNET_SCHEDULER_shutdown ();
+  }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "list_callback\n");
+  if (NULL == list)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Error communicating with ARM. ARM not running?\n");
+
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  for (unsigned int i = 0; i < count; i++)
+  {
+    switch (list[i].status)
+    {
+      case GNUNET_ARM_SERVICE_STATUS_STARTED:
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "%s started\n",
+             list[i].name);
+        break;
+      case GNUNET_ARM_SERVICE_STATUS_STOPPED:
+      case GNUNET_ARM_SERVICE_STATUS_FAILED:
+      case GNUNET_ARM_SERVICE_STATUS_FINISHED:
+      case GNUNET_ARM_SERVICE_STATUS_STOPPING:
+      default:
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "%s not started %p\n",
+             list[i].name,
+             sps->h);
+        sps->not_all_started = GNUNET_YES;
+        sps->request_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                &request_list,
+                                sps);
+      return;
+    }
+  }
+  if (GNUNET_NO == sps->not_all_started && GNUNET_YES == sps->coms_started)
+    GNUNET_TESTING_async_finish (&sps->ac);
+}
+
+
+/**
+ *
+ * @param cls The cmd state CheckState.
+ */
+static void
+read_from_log (void *cls)
+{
+  struct GNUNET_TESTING_StartPeerState *sps = cls;
+  char line[MAX_LINE_LENGTH + 1];
+  char *search_string_udp;
+  char *search_string_tcp;
+  char *head_search_string = "Communicator for peer ";
+  char *tail_search_string_udp = " with prefix 'udp'";
+  char *tail_search_string_tcp = " with prefix 'tcp'";
+
+  GNUNET_asprintf (&search_string_udp,
+                   "%s%s%s",
+                   head_search_string,
+                   GNUNET_i2s (&sps->id),
+                   tail_search_string_udp);
+  GNUNET_asprintf (&search_string_tcp,
+                   "%s%s%s",
+                   head_search_string,
+                   GNUNET_i2s (&sps->id),
+                   tail_search_string_tcp);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "search %s or %s in log\n",
+       search_string_udp,
+       search_string_tcp);
+
+  sps->fh = GNUNET_DISK_file_open ("test.out",
+                                  GNUNET_DISK_OPEN_READ,
+                                  GNUNET_DISK_PERM_USER_READ);
+
+  sps->log_task = NULL;
+
+  /* read message from line and handle it */
+  sps->stream = fdopen (sps->fh->fd, "r");
+  memset (line, 0, MAX_LINE_LENGTH + 1);
+
+  while  (NULL != fgets (line, MAX_LINE_LENGTH, sps->stream))
+  {
+    /* LOG (GNUNET_ERROR_TYPE_DEBUG, */
+    /*    "------------------------ %s\n", */
+    /*    line); */
+    if (NULL != strstr (line,
+                        search_string_udp) ||
+        NULL != strstr (line,
+                        search_string_tcp))
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "num_coms_started %u\n",
+       sps->num_coms_started);
+      sps->num_coms_started++;
+      if (2 == sps->num_coms_started)
+      {
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "coms_started\n");
+        sps->coms_started = GNUNET_YES;
+      }
+      if (GNUNET_NO == sps->not_all_started &&
+          GNUNET_YES == sps->coms_started)
+      {
+        GNUNET_TESTING_async_finish (&sps->ac);
+        fclose (sps->stream);
+        return;
+      }
+      else if (GNUNET_YES == sps->coms_started)
+      {
+        fclose (sps->stream);
+        return;
+      }
+    }
+  }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "read_from_log end\n");
+  fclose (sps->stream);
+  sps->log_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                &read_from_log,
+                                sps);
+}
 
 
 /**
@@ -197,6 +400,15 @@ start_peer_run (void *cls,
        sps->no,
        GNUNET_i2s_full (&sps->id));
 
+  sps->h = GNUNET_ARM_connect (sps->cfg,
+                               &conn_status,
+                               NULL);
+  sps->request_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                &request_list,
+                                sps);
+  sps->log_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
+                                &read_from_log,
+                                sps);
   GNUNET_free (home);
   GNUNET_free (transport_unix_path);
   GNUNET_free (tcp_communicator_unix_path);
@@ -221,6 +433,17 @@ start_peer_cleanup (void *cls)
     GNUNET_CONFIGURATION_destroy (sps->cfg);
     sps->cfg = NULL;
     }*/
+  if (NULL != sps->op)
+  {
+    GNUNET_ARM_operation_cancel (sps->op);
+    sps->op = NULL;
+  }
+  if (NULL != sps->h)
+  {
+    GNUNET_ARM_disconnect (sps->h);
+    sps->h = NULL;
+  }
+  fclose (sps->stream);
   GNUNET_free (sps->cfgname);
   GNUNET_free (sps->node_ip);
   GNUNET_free (sps->system_label);
@@ -292,5 +515,5 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
                                      &start_peer_run,
                                      &start_peer_cleanup,
                                      &start_peer_traits,
-                                     NULL);
+                                     &sps->ac);
 }
