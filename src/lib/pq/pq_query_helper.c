@@ -1382,4 +1382,204 @@ GNUNET_PQ_query_param_array_ptrs_timestamp (
 }
 
 
+/**
+ * Function called to convert input argument into SQL parameters.
+ *
+ * @param cls closure
+ * @param data pointer to input argument
+ * @param data_len number of bytes in @a data (if applicable)
+ * @param[out] param_values SQL data to set
+ * @param[out] param_lengths SQL length data to set
+ * @param[out] param_formats SQL format data to set
+ * @param param_length number of entries available in the @a param_values, @a param_lengths and @a param_formats arrays
+ * @param[out] scratch buffer for dynamic allocations (to be done via #GNUNET_malloc()
+ * @param scratch_length number of entries left in @a scratch
+ * @return -1 on error, number of offsets used in @a scratch otherwise
+ */
+static int
+qconv_blind_sign_pub (void *cls,
+                      const void *data,
+                      size_t data_len,
+                      void *param_values[],
+                      int param_lengths[],
+                      int param_formats[],
+                      unsigned int param_length,
+                      void *scratch[],
+                      unsigned int scratch_length)
+{
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *public_key = data;
+  size_t tlen;
+  size_t len;
+  uint32_t be;
+  char *buf;
+  void *tbuf;
+
+  (void) cls;
+  (void) data_len;
+  GNUNET_assert (1 == param_length);
+  GNUNET_assert (scratch_length > 0);
+  GNUNET_break (NULL == cls);
+  be = htonl ((uint32_t) public_key->cipher);
+  switch (public_key->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_RSA:
+    tlen = GNUNET_CRYPTO_rsa_public_key_encode (
+      public_key->details.rsa_public_key,
+      &tbuf);
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    tlen = sizeof (public_key->details.cs_public_key);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
+  len = tlen + sizeof (be);
+  buf = GNUNET_malloc (len);
+  GNUNET_memcpy (buf,
+                 &be,
+                 sizeof (be));
+  switch (public_key->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_RSA:
+    GNUNET_memcpy (&buf[sizeof (be)],
+                   tbuf,
+                   tlen);
+    GNUNET_free (tbuf);
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    GNUNET_memcpy (&buf[sizeof (be)],
+                   &public_key->details.cs_public_key,
+                   tlen);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
+
+  scratch[0] = buf;
+  param_values[0] = (void *) buf;
+  param_lengths[0] = len;
+  param_formats[0] = 1;
+  return 1;
+}
+
+
+/**
+ * Generate query parameter for a blind sign public key of variable size.
+ *
+ * @param pub pointer to the query parameter to pass
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_blind_sign_pub (
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *pub)
+{
+  struct GNUNET_PQ_QueryParam res = {
+    .conv = &qconv_blind_sign_pub,
+    .data = pub,
+    .num_params = 1
+  };
+
+  return res;
+}
+
+
+/**
+ * Function called to convert input argument into SQL parameters.
+ *
+ * @param cls closure
+ * @param data pointer to input argument
+ * @param data_len number of bytes in @a data (if applicable)
+ * @param[out] param_values SQL data to set
+ * @param[out] param_lengths SQL length data to set
+ * @param[out] param_formats SQL format data to set
+ * @param param_length number of entries available in the @a param_values, @a param_lengths and @a param_formats arrays
+ * @param[out] scratch buffer for dynamic allocations (to be done via #GNUNET_malloc()
+ * @param scratch_length number of entries left in @a scratch
+ * @return -1 on error, number of offsets used in @a scratch otherwise
+ */
+static int
+qconv_blind_sign_priv (void *cls,
+                       const void *data,
+                       size_t data_len,
+                       void *param_values[],
+                       int param_lengths[],
+                       int param_formats[],
+                       unsigned int param_length,
+                       void *scratch[],
+                       unsigned int scratch_length)
+{
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *private_key = data;
+  size_t tlen;
+  size_t len;
+  uint32_t be;
+  char *buf;
+  void *tbuf;
+
+  (void) cls;
+  (void) data_len;
+  GNUNET_assert (1 == param_length);
+  GNUNET_assert (scratch_length > 0);
+  GNUNET_break (NULL == cls);
+  be = htonl ((uint32_t) private_key->cipher);
+  switch (private_key->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_RSA:
+    tlen = GNUNET_CRYPTO_rsa_private_key_encode (
+      private_key->details.rsa_private_key,
+      &tbuf);
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    tlen = sizeof (private_key->details.cs_private_key);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
+  len = tlen + sizeof (be);
+  buf = GNUNET_malloc (len);
+  GNUNET_memcpy (buf,
+                 &be,
+                 sizeof (be));
+  switch (private_key->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_RSA:
+    GNUNET_memcpy (&buf[sizeof (be)],
+                   tbuf,
+                   tlen);
+    GNUNET_free (tbuf);
+    break;
+  case GNUNET_CRYPTO_BSA_CS:
+    GNUNET_memcpy (&buf[sizeof (be)],
+                   &private_key->details.cs_private_key,
+                   tlen);
+    break;
+  default:
+    GNUNET_assert (0);
+  }
+
+  scratch[0] = buf;
+  param_values[0] = (void *) buf;
+  param_lengths[0] = len;
+  param_formats[0] = 1;
+  return 1;
+}
+
+
+/**
+ * Generate query parameter for a blind sign private key of variable size.
+ *
+ * @param priv pointer to the query parameter to pass
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_blind_sign_priv (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *priv)
+{
+  struct GNUNET_PQ_QueryParam res = {
+    .conv = &qconv_blind_sign_priv,
+    .data = priv,
+    .num_params = 1
+  };
+
+  return res;
+}
+
+
 /* end of pq_query_helper.c */

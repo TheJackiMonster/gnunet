@@ -1795,4 +1795,267 @@ GNUNET_PQ_result_spec_array_string (
 }
 
 
+/**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param row the row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_blind_sign_pub (void *cls,
+                        PGresult *result,
+                        int row,
+                        const char *fname,
+                        size_t *dst_size,
+                        void *dst)
+{
+  struct GNUNET_CRYPTO_BlindSignPublicKey *bpk = dst;
+  size_t len;
+  const char *res;
+  int fnum;
+  uint32_t be;
+
+  (void) cls;
+  (void) dst_size;
+  fnum = PQfnumber (result,
+                    fname);
+  if (fnum < 0)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (PQgetisnull (result,
+                   row,
+                   fnum))
+    return GNUNET_NO;
+
+  /* if a field is null, continue but
+   * remember that we now return a different result */
+  len = PQgetlength (result,
+                     row,
+                     fnum);
+  res = PQgetvalue (result,
+                    row,
+                    fnum);
+  if (len < sizeof (be))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_memcpy (&be,
+                 res,
+                 sizeof (be));
+  res += sizeof (be);
+  len -= sizeof (be);
+  bpk = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPublicKey);
+  bpk->cipher = ntohl (be);
+  bpk->rc = 1;
+  switch (bpk->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    bpk->details.rsa_public_key
+      = GNUNET_CRYPTO_rsa_public_key_decode (res,
+                                             len);
+    if (NULL == bpk->details.rsa_public_key)
+    {
+      GNUNET_break (0);
+      GNUNET_free (bpk);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_CRYPTO_hash (res,
+                        len,
+                        &bpk->pub_key_hash);
+    return GNUNET_OK;
+  case GNUNET_CRYPTO_BSA_CS:
+    if (sizeof (bpk->details.cs_public_key) != len)
+    {
+      GNUNET_break (0);
+      GNUNET_free (bpk);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_memcpy (&bpk->details.cs_public_key,
+                   res,
+                   len);
+    GNUNET_CRYPTO_hash (res,
+                        len,
+                        &bpk->pub_key_hash);
+    return GNUNET_OK;
+  }
+  GNUNET_break (0);
+  GNUNET_free (bpk);
+  return GNUNET_SYSERR;
+}
+
+
+/**
+ * Function called to clean up memory allocated
+ * by a #GNUNET_PQ_ResultConverter.
+ *
+ * @param cls closure
+ * @param rd result data to clean up
+ */
+static void
+clean_blind_sign_pub (void *cls,
+                      void *rd)
+{
+  struct GNUNET_CRYPTO_BlindSignPublicKey *pub = rd;
+
+  (void) cls;
+  GNUNET_CRYPTO_blind_sign_pub_decref (pub);
+  pub = NULL;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_blind_sign_pub (const char *name,
+                                     struct GNUNET_CRYPTO_BlindSignPublicKey *pub)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_blind_sign_pub,
+    .cleaner = &clean_blind_sign_pub,
+    .dst = (void *) pub,
+    .fname = name
+  };
+
+  return res;
+}
+
+
+/**
+ * Extract data from a Postgres database @a result at row @a row.
+ *
+ * @param cls closure
+ * @param result where to extract data from
+ * @param row the row to extract data from
+ * @param fname name (or prefix) of the fields to extract from
+ * @param[in,out] dst_size where to store size of result, may be NULL
+ * @param[out] dst where to store the result
+ * @return
+ *   #GNUNET_YES if all results could be extracted
+ *   #GNUNET_SYSERR if a result was invalid (non-existing field or NULL)
+ */
+static enum GNUNET_GenericReturnValue
+extract_blind_sign_priv (void *cls,
+                         PGresult *result,
+                         int row,
+                         const char *fname,
+                         size_t *dst_size,
+                         void *dst)
+{
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *bpk = dst;
+  size_t len;
+  const char *res;
+  int fnum;
+  uint32_t be;
+
+  (void) cls;
+  (void) dst_size;
+  fnum = PQfnumber (result,
+                    fname);
+  if (fnum < 0)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  if (PQgetisnull (result,
+                   row,
+                   fnum))
+    return GNUNET_NO;
+
+  /* if a field is null, continue but
+   * remember that we now return a different result */
+  len = PQgetlength (result,
+                     row,
+                     fnum);
+  res = PQgetvalue (result,
+                    row,
+                    fnum);
+  if (len < sizeof (be))
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  GNUNET_memcpy (&be,
+                 res,
+                 sizeof (be));
+  res += sizeof (be);
+  len -= sizeof (be);
+  bpk = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPrivateKey);
+  bpk->cipher = ntohl (be);
+  bpk->rc = 1;
+  switch (bpk->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    bpk->details.rsa_private_key
+      = GNUNET_CRYPTO_rsa_private_key_decode (res,
+                                              len);
+    if (NULL == bpk->details.rsa_private_key)
+    {
+      GNUNET_break (0);
+      GNUNET_free (bpk);
+      return GNUNET_SYSERR;
+    }
+    return GNUNET_OK;
+  case GNUNET_CRYPTO_BSA_CS:
+    if (sizeof (bpk->details.cs_private_key) != len)
+    {
+      GNUNET_break (0);
+      GNUNET_free (bpk);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_memcpy (&bpk->details.cs_private_key,
+                   res,
+                   len);
+    return GNUNET_OK;
+  }
+  GNUNET_break (0);
+  GNUNET_free (bpk);
+  return GNUNET_SYSERR;
+}
+
+
+/**
+ * Function called to clean up memory allocated
+ * by a #GNUNET_PQ_ResultConverter.
+ *
+ * @param cls closure
+ * @param rd result data to clean up
+ */
+static void
+clean_blind_sign_priv (void *cls,
+                      void *rd)
+{
+  struct GNUNET_CRYPTO_BlindSignPublicKey *pub = rd;
+
+  (void) cls;
+  GNUNET_CRYPTO_blind_sign_pub_decref (pub);
+  pub = NULL;
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
+                                       struct GNUNET_CRYPTO_BlindSignPrivateKey *priv)
+{
+  struct GNUNET_PQ_ResultSpec res = {
+    .conv = &extract_blind_sign_priv,
+    .cleaner = &clean_blind_sign_priv,
+    .dst = (void *) priv,
+    .fname = name
+  };
+
+  return res;
+}
+
 /* end of pq_result_helper.c */
