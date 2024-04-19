@@ -1136,7 +1136,7 @@ GNUNET_PQ_result_spec_array_string (
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_pub (
   const char *name,
-  struct GNUNET_CRYPTO_BlindSignPublicKey *public_key);
+  struct GNUNET_CRYPTO_BlindSignPublicKey **public_key);
 
 
 /**
@@ -1149,7 +1149,7 @@ GNUNET_PQ_result_spec_blind_sign_pub (
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_priv (
   const char *name,
-  struct GNUNET_CRYPTO_BlindSignPrivateKey *private_key);
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **private_key);
 
 /* ************************* pq.c functions ************************ */
 
