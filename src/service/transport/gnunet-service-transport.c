@@ -11980,7 +11980,6 @@ handle_add_queue_message (void *cls,
   struct TransportClient *tc = cls;
   struct Queue *queue;
   struct Neighbour *neighbour;
-  struct GNUNET_TIME_Absolute validated_until = GNUNET_TIME_UNIT_ZERO_ABS;
   const char *addr;
   uint16_t addr_len;
 
@@ -11997,7 +11996,6 @@ handle_add_queue_message (void *cls,
        NULL != queue;
        queue = queue->next_client)
   {
-    validated_until = queue->validated_until;
     if (queue->qid != ntohl (aqm->qid))
       continue;
     break;
@@ -12009,6 +12007,8 @@ handle_add_queue_message (void *cls,
   }
   else
   {
+    struct GNUNET_TIME_Absolute validated_until = GNUNET_TIME_UNIT_ZERO_ABS;
+
     neighbour = lookup_neighbour (&aqm->receiver);
     if (NULL == neighbour)
     {
@@ -12041,7 +12041,9 @@ handle_add_queue_message (void *cls,
                 ntohl (aqm->mtu));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
     queue->tc = tc;
-    if (GNUNET_TIME_UNIT_ZERO_ABS.abs_value_us != validated_until.abs_value_us)
+    for (struct Queue *q = neighbour->queue_head; NULL != q; q = q->next_neighbour)
+      validated_until = GNUNET_TIME_absolute_max (validated_until, q->validated_until);
+    if (0 == GNUNET_TIME_absolute_get_remaining (validated_until).rel_value_us)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "New queue with QID %u inherit validated until\n",
