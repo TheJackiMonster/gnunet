@@ -82,6 +82,7 @@ libgnunetutil_la_SOURCES = \
   load.c \
   mst.c \
   mq.c \
+  nat.c \
   nc.c \
   network.c \
 	nt.c \

@@ -1,4 +1,4 @@
-/*
+ /*
    This file is part of GNUnet.
    Copyright (C) 2010-2016, 2018, 2019 GNUnet e.V.
 
@@ -1601,22 +1601,6 @@ struct VirtualLink
    * Are we ready to start the burst?
    */
   enum GNUNET_GenericReturnValue sync_ready;
-
-  /**
-   * Did the target tell us it is ready to start the burst?
-   */
-  enum GNUNET_GenericReturnValue other_sync_ready;
-
-  /**
-   * Did we start the burst?
-   */
-  enum GNUNET_GenericReturnValue burst_sync;
-
-  /**
-   * Factor we multiply the avarage RTT with for calculating the the delay to start the burst.
-   * The factor depends on which peer first got ready to sync.
-   */
-  unsigned long long rtt_factor;
 };
 
 
@@ -7432,6 +7416,10 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
       q_timeout = GNUNET_TIME_UNIT_ZERO_ABS;
       for (struct Queue *q = n->queue_head; NULL != q; q = q->next_neighbour)
         q_timeout = GNUNET_TIME_absolute_max (q_timeout, q->validated_until);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "remainig %lu to %s\n",
+                  GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+                  GNUNET_i2s (&n->pid));
       if (0 != GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
       {
         /* Useless path: we have a direct active connection to some hop
@@ -9746,8 +9734,11 @@ calculate_rtt (struct DistanceVector *dv)
 static void
 start_burst (void *cls)
 {
+  struct GNUNET_StartBurstCls *sb_cls = cls;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Burst started \n");
+  GNUNET_free (sb_cls);
 }
 
 /**
@@ -9794,76 +9785,38 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
                     vl,
                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   }
-  if (NULL != vl->n && GNUNET_YES != vl->burst_sync)
+  if (NULL != vl->n)
   {
     for (struct Queue *q = vl->n->queue_head; NULL != q; q = q->next_neighbour)
       q_timeout = GNUNET_TIME_absolute_max (q_timeout, q->validated_until);
   }
 
-  if ((NULL == vl->n ||
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "remaining %lu timeout for neighbour %p\n",
+              GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+              vl->n);
+  if (NULL == vl->n ||
        0 == GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
-      && GNUNET_YES != vl->burst_sync)
   {
     struct GNUNET_TIME_Relative rtt;
-    struct GNUNET_TIME_Relative rel1;
-    struct GNUNET_TIME_Relative rel2;
+    struct GNUNET_BurstSync burst_sync;
+    struct GNUNET_StartBurstCls *cls;
 
+    cls = GNUNET_new (struct GNUNET_StartBurstCls);
     if (NULL != vl->dv)
       rtt = calculate_rtt (vl->dv);
     else
       rtt = GNUNET_TIME_UNIT_FOREVER_REL;
-    vl->other_rtt = GNUNET_TIME_relative_ntoh (fc->rtt);
-    vl->other_sync_ready = fc->sync_ready;
-    rel1 = GNUNET_TIME_relative_subtract (vl->other_rtt, rtt);
-    rel2 = GNUNET_TIME_relative_subtract (rtt, vl->other_rtt);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "other sync ready %u, other rtt %llu and rtt %llu rel1 %llu rel2 %llu\n",
-                vl->other_sync_ready,
-                vl->other_rtt.rel_value_us,
-                rtt.rel_value_us,
-                rel1.rel_value_us,
-                rel2.rel_value_us);
-    if ((vl->other_rtt.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us &&
-         rtt.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
-        rel1.rel_value_us  < RTT_DIFF.rel_value_us &&
-        rel2.rel_value_us < RTT_DIFF.rel_value_us)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 1\n");
-      if (GNUNET_YES == vl->other_sync_ready && GNUNET_YES == vl->sync_ready)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 2\n");
-        vl->burst_sync = GNUNET_YES;
-        vl->burst_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (rtt, vl->rtt_factor), &start_burst, vl);
-      }
-      else if (GNUNET_NO == vl->other_sync_ready)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 3\n");
-        if (NULL != vl->burst_task)
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 4\n");
-          GNUNET_SCHEDULER_cancel (vl->burst_task);
-          vl->burst_task = NULL;
-        }
-        vl->rtt_factor = 4;
-      }
-      else
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 5\n");
-        vl->rtt_factor = 2;
-      }
-      vl->sync_ready = GNUNET_YES;
-    }
-    else
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "other sync ready 6\n");
-      vl->sync_ready = GNUNET_NO;
-    }
+    burst_sync.rtt_avarage = fc->rtt;
+    burst_sync.sync_ready = fc->sync_ready;
+
+    vl->sync_ready = GNUNET_is_burst_ready (rtt,
+                           &burst_sync,
+                           &start_burst,
+                           cls);
+    if (NULL != vl->burst_task &&
+        GNUNET_NO == vl->sync_ready);
+      vl->burst_task = NULL;
   }
   if (0 != ntohl (fc->number_of_addresses))
   {

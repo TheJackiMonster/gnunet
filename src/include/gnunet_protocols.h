@@ -3653,6 +3653,20 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_SET_EDIT_CANCEL 1752
 
+/*********************************************************************************/
+
+/*********************************************************************************/
+/**********************************  UTIL (cont.)  **************************/
+/*********************************************************************************/
+/* NAMESTORE: message types 1801-1810
+ */
+
+/**
+ * Message exchanged between peers for burst synchronisation.
+ */
+#define GNUNET_TYPE_BURST_SYNC 1801
+
+
 /**
  * Type used to match 'all' message types.
  */
