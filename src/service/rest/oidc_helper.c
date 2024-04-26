@@ -359,7 +359,7 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_PublicKey *sub_key,
 
 
 char *
-generate_id_token_body (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+generate_id_token_body (const char *rp_uri,
                         const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
                         const struct
@@ -388,13 +388,9 @@ generate_id_token_body (const struct GNUNET_CRYPTO_PublicKey *aud_key,
     GNUNET_STRINGS_data_to_string_alloc (sub_key,
                                          sizeof(struct
                                                 GNUNET_CRYPTO_PublicKey));
-  audience =
-    GNUNET_STRINGS_data_to_string_alloc (aud_key,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_PublicKey));
 
   // aud REQUIRED public key client_id must be there
-  json_object_set_new (body, "aud", json_string (audience));
+  json_object_set_new (body, "aud", json_string (rp_uri));
   // iat
   json_object_set_new (body,
                        "iat",
@@ -424,7 +420,7 @@ generate_id_token_body (const struct GNUNET_CRYPTO_PublicKey *aud_key,
 
 
 char *
-OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+OIDC_generate_id_token_rsa (const char *rp_uri,
                             const struct GNUNET_CRYPTO_PublicKey *sub_key,
                             const struct GNUNET_RECLAIM_AttributeList *attrs,
                             const struct
@@ -438,7 +434,7 @@ OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
   char *result;
 
   // Generate the body of the JSON Web Signature
-  body_str = generate_id_token_body (aud_key,
+  body_str = generate_id_token_body (rp_uri,
                                      sub_key,
                                      attrs,
                                      presentations,
@@ -474,19 +470,8 @@ OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
   return result;
 }
 
-/**
- * Create a JWT using HMAC (HS256) from attributes
- *
- * @param aud_key the public of the audience
- * @param sub_key the public key of the subject
- * @param attrs the attribute list
- * @param presentations credential presentation list (may be empty)
- * @param expiration_time the validity of the token
- * @param secret_key the key used to sign the JWT
- * @return a new base64-encoded JWT string.
- */
 char *
-OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+OIDC_generate_id_token_hmac (const char *rp_uri,
                              const struct GNUNET_CRYPTO_PublicKey *sub_key,
                              const struct GNUNET_RECLAIM_AttributeList *attrs,
                              const struct
@@ -517,7 +502,7 @@ OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
   fix_base64 (header_base64);
 
   // Generate and encode the body of the JSON Web Signature
-  body_str = generate_id_token_body (aud_key,
+  body_str = generate_id_token_body (rp_uri,
                                      sub_key,
                                      attrs,
                                      presentations,
@@ -764,7 +749,7 @@ check_code_challenge (const char *code_challenge,
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
 int
-OIDC_parse_authz_code (const struct GNUNET_CRYPTO_PublicKey *audience,
+OIDC_parse_authz_code (const char *rp_uri,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
@@ -838,7 +823,7 @@ OIDC_parse_authz_code (const struct GNUNET_CRYPTO_PublicKey *audience,
   memcpy (ticket, &params->ticket, sizeof(params->ticket));
   // Signature
   // GNUNET_CRYPTO_ecdsa_key_get_public (ecdsa_priv, &ecdsa_pub);
-  if (0 != GNUNET_memcmp (audience, &ticket->audience))
+  if (0 != strcmp (rp_uri, ticket->rp_uri))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)

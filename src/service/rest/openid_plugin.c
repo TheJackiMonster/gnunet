@@ -242,7 +242,7 @@
  * How long to wait for a consume in userinfo endpoint
  */
 #define CONSUME_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS,2)
+          GNUNET_TIME_UNIT_SECONDS,2)
 
 /**
  * OIDC ignored parameter array
@@ -1248,7 +1248,7 @@ oidc_cred_collect_finished_cb (void *cls)
                 le_m->attribute->name);
   handle->idp_op = GNUNET_RECLAIM_ticket_issue (idp,
                                                 &handle->priv_key,
-                                                &handle->oidc->client_pkey,
+                                                handle->oidc->client_id,
                                                 merged_list,
                                                 &oidc_ticket_issue_cb,
                                                 handle);
@@ -2338,7 +2338,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     }
 
     // Generate oidc token
-    id_token = OIDC_generate_id_token_rsa (&ticket.audience,
+    id_token = OIDC_generate_id_token_rsa (ticket.rp_uri,
                                            &ticket.identity,
                                            cl,
                                            pl,
@@ -2366,7 +2366,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
       return;
     }
 
-    id_token = OIDC_generate_id_token_hmac (&ticket.audience,
+    id_token = OIDC_generate_id_token_hmac (ticket.rp_uri,
                                             &ticket.identity,
                                             cl,
                                             pl,
@@ -2573,7 +2573,7 @@ consume_fail (void *cls)
                                                        cached_code));
 
   // decode code
-  if (GNUNET_OK != OIDC_parse_authz_code (&handle->ticket.audience,
+  if (GNUNET_OK != OIDC_parse_authz_code (handle->ticket.rp_uri,
                                           cached_code, NULL, &ticket,
                                           &cl, &pl, &nonce,
                                           OIDC_VERIFICATION_NO_CODE_VERIFIER))
@@ -2624,8 +2624,6 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *authorization;
   char *authorization_type;
   char *authorization_access_token;
-  const struct EgoEntry *aud_ego;
-  const struct GNUNET_CRYPTO_PrivateKey *privkey;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Getting userinfo\n");
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
@@ -2683,18 +2681,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_assert (NULL != ticket);
   handle->ticket = *ticket;
   GNUNET_free (ticket);
-  aud_ego = find_ego (handle, &handle->ticket.audience);
-  if (NULL == aud_ego)
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
-    handle->edesc = GNUNET_strdup ("The access token expired");
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
-    GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
-    GNUNET_free (authorization);
-    return;
-  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Consuming ticket\n");
-  privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
   handle->attr_userinfo_list =
     GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   handle->presentations =
@@ -2706,7 +2693,6 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                                              &consume_fail,
                                                              handle);
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
-                                                  privkey,
                                                   &handle->ticket,
                                                   &consume_ticket,
                                                   handle);
