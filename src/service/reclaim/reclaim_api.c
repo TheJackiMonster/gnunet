@@ -1782,7 +1782,7 @@ GNUNET_RECLAIM_write_ticket_to_buffer (const struct
     return written;
   left -= written;
   tmp += written;
-  memcpy (&tmp, tkt->rp_uri, strlen (tkt->rp_uri) + 1);
+  memcpy (tmp, tkt->rp_uri, strlen (tkt->rp_uri) + 1);
   written = strlen (tkt->rp_uri) + 1;
   left -= written;
   tmp += written;

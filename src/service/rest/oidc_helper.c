@@ -211,7 +211,8 @@ generate_userinfo_json (const struct GNUNET_CRYPTO_PublicKey *sub_key,
     pres_val_str =
       GNUNET_RECLAIM_presentation_value_to_string (ple->presentation->type,
                                                    ple->presentation->data,
-                                                   ple->presentation->data_size);
+                                                   ple->presentation->data_size)
+    ;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Presentation is: %s\n", pres_val_str);
     json_object_set_new (aggr_sources_jwt,
@@ -370,7 +371,6 @@ generate_id_token_body (const char *rp_uri,
   struct GNUNET_TIME_Absolute exp_time;
   struct GNUNET_TIME_Absolute time_now;
   json_t *body;
-  char *audience;
   char *subject;
   char *body_str;
 
@@ -413,7 +413,6 @@ generate_id_token_body (const char *rp_uri,
 
   json_decref (body);
   GNUNET_free (subject);
-  GNUNET_free (audience);
 
   return body_str;
 }
@@ -469,6 +468,7 @@ OIDC_generate_id_token_rsa (const char *rp_uri,
   json_decref (jws);
   return result;
 }
+
 
 char *
 OIDC_generate_id_token_hmac (const char *rp_uri,
@@ -676,9 +676,9 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
   // Sign and store signature
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_sign_ (issuer,
-                             purpose,
-                             (struct GNUNET_CRYPTO_Signature *)
-                             buf_ptr))
+                           purpose,
+                           (struct GNUNET_CRYPTO_Signature *)
+                           buf_ptr))
   {
     GNUNET_break (0);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Unable to sign code\n");

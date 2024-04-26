@@ -1025,6 +1025,7 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CONSUME_TICKET message\n");
   tkt_len = ntohs (cm->tkt_len);
+  buf = (char*) &cm[1];
   if ((GNUNET_SYSERR ==
        GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
                                                &ticket, &read)) ||

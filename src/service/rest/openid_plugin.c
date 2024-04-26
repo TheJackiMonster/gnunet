@@ -2265,7 +2265,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // decode code
-  if (GNUNET_OK != OIDC_parse_authz_code (&cid, code, code_verifier, &ticket,
+  if (GNUNET_OK != OIDC_parse_authz_code (ticket.rp_uri, code, code_verifier, &ticket,
                                           &cl, &pl, &nonce,
                                           OIDC_VERIFICATION_DEFAULT))
   {

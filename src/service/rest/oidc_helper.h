@@ -95,7 +95,7 @@ OIDC_generate_id_token_hmac (const char *rp_uri,
  * Builds an OIDC authorization code including
  * a reclaim ticket and nonce
  *
- * @param rp_uri the RP URI
+ * @param issuer the issuer
  * @param ticket the ticket to include in the code
  * @param attrs list of attributes to share
  * @param presentations credential presentation list
@@ -105,7 +105,7 @@ OIDC_generate_id_token_hmac (const char *rp_uri,
  * @return a new authorization code (caller must free)
  */
 char*
-OIDC_build_authz_code (const char *rp_uri,
+OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
                        const struct GNUNET_RECLAIM_Ticket *ticket,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const struct
