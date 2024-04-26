@@ -49,7 +49,7 @@ extern "C" {
 /**
  * Version number of the re:claimID API.
  */
-#define GNUNET_RECLAIM_VERSION 0x00000001
+#define GNUNET_RECLAIM_VERSION 0x00000002
 
 /**
  * Opaque handle to access the service.
@@ -62,6 +62,9 @@ struct GNUNET_RECLAIM_Handle;
  */
 struct GNUNET_RECLAIM_Operation;
 
+#define GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN 256
+
+#define GNUNET_RECLAIM_TICKET_RP_URI_URN_PREFIX "urn:gns:"
 
 /**
  * The authorization ticket. This ticket is meant to be transferred
@@ -77,14 +80,17 @@ struct GNUNET_RECLAIM_Ticket
   struct GNUNET_CRYPTO_PublicKey identity;
 
   /**
-   * The ticket audience (= relying party)
-   */
-  struct GNUNET_CRYPTO_PublicKey audience;
-
-  /**
    * The ticket random identifier
    */
   struct GNUNET_RECLAIM_Identifier rnd;
+
+
+  /**
+   * Followed by the ticket audience (= relying party) URI.
+   * 0-terminated string.
+   * Example: "urn:gns:000G002B4RF1XPBXDPGZA0PT16BHQCS427YQK4NC84KZMK7TK8C2Z5GMK8"
+   */
+  char rp_uri[GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN];
 };
 
 
@@ -376,7 +382,7 @@ GNUNET_RECLAIM_get_credentials_stop (
  *
  * @param h the identity provider to use
  * @param iss the issuing identity (= the user)
- * @param rp the subject of the ticket (= the relying party)
+ * @param rp the subject of the ticket (= the relying party) see #GNUNET_RECLAIM_Ticket
  * @param attrs the attributes that the relying party is given access to
  * @param cb the callback
  * @param cb_cls the callback closure
@@ -386,7 +392,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_issue (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *iss,
-  const struct GNUNET_CRYPTO_PublicKey *rp,
+  const char *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
   GNUNET_RECLAIM_IssueTicketCallback cb, void *cb_cls);
 
@@ -417,8 +423,6 @@ GNUNET_RECLAIM_ticket_revoke (
  * information from the issuer
  *
  * @param h the identity provider to use
- * @param identity the identity that is the subject of the issued ticket (the
- * relying party)
  * @param ticket the issued ticket to consume
  * @param cb the callback to call
  * @param cb_cls the callback closure
@@ -427,7 +431,6 @@ GNUNET_RECLAIM_ticket_revoke (
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_PrivateKey *identity,
   const struct GNUNET_RECLAIM_Ticket *ticket,
   GNUNET_RECLAIM_AttributeTicketResult cb, void *cb_cls);
 

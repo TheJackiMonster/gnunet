@@ -186,15 +186,13 @@ RECLAIM_TICKETS_revoke_cancel (struct RECLAIM_TICKETS_RevokeHandle *rh);
  * We first looking attribute references under the label
  * ticket.rnd in GNS.
  *
- * @param id the audience of the ticket
  * @param ticket the ticket to consume
  * @param cb callback to call with attributes of ticket
  * @param cb_cls callback closure
  * @return handle to the operation
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
-RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_PrivateKey *id,
-                         const struct GNUNET_RECLAIM_Ticket *ticket,
+RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls);
 
@@ -214,7 +212,7 @@ RECLAIM_TICKETS_consume_cancel (struct RECLAIM_TICKETS_ConsumeHandle *cth);
  *
  * @param identity the issuer
  * @param attrs the attributes to share
- * @param audience the audience to share the attributes with
+ * @param rp the RP URI
  * @param cb the callback to call with the ticket result
  * @param cb_cls the callback closure
  * FIXME: Return handle??
@@ -222,7 +220,7 @@ RECLAIM_TICKETS_consume_cancel (struct RECLAIM_TICKETS_ConsumeHandle *cth);
 void
 RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_PrivateKey *identity,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_CRYPTO_PublicKey *audience,
+                       const char *rp,
                        RECLAIM_TICKETS_TicketResult cb,
                        void *cb_cls);
 

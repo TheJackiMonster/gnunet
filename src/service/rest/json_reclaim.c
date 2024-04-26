@@ -219,16 +219,7 @@ parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
     return GNUNET_SYSERR;
   }
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_string_to_data (aud_str,
-                                     strlen (aud_str),
-                                     &ticket->audience,
-                                     sizeof(ticket->audience)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Audience invalid\n");
-    GNUNET_free (ticket);
-    return GNUNET_SYSERR;
-  }
+  strcpy (ticket->rp_uri, aud_str);
 
   *(struct GNUNET_RECLAIM_Ticket **) spec->ptr = ticket;
   return GNUNET_OK;

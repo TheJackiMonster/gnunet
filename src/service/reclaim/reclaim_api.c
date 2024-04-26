@@ -621,9 +621,9 @@ handle_consume_ticket_result (void *cls,
     read_ptr = (char *) &msg[1];
     GNUNET_assert (GNUNET_SYSERR !=
                    GNUNET_CRYPTO_read_public_key_from_buffer (read_ptr,
-                                                                key_len,
-                                                                &identity,
-                                                                &read));
+                                                              key_len,
+                                                              &identity,
+                                                              &read));
     read_ptr += read;
     attrs =
       GNUNET_RECLAIM_attribute_list_deserialize (read_ptr, attrs_len);
@@ -646,7 +646,8 @@ handle_consume_ticket_result (void *cls,
             {
               if (GNUNET_YES ==
                   GNUNET_RECLAIM_id_is_equal (&le->attribute->credential,
-                                              &ple->presentation->credential_id))
+                                              &ple->presentation->credential_id)
+                  )
               {
                 op->atr_cb (op->cls, &identity,
                             le->attribute, ple->presentation);
@@ -765,9 +766,9 @@ handle_attribute_result (void *cls, const struct AttributeResultMessage *msg)
     struct GNUNET_RECLAIM_Attribute *attr;
     GNUNET_assert (GNUNET_SYSERR !=
                    GNUNET_CRYPTO_read_public_key_from_buffer (buf,
-                                                                key_len,
-                                                                &identity,
-                                                                &read));
+                                                              key_len,
+                                                              &identity,
+                                                              &read));
     buf += read;
     GNUNET_RECLAIM_attribute_deserialize (buf, attr_len, &attr);
     if (NULL != it)
@@ -854,9 +855,9 @@ handle_credential_result (void *cls, const struct
   {
     GNUNET_assert (GNUNET_SYSERR !=
                    GNUNET_CRYPTO_read_public_key_from_buffer (buf,
-                                                                key_len,
-                                                                &identity,
-                                                                &read));
+                                                              key_len,
+                                                              &identity,
+                                                              &read));
     buf += read;
   }
   if (0 == key_len)
@@ -966,10 +967,10 @@ handle_ticket_result (void *cls, const struct TicketResultMessage *msg)
   if (0 < tkt_len)
   {
     GNUNET_assert (GNUNET_SYSERR !=
-                  GNUNET_RECLAIM_read_ticket_from_buffer (buf,
-                                                          tkt_len,
-                                                          &ticket,
-                                                          &tb_read));
+                   GNUNET_RECLAIM_read_ticket_from_buffer (buf,
+                                                           tkt_len,
+                                                           &ticket,
+                                                           &tb_read));
     buf += tb_read;
   }
   if (NULL != op)
@@ -1440,7 +1441,8 @@ GNUNET_RECLAIM_get_credentials_start (
   env =
     GNUNET_MQ_msg_extra (msg,
                          key_len,
-                         GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START);
+                         GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_ITERATION_START)
+  ;
   msg->id = htonl (rid);
   msg->key_len = htons (key_len);
   GNUNET_CRYPTO_write_private_key_to_buffer (identity, &msg[1], key_len);
@@ -1491,7 +1493,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_issue (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *iss,
-  const struct GNUNET_CRYPTO_PublicKey *rp,
+  const char *rp,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
   GNUNET_RECLAIM_IssueTicketCallback cb,
   void *cb_cls)
@@ -1510,19 +1512,20 @@ GNUNET_RECLAIM_ticket_issue (
   op->cls = cb_cls;
   op->r_id = h->r_id_gen++;
   key_len = GNUNET_CRYPTO_private_key_get_length (iss);
-  rpk_len = GNUNET_CRYPTO_public_key_get_length (rp);
+  rpk_len = strlen (rp) + 1;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
   attr_len = GNUNET_RECLAIM_attribute_list_serialize_get_size (attrs);
   op->env = GNUNET_MQ_msg_extra (tim,
                                  attr_len + key_len + rpk_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_ISSUE_TICKET);
   tim->key_len = htons (key_len);
-  tim->pkey_len = htons (rpk_len);
+  tim->rp_uri_len = htons (rpk_len);
   buf = (char *) &tim[1];
   written = GNUNET_CRYPTO_write_private_key_to_buffer (iss, buf, key_len);
   GNUNET_assert (0 <= written);
   buf += written;
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (rp, buf, rpk_len);
+  memcpy (buf, rp, rpk_len);
+  written = rpk_len;
   GNUNET_assert (0 <= written);
   buf += written;
   tim->id = htonl (op->r_id);
@@ -1535,29 +1538,15 @@ GNUNET_RECLAIM_ticket_issue (
 }
 
 
-/**
- * Consumes an issued ticket. The ticket is persisted
- * and used to retrieve identity information from the issuer
- *
- * @param h the reclaim to use
- * @param identity the identity that is the subject of the issued ticket (the
- * relying party)
- * @param ticket the issued ticket to consume
- * @param cb the callback to call
- * @param cb_cls the callback closure
- * @return handle to abort the operation
- */
 struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Handle *h,
-  const struct GNUNET_CRYPTO_PrivateKey *identity,
   const struct GNUNET_RECLAIM_Ticket *ticket,
   GNUNET_RECLAIM_AttributeTicketResult cb,
   void *cb_cls)
 {
   struct GNUNET_RECLAIM_Operation *op;
   struct ConsumeTicketMessage *ctm;
-  size_t key_len;
   size_t tkt_len;
   char *buf;
 
@@ -1566,16 +1555,12 @@ GNUNET_RECLAIM_ticket_consume (
   op->atr_cb = cb;
   op->cls = cb_cls;
   op->r_id = h->r_id_gen++;
-  key_len = GNUNET_CRYPTO_private_key_get_length (identity);
   tkt_len = GNUNET_RECLAIM_ticket_serialize_get_size (ticket);
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
   op->env = GNUNET_MQ_msg_extra (ctm,
-                                 key_len + tkt_len,
+                                 tkt_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET);
-  ctm->key_len = htons (key_len);
   buf = (char*) &ctm[1];
-  GNUNET_CRYPTO_write_private_key_to_buffer (identity, buf, key_len);
-  buf += key_len;
   ctm->tkt_len = htons (tkt_len);
   GNUNET_RECLAIM_write_ticket_to_buffer (ticket, buf, tkt_len);
   ctm->id = htonl (op->r_id);
@@ -1619,12 +1604,13 @@ GNUNET_RECLAIM_ticket_iteration_start (
   GNUNET_CONTAINER_DLL_insert_tail (h->ticket_it_head, h->ticket_it_tail, it);
   env = GNUNET_MQ_msg_extra (msg,
                              key_len,
-                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_START);
+                             GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_ITERATION_START)
+  ;
   msg->id = htonl (rid);
   msg->key_len = htons (key_len);
   GNUNET_CRYPTO_write_private_key_to_buffer (identity,
-                                               &msg[1],
-                                               key_len);
+                                             &msg[1],
+                                             key_len);
   if (NULL == h->mq)
     it->env = env;
   else
@@ -1723,8 +1709,8 @@ GNUNET_RECLAIM_ticket_revoke (
   msg->tkt_len = htons (tkt_len);
   buf = (char*) &msg[1];
   written = GNUNET_CRYPTO_write_private_key_to_buffer (identity,
-                                                         buf,
-                                                         key_len);
+                                                       buf,
+                                                       key_len);
   GNUNET_assert (0 <= written);
   buf += written;
   GNUNET_RECLAIM_write_ticket_to_buffer (ticket,
@@ -1738,15 +1724,17 @@ GNUNET_RECLAIM_ticket_revoke (
   return op;
 }
 
+
 size_t
 GNUNET_RECLAIM_ticket_serialize_get_size (const struct
                                           GNUNET_RECLAIM_Ticket *tkt)
 {
   size_t size = sizeof (tkt->rnd);
   size += GNUNET_CRYPTO_public_key_get_length (&tkt->identity);
-  size += GNUNET_CRYPTO_public_key_get_length (&tkt->audience);
+  size += strlen (tkt->rp_uri) + 1;
   return size;
 }
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_RECLAIM_read_ticket_from_buffer (const void *buffer,
@@ -1759,22 +1747,19 @@ GNUNET_RECLAIM_read_ticket_from_buffer (const void *buffer,
   size_t left = len;
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_read_public_key_from_buffer (tmp,
-                                                   left,
-                                                   &tkt->identity,
-                                                   &read))
+                                                 left,
+                                                 &tkt->identity,
+                                                 &read))
     return GNUNET_SYSERR;
   left -= read;
   tmp += read;
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_read_public_key_from_buffer (tmp,
-                                                   left,
-                                                   &tkt->audience,
-                                                   &read))
+  if (left <= sizeof (tkt->rnd))
     return GNUNET_SYSERR;
-  left -= read;
-  tmp += read;
-  if (left < sizeof (tkt->rnd))
+  if (left - sizeof (tkt->rnd) > GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN)
     return GNUNET_SYSERR;
+  memcpy (tkt->rp_uri, tmp, left - sizeof (tkt->rnd));
+  tmp += left - sizeof (tkt->rnd);
+  left = sizeof (tkt->rnd);
   memcpy (&tkt->rnd, tmp, sizeof (tkt->rnd));
   *tb_read = tmp - (char*) buffer + sizeof (tkt->rnd);
   return GNUNET_OK;
@@ -1791,17 +1776,14 @@ GNUNET_RECLAIM_write_ticket_to_buffer (const struct
   size_t left = len;
   ssize_t written = 0;
   written = GNUNET_CRYPTO_write_public_key_to_buffer (&tkt->identity,
-                                                        buffer,
-                                                        left);
+                                                      buffer,
+                                                      left);
   if (0 > written)
     return written;
   left -= written;
   tmp += written;
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (&tkt->audience,
-                                                        tmp,
-                                                        left);
-  if (0 > written)
-    return written;
+  memcpy (&tmp, tkt->rp_uri, strlen (tkt->rp_uri) + 1);
+  written = strlen (tkt->rp_uri) + 1;
   left -= written;
   tmp += written;
   if (left < sizeof (tkt->rnd))
@@ -1809,7 +1791,6 @@ GNUNET_RECLAIM_write_ticket_to_buffer (const struct
   memcpy (tmp, &tkt->rnd, sizeof (tkt->rnd));
   return tmp - (char*) buffer + sizeof (tkt->rnd);
 }
-
 
 
 /* end of reclaim_api.c */

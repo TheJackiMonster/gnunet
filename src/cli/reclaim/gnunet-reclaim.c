@@ -155,11 +155,6 @@ static struct GNUNET_RECLAIM_TicketIterator *ticket_iterator;
 static const struct GNUNET_CRYPTO_PrivateKey *pkey;
 
 /**
- * rp public key
- */
-static struct GNUNET_CRYPTO_PublicKey rp_key;
-
-/**
  * Ticket to consume
  */
 static struct GNUNET_RECLAIM_Ticket ticket;
@@ -342,20 +337,14 @@ ticket_iter_fin (void *cls)
 static void
 ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
 {
-  char *aud;
   char *ref;
   char *tkt;
 
-  aud =
-    GNUNET_STRINGS_data_to_string_alloc (&ticket->audience,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_PublicKey));
   ref = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
   tkt =
     GNUNET_STRINGS_data_to_string_alloc (ticket,
                                          sizeof(struct GNUNET_RECLAIM_Ticket));
-  fprintf (stdout, "Ticket: %s | ID: %s | Audience: %s\n", tkt, ref, aud);
-  GNUNET_free (aud);
+  fprintf (stdout, "Ticket: %s | ID: %s | Audience: %s\n", tkt, ref, ticket->rp_uri);
   GNUNET_free (ref);
   GNUNET_free (tkt);
   GNUNET_RECLAIM_ticket_iteration_next (ticket_iterator);
@@ -447,7 +436,6 @@ iter_finished (void *cls)
         fprintf (stdout, "No such attribute ``%s''\n", attr_str);
         break;
       }
-      
       attr_str = strtok (NULL, ",");
     }
     GNUNET_free (attrs_tmp);
@@ -456,10 +444,9 @@ iter_finished (void *cls)
       GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
       return;
     }
-
     reclaim_op = GNUNET_RECLAIM_ticket_issue (reclaim_handle,
                                               pkey,
-                                              &rp_key,
+                                              rp,
                                               attr_list,
                                               &ticket_issue_cb,
                                               NULL);
@@ -468,7 +455,6 @@ iter_finished (void *cls)
   if (consume_ticket)
   {
     reclaim_op = GNUNET_RECLAIM_ticket_consume (reclaim_handle,
-                                                pkey,
                                                 &ticket,
                                                 &process_attrs,
                                                 NULL);
@@ -767,14 +753,6 @@ start_process ()
     return;
   }
 
-  if ((NULL != rp) &&
-      (GNUNET_OK !=
-       GNUNET_CRYPTO_public_key_from_string (rp, &rp_key)) )
-  {
-    fprintf (stderr, "%s is not a public key!\n", rp);
-    cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
-    return;
-  }
   if (NULL != consume_ticket)
     GNUNET_STRINGS_string_to_data (consume_ticket,
                                    strlen (consume_ticket),

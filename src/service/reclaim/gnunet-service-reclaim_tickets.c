@@ -25,6 +25,7 @@
  *
  */
 #include "gnunet-service-reclaim_tickets.h"
+#include <string.h>
 
 
 /**
@@ -81,16 +82,6 @@ struct RECLAIM_TICKETS_ConsumeHandle
    * LookupRequest
    */
   struct GNUNET_GNS_LookupRequest *lookup_request;
-
-  /**
-   * Audience Key
-   */
-  struct GNUNET_CRYPTO_PrivateKey identity;
-
-  /**
-   * Audience Key
-   */
-  struct GNUNET_CRYPTO_PublicKey identity_pub;
 
   /**
    * Lookup DLL
@@ -1178,8 +1169,7 @@ lookup_authz_cb (void *cls,
  * @return handle to the operation
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
-RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_PrivateKey *id,
-                         const struct GNUNET_RECLAIM_Ticket *ticket,
+RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls)
 {
@@ -1188,8 +1178,6 @@ RECLAIM_TICKETS_consume (const struct GNUNET_CRYPTO_PrivateKey *id,
 
   cth = GNUNET_new (struct RECLAIM_TICKETS_ConsumeHandle);
 
-  cth->identity = *id;
-  GNUNET_CRYPTO_key_get_public (&cth->identity, &cth->identity_pub);
   cth->attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   cth->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   cth->ticket = *ticket;
@@ -1513,9 +1501,8 @@ filter_tickets_cb (void *cls,
       // cmp audience
       // FIXME this is ugly, GNUNET_CRYPTO_PublicKey cannot be compared
       // like this
-      if (0 == memcmp (&tih->ticket.audience,
-                       &ticket.audience,
-                       sizeof(struct GNUNET_CRYPTO_PublicKey)))
+      if (0 == strcmp (tih->ticket.rp_uri,
+                       ticket.rp_uri))
       {
         tih->ticket = ticket;
         ticket_found = GNUNET_YES;
@@ -1543,7 +1530,8 @@ filter_tickets_cb (void *cls,
         cred = GNUNET_RECLAIM_credential_deserialize (rd[i].data,
                                                       rd[i].data_size);
         if (GNUNET_YES != GNUNET_RECLAIM_id_is_equal (&cred->id,
-                                                      &le->attribute->credential))
+                                                      &le->attribute->credential
+                                                      ))
         {
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "No match.\n");
@@ -1576,7 +1564,8 @@ filter_tickets_cb (void *cls,
       for (le = tih->attrs->list_head; NULL != le; le = le->next)
       {
         presentation = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
-                                                                rd[i].data_size);
+                                                                rd[i].data_size)
+        ;
         if (NULL == presentation)
         {
           GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1650,7 +1639,7 @@ filter_tickets_finished_cb (void *cls)
 void
 RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_PrivateKey *identity,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
-                       const struct GNUNET_CRYPTO_PublicKey *audience,
+                       const char *rp,
                        RECLAIM_TICKETS_TicketResult cb,
                        void *cb_cls)
 {
@@ -1662,7 +1651,7 @@ RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_PrivateKey *identity,
   tih->attrs = GNUNET_RECLAIM_attribute_list_dup (attrs);
   tih->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   tih->identity = *identity;
-  tih->ticket.audience = *audience;
+  memcpy (tih->ticket.rp_uri, rp, strlen (rp) + 1);
 
   // First check whether the ticket has already been issued
   tih->ns_it =

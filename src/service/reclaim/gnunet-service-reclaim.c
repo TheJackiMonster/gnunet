@@ -739,14 +739,14 @@ check_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   uint16_t size;
   size_t attrs_len;
   size_t key_len;
-  size_t pkey_len;
+  size_t rp_len;
 
   size = ntohs (im->header.size);
   attrs_len = ntohs (im->attr_len);
   key_len = ntohs (im->key_len);
-  pkey_len = ntohs (im->pkey_len);
-  if (size != attrs_len + key_len + pkey_len + sizeof(struct
-                                                      IssueTicketMessage))
+  rp_len = ntohs (im->rp_uri_len);
+  if (size != attrs_len + key_len + rp_len + sizeof(struct
+                                                    IssueTicketMessage))
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -769,10 +769,10 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   struct GNUNET_RECLAIM_AttributeList *attrs;
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_CRYPTO_PrivateKey identity;
-  struct GNUNET_CRYPTO_PublicKey rp;
+  const char *rp;
   size_t attrs_len;
   size_t key_len;
-  size_t pkey_len;
+  size_t rp_len;
   size_t read;
   char *buf;
 
@@ -790,18 +790,9 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
     return;
   }
   buf += read;
-  pkey_len = ntohs (im->pkey_len);
-  if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_public_key_from_buffer (buf, pkey_len,
-                                                  &rp, &read)) ||
-      (read != pkey_len))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read public key\n");
-    GNUNET_SERVICE_client_drop (idp->client);
-    return;
-  }
-  buf += read;
+  rp_len = ntohs (im->rp_uri_len);
+  rp = buf;
+  buf += rp_len;
   tio = GNUNET_new (struct TicketIssueOperation);
   attrs_len = ntohs (im->attr_len);
   attrs = GNUNET_RECLAIM_attribute_list_deserialize (buf,
@@ -815,7 +806,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   GNUNET_CONTAINER_DLL_insert (idp->issue_op_head, idp->issue_op_tail, tio);
   RECLAIM_TICKETS_issue (&identity,
                          attrs,
-                         &rp,
+                         rp,
                          &issue_ticket_result_cb,
                          tio);
   GNUNET_SERVICE_client_continue (idp->client);
@@ -1027,27 +1018,12 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
 {
   struct ConsumeTicketOperation *cop;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
   struct GNUNET_RECLAIM_Ticket ticket;
-  size_t key_len;
   size_t tkt_len;
   size_t read;
   char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CONSUME_TICKET message\n");
-  key_len = ntohs (cm->key_len);
-  buf = (char *) &cm[1];
-  if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_private_key_from_buffer (buf, key_len,
-                                                   &identity, &read)) ||
-      (read != key_len))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read private key\n");
-    GNUNET_SERVICE_client_drop (idp->client);
-    return;
-  }
-  buf += read;
   tkt_len = ntohs (cm->tkt_len);
   if ((GNUNET_SYSERR ==
        GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
@@ -1063,7 +1039,7 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
   cop->r_id = ntohl (cm->id);
   cop->client = idp;
   cop->ch
-    = RECLAIM_TICKETS_consume (&identity, &ticket, &consume_result_cb,
+    = RECLAIM_TICKETS_consume (&ticket, &consume_result_cb,
                                cop);
   GNUNET_CONTAINER_DLL_insert (idp->consume_op_head, idp->consume_op_tail, cop);
   GNUNET_SERVICE_client_continue (idp->client);

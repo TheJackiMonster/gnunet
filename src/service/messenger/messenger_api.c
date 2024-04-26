@@ -752,7 +752,7 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     else
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Sending transcript aborted: Encryption failed!\n");
-    
+
     destroy_message (transcript);
   } while (message);
 
@@ -960,7 +960,8 @@ iterate_find_room (void *cls,
   if ((find->counter > 0) && ((! find->contact) || (GNUNET_YES ==
                                                     find_room_member (room,
                                                                       find->
-                                                                      contact))))
+                                                                      contact)))
+      )
   {
     find->counter--;
 
@@ -1229,7 +1230,8 @@ GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
 
 struct GNUNET_MESSENGER_CheckTicket
 {
-  const struct GNUNET_CRYPTO_PublicKey *audience;
+  const char *check_rp;
+  struct GNUNET_CRYPTO_PublicKey key;
   enum GNUNET_GenericReturnValue result;
 };
 
@@ -1240,13 +1242,19 @@ check_ticket_audience (void *cls,
                        const struct GNUNET_MESSENGER_Contact *contact)
 {
   struct GNUNET_MESSENGER_CheckTicket *check = cls;
-
   const struct GNUNET_CRYPTO_PublicKey *key;
-  key = get_non_anonymous_key (get_contact_key (contact));
+  char check_rp[GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN];
+  char *key_str;
 
-  if ((key) && (0 == GNUNET_memcmp (key, check->audience)))
+  key = get_non_anonymous_key (get_contact_key (contact));
+  key_str = GNUNET_CRYPTO_public_key_to_string(key);
+  GNUNET_snprintf (check_rp, GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN, "%s%s",
+                   GNUNET_RECLAIM_TICKET_RP_URI_URN_PREFIX, key_str);
+  GNUNET_free (key_str);
+  if ((key) && (0 == strcmp (check_rp, check->check_rp)))
   {
     check->result = GNUNET_YES;
+    check->key = *key;
     return GNUNET_NO;
   }
 
@@ -1272,7 +1280,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   }
 
   struct GNUNET_MESSENGER_CheckTicket check;
-  check.audience = &(ticket->audience);
+  check.check_rp = ticket->rp_uri;
   check.result = GNUNET_NO;
 
   const int members = iterate_room_members (
@@ -1298,5 +1306,5 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
     return;
   }
 
-  send_message_to_room_with_key (room, message, &(ticket->audience));
+  send_message_to_room_with_key (room, message, &check.key);
 }

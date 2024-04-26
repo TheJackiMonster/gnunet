@@ -454,12 +454,7 @@ ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
   value = json_string (tmp);
   json_object_set_new (json_resource, "issuer", value);
   GNUNET_free (tmp);
-  tmp =
-    GNUNET_STRINGS_data_to_string_alloc (&ticket->audience,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_PublicKey));
-  value = json_string (tmp);
-  json_object_set_new (json_resource, "audience", value);
+  json_object_set_new (json_resource, "audience", json_string (ticket->rp_uri));
   GNUNET_free (tmp);
   tmp = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
   value = json_string (tmp);
@@ -1236,11 +1231,8 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
                      const char *url,
                      void *cls)
 {
-  const struct GNUNET_CRYPTO_PrivateKey *identity_priv;
   struct RequestHandle *handle = cls;
-  struct EgoEntry *ego_entry;
   struct GNUNET_RECLAIM_Ticket *ticket;
-  struct GNUNET_CRYPTO_PublicKey tmp_pk;
   char term_data[handle->rest_handle->data_size + 1];
   json_t *data_json;
   json_error_t err;
@@ -1274,25 +1266,8 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
     json_decref (data_json);
     return;
   }
-  for (ego_entry = ego_head; NULL != ego_entry;
-       ego_entry = ego_entry->next)
-  {
-    GNUNET_IDENTITY_ego_get_public_key (ego_entry->ego, &tmp_pk);
-    if (0 == memcmp (&ticket->audience,
-                     &tmp_pk,
-                     sizeof(struct GNUNET_CRYPTO_PublicKey)))
-      break;
-  }
-  if (NULL == ego_entry)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Identity unknown\n");
-    GNUNET_JSON_parse_free (tktspec);
-    return;
-  }
-  identity_priv = GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego);
   handle->resp_object = json_object ();
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
-                                                  identity_priv,
                                                   ticket,
                                                   &consume_cont,
                                                   handle);
