@@ -24,8 +24,6 @@
  */
 #include "platform.h"
 #include "gnunet_json_lib.h"
-#include <gnunet/gnunet_json_lib.h>
-
 
 json_t *
 GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
