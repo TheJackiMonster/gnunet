@@ -966,6 +966,19 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
                                 const struct GNUNET_CRYPTO_RsaSignature *sig);
 
 
+/**
+ * Generate packer instruction for a JSON field of type
+ * unblinded signature.
+ *
+ * @param name name of the field to add to the object
+ * @param sig unblinded signature
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_unblinded_signature (const char *name,
+                                      const struct GNUNET_CRYPTO_UnblindedSignature *sig);
+
+
 #endif
 
 /* end of gnunet_json_lib.h */
