@@ -26,6 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_json_lib.h"
+#include <gnunet/gnunet_common.h>
 
 
 struct GNUNET_JSON_Specification
@@ -38,6 +39,29 @@ GNUNET_JSON_spec_end ()
   };
 
   return ret;
+}
+
+
+/**
+ * Convert string value to numeric cipher value.
+ *
+ * @param cipher_s input string
+ * @return numeric cipher value
+ */
+static enum GNUNET_CRYPTO_BlindSignatureAlgorithm
+string_to_cipher (const char *cipher_s)
+{
+  if ((0 == strcasecmp (cipher_s,
+                        "RSA")) ||
+      (0 == strcasecmp (cipher_s,
+                        "RSA+age_restricted")))
+    return GNUNET_CRYPTO_BSA_RSA;
+  if ((0 == strcasecmp (cipher_s,
+                        "CS")) ||
+      (0 == strcasecmp (cipher_s,
+                        "CS+age_restricted")))
+    return GNUNET_CRYPTO_BSA_CS;
+  return GNUNET_CRYPTO_BSA_INVALID;
 }
 
 
@@ -1176,6 +1200,144 @@ GNUNET_JSON_spec_boolean (const char *name,
     .size_ptr = NULL
   };
 
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to a blinded message.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_blinded_message (void *cls,
+                       json_t *root,
+                       struct GNUNET_JSON_Specification *spec)
+{
+  struct GNUNET_CRYPTO_BlindedMessage **target = spec->ptr;
+  struct GNUNET_CRYPTO_BlindedMessage *blinded_message;
+  const char *cipher;
+  struct GNUNET_JSON_Specification dspec[] = {
+    GNUNET_JSON_spec_string ("cipher",
+                             &cipher),
+    GNUNET_JSON_spec_end ()
+  };
+  const char *emsg;
+  unsigned int eline;
+
+  (void) cls;
+  if (GNUNET_OK !=
+      GNUNET_JSON_parse (root,
+                         dspec,
+                         &emsg,
+                         &eline))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  blinded_message = GNUNET_new (struct GNUNET_CRYPTO_BlindedMessage);
+  blinded_message->rc = 1;
+  blinded_message->cipher = string_to_cipher (cipher);
+  switch (blinded_message->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    {
+      struct GNUNET_JSON_Specification ispec[] = {
+        GNUNET_JSON_spec_varsize (
+          "rsa_blinded_planchet",
+          &blinded_message->details.rsa_blinded_message.blinded_msg,
+          &blinded_message->details.rsa_blinded_message.blinded_msg_size),
+        GNUNET_JSON_spec_end ()
+      };
+
+      if (GNUNET_OK !=
+          GNUNET_JSON_parse (root,
+                             ispec,
+                             &emsg,
+                             &eline))
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (blinded_message);
+        return GNUNET_SYSERR;
+      }
+      *target = blinded_message;
+      return GNUNET_OK;
+    }
+  case GNUNET_CRYPTO_BSA_CS:
+    {
+      struct GNUNET_JSON_Specification ispec[] = {
+        GNUNET_JSON_spec_fixed_auto (
+          "cs_nonce",
+          &blinded_message->details.cs_blinded_message.nonce),
+        GNUNET_JSON_spec_fixed_auto (
+          "cs_blinded_c0",
+          &blinded_message->details.cs_blinded_message.c[0]),
+        GNUNET_JSON_spec_fixed_auto (
+          "cs_blinded_c1",
+          &blinded_message->details.cs_blinded_message.c[1]),
+        GNUNET_JSON_spec_end ()
+      };
+
+      if (GNUNET_OK !=
+          GNUNET_JSON_parse (root,
+                             ispec,
+                             &emsg,
+                             &eline))
+      {
+        GNUNET_break_op (0);
+        GNUNET_free (blinded_message);
+        return GNUNET_SYSERR;
+      }
+      *target = blinded_message;
+      return GNUNET_OK;
+    }
+  }
+  GNUNET_break_op (0);
+  GNUNET_free (blinded_message);
+  return GNUNET_SYSERR;
+}
+
+/**
+ * Cleanup data left from parsing blinded message.
+ *
+ * @param cls closure, NULL
+ * @param[out] spec where to free the data
+ */
+static void
+clean_blinded_message (void *cls,
+                       struct GNUNET_JSON_Specification *spec)
+{
+  struct GNUNET_CRYPTO_BlindedMessage **blinded_message = spec->ptr;
+
+  (void) cls;
+  if (NULL != blinded_message)
+  {
+    GNUNET_CRYPTO_blinded_message_decref (*blinded_message);
+    *blinded_message = NULL;
+  }
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_blinded_message (const char *name,
+                                  struct GNUNET_CRYPTO_BlindedMessage **msg)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_blinded_message,
+    .cleaner = &clean_blinded_message,
+    .cls = NULL,
+    .field = name,
+    .ptr = msg,
+    .ptr_size = 0,
+    .size_ptr = NULL
+  };
+
+  *msg = NULL;
   return ret;
 }
 

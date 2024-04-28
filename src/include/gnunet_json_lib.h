@@ -430,6 +430,17 @@ GNUNET_JSON_spec_rsa_signature (const char *name,
                                 struct GNUNET_CRYPTO_RsaSignature **sig);
 
 
+/**
+ * Specification for parsing a blinded message.
+ *
+ * @param name name of the JSON field
+ * @param sig where to store the blinded message found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_blinded_message (const char *name,
+                                  struct GNUNET_CRYPTO_BlindedMessage **msg);
+
+
 /* ****************** Generic generator interface ******************* */
 
 
@@ -977,6 +988,19 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_unblinded_signature (const char *name,
                                       const struct GNUNET_CRYPTO_UnblindedSignature *sig);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * blinded message.
+ *
+ * @param name name of the field to add to the object
+ * @param msg blinded message
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_message (const char *name,
+                                  const struct GNUNET_CRYPTO_BlindedMessage *msg);
 
 
 #endif
