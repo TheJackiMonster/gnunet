@@ -27,6 +27,8 @@
 #ifndef JWT_H
 #define JWT_H
 
+#include "gnunet_util_lib.h"
+#include "gnunet_reclaim_service.h"
 #define JWT_ALG "alg"
 #define JWT_TYP "typ"
 #define JWT_TYP_VALUE "jwt"
@@ -129,6 +131,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
  */
 int
 OIDC_parse_authz_code (const char *rp_uri,
+                       const struct GNUNET_CRYPTO_PublicKey *cid,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,

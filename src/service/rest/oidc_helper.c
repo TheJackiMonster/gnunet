@@ -24,7 +24,6 @@
  * @author Martin Schanzenbach
  * @author Tristan Schwieren
  */
-#include "platform.h"
 #include <inttypes.h>
 #include <jansson.h>
 #include <jose/jose.h>
@@ -750,6 +749,7 @@ check_code_challenge (const char *code_challenge,
  */
 int
 OIDC_parse_authz_code (const char *rp_uri,
+                       const struct GNUNET_CRYPTO_PublicKey *cid,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
@@ -823,21 +823,12 @@ OIDC_parse_authz_code (const char *rp_uri,
   memcpy (ticket, &params->ticket, sizeof(params->ticket));
   // Signature
   // GNUNET_CRYPTO_ecdsa_key_get_public (ecdsa_priv, &ecdsa_pub);
-  if (0 != strcmp (rp_uri, ticket->rp_uri))
-  {
-    GNUNET_free (code_payload);
-    if (NULL != *nonce_str)
-      GNUNET_free (*nonce_str);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Audience in ticket does not match client!\n");
-    return GNUNET_SYSERR;
-  }
   if (GNUNET_OK !=
       GNUNET_CRYPTO_signature_verify_ (
         GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
         purpose,
         signature,
-        &(ticket->identity)))
+        cid))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)
