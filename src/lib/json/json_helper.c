@@ -26,7 +26,7 @@
  */
 #include "platform.h"
 #include "gnunet_json_lib.h"
-#include <gnunet/gnunet_common.h>
+#include "gnunet_common.h"
 
 
 struct GNUNET_JSON_Specification
