@@ -506,12 +506,18 @@ struct TicketResultMessage
   uint16_t tkt_len GNUNET_PACKED;
 
   /**
+   * RP URI length
+   */
+  uint16_t rp_uri_len GNUNET_PACKED;
+
+  /**
    * Length of new presentations created
    */
   uint16_t presentations_len GNUNET_PACKED;
 
   /*
    * Followed by the serialized ticket
+   * Followed by the RP URI
    * Followed by the serialized GNUNET_RECLAIM_PresentationList
    */
 };

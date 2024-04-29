@@ -434,32 +434,19 @@ collect_finished_cb (void *cls)
  *
  */
 static void
-ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_collect (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket,
+                const char *rp_uri)
 {
   json_t *json_resource;
   struct RequestHandle *handle = cls;
-  json_t *value;
-  char *tmp;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Adding ticket\n");
-  tmp = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
   json_resource = json_object ();
-  GNUNET_free (tmp);
   json_array_append (handle->resp_object, json_resource);
 
-  tmp =
-    GNUNET_STRINGS_data_to_string_alloc (&ticket->identity,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_PublicKey));
-  value = json_string (tmp);
-  json_object_set_new (json_resource, "issuer", value);
-  GNUNET_free (tmp);
-  json_object_set_new (json_resource, "audience", json_string (ticket->rp_uri));
-  GNUNET_free (tmp);
-  tmp = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
-  value = json_string (tmp);
-  json_object_set_new (json_resource, "rnd", value);
-  GNUNET_free (tmp);
+  json_object_set_new (json_resource, "gns_name", json_string (ticket->gns_name)
+                       );
+  json_object_set_new (json_resource, "rp_uri", json_string (rp_uri));
   GNUNET_RECLAIM_ticket_iteration_next (handle->ticket_it);
 }
 
@@ -932,7 +919,8 @@ parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
   type_str = "String";
   type = GNUNET_RECLAIM_attribute_typename_to_number (type_str);
   if (GNUNET_SYSERR == GNUNET_RECLAIM_attribute_string_to_value (type,val_str,
-                                                                 (void **) &data,
+                                                                 (void **) &data
+                                                                 ,
                                                                  &data_size))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1128,8 +1116,11 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
   struct RequestHandle *handle = cls;
   struct EgoEntry *ego_entry;
   struct GNUNET_RECLAIM_Ticket *ticket = NULL;
+  struct GNUNET_CRYPTO_PublicKey iss;
   struct GNUNET_CRYPTO_PublicKey tmp_pk;
   char term_data[handle->rest_handle->data_size + 1];
+  char *tmp;
+  char *key;
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification tktspec[] =
@@ -1166,15 +1157,21 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  tmp = GNUNET_strdup (ticket->gns_name);
+  GNUNET_assert (NULL != strtok (tmp, "."));
+  key = strtok (NULL, ".");
+  GNUNET_CRYPTO_public_key_from_string (key, &iss);
+
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
   {
     GNUNET_IDENTITY_ego_get_public_key (ego_entry->ego, &tmp_pk);
-    if (0 == memcmp (&ticket->identity,
+    if (0 == memcmp (&iss,
                      &tmp_pk,
                      sizeof(struct GNUNET_CRYPTO_PublicKey)))
       break;
   }
+  GNUNET_free (tmp);
   if (NULL == ego_entry)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Identity unknown\n");

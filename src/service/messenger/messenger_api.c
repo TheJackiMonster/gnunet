@@ -1247,7 +1247,7 @@ check_ticket_audience (void *cls,
   char *key_str;
 
   key = get_non_anonymous_key (get_contact_key (contact));
-  key_str = GNUNET_CRYPTO_public_key_to_string(key);
+  key_str = GNUNET_CRYPTO_public_key_to_string (key);
   GNUNET_snprintf (check_rp, GNUNET_RECLAIM_TICKET_RP_URI_MAX_LEN, "%s%s",
                    GNUNET_RECLAIM_TICKET_RP_URI_URN_PREFIX, key_str);
   GNUNET_free (key_str);
@@ -1262,17 +1262,27 @@ check_ticket_audience (void *cls,
 }
 
 
+// FIXME: Either passt the RP URI here or the key itself. DISCUSS!
 void
 GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
-                              const struct GNUNET_RECLAIM_Ticket *ticket)
+                              const struct GNUNET_RECLAIM_Ticket *ticket,
+                              const char*rp_uri)
 {
   if ((! room) || (! ticket))
     return;
 
   const struct GNUNET_CRYPTO_PublicKey *pubkey;
-  pubkey = get_handle_pubkey (room->handle);
+  struct GNUNET_CRYPTO_PublicKey iss;
+  char *tmp;
+  char *key;
 
-  if (0 != GNUNET_memcmp (pubkey, &(ticket->identity)))
+  pubkey = get_handle_pubkey (room->handle);
+  tmp = GNUNET_strdup (ticket->gns_name);
+  GNUNET_assert (NULL != strtok (tmp, "."));
+  key = strtok (NULL, ".");
+  GNUNET_assert (NULL != key);
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_public_key_from_string (key, &iss));
+  if (0 != GNUNET_memcmp (pubkey, &iss))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Sending ticket aborted: Invalid identity!\n");
@@ -1280,7 +1290,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   }
 
   struct GNUNET_MESSENGER_CheckTicket check;
-  check.check_rp = ticket->rp_uri;
+  check.check_rp = rp_uri;
   check.result = GNUNET_NO;
 
   const int members = iterate_room_members (
@@ -1296,7 +1306,7 @@ GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
   }
 
   struct GNUNET_MESSENGER_Message *message = create_message_ticket (
-    &(ticket->rnd)
+    ticket
     );
 
   if (! message)

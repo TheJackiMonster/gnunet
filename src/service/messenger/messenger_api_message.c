@@ -296,7 +296,7 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
     length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.ticket.identifier);
+                           body.ticket.ticket);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     length += member_size (struct GNUNET_MESSENGER_Message,
@@ -510,7 +510,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->name.name)
       encode_step_ext (buffer, offset, body->name.name, min (length - offset,
                                                              strlen (
-                                                               body->name.name)));
+                                                               body->name.name))
+                       );
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     encode_step_key (buffer, offset, &(body->key.key), length);
@@ -538,7 +539,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->text.text)
       encode_step_ext (buffer, offset, body->text.text, min (length - offset,
                                                              strlen (
-                                                               body->text.text)));
+                                                               body->text.text))
+                       );
     break;
   case GNUNET_MESSENGER_KIND_FILE:
     encode_step (buffer, offset, &(body->file.key));
@@ -567,7 +569,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    encode_step (buffer, offset, &(body->ticket.identifier));
+    encode_step (buffer, offset, &(body->ticket.ticket));
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
@@ -780,7 +782,7 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     body->connection.flags = GNUNET_be32toh (value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    decode_step (buffer, offset, &(body->ticket.identifier));
+    decode_step (buffer, offset, &(body->ticket.ticket));
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     decode_step (buffer, offset, &(body->transcript.hash));

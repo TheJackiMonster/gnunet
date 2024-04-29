@@ -335,18 +335,9 @@ ticket_iter_fin (void *cls)
 
 
 static void
-ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket, const char* rp_uri)
 {
-  char *ref;
-  char *tkt;
-
-  ref = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
-  tkt =
-    GNUNET_STRINGS_data_to_string_alloc (ticket,
-                                         sizeof(struct GNUNET_RECLAIM_Ticket));
-  fprintf (stdout, "Ticket: %s | ID: %s | Audience: %s\n", tkt, ref, ticket->rp_uri);
-  GNUNET_free (ref);
-  GNUNET_free (tkt);
+  fprintf (stdout, "Ticket: %s | RP URI: %s\n", ticket->gns_name, rp_uri);
   GNUNET_RECLAIM_ticket_iteration_next (ticket_iterator);
 }
 
@@ -843,7 +834,8 @@ main (int argc, char *const argv[])
     GNUNET_GETOPT_option_string ('a',
                                  "add",
                                  "NAME",
-                                 gettext_noop ("Add or update an attribute NAME"),
+                                 gettext_noop (
+                                   "Add or update an attribute NAME"),
                                  &attr_name),
     GNUNET_GETOPT_option_string ('d',
                                  "delete",

@@ -102,10 +102,12 @@ struct TicketRecordsEntry
  *
  * @param cls closure
  * @param ticket the ticket
+ * @param rp_uri the RP URI associated with the ticket
  */
 typedef void (*RECLAIM_TICKETS_TicketIter) (
   void *cls,
-  struct GNUNET_RECLAIM_Ticket *ticket);
+  struct GNUNET_RECLAIM_Ticket *ticket,
+  const char* rp_uri);
 
 
 /**

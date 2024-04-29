@@ -543,7 +543,7 @@ struct GNUNET_MESSENGER_MessageTicket
   /**
    * The identifier of a RECLAIM ticket.
    */
-  struct GNUNET_RECLAIM_Identifier identifier;
+  struct GNUNET_RECLAIM_Ticket ticket;
 };
 
 /**
@@ -1018,13 +1018,16 @@ GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
  * being used by the messenger. The audience's public key is not allowed to be the
  * anonymous public key. The room needs to contain a member using the audience's public
  * key.
+ * The <i>rp_uri</i> must contain the audience public key in SOME FORMAT TODO.
  *
  * @param[in,out] room Room handle
  * @param[in] ticket Ticket to send
+ * @param[in] rp_uri The expected audience RP URI
  */
 void
 GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
-                              const struct GNUNET_RECLAIM_Ticket *ticket);
+                              const struct GNUNET_RECLAIM_Ticket *ticket,
+                              const char* rp_uri);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

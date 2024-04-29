@@ -134,6 +134,6 @@ create_message_delete (const struct GNUNET_HashCode *hash,
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier);
+create_message_ticket (const struct GNUNET_RECLAIM_Ticket *ticket);
 
 #endif //GNUNET_MESSENGER_API_MESSAGE_KIND_H

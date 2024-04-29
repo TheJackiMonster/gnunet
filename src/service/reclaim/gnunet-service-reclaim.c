@@ -655,7 +655,6 @@ send_ticket_result (const struct IdpClient *client,
   struct GNUNET_MQ_Envelope *env;
   size_t pres_len = 0;
   size_t tkt_len = 0;
-  ssize_t written;
   char *buf;
 
   if (NULL != presentations)
@@ -664,20 +663,20 @@ send_ticket_result (const struct IdpClient *client,
       GNUNET_RECLAIM_presentation_list_serialize_get_size (presentations);
   }
   if (NULL != ticket)
-    tkt_len = GNUNET_RECLAIM_ticket_serialize_get_size (ticket);
+    tkt_len = strlen (ticket->gns_name) + 1;
   env = GNUNET_MQ_msg_extra (irm,
                              pres_len + tkt_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
   buf = (char*) &irm[1];
   if (NULL != ticket)
   {
-    written = GNUNET_RECLAIM_write_ticket_to_buffer (ticket, buf, tkt_len);
-    GNUNET_assert (0 <= written);
-    buf += written;
+    memcpy (buf, ticket, tkt_len);
+    buf += tkt_len;
   }
   // TODO add success member
   irm->id = htonl (r_id);
   irm->tkt_len = htons (tkt_len);
+  irm->rp_uri_len = htons (0);
   irm->presentations_len = htons (pres_len);
   if (NULL != presentations)
   {
@@ -884,9 +883,8 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
   struct TicketRevocationOperation *rop;
   struct IdpClient *idp = cls;
   struct GNUNET_CRYPTO_PrivateKey identity;
-  struct GNUNET_RECLAIM_Ticket ticket;
+  struct GNUNET_RECLAIM_Ticket *ticket;
   size_t key_len;
-  size_t tkt_len;
   size_t read;
   char *buf;
 
@@ -904,23 +902,13 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
     return;
   }
   buf += read;
-  tkt_len = ntohs (rm->tkt_len);
-  if ((GNUNET_SYSERR ==
-       GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
-                                               &ticket, &read)) ||
-      (read != tkt_len))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read ticket\n");
-    GNUNET_SERVICE_client_drop (idp->client);
-    return;
-  }
+  ticket = (struct GNUNET_RECLAIM_Ticket *) buf;
   rop = GNUNET_new (struct TicketRevocationOperation);
   rop->r_id = ntohl (rm->id);
   rop->client = idp;
   GNUNET_CONTAINER_DLL_insert (idp->revoke_op_head, idp->revoke_op_tail, rop);
   rop->rh
-    = RECLAIM_TICKETS_revoke (&ticket, &identity, &revoke_result_cb, rop);
+    = RECLAIM_TICKETS_revoke (ticket, &identity, &revoke_result_cb, rop);
   GNUNET_SERVICE_client_continue (idp->client);
 }
 
@@ -1018,29 +1006,17 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
 {
   struct ConsumeTicketOperation *cop;
   struct IdpClient *idp = cls;
-  struct GNUNET_RECLAIM_Ticket ticket;
-  size_t tkt_len;
-  size_t read;
+  struct GNUNET_RECLAIM_Ticket *ticket;
   char *buf;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CONSUME_TICKET message\n");
-  tkt_len = ntohs (cm->tkt_len);
   buf = (char*) &cm[1];
-  if ((GNUNET_SYSERR ==
-       GNUNET_RECLAIM_read_ticket_from_buffer (buf, tkt_len,
-                                               &ticket, &read)) ||
-      (read != tkt_len))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to read ticket\n");
-    GNUNET_SERVICE_client_drop (idp->client);
-    return;
-  }
+  ticket = (struct GNUNET_RECLAIM_Ticket *) buf;
   cop = GNUNET_new (struct ConsumeTicketOperation);
   cop->r_id = ntohl (cm->id);
   cop->client = idp;
   cop->ch
-    = RECLAIM_TICKETS_consume (&ticket, &consume_result_cb,
+    = RECLAIM_TICKETS_consume (ticket, &consume_result_cb,
                                cop);
   GNUNET_CONTAINER_DLL_insert (idp->consume_op_head, idp->consume_op_tail, cop);
   GNUNET_SERVICE_client_continue (idp->client);
@@ -2462,27 +2438,27 @@ handle_credential_iteration_next (void *cls,
  * Ticket iteration
  ******************************************************/
 
-/**
- * Got a ticket. Return to client
- *
- * @param cls our ticket iterator
- * @param ticket the ticket
- */
 static void
-ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket, const char*
+                rp_uri)
 {
   struct TicketIteration *ti = cls;
   struct GNUNET_MQ_Envelope *env;
   struct TicketResultMessage *trm;
   size_t tkt_len;
+  size_t rp_uri_len;
 
   if (NULL == ticket)
     tkt_len = 0;
   else
-    tkt_len = GNUNET_RECLAIM_ticket_serialize_get_size (ticket);
+    tkt_len = strlen (ticket->gns_name) + 1;
 
+  if (NULL == rp_uri)
+    rp_uri_len = 0;
+  else
+    rp_uri_len = strlen (rp_uri) + 1;
   env = GNUNET_MQ_msg_extra (trm,
-                             tkt_len,
+                             tkt_len + rp_uri_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_TICKET_RESULT);
   if (NULL == ticket)
   {
@@ -2493,13 +2469,13 @@ ticket_iter_cb (void *cls, struct GNUNET_RECLAIM_Ticket *ticket)
   }
   else
   {
-    GNUNET_RECLAIM_write_ticket_to_buffer (ticket,
-                                           &trm[1],
-                                           tkt_len);
+    memcpy (&trm[1], ticket, tkt_len);
   }
+  memcpy ((char*) &trm[1] + tkt_len, rp_uri, rp_uri_len);
   trm->id = htonl (ti->r_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending TICKET_RESULT message\n");
   trm->tkt_len = htons (tkt_len);
+  trm->rp_uri_len = htons (rp_uri_len);
   trm->presentations_len = htons (0);
   GNUNET_MQ_send (ti->client->mq, env);
   if (NULL == ticket)

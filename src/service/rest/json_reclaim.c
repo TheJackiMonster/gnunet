@@ -170,9 +170,7 @@ static int
 parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
 {
   struct GNUNET_RECLAIM_Ticket *ticket;
-  const char *rnd_str;
-  const char *aud_str;
-  const char *id_str;
+  const char *gns_str;
   int unpack_state;
 
   GNUNET_assert (NULL != root);
@@ -185,13 +183,9 @@ parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
   }
   // interpret single ticket
   unpack_state = json_unpack (root,
-                              "{s:s, s:s, s:s!}",
-                              "rnd",
-                              &rnd_str,
-                              "audience",
-                              &aud_str,
-                              "issuer",
-                              &id_str);
+                              "{s:s}",
+                              "gns_name",
+                              &gns_str);
   if (0 != unpack_state)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -199,27 +193,7 @@ parse_ticket (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
     return GNUNET_SYSERR;
   }
   ticket = GNUNET_new (struct GNUNET_RECLAIM_Ticket);
-  if (GNUNET_OK != GNUNET_STRINGS_string_to_data (rnd_str,
-                                                  strlen (rnd_str),
-                                                  &ticket->rnd,
-                                                  sizeof(ticket->rnd)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Rnd invalid\n");
-    GNUNET_free (ticket);
-    return GNUNET_SYSERR;
-  }
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_string_to_data (id_str,
-                                     strlen (id_str),
-                                     &ticket->identity,
-                                     sizeof(ticket->identity)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Identity invalid\n");
-    GNUNET_free (ticket);
-    return GNUNET_SYSERR;
-  }
-
-  strcpy (ticket->rp_uri, aud_str);
+  strncpy (ticket->gns_name, gns_str, sizeof (ticket->gns_name));
 
   *(struct GNUNET_RECLAIM_Ticket **) spec->ptr = ticket;
   return GNUNET_OK;
@@ -277,7 +251,8 @@ GNUNET_RECLAIM_JSON_spec_ticket (struct GNUNET_RECLAIM_Ticket **ticket)
    * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
    */
 static int
-parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spec)
+parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *
+                  spec)
 {
   struct GNUNET_RECLAIM_Credential *cred;
   const char *name_str = NULL;
@@ -316,9 +291,12 @@ parse_credential (void *cls, json_t *root, struct GNUNET_JSON_Specification *spe
                 "Error json object has a wrong format!\n");
     return GNUNET_SYSERR;
   }
-  if (json_is_string (val_json)) {
+  if (json_is_string (val_json))
+  {
     val_str = GNUNET_strdup (json_string_value (val_json));
-  } else {
+  }
+  else
+  {
     val_str = json_dumps (val_json, JSON_COMPACT);
   }
   type = GNUNET_RECLAIM_credential_typename_to_number (type_str);
