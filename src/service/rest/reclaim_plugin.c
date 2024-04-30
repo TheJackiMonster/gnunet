@@ -1119,8 +1119,6 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
   struct GNUNET_CRYPTO_PublicKey iss;
   struct GNUNET_CRYPTO_PublicKey tmp_pk;
   char term_data[handle->rest_handle->data_size + 1];
-  char *tmp;
-  char *key;
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification tktspec[] =
@@ -1157,10 +1155,7 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
-  tmp = GNUNET_strdup (ticket->gns_name);
-  GNUNET_assert (NULL != strtok (tmp, "."));
-  key = strtok (NULL, ".");
-  GNUNET_CRYPTO_public_key_from_string (key, &iss);
+  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (ticket->gns_name, &iss));
 
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
@@ -1171,7 +1166,6 @@ revoke_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
                      sizeof(struct GNUNET_CRYPTO_PublicKey)))
       break;
   }
-  GNUNET_free (tmp);
   if (NULL == ego_entry)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Identity unknown\n");

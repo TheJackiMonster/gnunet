@@ -26,6 +26,7 @@
  */
 #include "gnunet-service-reclaim_tickets.h"
 #include "gnunet_common.h"
+#include "gnunet_gns_service.h"
 #include "gnunet_reclaim_service.h"
 #include <string.h>
 
@@ -906,26 +907,6 @@ rvk_attrs_err_cb (void *cls)
 }
 
 
-static enum GNUNET_GenericReturnValue
-get_iss_from_ticket (const struct GNUNET_RECLAIM_Ticket *ticket,
-                     struct GNUNET_CRYPTO_PublicKey *issuer)
-{
-  char *label;
-  char *key;
-  char *tmp;
-  int ret;
-
-  tmp = GNUNET_strdup (ticket->gns_name);
-  label = strtok (tmp, ".");
-  GNUNET_assert (NULL != label);
-  key = strtok (NULL, ".");
-  GNUNET_assert (NULL != key);
-  ret = GNUNET_CRYPTO_public_key_from_string (key, issuer);
-  GNUNET_free (tmp);
-  return ret;
-}
-
-
 /**
  * Revoke a ticket.
  * We start by looking up attribute references in order
@@ -1066,7 +1047,7 @@ process_parallel_lookup_result (void *cls,
   if (NULL != cth->parallel_lookups_head)
     return; // Wait for more
   /* Else we are done */
-  get_iss_from_ticket (&cth->ticket, &iss);
+  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
   cth->cb (cth->cb_cls, &iss,
            cth->attrs, cth->presentations, GNUNET_OK, NULL);
   cleanup_cth (cth);
@@ -1171,6 +1152,7 @@ lookup_authz_cb (void *cls,
                   "Ignoring unknown record type %d", rd[i].record_type);
     }
   }
+  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
   if (NULL == rp_uri)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1178,7 +1160,6 @@ lookup_authz_cb (void *cls,
     /**
      * Return error
      */
-    get_iss_from_ticket (&cth->ticket, &iss);
     cth->cb (cth->cb_cls, &iss,
              cth->attrs, NULL, GNUNET_NO, NULL);
     cleanup_cth (cth);
@@ -1192,7 +1173,6 @@ lookup_authz_cb (void *cls,
     /**
      * Return error
      */
-    get_iss_from_ticket (&cth->ticket, &iss);
     cth->cb (cth->cb_cls, &iss,
              cth->attrs, NULL, GNUNET_NO, NULL);
     cleanup_cth (cth);
@@ -1213,7 +1193,6 @@ lookup_authz_cb (void *cls,
   /**
    * No references found, return empty attribute list
    */
-  get_iss_from_ticket (&cth->ticket, &iss);
   cth->cb (cth->cb_cls, &iss,
            cth->attrs, NULL, GNUNET_OK, NULL);
   cleanup_cth (cth);
