@@ -147,7 +147,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 16:0:0
+  -version-info 16:1:0
 
 lib_LTLIBRARIES = libgnunetutil.la
 
