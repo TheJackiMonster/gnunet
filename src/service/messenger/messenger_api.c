@@ -674,7 +674,10 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   GNUNET_MQ_send (room->handle->mq, env);
 
   if (GNUNET_MESSENGER_KIND_LEAVE == message->header.kind)
+  {
     send_close_room (room->handle, room);
+    room->opened = GNUNET_NO;
+  }
 }
 
 
