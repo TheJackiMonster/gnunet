@@ -77,6 +77,7 @@ main (int argc,
                                                  sig,
                                                  "hello",
                                                  5));
+  GNUNET_CRYPTO_blinding_input_values_decref (biv);
   GNUNET_CRYPTO_blinded_sig_decref (bsig);
   GNUNET_CRYPTO_unblinded_sig_decref (sig);
   GNUNET_CRYPTO_blinded_message_decref (bm);
