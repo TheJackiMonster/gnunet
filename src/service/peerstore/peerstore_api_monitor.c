@@ -286,6 +286,7 @@ GNUNET_PEERSTORE_monitor_stop (struct GNUNET_PEERSTORE_Monitor *zm)
     GNUNET_MQ_destroy (zm->mq);
     zm->mq = NULL;
   }
+  GNUNET_free (zm->sub_system);
   GNUNET_free (zm);
 }
 
