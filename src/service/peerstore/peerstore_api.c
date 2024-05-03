@@ -446,6 +446,7 @@ GNUNET_PEERSTORE_disconnect (struct GNUNET_PEERSTORE_Handle *h)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Disconnect initiated from client.\n");
   disconnect (h);
+  GNUNET_free (h);
 }
 
 
@@ -453,6 +454,15 @@ GNUNET_PEERSTORE_disconnect (struct GNUNET_PEERSTORE_Handle *h)
 /*******************            STORE FUNCTIONS           *********************/
 /******************************************************************************/
 
+static void
+destroy_storecontext(struct GNUNET_PEERSTORE_StoreContext *sc)
+{
+  GNUNET_CONTAINER_DLL_remove (sc->h->store_head, sc->h->store_tail, sc);
+  GNUNET_free (sc->sub_system);
+  GNUNET_free (sc->value);
+  GNUNET_free (sc->key);
+  GNUNET_free (sc);
+}
 
 /**
  * Cancel a store request
@@ -465,11 +475,7 @@ GNUNET_PEERSTORE_store_cancel (struct GNUNET_PEERSTORE_StoreContext *sc)
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "store cancel with sc %p \n",
        sc);
-  GNUNET_CONTAINER_DLL_remove (sc->h->store_head, sc->h->store_tail, sc);
-  GNUNET_free (sc->sub_system);
-  GNUNET_free (sc->value);
-  GNUNET_free (sc->key);
-  GNUNET_free (sc);
+  destroy_storecontext(sc);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "store cancel with sc %p is null\n",
        sc);
@@ -576,13 +582,22 @@ handle_store_result (void *cls, const struct PeerstoreResultMessage *msg)
   }
   if (NULL != sc->cont)
     sc->cont (sc->cont_cls, ntohl (msg->result));
-  GNUNET_CONTAINER_DLL_remove (h->store_head, h->store_tail, sc);
+  destroy_storecontext (sc);
 }
 
 
 /******************************************************************************/
 /*******************           ITERATE FUNCTIONS          *********************/
 /******************************************************************************/
+
+static void
+destroy_iteratecontext(struct GNUNET_PEERSTORE_IterateContext *ic)
+{
+  GNUNET_CONTAINER_DLL_remove (ic->h->iterate_head, ic->h->iterate_tail, ic);
+  GNUNET_free (ic->sub_system);
+  GNUNET_free (ic->key);
+  GNUNET_free (ic);
+}
 
 
 /**
@@ -609,7 +624,7 @@ handle_iterate_end (void *cls, const struct PeerstoreResultMessage *msg)
   if (NULL != ic->callback)
     ic->callback (ic->callback_cls, NULL, NULL);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Cleaning up iteration with rid %u\n", ic->rid);
-  GNUNET_CONTAINER_DLL_remove (h->iterate_head, h->iterate_tail, ic);
+  destroy_iteratecontext (ic);
 }
 
 
@@ -719,10 +734,7 @@ GNUNET_PEERSTORE_iteration_stop (struct GNUNET_PEERSTORE_IterateContext *ic)
     if (NULL != ic->h->mq)
       GNUNET_MQ_send (ic->h->mq, ev);
   }
-  GNUNET_CONTAINER_DLL_remove (ic->h->iterate_head, ic->h->iterate_tail, ic);
-  GNUNET_free (ic->sub_system);
-  GNUNET_free (ic->key);
-  GNUNET_free (ic);
+  destroy_iteratecontext (ic);
 }
 
 
