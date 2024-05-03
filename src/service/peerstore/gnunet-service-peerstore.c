@@ -1090,6 +1090,8 @@ client_disconnect_cb (void *cls,
       GNUNET_SCHEDULER_cancel (mo->sa_wait_warning);
       mo->sa_wait_warning = NULL;
     }
+    GNUNET_free (mo->sub_system);
+    GNUNET_free (mo->key);
     GNUNET_free (mo);
     break;
   }
