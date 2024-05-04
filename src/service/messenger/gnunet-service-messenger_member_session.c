@@ -154,8 +154,6 @@ completion:
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Completed session history (%s)\n",
                 GNUNET_sh2s (get_member_session_id (session)));
 
-    GNUNET_CONTAINER_multihashmap_clear (session->history);
-
     struct GNUNET_MESSENGER_ContactStore *store = get_member_contact_store (
       session->member->store);
 
@@ -418,7 +416,15 @@ verify_member_session_as_sender (const struct
   GNUNET_assert ((session) && (message) && (hash));
 
   if (GNUNET_YES == is_member_session_completed (session))
-    return GNUNET_SYSERR;
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Check message (%s) using history!\n",
+                GNUNET_h2s (hash));
+
+    if (GNUNET_YES == check_member_session_history (session, hash, GNUNET_YES))
+      return GNUNET_OK;
+    else
+      return GNUNET_SYSERR;
+  }
 
   if (0 != GNUNET_memcmp (get_member_session_id (session),
                           &(message->header.sender_id)))

@@ -450,8 +450,8 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   }
   else
   {
-    const struct GNUNET_CRYPTO_PublicKey *pubkey = get_contact_key (
-      session->member->contact);
+    const struct GNUNET_CRYPTO_PublicKey *pubkey;
+    pubkey = get_member_session_public_key (session->member);
     GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &sender);
 
     context = get_next_member_session_context (session->member);

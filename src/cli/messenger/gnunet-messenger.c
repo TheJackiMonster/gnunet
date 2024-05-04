@@ -23,11 +23,12 @@
  * @brief Print information about messenger groups.
  */
 
-#include "platform.h"
 #include <stdio.h>
+#include <unistd.h>
 
-#include "gnunet_util_lib.h"
+#include "gnunet_identity_service.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_util_lib.h"
 
 const struct GNUNET_CONFIGURATION_Handle *config;
 struct GNUNET_MESSENGER_Handle *messenger;

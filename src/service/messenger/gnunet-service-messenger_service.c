@@ -445,6 +445,11 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
 {
   GNUNET_assert ((service) && (room) && (session) && (message) && (hash));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Notify active clients about message: %s (%s)\n",
+              GNUNET_h2s (hash), GNUNET_MESSENGER_name_of_kind (
+                message->header.kind));
+
   struct GNUNET_MESSENGER_ListHandle *element = service->handles.head;
 
   while (element)

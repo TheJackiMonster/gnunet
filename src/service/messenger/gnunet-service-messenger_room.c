@@ -1116,6 +1116,11 @@ handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room)
     get_srv_room_member_store (room);
   struct GNUNET_MESSENGER_PeerStore *peer_store = get_srv_room_peer_store (
     room);
+  
+  const struct GNUNET_HashCode *key = get_srv_room_key (room);
+  
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handling room messages: %s\n", GNUNET_h2s (key));
 
   while (room->handling.head)
   {
