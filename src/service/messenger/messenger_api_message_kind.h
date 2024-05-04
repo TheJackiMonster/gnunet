@@ -27,9 +27,8 @@
 #define GNUNET_MESSENGER_API_MESSAGE_KIND_H
 
 #include "gnunet_messenger_service.h"
-#include "gnunet_reclaim_lib.h"
+#include "gnunet_reclaim_service.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_time_lib.h"
 
 /**
  * Creates and allocates a new join message containing the clients public <i>key</i>.

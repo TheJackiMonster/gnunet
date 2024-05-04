@@ -64,6 +64,9 @@ create_message (enum GNUNET_MESSENGER_MessageKind kind)
     message->body.privacy.length = 0;
     message->body.privacy.data = NULL;
     break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    message->body.ticket.identifier = NULL;
+    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     message->body.transcript.length = 0;
     message->body.transcript.data = NULL;
@@ -111,6 +114,10 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
       GNUNET_memcpy (copy->body.privacy.data, message->body.privacy.data,
                      copy->body.privacy.length);
 
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    copy->body.ticket.identifier = message->body.ticket.identifier? GNUNET_strdup (
+      message->body.ticket.identifier) : NULL;
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     copy->body.transcript.data = copy->body.transcript.length ? GNUNET_malloc (
@@ -168,6 +175,10 @@ destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     GNUNET_free (body->privacy.data);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    if (body->ticket.identifier)
+      GNUNET_free (body->ticket.identifier);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     GNUNET_free (body->transcript.data);
@@ -294,10 +305,6 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     length += member_size (struct GNUNET_MESSENGER_Message,
                            body.connection.flags);
     break;
-  case GNUNET_MESSENGER_KIND_TICKET:
-    length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.ticket.ticket);
-    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     length += member_size (struct GNUNET_MESSENGER_Message,
                            body.transcript.hash);
@@ -359,6 +366,9 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     length += body->privacy.length;
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    length += (body->ticket.identifier ? strlen (body->ticket.identifier) : 0);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     length += GNUNET_CRYPTO_public_key_get_length (&(body->transcript.key));
@@ -569,7 +579,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    encode_step (buffer, offset, &(body->ticket.ticket));
+    encode_step_ext (buffer, offset, body->ticket.identifier, 
+      min (length - offset, strlen (body->ticket.identifier)));
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
@@ -782,7 +793,10 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     body->connection.flags = GNUNET_be32toh (value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    decode_step (buffer, offset, &(body->ticket.ticket));
+    if (length > offset)
+      decode_step_malloc (buffer, offset, body->ticket.identifier, length - offset, 1);
+    else
+      body->ticket.identifier = NULL;
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     decode_step (buffer, offset, &(body->transcript.hash));
@@ -1349,7 +1363,7 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_SYSERR; // Reserved for connection handling only!
   case GNUNET_MESSENGER_KIND_TICKET:
-    return GNUNET_NO; // Use #GNUNET_MESSENGER_send_ticket(...) instead!
+    return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     return GNUNET_NO; // Use #GNUNET_MESSENGER_send_message(...) with a contact instead!
   case GNUNET_MESSENGER_KIND_TAG:

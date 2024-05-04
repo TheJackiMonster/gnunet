@@ -39,21 +39,14 @@ extern "C" {
 #endif
 #endif
 
-#include "gnunet_common.h"
-#include "gnunet_configuration_lib.h"
-#include "gnunet_identity_service.h"
-#include "gnunet_reclaim_lib.h"
-#include "gnunet_reclaim_service.h"
-#include "gnunet_scheduler_lib.h"
-#include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.3
+ * Current version of the Messenger: 0.4
  */
-#define GNUNET_MESSENGER_VERSION 0x00000003
+#define GNUNET_MESSENGER_VERSION 0x00000004
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -536,14 +529,14 @@ struct GNUNET_MESSENGER_MessageConnection
  * A ticket message body
  * This allows to exchange ticket identifiers with an audience.
  *
- * Message-body-size: 32 bytes
+ * Message-body-size: 0+ bytes
  */
 struct GNUNET_MESSENGER_MessageTicket
 {
   /**
-   * The identifier of a RECLAIM ticket.
+   * The identifier of a ticket.
    */
-  struct GNUNET_RECLAIM_Ticket ticket;
+  char *identifier;
 };
 
 /**
@@ -1009,25 +1002,6 @@ int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
                                   void *cls);
-
-/**
- * Send a <i>ticket</i> into a <i>room</i>. The ticket will automatically be converted
- * into a message to be sent only to its audience as a private message.
- *
- * A ticket can only be sent with this function if its issuer's public key is the one
- * being used by the messenger. The audience's public key is not allowed to be the
- * anonymous public key. The room needs to contain a member using the audience's public
- * key.
- * The <i>rp_uri</i> must contain the audience public key in SOME FORMAT TODO.
- *
- * @param[in,out] room Room handle
- * @param[in] ticket Ticket to send
- * @param[in] rp_uri The expected audience RP URI
- */
-void
-GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
-                              const struct GNUNET_RECLAIM_Ticket *ticket,
-                              const char* rp_uri);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

@@ -201,7 +201,7 @@ create_message_ticket (const struct GNUNET_RECLAIM_Ticket *ticket)
   if (! message)
     return NULL;
 
-  message->body.ticket.ticket =  *ticket;
+  message->body.ticket.identifier = GNUNET_strdup(ticket->gns_name);
 
   return message;
 }
