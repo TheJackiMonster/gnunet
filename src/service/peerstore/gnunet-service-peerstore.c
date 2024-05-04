@@ -491,6 +491,15 @@ iterate_proc (void *cls,
   proc->limit--;
 }
 
+
+static void destroy_iteration(struct Iteration *ic)
+{
+  GNUNET_free (ic->key);
+  GNUNET_free (ic->sub_system);
+  GNUNET_free (ic);
+}
+
+
 /**
  * Function called once we are done with the iteration and
  * allow the zone iteration client to send us more messages.
@@ -512,10 +521,8 @@ iteration_done_client_continue (struct Iteration *ic)
   endmsg->rid = htons (ic->request_id);
   endmsg->result = htonl (GNUNET_OK);
   GNUNET_MQ_send (ic->pc->mq, env);
-  GNUNET_free (ic->key);
-  GNUNET_free (ic->sub_system);
   GNUNET_CONTAINER_DLL_remove (ic->pc->op_head, ic->pc->op_tail, ic);
-  GNUNET_free (ic);
+  destroy_iteration (ic);
   return;
 }
 
@@ -657,7 +664,7 @@ handle_iterate_stop (void *cls,
     return;
   }
   GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, ic);
-  GNUNET_free (ic);
+  destroy_iteration (ic);
   GNUNET_SERVICE_client_continue (pc->client);
 }
 
@@ -1098,7 +1105,7 @@ client_disconnect_cb (void *cls,
   while (NULL != (iter = pc->op_head))
   {
     GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, iter);
-    GNUNET_free (iter);
+    destroy_iteration (iter);
   }
   GNUNET_free (pc);
 }
