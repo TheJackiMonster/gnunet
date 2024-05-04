@@ -86,7 +86,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   if (! element->message)
   {
     if (element->transcript)
-      destroy_message(element->transcript);
+      destroy_message (element->transcript);
 
     GNUNET_free (element);
     return;
@@ -121,7 +121,7 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   if (transcript)
     *transcript = element->transcript;
   else if (element->transcript)
-    destroy_message(element->transcript);
+    destroy_message (element->transcript);
 
   GNUNET_CONTAINER_DLL_remove (messages->head, messages->tail, element);
 

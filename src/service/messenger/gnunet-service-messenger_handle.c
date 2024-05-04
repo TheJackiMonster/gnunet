@@ -240,6 +240,7 @@ open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                                                       key,
                                                       NULL,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
+
     return GNUNET_NO;
 
   if ((! get_srv_handle_member_id (handle, key)) &&
@@ -498,6 +499,10 @@ iterate_next_member_ids (void *cls,
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = cls;
   struct GNUNET_MESSENGER_NextMemberId *next = value;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Notifying client about next member id: %s (%s)\n",
+              GNUNET_sh2s (&(next->id)), GNUNET_h2s (key));
 
   struct GNUNET_MESSENGER_MemberMessage *msg;
   struct GNUNET_MQ_Envelope *env;

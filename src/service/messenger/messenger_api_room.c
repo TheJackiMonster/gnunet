@@ -300,6 +300,7 @@ handle_join_message (struct GNUNET_MESSENGER_Room *room,
                                                           .sender_id),
                                                         entry->sender,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
+
     increase_contact_rc (entry->sender);
 }
 
@@ -393,6 +394,7 @@ handle_id_message (struct GNUNET_MESSENGER_Room *room,
                                                           id.id),
                                                         entry->sender,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
+
     return;
 
   struct GNUNET_HashCode context, next_context;
@@ -574,7 +576,8 @@ read_transcript:
 
   original->recipient = get_store_contact (store,
                                            NULL,
-                                           &(entry->message->body.transcript.key));
+                                           &(entry->message->body.transcript.key
+                                             ));
 
   if (original->message)
   {
@@ -826,12 +829,14 @@ link_room_message (struct GNUNET_MESSENGER_Room *room,
     return;
 
   struct GNUNET_HashCode *value = GNUNET_memdup (other, sizeof(struct
-                                                               GNUNET_HashCode));
+                                                               GNUNET_HashCode))
+  ;
   if (! value)
     return;
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->links, hash, value,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+
     GNUNET_free (value);
 }
 

@@ -602,6 +602,8 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
     if ((! key) || (0 < GNUNET_CRYPTO_private_key_get_length (key)))
       set_handle_key (handle, key);
 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connect handle!\n");
+
     struct GNUNET_MESSENGER_CreateMessage *msg;
     struct GNUNET_MQ_Envelope *env;
 
@@ -623,6 +625,8 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle)
   if (! handle)
     return;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Disconnect handle!\n");
+
   struct GNUNET_MESSENGER_DestroyMessage *msg;
   struct GNUNET_MQ_Envelope *env;
 
@@ -630,6 +634,18 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle)
   GNUNET_MQ_send (handle->mq, env);
 
   destroy_handle (handle);
+}
+
+
+static void
+callback_leave_message_sent (void *cls)
+{
+  struct GNUNET_MESSENGER_Room *room = cls;
+
+  room->opened = GNUNET_NO;
+  clear_list_tunnels (&(room->entries));
+
+  send_close_room (room->handle, room);
 }
 
 
@@ -669,15 +685,15 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   hash_message (message, msg_length, msg_buffer, hash);
   sign_message (message, msg_length, msg_buffer, hash, key);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Send message (%s)!\n",
+              GNUNET_h2s (hash));
+
   update_room_last_message (room, hash);
 
-  GNUNET_MQ_send (room->handle->mq, env);
-
   if (GNUNET_MESSENGER_KIND_LEAVE == message->header.kind)
-  {
-    send_close_room (room->handle, room);
-    room->opened = GNUNET_NO;
-  }
+    GNUNET_MQ_notify_sent (env, callback_leave_message_sent, room);
+
+  GNUNET_MQ_send (room->handle->mq, env);
 }
 
 
@@ -939,8 +955,10 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
 
   struct GNUNET_MESSENGER_Message *message = create_message_leave ();
 
-  if (message)
-    enqueue_message_to_room (room, message, NULL);
+  if (! message)
+    return;
+
+  enqueue_message_to_room (room, message, NULL);
 }
 
 
@@ -1206,6 +1224,9 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
 
   if (! message)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Request message (%s)!\n",
+                GNUNET_h2s (hash));
+
     struct GNUNET_MESSENGER_GetMessage *msg;
     struct GNUNET_MQ_Envelope *env;
 

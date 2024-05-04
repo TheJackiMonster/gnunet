@@ -116,7 +116,8 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
 
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    copy->body.ticket.identifier = message->body.ticket.identifier? GNUNET_strdup (
+    copy->body.ticket.identifier = message->body.ticket.identifier?
+                                   GNUNET_strdup (
       message->body.ticket.identifier) : NULL;
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
@@ -516,6 +517,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_JOIN:
     encode_step_key (buffer, offset, &(body->join.key), length);
     break;
+  case GNUNET_MESSENGER_KIND_LEAVE:
+    break;
   case GNUNET_MESSENGER_KIND_NAME:
     if (body->name.name)
       encode_step_ext (buffer, offset, body->name.name, min (length - offset,
@@ -579,8 +582,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    encode_step_ext (buffer, offset, body->ticket.identifier, 
-      min (length - offset, strlen (body->ticket.identifier)));
+    encode_step_ext (buffer, offset, body->ticket.identifier,
+                     min (length - offset, strlen (body->ticket.identifier)));
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
@@ -724,15 +727,17 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   uint32_t value0, value1;
   switch (*kind)
   {
-  case GNUNET_MESSENGER_KIND_INFO: {
-      decode_step (buffer, offset, &value0);
+  case GNUNET_MESSENGER_KIND_INFO:
+    decode_step (buffer, offset, &value0);
 
-      body->info.messenger_version = GNUNET_be32toh (value0);
-      break;
-    } case GNUNET_MESSENGER_KIND_JOIN: {
-      decode_step_key (buffer, offset, &(body->join.key), length);
-      break;
-    } case GNUNET_MESSENGER_KIND_NAME:
+    body->info.messenger_version = GNUNET_be32toh (value0);
+    break;
+  case GNUNET_MESSENGER_KIND_JOIN:
+    decode_step_key (buffer, offset, &(body->join.key), length);
+    break;
+  case GNUNET_MESSENGER_KIND_LEAVE:
+    break;
+  case GNUNET_MESSENGER_KIND_NAME:
     if (length > offset)
       decode_step_malloc (buffer, offset, body->name.name, length - offset, 1);
     else
@@ -794,7 +799,8 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
     if (length > offset)
-      decode_step_malloc (buffer, offset, body->ticket.identifier, length - offset, 1);
+      decode_step_malloc (buffer, offset, body->ticket.identifier, length
+                          - offset, 1);
     else
       body->ticket.identifier = NULL;
     break;

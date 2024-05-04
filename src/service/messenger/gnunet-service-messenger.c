@@ -287,15 +287,30 @@ check_send_message (void *cls,
 
   if (msg_length < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN,
                                           GNUNET_YES))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Too short message: %s\n", GNUNET_h2s (
+                  &(msg->key)));
     return GNUNET_NO;
+  }
 
   if (GNUNET_YES != decode_message (&message, msg_length, msg_buffer,
                                     GNUNET_YES,
                                     NULL))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Decoding message failed: %s\n",
+                GNUNET_h2s (
+                  &(msg->key)));
     return GNUNET_NO;
+  }
 
   enum GNUNET_GenericReturnValue allowed;
   allowed = filter_message_sending (&message);
+
+  if (GNUNET_SYSERR == allowed)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending message not allowed: %s to %s\n",
+                GNUNET_MESSENGER_name_of_kind (message.header.kind),
+                GNUNET_h2s (&(msg->key)));
 
   cleanup_message (&message);
   return GNUNET_SYSERR != allowed? GNUNET_OK : GNUNET_NO;
@@ -341,6 +356,10 @@ callback_found_message (void *cls,
 
   if (! message)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Notifying client about missing message: %s\n",
+                GNUNET_h2s (hash));
+
     struct GNUNET_MESSENGER_GetMessage *response;
     struct GNUNET_MQ_Envelope *env;
 

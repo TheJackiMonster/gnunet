@@ -233,7 +233,8 @@ load_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
               path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
     path, GNUNET_DISK_OPEN_READ, permission
@@ -270,7 +271,8 @@ save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
               path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
     path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
