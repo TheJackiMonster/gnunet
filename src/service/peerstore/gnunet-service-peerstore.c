@@ -803,8 +803,8 @@ monitor_iteration_next (void *cls)
   {
     GNUNET_free (mc->key);
     GNUNET_free (mc->sub_system);
-    GNUNET_free (mc);
     GNUNET_SERVICE_client_drop (mc->pc->client);
+    GNUNET_free (mc);
     return;
   }
   if (GNUNET_NO == ret)
