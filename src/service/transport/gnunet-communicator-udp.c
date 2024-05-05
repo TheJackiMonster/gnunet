@@ -909,6 +909,11 @@ receiver_destroy (struct ReceiverAddress *receiver)
     GNUNET_TRANSPORT_communicator_mq_del (receiver->d_qh);
     receiver->d_qh = NULL;
   }
+  else if (NULL != receiver->d_mq)
+  {
+    GNUNET_MQ_destroy (receiver->d_mq);
+    receiver->d_mq = NULL;
+  }
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multihashmap_remove (receivers,
                                                        &receiver->key,
