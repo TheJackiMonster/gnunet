@@ -1410,6 +1410,19 @@ issue_ticket (struct TicketIssueHandle *ih)
       }
     }
   }
+
+  label =
+    GNUNET_STRINGS_data_to_string_alloc (&ih->rnd,
+                                         sizeof(ih->rnd));
+  struct GNUNET_CRYPTO_PublicKey pub;
+  GNUNET_CRYPTO_key_get_public (&ih->identity,
+                                &pub);
+  char *str = GNUNET_CRYPTO_public_key_to_string (&pub);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Storing AuthZ information under %s in %s\n", label, str);
+  sprintf (ih->ticket.gns_name, "%s.%s", label, str);
+  GNUNET_free (str);
+
   attrs_record[i].data_size =
     strlen (ih->ticket.gns_name) + 1;
   tkt_data = GNUNET_malloc (attrs_record[i].data_size);
@@ -1430,17 +1443,6 @@ issue_ticket (struct TicketIssueHandle *ih)
     GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   i++;
 
-  label =
-    GNUNET_STRINGS_data_to_string_alloc (&ih->rnd,
-                                         sizeof(ih->rnd));
-  struct GNUNET_CRYPTO_PublicKey pub;
-  GNUNET_CRYPTO_key_get_public (&ih->identity,
-                                &pub);
-  char *str = GNUNET_CRYPTO_public_key_to_string (&pub);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Storing AuthZ information under %s in %s\n", label, str);
-  GNUNET_free (str);
-  sprintf (ih->ticket.gns_name, "%s.%s", label, str);
   // Publish record
   ih->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
                                                  &ih->identity,
