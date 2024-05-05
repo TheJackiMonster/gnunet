@@ -217,6 +217,7 @@ announce_id (void *cls)
                   expiration,  /* Data expiration */
                   NULL,         /* Continuation */
                   NULL);        /* Continuation closure */
+  GNUNET_free (block);
 }
 
 
