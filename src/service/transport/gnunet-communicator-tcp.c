@@ -2369,7 +2369,6 @@ extract_address (const char *bindto)
   char *token;
   char *cp;
   char *rest = NULL;
-  char *res;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "extract address with bindto %s\n",
@@ -2402,8 +2401,7 @@ extract_address (const char *bindto)
     else
     {
       token++;
-      res = GNUNET_strdup (token);
-      addr = GNUNET_strdup (res);
+      addr = GNUNET_strdup (token);
     }
   }
 
