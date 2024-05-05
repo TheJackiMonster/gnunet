@@ -3799,7 +3799,8 @@ init_socket (struct sockaddr *addr,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Bound to `%s'\n",
               GNUNET_a2s ((const struct sockaddr *) &in_sto, sto_len));
-  stats = GNUNET_STATISTICS_create ("communicator-tcp", cfg);
+  if (NULL == stats)
+    stats = GNUNET_STATISTICS_create ("communicator-tcp", cfg);
 
   if (NULL == is)
     is = GNUNET_NT_scanner_init ();
