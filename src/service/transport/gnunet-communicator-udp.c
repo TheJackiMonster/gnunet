@@ -883,6 +883,8 @@ bi_destroy (struct BroadcastInterface *bi)
   GNUNET_free (bi);
 }
 
+static int
+secret_destroy (struct SharedSecret *ss);
 
 /**
  * Destroys a receiving state due to timeout or shutdown.
@@ -892,7 +894,7 @@ bi_destroy (struct BroadcastInterface *bi)
 static void
 receiver_destroy (struct ReceiverAddress *receiver)
 {
-
+  struct SharedSecret *ss;
   receiver->receiver_destroy_called = GNUNET_YES;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -923,6 +925,10 @@ receiver_destroy (struct ReceiverAddress *receiver)
                          "# receivers active",
                          GNUNET_CONTAINER_multihashmap_size (receivers),
                          GNUNET_NO);
+  while (NULL != (ss = receiver->ss_head))
+  {
+    secret_destroy (ss);
+  }
   GNUNET_free (receiver->address);
   GNUNET_free (receiver->foreign_addr);
   GNUNET_free (receiver);
@@ -1070,6 +1076,7 @@ secret_destroy (struct SharedSecret *ss)
 static void
 sender_destroy (struct SenderAddress *sender)
 {
+  struct SharedSecret *ss;
   sender->sender_destroy_called = GNUNET_YES;
   GNUNET_assert (
     GNUNET_YES ==
@@ -1079,6 +1086,10 @@ sender_destroy (struct SenderAddress *sender)
                          "# senders active",
                          GNUNET_CONTAINER_multihashmap_size (senders),
                          GNUNET_NO);
+  while (NULL != (ss = sender->ss_head))
+  {
+    secret_destroy (ss);
+  }
   GNUNET_free (sender->address);
   GNUNET_free (sender);
 }
