@@ -79,7 +79,7 @@ struct GNUNET_MESSENGER_RoomEntryRecord
   /**
    * The peer identity of an open door to a room.
    */
-  struct GNUNET_PeerIdentity door GNUNET_PACKED;
+  struct GNUNET_PeerIdentity door;
 
   /**
    * The hash identifying the port of the room.
