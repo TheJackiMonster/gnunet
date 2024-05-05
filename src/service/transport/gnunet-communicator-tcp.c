@@ -3349,6 +3349,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Queue for %s already exists or is in construction\n", address);
+    GNUNET_free (in);
     return GNUNET_NO;
   }
   switch (in->sa_family)

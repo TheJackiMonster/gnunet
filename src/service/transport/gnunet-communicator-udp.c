@@ -2897,6 +2897,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "receiver %s already exist or is being connected to\n",
                 address);
+    GNUNET_free (in);
     return GNUNET_NO;
   }
 
