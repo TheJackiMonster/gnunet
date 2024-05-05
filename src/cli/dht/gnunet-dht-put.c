@@ -233,21 +233,22 @@ main (int argc, char *const *argv)
                                     &argc, &argv))
     return 2;
   expiration = GNUNET_TIME_UNIT_HOURS;
-  return (GNUNET_OK ==
-          GNUNET_PROGRAM_run (
-            argc,
-            argv,
-            "gnunet-dht-put",
-            gettext_noop (
-              "Issue a PUT request to the GNUnet DHT insert DATA under KEY."),
-            options,
-            &run,
-            NULL))
+  ret = (GNUNET_OK ==
+         GNUNET_PROGRAM_run (
+           argc,
+           argv,
+           "gnunet-dht-put",
+           gettext_noop (
+             "Issue a PUT request to the GNUnet DHT insert DATA under KEY."),
+           options,
+           &run,
+           NULL))
          ? ret
          : 1;
   // This is ugly, but meh. The GNUNET_STRINGS_get_utf8_args allows us to do this.
   u8_argv = (char*) argv;
   GNUNET_free (u8_argv);
+  return ret;
 }
 
 
