@@ -11672,7 +11672,8 @@ contains_address (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
 
-  if (0 == GNUNET_memcmp (addr, tgna_cls->addr))
+  if (strlen(tgna_cls->addr) == tgna->address_length
+      && 0 == strncmp (addr, tgna_cls->addr, tgna->address_length))
   {
     tgna_cls->tgna = tgna;
     return GNUNET_NO;
