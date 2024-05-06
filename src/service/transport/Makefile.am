@@ -97,7 +97,8 @@ libexec_PROGRAMS = \
  gnunet-service-transport \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
- gnunet-communicator-tcp
+ gnunet-communicator-tcp \
+ gnunet-communicator-http3
 if HAVE_EXPERIMENTAL
 if HAVE_QUICHE
 libexec_PROGRAMS += \
@@ -165,6 +166,21 @@ gnunet_communicator_quic_LDADD = \
   $(LIBGCRYPT_LIBS)
 endif
 endif
+
+gnunet_communicator_http3_SOURCES = \
+ gnunet-communicator-http3.c
+gnunet_communicator_http3_LDADD = \
+  libgnunettransportapplication.la \
+  libgnunettransportcommunicator.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  -lngtcp2 \
+  -lgnutls \
+  -lngtcp2_crypto_gnutls \
+  -lnghttp3 \
+  $(LIBGCRYPT_LIBS)
 
 #gnunet_transport_SOURCES = \
 # gnunet-transport.c
