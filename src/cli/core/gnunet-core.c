@@ -204,14 +204,17 @@ run (void *cls,
     if (NULL == mh)
     {
       fprintf (stderr, "%s", _ ("Failed to connect to CORE service!\n"));
+      GNUNET_free (keyfile);
       return;
     }
   }
   if (! show_pid && ! show_conns && ! monitor_connections)
   {
     fprintf (stderr, "%s", _ ("No argument given.\n"));
+    GNUNET_free (keyfile);
     return;
   }
+  GNUNET_free (keyfile);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
 }
 
