@@ -54,12 +54,6 @@ executable ('gnunet-service-dht',
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
-configure_file(input : 'dhtu.conf',
-               output : 'dhtu.conf',
-               configuration : cdata,
-               install: true,
-               install_dir: pkgcfgdir)
-
 libgnunettestingdhtu = library('gnunettestingdhtu',
         ['testing_dhtu_cmd_send.c'],
         soversion: '0',
