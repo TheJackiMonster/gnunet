@@ -440,4 +440,41 @@ GNUNET_JSON_pack_blinded_message (const char *name,
   return ps;
 }
 
+
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_sig (
+  const char *name,
+  const struct GNUNET_CRYPTO_BlindedSignature *sig)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+  };
+
+  if (NULL == sig)
+    return ps;
+  switch (sig->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "RSA"),
+      GNUNET_JSON_pack_rsa_signature ("blinded_rsa_signature",
+                                      sig->details.blinded_rsa_signature));
+    return ps;
+  case GNUNET_CRYPTO_BSA_CS:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "CS"),
+      GNUNET_JSON_pack_uint64 ("b",
+                               sig->details.blinded_cs_answer.b),
+      GNUNET_JSON_pack_data_auto ("s",
+                                  &sig->details.blinded_cs_answer.s_scalar));
+    return ps;
+  }
+  GNUNET_assert (0);
+  return ps;
+}
+
 /* end of json_pack.c */

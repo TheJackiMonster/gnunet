@@ -1249,6 +1249,8 @@ parse_blinded_message (void *cls,
     {
       struct GNUNET_JSON_Specification ispec[] = {
         GNUNET_JSON_spec_varsize (
+          /* TODO: Change this field name to something
+                   more generic / pass in as argument. */
           "rsa_blinded_planchet",
           &blinded_message->details.rsa_blinded_message.blinded_msg,
           &blinded_message->details.rsa_blinded_message.blinded_msg_size),

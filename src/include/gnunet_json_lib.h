@@ -1003,6 +1003,18 @@ GNUNET_JSON_pack_blinded_message (const char *name,
                                   const struct GNUNET_CRYPTO_BlindedMessage *msg);
 
 
+/**
+ * Generate packer instruction for a JSON field of type
+ * blinded signature.
+ *
+ * @param name name of the field to add to the object
+ * @param sig blinded signature
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_sig (const char *name,
+                              const struct GNUNET_CRYPTO_BlindedSignature *sig);
+
 #endif
 
 /* end of gnunet_json_lib.h */
