@@ -5946,12 +5946,10 @@ handle_add_address (void *cls,
               "Communicator added address `%s'!\n",
               (const char *) &aam[1]);
   slen = ntohs (aam->header.size) - sizeof(*aam);
-  address = GNUNET_malloc (slen);
-  memcpy (address, &aam[1], slen);
   ale = create_address_entry (tc,
                         GNUNET_TIME_relative_ntoh (aam->expiration),
                         (enum GNUNET_NetworkType) ntohl (aam->nt),
-                        address,
+                        &aam[1],
                         aam->aid,
                         slen);
   GNUNET_CONTAINER_DLL_insert (tc->details.communicator.addr_head,
@@ -11601,10 +11599,10 @@ iterate_address_and_compare_cb (void *cls,
   char *address_uri;
   char *prefix;
   char *uri_without_port;
-  char *address_uri_without_port = get_address_without_port (queue->address); 
+  char *address_uri_without_port;
 
   slash = strrchr (uri, '/');
-  prefix = GNUNET_strndup (uri, (slash - uri) - 2); 
+  prefix = GNUNET_strndup (uri, (slash - uri) - 2);
   GNUNET_assert (NULL != slash);
   slash++;
   GNUNET_asprintf (&address_uri,
