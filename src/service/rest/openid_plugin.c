@@ -2394,7 +2394,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (NULL != nonce)
     GNUNET_free (nonce);
-  access_token = OIDC_access_token_new (&ticket);
+  access_token = OIDC_access_token_new (&ticket, handle->oidc->redirect_uri);
   /**
    * Store mapping from access token to code so we can later
    * fall back on the provided attributes in userinfo one time.
@@ -2700,8 +2700,9 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  char *rp_uri;
   if (GNUNET_OK != OIDC_access_token_parse (authorization_access_token,
-                                            &ticket))
+                                            &ticket, &rp_uri))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
     handle->edesc = GNUNET_strdup ("The access token is invalid");
@@ -2727,9 +2728,11 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                                              handle);
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
                                                   &handle->ticket,
+                                                  rp_uri,
                                                   &consume_ticket,
                                                   handle);
   GNUNET_free (authorization);
+  GNUNET_free (rp_uri);
 }
 
 
