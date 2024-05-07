@@ -392,7 +392,7 @@ GNUNET_RECLAIM_get_credentials_stop (
  *
  * @param h the identity provider to use
  * @param iss the issuing identity (= the user)
- * @param rp the subject of the ticket (= the relying party) see #GNUNET_RECLAIM_Ticket
+ * @param rp_uri the subject of the ticket (= the relying party) see #GNUNET_RECLAIM_Ticket
  * @param attrs the attributes that the relying party is given access to
  * @param cb the callback
  * @param cb_cls the callback closure
@@ -402,7 +402,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_issue (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_CRYPTO_PrivateKey *iss,
-  const char *rp,
+  const char *rp_uri,
   const struct GNUNET_RECLAIM_AttributeList *attrs,
   GNUNET_RECLAIM_IssueTicketCallback cb, void *cb_cls);
 
@@ -434,6 +434,7 @@ GNUNET_RECLAIM_ticket_revoke (
  *
  * @param h the identity provider to use
  * @param ticket the issued ticket to consume
+ * @param rp_uri the RP URI
  * @param cb the callback to call
  * @param cb_cls the callback closure
  * @return handle to abort the operation
@@ -442,6 +443,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_RECLAIM_Ticket *ticket,
+  const char *rp_uri,
   GNUNET_RECLAIM_AttributeTicketResult cb, void *cb_cls);
 
 

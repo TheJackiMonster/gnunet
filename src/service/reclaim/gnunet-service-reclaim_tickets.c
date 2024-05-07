@@ -1047,7 +1047,8 @@ process_parallel_lookup_result (void *cls,
   if (NULL != cth->parallel_lookups_head)
     return; // Wait for more
   /* Else we are done */
-  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
+  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss)
+                 );
   cth->cb (cth->cb_cls, &iss,
            cth->attrs, cth->presentations, GNUNET_OK, NULL);
   cleanup_cth (cth);
@@ -1152,7 +1153,8 @@ lookup_authz_cb (void *cls,
                   "Ignoring unknown record type %d", rd[i].record_type);
     }
   }
-  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
+  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss)
+                 );
   if (NULL == rp_uri)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1212,6 +1214,7 @@ lookup_authz_cb (void *cls,
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
 RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
+                         const char *rp_uri,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls)
 {
@@ -1224,6 +1227,7 @@ RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
   cth->attrs = GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   cth->presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
   cth->ticket = *ticket;
+  memcpy (cth->rp_uri, rp_uri, strlen (rp_uri) + 1);
   cth->cb = cb;
   cth->cb_cls = cb_cls;
   tmp = GNUNET_strdup (ticket->gns_name);

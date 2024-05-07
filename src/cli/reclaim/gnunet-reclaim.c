@@ -53,6 +53,11 @@ static int list_credentials;
 static char *credential_id;
 
 /**
+ * The expected RP URI
+ */
+static char *ex_rp_uri;
+
+/**
  * Credential ID
  */
 static struct GNUNET_RECLAIM_Identifier credential;
@@ -445,8 +450,15 @@ iter_finished (void *cls)
   }
   if (consume_ticket)
   {
+    if (NULL == ex_rp_uri)
+    {
+      fprintf (stderr, "Expected an RP URI to consume ticket\n");
+      GNUNET_SCHEDULER_add_now(&do_cleanup, NULL);
+      return;
+    }
     reclaim_op = GNUNET_RECLAIM_ticket_consume (reclaim_handle,
                                                 &ticket,
+                                                ex_rp_uri,
                                                 &process_attrs,
                                                 NULL);
     timeout = GNUNET_SCHEDULER_add_delayed (
@@ -858,6 +870,12 @@ main (int argc, char *const argv[])
                                  gettext_noop (
                                    "Specify the relying party for issue"),
                                  &rp),
+    GNUNET_GETOPT_option_string ('u',
+                                 "rpuri",
+                                 "RPURI",
+                                 gettext_noop (
+                                   "Specify the relying party URI for a ticket to consume"),
+                                 &ex_rp_uri),
     GNUNET_GETOPT_option_flag ('D',
                                "dump",
                                gettext_noop ("List attributes for EGO"),

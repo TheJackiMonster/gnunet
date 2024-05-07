@@ -189,12 +189,14 @@ RECLAIM_TICKETS_revoke_cancel (struct RECLAIM_TICKETS_RevokeHandle *rh);
  * ticket.rnd in GNS.
  *
  * @param ticket the ticket to consume
+ * @param rp_uri the expected RP URI
  * @param cb callback to call with attributes of ticket
  * @param cb_cls callback closure
  * @return handle to the operation
  */
 struct RECLAIM_TICKETS_ConsumeHandle *
 RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
+                         const char *rp_uri,
                          RECLAIM_TICKETS_ConsumeCallback cb,
                          void *cb_cls);
 

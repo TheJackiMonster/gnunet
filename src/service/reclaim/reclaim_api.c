@@ -1546,6 +1546,7 @@ struct GNUNET_RECLAIM_Operation *
 GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Handle *h,
   const struct GNUNET_RECLAIM_Ticket *ticket,
+  const char *rp_uri,
   GNUNET_RECLAIM_AttributeTicketResult cb,
   void *cb_cls)
 {
@@ -1565,8 +1566,11 @@ GNUNET_RECLAIM_ticket_consume (
                                  tkt_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET);
   buf = (char*) &ctm[1];
+  ctm->rp_uri_len = htons (strlen (rp_uri) + 1);
   ctm->tkt_len = htons (tkt_len);
   memcpy (buf, ticket, tkt_len);
+  buf += tkt_len;
+  memcpy (buf, rp_uri, strlen (rp_uri) + 1);
   ctm->id = htonl (op->r_id);
   if (NULL != h->mq)
     GNUNET_MQ_send_copy (h->mq, op->env);

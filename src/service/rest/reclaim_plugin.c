@@ -24,6 +24,7 @@
  * @brief GNUnet reclaim REST plugin
  *
  */
+#include "gnunet_json_lib.h"
 #include "platform.h"
 #include "microhttpd.h"
 #include <inttypes.h>
@@ -1225,10 +1226,13 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
   struct RequestHandle *handle = cls;
   struct GNUNET_RECLAIM_Ticket *ticket;
   char term_data[handle->rest_handle->data_size + 1];
+  const char *rp_uri;
   json_t *data_json;
   json_error_t err;
   struct GNUNET_JSON_Specification tktspec[] =
-  { GNUNET_RECLAIM_JSON_spec_ticket (&ticket), GNUNET_JSON_spec_end () };
+  { GNUNET_RECLAIM_JSON_spec_ticket (&ticket),
+    GNUNET_JSON_spec_string("rp_uri", &rp_uri),
+    GNUNET_JSON_spec_end () };
 
   if (0 >= handle->rest_handle->data_size)
   {
@@ -1260,6 +1264,7 @@ consume_ticket_cont (struct GNUNET_REST_RequestHandle *con_handle,
   handle->resp_object = json_object ();
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
                                                   ticket,
+                                                  rp_uri,
                                                   &consume_cont,
                                                   handle);
   GNUNET_JSON_parse_free (tktspec);

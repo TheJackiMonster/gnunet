@@ -984,9 +984,13 @@ static int
 check_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
 {
   uint16_t size;
+  uint16_t tkt_size;
+  uint16_t rp_uri_size;
 
   size = ntohs (cm->header.size);
-  if (size <= sizeof(struct ConsumeTicketMessage))
+  tkt_size = ntohs (cm->tkt_len);
+  rp_uri_size = ntohs (cm->rp_uri_len);
+  if (size < sizeof(struct ConsumeTicketMessage) + tkt_size + rp_uri_size)
   {
     GNUNET_break (0);
     return GNUNET_SYSERR;
@@ -1008,15 +1012,19 @@ handle_consume_ticket_message (void *cls, const struct ConsumeTicketMessage *cm)
   struct IdpClient *idp = cls;
   struct GNUNET_RECLAIM_Ticket *ticket;
   char *buf;
+  const char *rp_uri;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CONSUME_TICKET message\n");
   buf = (char*) &cm[1];
   ticket = (struct GNUNET_RECLAIM_Ticket *) buf;
+  rp_uri = buf + ntohs (cm->tkt_len);
   cop = GNUNET_new (struct ConsumeTicketOperation);
   cop->r_id = ntohl (cm->id);
   cop->client = idp;
   cop->ch
-    = RECLAIM_TICKETS_consume (ticket, &consume_result_cb,
+    = RECLAIM_TICKETS_consume (ticket,
+                               rp_uri,
+                               &consume_result_cb,
                                cop);
   GNUNET_CONTAINER_DLL_insert (idp->consume_op_head, idp->consume_op_tail, cop);
   GNUNET_SERVICE_client_continue (idp->client);
