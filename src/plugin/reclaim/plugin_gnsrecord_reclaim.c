@@ -44,12 +44,12 @@ value_to_string (void *cls, uint32_t type, const void *data, size_t data_size)
 {
   switch (type)
   {
+  case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_OIDC_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_OIDC_CLIENT:
     return GNUNET_strndup (data, data_size);
   case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF:
-  case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
     return GNUNET_STRINGS_data_to_string_alloc (data, data_size);
@@ -79,6 +79,7 @@ string_to_value (void *cls, uint32_t type, const char *s, void **data,
     return GNUNET_SYSERR;
   switch (type)
   {
+  case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_OIDC_REDIRECT:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_OIDC_CLIENT:
     *data = GNUNET_strdup (s);
@@ -86,7 +87,6 @@ string_to_value (void *cls, uint32_t type, const char *s, void **data,
     return GNUNET_OK;
   case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF:
-  case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_CREDENTIAL:
   case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
     return GNUNET_STRINGS_string_to_data (s, strlen (s), *data, *data_size);

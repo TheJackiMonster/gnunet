@@ -1553,6 +1553,7 @@ GNUNET_RECLAIM_ticket_consume (
   struct GNUNET_RECLAIM_Operation *op;
   struct ConsumeTicketMessage *ctm;
   size_t tkt_len;
+  size_t rp_uri_len;
   char *buf;
 
   op = GNUNET_new (struct GNUNET_RECLAIM_Operation);
@@ -1561,16 +1562,17 @@ GNUNET_RECLAIM_ticket_consume (
   op->cls = cb_cls;
   op->r_id = h->r_id_gen++;
   tkt_len = strlen (ticket->gns_name) + 1;
+  rp_uri_len = strlen (rp_uri) + 1;
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, op);
   op->env = GNUNET_MQ_msg_extra (ctm,
-                                 tkt_len,
+                                 tkt_len + rp_uri_len,
                                  GNUNET_MESSAGE_TYPE_RECLAIM_CONSUME_TICKET);
   buf = (char*) &ctm[1];
-  ctm->rp_uri_len = htons (strlen (rp_uri) + 1);
+  ctm->rp_uri_len = htons (rp_uri_len);
   ctm->tkt_len = htons (tkt_len);
   memcpy (buf, ticket, tkt_len);
   buf += tkt_len;
-  memcpy (buf, rp_uri, strlen (rp_uri) + 1);
+  memcpy (buf, rp_uri, rp_uri_len);
   ctm->id = htonl (op->r_id);
   if (NULL != h->mq)
     GNUNET_MQ_send_copy (h->mq, op->env);

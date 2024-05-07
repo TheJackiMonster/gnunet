@@ -234,17 +234,10 @@ ticket_issue_cb (void *cls,
                  const struct GNUNET_RECLAIM_Ticket *ticket,
                  const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
-  char *ticket_str;
-
   reclaim_op = NULL;
   if (NULL != ticket)
   {
-    ticket_str =
-      GNUNET_STRINGS_data_to_string_alloc (ticket,
-                                           sizeof(
-                                             struct GNUNET_RECLAIM_Ticket));
-    printf ("%s\n", ticket_str);
-    GNUNET_free (ticket_str);
+    printf ("%s\n", ticket->gns_name);
   }
   cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
 }
@@ -440,9 +433,15 @@ iter_finished (void *cls)
       GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
       return;
     }
+    if (NULL == ex_rp_uri)
+    {
+      fprintf (stdout, "No RP URI provided\n");
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
+      return;
+    }
     reclaim_op = GNUNET_RECLAIM_ticket_issue (reclaim_handle,
                                               pkey,
-                                              rp,
+                                              ex_rp_uri,
                                               attr_list,
                                               &ticket_issue_cb,
                                               NULL);
@@ -757,10 +756,7 @@ start_process ()
   }
 
   if (NULL != consume_ticket)
-    GNUNET_STRINGS_string_to_data (consume_ticket,
-                                   strlen (consume_ticket),
-                                   &ticket,
-                                   sizeof(struct GNUNET_RECLAIM_Ticket));
+    memcpy (ticket.gns_name,  consume_ticket, strlen (consume_ticket) + 1);
   if (NULL != revoke_ticket)
     GNUNET_STRINGS_string_to_data (revoke_ticket,
                                    strlen (revoke_ticket),
@@ -870,7 +866,7 @@ main (int argc, char *const argv[])
                                  gettext_noop (
                                    "Specify the relying party for issue"),
                                  &rp),
-    GNUNET_GETOPT_option_string ('u',
+    GNUNET_GETOPT_option_string ('U',
                                  "rpuri",
                                  "RPURI",
                                  gettext_noop (

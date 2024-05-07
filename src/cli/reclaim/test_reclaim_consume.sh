@@ -32,11 +32,13 @@ SUBJECT_KEY=$(gnunet-identity -d -e rpego -q -c test_reclaim.conf)
 TEST_KEY=$(gnunet-identity -d -e testego -q -c test_reclaim.conf)
 gnunet-reclaim -e testego -a email -V john@doe.gnu -c test_reclaim.conf
 gnunet-reclaim -e testego -a name -V John -c test_reclaim.conf
-TICKET=$(gnunet-reclaim -e testego -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf | awk '{print $1}')
+TICKET=$(gnunet-reclaim -e testego -U "urn:gns:$TEST_KEY" -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf | awk '{print $1}')
+echo "Ticket: $TICKET"
+gnunet-gns -u $TICKET -c test_reclaim.conf
 gnunet-namestore -z testego -D -c test_reclaim.conf
 gnunet-identity -d -c test_reclaim.conf
 sleep 1
-gnunet-reclaim -e rpego -C $TICKET -c test_reclaim.conf
+gnunet-reclaim -e rpego -U "urn:gns:$TEST_KEY" -C $TICKET -c test_reclaim.conf
 
 RES=$?
 gnunet-identity -D testego -c test_reclaim.conf

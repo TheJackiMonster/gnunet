@@ -1118,7 +1118,7 @@ lookup_authz_cb (void *cls,
      */
     switch (rd[i].record_type)
     {
-    case GNUNET_DNSPARSER_TYPE_URI:
+    case GNUNET_DNSPARSER_TYPE_TXT:
       rp_uri = rd[i].data;
       break;
     case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
@@ -1153,8 +1153,8 @@ lookup_authz_cb (void *cls,
                   "Ignoring unknown record type %d", rd[i].record_type);
     }
   }
-  GNUNET_assert (GNUNET_OK == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss)
-                 );
+  GNUNET_assert (GNUNET_OK
+                 == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
   if (NULL == rp_uri)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1219,8 +1219,6 @@ RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
                          void *cb_cls)
 {
   struct RECLAIM_TICKETS_ConsumeHandle *cth;
-  char *label;
-  char *tmp;
 
   cth = GNUNET_new (struct RECLAIM_TICKETS_ConsumeHandle);
 
@@ -1230,12 +1228,6 @@ RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
   memcpy (cth->rp_uri, rp_uri, strlen (rp_uri) + 1);
   cth->cb = cb;
   cth->cb_cls = cb_cls;
-  tmp = GNUNET_strdup (ticket->gns_name);
-  label = strtok (tmp, ".");
-  GNUNET_assert (NULL != label);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Looking for AuthZ info under %s\n",
-              tmp);
   cth->lookup_start_time = GNUNET_TIME_absolute_get ();
   cth->lookup_request =
     GNUNET_GNS_lookup_with_tld (gns,
@@ -1244,7 +1236,6 @@ RECLAIM_TICKETS_consume (const struct GNUNET_RECLAIM_Ticket *ticket,
                                 GNUNET_GNS_LO_DEFAULT,
                                 &lookup_authz_cb,
                                 cth);
-  GNUNET_free (tmp);
   return cth;
 }
 
@@ -1442,7 +1433,7 @@ issue_ticket (struct TicketIssueHandle *ih)
   attrs_record[i].data_size = strlen (ih->rp_uri);
   attrs_record[i].data = ih->rp_uri;
   attrs_record[i].expiration_time = ticket_refresh_interval.rel_value_us;
-  attrs_record[i].record_type = GNUNET_DNSPARSER_TYPE_URI;
+  attrs_record[i].record_type = GNUNET_DNSPARSER_TYPE_TXT;
   attrs_record[i].flags =
     GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
   i++;
@@ -1547,7 +1538,7 @@ filter_tickets_cb (void *cls,
       tih->ticket = *ticket;
       ticket_found = GNUNET_YES;
     }
-    if (GNUNET_DNSPARSER_TYPE_URI == rd[i].record_type)
+    if (GNUNET_DNSPARSER_TYPE_TXT == rd[i].record_type)
     {
       // cmp audience
       if (0 != strncmp (tih->rp_uri,
@@ -1755,7 +1746,7 @@ collect_tickets_cb (void *cls,
 
   for (int i = 0; i < rd_count; i++)
   {
-    if (GNUNET_DNSPARSER_TYPE_URI == rd[i].record_type)
+    if (GNUNET_DNSPARSER_TYPE_TXT == rd[i].record_type)
       rp_uri = rd[i].data;
     if (GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET != rd[i].record_type)
       continue;
