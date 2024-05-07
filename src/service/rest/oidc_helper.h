@@ -138,7 +138,7 @@ OIDC_parse_authz_code (const char *rp_uri,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
                        struct GNUNET_RECLAIM_PresentationList **presentations,
                        char **nonce,
-                       enum OIDC_VerificationOptions opts);
+                       enum OIDC_VerificationOptions opts, char **emsg);
 
 /**
  * Build a token response for a token request

@@ -27,6 +27,8 @@
 #include <inttypes.h>
 #include <jansson.h>
 #include <jose/jose.h>
+#include "gnunet_gns_service.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
@@ -587,7 +589,8 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
   /** PLAINTEXT **/
   // Assign ticket
   memset (&params, 0, sizeof(params));
-  params.ticket = *ticket;
+  memcpy (params.ticket.gns_name, ticket->gns_name, strlen (ticket->gns_name)
+          + 1);
   // Assign nonce
   payload_len = sizeof(struct OIDC_Parameters);
   if ((NULL != nonce_str) && (strcmp ("", nonce_str) != 0))
@@ -756,7 +759,7 @@ OIDC_parse_authz_code (const char *rp_uri,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
                        struct GNUNET_RECLAIM_PresentationList **presentations,
                        char **nonce_str,
-                       enum OIDC_VerificationOptions opts)
+                       enum OIDC_VerificationOptions opts, char **emsg)
 {
   char *code_payload;
   char *ptr;
@@ -766,6 +769,7 @@ OIDC_parse_authz_code (const char *rp_uri,
   char *code_challenge;
   struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
   struct GNUNET_CRYPTO_Signature *signature;
+  struct GNUNET_CRYPTO_PublicKey iss;
   uint32_t code_challenge_len;
   uint32_t attrs_ser_len;
   uint32_t pres_ser_len;
@@ -774,6 +778,8 @@ OIDC_parse_authz_code (const char *rp_uri,
   uint32_t nonce_len = 0;
   struct OIDC_Parameters *params;
 
+
+  GNUNET_GNS_parse_ztld (ticket->gns_name, &iss);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Trying to decode `%s'\n", code);
   code_payload = NULL;
   code_payload_len =
@@ -807,6 +813,8 @@ OIDC_parse_authz_code (const char *rp_uri,
                                            code_challenge_len,
                                            code_verifier))
     {
+      GNUNET_asprintf (emsg, "Code verifier `%s' invalid for challenge `%s'",
+                       code_verifier, code_challenge);
       GNUNET_free (code_payload);
       return GNUNET_SYSERR;
     }
@@ -828,12 +836,13 @@ OIDC_parse_authz_code (const char *rp_uri,
         GNUNET_SIGNATURE_PURPOSE_RECLAIM_CODE_SIGN,
         purpose,
         signature,
-        cid))
+        &iss))
   {
     GNUNET_free (code_payload);
     if (NULL != *nonce_str)
       GNUNET_free (*nonce_str);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Signature of AuthZ code invalid!\n");
+    *emsg = GNUNET_strdup ("Signature verification failed");
     return GNUNET_SYSERR;
   }
   // Attributes
@@ -899,6 +908,7 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket,
                                 sizeof(*ticket),
                                 &tkt_b64);
   GNUNET_asprintf (&access_token, "%s-%s", tkt_b64, rp_uri);
+  GNUNET_free (tkt_b64);
   return access_token;
 }
 

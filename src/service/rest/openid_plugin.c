@@ -2265,14 +2265,16 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // decode code
+  char *emsg = NULL;
   if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid, code,
                                           code_verifier,
                                           &ticket,
                                           &cl, &pl, &nonce,
-                                          OIDC_VERIFICATION_DEFAULT))
+                                          OIDC_VERIFICATION_DEFAULT,
+                                          &emsg))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
-    handle->edesc = GNUNET_strdup ("invalid code");
+    handle->edesc = emsg;
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (code);
     if (NULL != code_verifier)
@@ -2313,14 +2315,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     jwa = JWT_ALG_VALUE_RSA;
   }
 
-  char *tmp = GNUNET_strdup (ticket.gns_name);
-  GNUNET_assert (NULL != strtok (tmp, "."));
-  char *key = strtok (NULL, ".");
   struct GNUNET_CRYPTO_PublicKey issuer;
-  GNUNET_assert (NULL != key);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_public_key_from_string (key, &issuer));
-  GNUNET_free (tmp);
+  GNUNET_GNS_parse_ztld (ticket.gns_name, &issuer);
 
   if (! strcmp (jwa, JWT_ALG_VALUE_RSA))
   {
@@ -2598,13 +2594,14 @@ consume_fail (void *cls)
                                  sizeof(struct GNUNET_CRYPTO_PublicKey));
 
   // decode code
+  char *emsg;
   if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid,
                                           cached_code, NULL, &ticket,
                                           &cl, &pl, &nonce,
-                                          OIDC_VERIFICATION_NO_CODE_VERIFIER))
+                                          OIDC_VERIFICATION_NO_CODE_VERIFIER, &emsg))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
-    handle->edesc = GNUNET_strdup ("invalid code");
+    handle->edesc = emsg;
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (cached_code);
     if (NULL != nonce)
