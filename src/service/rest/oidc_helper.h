@@ -159,14 +159,16 @@ OIDC_build_token_response (const char *access_token,
  * Generate a new access token
  */
 char*
-OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
+OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket,
+                       const char *rp_uri);
 
 /**
  * Parse an access token
  */
 int
 OIDC_access_token_parse (const char *token,
-                         struct GNUNET_RECLAIM_Ticket **ticket);
+                         struct GNUNET_RECLAIM_Ticket **ticket,
+                         char **rp_uri);
 
 
 /**

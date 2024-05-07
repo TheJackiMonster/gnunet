@@ -889,13 +889,16 @@ OIDC_build_token_response (const char *access_token,
  * Generate a new access token
  */
 char *
-OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket)
+OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket,
+                       const char *rp_uri)
 {
   char *access_token;
+  char *tkt_b64;
 
   GNUNET_STRINGS_base64_encode (ticket,
                                 sizeof(*ticket),
-                                &access_token);
+                                &tkt_b64);
+  GNUNET_asprintf (&access_token, "%s-%s", tkt_b64, rp_uri);
   return access_token;
 }
 
@@ -905,19 +908,31 @@ OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket)
  */
 int
 OIDC_access_token_parse (const char *token,
-                         struct GNUNET_RECLAIM_Ticket **ticket)
+                         struct GNUNET_RECLAIM_Ticket **ticket,
+                         char **rp_uri)
 {
   size_t sret;
   char *decoded;
-  sret = GNUNET_STRINGS_base64_decode (token,
-                                       strlen (token),
+  char *tmp;
+  char *tkt_str;
+  char *rp_uri_str;
+  tmp = GNUNET_strdup (token);
+  tkt_str = strtok (tmp, "-");
+  GNUNET_assert (NULL != tkt_str); // FIXME handle
+  rp_uri_str = strtok (NULL, "-");
+  GNUNET_assert (NULL != rp_uri_str); // FIXME handle
+  sret = GNUNET_STRINGS_base64_decode (tkt_str,
+                                       strlen (tkt_str),
                                        (void**) &decoded);
   if (sizeof (struct GNUNET_RECLAIM_Ticket) != sret)
   {
     GNUNET_free (decoded);
+    GNUNET_free (tmp);
     return GNUNET_SYSERR;
   }
   *ticket = (struct GNUNET_RECLAIM_Ticket *) decoded;
+  *rp_uri = GNUNET_strdup (rp_uri_str);
+  GNUNET_free (tmp);
   return GNUNET_OK;
 }
 
