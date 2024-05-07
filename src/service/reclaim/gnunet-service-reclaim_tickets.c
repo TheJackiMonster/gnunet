@@ -27,6 +27,7 @@
 #include "gnunet-service-reclaim_tickets.h"
 #include "gnunet_common.h"
 #include "gnunet_gns_service.h"
+#include "gnunet_gnsrecord_lib.h"
 #include "gnunet_reclaim_service.h"
 #include <string.h>
 
@@ -147,7 +148,7 @@ struct ParallelLookup
   struct ParallelLookup *prev;
 
   /* The GNS request */
-  struct GNUNET_GNS_LookupWithTldRequest *lookup_request;
+  struct GNUNET_GNS_LookupRequest *lookup_request;
 
   /* The handle the return to */
   struct RECLAIM_TICKETS_ConsumeHandle *handle;
@@ -983,7 +984,7 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
   while (NULL != (lu = cth->parallel_lookups_head))
   {
     if (NULL != lu->lookup_request)
-      GNUNET_GNS_lookup_with_tld_cancel (lu->lookup_request);
+      GNUNET_GNS_lookup_cancel (lu->lookup_request);
     GNUNET_free (lu->label);
     GNUNET_CONTAINER_DLL_remove (cth->parallel_lookups_head,
                                  cth->parallel_lookups_tail,
@@ -1001,7 +1002,6 @@ cleanup_cth (struct RECLAIM_TICKETS_ConsumeHandle *cth)
 
 static void
 process_parallel_lookup_result (void *cls,
-                                int is_gns,
                                 uint32_t rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd)
 {
@@ -1014,7 +1014,6 @@ process_parallel_lookup_result (void *cls,
               "Parallel lookup finished (count=%u)\n",
               rd_count);
 
-  GNUNET_assert (GNUNET_YES == is_gns);
   GNUNET_CONTAINER_DLL_remove (cth->parallel_lookups_head,
                                cth->parallel_lookups_tail,
                                parallel_lookup);
@@ -1070,7 +1069,7 @@ abort_parallel_lookups (void *cls)
   cth->kill_task = NULL;
   for (lu = cth->parallel_lookups_head; NULL != lu;)
   {
-    GNUNET_GNS_lookup_with_tld_cancel (lu->lookup_request);
+    GNUNET_GNS_lookup_cancel (lu->lookup_request);
     GNUNET_free (lu->label);
     tmp = lu->next;
     GNUNET_CONTAINER_DLL_remove (cth->parallel_lookups_head,
@@ -1110,6 +1109,8 @@ lookup_authz_cb (void *cls,
                             1,
                             GNUNET_YES);
 
+  GNUNET_assert (GNUNET_OK
+                 == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
   for (int i = 0; i < rd_count; i++)
   {
     /**
@@ -1138,12 +1139,13 @@ lookup_authz_cb (void *cls,
       parallel_lookup->label = lbl;
       parallel_lookup->lookup_start_time = GNUNET_TIME_absolute_get ();
       parallel_lookup->lookup_request =
-        GNUNET_GNS_lookup_with_tld (gns,
-                                    cth->ticket.gns_name,
-                                    GNUNET_GNSRECORD_TYPE_ANY,
-                                    GNUNET_GNS_LO_DEFAULT,
-                                    &process_parallel_lookup_result,
-                                    parallel_lookup);
+        GNUNET_GNS_lookup (gns,
+                           lbl,
+                           &iss,
+                           GNUNET_GNSRECORD_TYPE_ANY,
+                           GNUNET_GNS_LO_DEFAULT,
+                           &process_parallel_lookup_result,
+                           parallel_lookup);
       GNUNET_CONTAINER_DLL_insert (cth->parallel_lookups_head,
                                    cth->parallel_lookups_tail,
                                    parallel_lookup);
@@ -1153,8 +1155,6 @@ lookup_authz_cb (void *cls,
                   "Ignoring unknown record type %d", rd[i].record_type);
     }
   }
-  GNUNET_assert (GNUNET_OK
-                 == GNUNET_GNS_parse_ztld (cth->ticket.gns_name, &iss));
   if (NULL == rp_uri)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
