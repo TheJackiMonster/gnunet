@@ -350,7 +350,7 @@ struct GNUNET_SERVICE_Client
  * monitoring.
  *
  * @param sh service to check clients for
- * @return #GNUNET_YES if we have non-monitoring clients left
+ * @return true if we have non-monitoring clients left
  */
 static enum GNUNET_GenericReturnValue
 have_non_monitor_clients (struct GNUNET_SERVICE_Handle *sh)
@@ -359,11 +359,13 @@ have_non_monitor_clients (struct GNUNET_SERVICE_Handle *sh)
        NULL != client;
        client = client->next)
   {
+    if (NULL != client->drop_task)
+      continue;
     if (client->is_monitor)
       continue;
-    return GNUNET_YES;
+    return true;
   }
-  return GNUNET_NO;
+  return false;
 }
 
 
@@ -419,7 +421,7 @@ service_shutdown (void *cls)
   case GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN:
     if (0 == (sh->suspend_state & SUSPEND_STATE_SHUTDOWN))
       do_suspend (sh, SUSPEND_STATE_SHUTDOWN);
-    if (GNUNET_NO == have_non_monitor_clients (sh))
+    if (! have_non_monitor_clients (sh))
       GNUNET_SERVICE_shutdown (sh);
     break;
   }
@@ -1892,6 +1894,46 @@ GNUNET_SERVICE_start (const char *service_name,
 }
 
 
+/**
+ * Asynchronously finish dropping the client.
+ *
+ * @param cls the `struct GNUNET_SERVICE_Client`.
+ */
+static void
+finish_client_drop (void *cls)
+{
+  struct GNUNET_SERVICE_Client *c = cls;
+  struct GNUNET_SERVICE_Handle *sh = c->sh;
+
+  c->drop_task = NULL;
+  GNUNET_CONTAINER_DLL_remove (sh->clients_head,
+                               sh->clients_tail,
+                               c);
+  GNUNET_assert (NULL == c->send_task);
+  GNUNET_assert (NULL == c->recv_task);
+  GNUNET_assert (NULL == c->warn_task);
+  GNUNET_MST_destroy (c->mst);
+  GNUNET_MQ_destroy (c->mq);
+  if (! c->persist)
+  {
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (c->sock));
+    if ((0 != (SUSPEND_STATE_EMFILE & sh->suspend_state)) &&
+        (0 == (SUSPEND_STATE_SHUTDOWN & sh->suspend_state)))
+      do_resume (sh,
+                 SUSPEND_STATE_EMFILE);
+  }
+  else
+  {
+    GNUNET_NETWORK_socket_free_memory_only_ (c->sock);
+  }
+  GNUNET_free (c);
+  if ((0 != (SUSPEND_STATE_SHUTDOWN & sh->suspend_state)) &&
+      (! have_non_monitor_clients (sh)))
+    GNUNET_SERVICE_shutdown (sh);
+}
+
+
 void
 GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv)
 {
@@ -1899,7 +1941,12 @@ GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv)
 
   GNUNET_SERVICE_suspend (srv);
   while (NULL != (client = srv->clients_head))
-    GNUNET_SERVICE_client_drop (client);
+  {
+    if (NULL == client->drop_task)
+      GNUNET_SERVICE_client_drop (client);
+    GNUNET_SCHEDULER_cancel (client->drop_task);
+    finish_client_drop (client);
+  }
   teardown_service (srv);
   GNUNET_free (srv->handlers);
   GNUNET_free (srv);
@@ -2433,42 +2480,6 @@ GNUNET_SERVICE_client_disable_continue_warning (struct GNUNET_SERVICE_Client *c)
 }
 
 
-/**
- * Asynchronously finish dropping the client.
- *
- * @param cls the `struct GNUNET_SERVICE_Client`.
- */
-static void
-finish_client_drop (void *cls)
-{
-  struct GNUNET_SERVICE_Client *c = cls;
-  struct GNUNET_SERVICE_Handle *sh = c->sh;
-
-  c->drop_task = NULL;
-  GNUNET_assert (NULL == c->send_task);
-  GNUNET_assert (NULL == c->recv_task);
-  GNUNET_assert (NULL == c->warn_task);
-  GNUNET_MST_destroy (c->mst);
-  GNUNET_MQ_destroy (c->mq);
-  if (! c->persist)
-  {
-    GNUNET_break (GNUNET_OK ==
-                  GNUNET_NETWORK_socket_close (c->sock));
-    if ((0 != (SUSPEND_STATE_EMFILE & sh->suspend_state)) &&
-        (0 == (SUSPEND_STATE_SHUTDOWN & sh->suspend_state)))
-      do_resume (sh, SUSPEND_STATE_EMFILE);
-  }
-  else
-  {
-    GNUNET_NETWORK_socket_free_memory_only_ (c->sock);
-  }
-  GNUNET_free (c);
-  if ((0 != (SUSPEND_STATE_SHUTDOWN & sh->suspend_state)) &&
-      (GNUNET_NO == have_non_monitor_clients (sh)))
-    GNUNET_SERVICE_shutdown (sh);
-}
-
-
 void
 GNUNET_SERVICE_client_drop (struct GNUNET_SERVICE_Client *c)
 {
@@ -2493,15 +2504,7 @@ GNUNET_SERVICE_client_drop (struct GNUNET_SERVICE_Client *c)
            backtrace_strings[i]);
   }
 #endif
-  if (NULL != c->drop_task)
-  {
-    /* asked to drop twice! */
-    GNUNET_assert (0);
-    return;
-  }
-  GNUNET_CONTAINER_DLL_remove (sh->clients_head,
-                               sh->clients_tail,
-                               c);
+  GNUNET_assert (NULL == c->drop_task);
   if (NULL != sh->disconnect_cb)
     sh->disconnect_cb (sh->cb_cls,
                        c,
@@ -2529,12 +2532,16 @@ GNUNET_SERVICE_client_drop (struct GNUNET_SERVICE_Client *c)
 void
 GNUNET_SERVICE_shutdown (struct GNUNET_SERVICE_Handle *sh)
 {
-  struct GNUNET_SERVICE_Client *client;
-
   if (0 == (sh->suspend_state & SUSPEND_STATE_SHUTDOWN))
-    do_suspend (sh, SUSPEND_STATE_SHUTDOWN);
-  while (NULL != (client = sh->clients_head))
-    GNUNET_SERVICE_client_drop (client);
+    do_suspend (sh,
+                SUSPEND_STATE_SHUTDOWN);
+  for (struct GNUNET_SERVICE_Client *client = sh->clients_head;
+       NULL != client;
+       client = client->next)
+  {
+    if (NULL == client->drop_task)
+      GNUNET_SERVICE_client_drop (client);
+  }
 }
 
 
@@ -2543,7 +2550,7 @@ GNUNET_SERVICE_client_mark_monitor (struct GNUNET_SERVICE_Client *c)
 {
   c->is_monitor = true;
   if (((0 != (SUSPEND_STATE_SHUTDOWN & c->sh->suspend_state)) &&
-       (GNUNET_NO == have_non_monitor_clients (c->sh))))
+       (! have_non_monitor_clients (c->sh))))
     GNUNET_SERVICE_shutdown (c->sh);
 }
 
