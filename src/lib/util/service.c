@@ -232,15 +232,10 @@ struct GNUNET_SERVICE_Handle
   int ready_confirm_fd;
 
   /**
-   * Overall success/failure of the service start.
-   */
-  int ret;
-
-  /**
-   * If #GNUNET_YES, consider unknown message types an error where the
+   * If true, consider unknown message types an error where the
    * client is disconnected.
    */
-  int require_found;
+  bool require_found;
 };
 
 
@@ -329,19 +324,19 @@ struct GNUNET_SERVICE_Client
    * force the OS to close once the process actually dies.  Should only
    * be used in special cases!
    */
-  int persist;
+  bool persist;
 
   /**
    * Is this client a 'monitor' client that should not be counted
    * when deciding on destroying the server during soft shutdown?
    * (see also #GNUNET_SERVICE_start)
    */
-  int is_monitor;
+  bool is_monitor;
 
   /**
    * Are we waiting for the application to call #GNUNET_SERVICE_client_continue()?
    */
-  int needs_continue;
+  bool needs_continue;
 
   /**
    * Type of last message processed (for warn_no_receive_done).
@@ -442,17 +437,13 @@ static bool
 check_ipv4_listed (const struct GNUNET_STRINGS_IPv4NetworkPolicy *list,
                    const struct in_addr *add)
 {
-  unsigned int i;
-
-  if (NULL == list)
-    return false;
-  i = 0;
-  while ((0 != list[i].network.s_addr) || (0 != list[i].netmask.s_addr))
+  for (unsigned int i = 0;
+       0 != list[i].network.s_addr;
+       i++)
   {
-    if ((add->s_addr & list[i].netmask.s_addr) ==
-        (list[i].network.s_addr & list[i].netmask.s_addr))
+    if ( (add->s_addr & list[i].netmask.s_addr) ==
+         (list[i].network.s_addr & list[i].netmask.s_addr) )
       return true;
-    i++;
   }
   return false;
 }
@@ -469,22 +460,21 @@ static bool
 check_ipv6_listed (const struct GNUNET_STRINGS_IPv6NetworkPolicy *list,
                    const struct in6_addr *ip)
 {
-  unsigned int i;
-
-  if (NULL == list)
-    return false;
-  i = 0;
-NEXT:
-  while (GNUNET_NO == GNUNET_is_zero (&list[i].network))
+  for (unsigned int i = 0;
+       ! GNUNET_is_zero (&list[i].network);
+       i++)
   {
+    bool match = true;
+    
     for (unsigned int j = 0; j < sizeof(struct in6_addr) / sizeof(int); j++)
       if (((((int *) ip)[j] & ((int *) &list[i].netmask)[j])) !=
           (((int *) &list[i].network)[j] & ((int *) &list[i].netmask)[j]))
       {
-        i++;
-        goto NEXT;
+        match = false;
+        break;
       }
-    return true;
+    if (match)
+      return true;
   }
   return false;
 }
@@ -624,7 +614,7 @@ service_mq_error_handler (void *cls,
   struct GNUNET_SERVICE_Handle *sh = client->sh;
 
   if ( (GNUNET_MQ_ERROR_NO_MATCH == error) &&
-       (GNUNET_NO == sh->require_found) )
+       (! sh->require_found) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "No handler for message of type %u found\n",
@@ -684,8 +674,8 @@ service_client_mst_cb (void *cls,
        "Received message of type %u and size %u from client\n",
        ntohs (message->type),
        ntohs (message->size));
-  GNUNET_assert (GNUNET_NO == client->needs_continue);
-  client->needs_continue = GNUNET_YES;
+  GNUNET_assert (! client->needs_continue);
+  client->needs_continue = true;
   client->warn_type = ntohs (message->type);
   client->warn_start = GNUNET_TIME_absolute_get ();
   GNUNET_assert (NULL == client->warn_task);
@@ -721,7 +711,7 @@ service_client_recv (void *cls)
     /* client closed connection (or IO error) */
     if (NULL == client->drop_task)
     {
-      GNUNET_assert (GNUNET_NO == client->needs_continue);
+      GNUNET_assert (! client->needs_continue);
       GNUNET_SERVICE_client_drop (client);
     }
     return;
@@ -730,7 +720,7 @@ service_client_recv (void *cls)
     return; /* more messages in buffer, wait for application
                to be done processing */
   GNUNET_assert (GNUNET_OK == ret);
-  if (GNUNET_YES == client->needs_continue)
+  if (client->needs_continue)
     return;
   if (NULL != client->recv_task)
     return;
@@ -1502,8 +1492,8 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
 
   lsocks = NULL;
   errno = 0;
-  if ((NULL != (nfds = getenv ("LISTEN_FDS"))) &&
-      (1 == sscanf (nfds, "%u%1s", &cnt, dummy)) && (cnt > 0) &&
+  if ( (NULL != (nfds = getenv ("LISTEN_FDS"))) &&
+       (1 == sscanf (nfds, "%u%1s", &cnt, dummy)) && (cnt > 0) &&
       (cnt < FD_SETSIZE) && (cnt + 4 < FD_SETSIZE))
   {
     lsocks = GNUNET_new_array (cnt + 1, struct GNUNET_NETWORK_Handle *);
@@ -1576,7 +1566,9 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
         GNUNET_free (slc);
         continue;
       }
-      GNUNET_CONTAINER_DLL_insert (sh->slc_head, sh->slc_tail, slc);
+      GNUNET_CONTAINER_DLL_insert (sh->slc_head,
+                                   sh->slc_tail,
+                                   slc);
     }
     GNUNET_free (addrlens);
     GNUNET_free (addrs);
@@ -1598,7 +1590,7 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
       GNUNET_NETWORK_socket_close (*ls);
     GNUNET_free (csocks);
   }
-  sh->require_found = tolerant ? GNUNET_NO : GNUNET_YES;
+  sh->require_found = (GNUNET_NO == tolerant);
   sh->match_uid = GNUNET_CONFIGURATION_get_value_yesno (sh->cfg,
                                                         sh->service_name,
                                                         "UNIX_MATCH_UID");
@@ -1641,16 +1633,14 @@ get_user_name (struct GNUNET_SERVICE_Handle *sh)
  * @param sh service context
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
-static int
+static enum GNUNET_GenericReturnValue
 set_user_id (struct GNUNET_SERVICE_Handle *sh)
 {
   char *user;
+  struct passwd *pws;
 
   if (NULL == (user = get_user_name (sh)))
     return GNUNET_OK; /* keep */
-
-  struct passwd *pws;
-
   errno = 0;
   pws = getpwnam (user);
   if (NULL == pws)
@@ -1666,7 +1656,8 @@ set_user_id (struct GNUNET_SERVICE_Handle *sh)
 #if HAVE_INITGROUPS
       (0 != initgroups (user, pws->pw_gid)) ||
 #endif
-      (0 != setuid (pws->pw_uid)) || (0 != seteuid (pws->pw_uid)))
+      (0 != setuid (pws->pw_uid)) ||
+      (0 != seteuid (pws->pw_uid)))
   {
     if ((0 != setregid (pws->pw_gid, pws->pw_gid)) ||
         (0 != setreuid (pws->pw_uid, pws->pw_uid)))
@@ -1742,13 +1733,15 @@ detach_terminal (struct GNUNET_SERVICE_Handle *sh)
 
   if (0 != pipe (filedes))
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "pipe");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "pipe");
     return GNUNET_SYSERR;
   }
   pid = fork ();
   if (pid < 0)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "fork");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "fork");
     return GNUNET_SYSERR;
   }
   if (0 != pid)
@@ -1759,7 +1752,8 @@ detach_terminal (struct GNUNET_SERVICE_Handle *sh)
     GNUNET_break (0 == close (filedes[1]));
     c = 'X';
     if (1 != read (filedes[0], &c, sizeof(char)))
-      LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "read");
+      LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                    "read");
     fflush (stdout);
     switch (c)
     {
@@ -1800,7 +1794,8 @@ detach_terminal (struct GNUNET_SERVICE_Handle *sh)
   /* Detach from controlling terminal */
   pid = setsid ();
   if (-1 == pid)
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "setsid");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "setsid");
   sh->ready_confirm_fd = filedes[1];
 
   return GNUNET_OK;
@@ -1824,7 +1819,9 @@ teardown_service (struct GNUNET_SERVICE_Handle *sh)
   GNUNET_free (sh->v6_allowed);
   while (NULL != (slc = sh->slc_head))
   {
-    GNUNET_CONTAINER_DLL_remove (sh->slc_head, sh->slc_tail, slc);
+    GNUNET_CONTAINER_DLL_remove (sh->slc_head,
+                                 sh->slc_tail,
+                                 slc);
     if (NULL != slc->listen_task)
       GNUNET_SCHEDULER_cancel (slc->listen_task);
     GNUNET_break (GNUNET_OK ==
@@ -1853,8 +1850,11 @@ return_agpl (void *cls,
 
   (void) msg;
   slen = strlen (pd->agpl_url) + 1;
-  env = GNUNET_MQ_msg_extra (res, GNUNET_MESSAGE_TYPE_RESPONSE_AGPL, slen);
-  memcpy (&res[1], GNUNET_AGPL_URL, slen);
+  env = GNUNET_MQ_msg_extra (res,
+                             GNUNET_MESSAGE_TYPE_RESPONSE_AGPL, slen);
+  memcpy (&res[1],
+          GNUNET_AGPL_URL,
+          slen);
   mq = GNUNET_SERVICE_client_get_mq (client);
   GNUNET_MQ_send (mq, env);
   GNUNET_SERVICE_client_continue (client);
@@ -1971,7 +1971,6 @@ GNUNET_SERVICE_run_ (int argc,
                 ? GNUNET_MQ_copy_handlers (handlers)
                 : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
   sh.service_name = service_name;
-  sh.ret = 0;
   /* setup subsystems */
   loglev = NULL;
   logfile = NULL;
@@ -2023,9 +2022,12 @@ GNUNET_SERVICE_run_ (int argc,
   }
   else
   {
-    if (GNUNET_YES == GNUNET_DISK_file_test (cfg_filename))
+    if (GNUNET_YES ==
+        GNUNET_DISK_file_test (cfg_filename))
     {
-      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, cfg_filename))
+      if (GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_load (cfg,
+                                     cfg_filename))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Malformed configuration file `%s', exit ...\n"),
@@ -2035,7 +2037,9 @@ GNUNET_SERVICE_run_ (int argc,
     }
     else
     {
-      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, NULL))
+      if (GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_load (cfg,
+                                     NULL))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Malformed configuration, exit ...\n"));
@@ -2045,7 +2049,8 @@ GNUNET_SERVICE_run_ (int argc,
   }
   if (GNUNET_OK != setup_service (&sh))
     goto shutdown;
-  if ((1 == do_daemonize) && (GNUNET_OK != detach_terminal (&sh)))
+  if ( (1 == do_daemonize) &&
+       (GNUNET_OK != detach_terminal (&sh)) )
   {
     GNUNET_break (0);
     goto shutdown;
@@ -2093,13 +2098,15 @@ shutdown:
   {
     char *counter;
 
-    if ((GNUNET_YES == GNUNET_CONFIGURATION_have_value (sh.cfg,
-                                                        service_name,
-                                                        "GAUGER_HEAP")) &&
-        (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (sh.cfg,
-                                                             service_name,
-                                                             "GAUGER_HEAP",
-                                                             &counter)))
+    if ( (GNUNET_YES ==
+          GNUNET_CONFIGURATION_have_value (sh.cfg,
+                                           service_name,
+                                           "GAUGER_HEAP")) &&
+         (GNUNET_OK ==
+          GNUNET_CONFIGURATION_get_value_string (sh.cfg,
+                                                 service_name,
+                                                 "GAUGER_HEAP",
+                                                 &counter)))
     {
       struct mallinfo2 mi;
 
@@ -2121,11 +2128,12 @@ shutdown:
   GNUNET_free (cfg_filename);
   GNUNET_free (opt_cfg_filename);
 
-  return err ? GNUNET_SYSERR : sh.ret;
+  return err ? GNUNET_SYSERR : 0;
 }
 
 
-/* A list of service to be launched when GNUNET_SERVICE_main()
+/**
+ * A list of service to be launched when GNUNET_SERVICE_main()
  * is called
  */
 struct ServiceHandleList
@@ -2145,6 +2153,7 @@ static struct ServiceHandleList *hll_head;
 
 /* The service list */
 static struct ServiceHandleList *hll_tail;
+
 
 int
 GNUNET_SERVICE_register_ (const char *service_name,
@@ -2169,13 +2178,12 @@ GNUNET_SERVICE_register_ (const char *service_name,
                 ? GNUNET_MQ_copy_handlers (handlers)
                 : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
   sh->service_name = service_name;
-  sh->ret = 0;
   hle = GNUNET_new (struct ServiceHandleList);
   hle->sh = sh;
   GNUNET_CONTAINER_DLL_insert (hll_head,
                                hll_tail,
                                hle);
-  return GNUNET_OK;
+  return 0;
 }
 
 
@@ -2241,7 +2249,6 @@ GNUNET_SERVICE_main (int argc,
   int ret;
   struct GNUNET_CONFIGURATION_Handle *cfg;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-
   struct GNUNET_GETOPT_CommandLineOption service_options[] = {
     GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
     GNUNET_GETOPT_option_flag ('d',
@@ -2255,6 +2262,7 @@ GNUNET_SERVICE_main (int argc,
     GNUNET_GETOPT_option_version (pd->version),
     GNUNET_GETOPT_OPTION_END
   };
+  
   xdg = getenv ("XDG_CONFIG_HOME");
   if (NULL != xdg)
     GNUNET_asprintf (&cfg_filename,
@@ -2277,9 +2285,11 @@ GNUNET_SERVICE_main (int argc,
     goto shutdown;
   }
   // FIXME we need to set this up for each service!
-  if (GNUNET_OK != GNUNET_log_setup ("libgnunet",
-                                     loglev,
-                                     logfile))
+  // NOTE: that was not the idea. What are you proposing? -CG
+  if (GNUNET_OK !=
+      GNUNET_log_setup ("libgnunet",
+                        loglev,
+                        logfile))
   {
     GNUNET_break (0);
     goto shutdown;
@@ -2316,7 +2326,9 @@ GNUNET_SERVICE_main (int argc,
     }
     else
     {
-      if (GNUNET_SYSERR == GNUNET_CONFIGURATION_load (cfg, NULL))
+      if (GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_load (cfg,
+                                     NULL))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Malformed configuration, exit ...\n"));
@@ -2369,7 +2381,8 @@ resume_client_receive (void *cls)
 
   c->recv_task = NULL;
   /* first, check if there is still something in the buffer */
-  ret = GNUNET_MST_next (c->mst, GNUNET_YES);
+  ret = GNUNET_MST_next (c->mst,
+                         GNUNET_YES);
   if (GNUNET_SYSERR == ret)
   {
     if (NULL == c->drop_task)
@@ -2379,7 +2392,7 @@ resume_client_receive (void *cls)
   if (GNUNET_NO == ret)
     return; /* done processing, wait for more later */
   GNUNET_assert (GNUNET_OK == ret);
-  if (GNUNET_YES == c->needs_continue)
+  if (c->needs_continue)
     return; /* #GNUNET_MST_next() did give a message to the client */
   /* need to receive more data from the network first */
   if (NULL != c->recv_task)
@@ -2395,9 +2408,9 @@ void
 GNUNET_SERVICE_client_continue (struct GNUNET_SERVICE_Client *c)
 {
   GNUNET_assert (NULL == c->drop_task);
-  GNUNET_assert (GNUNET_YES == c->needs_continue);
+  GNUNET_assert (c->needs_continue);
   GNUNET_assert (NULL == c->recv_task);
-  c->needs_continue = GNUNET_NO;
+  c->needs_continue = false;
   if (NULL != c->warn_task)
   {
     GNUNET_SCHEDULER_cancel (c->warn_task);
@@ -2437,9 +2450,10 @@ finish_client_drop (void *cls)
   GNUNET_assert (NULL == c->warn_task);
   GNUNET_MST_destroy (c->mst);
   GNUNET_MQ_destroy (c->mq);
-  if (GNUNET_NO == c->persist)
+  if (! c->persist)
   {
-    GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (c->sock));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (c->sock));
     if ((0 != (SUSPEND_STATE_EMFILE & sh->suspend_state)) &&
         (0 == (SUSPEND_STATE_SHUTDOWN & sh->suspend_state)))
       do_resume (sh, SUSPEND_STATE_EMFILE);
@@ -2467,9 +2481,11 @@ GNUNET_SERVICE_client_drop (struct GNUNET_SERVICE_Client *c)
 #if EXECINFO
   {
     void *backtrace_array[MAX_TRACE_DEPTH];
-    int num_backtrace_strings = backtrace (backtrace_array, MAX_TRACE_DEPTH);
+    int num_backtrace_strings = backtrace (backtrace_array,
+                                           MAX_TRACE_DEPTH);
     char **backtrace_strings =
-      backtrace_symbols (backtrace_array, t->num_backtrace_strings);
+      backtrace_symbols (backtrace_array,
+                         t->num_backtrace_strings);
     for (unsigned int i = 0; i < num_backtrace_strings; i++)
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "client drop trace %u: %s\n",
@@ -2525,7 +2541,7 @@ GNUNET_SERVICE_shutdown (struct GNUNET_SERVICE_Handle *sh)
 void
 GNUNET_SERVICE_client_mark_monitor (struct GNUNET_SERVICE_Client *c)
 {
-  c->is_monitor = GNUNET_YES;
+  c->is_monitor = true;
   if (((0 != (SUSPEND_STATE_SHUTDOWN & c->sh->suspend_state)) &&
        (GNUNET_NO == have_non_monitor_clients (c->sh))))
     GNUNET_SERVICE_shutdown (c->sh);
@@ -2535,7 +2551,7 @@ GNUNET_SERVICE_client_mark_monitor (struct GNUNET_SERVICE_Client *c)
 void
 GNUNET_SERVICE_client_persist (struct GNUNET_SERVICE_Client *c)
 {
-  c->persist = GNUNET_YES;
+  c->persist = true;
 }
 
 
