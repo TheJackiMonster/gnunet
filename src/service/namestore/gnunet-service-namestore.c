@@ -1091,7 +1091,7 @@ struct RecordLookupContext
   /**
    * The editor hint for set
    */
-  const char *editor_hint;
+  char *editor_hint;
 
   /**
    * The record result.
