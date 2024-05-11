@@ -442,6 +442,17 @@ GNUNET_JSON_spec_blinded_message (const char *name,
 
 
 /**
+ * Specification for parsing a blinded signature.
+ *
+ * @param name name of the JSON field
+ * @param sig where to store the blinded signature found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_blinded_signature (const char *field,
+                                    struct GNUNET_CRYPTO_BlindedSignature **b_sig);
+
+
+/**
  * Specification for parsing a unblinded signature.
  *
  * @param name name of the JSON field
