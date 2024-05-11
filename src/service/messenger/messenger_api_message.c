@@ -32,7 +32,7 @@
 struct GNUNET_MESSENGER_MessageSignature
 {
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-  struct GNUNET_HashCode hash;
+  struct GNUNET_HashCode hash GNUNET_PACKED;
 };
 
 struct GNUNET_MESSENGER_ShortMessage
@@ -964,7 +964,7 @@ sign_message (struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
   GNUNET_CRYPTO_sign (key, &signature, &(message->header.signature));
 
   message->header.signature.type = key->type;
@@ -991,8 +991,8 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
-  GNUNET_CRYPTO_sign_by_peer_identity (cfg, &signature.purpose,
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
+  GNUNET_CRYPTO_sign_by_peer_identity (cfg, &(signature.purpose),
                                        &(message->header.signature.
                                          eddsa_signature));
 
@@ -1018,7 +1018,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
 
   return GNUNET_CRYPTO_signature_verify (
     GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &signature,
@@ -1041,10 +1041,10 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
 
   return GNUNET_CRYPTO_verify_peer_identity (
-    GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &signature.purpose,
+    GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &(signature.purpose),
     &(message->header.signature.
       eddsa_signature), identity);
 }

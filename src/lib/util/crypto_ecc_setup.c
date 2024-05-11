@@ -297,6 +297,7 @@ GNUNET_CRYPTO_sign_by_peer_identity (const struct
                                      struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
+  enum GNUNET_GenericReturnValue result;
 
   if (NULL == (priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg)))
   {
@@ -305,7 +306,9 @@ GNUNET_CRYPTO_sign_by_peer_identity (const struct
     return GNUNET_SYSERR;
   }
 
-  return GNUNET_CRYPTO_eddsa_sign_ (priv, purpose, sig);
+  result = GNUNET_CRYPTO_eddsa_sign_ (priv, purpose, sig);
+  GNUNET_CRYPTO_eddsa_key_clear (priv);
+  return result;
 }
 
 

@@ -745,6 +745,7 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     if (message)
       destroy_message (message);
 
+    memset (&key, 0, sizeof(key));
     message = dequeue_from_messages (&(room->queue), &key, &transcript);
 
     if (! message)
@@ -756,14 +757,20 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     send_message_to_room (room, message, &key, &hash);
 
     if (! transcript)
+    {
+      GNUNET_CRYPTO_private_key_clear (&key);
       continue;
+    }
 
     GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
+
+    memset (&pubkey, 0, sizeof(pubkey));
     GNUNET_CRYPTO_key_get_public (&key, &pubkey);
 
     if (GNUNET_YES == encrypt_message (transcript, &pubkey))
     {
       send_message_to_room (room, transcript, &key, &other);
+      GNUNET_CRYPTO_private_key_clear (&key);
 
       link_room_message (room, &hash, &other);
       link_room_message (room, &other, &hash);
@@ -885,7 +892,9 @@ GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
   GNUNET_memcpy (&priv, key, sizeof (priv));
 
   GNUNET_MESSENGER_find_rooms (handle, NULL, iterate_send_key_to_room, &priv);
-  set_handle_key (handle, &priv);
+  GNUNET_CRYPTO_private_key_clear (&priv);
+
+  set_handle_key (handle, key);
   return GNUNET_YES;
 }
 
