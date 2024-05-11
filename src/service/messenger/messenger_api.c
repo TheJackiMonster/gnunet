@@ -751,6 +751,7 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     if (! message)
     {
       message = transcript;
+      transcript = NULL;
       continue;
     }
 
@@ -780,6 +781,7 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
                   "Sending transcript aborted: Encryption failed!\n");
 
     destroy_message (transcript);
+    transcript = NULL;
   } while (message);
 
   return GNUNET_YES;
