@@ -99,7 +99,6 @@ src/contrib/service/set/ibf_sim.c
 src/contrib/service/set/plugin_block_set_test.c
 src/contrib/service/set/set_api.c
 src/contrib/service/template/gnunet-service-template.c
-src/gana/gnunet-error-codes/gnunet_error_codes.c
 src/lib/block/bg_bf.c
 src/lib/block/block.c
 src/lib/curl/curl.c
