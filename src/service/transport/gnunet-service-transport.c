@@ -3681,6 +3681,7 @@ free_neighbour (struct Neighbour *neighbour)
   GNUNET_CONTAINER_multipeermap_iterate (neighbour->natted_addresses,
                                          &remove_global_addresses,
                                          NULL);
+  GNUNET_CONTAINER_multipeermap_destroy (neighbour->natted_addresses);
   while (NULL != (dvh = neighbour->dv_head))
   {
     struct DistanceVector *dv = dvh->dv;
