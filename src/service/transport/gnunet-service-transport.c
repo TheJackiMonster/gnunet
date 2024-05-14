@@ -5344,12 +5344,19 @@ static char *
 get_address_without_port (const char *address);
 
 
+struct AddGlobalAddressesContext
+{
+  size_t off;
+  char *tgnas;
+};
+
+
 static enum GNUNET_GenericReturnValue
 add_global_addresses (void *cls,
                       const struct GNUNET_PeerIdentity *pid,
                       void *value)
 {
-  char *tgnas = cls;
+  struct AddGlobalAddressesContext *ctx = cls;
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
   size_t address_len = strlen (addr);
@@ -5362,9 +5369,9 @@ add_global_addresses (void *cls,
   tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len);
   tgna->address_length = htonl (address_len);
   GNUNET_memcpy (&tgna[1], addr, address_len);
-  GNUNET_memcpy (&tgnas[off], tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
+  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
   GNUNET_free (tgna);
-  off += sizeof(struct TransportGlobalNattedAddress) + address_len;
+  ctx->off += sizeof(struct TransportGlobalNattedAddress) + address_len;
 }
 
 
@@ -5386,17 +5393,20 @@ consider_sending_fc (void *cls)
 
   if (0 < n->number_of_addresses)
   {
-    char *tgnas = GNUNET_malloc (n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n->size_of_global_addresses);
-    size_t addresses_size;
+    size_t addresses_size =
+      n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n->size_of_global_addresses;
+    char *tgnas = GNUNET_malloc (addresses_size);
+    struct AddGlobalAddressesContext ctx;
+    ctx.off = 0;
+    ctx.tgnas = tgnas;
 
-    addresses_size = n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n->size_of_global_addresses;
     fc = GNUNET_malloc (sizeof (struct TransportFlowControlMessage) + addresses_size);
     fc->header.size = htons (sizeof(struct TransportFlowControlMessage) + addresses_size);
     fc->size_of_addresses = htonl (n->size_of_global_addresses);
     fc->number_of_addresses = htonl (n->number_of_addresses);
     GNUNET_CONTAINER_multipeermap_iterate (n->natted_addresses,
                                            &add_global_addresses,
-                                           tgnas);
+                                           &ctx);
     GNUNET_memcpy (&fc[1], tgnas, addresses_size);
     GNUNET_free (tgnas);
   }
