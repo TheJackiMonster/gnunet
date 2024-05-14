@@ -920,7 +920,7 @@ struct TransportValidationResponseMessage
 struct TransportGlobalNattedAddress
 {
   /**
-   * Length of the address following the struct.
+   * Length of the address following the struct in NBO.
    */
   unsigned int address_length;
 
@@ -5949,7 +5949,7 @@ handle_add_address (void *cls,
   ale = create_address_entry (tc,
                         GNUNET_TIME_relative_ntoh (aam->expiration),
                         (enum GNUNET_NetworkType) ntohl (aam->nt),
-                        &aam[1],
+                        (const char *) &aam[1],
                         aam->aid,
                         slen);
   GNUNET_CONTAINER_DLL_insert (tc->details.communicator.addr_head,
@@ -11672,8 +11672,8 @@ contains_address (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
 
-  if (strlen(tgna_cls->addr) == tgna->address_length
-      && 0 == strncmp (addr, tgna_cls->addr, tgna->address_length))
+  if (strlen(tgna_cls->addr) == ntohl (tgna->address_length)
+      && 0 == strncmp (addr, tgna_cls->addr, ntohl (tgna->address_length)))
   {
     tgna_cls->tgna = tgna;
     return GNUNET_NO;
@@ -11727,18 +11727,20 @@ check_for_global_natted (void *cls,
   GNUNET_HELLO_builder_free (builder);
 
   tgna_cls.addr = get_address_without_port (queue->address);
+  tgna_cls.tgna = NULL;
   address_len_without_port = strlen (tgna_cls.addr);
   GNUNET_CONTAINER_multipeermap_get_multiple (neighbour->natted_addresses,
                                               &neighbour->pid,
                                               &contains_address,
                                               &tgna_cls);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              " tgna_cls.tgna tgna %p %u %u %u\n",
-              tgna_cls.tgna,
-              neighbour->size_of_global_addresses,
-              tgna_cls.tgna->address_length,
-              neighbour->number_of_addresses);
-  if (0 == tgna_cls.tgna->address_length && GNUNET_YES == queue->is_global_natted)
+  if (NULL != tgna_cls.tgna)
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                " tgna_cls.tgna tgna %p %u %u %u\n",
+                tgna_cls.tgna,
+                neighbour->size_of_global_addresses,
+                ntohl (tgna_cls.tgna->address_length),
+                neighbour->number_of_addresses);
+  if (NULL == tgna_cls.tgna && GNUNET_YES == queue->is_global_natted)
   {
     struct TransportGlobalNattedAddress *tgna;
 
@@ -11755,7 +11757,7 @@ check_for_global_natted (void *cls,
                 "Created tgna %p\n",
                 tgna);
   }
-  else if (0 != tgna_cls.tgna->address_length && GNUNET_NO == queue->is_global_natted)
+  else if (NULL != tgna_cls.tgna && GNUNET_NO == queue->is_global_natted)
   {
     GNUNET_CONTAINER_multipeermap_remove (neighbour->natted_addresses,
                                           &neighbour->pid,
