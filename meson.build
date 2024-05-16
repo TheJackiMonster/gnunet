@@ -431,6 +431,9 @@ endif
 if cc.has_function('explicit_bzero')
   cdata.set('HAVE_EXPLICIT_BZERO', 1)
 endif
+if cc.has_function('getaddrinfo')
+  cdata.set('HAVE_GETADDRINFO', 1)
+endif
 if cc.has_function('gethostbyname')
   cdata.set('HAVE_GETHOSTBYNAME', 1)
 endif
