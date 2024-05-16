@@ -119,6 +119,18 @@ struct Connection
 
   gnutls_session_t session;
   gnutls_certificate_credentials_t cred;
+  /**
+   * Information of the stream.
+   *
+   * TODO: Handle multiple streams.
+   */
+  struct
+  {
+    int64_t id;
+    uint8_t *data;
+    size_t datalen;
+    size_t nwrite;
+  } stream;
 
   /**
    * Address of the other peer.
@@ -297,6 +309,13 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 }
 
 
+static ngtcp2_conn*
+get_conn (ngtcp2_crypto_conn_ref *ref)
+{
+  return ((struct Connection*) (ref->user_data))->conn;
+}
+
+
 static void
 try_connection_reversal (void *cls,
                          const struct sockaddr *addr,
@@ -323,6 +342,33 @@ notify_cb (void *cls,
            const struct GNUNET_MessageHeader *msg)
 {
 
+}
+
+
+/**
+ * Send the udp packet to remote.
+ *
+ * @param connection connection of the peer
+ * @param data the data we want to send
+ * @param datalen the length of data
+ *
+ * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
+ */
+static int
+send_packet (struct Connection *connection, const uint8_t *data, size_t datalen)
+{
+  int rv;
+
+  rv = GNUNET_NETWORK_socket_sendto (udp_sock, data, datalen,
+                                     connection->address,
+                                     connection->address_len);
+  if (GNUNET_SYSERR == rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "send packet failed!\n");
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_NO;
 }
 
 
@@ -437,11 +483,11 @@ get_new_connection_id_cb (ngtcp2_conn *conn, ngtcp2_cid *cid,
 /**
  * Create new ngtcp2_conn as client side.
  *
- * @param connection
- * @param local_addr
- * @param local_addrlen
- * @param remote_addr
- * @param remote_addrlen
+ * @param connection new connection of the peer
+ * @param local_addr local socket address
+ * @param local_addrlen local socket address length
+ * @param remote_addr remote(peer's) socket address
+ * @param remote_addrlen remote socket address length
  *
  * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed to create new
  * ngtcp2_conn as client
@@ -515,6 +561,128 @@ client_quic_init (struct Connection *connection,
     return GNUNET_SYSERR;
   }
   ngtcp2_conn_set_tls_native_handle (connection->conn, connection->session);
+  connection->conn_ref.user_data = connection;
+  connection->conn_ref.get_conn = get_conn;
+  connection->stream.id = -1;
+  return GNUNET_NO;
+}
+
+
+/**
+ * Write the data in the stream into the packet and send it
+ *
+ * @param connection the connection of the peer
+ *
+ * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
+ */
+static int
+connection_write_streams (struct Connection *connection)
+{
+  uint8_t buf[1280];
+  int64_t stream_id;
+  uint32_t flags;
+  size_t datavcnt;
+  ngtcp2_tstamp ts = timestamp ();
+  ngtcp2_vec datav;
+  ngtcp2_path_storage ps;
+  ngtcp2_pkt_info pi;
+  ngtcp2_ssize nwrite;
+  ngtcp2_ssize wdatalen;
+  int fin;
+
+  ngtcp2_path_storage_zero (&ps);
+
+  for (;;)
+  {
+    if (connection->stream.id != -1 &&
+        connection->stream.nwrite < connection->stream.datalen)
+    {
+      stream_id = connection->stream.id;
+      fin = 0;
+      datav.base = (uint8_t *) connection->stream.data
+                   + connection->stream.nwrite;
+      datav.len = connection->stream.datalen - connection->stream.nwrite;
+      datavcnt = 1;
+    }
+    else
+    {
+      stream_id = -1;
+      fin = 0;
+      datav.base = NULL;
+      datav.len = 0;
+      datavcnt = 0;
+    }
+
+    flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
+    if (fin)
+      flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
+
+    nwrite = ngtcp2_conn_writev_stream (connection->conn,
+                                        &ps.path,
+                                        &pi,
+                                        buf,
+                                        sizeof (buf),
+                                        &wdatalen,
+                                        flags,
+                                        stream_id,
+                                        &datav,
+                                        datavcnt,
+                                        ts);
+    if (0 > nwrite)
+    {
+      switch (nwrite)
+      {
+      case NGTCP2_ERR_WRITE_MORE:
+        continue;
+      default:
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "ngtcp2_conn_writev_stream",
+                    ngtcp2_strerror ((int) nwrite));
+        ngtcp2_ccerr_set_liberr (&connection->last_error, (int) nwrite,
+                                 NULL, 0);
+        return GNUNET_SYSERR;
+      }
+    }
+    if (0 == nwrite)
+    {
+      return GNUNET_NO;
+    }
+    if (0 < wdatalen)
+    {
+      connection->stream.nwrite += (size_t) wdatalen;
+    }
+    if (GNUNET_NO != send_packet (connection, buf, sizeof (buf)))
+    {
+      return GNUNET_SYSERR;
+    }
+  }
+}
+
+
+/**
+ * Write the data in the stream into the packet and handle timer.
+ *
+ * @param connection the connection of the peer
+ *
+ * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
+ */
+static int
+connection_write (struct Connection *connection)
+{
+  ngtcp2_tstamp expiry, now;
+  if (connection_write_streams (connection) != 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection_write_streams failed\n");
+    return GNUNET_SYSERR;
+  }
+  expiry = ngtcp2_conn_get_expiry (connection->conn);
+  now = timestamp ();
+
+  /*
+   * TODO: Set timer here.
+   */
+
   return GNUNET_NO;
 }
 
@@ -623,6 +791,14 @@ mq_init (void *cls,
 
   ngtcp2_conn_set_tls_native_handle (connection->conn, connection->session);
 
+  rv = connection_write (connection);
+  if (GNUNET_NO != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection_write failed\n");
+    return GNUNET_SYSERR;
+  }
+  GNUNET_free (local_addr);
   return GNUNET_OK;
 }
 
