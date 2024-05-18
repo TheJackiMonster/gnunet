@@ -110,12 +110,9 @@ gnunetinclude_HEADERS = \
   gnunet_sq_lib.h \
   gnunet_statistics_service.h \
   gnunet_strings_lib.h \
-  gnunet_testing_barrier.h \
-  gnunet_testing_lib.h \
+  gnunet_testbed_lib.h \
   gnunet_testing_plugin.h \
-  gnunet_testing_ng_lib.h \
-  gnunet_testing_loop_lib.h \
-  gnunet_testing_netjail_lib.h \
+  gnunet_testing_lib.h \
   gnunet_time_lib.h \
   gnunet_transport_application_service.h \
   gnunet_transport_communication_service.h \

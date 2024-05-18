@@ -24,81 +24,8 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "testing.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_netjail_lib.h"
-#include "gnunet_testing_barrier.h"
-
-/**
- * Generic logging shortcut
- */
-#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
-
-
-struct BarrierState
-{
-  /**
-   * Our barrier, set to NULL once the barrier is active.
-   */
-  struct GNUNET_TESTING_Barrier *barrier;
-
-  /**
-   * Our label.
-   */
-  const char *label;
-};
-
-
-// FIXME Unused function
-void
-GNUNET_TESTING_send_barrier_attach_ (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *barrier_name,
-  unsigned int global_node_number,
-  unsigned int expected_reaches,
-  GNUNET_TESTING_cmd_helper_write_cb write_message)
-{
-  // FIXME: avoid useless malloc!
-  struct CommandBarrierAttached *atm = GNUNET_new (struct
-                                                   CommandBarrierAttached);
-  size_t msg_length = sizeof(struct CommandBarrierAttached);
-  size_t name_len;
-
-  name_len = strlen (barrier_name) + 1;
-  atm->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_ATTACHED);
-  atm->header.size = htons ((uint16_t) msg_length);
-  atm->expected_reaches = expected_reaches;
-  atm->node_number = global_node_number;
-  memcpy (&atm[1], barrier_name, name_len);
-  write_message ((struct GNUNET_MessageHeader *) atm, msg_length);
-
-  GNUNET_free (atm);
-}
-
-
-bool
-GNUNET_TESTING_barrier_crossable_ (struct GNUNET_TESTING_Barrier *barrier)
-{
-  unsigned int expected_reaches = barrier->expected_reaches;
-  unsigned int reached = barrier->reached;
-  double percentage_to_be_reached = barrier->percentage_to_be_reached;
-  unsigned int number_to_be_reached = barrier->number_to_be_reached;
-  double percentage_reached = (double) reached / expected_reaches * 100;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "%u %f %f %u %u\n",
-       expected_reaches,
-       percentage_to_be_reached,
-       percentage_reached,
-       number_to_be_reached,
-       reached);
-
-  return ( ( (0 < percentage_to_be_reached) &&
-             (percentage_reached >= percentage_to_be_reached) ) ||
-           ( (0 < number_to_be_reached) &&
-             (reached >= number_to_be_reached) ) );
-}
+#include "gnunet_testing_lib.h"
+#include "barrier.h"
 
 
 /**
@@ -136,10 +63,9 @@ barrier_traits (void *cls,
 static void
 barrier_cleanup (void *cls)
 {
-  struct BarrierState *brs = cls;
+  struct GNUNET_TESTING_Barrier *barrier = cls;
 
-  GNUNET_free (brs->barrier);
-  GNUNET_free (brs);
+  GNUNET_free (barrier);
 }
 
 
@@ -153,52 +79,24 @@ static void
 barrier_run (void *cls,
              struct GNUNET_TESTING_Interpreter *is)
 {
-  struct BarrierState *brs = cls;
+  struct GNUNET_TESTING_Barrier *barrier = cls;
 
   GNUNET_TESTING_add_barrier_ (is,
-                               brs->barrier);
-  brs->barrier = NULL;
-}
-
-
-struct GNUNET_TESTING_NetjailNode *
-GNUNET_TESTING_barrier_get_node (struct GNUNET_TESTING_Barrier *barrier,
-                                 unsigned int node_number)
-{
-  struct GNUNET_HashCode hc;
-  struct GNUNET_ShortHashCode key;
-
-  GNUNET_CRYPTO_hash (&node_number,
-                      sizeof(node_number),
-                      &hc);
-  memcpy (&key,
-          &hc,
-          sizeof (key));
-  return GNUNET_CONTAINER_multishortmap_get (barrier->nodes,
-                                             &key);
+                               barrier);
 }
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_create (const char *label,
-                                   double percentage_to_be_reached,
-                                   unsigned int number_to_be_reached)
+GNUNET_TESTING_cmd_barrier_create (
+  const char *label,
+  unsigned int number_to_be_reached)
 {
   struct GNUNET_TESTING_Barrier *barrier;
-  struct BarrierState *bs;
 
-  bs = GNUNET_new (struct BarrierState);
-  bs->label = label;
   barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
   barrier->name = label;
-  barrier->percentage_to_be_reached = percentage_to_be_reached;
   barrier->number_to_be_reached = number_to_be_reached;
-  GNUNET_assert ((0 < percentage_to_be_reached &&
-                  0 == number_to_be_reached) ||
-                 (0 ==  percentage_to_be_reached &&
-                  0 < number_to_be_reached));
-  bs->barrier = barrier;
-  return GNUNET_TESTING_command_new (bs,
+  return GNUNET_TESTING_command_new (barrier,
                                      label,
                                      &barrier_run,
                                      &barrier_cleanup,

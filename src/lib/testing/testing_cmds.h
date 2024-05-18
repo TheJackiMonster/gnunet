@@ -38,45 +38,20 @@ GNUNET_NETWORK_STRUCT_BEGIN
 struct GNUNET_TESTING_CommandHelperInit
 {
   /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT
+   * Type is #GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT
    */
   struct GNUNET_MessageHeader header;
 
   /**
-   *
+   * Number of barriers the helper inherits.
    */
-  uint16_t plugin_name_size GNUNET_PACKED;
+  uint32_t barrier_count GNUNET_PACKED;
 
-  /* Followed by plugin name of the plugin running the test case. This is not NULL
-   * terminated */
+  /* Followed by barrier_count barrier hashes */
+
+  /* Followed by topology data */
 };
 
-/**
- * Reply message from cmds helper process
- */
-struct GNUNET_TESTING_CommandHelperReply
-{
-  /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_REPLY
-   */
-  struct GNUNET_MessageHeader header;
-};
-
-struct GNUNET_TESTING_CommandPeerStarted
-{
-  /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED
-   */
-  struct GNUNET_MessageHeader header;
-};
-
-struct GNUNET_TESTING_CommandAllPeersStarted
-{
-  /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_PEERS_STARTED
-   */
-  struct GNUNET_MessageHeader header;
-};
 
 struct GNUNET_TESTING_CommandLocalFinished
 {
@@ -86,27 +61,44 @@ struct GNUNET_TESTING_CommandLocalFinished
   struct GNUNET_MessageHeader header;
 
   /**
-   * The exit status local test return with.
+   * The exit status local test return with in NBO.
    */
-  enum GNUNET_GenericReturnValue rv;
+  uint32_t rv GNUNET_PACKED;
 };
 
 
-struct GNUNET_TESTING_CommandLocalTestPrepared
+/**
+ * Child to parent: I reached the given barrier,
+ * increment the counter (or pass to grandparent).
+ */
+struct GNUNET_TESTING_CommandBarrierReached
 {
-  /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TEST_PREPARED
-   */
   struct GNUNET_MessageHeader header;
+  struct GNUNET_ShortHashCode barrier_key;
 };
 
-struct GNUNET_TESTING_CommandAllLocalTestsPrepared
+
+/**
+ * Parent to child: you're inheriting a barrier.
+ * If the barrier was already satisfied, the parent
+ * must sent a separate barrier satisfied message.
+ */
+struct GNUNET_TESTING_CommandBarrierInherited
 {
-  /**
-   * Type is GNUNET_MESSAGE_TYPE_CMDS_HELPER_ALL_LOCAL_TESTS_PREPARED
-   */
   struct GNUNET_MessageHeader header;
+  struct GNUNET_ShortHashCode barrier_key;
 };
+
+
+/**
+ * Parent to child: this barrier was satisfied.
+ */
+struct GNUNET_TESTING_CommandBarrierSatisfied
+{
+  struct GNUNET_MessageHeader header;
+  struct GNUNET_ShortHashCode barrier_key;
+};
+
 
 GNUNET_NETWORK_STRUCT_END
 

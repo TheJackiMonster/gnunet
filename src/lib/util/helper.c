@@ -612,7 +612,7 @@ helper_write (void *cls)
 struct GNUNET_HELPER_SendHandle *
 GNUNET_HELPER_send (struct GNUNET_HELPER_Handle *h,
                     const struct GNUNET_MessageHeader *msg,
-                    int can_drop,
+                    bool can_drop,
                     GNUNET_HELPER_Continuation cont,
                     void *cont_cls)
 {
@@ -621,7 +621,7 @@ GNUNET_HELPER_send (struct GNUNET_HELPER_Handle *h,
 
   if (NULL == h->fh_to_helper)
     return NULL;
-  if ((GNUNET_YES == can_drop) && (NULL != h->sh_head))
+  if (can_drop && (NULL != h->sh_head))
     return NULL;
   mlen = ntohs (msg->size);
   sh = GNUNET_malloc (sizeof(struct GNUNET_HELPER_SendHandle) + mlen);

@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing_api_cmd_local_test_prepared.c
+ * @file testing_api_cmd_exec.c
  * @brief cmd to block the interpreter loop until all peers started.
  * @author t3sserakt
  */
@@ -42,7 +42,9 @@ struct BashScriptState
    */
   GNUNET_ChildCompletedCallback cb;
 
-  // Child Wait handle
+  /**
+   * Wait for death of @e start_proc.
+   */
   struct GNUNET_ChildWaitHandle *cwh;
 
   /**
@@ -51,20 +53,20 @@ struct BashScriptState
   struct GNUNET_OS_Process *start_proc;
 
   /**
-   * Script this cmd will execute.
-   */
-  const char *script;
-
-
-  /**
    * Arguments for the script
    */
   char *const*script_argv;
 
   /**
-   * Size of script_argv.
+   *
    */
-  int argc;
+  enum GNUNET_OS_ProcessStatusType expected_type;
+
+  /**
+   *
+   */
+  unsigned long int expected_exit_code;
+
 };
 
 /**
@@ -113,20 +115,18 @@ child_completed_callback (void *cls,
   GNUNET_OS_process_destroy (bss->start_proc);
   bss->start_proc = NULL;
   bss->cwh = NULL;
-  if (0 == exit_code)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Child succeeded!\n");
-    GNUNET_TESTING_async_finish (&bss->ac);
-  }
-  else
+  if ( (bss->expected_type != type) ||
+       (bss->expected_exit_code != exit_code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Child failed with error %lu!\n",
                 exit_code);
     GNUNET_TESTING_async_fail (&bss->ac);
+    return;
   }
-  bss->cb (cls, type, exit_code);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Child succeeded!\n");
+  GNUNET_TESTING_async_finish (&bss->ac);
 }
 
 
@@ -140,54 +140,17 @@ exec_bash_script_run (void *cls,
                       struct GNUNET_TESTING_Interpreter *is)
 {
   struct BashScriptState *bss = cls;
-  enum GNUNET_GenericReturnValue helper_check;
-  char *argv[bss->argc + 2];
 
-  char *data_dir;
-  char *script_name;
-
-  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
-  GNUNET_asprintf (&script_name, "%s%s", data_dir, bss->script);
-
-  helper_check = GNUNET_OS_check_helper_binary (
-    script_name,
-    GNUNET_YES,
-    NULL);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "script_name %s\n",
-       script_name);
-
-  if (GNUNET_NO == helper_check)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "No SUID for %s!\n",
-                script_name);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
-  if (GNUNET_SYSERR == helper_check)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "%s not found!\n",
-                script_name);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
-  argv[0] = script_name;
-  if (NULL != bss->script_argv)
-  {
-    for (int i = 0; i < bss->argc; i++)
-      argv[i + 1] = bss->script_argv[i];
-  }
-  argv[bss->argc] = NULL;
-
-  bss->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL,
-                                                 script_name,
-                                                 argv);
+  bss->cmd
+    = GNUNET_TESTING_interpreter_get_current_command (is);
+  bss->start_proc
+    = GNUNET_OS_start_process_vap (
+        GNUNET_OS_INHERIT_STD_ERR,
+        NULL,
+        NULL,
+        NULL,
+        bss->script_argv[0],
+        bss->script_argv);
   bss->cwh = GNUNET_wait_child (bss->start_proc,
                                 &child_completed_callback,
                                 bss);
@@ -195,25 +158,25 @@ exec_bash_script_run (void *cls,
 }
 
 
+// FIXME: support variadic style...
 const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec_bash_script (const char *label,
-                                     const char *script,
-                                     char *const script_argv[],
-                                     int argc,
-                                     GNUNET_ChildCompletedCallback cb)
+GNUNET_TESTING_cmd_exec (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  char *const script_argv[])
 {
   struct BashScriptState *bss;
 
   bss = GNUNET_new (struct BashScriptState);
-  bss->script = script;
-  bss->script_argv = script_argv; // FIXME this is not just a cast to fix
-  bss->argc = argc;
-  bss->cb = cb;
-
-  return GNUNET_TESTING_command_new_ac (bss,
-                                        label,
-                                        &exec_bash_script_run,
-                                        &exec_bash_script_cleanup,
-                                        NULL,
-                                        &bss->ac);
+  bss->script_argv = script_argv; // FIXME: make copy?
+  bss->expected_type = expected_type;
+  bss->expected_exit_code = expected_exit_code;
+  return GNUNET_TESTING_command_new_ac (
+    bss,
+    label,
+    &exec_bash_script_run,
+    &exec_bash_script_cleanup,
+    NULL,
+    &bss->ac);
 }

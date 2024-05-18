@@ -173,7 +173,7 @@ struct GNUNET_HELPER_SendHandle;
 struct GNUNET_HELPER_SendHandle *
 GNUNET_HELPER_send (struct GNUNET_HELPER_Handle *h,
                     const struct GNUNET_MessageHeader *msg,
-                    int can_drop,
+                    bool can_drop,
                     GNUNET_HELPER_Continuation cont,
                     void *cont_cls);
 

@@ -31,6 +31,7 @@
 #include "gnunet_testing_netjail_lib.h"
 
 #define NETJAIL_START_SCRIPT "netjail_start.sh"
+#define NETJAIL_STOP_SCRIPT "netjail_stop.sh"
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
@@ -45,7 +46,6 @@ struct NetJailState
    */
   struct GNUNET_TESTING_AsyncContext ac;
 
-  // Child Wait handle
   struct GNUNET_ChildWaitHandle *cwh;
 
   /**
@@ -56,12 +56,17 @@ struct NetJailState
   /**
    * Configuration file for the test topology.
    */
-  char *topology_config;
+  const char *topology_config;
+
+  /**
+   * Start or stop?
+   */
+  const char *script;
 
   /**
    * Shall we read the topology from file, or from a string.
    */
-  unsigned int *read_file;
+  bool read_file;
 };
 
 
@@ -76,18 +81,13 @@ netjail_start_cleanup (void *cls)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "netjail_start_cleanup!\n");
-
   if (NULL != ns->cwh)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Cancel child\n");
     GNUNET_wait_child_cancel (ns->cwh);
     ns->cwh = NULL;
   }
   if (NULL != ns->start_proc)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Kill process\n");
     GNUNET_assert (0 ==
                    GNUNET_OS_process_kill (ns->start_proc,
                                            SIGKILL));
@@ -107,24 +107,23 @@ netjail_start_cleanup (void *cls)
 static void
 child_completed_callback (void *cls,
                           enum GNUNET_OS_ProcessStatusType type,
-                          long unsigned int exit_code)
+                          unsigned long int exit_code)
 {
   struct NetJailState *ns = cls;
 
   GNUNET_OS_process_destroy (ns->start_proc);
   ns->start_proc = NULL;
   ns->cwh = NULL;
-  if (0 == exit_code)
-  {
-    GNUNET_TESTING_async_finish (&ns->ac);
-  }
-  else
+  if ( (GNUNET_OS_PROCESS_EXITED != type) ||
+       (0 != exit_code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Child failed with error %lu!\n",
                 exit_code);
     GNUNET_TESTING_async_fail (&ns->ac);
+    return;
   }
+  GNUNET_TESTING_async_finish (&ns->ac);
 }
 
 
@@ -143,21 +142,16 @@ netjail_start_run (void *cls,
   enum GNUNET_GenericReturnValue helper_check;
   char *data_dir;
   char *script_name;
-  char *read_file;
 
   data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
-  GNUNET_asprintf (&script_name, "%s%s", data_dir, NETJAIL_START_SCRIPT);
-  GNUNET_asprintf (&read_file, "%u", *(ns->read_file));
-
+  GNUNET_asprintf (&script_name,
+                   "%s%s",
+                   data_dir,
+                   ns->script);
   helper_check = GNUNET_OS_check_helper_binary (
     script_name,
     GNUNET_YES,
     NULL);
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "script_name %s\n",
-       script_name);
-
   if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -183,8 +177,8 @@ netjail_start_run (void *cls,
     char *const script_argv[] = {
       script_name,
       ns->topology_config,
-      pid,
-      read_file,
+      pid, // FIXME: use $PPID!
+      ns->read_file ? "1" : "0",
       NULL
     };
 
@@ -201,33 +195,51 @@ netjail_start_run (void *cls,
                                &child_completed_callback,
                                ns);
   GNUNET_break (NULL != ns->cwh);
-  GNUNET_free (read_file);
   GNUNET_free (script_name);
   GNUNET_free (data_dir);
 }
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *topology_config,
-                                  unsigned int *read_file)
+static struct GNUNET_TESTING_Command
+cmd_netjail (const char *label,
+             const char *script,
+             const char *topology_config,
+             bool read_file)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
   ns->topology_config = topology_config;
   ns->read_file = read_file;
+  ns->script = script;
   return GNUNET_TESTING_command_new_ac (ns,
                                         label,
                                         &netjail_start_run,
                                         &netjail_start_cleanup,
                                         NULL,
                                         &ns->ac);
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start (const char *label,
+                                  const char *topology_config,
+                                  bool read_file)
+{
+  return cmd_netjail (label,
+                      NETJAIL_START_SCRIPT,
+                      topology_config,
+                      read_file);
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_stop (const char *label,
+                                 const char *topology_config,
+                                 bool read_file)
+{
+  return cmd_netjail (label,
+                      NETJAIL_STOP_SCRIPT,
+                      topology_config,
+                      read_file);
 }

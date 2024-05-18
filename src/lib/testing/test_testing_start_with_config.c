@@ -38,12 +38,11 @@ main (int argc,
   char *topology_data;
   char *topology_data_script;
   struct GNUNET_TESTING_NetjailTopology *topology;
-  unsigned int read_file = GNUNET_YES;
+  bool read_file = true;
   int ret;
   char *rest = NULL;
   char *token;
   size_t single_line_len;
-  size_t data_len;
 
   GNUNET_log_setup ("test-netjail",
                     "INFO",
@@ -51,11 +50,14 @@ main (int argc,
 
   if (0 == strcmp ("-s", argv[1]))
   {
-    data_len = strlen (argv[2]);
+    size_t data_len;
+
+    data_len = strlen (argv[2]) + 2;
     topology_data = GNUNET_malloc (data_len);
     topology_data_script = GNUNET_malloc (data_len);
-    token = strtok_r (argv[2], "\n", &rest);
-    while (NULL != token)
+    for (token = strtok_r (argv[2], "\n", &rest);
+         NULL != token;
+         token = strtok_r (NULL, "\n", &rest))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "token1 %s\n",
@@ -70,7 +72,6 @@ main (int argc,
       strcat (topology_data_script, " ");
       strcat (topology_data, token);
       strcat (topology_data, "\n");
-      token = strtok_r (NULL, "\n", &rest);
     }
     single_line_len = strlen (topology_data);
     topology_data_script [single_line_len - 1] = '\0';
@@ -79,7 +80,7 @@ main (int argc,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "topology_data %s\n",
                 topology_data);
-    read_file = GNUNET_NO;
+    read_file = false;
     topology = GNUNET_TESTING_get_topo_from_string (topology_data);
   }
   else
@@ -92,18 +93,17 @@ main (int argc,
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_netjail_start ("netjail-start",
                                       topology_data_script,
-                                      &read_file),
+                                      read_file),
     GNUNET_TESTING_cmd_netjail_start_cmds_helper ("netjail-start-testbed",
-                                                     topology,
-                                                     &read_file,
-                                                     topology_data_script,
-                                                     TIMEOUT),
+                                                  topology,
+                                                  read_file,
+                                                  TIMEOUT),
     GNUNET_TESTING_cmd_stop_cmds_helper ("stop-testbed",
-                                            "netjail-start-testbed",
-                                            topology),
+                                         "netjail-start-testbed",
+                                         topology),
     GNUNET_TESTING_cmd_netjail_stop ("netjail-stop",
                                      topology_data_script,
-                                     &read_file),
+                                     read_file),
     GNUNET_TESTING_cmd_end ()
   };
 

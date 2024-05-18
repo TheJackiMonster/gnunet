@@ -77,9 +77,9 @@
 #define ROUTER_BASE_IP "172.16.150."
 */
 
-struct GNUNET_SCHEDULER_Task *finished_task;
+static struct GNUNET_SCHEDULER_Task *finished_task;
 
-struct GNUNET_TESTING_Interpreter *is;
+static struct GNUNET_TESTING_Interpreter *is;
 
 /**
  * Struct with information about a specific node and the whole network namespace setup.
@@ -89,25 +89,21 @@ struct NodeIdentifier
 {
   /**
    * The number of the namespace this node is in.
-   *
    */
   char *n;
 
   /**
    * The number of the node in the namespace.
-   *
    */
   char *m;
 
   /**
    * The number of namespaces
-   *
    */
   char *global_n;
 
   /**
    * The number of local nodes per namespace.
-   *
    */
   char *local_m;
 
@@ -202,7 +198,6 @@ static int status;
 static void
 do_shutdown (void *cls)
 {
-
   LOG_DEBUG ("Shutting down.\n");
 
   if (NULL != read_task_id)
@@ -409,7 +404,6 @@ tokenizer_cb (void *cls,
       plugin->local_m = ni->local_m;
       plugin->n = ni->n;
       plugin->m = ni->m;
-
       GNUNET_asprintf (&router_ip,
                        ROUTER_BASE_IP "%s",
                        plugin->n);
@@ -606,7 +600,8 @@ sighandler_child_death ()
   GNUNET_break (
     1 ==
     GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (sigpipe,
-                                                     GNUNET_DISK_PIPE_END_WRITE),
+                                                     GNUNET_DISK_PIPE_END_WRITE)
+                            ,
                             &c,
                             sizeof(c)));
   errno = old_errno;

@@ -223,6 +223,12 @@ struct GNUNET_TESTING_NetjailTopology
   char *plugin;
 
   /**
+   * Total number of namespaces in the topology;
+   * numbered starting from 1 (!).
+   */
+  unsigned int total;
+
+  /**
    * Number of subnets.
    */
   unsigned int namespaces_n;
@@ -253,15 +259,6 @@ struct GNUNET_TESTING_NetjailTopology
   unsigned int additional_connects;
 };
 
-/**
- * Getting the topology from file.
- *
- * @param filename The name of the topology file.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_file (const char *filename);
-
 
 /**
  * FIXME: this could use a "to_string".
@@ -271,7 +268,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename);
  * @return The GNUNET_TESTING_NetjailTopology
  */
 struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (const char *data);
+GNUNET_TESTING_get_topo_from_string_ (const char *data);
 
 
 /**
@@ -306,7 +303,8 @@ GNUNET_TESTING_get_node (unsigned int num,
  */
 struct GNUNET_TESTING_NodeConnection *
 GNUNET_TESTING_get_connections (unsigned int num,
-                                const struct GNUNET_TESTING_NetjailTopology *topology);
+                                const struct GNUNET_TESTING_NetjailTopology *
+                                topology);
 
 
 /**
@@ -383,60 +381,9 @@ struct GNUNET_TESTING_LocalPreparedState
   GNUNET_TESTING_cmd_helper_write_cb write_message;
 };
 
-/**
- * This command destroys the ressources allocated for the test system setup.
- *
- * @param label Name for command.
- * @param create_label Label of the cmd which started the test system.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_destroy (const char *label,
-                                   const char *create_label);
 
 /**
- * This command is setting up a test environment for a peer to start.
- *
- * @param label Name for command.
- * @param testdir Only the directory name without any path. Temporary
- *                directory used for all service homes.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_create (const char *label,
-                                  const char *testdir);
-
-
-/**
- * This command executes a shell script to setup the netjail environment.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  char *topology_config,
-                                  unsigned int *read_file);
-
-
-/**
- * This command executes a shell script to remove the netjail environment.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 char *topology_config,
-                                 unsigned int *read_file);
-
-
-/**
- * This command executes a shell script which starts a helper process. 
+ * This command executes a shell script which starts a helper process.
  * This process is running on a netjail node, executing a defined test case.
  *
  * @param label Name for the command.
@@ -471,7 +418,7 @@ GNUNET_TESTING_cmd_stop_cmds_helper (
 
 
 /**
- * This command is used to block the loop, until the command is finished by other commands, 
+ * This command is used to block the loop, until the command is finished by other commands,
  * using a trait to get this commands  struct GNUNET_TESTING_AsyncContext.
  *
  * @param label name for command.
@@ -491,7 +438,8 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    GNUNET_TESTING_cmd_helper_write_cb write_message);
+                                    GNUNET_TESTING_cmd_helper_write_cb
+                                    write_message);
 
 
 /**
@@ -507,26 +455,6 @@ GNUNET_TESTING_cmd_local_test_prepared (const char *label,
                                         write_message);
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param system_label Label of the cmd to setup a test environment.
- * @param no Decimal number representing the last byte of the IP address of this peer.
- * @param node_ip The IP address of this node.
- * @param cfgname Configuration file name for this peer.
- * @param broadcast Flag indicating, if broadcast should be switched on.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_start_peer (const char *label,
-                               const char *system_label,
-                               uint32_t no,
-                               const char *node_ip,
-                               const char *cfgname,
-                               unsigned int broadcast);
-
-
 /* ***** Netjail trait support ***** */
 
 
@@ -534,13 +462,15 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op, prefix)                            \
-  op (prefix, test_system, const struct GNUNET_TESTING_System)                      \
-  op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
-  op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  \
-  op (prefix, local_prepared_state, const struct GNUNET_TESTING_LocalPreparedState) \
-  op (prefix, block_state, struct GNUNET_TESTING_BlockState)
+        op (prefix, test_system, const struct GNUNET_TESTING_System)                      \
+        op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
+        op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  \
+        op (prefix, local_prepared_state, const struct \
+            GNUNET_TESTING_LocalPreparedState) \
+        op (prefix, block_state, struct GNUNET_TESTING_BlockState)
 
-GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TESTING)
+GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                      GNUNET_TESTING)
 
 
 #endif

@@ -25,11 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_lib.h"
-#include "testing_cmds.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
-#include "testing.h"
+#include "testing_api_loop.h"
 
 /**
  * Generic logging shortcut
@@ -42,12 +38,6 @@
  */
 struct BarrierReachedState
 {
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  GNUNET_TESTING_cmd_helper_write_cb write_message;
-
   /**
    * Context for our asynchronous completion.
    */
@@ -63,20 +53,6 @@ struct BarrierReachedState
    */
   const char *barrier_name;
 
-  /*
-   * The global numer of the node the cmd runs on.
-   */
-  unsigned int node_number;
-
-  /**
-   * If this command will block.
-   */
-  unsigned int asynchronous_finish;
-
-  /**
-   * Is this cmd running on the master loop.
-   */
-  unsigned int running_on_master;
 };
 
 
@@ -92,58 +68,53 @@ barrier_reached_run (void *cls,
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  struct GNUNET_TESTING_Command *cmd =
-    GNUNET_TESTING_interpreter_get_current_command (is);
-  struct CommandListEntry *cle;
-  size_t msg_length;
-  struct GNUNET_TESTING_CommandBarrierReached *msg;
-  size_t name_len;
+  struct GNUNET_TESTING_Command *cmd
+    = GNUNET_TESTING_interpreter_get_current_command (is);
 
   barrier = GNUNET_TESTING_get_barrier_ (is,
                                          brs->barrier_name);
   if (NULL == barrier)
   {
-    barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
-    barrier->name = brs->barrier_name;
-    GNUNET_TESTING_add_barrier_ (is,
-                                 barrier);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "No barrier `%s'\n",
+                brs->barrier_name);
+    GNUNET_TESTING_async_fail (&brs->ac);
+    return;
+  }
+  if (barrier->satisfied)
+  {
+    GNUNET_TESTING_async_finish (&brs->ac);
+    return;
+  }
+  if (barrier->inherited)
+  {
+    struct GNUNET_TESTING_CommandBarrierReached cbr;
+
+    GNUNET_TESTING_barrier_name_hash_ (brs->barrier_name,
+                                       &cbr.barrier_key);
+    // FIXME: init cbr!
+    GNUNET_TESTING_loop_notify_parent_ (is,
+                                        &cbr.header);
+    return;
   }
   barrier->reached++;
-  if (GNUNET_TESTING_barrier_crossable_ (barrier))
+  if (barrier->reached == barrier->expected_reaches)
   {
-    GNUNET_assert (NULL != cmd);
-    cmd->asynchronous_finish = GNUNET_YES;
-    GNUNET_TESTING_finish_barrier_ (is,
-                                    barrier->name);
-  }
-  else if (GNUNET_NO == brs->asynchronous_finish)
-  {
-    cle = GNUNET_new (struct CommandListEntry);
-    cle->command = cmd;
-    GNUNET_CONTAINER_DLL_insert (barrier->cmds_head,
-                                 barrier->cmds_tail,
-                                 cle);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "added cle for %p %s\n",
-         barrier,
-         barrier->name);
-  }
+    struct GNUNET_TESTING_CommandBarrierSatisfied cbs;
 
-  if (GNUNET_NO == brs->running_on_master)
-  {
-    char *terminator = "\0";
-
-    name_len = strlen (barrier->name);
-    msg_length = sizeof(struct GNUNET_TESTING_CommandBarrierReached)
-                 + name_len + 1;
-    msg = GNUNET_malloc (msg_length);
-    msg->header.size = htons ((uint16_t) msg_length);
-    msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED);
-    msg->node_number = brs->node_number;
-    memcpy (&msg[1], barrier->name, name_len + 1);
-    memcpy (&msg[name_len + 1],terminator,1);
-    brs->write_message ((struct GNUNET_MessageHeader *) msg, msg_length);
+    // FIXME: initialize cbs!
+    GNUNET_TESTING_barrier_name_hash_ (brs->barrier_name,
+                                       &cbs.barrier_key);
+    barrier->satisfied = true;
+    GNUNET_TESTING_loop_notify_children_ (is,
+                                          &cbs.header);
   }
+  if (barrier->satisfied)
+  {
+    GNUNET_TESTING_async_finish (&brs->ac);
+    return;
+  }
+  barrier->cmd_ac = &brs->ac;
 }
 
 
@@ -177,11 +148,7 @@ barrier_reached_traits (void *cls,
                         const char *trait,
                         unsigned int index)
 {
-  struct BarrierReachedState *brs = cls;
-  struct GNUNET_TESTING_AsyncContext *ac = &brs->ac;
-
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_async_context (ac),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -192,39 +159,21 @@ barrier_reached_traits (void *cls,
 }
 
 
-/**
- * Create command.
- *
- * @param label name for command.
- * @param barrier_label The name of the barrier we wait for (if finishing asynchronous) and which will be reached.
- * @param asynchronous_finish If GNUNET_YES this command will not block.
- * @param node_number The global numer of the node the cmd runs on.
- * @param running_on_master Is this cmd running on the master loop.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_barrier_reached (
   const char *label,
-  const char *barrier_label,
-  unsigned int asynchronous_finish,
-  unsigned int node_number,
-  unsigned int running_on_master,
-  GNUNET_TESTING_cmd_helper_write_cb write_message)
+  const char *barrier_label)
 {
   struct BarrierReachedState *brs;
 
   brs = GNUNET_new (struct BarrierReachedState);
   brs->label = label;
   brs->barrier_name = barrier_label;
-  brs->asynchronous_finish = asynchronous_finish;
-  brs->node_number = node_number;
-  brs->running_on_master = running_on_master;
-  brs->write_message = write_message;
-  return GNUNET_TESTING_command_new_ac (brs,
-                                        label,
-                                        &barrier_reached_run,
-                                        &barrier_reached_cleanup,
-                                        &barrier_reached_traits,
-                                        &brs->ac);
+  return GNUNET_TESTING_command_new_ac (
+    brs,
+    label,
+    &barrier_reached_run,
+    &barrier_reached_cleanup,
+    &barrier_reached_traits,
+    &brs->ac);
 }

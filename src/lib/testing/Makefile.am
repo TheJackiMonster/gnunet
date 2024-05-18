@@ -30,23 +30,16 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
  $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
-  testing_api_cmd_exec_bash_script.c \
   testing_api_cmd_barrier.c \
   testing_api_cmd_barrier_reached.c \
+  testing_api_cmd_exec.c \
   testing_api_cmd_finish.c \
-  testing_api_cmd_local_test_prepared.c \
-  testing_api_cmd_send_peer_ready.c \
-  testing_api_cmd_block_until_external_trigger.c \
+  testing_api_loop.c \
+  testing_api_traits.c \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
   testing_api_cmd_netjail_stop_cmds_helper.c \
-  testing_api_cmd_netjail_stop.c \
-  testing.c testing.h \
-  testing_api_cmd_system_create.c \
-  testing_api_cmd_system_destroy.c \
-  testing_api_cmd_batch.c \
-  testing_api_loop.c \
-  testing_api_traits.c
+  testing_api_cmd_batch.c
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/service/arm/libgnunetarm.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \

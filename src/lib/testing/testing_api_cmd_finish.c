@@ -42,12 +42,24 @@ struct FinishState
   void *cls;
 
   /**
-   * Label of the asynchronous command the synchronous command of this closure waits for.
+   * Label of the asynchronous command the synchronous command of this closure
+   * waits for.
    */
   const char *async_label;
 
   /**
-   * Task for running the finish method of the asynchronous task the command is waiting for.
+   * Function to call when async operation is done.
+   */
+  GNUNET_SCHEDULER_Task old_notify;
+
+  /**
+   * Closure for @e notify_finished.
+   */
+  void *old_notify_cls;
+
+  /**
+   * Task for running the finish method of the asynchronous task the command
+   * is waiting for.
    */
   struct GNUNET_SCHEDULER_Task *finish_task;
 
@@ -77,6 +89,11 @@ done_finish (void *cls)
 
   GNUNET_SCHEDULER_cancel (finish_state->finish_task);
   finish_state->finish_task = NULL;
+  if (NULL != finish_state->old_notify)
+  {
+    finish_state->old_notify (finish_state->old_notify_cls);
+    finish_state->old_notify = NULL;
+  }
   GNUNET_TESTING_async_finish (&finish_state->ac);
 }
 
@@ -139,12 +156,16 @@ run_finish (void *cls,
     GNUNET_TESTING_async_finish (&finish_state->ac);
     return;
   }
+  /* add timeout */
   finish_state->finish_task
     = GNUNET_SCHEDULER_add_delayed (finish_state->timeout,
                                     &timeout_finish,
                                     finish_state);
-  aac->cont = &done_finish;
-  aac->cont_cls = finish_state;
+  /* back up old notification that we will override */
+  finish_state->old_notify = aac->notify_finished;
+  finish_state->old_notify_cls = aac->notify_finished_cls;
+  aac->notify_finished = &done_finish;
+  aac->notify_finished_cls = finish_state;
 }
 
 
