@@ -61,13 +61,13 @@
  * How long do we wait until we forcefully terminate autoconfiguration?
  */
 #define AUTOCONFIG_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 5)
+          GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * How often do we scan for changes in how our external (dyndns) hostname resolves?
  */
 #define DYNDNS_FREQUENCY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 7)
+          GNUNET_TIME_UNIT_MINUTES, 7)
 
 
 /**
@@ -1816,10 +1816,9 @@ check_request_connection_reversal (void *cls,
  * @param message the message received
  */
 static void
-handle_request_connection_reversal (void *cls,
-                                    const struct
-                                    GNUNET_NAT_RequestConnectionReversalMessage
-                                    *message)
+handle_request_connection_reversal (
+  void *cls,
+  const struct GNUNET_NAT_RequestConnectionReversalMessage *message)
 {
   struct ClientHandle *ch = cls;
   const char *buf = (const char *) &message[1];
@@ -1871,45 +1870,27 @@ handle_request_connection_reversal (void *cls,
  * @param message the message received
  * @return #GNUNET_OK if message is well-formed
  */
-static int
-check_add_global_address(void *cls,
-                         const struct GNUNET_NAT_AddGlobalAddressMessage *message)
+static enum GNUNET_GenericReturnValue
+check_add_global_address (
+  void *cls,
+  const struct GNUNET_NAT_AddGlobalAddressMessage *message)
 {
-  char *addr = GNUNET_malloc (ntohs (message->address_length));
+  const char *buf = (const char *) &message[1];
+  uint16_t blen = ntohs (message->address_length);
   size_t left = ntohs (message->header.size) - sizeof(*message);
-
-  GNUNET_memcpy (addr, (const char *) &message[1], ntohs (message->address_length));
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "message size %u natting address %s length %u left %u\n",
-              ntohs (message->header.size),
-              addr,
-              ntohs (message->address_length),
-              left);
 
   if (left != ntohs (message->address_length))
   {
-    GNUNET_break (0);
+    GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  GNUNET_free (addr);
+  if ('\0' != buf[blen - 1])
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   return GNUNET_OK;
 }
-
-
-static int
-is_nat_v4 (const struct in_addr *ip);
-
-
-static int
-is_nat_v6 (const struct in6_addr *ip);
-
-
-static void
-notify_client (enum GNUNET_NAT_AddressClass ac,
-               struct ClientHandle *ch,
-               int add,
-               const void *addr,
-               size_t addr_len);
 
 
 /**
@@ -1920,72 +1901,29 @@ notify_client (enum GNUNET_NAT_AddressClass ac,
  * @param message the message received
  */
 static void
-handle_add_global_address(void *cls,
-                         const struct GNUNET_NAT_AddGlobalAddressMessage *message)
+handle_add_global_address (
+  void *cls,
+  const struct GNUNET_NAT_AddGlobalAddressMessage *message)
 {
   struct ClientHandle *ch = cls;
-  char *buf = GNUNET_malloc (ntohs (message->address_length));
-  //= (const char *) &message[1];
-  struct sockaddr *sockaddr = NULL;
-  socklen_t addr_len;
-  struct sockaddr_in *sockaddr_ipv4 = GNUNET_malloc(sizeof(struct sockaddr_in));
-  enum GNUNET_NAT_AddressClass ac;
+  const char *buf = (const char *) &message[1];
+  uint16_t blen = ntohs (message->address_length);
+  struct sockaddr_in sockaddr_ipv4 = {
+    .sin_family = AF_INET
+  };
 
-  GNUNET_memcpy (buf, (const char *) &message[1], ntohs (message->address_length));
-  memset(sockaddr_ipv4, 0, sizeof(struct sockaddr_in));
-  sockaddr_ipv4->sin_family = AF_INET;
-
-  if (1 == inet_pton(AF_INET, buf, &(sockaddr_ipv4->sin_addr)))
-  {
-    sockaddr = (struct sockaddr *)sockaddr_ipv4;
-    addr_len = sizeof(struct sockaddr_in);
-    ac = is_nat_v4 (&((const struct sockaddr_in *)sockaddr_ipv4)->sin_addr)
-         ? GNUNET_NAT_AC_LAN
-          : GNUNET_NAT_AC_EXTERN;
-  }
-  else
-  {
-    GNUNET_free(sockaddr_ipv4);
-    sockaddr_ipv4 = NULL;
-  }
-
-  if (NULL == sockaddr)
-  {
-    struct sockaddr_in6 *sockaddr_ipv6 = malloc(sizeof(struct sockaddr_in6));
-
-    if (sockaddr_ipv6 != NULL)
-    {
-      memset(sockaddr_ipv6, 0, sizeof(struct sockaddr_in6));
-      sockaddr_ipv6->sin6_family = AF_INET6;
-
-      if (1 == inet_pton(AF_INET6, buf, &(sockaddr_ipv6->sin6_addr)))
-      {
-        GNUNET_break (0);
-        GNUNET_SERVICE_client_continue (ch->client);
-        GNUNET_free (buf);
-        return;
-      }
-      else
-      {
-        GNUNET_free(sockaddr_ipv6);
-        sockaddr_ipv6 = NULL;
-      }
-    }
-  }
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "3 natting address %s\n",
-              buf);
-  if (NULL == sockaddr)
+  GNUNET_assert ('\0' == buf[blen - 1]);
+  if (1 != inet_pton (AF_INET,
+                      buf,
+                      &sockaddr_ipv4.sin_addr))
   {
     GNUNET_break (0);
     GNUNET_SERVICE_client_continue (ch->client);
-    GNUNET_free (buf);
     return;
   }
-  notify_clients_stun_change (sockaddr_ipv4, GNUNET_YES);
+  notify_clients_stun_change (&sockaddr_ipv4,
+                              GNUNET_YES);
   GNUNET_SERVICE_client_continue (ch->client);
-  GNUNET_free (buf);
 }
 
 
