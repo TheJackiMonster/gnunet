@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2001, 2002, 2003, 2005, 2006 GNUnet e.V.
+     Copyright (C) 2001, 2002, 2003, 2005, 2006, 2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -34,60 +34,41 @@
 #endif
 
 #define LOG(kind, ...) \
-  GNUNET_log_from (kind, "util-common-allocation", __VA_ARGS__)
+        GNUNET_log_from (kind, "util-common-allocation", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-common-allocation", syscall)
+        GNUNET_log_from_strerror (kind, "util-common-allocation", syscall)
 
 #ifndef INT_MAX
 #define INT_MAX 0x7FFFFFFF
 #endif
 
 
-/**
- * Allocate memory. Checks the return value, aborts if no more
- * memory is available.
- *
- * @param size how many bytes of memory to allocate, do NOT use
- *  this function (or GNUNET_malloc()) to allocate more than several MB
- *  of memory, if you are possibly needing a very large chunk use
- *  #GNUNET_xmalloc_unchecked_() instead.
- * @param filename where in the code was the call to GNUNET_malloc()
- * @param linenumber where in the code was the call to GNUNET_malloc()
- * @return pointer to size bytes of memory
- */
 void *
-GNUNET_xmalloc_ (size_t size, const char *filename, int linenumber)
+GNUNET_xmalloc_ (size_t size,
+                 const char *filename,
+                 int linenumber)
 {
   void *ret;
 
   /* As a security precaution, we generally do not allow very large
    * allocations using the default 'GNUNET_malloc()' macro */
-  GNUNET_assert_at (size <= GNUNET_MAX_MALLOC_CHECKED, filename, linenumber);
-  ret = GNUNET_xmalloc_unchecked_ (size, filename, linenumber);
+  GNUNET_assert_at (size <= GNUNET_MAX_MALLOC_CHECKED,
+                    filename,
+                    linenumber);
+  ret = GNUNET_xmalloc_unchecked_ (size,
+                                   filename,
+                                   linenumber);
   if (NULL == ret)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "malloc");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "malloc");
     GNUNET_assert (0);
   }
   return ret;
 }
 
 
-/**
- * Allocate memory for a two dimensional array in one block
- * and set up pointers. Aborts if no more memory is available.
- * Don't use GNUNET_xnew_array_2d_ directly. Use the
- * #GNUNET_new_array_2d macro.
- * The memory of the elements will be zero'ed out.
- *
- * @param n size of the first dimension
- * @param m size of the second dimension
- * @param elementSize size of a single element in bytes
- * @param filename where is this call being made (for debugging)
- * @param linenumber line where this call is being made (for debugging)
- * @return allocated memory, never NULL
- */
 void **
 GNUNET_xnew_array_2d_ (size_t n,
                        size_t m,
@@ -109,21 +90,6 @@ GNUNET_xnew_array_2d_ (size_t n,
 }
 
 
-/**
- * Allocate memory for a three dimensional array in one block
- * and set up pointers. Aborts if no more memory is available.
- * Don't use GNUNET_xnew_array_3d_ directly. Use the
- * #GNUNET_new_array_3d macro.
- * The memory of the elements will be zero'ed out.
- *
- * @param n size of the first dimension
- * @param m size of the second dimension
- * @param o size of the third dimension
- * @param elementSize size of a single element in bytes
- * @param filename where is this call being made (for debugging)
- * @param linenumber line where this call is being made (for debugging)
- * @return allocated memory, never NULL
- */
 void ***
 GNUNET_xnew_array_3d_ (size_t n,
                        size_t m,
@@ -166,58 +132,50 @@ GNUNET_xmemdup_ (const void *buf,
 
   /* As a security precaution, we generally do not allow very large
    * allocations here */
-  GNUNET_assert_at (size <= GNUNET_MAX_MALLOC_CHECKED, filename, linenumber);
-  GNUNET_assert_at (size < INT_MAX, filename, linenumber);
+  GNUNET_assert_at (size <= GNUNET_MAX_MALLOC_CHECKED,
+                    filename,
+                    linenumber);
+  GNUNET_assert_at (size < INT_MAX,
+                    filename,
+                    linenumber);
   ret = malloc (size);
-  if (ret == NULL)
+  if (NULL == ret)
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "malloc");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "malloc");
     GNUNET_assert (0);
   }
-  GNUNET_memcpy (ret, buf, size);
+  GNUNET_memcpy (ret,
+                 buf,
+                 size);
   return ret;
 }
 
 
-/**
- * Wrapper around malloc(). Allocates size bytes of memory.
- * The memory will be zero'ed out.
- *
- * @param size the number of bytes to allocate
- * @param filename where in the code was the call to GNUNET_malloc_unchecked()
- * @param linenumber where in the code was the call to GNUNET_malloc_unchecked()
- * @return pointer to size bytes of memory, NULL if we do not have enough memory
- */
 void *
-GNUNET_xmalloc_unchecked_ (size_t size, const char *filename, int linenumber)
+GNUNET_xmalloc_unchecked_ (size_t size,
+                           const char *filename,
+                           int linenumber)
 {
   void *result;
 
   (void) filename;
   (void) linenumber;
-
   result = malloc (size);
   if (NULL == result)
     return NULL;
-  memset (result, 0, size);
-
+  memset (result,
+          0,
+          size);
   return result;
 }
 
 
-/**
- * Reallocate memory. Checks the return value, aborts if no more
- * memory is available.
- * The content of the intersection of the new and old size will be unchanged.
- *
- * @param ptr the pointer to reallocate
- * @param n how many bytes of memory to allocate
- * @param filename where in the code was the call to GNUNET_realloc()
- * @param linenumber where in the code was the call to GNUNET_realloc()
- * @return pointer to size bytes of memory
- */
 void *
-GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
+GNUNET_xrealloc_ (void *ptr,
+                  size_t n,
+                  const char *filename,
+                  int linenumber)
 {
   (void) filename;
   (void) linenumber;
@@ -249,7 +207,8 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
   ptr = realloc (ptr, n);
   if ((NULL == ptr) && (n > 0))
   {
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "realloc");
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "realloc");
     GNUNET_assert (0);
   }
   return ptr;
@@ -272,14 +231,6 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber)
 #define M_SIZE(p) malloc_size (p)
 #endif
 
-/**
- * Free memory. Merely a wrapper for the case that we
- * want to keep track of allocations.
- *
- * @param ptr the pointer to free
- * @param filename where in the code was the call to GNUNET_free()
- * @param linenumber where in the code was the call to GNUNET_free()
- */
 void
 GNUNET_xfree_ (void *ptr,
                const char *filename,
@@ -304,35 +255,37 @@ GNUNET_xfree_ (void *ptr,
 }
 
 
-/**
- * Dup a string (same semantics as strdup).
- *
- * @param str the string to dup
- * @param filename where in the code was the call to GNUNET_strdup()
- * @param linenumber where in the code was the call to GNUNET_strdup()
- * @return `strdup(@a str)`
- */
 char *
-GNUNET_xstrdup_ (const char *str, const char *filename, int linenumber)
+GNUNET_xstrdup_ (const char *str,
+                 const char *filename,
+                 int linenumber)
 {
+  size_t slen = strlen (str) + 1;
   char *res;
-  size_t slen;
 
-  GNUNET_assert_at (str != NULL, filename, linenumber);
-  slen = strlen (str) + 1;
-  res = GNUNET_xmalloc_ (slen, filename, linenumber);
-  GNUNET_memcpy (res, str, slen);
+  GNUNET_assert_at (str != NULL,
+                    filename,
+                    linenumber);
+  res = GNUNET_xmalloc_ (slen,
+                         filename,
+                         linenumber);
+  GNUNET_memcpy (res,
+                 str,
+                 slen);
   return res;
 }
 
 
 #if ! HAVE_STRNLEN
 static size_t
-strnlen (const char *s, size_t n)
+strnlen (const char *s,
+         size_t n)
 {
   const char *e;
 
-  e = memchr (s, '\0', n);
+  e = memchr (s,
+              '\0',
+              n);
   if (NULL == e)
     return n;
   return e - s;
@@ -342,15 +295,6 @@ strnlen (const char *s, size_t n)
 #endif
 
 
-/**
- * Dup partially a string (same semantics as strndup).
- *
- * @param str the string to dup
- * @param len the length of the string to dup
- * @param filename where in the code was the call to GNUNET_strndup()
- * @param linenumber where in the code was the call to GNUNET_strndup()
- * @return `strndup(@a str,@a len)`
- */
 char *
 GNUNET_xstrndup_ (const char *str,
                   size_t len,
@@ -361,27 +305,19 @@ GNUNET_xstrndup_ (const char *str,
 
   if (0 == len)
     return GNUNET_strdup ("");
-  GNUNET_assert_at (NULL != str, filename, linenumber);
+  GNUNET_assert_at (NULL != str,
+                    filename,
+                    linenumber);
   len = strnlen (str, len);
-  res = GNUNET_xmalloc_ (len + 1, filename, linenumber);
+  res = GNUNET_xmalloc_ (len + 1,
+                         filename,
+                         linenumber);
   GNUNET_memcpy (res, str, len);
   /* res[len] = '\0'; 'malloc' zeros out anyway */
   return res;
 }
 
 
-/**
- * Grow an array.  Grows old by (*oldCount-newCount)*elementSize bytes
- * and sets *oldCount to newCount.
- *
- * @param old address of the pointer to the array
- *        *old may be NULL
- * @param elementSize the size of the elements of the array
- * @param oldCount address of the number of elements in the *old array
- * @param newCount number of elements in the new array, may be 0
- * @param filename where in the code was the call to GNUNET_array_grow()
- * @param linenumber where in the code was the call to GNUNET_array_grow()
- */
 void
 GNUNET_xgrow_ (void **old,
                size_t elementSize,
@@ -401,65 +337,70 @@ GNUNET_xgrow_ (void **old,
   }
   else
   {
-    tmp = GNUNET_xmalloc_ (size, filename, linenumber);
+    tmp = GNUNET_xmalloc_ (size,
+                           filename,
+                           linenumber);
     if (NULL != *old)
     {
-      GNUNET_memcpy (tmp, *old, elementSize * GNUNET_MIN (*oldCount, newCount));
+      GNUNET_memcpy (tmp,
+                     *old,
+                     elementSize * GNUNET_MIN (*oldCount,
+                                               newCount));
     }
   }
 
   if (NULL != *old)
   {
-    GNUNET_xfree_ (*old, filename, linenumber);
+    GNUNET_xfree_ (*old,
+                   filename,
+                   linenumber);
   }
   *old = tmp;
   *oldCount = newCount;
 }
 
 
-/**
- * Like asprintf(), just portable.
- *
- * @param buf set to a buffer of sufficient size (allocated, caller must free)
- * @param format format string (see printf(), fprintf(), etc.)
- * @param ... data for format string
- * @return number of bytes in `*@a buf`, excluding 0-termination
- */
 int
-GNUNET_asprintf (char **buf, const char *format, ...)
+GNUNET_asprintf (char **buf,
+                 const char *format,
+                 ...)
 {
   int ret;
   va_list args;
 
-  va_start (args, format);
-  ret = vsnprintf (NULL, 0, format, args);
+  va_start (args,
+            format);
+  ret = vsnprintf (NULL,
+                   0,
+                   format,
+                   args);
   va_end (args);
   GNUNET_assert (ret >= 0);
   *buf = GNUNET_malloc (ret + 1);
   va_start (args, format);
-  ret = vsprintf (*buf, format, args);
+  ret = vsprintf (*buf,
+                  format,
+                  args);
   va_end (args);
   return ret;
 }
 
 
-/**
- * Like snprintf(), just aborts if the buffer is of insufficient size.
- *
- * @param buf pointer to buffer that is written to
- * @param size number of bytes in buf
- * @param format format strings
- * @param ... data for format string
- * @return number of bytes written to buf or negative value on error
- */
 int
-GNUNET_snprintf (char *buf, size_t size, const char *format, ...)
+GNUNET_snprintf (char *buf,
+                 size_t size,
+                 const char *format,
+                 ...)
 {
   int ret;
   va_list args;
 
-  va_start (args, format);
-  ret = vsnprintf (buf, size, format, args);
+  va_start (args,
+            format);
+  ret = vsnprintf (buf,
+                   size,
+                   format,
+                   args);
   va_end (args);
   GNUNET_assert ((ret >= 0) && (((size_t) ret) < size));
   return ret;
@@ -480,15 +421,7 @@ GNUNET_copy_message (const struct GNUNET_MessageHeader *msg)
 }
 
 
-/**
- * Check that memory in @a a is all zeros. @a a must be a pointer.
- *
- * @param a pointer to @a n bytes which should be tested for the
- *          entire memory being zero'ed out.
- * @param n number of bytes in @a to be tested
- * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
- */
-enum GNUNET_GenericReturnValue
+bool
 GNUNET_is_zero_ (const void *a,
                  size_t n)
 {
@@ -496,8 +429,8 @@ GNUNET_is_zero_ (const void *a,
 
   for (size_t i = 0; i < n; i++)
     if (b[i])
-      return GNUNET_NO;
-  return GNUNET_YES;
+      return false;
+  return true;
 }
 
 
