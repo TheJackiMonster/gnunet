@@ -149,7 +149,7 @@ typedef enum GNUNET_GenericReturnValue
  * @param run the run routing
  * @param cleanup the cleanup function
  * @param traits the traits function (optional)
- * @param the async context
+ * @param ac the async context
  * @return the command the function cannot fail
  */
 struct GNUNET_TESTING_Command
