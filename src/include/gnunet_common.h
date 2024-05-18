@@ -55,20 +55,20 @@
 #if defined(__FreeBSD__)
 
 #include <sys/endian.h>
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
+#define bswap_32(x) bswap32 (x)
+#define bswap_64(x) bswap64 (x)
 
 #elif defined(__OpenBSD__)
 
-#define bswap_32(x) swap32(x)
-#define bswap_64(x) swap64(x)
+#define bswap_32(x) swap32 (x)
+#define bswap_64(x) swap64 (x)
 
 #elif defined(__NetBSD__)
 
 #include <machine/bswap.h>
-#if defined(__BSWAP_RENAME) && !defined(__bswap_32)
-#define bswap_32(x) bswap32(x)
-#define bswap_64(x) bswap64(x)
+#if defined(__BSWAP_RENAME) && ! defined(__bswap_32)
+#define bswap_32(x) bswap32 (x)
+#define bswap_64(x) bswap64 (x)
 #endif
 
 #elif defined(__linux__) || defined(GNU)
@@ -166,15 +166,19 @@ enum GNUNET_GenericReturnValue
 #define BYTE_SWAP_16(x) ((((x) & 0x00ff) << 8) | (((x) & 0xff00) >> 8))
 
 #define BYTE_SWAP_32(x)                                   \
-  ((((x) & 0x000000ffU) << 24) | (((x) & 0x0000ff00U) << 8)   \
-   | (((x) & 0x00ff0000U) >> 8) | (((x) & 0xff000000U) >> 24))
+        ((((x) & 0x000000ffU) << 24) | (((x) & 0x0000ff00U) << 8)   \
+         | (((x) & 0x00ff0000U) >> 8) | (((x) & 0xff000000U) >> 24))
 
 #define BYTE_SWAP_64(x)                                                      \
-  ((((x) & 0x00000000000000ffUL) << 56) | (((x) & 0x000000000000ff00UL) << 40)   \
-   | (((x) & 0x0000000000ff0000UL) << 24) | (((x) & 0x00000000ff000000UL) << 8)    \
-   | (((x) & 0x000000ff00000000UL) >> 8) | (((x) & 0x0000ff0000000000UL) >> 24)    \
-   | (((x) & 0x00ff000000000000UL) >> 40) | (((x) & 0xff00000000000000UL) >> \
-                                             56))
+        ((((x) & 0x00000000000000ffUL) << 56) | (((x) & 0x000000000000ff00UL) << \
+                                                 40)   \
+         | (((x) & 0x0000000000ff0000UL) << 24) | (((x) & 0x00000000ff000000UL) \
+                                                   << 8)    \
+         | (((x) & 0x000000ff00000000UL) >> 8) | (((x) & 0x0000ff0000000000UL) \
+                                                  >> 24)    \
+         | (((x) & 0x00ff000000000000UL) >> 40) | (((x) & 0xff00000000000000UL) \
+                                                   >> \
+                                                   56))
 #endif
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -479,7 +483,7 @@ GNUNET_get_log_call_status (int caller_level,
 
 #endif
 
-
+/* *INDENT-OFF* */
 /**
  * @ingroup logging
  * Main log function.
@@ -489,13 +493,15 @@ GNUNET_get_log_call_status (int caller_level,
  * @param ... arguments for format string
  */
 void
-GNUNET_log_nocheck (enum GNUNET_ErrorType kind, const char *message, ...)
+GNUNET_log_nocheck (enum GNUNET_ErrorType kind,
+                    const char *message,
+                    ...)
 __attribute__ ((format (printf, 2, 3)));
 
 /* from glib */
 #if defined(__GNUC__) && (__GNUC__ > 2) && defined(__OPTIMIZE__)
 #define _GNUNET_BOOLEAN_EXPR(expr) \
-  __extension__ ({                  \
+  __extension__ ({                 \
     int _gnunet_boolean_var_;      \
     if (expr)                      \
       _gnunet_boolean_var_ = 1;    \
@@ -513,6 +519,7 @@ __attribute__ ((format (printf, 2, 3)));
 #if ! defined(GNUNET_LOG_CALL_STATUS)
 #define GNUNET_LOG_CALL_STATUS -1
 #endif
+/* *INDENT-ON* */
 
 
 /**
@@ -534,56 +541,56 @@ __attribute__ ((format (printf, 3, 4)));
 
 #if ! defined(GNUNET_CULL_LOGGING)
 #define GNUNET_log_from(kind, comp, ...)                                  \
-  do                                                                      \
-  {                                                                       \
-    static int log_call_enabled = GNUNET_LOG_CALL_STATUS;                 \
-    if ((GNUNET_EXTRA_LOGGING > 0) ||                                     \
-        ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
-    {                                                                     \
-      if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      (comp),                             \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
-      if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
-      {                                                                   \
-        GNUNET_log_skip (-1, GNUNET_NO);                                  \
-      }                                                                   \
-      else                                                                \
-      {                                                                   \
-        if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
-      }                                                                   \
-    }                                                                     \
-  } while (0)
+        do                                                                      \
+        {                                                                       \
+          static int log_call_enabled = GNUNET_LOG_CALL_STATUS;                 \
+          if ((GNUNET_EXTRA_LOGGING > 0) ||                                     \
+              ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
+          {                                                                     \
+            if (GN_UNLIKELY (log_call_enabled == -1))                           \
+            log_call_enabled =                                                \
+              GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                          (comp),                             \
+                                          __FILE__,                           \
+                                          __FUNCTION__,                       \
+                                          __LINE__);                          \
+            if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
+            {                                                                   \
+              GNUNET_log_skip (-1, GNUNET_NO);                                  \
+            }                                                                   \
+            else                                                                \
+            {                                                                   \
+              if (GN_UNLIKELY (log_call_enabled))                               \
+              GNUNET_log_from_nocheck ((kind), comp, __VA_ARGS__);            \
+            }                                                                   \
+          }                                                                     \
+        } while (0)
 
 #define GNUNET_log(kind, ...)                                             \
-  do                                                                      \
-  {                                                                       \
-    static int log_call_enabled = GNUNET_LOG_CALL_STATUS;                 \
-    if ((GNUNET_EXTRA_LOGGING > 0) ||                                     \
-        ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
-    {                                                                     \
-      if (GN_UNLIKELY (log_call_enabled == -1))                           \
-        log_call_enabled =                                                \
-          GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
-                                      NULL,                               \
-                                      __FILE__,                           \
-                                      __FUNCTION__,                       \
-                                      __LINE__);                          \
-      if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
-      {                                                                   \
-        GNUNET_log_skip (-1, GNUNET_NO);                                  \
-      }                                                                   \
-      else                                                                \
-      {                                                                   \
-        if (GN_UNLIKELY (log_call_enabled))                               \
-          GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
-      }                                                                   \
-    }                                                                     \
-  } while (0)
+        do                                                                      \
+        {                                                                       \
+          static int log_call_enabled = GNUNET_LOG_CALL_STATUS;                 \
+          if ((GNUNET_EXTRA_LOGGING > 0) ||                                     \
+              ((GNUNET_ERROR_TYPE_DEBUG & (kind)) == 0))                        \
+          {                                                                     \
+            if (GN_UNLIKELY (log_call_enabled == -1))                           \
+            log_call_enabled =                                                \
+              GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
+                                          NULL,                               \
+                                          __FILE__,                           \
+                                          __FUNCTION__,                       \
+                                          __LINE__);                          \
+            if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
+            {                                                                   \
+              GNUNET_log_skip (-1, GNUNET_NO);                                  \
+            }                                                                   \
+            else                                                                \
+            {                                                                   \
+              if (GN_UNLIKELY (log_call_enabled))                               \
+              GNUNET_log_nocheck ((kind), __VA_ARGS__);                       \
+            }                                                                   \
+          }                                                                     \
+        } while (0)
 #else
 #define GNUNET_log(...)
 #define GNUNET_log_from(...)
@@ -642,7 +649,7 @@ GNUNET_abort_ (void) GNUNET_NORETURN;
  */
 const char *
 GNUNET_b2s (const void *buf,
-           size_t buf_size);
+            size_t buf_size);
 
 
 /**
@@ -676,7 +683,9 @@ GNUNET_log_skip (int n, int check_reset);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if logfile could not be opened
  */
 enum GNUNET_GenericReturnValue
-GNUNET_log_setup (const char *comp, const char *loglevel, const char *logfile);
+GNUNET_log_setup (const char *comp,
+                  const char *loglevel,
+                  const char *logfile);
 
 
 /**
@@ -690,7 +699,8 @@ GNUNET_log_setup (const char *comp, const char *loglevel, const char *logfile);
  * @param logger_cls closure for @a logger
  */
 void
-GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls);
+GNUNET_logger_add (GNUNET_Logger logger,
+                   void *logger_cls);
 
 
 /**
@@ -701,7 +711,8 @@ GNUNET_logger_add (GNUNET_Logger logger, void *logger_cls);
  * @param logger_cls closure for @a logger
  */
 void
-GNUNET_logger_remove (GNUNET_Logger logger, void *logger_cls);
+GNUNET_logger_remove (GNUNET_Logger logger,
+                      void *logger_cls);
 
 
 /**
@@ -916,36 +927,37 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * @ingroup logging
  * Use this for fatal errors that cannot be handled
  */
-#if __GNUC__ >= 6  || __clang_major__ >= 6
+#if __GNUC__ >= 6 || __clang_major__ >= 6
 #define GNUNET_assert(cond)                                     \
-  do                                                            \
-  {                                                             \
- _Pragma("GCC diagnostic push")                                 \
- _Pragma("GCC diagnostic ignored \"-Wtautological-compare\"")   \
-    if (! (cond))                                               \
-    {                                                           \
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
-                  __FILE__,                                     \
-                  __LINE__);                                    \
-      GNUNET_abort_ ();                                         \
-    }                                                           \
- _Pragma("GCC diagnostic pop")                                  \
-  } while (0)
+        do                                                            \
+        {                                                             \
+          _Pragma("GCC diagnostic push")                                 \
+          _Pragma("GCC diagnostic ignored \"-Wtautological-compare\"")   \
+          if (! (cond))                                               \
+          {                                                           \
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
+          dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
+          __FILE__,                                     \
+          __LINE__);                                    \
+          GNUNET_abort_ ();                                         \
+          }                                                           \
+          _Pragma("GCC diagnostic pop")                                  \
+          } while (0)
 #else
 /* older GCC/clangs do not support -Wtautological-compare */
 #define GNUNET_assert(cond)                                     \
-  do                                                            \
-  {                                                             \
-    if (! (cond))                                               \
-    {                                                           \
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
-                  __FILE__,                                     \
-                  __LINE__);                                    \
-      GNUNET_abort_ ();                                         \
-    }                                                           \
-  } while (0)
+        do                                                            \
+        {                                                             \
+          if (! (cond))                                               \
+          {                                                           \
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
+                        dgettext ("gnunet", \
+                                  "Assertion failed at %s:%d. Aborting.\n"), \
+                        __FILE__,                                     \
+                        __LINE__);                                    \
+            GNUNET_abort_ ();                                         \
+          }                                                           \
+        } while (0)
 #endif
 
 /**
@@ -953,17 +965,18 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * Use this for fatal errors that cannot be handled
  */
 #define GNUNET_assert_at(cond, f, l)                            \
-  do                                                            \
-  {                                                             \
-    if (! (cond))                                               \
-    {                                                           \
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
-                  dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
-                  f,                                            \
-                  l);                                           \
-      GNUNET_abort_ ();                                         \
-    }                                                           \
-  } while (0)
+        do                                                            \
+        {                                                             \
+          if (! (cond))                                               \
+          {                                                           \
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                      \
+                        dgettext ("gnunet", \
+                                  "Assertion failed at %s:%d. Aborting.\n"), \
+                        f,                                            \
+                        l);                                           \
+            GNUNET_abort_ ();                                         \
+          }                                                           \
+        } while (0)
 
 
 /**
@@ -974,18 +987,20 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * @param comp Component string to use for logging
  */
 #define GNUNET_assert_from(cond, comp)                               \
-  do                                                                 \
-  {                                                                  \
-    if (! (cond))                                                    \
-    {                                                                \
-      GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,                      \
-                       comp,                                         \
-                       dgettext ("gnunet", "Assertion failed at %s:%d. Aborting.\n"), \
-                       __FILE__,                                     \
-                       __LINE__);                                    \
-      GNUNET_abort_ ();                                              \
-    }                                                                \
-  } while (0)
+        do                                                                 \
+        {                                                                  \
+          if (! (cond))                                                    \
+          {                                                                \
+            GNUNET_log_from (GNUNET_ERROR_TYPE_ERROR,                      \
+                             comp,                                         \
+                             dgettext ("gnunet", \
+                                       "Assertion failed at %s:%d. Aborting.\n") \
+                             , \
+                             __FILE__,                                     \
+                             __LINE__);                                    \
+            GNUNET_abort_ ();                                              \
+          }                                                                \
+        } while (0)
 
 
 #ifdef _Static_assert
@@ -1016,16 +1031,16 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * not fatal (can be handled) but should not occur.
  */
 #define GNUNET_break(cond)                            \
-  do                                                  \
-  {                                                   \
-    if (! (cond))                                     \
-    {                                                 \
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,            \
-                  dgettext ("gnunet", "Assertion failed at %s:%d.\n"),   \
-                  __FILE__,                           \
-                  __LINE__);                          \
-    }                                                 \
-  } while (0)
+        do                                                  \
+        {                                                   \
+          if (! (cond))                                     \
+          {                                                 \
+            GNUNET_log (GNUNET_ERROR_TYPE_ERROR,            \
+                        dgettext ("gnunet", "Assertion failed at %s:%d.\n"),   \
+                        __FILE__,                           \
+                        __LINE__);                          \
+          }                                                 \
+        } while (0)
 
 
 /**
@@ -1038,16 +1053,17 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * development and testing.  "OP == other peer".
  */
 #define GNUNET_break_op(cond)                                             \
-  do                                                                      \
-  {                                                                       \
-    if (! (cond))                                                         \
-    {                                                                     \
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING | GNUNET_ERROR_TYPE_BULK,     \
-                  dgettext ("gnunet", "External protocol violation detected at %s:%d.\n"), \
-                  __FILE__,                                               \
-                  __LINE__);                                              \
-    }                                                                     \
-  } while (0)
+        do                                                                      \
+        {                                                                       \
+          if (! (cond))                                                         \
+          {                                                                     \
+            GNUNET_log (GNUNET_ERROR_TYPE_WARNING | GNUNET_ERROR_TYPE_BULK,     \
+                        dgettext ("gnunet", \
+                                  "External protocol violation detected at %s:%d.\n"), \
+                        __FILE__,                                               \
+                        __LINE__);                                              \
+          }                                                                     \
+        } while (0)
 
 
 /**
@@ -1057,15 +1073,16 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * by strerror(errno).
  */
 #define GNUNET_log_strerror(level, cmd)                      \
-  do                                                         \
-  {                                                          \
-    GNUNET_log (level,                                       \
-                dgettext ("gnunet", "`%s' failed at %s:%d with error: %s\n"), \
-                cmd,                                         \
-                __FILE__,                                    \
-                __LINE__,                                    \
-                strerror (errno));                           \
-  } while (0)
+        do                                                         \
+        {                                                          \
+          GNUNET_log (level,                                       \
+                      dgettext ("gnunet", \
+                                "`%s' failed at %s:%d with error: %s\n"), \
+                      cmd,                                         \
+                      __FILE__,                                    \
+                      __LINE__,                                    \
+                      strerror (errno));                           \
+        } while (0)
 
 
 /**
@@ -1075,16 +1092,17 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * by strerror(errno).
  */
 #define GNUNET_log_from_strerror(level, component, cmd)           \
-  do                                                              \
-  {                                                               \
-    GNUNET_log_from (level,                                       \
-                     component,                                   \
-                     dgettext ("gnunet", "`%s' failed at %s:%d with error: %s\n"), \
-                     cmd,                                         \
-                     __FILE__,                                    \
-                     __LINE__,                                    \
-                     strerror (errno));                           \
-  } while (0)
+        do                                                              \
+        {                                                               \
+          GNUNET_log_from (level,                                       \
+                           component,                                   \
+                           dgettext ("gnunet", \
+                                     "`%s' failed at %s:%d with error: %s\n"), \
+                           cmd,                                         \
+                           __FILE__,                                    \
+                           __LINE__,                                    \
+                           strerror (errno));                           \
+        } while (0)
 
 
 /**
@@ -1094,16 +1112,17 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * by strerror(errno).
  */
 #define GNUNET_log_strerror_file(level, cmd, filename)                    \
-  do                                                                      \
-  {                                                                       \
-    GNUNET_log (level,                                                    \
-                dgettext ("gnunet", "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
-                cmd,                                                      \
-                filename,                                                 \
-                __FILE__,                                                 \
-                __LINE__,                                                 \
-                strerror (errno));                                        \
-  } while (0)
+        do                                                                      \
+        {                                                                       \
+          GNUNET_log (level,                                                    \
+                      dgettext ("gnunet", \
+                                "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
+                      cmd,                                                      \
+                      filename,                                                 \
+                      __FILE__,                                                 \
+                      __LINE__,                                                 \
+                      strerror (errno));                                        \
+        } while (0)
 
 
 /**
@@ -1113,17 +1132,18 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
  * by strerror(errno).
  */
 #define GNUNET_log_from_strerror_file(level, component, cmd, filename)         \
-  do                                                                           \
-  {                                                                            \
-    GNUNET_log_from (level,                                                    \
-                     component,                                                \
-                     dgettext ("gnunet", "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
-                     cmd,                                                      \
-                     filename,                                                 \
-                     __FILE__,                                                 \
-                     __LINE__,                                                 \
-                     strerror (errno));                                        \
-  } while (0)
+        do                                                                           \
+        {                                                                            \
+          GNUNET_log_from (level,                                                    \
+                           component,                                                \
+                           dgettext ("gnunet", \
+                                     "`%s' failed on file `%s' at %s:%d with error: %s\n"), \
+                           cmd,                                                      \
+                           filename,                                                 \
+                           __FILE__,                                                 \
+                           __LINE__,                                                 \
+                           strerror (errno));                                        \
+        } while (0)
 
 /* ************************* endianness conversion ****************** */
 
@@ -1216,7 +1236,7 @@ GNUNET_ntoh_double (double d);
  * the first element!
  */
 #define GNUNET_memcmp(a, b)       \
-  ({                              \
+        ({                              \
     const typeof (*b) * _a = (a);  \
     const typeof (*a) * _b = (b);  \
     memcmp (_a, _b, sizeof(*a)); \
@@ -1245,7 +1265,7 @@ GNUNET_memcmp_ct_ (const void *b1,
  * the first element!
  */
 #define GNUNET_memcmp_priv(a, b)       \
-  ({                              \
+        ({                              \
     const typeof (*b) * _a = (a);  \
     const typeof (*a) * _b = (b);  \
     GNUNET_memcmp_ct_ (_a, _b, sizeof(*a)); \
@@ -1258,9 +1278,9 @@ GNUNET_memcmp_ct_ (const void *b1,
  * @param a pointer to @a n bytes which should be tested for the
  *          entire memory being zero'ed out.
  * @param n number of bytes in @a to be tested
- * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
+ * @return true if @a a is zero, false_NO otherwise
  */
-enum GNUNET_GenericReturnValue
+bool
 GNUNET_is_zero_ (const void *a,
                  size_t n);
 
@@ -1273,7 +1293,7 @@ GNUNET_is_zero_ (const void *a,
  * @return GNUNET_YES if a is zero, GNUNET_NO otherwise
  */
 #define GNUNET_is_zero(a)           \
-  GNUNET_is_zero_ ((a), sizeof (*(a)))
+        GNUNET_is_zero_ ((a), sizeof (*(a)))
 
 
 /**
@@ -1286,15 +1306,16 @@ GNUNET_is_zero_ (const void *a,
  * @param n number of bytes to copy
  */
 #define GNUNET_memcpy(dst, src, n) \
-  do                               \
-  {                                \
-    if (0 != n)                    \
-    {                              \
-      (void) memcpy (dst, src, n); \
-    }                              \
-  } while (0)
+        do                               \
+        {                                \
+          if (0 != n)                    \
+          {                              \
+            (void) memcpy (dst, src, n); \
+          }                              \
+        } while (0)
 
 
+/* *INDENT-OFF* */
 /**
  * @ingroup memory
  * Allocate a size @a n array with structs or unions of the given @a type.
@@ -1308,6 +1329,7 @@ GNUNET_is_zero_ (const void *a,
     GNUNET_assert (SIZE_MAX / sizeof (type) >= n);     \
     (type *) GNUNET_malloc ((n) * sizeof(type));   \
   })
+/* *INDENT-ON* */
 
 /**
  * @ingroup memory
@@ -1319,7 +1341,7 @@ GNUNET_is_zero_ (const void *a,
  * @param type name of the struct or union, i.e. pass 'struct Foo'.
  */
 #define GNUNET_new_array_2d(n, m, type) \
-  (type **) GNUNET_xnew_array_2d_ (n, m, sizeof(type), __FILE__, __LINE__)
+        (type **) GNUNET_xnew_array_2d_ (n, m, sizeof(type), __FILE__, __LINE__)
 
 /**
  * @ingroup memory
@@ -1332,7 +1354,8 @@ GNUNET_is_zero_ (const void *a,
  * @param type name of the struct or union, i.e. pass 'struct Foo'.
  */
 #define GNUNET_new_array_3d(n, m, o, type) \
-  (type ***) GNUNET_xnew_array_3d_ (n, m, o, sizeof(type), __FILE__, __LINE__)
+        (type ***) GNUNET_xnew_array_3d_ (n, m, o, sizeof(type), __FILE__, \
+                                          __LINE__)
 
 /**
  * @ingroup memory
@@ -1364,7 +1387,7 @@ GNUNET_is_zero_ (const void *a,
  * @return pointer to size bytes of memory, NULL if we do not have enough memory
  */
 #define GNUNET_malloc_large(size) \
-  GNUNET_xmalloc_unchecked_ (size, __FILE__, __LINE__)
+        GNUNET_xmalloc_unchecked_ (size, __FILE__, __LINE__)
 
 
 /**
@@ -1377,7 +1400,7 @@ GNUNET_is_zero_ (const void *a,
  * @return pointer to size bytes of memory
  */
 #define GNUNET_realloc(ptr, size) \
-  GNUNET_xrealloc_ (ptr, size, __FILE__, __LINE__)
+        GNUNET_xrealloc_ (ptr, size, __FILE__, __LINE__)
 
 
 /**
@@ -1404,8 +1427,8 @@ GNUNET_is_zero_ (const void *a,
  *     been returned by #GNUNET_strdup, #GNUNET_strndup, #GNUNET_malloc or #GNUNET_array_grow earlier.  NULL is allowed.
  */
 #define GNUNET_free(ptr) do { \
-    GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
-    ptr = NULL; \
+          GNUNET_xfree_ (ptr, __FILE__, __LINE__); \
+          ptr = NULL; \
 } while (0)
 
 
@@ -1419,6 +1442,7 @@ GNUNET_is_zero_ (const void *a,
  */
 #define GNUNET_strdup(a) GNUNET_xstrdup_ (a, __FILE__, __LINE__)
 
+
 /**
  * @ingroup memory
  * Wrapper around #GNUNET_xstrndup_.  Makes a partial copy of the string
@@ -1429,7 +1453,7 @@ GNUNET_is_zero_ (const void *a,
  * @return a partial copy of the string including zero-termination
  */
 #define GNUNET_strndup(a, length) \
-  GNUNET_xstrndup_ (a, length, __FILE__, __LINE__)
+        GNUNET_xstrndup_ (a, length, __FILE__, __LINE__)
 
 /**
  * @ingroup memory
@@ -1467,12 +1491,12 @@ GNUNET_is_zero_ (const void *a,
  *        free the vector (then, arr will be NULL afterwards).
  */
 #define GNUNET_array_grow(arr, size, tsize) \
-  GNUNET_xgrow_ ((void **) &(arr),          \
-                 sizeof((arr)[0]),         \
-                 &size,                     \
-                 tsize,                     \
-                 __FILE__,                  \
-                 __LINE__)
+        GNUNET_xgrow_ ((void **) &(arr),          \
+                       sizeof((arr)[0]),         \
+                       &size,                     \
+                       tsize,                     \
+                       __FILE__,                  \
+                       __LINE__)
 
 /**
  * @ingroup memory
@@ -1488,12 +1512,12 @@ GNUNET_is_zero_ (const void *a,
  * @param element the element that will be appended to the array
  */
 #define GNUNET_array_append(arr, len, element) \
-  do                                            \
-  {                                             \
-    GNUNET_assert ((len) + 1 > (len)); \
-    GNUNET_array_grow (arr, len, len + 1);    \
-    (arr) [len - 1] = element;                  \
-  } while (0)
+        do                                            \
+        {                                             \
+          GNUNET_assert ((len) + 1 > (len)); \
+          GNUNET_array_grow (arr, len, len + 1);    \
+          (arr) [len - 1] = element;                  \
+        } while (0)
 
 
 /**
@@ -1520,15 +1544,15 @@ GNUNET_is_zero_ (const void *a,
 
  */
 #define GNUNET_array_concatenate(arr1, len1, arr2, len2)   \
-  do                                            \
-  {                                             \
-    const typeof (*arr2) * _a1 = (arr1);  \
-    const typeof (*arr1) * _a2 = (arr2);  \
-    GNUNET_assert ((len1) + (len2) >= (len1));                    \
-    GNUNET_assert (SIZE_MAX / sizeof (*_a1) >= ((len1) + (len2))); \
-    GNUNET_array_grow (arr1, len1, (len1) + (len2));            \
-    memcpy (&(arr1) [(len1) - (len2)], _a2, (len2) * sizeof (*arr1));    \
-  } while (0)
+        do                                            \
+        {                                             \
+          const typeof (*arr2) * _a1 = (arr1);  \
+          const typeof (*arr1) * _a2 = (arr2);  \
+          GNUNET_assert ((len1) + (len2) >= (len1));                    \
+          GNUNET_assert (SIZE_MAX / sizeof (*_a1) >= ((len1) + (len2))); \
+          GNUNET_array_grow (arr1, len1, (len1) + (len2));            \
+          memcpy (&(arr1) [(len1) - (len2)], _a2, (len2) * sizeof (*arr1));    \
+        } while (0)
 
 
 /**
@@ -1579,7 +1603,9 @@ __attribute__ ((format (printf, 2, 3)));
  * @return allocated memory, never NULL
  */
 void *
-GNUNET_xmalloc_ (size_t size, const char *filename, int linenumber);
+GNUNET_xmalloc_ (size_t size,
+                 const char *filename,
+                 int linenumber);
 
 
 /**
@@ -1659,7 +1685,9 @@ GNUNET_xmemdup_ (const void *buf,
  * @return pointer to size bytes of memory, NULL if we do not have enough memory
  */
 void *
-GNUNET_xmalloc_unchecked_ (size_t size, const char *filename, int linenumber);
+GNUNET_xmalloc_unchecked_ (size_t size,
+                           const char *filename,
+                           int linenumber);
 
 
 /**
@@ -1667,7 +1695,10 @@ GNUNET_xmalloc_unchecked_ (size_t size, const char *filename, int linenumber);
  * memory is available.
  */
 void *
-GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber);
+GNUNET_xrealloc_ (void *ptr,
+                  size_t n,
+                  const char *filename,
+                  int linenumber);
 
 
 /**
@@ -1680,7 +1711,9 @@ GNUNET_xrealloc_ (void *ptr, size_t n, const char *filename, int linenumber);
  * @param linenumber line where this call is being made (for debugging)
  */
 void
-GNUNET_xfree_ (void *ptr, const char *filename, int linenumber);
+GNUNET_xfree_ (void *ptr,
+               const char *filename,
+               int linenumber);
 
 
 /**
@@ -1691,7 +1724,9 @@ GNUNET_xfree_ (void *ptr, const char *filename, int linenumber);
  * @return the duplicated string
  */
 char *
-GNUNET_xstrdup_ (const char *str, const char *filename, int linenumber);
+GNUNET_xstrdup_ (const char *str,
+                 const char *filename,
+                 int linenumber);
 
 /**
  * Dup partially a string. Don't call GNUNET_xstrndup_ directly. Use the #GNUNET_strndup macro.
@@ -1861,6 +1896,8 @@ enum GNUNET_SCHEDULER_Priority
 };
 
 
+/* *INDENT-OFF* */
+
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif
@@ -1869,5 +1906,3 @@ enum GNUNET_SCHEDULER_Priority
 #endif
 
 #endif /* GNUNET_COMMON_H */
-
-/** @} */ /* end of group addition */

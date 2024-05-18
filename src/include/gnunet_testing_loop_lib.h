@@ -39,12 +39,12 @@
  * quite any time after the command "run" method has been called.
  */
 #define GNUNET_TESTING_FAIL(is) \
-  do \
-  { \
-    GNUNET_break (0); \
-    GNUNET_TESTING_interpreter_fail (is); \
-    return; \
-  } while (0)
+        do \
+        { \
+          GNUNET_break (0); \
+          GNUNET_TESTING_interpreter_fail (is); \
+          return; \
+        } while (0)
 
 
 /* ******************* Generic interpreter logic ************ */
@@ -163,7 +163,7 @@ GNUNET_TESTING_command_new (void *cls,
 
 /**
  * Structure with storage space for a label.
- */ 
+ */
 struct GNUNET_TESTING_CommandLabel
 {
   char value[GNUNET_TESTING_CMD_MAX_LABEL_LENGTH + 1];
@@ -440,7 +440,6 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
                      struct GNUNET_TIME_Relative timeout);
 
 
-
 /* ************** Fundamental interpreter commands ************ */
 
 
@@ -516,10 +515,10 @@ GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
  * A `struct GNUNET_TESTING_Trait` can be used to exchange data between cmds.
  *
  * Therefor the cmd which like to provide data to other cmds has to implement
- * the trait function, where an array of traits is defined with the help of the
- * #GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the help of the
- * #GNUNET_TESTING_get_trait_ macro. Traits name and type must be defined to make
- * use of the macros.
+ * the trait function, where an array of traits is defined with the help of
+ * the #GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the
+ * help of the #GNUNET_TESTING_get_trait_ macro. Traits name and type must be
+ * defined to make use of the macros.
  */
 struct GNUNET_TESTING_Trait
 {
@@ -567,7 +566,6 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
                           unsigned int index);
 
 
-
 /**
  * Create headers for a trait with name @a name for
  * statically allocated data of type @a type.
@@ -577,13 +575,13 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * @param type data type for the trait
  */
 #define GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT(prefix,name,type) \
-  enum GNUNET_GenericReturnValue                           \
-  prefix ## _get_trait_ ## name (                          \
-    const struct GNUNET_TESTING_Command *cmd,              \
-    type **ret);                                           \
-  struct GNUNET_TESTING_Trait                              \
-  prefix ## _make_trait_ ## name (                         \
-    type * value);
+        enum GNUNET_GenericReturnValue                           \
+        prefix ## _get_trait_ ## name (                          \
+          const struct GNUNET_TESTING_Command *cmd,              \
+          type * *ret);                                           \
+        struct GNUNET_TESTING_Trait                              \
+        prefix ## _make_trait_ ## name (                         \
+          type * value);
 
 
 /**
@@ -595,27 +593,27 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * @param type data type for the trait
  */
 #define GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT(prefix,name,type) \
-  enum GNUNET_GenericReturnValue                          \
-  prefix ## _get_trait_ ## name (                         \
-    const struct GNUNET_TESTING_Command *cmd,             \
-    type * *ret)                                          \
-  {                                                       \
-    if (NULL == cmd->traits) return GNUNET_SYSERR;        \
-    return cmd->traits (cmd->cls,                         \
-                        (const void **) ret,              \
-                        GNUNET_S (name),                  \
-                        0);                               \
-  }                                                       \
-  struct GNUNET_TESTING_Trait                             \
-  prefix ## _make_trait_ ## name (                        \
-    type * value)                                         \
-  {                                                       \
-    struct GNUNET_TESTING_Trait ret = {                   \
-      .trait_name = GNUNET_S (name),                      \
-      .ptr = (const void *) value                         \
-    };                                                    \
-    return ret;                                           \
-  }
+        enum GNUNET_GenericReturnValue                          \
+        prefix ## _get_trait_ ## name (                         \
+          const struct GNUNET_TESTING_Command *cmd,             \
+          type * *ret)                                          \
+        {                                                       \
+          if (NULL == cmd->traits) return GNUNET_SYSERR;        \
+          return cmd->traits (cmd->cls,                         \
+                              (const void **) ret,              \
+                              GNUNET_S (name),                  \
+                              0);                               \
+        }                                                       \
+        struct GNUNET_TESTING_Trait                             \
+        prefix ## _make_trait_ ## name (                        \
+          type * value)                                         \
+        {                                                       \
+          struct GNUNET_TESTING_Trait ret = {                   \
+            .trait_name = GNUNET_S (name),                      \
+            .ptr = (const void *) value                         \
+          };                                                    \
+          return ret;                                           \
+        }
 
 
 /**
@@ -627,15 +625,15 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * @param type data type for the trait
  */
 #define GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT(prefix,name,type)    \
-  enum GNUNET_GenericReturnValue                           \
-  prefix ## _get_trait_ ## name (                          \
-    const struct GNUNET_TESTING_Command *cmd,              \
-    unsigned int index,                                    \
-    type **ret);                                           \
-  struct GNUNET_TESTING_Trait                              \
-  prefix ## _make_trait_ ## name (                         \
-    unsigned int index,                                    \
-    type *value);
+        enum GNUNET_GenericReturnValue                           \
+        prefix ## _get_trait_ ## name (                          \
+          const struct GNUNET_TESTING_Command *cmd,              \
+          unsigned int index,                                    \
+          type * *ret);                                           \
+        struct GNUNET_TESTING_Trait                              \
+        prefix ## _make_trait_ ## name (                         \
+          unsigned int index,                                    \
+          type * value);
 
 
 /**
@@ -643,30 +641,30 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * allocated data of type @a type.
  */
 #define GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT(prefix,name,type)    \
-  enum GNUNET_GenericReturnValue                          \
-  prefix ## _get_trait_ ## name (                         \
-    const struct GNUNET_TESTING_Command *cmd,             \
-    unsigned int index,                                   \
-    type * *ret)                                          \
-  {                                                       \
-    if (NULL == cmd->traits) return GNUNET_SYSERR;        \
-    return cmd->traits (cmd->cls,                         \
-                        (const void **) ret,              \
-                        GNUNET_S (name),                  \
-                        index);                           \
-  }                                                       \
-  struct GNUNET_TESTING_Trait                             \
-  prefix ## _make_trait_ ## name (                        \
-    unsigned int index,                                   \
-    type * value)                                         \
-  {                                                       \
-    struct GNUNET_TESTING_Trait ret = {                   \
-      .index = index,                                     \
-      .trait_name = GNUNET_S (name),                      \
-      .ptr = (const void *) value                         \
-    };                                                    \
-    return ret;                                           \
-  }
+        enum GNUNET_GenericReturnValue                          \
+        prefix ## _get_trait_ ## name (                         \
+          const struct GNUNET_TESTING_Command *cmd,             \
+          unsigned int index,                                   \
+          type * *ret)                                          \
+        {                                                       \
+          if (NULL == cmd->traits) return GNUNET_SYSERR;        \
+          return cmd->traits (cmd->cls,                         \
+                              (const void **) ret,              \
+                              GNUNET_S (name),                  \
+                              index);                           \
+        }                                                       \
+        struct GNUNET_TESTING_Trait                             \
+        prefix ## _make_trait_ ## name (                        \
+          unsigned int index,                                   \
+          type * value)                                         \
+        {                                                       \
+          struct GNUNET_TESTING_Trait ret = {                   \
+            .index = index,                                     \
+            .trait_name = GNUNET_S (name),                      \
+            .ptr = (const void *) value                         \
+          };                                                    \
+          return ret;                                           \
+        }
 
 
 /**
@@ -676,10 +674,11 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
  * @param prefix prefix to pass to @e op
  */
 #define GNUNET_TESTING_LOOP_SIMPLE_TRAITS(op,prefix)      \
-  op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)
+        op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)
 
 
-GNUNET_TESTING_LOOP_SIMPLE_TRAITS(GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TESTING)
+GNUNET_TESTING_LOOP_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                   GNUNET_TESTING)
 
 
 /**
@@ -689,9 +688,10 @@ GNUNET_TESTING_LOOP_SIMPLE_TRAITS(GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_
  * @param prefix prefix to pass to @e op
  */
 #define GNUNET_TESTING_LOOP_INDEXED_TRAITS(op,prefix) \
-  op (prefix, cmd, const struct GNUNET_TESTING_Command)
+        op (prefix, cmd, const struct GNUNET_TESTING_Command)
 
-GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT, GNUNET_TESTING)
+GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT,
+                                    GNUNET_TESTING)
 
 
 #endif
