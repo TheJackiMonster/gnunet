@@ -7,7 +7,6 @@ endif
 subdir('util')
 subdir('statistics')
 subdir('arm')
-subdir('testing')
 subdir('peerstore')
 subdir('nat')
 subdir('nat-auto')

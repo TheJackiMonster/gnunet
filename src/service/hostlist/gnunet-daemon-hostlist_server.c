@@ -25,8 +25,8 @@
  * @author David Barksdale
  * @brief application to provide an integrated hostlist HTTP server
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include <microhttpd.h>
 #include "gnunet-daemon-hostlist_server.h"
 #include "gnunet_hello_uri_lib.h"

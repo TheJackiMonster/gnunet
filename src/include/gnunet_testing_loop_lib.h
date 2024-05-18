@@ -145,7 +145,7 @@ typedef enum GNUNET_GenericReturnValue
  * Create a new command
  *
  * @param cls the closure
- * @param label the Label. Maximum length is GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
+ * @param label the Label. Maximum length is #GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
  * @param run the run routing
  * @param cleanup the cleanup function
  * @param traits the traits function (optional)
@@ -153,12 +153,13 @@ typedef enum GNUNET_GenericReturnValue
  * @return the command the function cannot fail
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_command_new (void *cls,
-                            const char *label,
-                            GNUNET_TESTING_CommandRunRoutine run,
-                            GNUNET_TESTING_CommandCleanupRoutine cleanup,
-                            GNUNET_TESTING_CommandGetTraits traits,
-                            struct GNUNET_TESTING_AsyncContext *ac);
+GNUNET_TESTING_command_new (
+  void *cls,
+  const char *label,
+  GNUNET_TESTING_CommandRunRoutine run,
+  GNUNET_TESTING_CommandCleanupRoutine cleanup,
+  GNUNET_TESTING_CommandGetTraits traits,
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**

@@ -62,7 +62,7 @@ libgnunetmessengertesting_la_SOURCES = \
   messenger-testing.c messenger-testing.h
 libgnunetmessengertesting_la_LIBADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
@@ -90,7 +90,7 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
@@ -147,14 +147,14 @@ test_messenger_api_SOURCES = \
   test_messenger.c
 test_messenger_api_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_messenger_anonymous_SOURCES = \
   test_messenger_anonymous.c
 test_messenger_anonymous_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \
