@@ -3657,6 +3657,8 @@ remove_global_addresses (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
 
   GNUNET_free (tgna);
+
+  return GNUNET_OK;
 }
 
 
@@ -5361,10 +5363,9 @@ add_global_addresses (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
   size_t address_len = strlen (addr);
-  unsigned int off = 0;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "sending address %s length %u\n",
+              "sending address %s length %lu\n",
               addr,
               address_len);
   tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len);
@@ -5373,6 +5374,8 @@ add_global_addresses (void *cls,
   GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
   GNUNET_free (tgna);
   ctx->off += sizeof(struct TransportGlobalNattedAddress) + address_len;
+
+  return GNUNET_OK;
 }
 
 
@@ -5950,7 +5953,6 @@ handle_add_address (void *cls,
   struct TransportClient *tc = cls;
   struct AddressListEntry *ale;
   size_t slen;
-  char *address;
 
   /* 0-termination of &aam[1] was checked in #check_add_address */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -9619,11 +9621,10 @@ static int
 check_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 {
   (void) cls;
-  struct TransportGlobalNattedAddress *addresses = (struct TransportGlobalNattedAddress *) &fc[1];
   unsigned int number_of_addresses = ntohl (fc->number_of_addresses);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Flow control header size %u size of addresses %u number of addresses %u size of message struct %u second struct %u\n",
+              "Flow control header size %u size of addresses %u number of addresses %u size of message struct %lu second struct %lu\n",
               ntohs (fc->header.size),
               ntohl (fc->size_of_addresses),
               ntohl (fc->number_of_addresses),
@@ -11604,8 +11605,6 @@ iterate_address_and_compare_cb (void *cls,
                                 const char *uri)
 {
   struct Queue *queue = cls;
-  struct Neighbour *neighbour = queue->neighbour;
-  const char *dash;
   const char *slash;
   char *address_uri;
   char *prefix;
@@ -11727,7 +11726,7 @@ check_for_global_natted (void *cls,
   hello = record->value;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "before not global natted %u\n",
+              "before not global natted %lu\n",
               queue->is_global_natted);
   GNUNET_HELLO_builder_iterate (builder,
                                 &iterate_address_and_compare_cb,

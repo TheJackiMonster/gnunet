@@ -455,31 +455,6 @@ GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
   return nh;
 }
 
-
-/**
- * Get the IP address without the port number.
- *
- * @param address The string contains a communicator prefix, IP address and port
- *        like this 'tcp-92.68.150.1:55452'.
- * @return String with prefix and IP address only.
- */
-static char *
-get_address_without_port (const char *address)
-{
-  const char *colon;
-  char *colon_rest;
-  size_t colon_rest_length;
-  char *address_without_port;
-
-  colon = strchr (address,':');
-  colon_rest = GNUNET_strndup (address, colon - address);
-  colon_rest_length = strlen (colon_rest);
-  address_without_port = GNUNET_strndup (&colon_rest[4], colon_rest_length - 4);
-  GNUNET_free (colon_rest);
-
-  return address_without_port;
-}
-
 void
 GNUNET_NAT_add_global_address (struct GNUNET_NAT_Handle *nh,
                                char *addr,

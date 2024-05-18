@@ -61,13 +61,13 @@
  * How long do we wait until we forcefully terminate autoconfiguration?
  */
 #define AUTOCONFIG_TIMEOUT GNUNET_TIME_relative_multiply ( \
-          GNUNET_TIME_UNIT_SECONDS, 5)
+    GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * How often do we scan for changes in how our external (dyndns) hostname resolves?
  */
 #define DYNDNS_FREQUENCY GNUNET_TIME_relative_multiply ( \
-          GNUNET_TIME_UNIT_MINUTES, 7)
+    GNUNET_TIME_UNIT_MINUTES, 7)
 
 
 /**
