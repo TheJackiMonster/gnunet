@@ -58,7 +58,8 @@ on_message_cb (void *cls,
     return;
 
   if (GNUNET_OK != GNUNET_CONTAINER_multipeermap_put (rs->doors,
-                                                      &(message->body.peer.peer),
+                                                      &(message->body.peer.peer)
+                                                      ,
                                                       NULL,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
   {
@@ -167,6 +168,5 @@ GNUNET_MESSENGER_cmd_start_service (const char *label,
                                      label,
                                      &start_service_run,
                                      &start_service_cleanup,
-                                     &start_service_traits,
-                                     NULL);
+                                     &start_service_traits);
 }

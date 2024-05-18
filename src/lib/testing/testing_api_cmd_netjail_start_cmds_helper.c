@@ -909,9 +909,10 @@ GNUNET_TESTING_cmd_netjail_start_cmds_helper (
   ns->topology_data = topology_data;
   ns->timeout = GNUNET_TIME_relative_subtract (timeout, TIMEOUT);
 
-  return GNUNET_TESTING_command_new (ns, label,
-                                     &netjail_exec_run,
-                                     &netjail_exec_cleanup,
-                                     &netjail_exec_traits,
-                                     &ns->ac);
+  return GNUNET_TESTING_command_new_ac (ns,
+                                        label,
+                                        &netjail_exec_run,
+                                        &netjail_exec_cleanup,
+                                        &netjail_exec_traits,
+                                        &ns->ac);
 }

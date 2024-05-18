@@ -175,7 +175,7 @@ GNUNET_TESTING_cmd_batch (const char *label,
                                      label,
                                      &batch_run,
                                      &batch_cleanup,
-                                     &batch_traits, NULL);
+                                     &batch_traits);
 }
 
 

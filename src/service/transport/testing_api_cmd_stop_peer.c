@@ -61,7 +61,7 @@ stop_peer_run (void *cls,
                                                          stop_ps->start_label);
   GNUNET_TRANSPORT_TESTING_get_trait_state (start_cmd,
                                             &sps);
-  
+
   if (NULL != sps->peer)
   {
     if (GNUNET_OK !=
@@ -115,7 +115,7 @@ stop_peer_traits (void *cls,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stop_peer (const char *label,
-                                const char *start_label)
+                              const char *start_label)
 {
   struct StopPeerState *sps;
 
@@ -125,6 +125,5 @@ GNUNET_TESTING_cmd_stop_peer (const char *label,
                                      label,
                                      &stop_peer_run,
                                      &stop_peer_cleanup,
-                                     &stop_peer_traits,
-                                     NULL);
+                                     &stop_peer_traits);
 }

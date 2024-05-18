@@ -110,10 +110,10 @@ GNUNET_TESTING_cmd_block_until_external_trigger (
 
   bs = GNUNET_new (struct GNUNET_TESTING_BlockState);
   bs->label = label;
-  return GNUNET_TESTING_command_new (bs,
-                                     label,
-                                     &block_until_all_peers_started_run,
-                                     &block_until_all_peers_started_cleanup,
-                                     &block_until_external_trigger_traits,
-                                     &bs->ac);
+  return GNUNET_TESTING_command_new_ac (bs,
+                                        label,
+                                        &block_until_all_peers_started_run,
+                                        &block_until_all_peers_started_cleanup,
+                                        &block_until_external_trigger_traits,
+                                        &bs->ac);
 }

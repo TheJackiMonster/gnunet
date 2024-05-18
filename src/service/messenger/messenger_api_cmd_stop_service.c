@@ -91,6 +91,5 @@ GNUNET_MESSENGER_cmd_stop_service (const char *label,
                                      label,
                                      &stop_service_run,
                                      &stop_service_cleanup,
-                                     NULL,
                                      NULL);
 }

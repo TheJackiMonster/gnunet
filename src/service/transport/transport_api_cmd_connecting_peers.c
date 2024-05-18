@@ -292,22 +292,23 @@ GNUNET_TRANSPORT_cmd_connect_peers (const char *label,
   cps->additional_connects = additional_connects;
   cps->wait_for_connect = wait_for_connect;
 
+  // FIXME: wrap with cmd_make_unblocking!
   if (GNUNET_YES == wait_for_connect)
-    return GNUNET_TESTING_command_new (cps,
-                                       label,
-                                       &connect_peers_run,
-                                       &connect_peers_cleanup,
-                                       &connect_peers_traits,
-                                       &cps->ac);
+    return GNUNET_TESTING_command_new_ac (cps,
+                                          label,
+                                          &connect_peers_run,
+                                          &connect_peers_cleanup,
+                                          &connect_peers_traits,
+                                          &cps->ac);
   else
     return GNUNET_TESTING_command_new (cps,
                                        label,
                                        &connect_peers_run,
                                        &connect_peers_cleanup,
-                                       &connect_peers_traits,
-                                       NULL);
+                                       &connect_peers_traits);
 }
 
 
 // FIXME: likely not ideally placed here, move to its own file
-GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
+GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                                        GNUNET_TRANSPORT_TESTING)

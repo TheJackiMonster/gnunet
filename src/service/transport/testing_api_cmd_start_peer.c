@@ -215,7 +215,7 @@ start_peer_cleanup (void *cls)
 {
   struct GNUNET_TESTING_StartPeerState *sps = cls;
 
-  //TODO Investigate why this caused problems during shutdown.
+  // TODO Investigate why this caused problems during shutdown.
   /*if (NULL != sps->cfg)
   {
     GNUNET_CONFIGURATION_destroy (sps->cfg);
@@ -251,12 +251,13 @@ start_peer_traits (void *cls,
     GNUNET_TRANSPORT_TESTING_make_trait_application_handle ((const void *) ah),
     GNUNET_TRANSPORT_TESTING_make_trait_peer_id ((const void *) id),
     GNUNET_TRANSPORT_TESTING_make_trait_connected_peers_map ((const
-                                                      void *)
-                                                     connected_peers_map),
+                                                              void *)
+                                                             connected_peers_map),
     GNUNET_TRANSPORT_TESTING_make_trait_hello ((const void *) hello),
     GNUNET_TRANSPORT_TESTING_make_trait_hello_size ((const void *) hello_size),
     GNUNET_TRANSPORT_TESTING_make_trait_state ((const void *) sps),
-    GNUNET_TRANSPORT_TESTING_make_trait_broadcast ((const void *) &sps->broadcast),
+    GNUNET_TRANSPORT_TESTING_make_trait_broadcast ((const void *) &sps->
+                                                   broadcast),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -269,11 +270,11 @@ start_peer_traits (void *cls,
 
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_start_peer (const char *label,
-                                 const char *system_label,
-                                 uint32_t no,
-                                 const char *node_ip,
-                                 const char *cfgname,
-                                 unsigned int broadcast)
+                               const char *system_label,
+                               uint32_t no,
+                               const char *node_ip,
+                               const char *cfgname,
+                               unsigned int broadcast)
 {
   struct GNUNET_TESTING_StartPeerState *sps;
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
@@ -291,6 +292,5 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
                                      label,
                                      &start_peer_run,
                                      &start_peer_cleanup,
-                                     &start_peer_traits,
-                                     NULL);
+                                     &start_peer_traits);
 }

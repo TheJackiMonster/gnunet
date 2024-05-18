@@ -62,9 +62,10 @@ struct GNUNET_TESTING_AsyncContext
 {
 
   /**
-   * Interpreter we are part of.
+   * Interpreter we are part of.  Initialized when
+   * the global interpreter starts.
    */
-  struct GNUNET_TESTING_Interpreter *is; // FIXME: Why needed? When available?
+  struct GNUNET_TESTING_Interpreter *is;
 
   /**
    * Function to call when done.
@@ -142,6 +143,28 @@ typedef enum GNUNET_GenericReturnValue
                                     unsigned int index);
 
 /**
+ * Create a new command that may be asynchronous.
+ *
+ * @param cls the closure
+ * @param label the Label. Maximum length is #GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
+ * @param run the run routing
+ * @param cleanup the cleanup function
+ * @param traits the traits function (optional)
+ * @param ac the async context, NULL if command is always
+ *           synchronous
+ * @return the command the function cannot fail
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_command_new_ac (
+  void *cls,
+  const char *label,
+  GNUNET_TESTING_CommandRunRoutine run,
+  GNUNET_TESTING_CommandCleanupRoutine cleanup,
+  GNUNET_TESTING_CommandGetTraits traits,
+  struct GNUNET_TESTING_AsyncContext *ac);
+
+
+/**
  * Create a new command
  *
  * @param cls the closure
@@ -149,17 +172,10 @@ typedef enum GNUNET_GenericReturnValue
  * @param run the run routing
  * @param cleanup the cleanup function
  * @param traits the traits function (optional)
- * @param ac the async context
  * @return the command the function cannot fail
  */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_command_new (
-  void *cls,
-  const char *label,
-  GNUNET_TESTING_CommandRunRoutine run,
-  GNUNET_TESTING_CommandCleanupRoutine cleanup,
-  GNUNET_TESTING_CommandGetTraits traits,
-  struct GNUNET_TESTING_AsyncContext *ac);
+#define GNUNET_TESTING_command_new(cls,label,run,cleanup,traits) \
+        GNUNET_TESTING_command_new_ac (cls,label,run,cleanup,traits,NULL)
 
 
 /**

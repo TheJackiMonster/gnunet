@@ -193,8 +193,10 @@ GNUNET_TESTING_cmd_netjail_stop (const char *label,
   ns = GNUNET_new (struct NetJailState);
   ns->topology_config = topology_config;
   ns->read_file = read_file;
-  return GNUNET_TESTING_command_new (ns, label,
-                                     &netjail_stop_run,
-                                     &netjail_stop_cleanup,
-                                     NULL, &ns->ac);
+  return GNUNET_TESTING_command_new_ac (ns,
+                                        label,
+                                        &netjail_stop_run,
+                                        &netjail_stop_cleanup,
+                                        NULL,
+                                        &ns->ac);
 }

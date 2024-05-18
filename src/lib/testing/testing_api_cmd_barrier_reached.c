@@ -221,9 +221,10 @@ GNUNET_TESTING_cmd_barrier_reached (
   brs->node_number = node_number;
   brs->running_on_master = running_on_master;
   brs->write_message = write_message;
-  return GNUNET_TESTING_command_new (brs, label,
-                                     &barrier_reached_run,
-                                     &barrier_reached_cleanup,
-                                     &barrier_reached_traits,
-                                     &brs->ac);
+  return GNUNET_TESTING_command_new_ac (brs,
+                                        label,
+                                        &barrier_reached_run,
+                                        &barrier_reached_cleanup,
+                                        &barrier_reached_traits,
+                                        &brs->ac);
 }

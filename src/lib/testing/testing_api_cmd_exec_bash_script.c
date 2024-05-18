@@ -45,9 +45,9 @@ struct BashScriptState
   // Child Wait handle
   struct GNUNET_ChildWaitHandle *cwh;
 
-   /**
-   * The process id of the script.
-   */
+  /**
+  * The process id of the script.
+  */
   struct GNUNET_OS_Process *start_proc;
 
   /**
@@ -98,6 +98,7 @@ exec_bash_script_cleanup (void *cls)
   GNUNET_free (bss);
 }
 
+
 /**
  * Callback which will be called if the setup script finished.
  *
@@ -128,6 +129,7 @@ child_completed_callback (void *cls,
   bss->cb (cls, type, exit_code);
 }
 
+
 /**
  * Run method of the command created by the interpreter to wait for another
  * command to finish.
@@ -135,7 +137,7 @@ child_completed_callback (void *cls,
  */
 static void
 exec_bash_script_run (void *cls,
-            struct GNUNET_TESTING_Interpreter *is)
+                      struct GNUNET_TESTING_Interpreter *is)
 {
   struct BashScriptState *bss = cls;
   enum GNUNET_GenericReturnValue helper_check;
@@ -175,22 +177,23 @@ exec_bash_script_run (void *cls,
   argv[0] = script_name;
   if (NULL != bss->script_argv)
   {
-    for (int i = 0; i < bss->argc;i++)
+    for (int i = 0; i < bss->argc; i++)
       argv[i + 1] = bss->script_argv[i];
   }
   argv[bss->argc] = NULL;
 
   bss->start_proc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     script_name,
-                                     argv);
+                                                 NULL,
+                                                 NULL,
+                                                 NULL,
+                                                 script_name,
+                                                 argv);
   bss->cwh = GNUNET_wait_child (bss->start_proc,
-                               &child_completed_callback,
-                               bss);
+                                &child_completed_callback,
+                                bss);
   GNUNET_break (NULL != bss->cwh);
 }
+
 
 const struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec_bash_script (const char *label,
@@ -207,10 +210,10 @@ GNUNET_TESTING_cmd_exec_bash_script (const char *label,
   bss->argc = argc;
   bss->cb = cb;
 
-  return GNUNET_TESTING_command_new (bss,
-                                     label,
-                                     &exec_bash_script_run,
-                                     &exec_bash_script_cleanup,
-                                     NULL,
-                                     &bss->ac);
+  return GNUNET_TESTING_command_new_ac (bss,
+                                        label,
+                                        &exec_bash_script_run,
+                                        &exec_bash_script_cleanup,
+                                        NULL,
+                                        &bss->ac);
 }

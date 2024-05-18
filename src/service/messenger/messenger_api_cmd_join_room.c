@@ -177,6 +177,5 @@ GNUNET_MESSENGER_cmd_join_room (const char *label,
                                      label,
                                      &join_room_run,
                                      &join_room_cleanup,
-                                     NULL,
                                      NULL);
 }

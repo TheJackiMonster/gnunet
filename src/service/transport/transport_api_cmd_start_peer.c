@@ -84,11 +84,11 @@ retrieve_hello (void *cls)
   struct GNUNET_TESTING_StartPeerState *sps = cls;
   sps->rh_task = NULL;
   sps->pic = GNUNET_PEERSTORE_iteration_start (sps->ph,
-                                             "transport",
-                                             &sps->id,
-                                             GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                             hello_iter_cb,
-                                             sps);
+                                               "transport",
+                                               &sps->id,
+                                               GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                               hello_iter_cb,
+                                               sps);
 
 }
 
@@ -475,10 +475,10 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    handlers,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
-  return GNUNET_TESTING_command_new (sps,
-                                     label,
-                                     &start_peer_run,
-                                     &start_peer_cleanup,
-                                     &start_peer_traits,
-                                     &sps->ac);
+  return GNUNET_TESTING_command_new_ac (sps,
+                                        label,
+                                        &start_peer_run,
+                                        &start_peer_cleanup,
+                                        &start_peer_traits,
+                                        &sps->ac);
 }

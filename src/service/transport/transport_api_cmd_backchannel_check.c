@@ -467,7 +467,8 @@ backchannel_check_run (void *cls,
     node_it = GNUNET_CONTAINER_multishortmap_iterator_create (
       namespace->nodes);
     while (GNUNET_YES == GNUNET_CONTAINER_multishortmap_iterator_next (node_it,
-                                                                       &node_key,
+                                                                       &node_key
+                                                                       ,
                                                                        (const
                                                                         void**)
                                                                        &node))
@@ -544,10 +545,10 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
   cs->node_n = node_n;
   cs->namespace_n = namespace_n;
 
-  return GNUNET_TESTING_command_new (cs,
-                                     label,
-                                     &backchannel_check_run,
-                                     &backchannel_check_cleanup,
-                                     &backchannel_check_traits,
-                                     &cs->ac);
+  return GNUNET_TESTING_command_new_ac (cs,
+                                        label,
+                                        &backchannel_check_run,
+                                        &backchannel_check_cleanup,
+                                        &backchannel_check_traits,
+                                        &cs->ac);
 }

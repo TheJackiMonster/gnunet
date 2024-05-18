@@ -64,9 +64,9 @@ connect_peers_run (void *cls,
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          cps->start_peer_label);
   GNUNET_TRANSPORT_TESTING_get_trait_broadcast (peer1_cmd,
-                                        &broadcast);
+                                                &broadcast);
   GNUNET_TRANSPORT_TESTING_get_trait_state (peer1_cmd,
-                                    &sps);
+                                            &sps);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cps->create_label);
@@ -78,7 +78,7 @@ connect_peers_run (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "cps->num: %u \n",
        cps->num);
-  
+
 
   cps->ah = GNUNET_TRANSPORT_application_init (sps->cfg);
   if (NULL == cps->ah)
@@ -224,7 +224,7 @@ GNUNET_CORE_cmd_connect_peers (
   struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map =
     GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   unsigned int i;
-  
+
   node_additional_connects = GNUNET_TESTING_get_additional_connects (num,
                                                                      topology);
 
@@ -255,24 +255,23 @@ GNUNET_CORE_cmd_connect_peers (
                    handlers,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
-
+  // FIXME: wrap with cmd_make_unblocking!
   if (GNUNET_YES == wait_for_connect)
-    return GNUNET_TESTING_command_new (cps,
-                                       label,
-                                       &connect_peers_run,
-                                       &connect_peers_cleanup,
-                                       &connect_peers_traits,
-                                       &cps->ac);
+    return GNUNET_TESTING_command_new_ac (cps,
+                                          label,
+                                          &connect_peers_run,
+                                          &connect_peers_cleanup,
+                                          &connect_peers_traits,
+                                          &cps->ac);
   else
     return GNUNET_TESTING_command_new (cps,
                                        label,
                                        &connect_peers_run,
                                        &connect_peers_cleanup,
-                                       &connect_peers_traits,
-                                       NULL);
+                                       &connect_peers_traits);
 }
 
 
 // FIXME: likely not ideally placed here, move to its own file
-GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_CORE_TESTING)
-
+GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                                   GNUNET_CORE_TESTING)

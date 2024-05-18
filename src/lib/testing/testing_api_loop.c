@@ -42,7 +42,7 @@ struct GNUNET_TESTING_Interpreter
   /**
    * Array with handles of helper processes for communication with netjails.
    */
-  const struct GNUNET_HELPER_Handle **helper;
+  const struct GNUNET_HELPER_Handle **helpers;
 
   /**
    * Handle to a send op
@@ -90,9 +90,9 @@ struct GNUNET_TESTING_Interpreter
   unsigned int cmds_n;
 
   /**
-   * Size of the array @e helper.
+   * Size of the array @e helpers.
    */
-  unsigned int n_helper;
+  unsigned int n_helpers;
 
   /**
    * Instruction pointer.  Tells #interpreter_run() which instruction to run
@@ -278,7 +278,7 @@ send_barrier_crossable (struct GNUNET_TESTING_Interpreter *is,
      inside is and cleaned up at some point.
   */
   is->send_handle = GNUNET_HELPER_send (
-    (struct GNUNET_HELPER_Handle *) is->helper[global_node_number - 1],
+    (struct GNUNET_HELPER_Handle *) is->helpers[global_node_number - 1],
     &adm->header,
     GNUNET_NO,
     &clear_msg,
@@ -343,7 +343,7 @@ free_barrier_nodes (struct GNUNET_TESTING_Interpreter *is,
   if (NULL == barrier->nodes)
     return;
   GNUNET_CONTAINER_multishortmap_iterate (barrier->nodes,
-                                          free_barrier_node_cb,
+                                          &free_barrier_node_cb,
                                           &free_barrier_node_cb_cls);
   GNUNET_CONTAINER_multishortmap_destroy (barrier->nodes);
   barrier->nodes = NULL;
@@ -425,10 +425,10 @@ finish_test (void *cls)
   is->rc (is->rc_cls,
           is->result);
   GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
-                                          free_barriers_cb,
+                                          &free_barriers_cb,
                                           is);
   GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
-  GNUNET_free (is->helper);
+  GNUNET_free (is->helpers);
   GNUNET_free (is);
 }
 
@@ -466,7 +466,7 @@ interpreter_next (void *cls)
                   "Interpreter executed 1000 instructions in %s\n",
                   GNUNET_STRINGS_relative_time_to_string (
                     GNUNET_TIME_absolute_get_duration (last_report),
-                    GNUNET_YES));
+                    true));
     last_report = GNUNET_TIME_absolute_get ();
   }
   ipc++;
@@ -539,6 +539,7 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac)
 
 /**
  * Returns the actual running command.
+ * FIXME: needed? not in header!
  *
  * @param is Global state of the interpreter, used by a command
  *        to access information about other commands.
@@ -566,7 +567,7 @@ interpreter_run (void *cls)
   is->task = NULL;
   if (NULL == cmd->run)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Running command END\n");
     is->result = GNUNET_OK;
     finish_test (is);
@@ -575,20 +576,17 @@ interpreter_run (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Running command `%s'\n",
               cmd->label.value);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start time of %p expected 0 is `%" PRIu64 "'\n",
-              cmd,
-              cmd->start_time.abs_value_us);
-  cmd->start_time
-    = cmd->last_req_time
-      = GNUNET_TIME_absolute_get ();
+  cmd->last_req_time
+    = GNUNET_TIME_absolute_get ();
+  if (0 == cmd->num_tries)
+    cmd->start_time = cmd->last_req_time;
   cmd->num_tries = 1;
   if (NULL != cmd->ac)
   {
     cmd->ac->is = is;
     cmd->ac->cont = &interpreter_next;
     cmd->ac->cont_cls = is;
-    cmd->ac->finished = false;
+    cmd->ac->finished = GNUNET_NO;
   }
   cmd->run (cmd->cls,
             is);
@@ -644,9 +642,9 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got %u commands\n",
               i);
-  is->commands = GNUNET_malloc_large ( (i + 1)
-                                       * sizeof (struct
-                                                 GNUNET_TESTING_Command));
+  is->commands = GNUNET_malloc_large (
+    (i + 1)
+    * sizeof (struct GNUNET_TESTING_Command));
   GNUNET_assert (NULL != is->commands);
   memcpy (is->commands,
           commands,
@@ -657,18 +655,18 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
                                     is);
   is->task = GNUNET_SCHEDULER_add_now (&interpreter_run,
                                        is);
-
   return is;
 }
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_command_new (void *cls,
-                            const char *label,
-                            GNUNET_TESTING_CommandRunRoutine run,
-                            GNUNET_TESTING_CommandCleanupRoutine cleanup,
-                            GNUNET_TESTING_CommandGetTraits traits,
-                            struct GNUNET_TESTING_AsyncContext *ac)
+GNUNET_TESTING_command_new_ac (
+  void *cls,
+  const char *label,
+  GNUNET_TESTING_CommandRunRoutine run,
+  GNUNET_TESTING_CommandCleanupRoutine cleanup,
+  GNUNET_TESTING_CommandGetTraits traits,
+  struct GNUNET_TESTING_AsyncContext *ac)
 {
   struct GNUNET_TESTING_Command cmd = {
     .cls = cls,
@@ -699,7 +697,6 @@ GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
           value,
           len + 1);
 }
-
 
 
 struct GNUNET_TESTING_Command
@@ -794,8 +791,8 @@ void
 GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
                                     const struct GNUNET_HELPER_Handle *helper)
 {
-  GNUNET_array_append (is->helper,
-                       is->n_helper,
+  GNUNET_array_append (is->helpers,
+                       is->n_helpers,
                        helper);
 }
 

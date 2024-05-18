@@ -118,7 +118,9 @@ GNUNET_TESTING_cmd_system_create (const char *label,
   tss = GNUNET_new (struct TestSystemState);
   tss->testdir = testdir;
 
-  return GNUNET_TESTING_command_new (tss, label, &system_create_run,
+  return GNUNET_TESTING_command_new (tss,
+                                     label,
+                                     &system_create_run,
                                      &system_create_cleanup,
-                                     &system_create_traits, NULL);
+                                     &system_create_traits);
 }

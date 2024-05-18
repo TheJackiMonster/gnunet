@@ -198,9 +198,9 @@ GNUNET_TESTING_cmd_barrier_create (const char *label,
                  (0 ==  percentage_to_be_reached &&
                   0 < number_to_be_reached));
   bs->barrier = barrier;
-  return GNUNET_TESTING_command_new (bs, label,
+  return GNUNET_TESTING_command_new (bs,
+                                     label,
                                      &barrier_run,
                                      &barrier_cleanup,
-                                     &barrier_traits,
-                                     NULL);
+                                     &barrier_traits);
 }

@@ -150,8 +150,9 @@ GNUNET_TESTING_cmd_stop_cmds_helper (
   shs->known = topology->nodes_x;
   shs->topology = topology;
 
-  return GNUNET_TESTING_command_new (shs, label,
+  return GNUNET_TESTING_command_new (shs,
+                                     label,
                                      &stop_testing_system_run,
                                      &stop_testing_system_cleanup,
-                                     NULL, NULL);
+                                     NULL);
 }

@@ -177,10 +177,12 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
   finish_state = GNUNET_new (struct FinishState);
   finish_state->async_label = cmd_ref;
   finish_state->timeout = timeout;
-  return GNUNET_TESTING_command_new (finish_state, finish_label,
-                                     &run_finish,
-                                     &cleanup_finish,
-                                     NULL, &finish_state->ac);
+  return GNUNET_TESTING_command_new_ac (finish_state,
+                                        finish_label,
+                                        &run_finish,
+                                        &cleanup_finish,
+                                        NULL,
+                                        &finish_state->ac);
 }
 
 

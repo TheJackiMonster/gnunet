@@ -208,13 +208,12 @@ GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
   sss->topology = topology;
   sss->size = size;
   sss->max_send = max_send;
-
-  cmd = GNUNET_TESTING_command_new (sss,
-                                    label,
-                                    &send_simple_run,
-                                    &send_simple_cleanup,
-                                    NULL,
-                                    &sss->ac);
+  cmd = GNUNET_TESTING_command_new_ac (sss,
+                                       label,
+                                       &send_simple_run,
+                                       &send_simple_cleanup,
+                                       NULL,
+                                       &sss->ac);
   cmd.asynchronous_finish = GNUNET_YES;
   return cmd;
 }
