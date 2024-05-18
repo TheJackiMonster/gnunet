@@ -434,6 +434,9 @@ endif
 if cc.has_function('getaddrinfo')
   cdata.set('HAVE_GETADDRINFO', 1)
 endif
+if cc.has_function('initgroups')
+  cdata.set('HAVE_INITGROUPS', 1)
+endif
 if cc.has_function('gethostbyname')
   cdata.set('HAVE_GETHOSTBYNAME', 1)
 endif
