@@ -15,4 +15,4 @@ else
     echo -e "Error during test setup: The kernel lacks the parameter 'kernel.unprivileged_userns_clone'\n"
     exit 77
 fi
-exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; $@"
+exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; $*"
