@@ -34,7 +34,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_netjail_start_cmds_helper.c \
   netjail.c netjail.h \
   barrier.c barrier.h \
-  testing_api_cmd_batch.c
+  testing_api_cmd_batch.c testing_api_cmd_batch.h
 libgnunettesting_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
