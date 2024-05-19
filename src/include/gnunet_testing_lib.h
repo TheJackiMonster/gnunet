@@ -39,13 +39,30 @@
 /**
  * Print failing line number and trigger shutdown.  Useful
  * quite any time after the command "run" method has been called.
+ * Returns from the current function.
  */
-#define GNUNET_TESTING_FAIL(is) \
-        do \
-        { \
-          GNUNET_break (0); \
+#define GNUNET_TESTING_FAIL(is)                 \
+        do {                                    \
+          GNUNET_break (0);                     \
           GNUNET_TESTING_interpreter_fail (is); \
-          return; \
+          return;                               \
+        } while (0)
+
+
+/**
+ * Log an error message about a command not having run to completion.
+ *
+ * @param is interpreter
+ * @param label command label of the incomplete command
+ */
+#define GNUNET_TESTING_command_incomplete(is,label)                       \
+        do {                                                              \
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                            \
+                      "Command %s (%s:%u) did not complete (at %s)\n",    \
+                      label,                                              \
+                      __FILE__,                                           \
+                      __LINE__,                                           \
+                      GNUNET_TESTING_interpreter_get_current_label (is)); \
         } while (0)
 
 
@@ -113,8 +130,12 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
- * Signature of a function used to start executing a command
- * of a test.
+ * Signature of a function used to start executing a command of a test.  Runs
+ * the command.  Note that upon return, the interpreter will not automatically
+ * run the next command if this is an asynchronous command unless the command
+ * was wrapped in #GNUNET_TESTING_cmd_make_unblocking(), as the command may
+ * then continue asynchronously in other scheduler tasks.  In this case,
+ * #GNUNET_TESTING_async_finish() must be called to run the next task.
  *
  * @param cls closure
  * @param is interpreter running the command
@@ -305,7 +326,7 @@ struct GNUNET_TESTING_Command
    * time, the interpreter will fail.  Should be set generously to ensure
    * tests do not fail on slow systems.
    *
-   * FIXME: currently not used!
+   * FIXME: currently not used! Definition good?
    */
   struct GNUNET_TIME_Relative default_timeout;
 
@@ -325,22 +346,6 @@ struct GNUNET_TESTING_Command
   bool asynchronous_finish;
 
 };
-
-
-/**
- * Lookup command by label.
- * Only future commands are looked up.
- *
- * @param is interpreter to lookup command in
- * @param label label of the command to lookup.
- * @return the command, if it is found, or NULL.
- * @deprecated (still in use in a very odd way)
- */
-// FIXME: think harder about whether this is actually needed, likely not.
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_future_command (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label);
 
 
 /**
@@ -370,19 +375,37 @@ GNUNET_TESTING_interpreter_get_command (
 
 
 /**
- * Lookup command by label.
- * All commands, first into the past, then into the future are looked up.
+ * Update the last request time of the current command
+ * to the current time.
  *
- * @param is interpreter to lookup command in
- * @param label label of the command to lookup.
- * @return the command, if it is found, or NULL.
- * @deprecated (still in use in a very odd way)
+ * @param[in,out] is interpreter state where to show
+ *       that we are doing something
  */
-// FIXME: think harder about whether this is actually needed, likely not.
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command_all (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label);
+void
+GNUNET_TESTING_touch_cmd (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Increment the 'num_tries' counter for the current command.
+ *
+ * @param[in,out] is interpreter state where to
+ *   increment the counter
+ */
+void
+GNUNET_TESTING_inc_tries (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Obtain label of the command being now run.
+ *
+ * @param is interpreter state.
+ * @return the label.
+ */
+const char *
+GNUNET_TESTING_interpreter_get_current_label (
+  struct GNUNET_TESTING_Interpreter *is);
 
 
 /**
@@ -391,7 +414,8 @@ GNUNET_TESTING_interpreter_lookup_command_all (
  * @param is interpreter state.
  */
 void
-GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+GNUNET_TESTING_interpreter_fail (
+  struct GNUNET_TESTING_Interpreter *is);
 
 
 /**

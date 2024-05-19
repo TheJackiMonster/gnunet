@@ -58,4 +58,15 @@ GNUNET_TESTING_cmd_batch_get_current_ (
   const struct GNUNET_TESTING_Command *cmd);
 
 
+/**
+ * Set what command the batch should be at.
+ *
+ * @param cmd current batch command
+ * @param new_ip where to move the IP
+ */
+void
+GNUNET_TESTING_cmd_batch_set_current_ (
+  const struct GNUNET_TESTING_Command *cmd,
+  unsigned int new_ip);
+
 #endif

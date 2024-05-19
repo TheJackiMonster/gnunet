@@ -139,19 +139,11 @@ netjail_start_run (void *cls,
     is,
     ns->topology_cmd_label);
   if (NULL == topo_cmd)
-  {
-    GNUNET_break (0);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
+    GNUNET_TESTING_FAIL (is);
   if (GNUNET_OK !=
       GNUNET_TESTING_get_trait_topology_string (topo_cmd,
                                                 &topology_data))
-  {
-    GNUNET_break (0);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
+    GNUNET_TESTING_FAIL (is);
   data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
   GNUNET_asprintf (&script_name,
                    "%s%s",
@@ -166,16 +158,14 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 script_name);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
+    GNUNET_TESTING_FAIL (is);
   }
   if (GNUNET_SYSERR == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 script_name);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
+    GNUNET_TESTING_FAIL (is);
   }
 
   GNUNET_snprintf (pid,

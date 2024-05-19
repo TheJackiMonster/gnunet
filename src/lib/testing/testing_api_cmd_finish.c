@@ -135,8 +135,7 @@ run_finish (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Did not find command `%s'\n",
                 finish_state->async_label);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
+    GNUNET_TESTING_FAIL (is);
   }
   if ( (NULL == (aac = async_cmd->ac)) ||
        (! async_cmd->asynchronous_finish) )
@@ -144,8 +143,7 @@ run_finish (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Cannot finish `%s': not asynchronous\n",
                 finish_state->async_label);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
+    GNUNET_TESTING_FAIL (is);
   }
   if (GNUNET_NO != aac->finished)
   {

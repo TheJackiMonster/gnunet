@@ -203,3 +203,19 @@ GNUNET_TESTING_cmd_batch_get_current_ (const struct GNUNET_TESTING_Command *cmd)
   GNUNET_assert (GNUNET_TESTING_cmd_is_batch_ (cmd));
   return &bs->batch[bs->batch_ip];
 }
+
+
+void
+GNUNET_TESTING_cmd_batch_set_current_ (
+  const struct GNUNET_TESTING_Command *cmd,
+  unsigned int new_ip)
+{
+  struct BatchState *bs = cmd->cls;
+
+  /* sanity checks */
+  GNUNET_assert (cmd->run == &batch_run);
+  for (unsigned int i = 0; i < new_ip; i++)
+    GNUNET_assert (NULL != bs->batch[i].run);
+  /* actual logic */
+  bs->batch_ip = new_ip;
+}

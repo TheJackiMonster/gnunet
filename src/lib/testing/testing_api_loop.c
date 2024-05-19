@@ -136,21 +136,13 @@ struct GNUNET_TESTING_Interpreter
 };
 
 
-/**
- * Lookup command by label.
- *
- * @param is interpreter to lookup command in
- * @param label label of the command to lookup.
- * @param future true to look into the future, false to look into the past
- * @return the command, if it is found, or NULL.
- */
-static const struct GNUNET_TESTING_Command *
-get_command (struct GNUNET_TESTING_Interpreter *is,
-             const char *label,
-             bool future)
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label)
 {
-  int start_i = future ? is->cmds_n - 1 : is->ip;
-  int end_i = future ? is->ip + 1 : 0;
+  int start_i = is->ip;
+  int end_i = 0;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "start_i: %u end_i: %u\n",
@@ -210,46 +202,6 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
               "Command `%s' not found\n",
               label);
   return NULL;
-}
-
-
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_future_command (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label)
-{
-  return get_command (is,
-                      label,
-                      true);
-}
-
-
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label)
-{
-  return get_command (is,
-                      label,
-                      false);
-}
-
-
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_lookup_command_all (
-  struct GNUNET_TESTING_Interpreter *is,
-  const char *label)
-{
-  const struct GNUNET_TESTING_Command *cmd;
-
-  cmd = get_command (is,
-                     label,
-                     false);
-  if (NULL == cmd)
-    cmd = get_command (is,
-                       label,
-                       true);
-  return cmd;
 }
 
 
@@ -319,13 +271,9 @@ void
 GNUNET_TESTING_loop_notify_parent_ (struct GNUNET_TESTING_Interpreter *is,
                                     const struct GNUNET_MessageHeader *hdr)
 {
+  /* We must have a parent */
   if (NULL == is->parent_writer)
-  {
-    /* We have no parent, this is impossible! */
-    GNUNET_break (0);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
+    GNUNET_TESTING_FAIL (is);
   is->parent_writer (hdr);
 }
 
@@ -817,6 +765,194 @@ GNUNET_TESTING_iterate (
     cb (cb_cls,
         cmd);
   }
+}
+
+
+void
+GNUNET_TESTING_touch_cmd (
+  struct GNUNET_TESTING_Interpreter *is)
+{
+  is->commands[is->ip].last_req_time
+    = GNUNET_TIME_absolute_get ();
+}
+
+
+void
+GNUNET_TESTING_inc_tries (
+  struct GNUNET_TESTING_Interpreter *is)
+{
+  is->commands[is->ip].num_tries++;
+}
+
+
+const char *
+GNUNET_TESTING_interpreter_get_current_label (
+  struct GNUNET_TESTING_Interpreter *is)
+{
+  return is->commands[is->ip].label.value;
+}
+
+
+/**
+ * State for a "rewind" CMD.
+ */
+struct RewindIpState
+{
+  /**
+   * Instruction pointer to set into the interpreter.
+   */
+  const char *target_label;
+
+  /**
+   * How many times this set should take place.  However, this value lives at
+   * the calling process, and this CMD is only in charge of checking and
+   * decremeting it.
+   */
+  unsigned int counter;
+};
+
+
+/**
+ * Seek for the @a target command in @a batch (and rewind to it
+ * if successful).
+ *
+ * @param is the interpreter state (for failures)
+ * @param cmd batch to search for @a target
+ * @param target command to search for
+ * @return #GNUNET_OK on success, #GNUNET_NO if target was not found,
+ *         #GNUNET_SYSERR if target is in the future and we failed
+ */
+static enum GNUNET_GenericReturnValue
+seek_batch (struct GNUNET_TESTING_Interpreter *is,
+            const struct GNUNET_TESTING_Command *cmd,
+            const struct GNUNET_TESTING_Command *target)
+{
+  unsigned int new_ip;
+  struct GNUNET_TESTING_Command **batch;
+  const struct GNUNET_TESTING_Command *current;
+  struct GNUNET_TESTING_Command *icmd;
+  struct GNUNET_TESTING_Command *match;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_TESTING_get_trait_cmd (cmd,
+                                               &current));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_TESTING_get_trait_batch_cmds (cmd,
+                                                      &batch));
+  match = NULL;
+  for (new_ip = 0;
+       NULL != (icmd = batch[new_ip]);
+       new_ip++)
+  {
+    if (current == target)
+      current = NULL;
+    if (icmd == target)
+    {
+      match = icmd;
+      break;
+    }
+    if (GNUNET_TESTING_cmd_is_batch_ (icmd))
+    {
+      int ret = seek_batch (is,
+                            icmd,
+                            target);
+      if (GNUNET_SYSERR == ret)
+        return GNUNET_SYSERR; /* failure! */
+      if (GNUNET_OK == ret)
+      {
+        match = icmd;
+        break;
+      }
+    }
+  }
+  if (NULL == current)
+  {
+    /* refuse to jump forward */
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return GNUNET_SYSERR;
+  }
+  if (NULL == match)
+    return GNUNET_NO; /* not found */
+  GNUNET_TESTING_cmd_batch_set_current_ (cmd,
+                                         new_ip);
+  return GNUNET_OK;
+}
+
+
+/**
+ * Run the "rewind" CMD.
+ *
+ * @param cls closure.
+ * @param cmd command being executed now.
+ * @param is the interpreter state.
+ */
+static void
+rewind_ip_run (void *cls,
+               struct GNUNET_TESTING_Interpreter *is)
+{
+  struct RewindIpState *ris = cls;
+  const struct GNUNET_TESTING_Command *target;
+  unsigned int new_ip;
+
+  if (0 == ris->counter)
+    return;
+  target
+    = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                 ris->target_label);
+  if (NULL == target)
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
+  ris->counter--;
+  for (new_ip = 0;
+       NULL != is->commands[new_ip].run;
+       new_ip++)
+  {
+    const struct GNUNET_TESTING_Command *cmd
+      = &is->commands[new_ip];
+
+    if (cmd == target)
+      break;
+    if (GNUNET_TESTING_cmd_is_batch_ (cmd))
+    {
+      int ret = seek_batch (is,
+                            cmd,
+                            target);
+      if (GNUNET_SYSERR == ret)
+        return;   /* failure! */
+      if (GNUNET_OK == ret)
+        break;
+    }
+  }
+  if (new_ip > (unsigned int) is->ip)
+  {
+    /* refuse to jump forward */
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
+  is->ip = new_ip - 1; /* -1 because the next function will advance by one */
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_rewind_ip (const char *label,
+                              const char *target_label,
+                              unsigned int counter)
+{
+  struct RewindIpState *ris;
+
+  ris = GNUNET_new (struct RewindIpState);
+  ris->target_label = target_label;
+  ris->counter = counter;
+  return GNUNET_TESTING_command_new (ris,
+                                     label,
+                                     &rewind_ip_run,
+                                     NULL,
+                                     NULL);
 }
 
 

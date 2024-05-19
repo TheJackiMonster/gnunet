@@ -167,7 +167,7 @@ clear_msg (void *cls,
        (GNUNET_OK != result) )
   {
     ns->failed = true;
-    GNUNET_TESTING_interpreter_fail (ns->is);
+    GNUNET_TESTING_FAIL (ns->is);
   }
 }
 
@@ -482,19 +482,11 @@ netjail_exec_run (void *cls,
   topo_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                         ns->topology_cmd_label);
   if (NULL == topo_cmd)
-  {
-    GNUNET_break (0);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
+    GNUNET_TESTING_FAIL (is);
   if (GNUNET_OK !=
       GNUNET_TESTING_get_trait_topology_string (topo_cmd,
                                                 &ns->topology_data))
-  {
-    GNUNET_break (0);
-    GNUNET_TESTING_interpreter_fail (is);
-    return;
-  }
+    GNUNET_TESTING_FAIL (is);
   topology
     = GNUNET_TESTING_get_topo_from_string_ (ns->topology_data);
   for (unsigned int i = 1; i <= topology->total; i++)
@@ -510,8 +502,7 @@ netjail_exec_run (void *cls,
   if (failed)
   {
     ns->failed = true;
-    GNUNET_TESTING_interpreter_fail (ns->is);
-    return;
+    GNUNET_TESTING_FAIL (is);
   }
   ns->timeout_task
     = GNUNET_SCHEDULER_add_delayed (ns->timeout,
