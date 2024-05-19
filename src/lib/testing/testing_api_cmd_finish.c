@@ -24,10 +24,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_testing_lib.h"
 
 
 /**
@@ -50,7 +47,7 @@ struct FinishState
   /**
    * Function to call when async operation is done.
    */
-  GNUNET_SCHEDULER_Task old_notify;
+  GNUNET_SCHEDULER_TaskCallback old_notify;
 
   /**
    * Closure for @e notify_finished.

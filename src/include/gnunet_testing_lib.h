@@ -450,13 +450,13 @@ GNUNET_TESTING_cmd_sleep (const char *label,
  * Command to execute a command.
  *
  * @param label Label of the command.
- * @param script The name of the program to run.
- * @param script_argv The arguments of the script.
 */
 const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_exec (const char *label,
-                         const char *script,
-                         char *const script_argv[]);
+GNUNET_TESTING_cmd_exec (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  char *const script_argv[]);
 
 
 /**

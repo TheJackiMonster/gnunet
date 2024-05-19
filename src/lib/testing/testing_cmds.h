@@ -102,34 +102,5 @@ struct GNUNET_TESTING_CommandBarrierSatisfied
 
 GNUNET_NETWORK_STRUCT_END
 
-/**
- * Global state of the interpreter, used by a command
- * to access information about other commands.
- */
-struct GNUNET_TESTING_Interpreter;
-
-
-/**
- * Returns the actual running command.
- *
- * @param is Global state of the interpreter, used by a command
- *        to access information about other commands.
- * @return The actual running command.
- */
-struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_get_current_command (
-  struct GNUNET_TESTING_Interpreter *is);
-
-
-/**
- * Adding a helper handle to the interpreter.
- *
- * @param is The interpreter.
- * @param helper The helper handle.
- */
-void
-GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
-                                    const struct GNUNET_HELPER_Handle *helper);
-
 #endif
 /* end of testing_cmds.h */

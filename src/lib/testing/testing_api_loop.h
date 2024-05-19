@@ -50,6 +50,12 @@ GNUNET_TESTING_loop_notify_children_ (struct GNUNET_TESTING_Interpreter *is,
                                       const struct GNUNET_MessageHeader *hdr);
 
 
+/**
+ * Adding a helper handle to the interpreter.
+ *
+ * @param is The interpreter.
+ * @param helper The helper handle.
+ */
 void
 GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
                                     struct GNUNET_HELPER_Handle *helper);

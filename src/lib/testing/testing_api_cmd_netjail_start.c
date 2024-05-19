@@ -25,10 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_testing_lib.h"
 
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
@@ -54,17 +51,13 @@ struct NetJailState
   /**
    * Configuration file for the test topology.
    */
-  const char *topology_config;
+  const char *topology_cmd_label;
 
   /**
    * Start or stop?
    */
   const char *script;
 
-  /**
-   * Shall we read the topology from file, or from a string.
-   */
-  bool read_file;
 };
 
 
@@ -135,11 +128,23 @@ netjail_start_run (void *cls,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct NetJailState *ns = cls;
+  const struct GNUNET_TESTING_Command *topo_cmd;
   char pid[15];
   enum GNUNET_GenericReturnValue helper_check;
   char *data_dir;
   char *script_name;
+  const char *topology_data;
 
+  topo_cmd = GNUNET_TESTING_interpreter_lookup_command (
+    is,
+    ns->topology_cmd_label);
+  if (NULL == topo_cmd)
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
+  // FIXME: get topology_data from topo_cmd trait!
   data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
   GNUNET_asprintf (&script_name,
                    "%s%s",
@@ -173,9 +178,9 @@ netjail_start_run (void *cls,
   {
     char *const script_argv[] = {
       script_name,
-      ns->topology_config,
+      (char *) topology_data,
       pid, // FIXME: use $PPID!
-      ns->read_file ? "1" : "0",
+      "0",
       NULL
     };
 

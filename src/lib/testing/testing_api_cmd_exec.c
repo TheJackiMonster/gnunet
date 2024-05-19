@@ -25,7 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
@@ -141,8 +141,6 @@ exec_bash_script_run (void *cls,
 {
   struct BashScriptState *bss = cls;
 
-  bss->cmd
-    = GNUNET_TESTING_interpreter_get_current_command (is);
   bss->start_proc
     = GNUNET_OS_start_process_vap (
         GNUNET_OS_INHERIT_STD_ERR,

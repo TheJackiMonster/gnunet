@@ -23,8 +23,11 @@
  * @author t3sserakt
  */
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "barrier.h"
+#include "testing_api_loop.h"
+#include "testing_cmds.h"
 
 
 /**
@@ -64,7 +67,7 @@ struct NetJailState
   /**
    * Array with handles of helper processes.
    */
-  const struct GNUNET_HELPER_Handle **helpers;
+  struct GNUNET_HELPER_Handle **helpers;
 
   /**
    * Time after this cmd has to finish.
@@ -128,6 +131,7 @@ struct TestingSystemCount
    * Struct to store information handed over to callbacks.
    */
   struct NetJailState *ns;
+
 
 };
 
@@ -253,7 +257,7 @@ helper_mst (void *cls,
             const struct GNUNET_MessageHeader *message)
 {
   struct NetJailState *ns = cls;
-  struct GNUNET_MQ_MessageHandlers handlers[] = {
+  struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_fixed_size (
       helper_barrier_reached,
       GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED,
@@ -364,7 +368,7 @@ send_start_messages (struct NetJailState *ns,
  * Function which start a single helper process.
  * @return true on success
  */
-static void
+static bool
 start_helper (struct NetJailState *ns,
               unsigned int script_num)
 {

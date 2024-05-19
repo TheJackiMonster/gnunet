@@ -40,7 +40,7 @@ struct GNUNET_TESTING_Barrier
    * currently blocked on this barrier, or NULL if
    * no command is currently blocked on this barrier.
    */
-  struct GNUNET_TESTING_AsyncContext *ac;
+  struct GNUNET_TESTING_AsyncContext *cmd_ac;
 
   /**
    * Number of total commands expected to be reached by the barrier.
