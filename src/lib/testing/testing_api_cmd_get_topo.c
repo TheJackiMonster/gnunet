@@ -25,13 +25,19 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "netjail.h"
+
+/**
+ * Generic logging shortcut
+ */
+#define LOG(kind, ...) GNUNET_log_from (kind, "udp-backchannel",__VA_ARGS__)
 
 struct TopologyState
 {
   /**
    * The label of the command.
    */
-  char *label;
+ const  char *label;
 
   /**
    * The topology we parsed.
@@ -45,17 +51,17 @@ struct TopologyState
   char *topology_string;
 
   /**
-   * Are we reading from file, or did we get a string with the topology data?
+   * A string with the name of the topology file.
    */
-  bool read_file;
-}
+  char *file_name;
+};
 
 /**
  * The cleanup function of this cmd frees resources the cmd allocated.
  *
  */
 static void
-netjail_topology_cleanup (void *cls)
+cleanup (void *cls)
 {
   struct NetJailState *ts = cls;
 
@@ -66,15 +72,15 @@ netjail_topology_cleanup (void *cls)
  * This function prepares an array with traits.
  */
 static enum GNUNET_GenericReturnValue
-netjail_topology_traits (void *cls,
+traits (void *cls,
                      const void **ret,
                      const char *trait,
                      unsigned int index)
 {
-  struct NetJailState *ts = cls;
+  struct TopologyState *ts = cls;
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology),
-    GNUNET_TESTING_make_trait_get_topology_string ((const void *) ts->topology_string),
+    GNUNET_TESTING_make_trait_get_topology_string ((void *) ts->topology_string),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -84,6 +90,47 @@ netjail_topology_traits (void *cls,
                                    index);
 }
 
+static char *
+get_topo_string_from_file (char *topology_data_file)
+{
+  uint64_t fs;
+  char *data;
+
+  if (GNUNET_YES !=
+      GNUNET_DISK_file_test (topology_data_file))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Topology file %s not found\n",
+         topology_data_file);
+    GNUNET_assert (0);
+  }
+  if (GNUNET_OK !=
+      GNUNET_DISK_file_size (topology_data_file,
+                             &fs,
+                             GNUNET_YES,
+                             GNUNET_YES))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Could not determine size of topology file %s\n",
+         topology_data_file);
+    GNUNET_assert (0);
+  }
+  data = GNUNET_malloc_large (fs + 1);
+  GNUNET_assert (NULL != data);
+  if (fs !=
+      GNUNET_DISK_fn_read (topology_data_file,
+                           data,
+                           fs))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Topology file %s cannot be read\n",
+         topology_data_file);
+    GNUNET_free (data);
+    return NULL;
+  }
+  return data;
+}
+
 /**
 * The run method starts the script which setup the network namespaces.
 *
@@ -91,12 +138,32 @@ netjail_topology_traits (void *cls,
 * @param is interpreter state.
 */
 static void
-netjail_topology_run (void *cls,
+run (void *cls,
                    struct GNUNET_TESTING_Interpreter *is)
 {
   struct TopologyState *ts = cls;
 
-  ts->topology = GNUNET_TESTING_get_topo_from_string (topology_string);
+  ts->topology_string = get_topo_string_from_file (ts->file_name);
+  ts->topology = GNUNET_TESTING_get_topo_from_string_ (ts->topology_string);
+}
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_get_topo_from_file (
+                                     const char *label,
+                                     char *file_name)
+{
+  struct TopologyState *ts;
+
+  ts = GNUNET_new (struct TopologyState);
+  ts->label = label;
+  ts->file_name = file_name;
+  return GNUNET_TESTING_command_new_ac (
+    ts,
+    label,
+    &run,
+    &cleanup,
+    traits,
+    NULL);
 }
 
 struct GNUNET_TESTING_Command
@@ -115,5 +182,5 @@ GNUNET_TESTING_cmd_get_topo_from_string (
     &run,
     &cleanup,
     traits,
-    &ts->ac);
+    NULL);
 }
