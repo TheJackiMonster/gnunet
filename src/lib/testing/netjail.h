@@ -346,10 +346,10 @@ GNUNET_TESTING_calculate_num (
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op, prefix)                            \
-  op (prefix, get_topology, const struct GNUNET_TESTING_NetjailTopology)            \
-  op (prefix, get_topology_string, char)                                    \
-  op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
-  op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  
+        op (prefix, topology, const struct GNUNET_TESTING_NetjailTopology)            \
+        op (prefix, topology_string, const char)                                          \
+        op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
+        op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
                                       GNUNET_TESTING)

@@ -1082,4 +1082,9 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
 }
 
 
-/* end of testing.c */
+GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (
+  GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+  GNUNET_TESTING)
+
+
+/* end of netjail.c */

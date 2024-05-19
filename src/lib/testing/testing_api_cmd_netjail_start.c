@@ -26,7 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-
+#include "netjail.h"
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
@@ -144,7 +144,14 @@ netjail_start_run (void *cls,
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
-  // FIXME: get topology_data from topo_cmd trait!
+  if (GNUNET_OK !=
+      GNUNET_TESTING_get_trait_topology_string (topo_cmd,
+                                                &topology_data))
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
   data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
   GNUNET_asprintf (&script_name,
                    "%s%s",

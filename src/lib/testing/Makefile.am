@@ -30,6 +30,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_finish.c \
   testing_api_loop.c testing_api_loop.h \
   testing_api_traits.c \
+  testing_api_cmd_get_topo.c \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
   netjail.c netjail.h \

@@ -694,7 +694,7 @@ start_testcase (
 
     bcmd = GNUNET_TESTING_cmd_set_var (
       "topology",
-      GNUNET_TESTING_cmd_netjail_topology_from_data (
+      GNUNET_TESTING_cmd_load_topology_from_string (
         "_boot_",
         topology_data));
     setup_is (is,

@@ -91,7 +91,10 @@ struct NetJailState
    */
   struct TestingSystemCount *tbc_tail;
 
-  char *topology_data;
+  /**
+   * Data about our topology as a string.
+   */
+  const char *topology_data;
 
   /**
    * Size of the array @e helpers.
@@ -318,8 +321,6 @@ static bool
 send_start_messages (struct NetJailState *ns,
                      struct GNUNET_HELPER_Handle *helper)
 {
-  struct GNUNET_TESTING_Interpreter *is = ns->is;
-  const struct GNUNET_TESTING_Command *topo_cmd;
   struct GNUNET_TESTING_CommandHelperInit *msg;
   struct TestingSystemCount *tbc;
   struct GNUNET_ShortHashCode *bar;
@@ -327,10 +328,6 @@ send_start_messages (struct NetJailState *ns,
   size_t topo_length;
   size_t msg_len;
 
-  topo_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
-                                                   ns->topology_cmd_label);
-  GNUNET_TESTING_get_trait_get_topology_string (topo_cmd,
-                                                &ns->topology_data);
   topo_length = strlen (ns->topology_data) + 1;
   msg_len = sizeof (*msg) + topo_length
             + num_barriers * sizeof (struct GNUNET_ShortHashCode);
@@ -456,8 +453,25 @@ netjail_exec_run (void *cls,
   struct NetJailState *ns = cls;
   struct GNUNET_TESTING_NetjailTopology *topology;
   bool failed = false;
+  const struct GNUNET_TESTING_Command *topo_cmd;
 
   ns->is = is;
+  topo_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                        ns->topology_cmd_label);
+  if (NULL == topo_cmd)
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
+  if (GNUNET_OK !=
+      GNUNET_TESTING_get_trait_topology_string (topo_cmd,
+                                                &ns->topology_data))
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
   topology
     = GNUNET_TESTING_get_topo_from_string_ (ns->topology_data);
   for (unsigned int i = 1; i <= topology->total; i++)

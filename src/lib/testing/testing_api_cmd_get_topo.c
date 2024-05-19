@@ -37,7 +37,7 @@ struct TopologyState
   /**
    * The label of the command.
    */
- const  char *label;
+  const char *label;
 
   /**
    * The topology we parsed.
@@ -48,12 +48,14 @@ struct TopologyState
    * A string with the name of the topology file, if @e read_file is true,
    * otherwise a string containing the topology data.
    */
-  char *topology_string;
+  const char *topology_string;
+
+  char *topology_alloc;
 
   /**
    * A string with the name of the topology file.
    */
-  char *file_name;
+  const char *file_name;
 };
 
 /**
@@ -63,24 +65,26 @@ struct TopologyState
 static void
 cleanup (void *cls)
 {
-  struct NetJailState *ts = cls;
+  struct TopologyState *ts = cls;
 
+  GNUNET_free (ts->topology_alloc);
   GNUNET_free (ts);
 }
+
 
 /**
  * This function prepares an array with traits.
  */
 static enum GNUNET_GenericReturnValue
 traits (void *cls,
-                     const void **ret,
-                     const char *trait,
-                     unsigned int index)
+        const void **ret,
+        const char *trait,
+        unsigned int index)
 {
   struct TopologyState *ts = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology),
-    GNUNET_TESTING_make_trait_get_topology_string ((void *) ts->topology_string),
+    GNUNET_TESTING_make_trait_topology (ts->topology),
+    GNUNET_TESTING_make_trait_topology_string (ts->topology_string),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -90,8 +94,9 @@ traits (void *cls,
                                    index);
 }
 
+
 static char *
-get_topo_string_from_file (char *topology_data_file)
+get_topo_string_from_file (const char *topology_data_file)
 {
   uint64_t fs;
   char *data;
@@ -131,6 +136,7 @@ get_topo_string_from_file (char *topology_data_file)
   return data;
 }
 
+
 /**
 * The run method starts the script which setup the network namespaces.
 *
@@ -139,18 +145,23 @@ get_topo_string_from_file (char *topology_data_file)
 */
 static void
 run (void *cls,
-                   struct GNUNET_TESTING_Interpreter *is)
+     struct GNUNET_TESTING_Interpreter *is)
 {
   struct TopologyState *ts = cls;
 
-  ts->topology_string = get_topo_string_from_file (ts->file_name);
+  if (NULL == ts->topology_string)
+  {
+    ts->topology_alloc = get_topo_string_from_file (ts->file_name);
+    ts->topology_string = ts->topology_alloc;
+  }
   ts->topology = GNUNET_TESTING_get_topo_from_string_ (ts->topology_string);
 }
 
+
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_get_topo_from_file (
-                                     const char *label,
-                                     char *file_name)
+GNUNET_TESTING_cmd_load_topology_from_file (
+  const char *label,
+  const char *file_name)
 {
   struct TopologyState *ts;
 
@@ -166,10 +177,11 @@ GNUNET_TESTING_cmd_get_topo_from_file (
     NULL);
 }
 
+
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_get_topo_from_string (
-                                     const char *label,
-                                     char *topology_string)
+GNUNET_TESTING_cmd_load_topology_from_string (
+  const char *label,
+  const char *topology_string)
 {
   struct TopologyState *ts;
 

@@ -541,13 +541,13 @@ GNUNET_TESTING_cmd_netjail_setup (
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_topology_from_file (
+GNUNET_TESTING_cmd_load_topology_from_file (
   const char *label,
   const char *filename);
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_topology_from_data (
+GNUNET_TESTING_cmd_load_topology_from_string (
   const char *label,
   const char *topology_data);
 
