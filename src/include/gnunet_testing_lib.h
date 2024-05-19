@@ -27,6 +27,8 @@
 #ifndef GNUNET_TESTING_LIB_H
 #define GNUNET_TESTING_LIB_H
 
+#include "gnunet_util_lib.h"
+
 /**
  * Maximum length of label in command
  */
@@ -77,7 +79,7 @@ struct GNUNET_TESTING_AsyncContext
   /**
    * Function to call when async operation is done.
    */
-  GNUNET_SCHEDULER_Task notify_finished;
+  GNUNET_SCHEDULER_TaskCallback notify_finished;
 
   /**
    * Closure for @e notify_finished.
