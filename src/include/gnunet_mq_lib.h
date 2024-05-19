@@ -19,7 +19,7 @@
  */
 
 #include "gnunet_common.h"
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -61,9 +61,9 @@
  * @return the MQ message
  */
 #define GNUNET_MQ_msg_extra(mvar, esize, type)                \
-  GNUNET_MQ_msg_ (((struct GNUNET_MessageHeader **) &(mvar)), \
-                  (esize) + sizeof *(mvar),                   \
-                  (type))
+        GNUNET_MQ_msg_ (((struct GNUNET_MessageHeader **) &(mvar)), \
+                        (esize) + sizeof *(mvar),                   \
+                        (type))
 
 /**
  * Allocate a GNUNET_MQ_Envelope.
@@ -85,7 +85,7 @@
  * @param type type of the message
  */
 #define GNUNET_MQ_msg_header(type) \
-  GNUNET_MQ_msg_ (NULL, sizeof(struct GNUNET_MessageHeader), type)
+        GNUNET_MQ_msg_ (NULL, sizeof(struct GNUNET_MessageHeader), type)
 
 
 /**
@@ -97,7 +97,8 @@
  * @param type type of the message
  */
 #define GNUNET_MQ_msg_header_extra(mh, esize, type) \
-  GNUNET_MQ_msg_ (&mh, (esize) + sizeof(struct GNUNET_MessageHeader), type)
+        GNUNET_MQ_msg_ (&mh, (esize) + sizeof(struct GNUNET_MessageHeader), type \
+                        )
 
 
 /**
@@ -111,7 +112,7 @@
  * @return a newly allocated 'struct GNUNET_MQ_Envelope *'
  */
 #define GNUNET_MQ_msg_nested_mh(mvar, type, mh)                               \
-  ({                                                                          \
+        ({                                                                          \
     struct GNUNET_MQ_Envelope *_ev;                                           \
     _ev = GNUNET_MQ_msg_nested_mh_ ((struct GNUNET_MessageHeader **) &(mvar), \
                                     sizeof(*(mvar)),                         \
@@ -131,8 +132,8 @@
  *         or NULL if the given message in @a var does not have any space after the message struct
  */
 #define GNUNET_MQ_extract_nested_mh(var)                               \
-  GNUNET_MQ_extract_nested_mh_ ((struct GNUNET_MessageHeader *) (var), \
-                                sizeof(*(var)))
+        GNUNET_MQ_extract_nested_mh_ ((struct GNUNET_MessageHeader *) (var), \
+                                      sizeof(*(var)))
 
 
 /**
@@ -330,7 +331,7 @@ typedef void
  * @return #GNUNET_OK if the message is well-formed,
  *         #GNUNET_SYSERR if not
  */
-typedef int
+typedef enum GNUNET_GenericReturnValue
 (*GNUNET_MQ_MessageValidationCallback) (
   void *cls,
   const struct GNUNET_MessageHeader *msg);
@@ -530,9 +531,9 @@ struct GNUNET_MQ_MessageHandler
  * End-marker for the handlers array
  */
 #define GNUNET_MQ_handler_end() \
-  {                             \
-    NULL, NULL, NULL, 0, 0      \
-  }
+        {                             \
+          NULL, NULL, NULL, 0, 0      \
+        }
 
 
 /**
@@ -564,7 +565,7 @@ struct GNUNET_MQ_MessageHandler
  * @param ctx context for the callbacks
  */
 #define GNUNET_MQ_hd_fixed_size(name, code, str, ctx)                   \
-  ({                                                                    \
+        ({                                                                    \
     void (*_cb)(void *cls, const str *msg) = &handle_ ## name;           \
     ((struct GNUNET_MQ_MessageHandler){ NULL,                            \
                                         (GNUNET_MQ_MessageCallback) _cb, \
@@ -616,7 +617,7 @@ struct GNUNET_MQ_MessageHandler
  * @param ctx context for the callbacks
  */
 #define GNUNET_MQ_hd_var_size(name, code, str, ctx)                          \
-  __extension__ ({                                                            \
+        __extension__ ({                                                            \
     int (*_mv)(void *cls, const str *msg) = &check_ ## name;                  \
     void (*_cb)(void *cls, const str *msg) = &handle_ ## name;                \
     ((struct GNUNET_MQ_MessageHandler){ (GNUNET_MQ_MessageValidationCallback) \
@@ -639,17 +640,17 @@ struct GNUNET_MQ_MessageHandler
  *  the size, starting with a `struct GNUNET_MessageHeader`
  */
 #define GNUNET_MQ_check_zero_termination(m)                       \
-  {                                                               \
-    const char *str = (const char *) &m[1];                       \
-    const struct GNUNET_MessageHeader *hdr =                      \
-      (const struct GNUNET_MessageHeader *) m;                    \
-    uint16_t slen = ntohs (hdr->size) - sizeof(*m);              \
-    if ((0 == slen) || (memchr (str, 0, slen) != &str[slen - 1])) \
-    {                                                             \
-      GNUNET_break (0);                                           \
-      return GNUNET_NO;                                           \
-    }                                                             \
-  }
+        {                                                               \
+          const char *str = (const char *) &m[1];                       \
+          const struct GNUNET_MessageHeader *hdr =                      \
+            (const struct GNUNET_MessageHeader *) m;                    \
+          uint16_t slen = ntohs (hdr->size) - sizeof(*m);              \
+          if ((0 == slen) || (memchr (str, 0, slen) != &str[slen - 1])) \
+          {                                                             \
+            GNUNET_break (0);                                           \
+            return GNUNET_NO;                                           \
+          }                                                             \
+        }
 
 
 /**
@@ -665,19 +666,19 @@ struct GNUNET_MQ_MessageHandler
  *  the size, starting with a `struct GNUNET_MessageHeader`
  */
 #define GNUNET_MQ_check_boxed_message(m)                 \
-  {                                                      \
-    const struct GNUNET_MessageHeader *inbox =           \
-      (const struct GNUNET_MessageHeader *) &m[1];       \
-    const struct GNUNET_MessageHeader *hdr =             \
-      (const struct GNUNET_MessageHeader *) m;           \
-    uint16_t slen = ntohs (hdr->size) - sizeof(*m);     \
-    if ((slen < sizeof(struct GNUNET_MessageHeader)) || \
-        (slen != ntohs (inbox->size)))                   \
-    {                                                    \
-      GNUNET_break (0);                                  \
-      return GNUNET_NO;                                  \
-    }                                                    \
-  }
+        {                                                      \
+          const struct GNUNET_MessageHeader *inbox =           \
+            (const struct GNUNET_MessageHeader *) &m[1];       \
+          const struct GNUNET_MessageHeader *hdr =             \
+            (const struct GNUNET_MessageHeader *) m;           \
+          uint16_t slen = ntohs (hdr->size) - sizeof(*m);     \
+          if ((slen < sizeof(struct GNUNET_MessageHeader)) || \
+              (slen != ntohs (inbox->size)))                   \
+          {                                                    \
+            GNUNET_break (0);                                  \
+            return GNUNET_NO;                                  \
+          }                                                    \
+        }
 
 
 /**
