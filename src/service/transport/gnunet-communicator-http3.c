@@ -112,6 +112,11 @@ static struct GNUNET_NT_InterfaceScanner *is;
 static struct GNUNET_STATISTICS_Handle *stats;
 
 /**
+ *  The credential.
+ */
+gnutls_certificate_credentials_t cred;
+
+/**
  * Information of the connection with peer.
  */
 struct Connection
@@ -122,7 +127,6 @@ struct Connection
 
 
   gnutls_session_t session;
-  gnutls_certificate_credentials_t cred;
   /**
    * Information of the stream.
    *
@@ -436,16 +440,16 @@ client_gnutls_init (struct Connection *connection)
 {
   int rv;
   gnutls_datum_t alpn = { (unsigned char *) "h3", sizeof("h3") - 1};
-  rv = gnutls_certificate_allocate_credentials (&connection->cred);
-  if (GNUNET_NO == rv)
-    rv = gnutls_certificate_set_x509_system_trust (connection->cred);
-  if (GNUNET_NO > rv)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "cred init failed: %s\n",
-                gnutls_strerror (rv));
-    return GNUNET_SYSERR;
-  }
+  // rv = gnutls_certificate_allocate_credentials (&connection->cred);
+  // if (GNUNET_NO == rv)
+  //   rv = gnutls_certificate_set_x509_system_trust (connection->cred);
+  // if (GNUNET_NO > rv)
+  // {
+  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  //               "cred init failed: %s\n",
+  //               gnutls_strerror (rv));
+  //   return GNUNET_SYSERR;
+  // }
   rv = gnutls_init (&connection->session,
                     GNUTLS_CLIENT
                     | GNUTLS_ENABLE_EARLY_DATA
@@ -474,7 +478,7 @@ client_gnutls_init (struct Connection *connection)
   }
   gnutls_session_set_ptr (connection->session, &connection->conn_ref);
   rv = gnutls_credentials_set (connection->session, GNUTLS_CRD_CERTIFICATE,
-                               connection->cred);
+                               cred);
   if (GNUNET_NO != rv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -986,12 +990,9 @@ accept_connection (struct sockaddr *local_addr,
                | GNUTLS_ENABLE_EARLY_DATA
                | GNUTLS_NO_END_OF_EARLY_DATA);
   gnutls_priority_set_direct (new_connection->session, PRIORITY, NULL);
-  /*
-   * TODO: The cred here has not been initialized and
-   *   there is no need to maintain a cred for each connection
-   */
+  
   gnutls_credentials_set (new_connection->session,
-                          GNUTLS_CRD_CERTIFICATE, new_connection->cred);
+                          GNUTLS_CRD_CERTIFICATE, cred);
 
   ngtcp2_transport_params_default (&params);
   params.initial_max_streams_uni = 3;
@@ -1163,8 +1164,15 @@ sock_read (void *cls)
     if (rv < 0)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "ngtcp2_conn_read_pkt: %s",
+                  "ngtcp2_conn_read_pkt: %s\n",
                   ngtcp2_strerror (rv));
+      return;
+    }
+    rv = connection_write (connection);
+    if (rv < 0)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "connection write error!\n");
       return;
     }
   }
@@ -1301,6 +1309,29 @@ run (void *cls,
 
   addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
   is = GNUNET_NT_scanner_init ();
+
+  int rv;
+  rv = gnutls_certificate_allocate_credentials (&cred);
+  if (GNUNET_NO == rv)
+    rv = gnutls_certificate_set_x509_system_trust (cred);
+  if (GNUNET_NO > rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "cred init failed: %s\n",
+                gnutls_strerror (rv));
+    return;
+  }
+  rv = gnutls_certificate_set_x509_key_file (cred,
+                                             "credentials/server.pem",
+                                             "credentials/server-key.pem",
+                                             GNUTLS_X509_FMT_PEM);
+  if (rv < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "gnutls_certificate_set_x509_key_file: %s\n",
+                gnutls_strerror (rv));
+    return;
+  }
   /**
    * Get our public key for initial packet
    */
