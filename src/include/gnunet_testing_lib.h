@@ -677,7 +677,6 @@ GNUNET_TESTING_run (
  * Start a GNUnet scheduler event loop and
  * run the testsuite.  Return 0 upon success.
  * Expected to be called directly from main().
- * FIXME: Why is this commands array here not const?
  *
  * @param commands the list of command to execute
  * @param timeout how long to wait for each command to execute
