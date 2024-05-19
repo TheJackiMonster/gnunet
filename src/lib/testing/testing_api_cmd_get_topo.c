@@ -19,7 +19,7 @@
  */
 
 /**
- * @file testing/testing_api_cmd_netjail_start.c
+ * @file testing/testing_api_cmd_get_topo.c
  * @brief Command to start the netjail script.
  * @author t3sserakt
  */
@@ -138,11 +138,11 @@ get_topo_string_from_file (const char *topology_data_file)
 
 
 /**
-* The run method starts the script which setup the network namespaces.
-*
-* @param cls closure.
-* @param is interpreter state.
-*/
+ * The run method starts the script which setup the network namespaces.
+ *
+ * @param cls closure.
+ * @param is interpreter state.
+ */
 static void
 run (void *cls,
      struct GNUNET_TESTING_Interpreter *is)

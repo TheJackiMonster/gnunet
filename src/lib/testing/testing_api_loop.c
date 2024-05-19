@@ -272,15 +272,6 @@ GNUNET_TESTING_interpreter_get_command (
 }
 
 
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_set_var (const char *name,
-                            struct GNUNET_TESTING_Command cmd)
-{
-  cmd.name = name;
-  return cmd;
-}
-
-
 static void
 send_finished (void *cls,
                enum GNUNET_GenericReturnValue result)
@@ -452,6 +443,64 @@ interpreter_next (void *cls)
 }
 
 
+/**
+ * Run the main interpreter loop.
+ *
+ * @param cls contains the `struct GNUNET_TESTING_Interpreter`
+ */
+static void
+interpreter_run (void *cls)
+{
+  struct GNUNET_TESTING_Interpreter *is = cls;
+  struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
+
+  is->task = NULL;
+  if (NULL == cmd->run)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Running command END\n");
+    is->result = GNUNET_OK;
+    finish_test (is);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Running command `%s'\n",
+              cmd->label.value);
+  cmd->last_req_time
+    = GNUNET_TIME_absolute_get ();
+  if (0 == cmd->num_tries)
+    cmd->start_time = cmd->last_req_time;
+  cmd->num_tries = 1;
+  if (NULL != cmd->name)
+  {
+    struct GNUNET_HashCode h_name;
+
+    GNUNET_CRYPTO_hash (cmd->name,
+                        strlen (cmd->name),
+                        &h_name);
+    (void) GNUNET_CONTAINER_multihashmap_put (
+      is->vars,
+      &h_name,
+      cmd,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
+  }
+  if (NULL != cmd->ac)
+  {
+    cmd->ac->is = is;
+    cmd->ac->finished = GNUNET_NO;
+  }
+  cmd->run (cmd->cls,
+            is);
+  if ( (NULL == cmd->ac) ||
+       (cmd->asynchronous_finish) )
+  {
+    if (NULL != cmd->ac)
+      cmd->ac->next_called = true;
+    interpreter_next (is);
+  }
+}
+
+
 void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
 {
@@ -511,64 +560,6 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac)
   {
     ac->next_called = true;
     interpreter_next (ac->is);
-  }
-}
-
-
-/**
- * Run the main interpreter loop.
- *
- * @param cls contains the `struct GNUNET_TESTING_Interpreter`
- */
-static void
-interpreter_run (void *cls)
-{
-  struct GNUNET_TESTING_Interpreter *is = cls;
-  struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
-
-  is->task = NULL;
-  if (NULL == cmd->run)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Running command END\n");
-    is->result = GNUNET_OK;
-    finish_test (is);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Running command `%s'\n",
-              cmd->label.value);
-  cmd->last_req_time
-    = GNUNET_TIME_absolute_get ();
-  if (0 == cmd->num_tries)
-    cmd->start_time = cmd->last_req_time;
-  cmd->num_tries = 1;
-  if (NULL != cmd->name)
-  {
-    struct GNUNET_HashCode h_name;
-
-    GNUNET_CRYPTO_hash (cmd->name,
-                        strlen (cmd->name),
-                        &h_name);
-    (void) GNUNET_CONTAINER_multihashmap_put (
-      is->vars,
-      &h_name,
-      cmd,
-      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
-  }
-  if (NULL != cmd->ac)
-  {
-    cmd->ac->is = is;
-    cmd->ac->finished = GNUNET_NO;
-  }
-  cmd->run (cmd->cls,
-            is);
-  if ( (NULL == cmd->ac) ||
-       (cmd->asynchronous_finish) )
-  {
-    if (NULL != cmd->ac)
-      cmd->ac->next_called = true;
-    interpreter_next (is);
   }
 }
 
@@ -716,134 +707,6 @@ GNUNET_TESTING_make_plugin (
   api->cls = (void *) commands;
   api->start_testcase = &start_testcase;
   return api;
-}
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_command_new_ac (
-  void *cls,
-  const char *label,
-  GNUNET_TESTING_CommandRunRoutine run,
-  GNUNET_TESTING_CommandCleanupRoutine cleanup,
-  GNUNET_TESTING_CommandGetTraits traits,
-  struct GNUNET_TESTING_AsyncContext *ac)
-{
-  struct GNUNET_TESTING_Command cmd = {
-    .cls = cls,
-    .run = run,
-    .ac = ac,
-    .cleanup = cleanup,
-    .traits = traits
-  };
-
-  GNUNET_assert (NULL != run);
-  if (NULL != label)
-    GNUNET_TESTING_set_label (&cmd.label,
-                              label);
-  return cmd;
-}
-
-
-void
-GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
-                          const char *value)
-{
-  size_t len;
-
-  len = strlen (value);
-  GNUNET_assert (len <=
-                 GNUNET_TESTING_CMD_MAX_LABEL_LENGTH);
-  memcpy (label->value,
-          value,
-          len + 1);
-}
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_end (void)
-{
-  struct GNUNET_TESTING_Command cmd = {
-    .run = NULL
-  };
-
-  return cmd;
-}
-
-
-/**
- * Closure for #loop_run().
- */
-struct MainParams
-{
-
-  /**
-   * NULL-label terminated array of commands.
-   */
-  struct GNUNET_TESTING_Command *commands;
-
-  /**
-   * Global timeout for the test.
-   */
-  struct GNUNET_TIME_Relative timeout;
-
-  /**
-   * Set to #EXIT_FAILURE on error.
-   */
-  int rv;
-};
-
-
-/**
- * Function called with the final result of the test.
- *
- * @param cls the `struct MainParams`
- * @param rv #GNUNET_OK if the test passed
- */
-static void
-handle_result (void *cls,
-               enum GNUNET_GenericReturnValue rv)
-{
-  struct MainParams *mp = cls;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Test exits with status %d\n",
-              rv);
-  if (GNUNET_OK != rv)
-    mp->rv = EXIT_FAILURE;
-  GNUNET_SCHEDULER_shutdown ();
-}
-
-
-/**
- * Main function to run the test cases.
- *
- * @param cls a `struct MainParams *`
- */
-static void
-loop_run (void *cls)
-{
-  struct MainParams *mp = cls;
-
-  GNUNET_TESTING_run (mp->commands,
-                      mp->timeout,
-                      &handle_result,
-                      mp);
-}
-
-
-int
-GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
-                     struct GNUNET_TIME_Relative timeout)
-{
-  struct MainParams mp = {
-    .commands = commands,
-    .timeout = timeout,
-    .rv = EXIT_SUCCESS
-  };
-
-  GNUNET_SCHEDULER_run (&loop_run,
-                        &mp);
-  return mp.rv;
 }
 
 

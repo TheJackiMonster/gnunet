@@ -473,7 +473,7 @@ GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
  * @return modified command
  */
 struct GNUNET_TESTING_Command
-GNUENT_TESTING_cmd_set_var (const char *name,
+GNUNET_TESTING_cmd_set_var (const char *name,
                             struct GNUNET_TESTING_Command cmd);
 
 

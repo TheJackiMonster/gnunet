@@ -28,7 +28,9 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_barrier_reached.c \
   testing_api_cmd_exec.c \
   testing_api_cmd_finish.c \
+  testing_api_cmds.c \
   testing_api_loop.c testing_api_loop.h \
+  testing_api_main.c \
   testing_api_traits.c \
   testing_api_cmd_get_topo.c \
   testing_api_cmd_netjail_start.c \
