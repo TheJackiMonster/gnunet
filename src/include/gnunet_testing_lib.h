@@ -708,9 +708,8 @@ typedef void
 
 
 /**
- * Run the testsuite.  Note, CMDs are copied into
- * the interpreter state because they are _usually_
- * defined into the "run" method that returns after
+ * Run the testsuite.  Note, CMDs are copied into the interpreter state
+ * because they are _usually_ defined into the "run" method that returns after
  * having scheduled the test interpreter.
  *
  * @param commands the array of command to execute
@@ -728,9 +727,8 @@ GNUNET_TESTING_run (
 
 
 /**
- * Start a GNUnet scheduler event loop and
- * run the testsuite.  Return 0 upon success.
- * Expected to be called directly from main().
+ * Start a GNUnet scheduler event loop and run the testsuite.  Return 0 upon
+ * success.  Expected to be called directly from main().
  *
  * @param commands the list of command to execute
  * @param timeout how long to wait for each command to execute
