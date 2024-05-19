@@ -321,16 +321,6 @@ struct GNUNET_TESTING_Command
   struct GNUNET_TIME_Absolute last_req_time;
 
   /**
-   * In case @e asynchronous_finish is true, how long should we wait for this
-   * command to complete? If @e finish did not complete after this amount of
-   * time, the interpreter will fail.  Should be set generously to ensure
-   * tests do not fail on slow systems.
-   *
-   * FIXME: currently not used! Definition good?
-   */
-  struct GNUNET_TIME_Relative default_timeout;
-
-  /**
    * How often did we try to execute this command? (In case it is a request
    * that is repated.)  Note that a command must have some built-in retry
    * mechanism for this value to be useful.
