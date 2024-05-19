@@ -24,8 +24,8 @@
  * @author t3sserakt
  */
 
-#ifndef BARRIER_H
-#define BARRIER_H
+#ifndef TESTING_API_BARRIER_H
+#define TESTING_API_BARRIER_H
 
 /**
  * An entry for a barrier list

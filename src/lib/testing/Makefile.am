@@ -24,7 +24,7 @@ gnunet_cmds_helper_LDADD = $(XLIB) \
   $(LTLIBINTL) $(Z_LIBS)
 
 libgnunettesting_la_SOURCES = \
-  testing_api_cmd_barrier.c \
+  testing_api_cmd_barrier_create.c \
   testing_api_cmd_barrier_reached.c \
   testing_api_cmd_exec.c \
   testing_api_cmd_finish.c \
@@ -36,7 +36,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
   netjail.c netjail.h \
-  barrier.c barrier.h \
+  testing_api_barrier.c testing_api_barrier.h \
   testing_api_cmd_batch.c testing_api_cmd_batch.h
 libgnunettesting_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \

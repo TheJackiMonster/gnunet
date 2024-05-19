@@ -25,7 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_testing_lib.h"
-#include "barrier.h"
+#include "testing_api_barrier.h"
 #include "testing_api_loop.h"
 
 

@@ -26,8 +26,7 @@
 #ifndef TESTING_API_LOOP_H
 #define TESTING_API_LOOP_H
 
-
-#include "barrier.h"
+#include "testing_api_barrier.h"
 
 
 /**
