@@ -54,11 +54,7 @@ main (int argc,
   struct GNUNET_TESTING_Command netjail[] = {
     GNUNET_TESTING_cmd_load_topology_from_string (
       "load-topology",
-      ""),
-    GNUNET_TESTING_cmd_netjail_setup (
-      "netjail-setup",
-      GNUNET_TESTING_NETJAIL_START_SCRIPT,
-      "load-topology"),
+      ""), // try "M"
     GNUNET_TESTING_cmd_end ()
   };
   struct GNUNET_TESTING_Command commands[] = {

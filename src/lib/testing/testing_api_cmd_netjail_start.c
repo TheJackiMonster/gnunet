@@ -151,14 +151,15 @@ netjail_start_run (void *cls,
                    ns->script);
   helper_check = GNUNET_OS_check_helper_binary (
     script_name,
-    GNUNET_YES,
+    true,
     NULL);
   if (GNUNET_NO == helper_check)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "No SUID for %s!\n",
                 script_name);
-    GNUNET_TESTING_FAIL (is);
+    GNUNET_TESTING_interpreter_skip (is);
+    return;
   }
   if (GNUNET_SYSERR == helper_check)
   {
