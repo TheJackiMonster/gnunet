@@ -32,10 +32,8 @@
  */
 struct GNUNET_TESTING_Barrier
 {
-  /**
-   * The barrier name
-   */
-  char *barrier_name;
+
+  struct GNUNET_ShortHashCode barrier_id;
 
   /**
    * Context of a barrier reached command of our local interpreter that is

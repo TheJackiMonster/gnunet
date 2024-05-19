@@ -34,6 +34,59 @@
 #include "testing.h"
 
 
+/**
+ * Callback function to write messages from the helper process running on a netjail node to the master process.
+ *
+ * @param message The message to write.
+ */
+typedef void
+(*GNUNET_TESTING_cmd_helper_write_cb) (
+  struct GNUNET_MessageHeader *message);
+
+/**
+ * Callback function which writes a message from the helper process running on a netjail node to the master process * signaling that the test case running on the netjail node finished.
+ */
+typedef void
+(*GNUNET_TESTING_cmd_helper_finish_cb) (
+  enum GNUNET_GenericReturnValue status);
+
+
+/**
+ * The plugin API every test case plugin has to implement.
+ */
+struct GNUNET_TESTING_PluginFunctions
+{
+
+  /**
+   * Closure to pass to start_testcase.
+   */
+  void *cls;
+
+  /**
+   * Function to be implemented for each test case plugin which starts the test case on a netjail node.
+   *
+   * @param topology_data A file name for the file containing the topology configuration, or a string containing
+   *        the topology configuration.
+   * @param barrier_count length of the @a barriers array
+   * @param barriers inherited barriers
+   * @param write_message Callback function to write messages from the helper process running on a
+   * netjail node to the master process.
+   * @param finish_cb Callback function which writes a message from the helper process running on a netjail
+   *                  node to the master process * signaling that the test case running on the netjail node finished.
+   * @return Returns The struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
+   */
+  struct GNUNET_TESTING_Interpreter *
+  (*start_testcase) (
+    void *cls,
+    const char *topology_data,
+    uint32_t barrier_count,
+    const struct GNUNET_ShortHashCode *barriers,
+    GNUNET_TESTING_cmd_helper_write_cb write_message,
+    GNUNET_TESTING_cmd_helper_finish_cb finish_cb);
+
+};
+
+
 struct SendContext
 {
   struct SendContext *next;
@@ -92,6 +145,16 @@ struct GNUNET_TESTING_Interpreter
    * Task run on timeout.
    */
   struct GNUNET_SCHEDULER_Task *timeout_task;
+
+  /**
+   * Hash map mapping variable names to commands.
+   */
+  struct GNUNET_CONTAINER_MultiHashMap *vars;
+
+  /**
+   * Function to call to send messages to our parent.
+   */
+  GNUNET_TESTING_cmd_helper_write_cb parent_writer;
 
   /**
    * Number of GNUNET_TESTING_Command in @e commands.
@@ -238,6 +301,35 @@ GNUNET_TESTING_interpreter_lookup_command_all (
 }
 
 
+const struct TALER_TESTING_Command *
+TALER_TESTING_interpreter_get_command (struct TALER_TESTING_Interpreter *is,
+                                       const char *name)
+{
+  const struct TALER_TESTING_Command *cmd;
+  struct GNUNET_HashCode h_name;
+
+  GNUNET_CRYPTO_hash (name,
+                      strlen (name),
+                      &h_name);
+  cmd = GNUNET_CONTAINER_multihashmap_get (is->vars,
+                                           &h_name);
+  if (NULL == cmd)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Command not found by name: %s\n",
+                name);
+  return cmd;
+}
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_set_var (const char *name,
+                            struct GNUNET_TESTING_Command cmd)
+{
+  cmd.name = name;
+  return cmd;
+}
+
+
 static void
 send_finished (void *cls,
                enum GNUNET_GenericReturnValue result)
@@ -283,7 +375,14 @@ void
 GNUNET_TESTING_loop_notify_parent_ (struct GNUNET_TESTING_Interpreter *is,
                                     const struct GNUNET_MessageHeader *hdr)
 {
-  // FIXME: how?
+  if (NULL == is->parent_writer)
+  {
+    /* We have no parent, this is impossible! */
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
+  }
+  is->parent_writer (hdr);
 }
 
 
@@ -349,6 +448,11 @@ finish_test (void *cls)
   {
     GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
     is->barriers = NULL;
+  }
+  if (NULL != is->vars)
+  {
+    GNUNET_CONTAINER_multihashmap_destroy (is->vars);
+    is->vars = NULL;
   }
   GNUNET_free (is->helpers);
   GNUNET_free (is);
@@ -496,6 +600,19 @@ interpreter_run (void *cls)
   if (0 == cmd->num_tries)
     cmd->start_time = cmd->last_req_time;
   cmd->num_tries = 1;
+  if (NULL != cmd->name)
+  {
+    struct GNUNET_HashCode h_name;
+
+    GNUNET_CRYPTO_hash (cmd->name,
+                        strlen (cmd->name),
+                        &h_name);
+    (void) GNUNET_CONTAINER_multihashmap_put (
+      is->vars,
+      &h_name,
+      cmd,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
+  }
   if (NULL != cmd->ac)
   {
     cmd->ac->is = is;
@@ -531,21 +648,20 @@ do_timeout (void *cls)
 }
 
 
-struct GNUNET_TESTING_Interpreter *
-GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
-                    struct GNUNET_TIME_Relative timeout,
-                    GNUNET_TESTING_ResultCallback rc,
-                    void *rc_cls)
+static void
+setup_is (struct GNUNET_TESTING_Interpreter *is,
+          const struct GNUNET_TESTING_Command *bcommand)
+const struct GNUNET_TESTING_Command *commands)
 {
-  struct GNUNET_TESTING_Interpreter *is;
   unsigned int i;
 
-  is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
-  is->rc = rc;
-  is->rc_cls = rc_cls;
+  is->vars = GNUNET_CONTAINER_multihashmap_create (1024,
+                                                   false);
   /* get the number of commands */
   for (i = 0; NULL != commands[i].run; i++)
     ;
+  if (NULL != bcommand)
+    i++;
   is->cmds_n = i + 1;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got %u commands\n",
@@ -554,16 +670,107 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
     (i + 1)
     * sizeof (struct GNUNET_TESTING_Command));
   GNUNET_assert (NULL != is->commands);
-  memcpy (is->commands,
-          commands,
-          sizeof (struct GNUNET_TESTING_Command) * i);
+  if (NULL == bcommand)
+  {
+    memcpy (is->commands,
+            commands,
+            sizeof (struct GNUNET_TESTING_Command) * i);
+  }
+  else
+  {
+    is->commands[0] = *bcommand;
+    memcpy (&is->commands[1],
+            commands,
+            sizeof (struct GNUNET_TESTING_Command) * i);
+  }
+  is->task = GNUNET_SCHEDULER_add_now (&interpreter_run,
+                                       is);
+}
+
+
+struct GNUNET_TESTING_Interpreter *
+GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
+                    struct GNUNET_TIME_Relative timeout,
+                    GNUNET_TESTING_ResultCallback rc,
+                    void *rc_cls)
+{
+  struct GNUNET_TESTING_Interpreter *is;
+
+  is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
   is->timeout_task
     = GNUNET_SCHEDULER_add_delayed (timeout,
                                     &do_timeout,
                                     is);
-  is->task = GNUNET_SCHEDULER_add_now (&interpreter_run,
-                                       is);
+  is->rc = rc;
+  is->rc_cls = rc_cls;
+  setup_is (is,
+            NULL,
+            commands);
   return is;
+}
+
+
+static struct GNUNET_TESTING_Interpreter *
+start_testcase (
+  void *cls,
+  const char *topology_data,
+  uint32_t inherited_barrier_count,
+  const struct GNUNET_ShortHashCode *inherited_barriers,
+  GNUNET_TESTING_cmd_helper_write_cb parent_writer,
+  GNUNET_TESTING_cmd_helper_finish_cb finish_cb)
+{
+  const struct GNUNET_TESTING_Command *commands = cls;
+  struct GNUNET_TESTING_Interpreter *is;
+  unsigned int i;
+
+  is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
+  if (0 != inherited_barrier_count)
+  {
+    is->barriers
+      = GNUNET_CONTAINER_multishortmap_create (inherited_barrier_count * 4 / 3,
+                                               true);
+    for (unsigned int j = 0; j<inherited_barrier_count; j++)
+    {
+      struct GNUNET_TESTING_Barrier *barrier;
+
+      barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
+      barrier->barrier_id = inherited_barriers[j];
+      barrier->inherited = true;
+      (void) GNUNET_CONTAINER_multishortmap_put (
+        is->barriers,
+        &barrier->barrier_id,
+        barrier,
+        GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
+    }
+  }
+  is->parent_writer = parent_writer;
+  is->rc = finish_cb;
+  is->rc_cls = finish_cb_cls;
+  {
+    struct GNUNET_TESTING_Command bcmd;
+
+    bcmd = GNUNET_TESTING_cmd_set_var (
+      "topology",
+      GNUNET_TESTING_cmd_netjail_topology_from_data (
+        "_boot_",
+        topology_data));
+    setup_is (is,
+              &bcmd,
+              commands);
+  }
+  return is;
+
+}
+
+
+struct GNUNET_TESTING_PluginFunctions *
+GNUNET_TESTING_make_plugin (
+  const struct GNUNET_TESTING_Command *commands)
+{
+  api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
+  api->cls = (void *) commands;
+  api->start_testcase = &start_testcase;
+  return api;
 }
 
 
@@ -733,71 +940,17 @@ void
 GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
                              struct GNUNET_TESTING_Barrier *barrier)
 {
-  struct GNUNET_HashCode hc;
-  struct GNUNET_ShortHashCode create_key;
-
-  GNUNET_CRYPTO_hash (barrier->name,
-                      strlen (barrier->name),
-                      &hc);
-  memcpy (&create_key,
-          &hc,
-          sizeof (create_key));
   if (NULL == is->barriers)
     is->barriers
       = GNUNET_CONTAINER_multishortmap_create (1,
-                                               false);
+                                               true);
   /* We always use the barrier we encountered
      most recently under a given label, thus replace */
   (void) GNUNET_CONTAINER_multishortmap_put (
     is->barriers,
-    &create_key,
+    &barrier->barrier_id,
     barrier,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE);
-}
-
-
-// FIXME: deprecated...
-
-void
-GNUNET_TESTING_finish_barrier_ (struct GNUNET_TESTING_Interpreter *is,
-                                const char *barrier_name)
-{
-  struct CommandListEntry *pos;
-  struct GNUNET_TESTING_Barrier *barrier;
-
-  barrier = GNUNET_TESTING_get_barrier_ (is,
-                                         barrier_name);
-  if (NULL == barrier)
-    return;
-  while (NULL != (pos = barrier->cmds_head))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "command label %s\n",
-                pos->command->label.value);
-    if ( (GNUNET_NO == pos->command->ac->finished) &&
-         (GNUNET_NO == pos->command->asynchronous_finish) )
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "command label %s finish\n",
-                  pos->command->label.value);
-      GNUNET_TESTING_async_finish (pos->command->ac);
-    }
-    else if (GNUNET_NO == pos->command->ac->finished)
-    {
-      pos->command->asynchronous_finish = GNUNET_YES;
-    }
-    GNUNET_CONTAINER_DLL_remove (barrier->cmds_head,
-                                 barrier->cmds_tail,
-                                 pos);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "command entry label %s removed\n",
-                pos->command->label.value);
-    GNUNET_free (pos);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "command entry freed\n");
-  }
-  free_barrier_nodes (is,
-                      barrier);
 }
 
 

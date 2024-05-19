@@ -221,6 +221,11 @@ struct GNUNET_TESTING_Command
   struct GNUNET_TESTING_CommandLabel label;
 
   /**
+   * Variable name for the command, NULL for none.
+   */
+  const char *name;
+
+  /**
    * Runs the command.  Note that upon return, the interpreter
    * will not automatically run the next command, as the command
    * may continue asynchronously in other scheduler tasks.  Thus,
@@ -514,6 +519,35 @@ GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
                      struct GNUNET_TIME_Relative timeout);
 
 
+/* ***************** plugin logic ************* */
+
+
+/**
+ * The plugin API every test case plugin has to implement.
+ */
+struct GNUNET_TESTING_PluginFunctions;
+
+
+struct GNUNET_TESTING_PluginFunctions *
+GNUNET_TESTING_make_plugin (
+  const struct GNUNET_TESTING_Command *commands);
+
+#define GNUNET_TESTING_MAKE_PLUGIN(prefix,name,...)            \
+        void *                                                 \
+        prefix ## _test_plugin_ ## name ## _init (void *cls) { \
+          const char *my_node_id = cls; (void) my_node_id;     \
+          struct GNUNET_TESTING_Command commands[] = {         \
+            __VA_ARGS__                                        \
+            GNUNET_TESTING_cmd_end ()                          \
+          };                                                   \
+          return GNUNET_TESTING_make_plugin (commands);        \
+        }                                                      \
+        void *                                                 \
+        prefix ## _test_plugin_ ## name ## _done (void *cls) { \
+          struct GNUNET_TESTING_PluginFunctions *api = cls;    \
+          GNUNET_free (api);                                   \
+        }
+
 /* ************** Fundamental interpreter commands ************ */
 
 
@@ -581,6 +615,11 @@ struct GNUNET_TESTING_Timer
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
+
+
+struct TALER_TESTING_Command
+GNUENT_TESTING_cmd_set_var (const char *name,
+                            struct GNUNET_TESTING_Command cmd);
 
 
 /**

@@ -94,7 +94,8 @@ GNUNET_TESTING_cmd_barrier_create (
   struct GNUNET_TESTING_Barrier *barrier;
 
   barrier = GNUNET_new (struct GNUNET_TESTING_Barrier);
-  barrier->name = label;
+  GNUNET_TESTING_barrier_name_hash_ (label,
+                                     &barrier->barrier_id);
   barrier->number_to_be_reached = number_to_be_reached;
   return GNUNET_TESTING_command_new (barrier,
                                      label,
