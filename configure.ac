@@ -1304,6 +1304,7 @@ src/service/setu/Makefile
 src/service/setu/setu.conf
 src/service/statistics/Makefile
 src/service/statistics/statistics.conf
+src/service/testbed/Makefile
 src/service/topology/Makefile
 src/service/transport/Makefile
 src/service/transport/transport.conf

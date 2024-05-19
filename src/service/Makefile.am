@@ -2,6 +2,7 @@ SUBDIRS = \
 	util \
 	statistics \
 	arm \
+    testbed \
 	peerstore \
 	nat \
 	nat-auto \
