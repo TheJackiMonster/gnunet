@@ -101,9 +101,11 @@ barrier_reached_run (void *cls,
   barrier->reached++;
   if (barrier->reached == barrier->expected_reaches)
   {
-    struct GNUNET_TESTING_CommandBarrierSatisfied cbs;
+    struct GNUNET_TESTING_CommandBarrierSatisfied cbs = {
+      .header.size = htons (sizeof (cbs)),
+      .header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE)
+    };
 
-    // FIXME: initialize cbs!
     GNUNET_TESTING_barrier_name_hash_ (brs->barrier_name,
                                        &cbs.barrier_key);
     barrier->satisfied = true;

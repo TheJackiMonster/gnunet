@@ -26,6 +26,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "barrier.h"
+#include "netjail.h"
 #include "testing_api_loop.h"
 #include "testing_cmds.h"
 
