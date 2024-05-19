@@ -115,20 +115,21 @@ child_completed_callback (void *cls,
 {
   struct BashScriptState *bss = cls;
 
+  bss->cwh = NULL;
   GNUNET_OS_process_destroy (bss->start_proc);
   bss->start_proc = NULL;
-  bss->cwh = NULL;
   if ( (bss->expected_type != type) ||
        (bss->expected_exit_code != exit_code) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Child failed with error %lu!\n",
-                exit_code);
+                "Child failed with error %lu (wanted %lu) %d/%d!\n",
+                exit_code,
+                bss->expected_exit_code,
+                type,
+                bss->expected_type);
     GNUNET_TESTING_async_fail (&bss->ac);
     return;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Child succeeded!\n");
   GNUNET_TESTING_async_finish (&bss->ac);
 }
 
@@ -144,6 +145,7 @@ exec_bash_script_run (void *cls,
 {
   struct BashScriptState *bss = cls;
 
+  GNUNET_assert (NULL == bss->cwh);
   bss->start_proc
     = GNUNET_OS_start_process_vap (
         GNUNET_OS_INHERIT_STD_ERR,
@@ -156,6 +158,28 @@ exec_bash_script_run (void *cls,
                                 &child_completed_callback,
                                 bss);
   GNUNET_break (NULL != bss->cwh);
+}
+
+
+/**
+ * This function prepares an array with traits.
+ */
+static enum GNUNET_GenericReturnValue
+traits (void *cls,
+        const void **ret,
+        const char *trait,
+        unsigned int index)
+{
+  struct BashScriptState *bss = cls;
+  struct GNUNET_TESTING_Trait traits[] = {
+    GNUNET_TESTING_make_trait_process (&bss->start_proc),
+    GNUNET_TESTING_trait_end ()
+  };
+
+  return GNUNET_TESTING_get_trait (traits,
+                                   ret,
+                                   trait,
+                                   index);
 }
 
 
@@ -184,7 +208,7 @@ GNUNET_TESTING_cmd_exec (
     label,
     &exec_bash_script_run,
     &exec_bash_script_cleanup,
-    NULL,
+    &traits,
     &bss->ac);
 }
 
@@ -225,6 +249,6 @@ GNUNET_TESTING_cmd_exec_va (
     label,
     &exec_bash_script_run,
     &exec_bash_script_cleanup,
-    NULL,
+    &traits,
     &bss->ac);
 }

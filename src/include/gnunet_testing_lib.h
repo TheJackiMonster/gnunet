@@ -948,7 +948,7 @@ GNUNET_TESTING_get_trait (
  * @param op operation to perform
  * @param prefix prefix to pass to @e op
  */
-#define GNUNET_TESTING_SIMPLE_TRAITS(op,prefix)             \
+#define GNUNET_TESTING_SIMPLE_TRAITS(op,prefix)                  \
         op (prefix, process, struct GNUNET_OS_Process *)         \
         op (prefix, cmd, const struct GNUNET_TESTING_Command)    \
         op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)

@@ -411,6 +411,7 @@ GNUNET_TESTING_interpreter_run_cmd_ (
   {
     cmd->ac->is = is;
     cmd->ac->finished = GNUNET_NO;
+    cmd->ac->next_called = false;
   }
   cmd->run (cmd->cls,
             is);
@@ -839,8 +840,9 @@ seek_batch (struct GNUNET_TESTING_Interpreter *is,
   unsigned int new_ip;
   struct GNUNET_TESTING_Command **batch;
   const struct GNUNET_TESTING_Command *current;
-  struct GNUNET_TESTING_Command *icmd;
-  struct GNUNET_TESTING_Command *match;
+  const struct GNUNET_TESTING_Command *icmd;
+  bool found = false;
+  bool in_batch = false;
 
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_TESTING_get_trait_cmd (cmd,
@@ -848,32 +850,35 @@ seek_batch (struct GNUNET_TESTING_Interpreter *is,
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_TESTING_get_trait_batch_cmds (cmd,
                                                       &batch));
-  match = NULL;
   for (new_ip = 0;
-       NULL != (icmd = batch[new_ip]);
+       NULL != (icmd = &((*batch)[new_ip]))->run;
        new_ip++)
   {
     if (current == target)
       current = NULL;
     if (icmd == target)
     {
-      match = icmd;
+      found = true;
       break;
     }
     if (GNUNET_TESTING_cmd_is_batch_ (icmd))
     {
-      int ret = seek_batch (is,
-                            icmd,
-                            target);
+      enum GNUNET_GenericReturnValue ret
+        = seek_batch (is,
+                      icmd,
+                      target);
       if (GNUNET_SYSERR == ret)
         return GNUNET_SYSERR; /* failure! */
       if (GNUNET_OK == ret)
       {
-        match = icmd;
+        in_batch = true;
+        found = true;
         break;
       }
     }
   }
+  if (! found)
+    return GNUNET_NO; /* not found */
   if (NULL == current)
   {
     /* refuse to jump forward */
@@ -881,10 +886,12 @@ seek_batch (struct GNUNET_TESTING_Interpreter *is,
     GNUNET_TESTING_interpreter_fail (is);
     return GNUNET_SYSERR;
   }
-  if (NULL == match)
-    return GNUNET_NO; /* not found */
-  GNUNET_TESTING_cmd_batch_set_current_ (cmd,
-                                         new_ip);
+  if (in_batch)
+    GNUNET_TESTING_cmd_batch_set_current_ (cmd,
+                                           new_ip);
+  else
+    GNUNET_TESTING_cmd_batch_set_current_ (cmd,
+                                           new_ip - 1);
   return GNUNET_OK;
 }
 
@@ -902,7 +909,10 @@ rewind_ip_run (void *cls,
 {
   struct RewindIpState *ris = cls;
   const struct GNUNET_TESTING_Command *target;
+  const struct GNUNET_TESTING_Command *icmd;
   unsigned int new_ip;
+  bool in_batch = false;
+  bool found = false;
 
   if (0 == ris->counter)
     return;
@@ -917,24 +927,41 @@ rewind_ip_run (void *cls,
   }
   ris->counter--;
   for (new_ip = 0;
-       NULL != is->commands[new_ip].run;
+       NULL != (icmd = &is->commands[new_ip])->run;
        new_ip++)
   {
-    const struct GNUNET_TESTING_Command *cmd
-      = &is->commands[new_ip];
-
-    if (cmd == target)
-      break;
-    if (GNUNET_TESTING_cmd_is_batch_ (cmd))
+    if (icmd == target)
     {
-      int ret = seek_batch (is,
-                            cmd,
-                            target);
-      if (GNUNET_SYSERR == ret)
-        return;   /* failure! */
-      if (GNUNET_OK == ret)
-        break;
+      found = true;
+      break;
     }
+    if (GNUNET_TESTING_cmd_is_batch_ (icmd))
+    {
+      enum GNUNET_GenericReturnValue ret
+        = seek_batch (is,
+                      icmd,
+                      target);
+      if (GNUNET_SYSERR == ret)
+      {
+        /* failure! */
+        GNUNET_break (0);
+        GNUNET_TESTING_interpreter_fail (is);
+        return;
+      }
+      if (GNUNET_OK == ret)
+      {
+        /* counter subtraction below for batch */
+        in_batch = true;
+        found = true;
+        break;
+      }
+    }
+  }
+  if (! found)
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_interpreter_fail (is);
+    return;
   }
   if (new_ip > (unsigned int) is->ip)
   {
@@ -943,7 +970,11 @@ rewind_ip_run (void *cls,
     GNUNET_TESTING_interpreter_fail (is);
     return;
   }
-  is->ip = new_ip - 1; /* -1 because the next function will advance by one */
+  if (in_batch)
+    is->ip = new_ip;
+  else
+    is->ip = new_ip - 1;
+  /* -1 because the interpreter_next function will advance by one */
 }
 
 
