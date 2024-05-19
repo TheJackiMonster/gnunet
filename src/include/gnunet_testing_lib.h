@@ -692,11 +692,15 @@ GNUNET_TESTING_cmd_exec_va (
 
 /**
  * Make the instruction pointer point to @a target_label
- * only if @a counter is greater than zero.
+ * only if @a counter is greater than zero.  Note that
+ * the command that will be executed next in this case
+ * is the one AFTER @a target_label, as the command we
+ * jump to is skipped by the advancing IP after the
+ * rewind.
  *
  * @param label command label
  * @param target_label label of the new instruction pointer's destination after the jump;
- *                     must be before the current instruction
+ *                     must be before the current instruction (and the command at the @a target_label itself will not be run, but the one afterwards)
  * @param counter counts how many times the rewinding is to happen.
  */
 struct GNUNET_TESTING_Command

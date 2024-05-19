@@ -35,11 +35,28 @@ main (int argc,
     { .prefix = NULL }
   };
   struct GNUNET_TESTING_Command batch[] = {
+    GNUNET_TESTING_cmd_exec_va ("batch-echo-once",
+                                GNUNET_OS_PROCESS_EXITED,
+                                0,
+                                "echo",
+                                "-n",
+                                "LI",
+                                NULL),
+    GNUNET_TESTING_cmd_exec_va ("batch-echo",
+                                GNUNET_OS_PROCESS_EXITED,
+                                0,
+                                "echo",
+                                "-n",
+                                "LA",
+                                NULL),
     GNUNET_TESTING_cmd_end ()
   };
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_batch ("batch",
                               batch),
+    GNUNET_TESTING_cmd_rewind_ip ("rewind",
+                                  "batch-echo-once",
+                                  2),
     GNUNET_TESTING_cmd_barrier_create ("barrier",
                                        1),
     GNUNET_TESTING_cmd_barrier_reached ("barrier-reached",
@@ -89,7 +106,7 @@ main (int argc,
                                 "LA",
                                 NULL),
     GNUNET_TESTING_cmd_rewind_ip ("rewind",
-                                  "echo",
+                                  "wait-sleep",
                                   4),
     GNUNET_TESTING_cmd_end ()
   };

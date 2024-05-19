@@ -115,10 +115,10 @@ do_stat (void *cls,
       return;
     }
     for (unsigned int j = 0;
-         NULL != bcmd[j]->run;
+         NULL != (*bcmd)[j].run;
          j++)
       do_stat (timings,
-               bcmd[j]);
+               &(*bcmd)[j]);
     return;
   }
   stat_cmd (timings,
@@ -140,9 +140,9 @@ stat_run (void *cls,
   struct GNUNET_TESTING_Timer *timings = cls;
 
   GNUNET_TESTING_interpreter_commands_iterate (is,
-                          true,
-                          &do_stat,
-                          timings);
+                                               true,
+                                               &do_stat,
+                                               timings);
 }
 
 
