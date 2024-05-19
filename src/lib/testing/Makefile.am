@@ -78,4 +78,15 @@ test_testing_api_LDADD = \
   $(XLIB)
 
 EXTRA_DIST = \
+  $(check_SCRIPTS) \
   test_netjail_topo.conf
+
+plugin_LTLIBRARIES = \
+  libgnunet_test_testing_plugin_ping.la
+
+libgnunet_test_testing_plugin_ping_la_SOURCES = \
+ test_testing_plugin_ping.c
+libgnunet_test_testing_plugin_ping_la_LIBADD = \
+  libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(LTLIBINTL)

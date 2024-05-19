@@ -66,6 +66,10 @@ main (int argc,
       : GNUNET_TESTING_cmd_load_topology_from_file (
         "load-topology",
         filename),
+#if FUTURE
+      GNUNET_TESTING_cmd_barrier_create ("peers-started-barrier",
+                                         NUM_PEERS),
+#endif
       GNUNET_TESTING_cmd_netjail_setup (
         "netjail-start",
         GNUNET_TESTING_NETJAIL_START_SCRIPT,
