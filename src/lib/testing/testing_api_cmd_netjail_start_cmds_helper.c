@@ -60,9 +60,9 @@ struct NetJailState
   struct GNUNET_TESTING_AsyncContext ac;
 
   /**
-   * Raw topology data to be parsed.
+   * Command with topology data.
    */
-  char *topology_data;
+  char *topology_cmd_label;
 
   /**
    * Array with handles of helper processes.
@@ -314,12 +314,15 @@ static bool
 send_start_messages (struct NetJailState *ns,
                      struct GNUNET_HELPER_Handle *helper)
 {
+  struct GNUNET_TESTING_Interpreter *is = ns->is;
+  const struct GNUNET_TESTING_Command *topo_cmd;
   struct GNUNET_TESTING_CommandHelperInit *msg;
   struct TestingSystemCount *tbc;
   struct GNUNET_ShortHashCode *bar;
   unsigned int num_barriers = 0;
   size_t topo_length = strlen (ns->topology_data) + 1;
   size_t msg_len;
+
 
   msg_len = sizeof (*msg) + topo_length
             + num_barriers * sizeof (struct GNUNET_ShortHashCode);
@@ -509,6 +512,7 @@ netjail_exec_traits (void *cls,
     GNUNET_TESTING_trait_end ()
   };
 
+  (void) ns;
   return GNUNET_TESTING_get_trait (traits,
                                    ret,
                                    trait,
@@ -544,6 +548,7 @@ GNUNET_TESTING_cmd_netjail_start_helpers (
 }
 
 
+#if MOVEME
 /**
  * Create command.
  *
@@ -581,7 +586,7 @@ GNUNET_TESTING_cmd_netjail_start_helpers2 (
          topology_data_file);
     GNUNET_assert (0);
   }
-  data = GNUNET_large_malloc (fs + 1);
+  data = GNUNET_malloc_large (fs + 1);
   GNUNET_assert (NULL != data);
   if (fs !=
       GNUNET_DISK_fn_read (topology_data_file,
@@ -605,3 +610,6 @@ GNUNET_TESTING_cmd_netjail_start_helpers2 (
     return cmd;
   }
 }
+
+
+#endif
