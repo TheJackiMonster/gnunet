@@ -335,5 +335,19 @@ void
 GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
                              struct GNUNET_TESTING_Barrier *barrier);
 
+/**
+ * Call #op on all simple traits.
+ */
+#define GNUNET_TESTING_SIMPLE_TESTBED_TRAITS(op, prefix)                            \
+  op (prefix, get_topology, const struct GNUNET_TESTING_NetjailTopology)            \
+  op (prefix, get_topology_string, const char *)                                           \
+  op (prefix, test_system, const struct GNUNET_TESTING_System)                      \
+  op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
+  op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  \
+  op (prefix, block_state, struct GNUNET_TESTING_BlockState)
+
+GNUNET_TESTING_SIMPLE_TESTBED_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                      GNUNET_TESTING)
+
 
 #endif
