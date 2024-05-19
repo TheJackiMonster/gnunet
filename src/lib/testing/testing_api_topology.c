@@ -310,7 +310,8 @@ get_connect_value (const char *line,
  *             struct GNUNET_TESTING_NodeConnection will be added.
  */
 static void
-node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
+node_connections (const char *line,
+                  struct GNUNET_TESTING_NetjailNode *node)
 {
   char *value, *value2;
   char *temp;
@@ -318,7 +319,6 @@ node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
   char *rest = NULL;
   char *rest2 = NULL;
   struct GNUNET_TESTING_NodeConnection *node_connection;
-
 
   temp = strstr (line, "connect");
   if (NULL != temp)
@@ -363,7 +363,9 @@ node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
  * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
  */
 static int
-log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
+log_nodes (void *cls,
+           const struct GNUNET_ShortHashCode *id,
+           void *value)
 {
   struct GNUNET_TESTING_NetjailNode *node = value;
   struct GNUNET_TESTING_NodeConnection *pos_connection;
@@ -408,11 +410,15 @@ log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
  * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
  */
 static int
-log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
+log_namespaces (void *cls,
+                const struct GNUNET_ShortHashCode *id,
+                void *value)
 {
   struct GNUNET_TESTING_NetjailNamespace *namespace = value;
 
-  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, &log_nodes, NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes,
+                                          &log_nodes,
+                                          NULL);
   return GNUNET_YES;
 }
 
@@ -629,9 +635,11 @@ void
 GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
 {
   GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
-                                          free_namespaces_cb, NULL);
+                                          &free_namespaces_cb,
+                                          NULL);
   GNUNET_CONTAINER_multishortmap_destroy (topology->map_namespaces);
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, free_nodes_cb,
+  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals,
+                                          &free_nodes_cb,
                                           NULL);
   GNUNET_CONTAINER_multishortmap_destroy (topology->map_globals);
   GNUNET_free (topology->plugin);
