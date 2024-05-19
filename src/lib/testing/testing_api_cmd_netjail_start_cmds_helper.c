@@ -62,7 +62,7 @@ struct NetJailState
   /**
    * Command with topology data.
    */
-  char *topology_cmd_label;
+  const char *topology_cmd_label;
 
   /**
    * Array with handles of helper processes.
@@ -493,7 +493,6 @@ netjail_exec_cleanup (void *cls)
   for (unsigned int i = 0; i<ns->n_helpers; i++)
     GNUNET_HELPER_stop (ns->helpers[i],
                         GNUNET_YES);
-  GNUNET_free (ns->topology_data);
   GNUNET_free (ns);
 }
 
