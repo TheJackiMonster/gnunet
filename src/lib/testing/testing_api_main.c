@@ -39,7 +39,7 @@ struct MainParams
   /**
    * NULL-label terminated array of commands.
    */
-  struct GNUNET_TESTING_Command *commands;
+  const struct GNUNET_TESTING_Command *commands;
 
   /**
    * Global timeout for the test.
@@ -93,7 +93,7 @@ loop_run (void *cls)
 
 int
 GNUNET_TESTING_main (
-  struct GNUNET_TESTING_Command *commands,
+  const struct GNUNET_TESTING_Command *commands,
   struct GNUNET_TIME_Relative timeout)
 {
   struct MainParams mp = {

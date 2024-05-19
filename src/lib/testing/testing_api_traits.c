@@ -29,11 +29,8 @@
 #include "gnunet_testing_lib.h"
 
 
-GNUNET_TESTING_LOOP_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
-                                   GNUNET_TESTING)
-
-GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT,
-                                    GNUNET_TESTING)
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                              GNUNET_TESTING)
 
 /**
  * End a trait array.  Usually, commands offer several traits,

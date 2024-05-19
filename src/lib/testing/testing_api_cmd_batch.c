@@ -120,14 +120,9 @@ batch_traits (void *cls,
               unsigned int index)
 {
   struct BatchState *bs = cls;
-  // FIXME: these constants should be more global!
-#define CURRENT_CMD_INDEX 0
-#define BATCH_INDEX 1
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_cmd (CURRENT_CMD_INDEX,
-                                   &bs->batch[bs->batch_ip]),
-    GNUNET_TESTING_make_trait_cmd (BATCH_INDEX,
-                                   bs->batch),
+    GNUNET_TESTING_make_trait_cmd (&bs->batch[bs->batch_ip]),
+    GNUNET_TESTING_make_trait_batch_cmds (&bs->batch),
     GNUNET_TESTING_trait_end ()
   };
 

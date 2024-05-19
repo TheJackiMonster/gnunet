@@ -685,7 +685,7 @@ GNUNET_TESTING_run (
  */
 int
 GNUNET_TESTING_main (
-  struct GNUNET_TESTING_Command *commands,
+  const struct GNUNET_TESTING_Command *commands,
   struct GNUNET_TIME_Relative timeout);
 
 
@@ -878,31 +878,19 @@ GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
 
 
 /**
- * Call #op on all simple traits needed by loop logic.
+ * Call #op on all simple traits needed by testing core logic.
  *
  * @param op operation to perform
  * @param prefix prefix to pass to @e op
  */
-#define GNUNET_TESTING_LOOP_SIMPLE_TRAITS(op,prefix)             \
+#define GNUNET_TESTING_SIMPLE_TRAITS(op,prefix)             \
         op (prefix, process, struct GNUNET_OS_Process *)         \
+        op (prefix, cmd, const struct GNUNET_TESTING_Command)    \
         op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)
 
 
-GNUNET_TESTING_LOOP_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
-                                   GNUNET_TESTING)
-
-
-/**
- * Call #op on all indexed traits needed by loop logic.
- *
- * @param op operation to perform
- * @param prefix prefix to pass to @e op
- */
-#define GNUNET_TESTING_LOOP_INDEXED_TRAITS(op,prefix) \
-        op (prefix, cmd, const struct GNUNET_TESTING_Command)
-
-GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT,
-                                    GNUNET_TESTING)
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                              GNUNET_TESTING)
 
 
 #endif

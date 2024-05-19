@@ -179,11 +179,13 @@ get_command (struct GNUNET_TESTING_Interpreter *is,
     if (GNUNET_TESTING_cmd_is_batch_ (cmd))
     {
       struct GNUNET_TESTING_Command **batch;
-      struct GNUNET_TESTING_Command *current;
+      const struct GNUNET_TESTING_Command *current;
       const struct GNUNET_TESTING_Command *icmd;
       const struct GNUNET_TESTING_Command *match;
 
-      current = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_TESTING_get_trait_cmd (cmd,
+                                                   &current));
       GNUNET_assert (GNUNET_OK ==
                      GNUNET_TESTING_get_trait_batch_cmds (cmd,
                                                           &batch));
@@ -514,15 +516,19 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
   }
   if (NULL != cmd)
   {
+    const struct GNUNET_TESTING_Command *pos = cmd;
+
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed during command `%s'\n",
                 cmd->label.value);
-    while (GNUNET_TESTING_cmd_is_batch_ (cmd))
+    while (GNUNET_TESTING_cmd_is_batch_ (pos))
     {
-      cmd = GNUNET_TESTING_cmd_batch_get_current_ (cmd);
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_TESTING_get_trait_cmd (pos,
+                                                   &pos));
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed in batch during command `%s'\n",
-                  cmd->label.value);
+                  pos->label.value);
     }
   }
   else
