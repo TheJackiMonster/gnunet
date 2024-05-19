@@ -2828,7 +2828,7 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
   char *data;
   struct GNUNET_TESTING_NetjailTopology *topo;
 
-  data = GNUNET_TESTING_get_topo_string+from_file (filename);
+  data = GNUNET_TESTING_get_topo_string_from_file (filename);
 
   topo = GNUNET_TESTING_get_topo_from_string (data);
 

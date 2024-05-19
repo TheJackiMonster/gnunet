@@ -818,7 +818,7 @@ parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
  * @return The GNUNET_TESTING_NetjailTopology
  */
 struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (const char *input)
+GNUNET_TESTING_get_topo_from_string_ (const char *input)
 {
   char *token;
   char *key = NULL;

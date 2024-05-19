@@ -84,6 +84,47 @@ traits (void *cls,
                                    index);
 }
 
+static char *
+get_topo_string_from_file (char *topology_data_file)
+{
+  uint64_t fs;
+  char *data;
+
+  if (GNUNET_YES !=
+      GNUNET_DISK_file_test (topology_data_file))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Topology file %s not found\n",
+         topology_data_file);
+    GNUNET_assert (0);
+  }
+  if (GNUNET_OK !=
+      GNUNET_DISK_file_size (topology_data_file,
+                             &fs,
+                             GNUNET_YES,
+                             GNUNET_YES))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Could not determine size of topology file %s\n",
+         topology_data_file);
+    GNUNET_assert (0);
+  }
+  data = GNUNET_malloc_large (fs + 1);
+  GNUNET_assert (NULL != data);
+  if (fs !=
+      GNUNET_DISK_fn_read (topology_data_file,
+                           data,
+                           fs))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Topology file %s cannot be read\n",
+         topology_data_file);
+    GNUNET_free (data);
+    return NULL;
+  }
+  return data;
+}
+
 /**
 * The run method starts the script which setup the network namespaces.
 *
@@ -96,8 +137,8 @@ run (void *cls,
 {
   struct TopologyState *ts = cls;
 
-  ts->topology_string = GNUNET_TESTING_get_topo_string_from_file (ts->file_name);
-  ts->topology = GNUNET_TESTING_get_topo_from_string (ts->file_nametopology_string);
+  ts->topology_string = get_topo_string_from_file (ts->file_name);
+  ts->topology = GNUNET_TESTING_get_topo_from_string (ts->topology_string);
 }
 
 struct GNUNET_TESTING_Command
