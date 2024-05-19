@@ -32,7 +32,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_traits.c \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
-  testing.c testing.h \
+  netjail.c netjail.h \
   barrier.c barrier.h \
   testing_api_cmd_batch.c
 libgnunettesting_la_LIBADD = \

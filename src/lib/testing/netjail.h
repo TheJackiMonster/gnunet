@@ -24,11 +24,11 @@
  * @author Marcello Stanisci
  * @author t3sserakt
  */
-#ifndef GNUNET_TESTING_NETJAIL_LIB_H
-#define GNUNET_TESTING_NETJAIL_LIB_H
+#ifndef NETJAIL_H
+#define NETJAIL_H
 
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
+#include "gnunet_util_lib.h"
+#include "gnunet_testing_lib.h"
 
 
 /**
@@ -362,100 +362,6 @@ struct GNUNET_TESTING_BlockState
    */
   unsigned int asynchronous_finish;
 };
-
-/**
- * Struct to hold information for callbacks.
- *
- */
-struct GNUNET_TESTING_LocalPreparedState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
-
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  GNUNET_TESTING_cmd_helper_write_cb write_message;
-};
-
-
-/**
- * This command executes a shell script which starts a helper process.
- * This process is running on a netjail node, executing a defined test case.
- *
- * @param label Name for the command.
- * @param topology The complete topology information.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @param topology_data If read_file is GNUNET_NO, topology_data holds the string with the topology.
- * @param timeout Before this timeout is reached this cmd MUST finish.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_cmds_helper (
-  const char *label,
-  struct GNUNET_TESTING_NetjailTopology *topology,
-  unsigned int *read_file,
-  char *topology_data,
-  struct GNUNET_TIME_Relative timeout);
-
-
-/**
- * Create command.
- *
- * @param label name for command.
- * @param helper_start_label label of the cmd to start the test system.
- * @param topology The complete topology information.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stop_cmds_helper (
-  const char *label,
-  const char *helper_start_label,
-  struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * This command is used to block the loop, until the command is finished by other commands,
- * using a trait to get this commands  struct GNUNET_TESTING_AsyncContext.
- *
- * @param label name for command.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_block_until_external_trigger (
-  const char *label);
-
-/**
- * DEPRECATED
- * This command sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_PEER_STARTED message to the master loop.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_send_peer_ready (const char *label,
-                                    GNUNET_TESTING_cmd_helper_write_cb
-                                    write_message);
-
-
-/**
- * This command sends a GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_TESTS_PREPARED message to the master loop.
- *
- * @param label name for command.
- * @param write_message Callback to write messages to the master loop.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_local_test_prepared (const char *label,
-                                        GNUNET_TESTING_cmd_helper_write_cb
-                                        write_message);
-
-
-/* ***** Netjail trait support ***** */
 
 
 /**
