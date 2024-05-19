@@ -131,4 +131,13 @@ GNUNET_TESTING_get_barrier_ (struct GNUNET_TESTING_Interpreter *is,
                              const char *barrier_name);
 
 
+unsigned int
+GNUNET_TESTING_barrier_count_ (struct GNUNET_TESTING_Interpreter *is);
+
+
+void
+GNUNET_TESTING_barrier_iterate_ (struct GNUNET_TESTING_Interpreter *is,
+                                 GNUNET_CONTAINER_ShortmapIterator cb,
+                                 void *cb_cls);
+
 #endif

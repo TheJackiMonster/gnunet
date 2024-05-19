@@ -313,6 +313,20 @@ exp_cb (void *cls)
 }
 
 
+static enum GNUNET_GenericReturnValue
+add_barrier (void *cls,
+             const struct GNUNET_ShortHashCode *key,
+             void *value)
+{
+  struct GNUNET_ShortHashCode **bar_posp = cls;
+  struct GNUNET_ShortHashCode *bar_pos = *bar_posp;
+
+  *bar_pos = *key;
+  *bar_posp = bar_pos + 1;
+  return GNUNET_OK;
+}
+
+
 /**
  * @return true on success
  */
@@ -323,14 +337,20 @@ send_start_messages (struct NetJailState *ns,
   struct GNUNET_TESTING_CommandHelperInit *msg;
   struct TestingSystemCount *tbc;
   struct GNUNET_ShortHashCode *bar;
-  unsigned int num_barriers = 0;
+  struct GNUNET_ShortHashCode *bar_pos;
+  unsigned int num_barriers = GNUNET_TESTING_barrier_count_ (ns->is);
   size_t topo_length;
   size_t msg_len;
 
   topo_length = strlen (ns->topology_data) + 1;
+  GNUNET_assert (topo_length < SIZE_MAX - sizeof (*msg));
+  GNUNET_assert (SIZE_MAX / sizeof (struct GNUNET_ShortHashCode) >
+                 num_barriers);
+  GNUNET_assert (sizeof (*msg) + topo_length <
+                 SIZE_MAX
+                 - num_barriers * sizeof (struct GNUNET_ShortHashCode));
   msg_len = sizeof (*msg) + topo_length
             + num_barriers * sizeof (struct GNUNET_ShortHashCode);
-  // FIXME: check for integer arithmetic overflow in the above code; theoretically.
   if (msg_len > UINT16_MAX)
   {
     /* ask a wizzard to enhance the protocol;
@@ -344,7 +364,11 @@ send_start_messages (struct NetJailState *ns,
   msg->header.size = htons ((uint16_t) msg_len);
   msg->header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT);
   bar = (struct GNUNET_ShortHashCode *) &msg[1];
-  // FIXME: iterate over barriers...
+  bar_pos = bar;
+  GNUNET_TESTING_barrier_iterate_ (ns->is,
+                                   &add_barrier,
+                                   &bar_pos);
+  GNUNET_assert (bar_pos == &bar[num_barriers]);
   memcpy (&bar[num_barriers],
           ns->topology_data,
           topo_length);

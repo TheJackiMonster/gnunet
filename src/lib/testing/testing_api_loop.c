@@ -762,4 +762,22 @@ GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
+unsigned int
+GNUNET_TESTING_barrier_count_ (struct GNUNET_TESTING_Interpreter *is)
+{
+  return GNUNET_CONTAINER_multishortmap_size (is->barriers);
+}
+
+
+void
+GNUNET_TESTING_barrier_iterate_ (struct GNUNET_TESTING_Interpreter *is,
+                                 GNUNET_CONTAINER_ShortmapIterator cb,
+                                 void *cb_cls)
+{
+  GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
+                                          cb,
+                                          cb_cls);
+}
+
+
 /* end of testing_api_loop.c */
