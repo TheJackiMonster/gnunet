@@ -615,6 +615,20 @@ GNUNET_TESTING_cmd_barrier_reached (
 
 #define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
 
+/**
+ * Create command.
+ *
+ * @param label Name for the command.
+ * @param topology_data topology data
+ * @param timeout Before this timeout is reached this cmd MUST finish.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_helpers (
+  const char *label,
+  const char *topology_cmd_label,
+  struct GNUNET_TIME_Relative timeout);
+
 
 /**
  * This command executes a shell script to setup the netjail environment.

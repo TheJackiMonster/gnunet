@@ -163,45 +163,77 @@ clear_msg (void *cls,
 
 
 static void
-barrier_reached (struct NetJailState *ns,
-                 const struct GNUNET_MessageHeader *message)
+handle_helper_barrier_reached (
+  void *cls,
+  const struct GNUNET_TESTING_CommandBarrierReached *rm)
 {
+  struct NetJailState *ns = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  const struct GNUNET_TESTING_CommandBarrierReached *rm;
-
-  rm = (const struct GNUNET_TESTING_CommandBarrierReached *) message;
-  // FIXME: size check rm vs. message!
 
   barrier = GNUNET_TESTING_get_barrier2_ (ns->is,
                                           &rm->barrier_key);
-  GNUNET_assert (NULL != barrier); // FIXME: fail?
+  if (NULL == barrier)
+  {
+    if (! ns->failed)
+    {
+      ns->failed = true;
+      GNUNET_TESTING_async_fail (&ns->ac);
+    }
+    return;
+  }
   if (barrier->inherited)
   {
-    struct GNUNET_TESTING_CommandBarrierReached cbr;
-
-    // FIXME: init cbr.header!
-    cbr.barrier_key = rm->barrier_key;
+    /* pass on to parent */
     GNUNET_TESTING_loop_notify_parent_ (ns->is,
-                                        &cbr.header);
+                                        &rm->header);
   }
   else
   {
     barrier->reached++;
     if (barrier->reached == barrier->expected_reaches)
     {
-      struct GNUNET_TESTING_CommandBarrierSatisfied cbs;
+      struct GNUNET_TESTING_CommandBarrierSatisfied cbs = {
+        .header.size
+          = htons (sizeof (cbs)),
+        .header.type
+          = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE),
+        .barrier_key
+          = rm->barrier_key
+      };
 
       GNUNET_assert (! barrier->satisfied);
       barrier->satisfied = true;
       /* unblock children */
-      // FIXME: initialize cbs.header!
-      cbs.barrier_key = rm->barrier_key;
       GNUNET_TESTING_loop_notify_children_ (ns->is,
                                             &cbs.header);
       /* unblock self */
       if (NULL != barrier->cmd_ac)
         GNUNET_TESTING_async_finish (barrier->cmd_ac);
     }
+  }
+}
+
+
+static void
+handle_helper_local_finished (
+  void *cls,
+  const struct GNUNET_TESTING_CommandLocalFinished *lf)
+{
+  struct NetJailState *ns = cls;
+
+  ns->n_finished++;
+  if ( (! ns->failed) &&
+       (GNUNET_OK != ntohl (lf->rv)) )
+  {
+    ns->failed = true;
+    GNUNET_TESTING_async_fail (&ns->ac);
+    return;
+  }
+  if (ns->n_finished == ns->n_helpers)
+  {
+    GNUNET_SCHEDULER_cancel (ns->timeout_task);
+    ns->timeout_task = NULL;
+    GNUNET_TESTING_async_finish (&ns->ac);
   }
 }
 
@@ -216,50 +248,38 @@ barrier_reached (struct NetJailState *ns,
  * @param message the actual message
  * @return #GNUNET_OK on success, #GNUNET_SYSERR to stop further processing
  */
-static int
+static enum GNUNET_GenericReturnValue
 helper_mst (void *cls,
             const struct GNUNET_MessageHeader *message)
 {
-  // FIXME: use message demultiplexer (with type checking, check_, handle_, etc.)
   struct NetJailState *ns = cls;
-  uint16_t message_type = ntohs (message->type);
-  struct GNUNET_TESTING_CommandLocalFinished *lf;
+  struct GNUNET_MQ_MessageHandlers handlers[] = {
+    GNUNET_MQ_hd_fixed_size (
+      helper_barrier_reached,
+      GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED,
+      struct GNUNET_TESTING_CommandBarrierReached,
+      ns),
+    GNUNET_MQ_hd_fixed_size (
+      helper_local_finished,
+      GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED,
+      struct GNUNET_TESTING_CommandLocalFinished,
+      ns),
+    GNUNET_MQ_handler_end ()
+  };
+  enum GNUNET_GenericReturnValue ret;
 
-  switch (message_type)
+  ret = GNUNET_MQ_handle_message (handlers,
+                                  message);
+  if (GNUNET_OK != ret)
   {
-  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED:
-    barrier_reached (ns,
-                     message);
-    break;
-  case GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED:
-    lf = (struct GNUNET_TESTING_CommandLocalFinished *) message;
-    // FIXME: check size, ...
-    ns->n_finished++;
-    if ( (! ns->failed) &&
-         (GNUNET_OK != ntohl (lf->rv)) )
-    {
-      ns->failed = true;
-      GNUNET_TESTING_async_fail (&ns->ac);
-      break;
-    }
-    if (ns->n_finished == ns->n_helpers)
-    {
-      GNUNET_SCHEDULER_cancel (ns->timeout_task);
-      ns->timeout_task = NULL;
-      GNUNET_TESTING_async_finish (&ns->ac);
-    }
-    break;
-  default:
-    /* We received a message we can not handle. */
     GNUNET_break (0);
     if (! ns->failed)
     {
       ns->failed = true;
       GNUNET_TESTING_async_fail (&ns->ac);
     }
-    return GNUNET_SYSERR;
   }
-  return GNUNET_OK;
+  return ret;
 }
 
 
@@ -503,13 +523,13 @@ netjail_exec_traits (void *cls,
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_netjail_start_helpers (
   const char *label,
-  const char *topology_data,
+  const char *topology_cmd_label,
   struct GNUNET_TIME_Relative timeout)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
-  ns->topology_data = GNUNET_strdup (topology_data);
+  ns->topology_cmd_label = topology_cmd_label;
   ns->timeout = timeout;
   return GNUNET_TESTING_command_new_ac (ns,
                                         label,
