@@ -30,8 +30,6 @@
 #include "gnunet_testing_barrier.h"
 #include "gnunet_testing_netjail_lib.h"
 
-#define NETJAIL_START_SCRIPT "netjail_start.sh"
-#define NETJAIL_STOP_SCRIPT "netjail_stop.sh"
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
@@ -102,7 +100,6 @@ netjail_start_cleanup (void *cls)
 
 /**
  * Callback which will be called if the setup script finished.
- *
  */
 static void
 child_completed_callback (void *cls,
@@ -200,46 +197,22 @@ netjail_start_run (void *cls,
 }
 
 
-static struct GNUNET_TESTING_Command
-cmd_netjail (const char *label,
-             const char *script,
-             const char *topology_config,
-             bool read_file)
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_setup (
+  const char *label,
+  const char *script,
+  const char *topology_cmd_label)
 {
   struct NetJailState *ns;
 
   ns = GNUNET_new (struct NetJailState);
-  ns->topology_config = topology_config;
-  ns->read_file = read_file;
   ns->script = script;
-  return GNUNET_TESTING_command_new_ac (ns,
-                                        label,
-                                        &netjail_start_run,
-                                        &netjail_start_cleanup,
-                                        NULL,
-                                        &ns->ac);
-}
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (const char *label,
-                                  const char *topology_config,
-                                  bool read_file)
-{
-  return cmd_netjail (label,
-                      NETJAIL_START_SCRIPT,
-                      topology_config,
-                      read_file);
-}
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop (const char *label,
-                                 const char *topology_config,
-                                 bool read_file)
-{
-  return cmd_netjail (label,
-                      NETJAIL_STOP_SCRIPT,
-                      topology_config,
-                      read_file);
+  ns->topology_cmd_label = topology_cmd_label;
+  return GNUNET_TESTING_command_new_ac (
+    ns,
+    label,
+    &netjail_start_run,
+    &netjail_start_cleanup,
+    NULL,
+    &ns->ac);
 }

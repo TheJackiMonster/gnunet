@@ -388,11 +388,8 @@ tokenizer_cb (void *cls,
              "Received unexpected message -- exiting\n");
         goto error;
       }
-      plugin_name = GNUNET_malloc (plugin_name_size + 1);
-      GNUNET_strlcpy (plugin_name,
-                      ((char *) &msg[1]),
-                      plugin_name_size + 1);
-
+      plugin_name = GNUNET_strndup ((char *) &msg[1],
+                                    plugin_name_size);
       binary = GNUNET_OS_get_libexec_binary_path ("gnunet-cmd");
 
       plugin = GNUNET_new (struct TestcasePlugin);

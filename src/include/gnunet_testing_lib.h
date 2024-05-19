@@ -611,35 +611,37 @@ GNUNET_TESTING_cmd_barrier_reached (
   const char *barrier_label);
 
 
+#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start.sh"
+
+#define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
+
+
 /**
  * This command executes a shell script to setup the netjail environment.
  *
  * @param label name for command.
+ * @param script which script to run, e.g. #GNUNET_TESTING_NETJAIL_START_SCRIPT
  * @param topology_config Configuration file for the test topology.
  * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start (
+GNUNET_TESTING_cmd_netjail_setup (
   const char *label,
-  const char *topology_config,
-  bool read_file);
+  const char *script,
+  const char *topology_cmd_label);
 
 
-/**
- * This command executes a shell script to remove the netjail environment.
- *
- * @param label name for command.
- * @param topology_config Configuration file for the test topology.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @return command.
- */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_stop (
+GNUNET_TESTING_cmd_netjail_topology_from_file (
   const char *label,
-  const char *topology_config,
-  bool read_file);
+  const char *filename);
 
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_topology_from_data (
+  const char *label,
+  const char *topology_data);
 
 /* *** Generic trait logic for implementing traits ********* */
 

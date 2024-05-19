@@ -38,7 +38,6 @@ libgnunettesting_la_SOURCES = \
   testing_api_traits.c \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
-  testing_api_cmd_netjail_stop_cmds_helper.c \
   testing_api_cmd_batch.c
 libgnunettesting_la_LIBADD = \
  $(top_builddir)/src/service/arm/libgnunetarm.la \

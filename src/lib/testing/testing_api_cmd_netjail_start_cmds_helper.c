@@ -64,7 +64,7 @@ struct NetJailState
   /**
    * Array with handles of helper processes.
    */
-  const struct GNUNET_HELPER_Handle **helper;
+  const struct GNUNET_HELPER_Handle **helpers;
 
   /**
    * Time after this cmd has to finish.
@@ -87,9 +87,9 @@ struct NetJailState
   struct TestingSystemCount *tbc_tail;
 
   /**
-   * Size of the array @e helper.
+   * Size of the array @e helpers.
    */
-  unsigned int n_helper;
+  unsigned int n_helpers;
 
   /**
    * Counts number of helpers that finished.
@@ -242,7 +242,7 @@ helper_mst (void *cls,
       GNUNET_TESTING_async_fail (&ns->ac);
       break;
     }
-    if (ns->n_finished == ns->n_helper)
+    if (ns->n_finished == ns->n_helpers)
     {
       GNUNET_SCHEDULER_cancel (ns->timeout_task);
       ns->timeout_task = NULL;
@@ -380,8 +380,8 @@ start_helper (struct NetJailState *ns,
     GNUNET_break (0);
     return false;
   }
-  GNUNET_array_append (ns->helper,
-                       ns->n_helper,
+  GNUNET_array_append (ns->helpers,
+                       ns->n_helpers,
                        helper);
   GNUNET_TESTING_add_netjail_helper_ (ns->is,
                                       helper);
@@ -463,6 +463,9 @@ netjail_exec_cleanup (void *cls)
     GNUNET_SCHEDULER_cancel (ns->timeout_task);
     ns->timeout_task = NULL;
   }
+  for (unsigned int i = 0; i<ns->n_helpers; i++)
+    GNUNET_HELPER_stop (ns->helpers[i],
+                        GNUNET_YES);
   GNUNET_free (ns->topology_data);
   GNUNET_free (ns);
 }
