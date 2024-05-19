@@ -45,3 +45,19 @@ libgnunettesting_la_LIBADD = \
 libgnunettesting_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
   -version-info 3:0:0
+
+AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;
+
+
+check_PROGRAMS = \
+  test_testing_api
+
+TESTS = \
+  $(check_PROGRAMS)
+
+test_testing_api_SOURCES = \
+  test_testing_api.c
+test_testing_api_LDADD = \
+  libgnunettesting.la \
+  -lgnunetutil \
+  $(XLIB)
