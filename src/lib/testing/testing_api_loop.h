@@ -137,4 +137,5 @@ struct GNUNET_TESTING_Barrier *
 GNUNET_TESTING_get_barrier_ (struct GNUNET_TESTING_Interpreter *is,
                              const char *barrier_name);
 
+
 #endif

@@ -29,6 +29,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "testing_api_loop.h"
+#include "testing_api_cmd_batch.h"
 #include "netjail.h"
 #include "testing_cmds.h"
 
@@ -251,10 +252,11 @@ GNUNET_TESTING_interpreter_lookup_command_all (
 
 
 const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_get_command (struct GNUNET_TESTING_Interpreter *is,
-                                        const char *name)
+GNUNET_TESTING_interpreter_get_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *name)
 {
-  const struct TALER_TESTING_Command *cmd;
+  const struct GNUNET_TESTING_Command *cmd;
   struct GNUNET_HashCode h_name;
 
   GNUNET_CRYPTO_hash (name,
@@ -510,14 +512,6 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac)
     ac->next_called = true;
     interpreter_next (ac->is);
   }
-}
-
-
-const struct GNUNET_TESTING_Command *
-GNUNET_TESTING_interpreter_get_current_command (
-  struct GNUNET_TESTING_Interpreter *is)
-{
-  return &is->commands[is->ip];
 }
 
 
