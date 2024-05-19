@@ -25,7 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "netjail.h"
+#include "testing_api_topology.h"
 
 /**
  * Generic logging shortcut

@@ -35,7 +35,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_get_topo.c \
   testing_api_cmd_netjail_start.c \
   testing_api_cmd_netjail_start_cmds_helper.c \
-  netjail.c netjail.h \
+  testing_api_topology.c testing_api_topology.h \
   testing_api_barrier.c testing_api_barrier.h \
   testing_api_cmd_batch.c testing_api_cmd_batch.h
 libgnunettesting_la_LIBADD = \

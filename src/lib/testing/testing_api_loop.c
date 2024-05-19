@@ -30,7 +30,7 @@
 #include "gnunet_testing_lib.h"
 #include "testing_api_loop.h"
 #include "testing_api_cmd_batch.h"
-#include "netjail.h"
+#include "testing_api_topology.h"
 #include "testing_cmds.h"
 
 

@@ -26,7 +26,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-#include "netjail.h"
+#include "testing_api_topology.h"
 
 #define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
 
