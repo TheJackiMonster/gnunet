@@ -17,6 +17,8 @@
 #include <ngtcp2/ngtcp2_crypto.h>
 #include <ngtcp2/ngtcp2_crypto_gnutls.h>
 #include <nghttp3/nghttp3.h>
+#include <gnutls/crypto.h>
+#include <gnutls/gnutls.h>
 
 
 /**
@@ -39,6 +41,8 @@
 
 /**
  * Map of sockaddr -> struct Connection
+ *
+ * TODO: Maybe it would be better to use cid as key?
  */
 struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 
@@ -161,6 +165,16 @@ struct Connection
    * Flag to indicate if we are the initiator of the connection
    */
   int is_initiator;
+
+  /**
+   * Flag to indicate whether we know the PeerIdentity (target) yet
+   */
+  int id_rcvd;
+
+  /**
+   * Flag to indicate whether we have sent OUR PeerIdentity to this peer
+   */
+  int id_sent;
 };
 
 
@@ -175,6 +189,44 @@ timestamp (void)
   struct timespec tp;
   clock_gettime (1, &tp);
   return (uint64_t) tp.tv_sec * NGTCP2_SECONDS + (uint64_t) tp.tv_nsec;
+}
+
+
+/**
+ * Taken from: UDP communicator
+ * Converts @a address to the address string format used by this
+ * communicator in HELLOs.
+ *
+ * @param address the address to convert, must be AF_INET or AF_INET6.
+ * @param address_len number of bytes in @a address
+ * @return string representation of @a address
+ */
+static char *
+sockaddr_to_udpaddr_string (const struct sockaddr *address,
+                            socklen_t address_len)
+{
+  char *ret;
+
+  switch (address->sa_family)
+  {
+  case AF_INET:
+    GNUNET_asprintf (&ret,
+                     "%s-%s",
+                     COMMUNICATOR_ADDRESS_PREFIX,
+                     GNUNET_a2s (address, address_len));
+    break;
+
+  case AF_INET6:
+    GNUNET_asprintf (&ret,
+                     "%s-%s",
+                     COMMUNICATOR_ADDRESS_PREFIX,
+                     GNUNET_a2s (address, address_len));
+    break;
+
+  default:
+    GNUNET_assert (0);
+  }
+  return ret;
 }
 
 
@@ -758,6 +810,8 @@ mq_init (void *cls,
   connection->address_len = remote_addrlen;
   connection->target = *peer_id;
   connection->is_initiator = GNUNET_YES;
+  connection->id_rcvd = GNUNET_YES;
+  connection->id_sent = GNUNET_NO;
   connection->nt = GNUNET_NT_scanner_get_type (is,
                                                remote_addr,
                                                remote_addrlen);
@@ -866,6 +920,135 @@ do_shutdown (void *cls)
 
 
 /**
+ * Accept new connections.
+ *
+ * @param local_addr local socket address
+ * @param local_addrlen local socket address length
+ * @param remote_addr remote(peer's) socket address
+ * @param remote_addrlen remote socket address length
+ *
+ * @return the pointer of new connection on success, NULL if failed
+ */
+static struct Connection*
+accept_connection (struct sockaddr *local_addr,
+                   socklen_t local_addrlen,
+                   struct sockaddr *remote_addr,
+                   socklen_t remote_addrlen,
+                   uint8_t *data,
+                   size_t datalen)
+{
+  ngtcp2_pkt_hd header;
+  struct Connection *new_connection = NULL;
+  ngtcp2_transport_params params;
+  ngtcp2_cid scid;
+  ngtcp2_conn *conn = NULL;
+  ngtcp2_settings settings;
+  uint8_t cid_buf[NGTCP2_MAX_CIDLEN];
+  ngtcp2_path path = {
+    {local_addr, local_addrlen},
+    {remote_addr, remote_addrlen},
+    NULL,
+  };
+  ngtcp2_callbacks callbacks = {
+    // .client_initial
+    .recv_client_initial = ngtcp2_crypto_recv_client_initial_cb,
+    .recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb,
+    .encrypt = ngtcp2_crypto_encrypt_cb,
+    .decrypt = ngtcp2_crypto_decrypt_cb,
+    .hp_mask = ngtcp2_crypto_hp_mask_cb,
+    // .recv_retry = ngtcp2_crypto_recv_retry_cb,
+    .update_key = ngtcp2_crypto_update_key_cb,
+    .delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb,
+    .delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb,
+    .get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb,
+    .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
+
+    // .acked_stream_data_offset = acked_stream_data_offset_cb,
+    // .recv_stream_data = recv_stream_data_cb,
+    // .stream_open = stream_open_cb,
+    .rand = rand_cb,
+    .get_new_connection_id = get_new_connection_id_cb,
+  };
+  int rv;
+
+  rv = ngtcp2_accept (&header, data, datalen);
+  if (rv < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "ngtcp2_accept: %s\n", ngtcp2_strerror (rv));
+    return NULL;
+  }
+  new_connection = GNUNET_new (struct Connection);
+  memset (new_connection, 0, sizeof (new_connection));
+
+  gnutls_init (&new_connection->session,
+               GNUTLS_SERVER
+               | GNUTLS_ENABLE_EARLY_DATA
+               | GNUTLS_NO_END_OF_EARLY_DATA);
+  gnutls_priority_set_direct (new_connection->session, PRIORITY, NULL);
+  /*
+   * TODO: The cred here has not been initialized and
+   *   there is no need to maintain a cred for each connection
+   */
+  gnutls_credentials_set (new_connection->session,
+                          GNUTLS_CRD_CERTIFICATE, new_connection->cred);
+
+  ngtcp2_transport_params_default (&params);
+  params.initial_max_streams_uni = 3;
+  params.initial_max_streams_bidi = 3;
+  params.initial_max_stream_data_bidi_local = 128 * 1024;
+  params.initial_max_stream_data_bidi_remote = 128 * 1024;
+  params.initial_max_data = 1024 * 1024;
+  params.original_dcid_present = 1;
+  params.max_idle_timeout = 30 * NGTCP2_SECONDS;
+  memcpy (&params.original_dcid, &header.dcid,
+          sizeof (params.original_dcid));
+
+  ngtcp2_settings_default (&settings);
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG,
+                              cid_buf,
+                              sizeof (cid_buf));
+  ngtcp2_cid_init (&scid, cid_buf, sizeof (cid_buf));
+
+  rv = ngtcp2_conn_server_new (&conn,
+                               &header.scid,
+                               &scid,
+                               &path,
+                               header.version,
+                               &callbacks,
+                               &settings,
+                               &params,
+                               NULL,
+                               new_connection);
+  if (rv < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "ngtcp2_conn_server_new: %s\n",
+                ngtcp2_strerror (rv));
+    return NULL;
+  }
+
+  new_connection->conn = conn;
+  new_connection->address = GNUNET_memdup (remote_addr, remote_addrlen);
+  new_connection->address_len = remote_addrlen;
+  new_connection->is_initiator = GNUNET_NO;
+  new_connection->id_rcvd = GNUNET_NO;
+  new_connection->id_sent = GNUNET_NO;
+  ngtcp2_crypto_gnutls_configure_server_session (new_connection->session);
+  ngtcp2_conn_set_tls_native_handle (new_connection->conn,
+                                     new_connection->session);
+  gnutls_session_set_ptr (new_connection->session,
+                          &new_connection->conn_ref);
+
+  new_connection->conn_ref.get_conn = get_conn;
+  new_connection->conn_ref.user_data = new_connection;
+  new_connection->stream.id = -1;
+
+  return new_connection;
+}
+
+
+/**
  * Socket read task.
  *
  * @param cls NULL
@@ -873,6 +1056,120 @@ do_shutdown (void *cls)
 static void
 sock_read (void *cls)
 {
+  (void) cls;
+  struct sockaddr_storage sa;
+  socklen_t salen = sizeof (sa);
+  ssize_t rcvd;
+  uint8_t buf[UINT16_MAX];
+  ngtcp2_path path;
+  // ngtcp2_version_cid version_cid;
+  struct GNUNET_HashCode addr_key;
+  struct Connection *connection;
+  int rv;
+  char *bindto;
+  struct sockaddr *local_addr;
+  socklen_t local_addrlen;
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "BINDTO",
+                                             &bindto))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "BINDTO");
+    return;
+  }
+  local_addr = udp_address_to_sockaddr (bindto, &local_addrlen);
+  read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                             udp_sock,
+                                             &sock_read,
+                                             NULL);
+
+  while (1)
+  {
+    rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
+                                           buf,
+                                           sizeof(buf),
+                                           (struct sockaddr *) &sa,
+                                           &salen);
+    if (-1 == rcvd)
+    {
+      struct sockaddr *addr = (struct sockaddr*) &sa;
+
+      if (EAGAIN == errno)
+        break; // We are done reading data
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to recv from %s family %d failed sock %p\n",
+                  GNUNET_a2s ((struct sockaddr*) &sa,
+                              sizeof (*addr)),
+                  addr->sa_family,
+                  udp_sock);
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "recv");
+      return;
+    }
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Read %llu bytes\n",
+                (unsigned long long) rcvd);
+    if (0 == rcvd)
+    {
+      GNUNET_break_op (0);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Read 0 bytes from UDP socket\n");
+      return;
+    }
+
+    // rv = ngtcp2_pkt_decode_version_cid (&version_cid, buf, rcvd,
+    //                                     NGTCP2_MAX_CIDLEN);
+    // if (rv < 0)
+    // {
+    //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    //               "ngtcp2_pkt_decode_version_cid: %s\n", ngtcp2_strerror (rv));
+    //   return;
+    // }
+
+    char *addr_string =
+      sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa,
+                                  salen);
+    GNUNET_CRYPTO_hash (addr_string, strlen (addr_string),
+                        &addr_key);
+    GNUNET_free (addr_string);
+    connection = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
+
+    if (NULL == connection)
+    {
+      connection = accept_connection (local_addr, local_addrlen,
+                                      (struct sockaddr *) &sa,
+                                      salen, buf, rcvd);
+      if (NULL == connection)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "accept connection error!\n");
+        return;
+      }
+      GNUNET_CONTAINER_multihashmap_put (addr_map,
+                                         &addr_key,
+                                         connection,
+                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+    }
+
+    memcpy (&path, ngtcp2_conn_get_path (connection->conn), sizeof (path));
+    path.remote.addr = (struct sockaddr *) &sa;
+    path.remote.addrlen = salen;
+
+    rv = ngtcp2_conn_read_pkt (connection->conn, &path, NULL, buf, rcvd,
+                               timestamp ());
+    if (rv < 0)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "ngtcp2_conn_read_pkt: %s",
+                  ngtcp2_strerror (rv));
+      return;
+    }
+  }
+
+  GNUNET_free (local_addr);
 
 }
 
