@@ -8,3 +8,4 @@ test_testing_servicestartup
 test_testing_sharedservices
 gnunet-cmds-helper
 test_testing_api
+gnunet-testing-netjail-launcher

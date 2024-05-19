@@ -21,7 +21,7 @@ gnunet_cmds_helper_SOURCES = \
 gnunet_cmds_helper_LDADD = $(XLIB) \
   libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LTLIBINTL) $(Z_LIBS)
+  $(LTLIBINTL)
 
 libgnunettesting_la_SOURCES = \
   testing_api_barrier.c testing_api_barrier.h \
@@ -49,6 +49,16 @@ libgnunettesting_la_LDFLAGS = \
 
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;
 
+
+bin_PROGRAMS = \
+  gnunet-testing-netjail-launcher
+
+gnunet_testing_netjail_launcher_SOURCES = \
+  gnunet-testing-netjail-launcher.c
+gnunet_testing_netjail_launcher_LDADD = $(XLIB) \
+  libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(LTLIBINTL)
 
 check_PROGRAMS = \
   test_testing_api
