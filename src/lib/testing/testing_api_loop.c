@@ -486,6 +486,11 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
                   pos->label.value);
     }
   }
+  if (NULL != is->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (is->timeout_task);
+    is->timeout_task = NULL;
+  }
   is->result = GNUNET_SYSERR;
   GNUNET_assert (NULL == is->final_task);
   is->final_task = GNUNET_SCHEDULER_add_now (&finish_test,

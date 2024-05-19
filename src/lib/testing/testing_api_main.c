@@ -42,6 +42,11 @@ struct MainParams
   const struct GNUNET_TESTING_Command *commands;
 
   /**
+   * The interpreter.
+   */
+  struct GNUNET_TESTING_Interpreter *is;
+
+  /**
    * Global timeout for the test.
    */
   struct GNUNET_TIME_Relative timeout;
@@ -68,9 +73,24 @@ handle_result (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Test exits with status %d\n",
               rv);
+  mp->is = NULL;
   if (GNUNET_OK != rv)
     mp->rv = EXIT_FAILURE;
   GNUNET_SCHEDULER_shutdown ();
+}
+
+
+static void
+do_shutdown (void *cls)
+{
+  struct MainParams *mp = cls;
+
+  if (NULL != mp->is)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Terminating test due to shutdown\n");
+    GNUNET_TESTING_interpreter_fail (mp->is);
+  }
 }
 
 
@@ -84,10 +104,12 @@ loop_run (void *cls)
 {
   struct MainParams *mp = cls;
 
-  GNUNET_TESTING_run (mp->commands,
-                      mp->timeout,
-                      &handle_result,
-                      mp);
+  mp->is = GNUNET_TESTING_run (mp->commands,
+                               mp->timeout,
+                               &handle_result,
+                               mp);
+  GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
+                                 mp);
 }
 
 

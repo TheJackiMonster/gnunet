@@ -40,6 +40,17 @@ main (int argc,
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_batch ("batch",
                               batch),
+    GNUNET_TESTING_cmd_barrier_create ("barrier",
+                                       1),
+    GNUNET_TESTING_cmd_barrier_reached ("barrier-reached",
+                                        "barrier"),
+    GNUNET_TESTING_cmd_barrier_create ("barrier2",
+                                       2),
+    GNUNET_TESTING_cmd_make_unblocking (
+      GNUNET_TESTING_cmd_barrier_reached ("barrier2-reached-nonblocking",
+                                          "barrier2")),
+    GNUNET_TESTING_cmd_barrier_reached ("barrier2-reached-blocking",
+                                        "barrier2"),
     GNUNET_TESTING_cmd_stat ("stat",
                              timers),
     GNUNET_TESTING_cmd_end ()
