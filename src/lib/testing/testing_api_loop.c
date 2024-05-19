@@ -141,27 +141,16 @@ GNUNET_TESTING_interpreter_lookup_command (
   struct GNUNET_TESTING_Interpreter *is,
   const char *label)
 {
-  int start_i = is->ip;
-  int end_i = 0;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "start_i: %u end_i: %u\n",
-              start_i,
-              end_i);
   if (NULL == label)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Attempt to lookup command for empty label\n");
     return NULL;
   }
-  for (int i = start_i; i >= end_i; i--)
+  for (int i = is->ip; i >= 0; i--)
   {
     const struct GNUNET_TESTING_Command *cmd = &is->commands[i];
 
-    if (NULL != cmd->run)
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "label to compare %s\n",
-                  cmd->label.value);
     /* Give precedence to top-level commands.  */
     if ( (NULL != cmd->run) &&
          (0 == strcmp (cmd->label.value,
@@ -220,7 +209,7 @@ GNUNET_TESTING_interpreter_get_command (
                                            &h_name);
   if (NULL == cmd)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Command not found by name: %s\n",
+                "Command not found by variable name: %s\n",
                 name);
   return cmd;
 }
@@ -302,15 +291,8 @@ finish_test (void *cls)
   for (unsigned int j = 0;
        NULL != (cmd = &is->commands[j])->run;
        j++)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Cleaning up cmd %s\n",
-                cmd->label.value);
-    cmd->cleanup (cmd->cls);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Cleaned up cmd %s\n",
-                cmd->label.value);
-  }
+    if (NULL != cmd->cleanup)
+      cmd->cleanup (cmd->cls);
   if (NULL != is->task)
   {
     GNUNET_SCHEDULER_cancel (is->task);
@@ -366,17 +348,29 @@ interpreter_run (void *cls);
 static void
 interpreter_next (void *cls)
 {
-  struct GNUNET_TESTING_Interpreter *is = cls;
   static unsigned long long ipc;
   static struct GNUNET_TIME_Absolute last_report;
+  struct GNUNET_TESTING_Interpreter *is = cls;
   struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
 
   if (GNUNET_SYSERR == is->result)
     return; /* ignore, we already failed! */
-  cmd->finish_time = GNUNET_TIME_absolute_get ();
-  if ( (! GNUNET_TESTING_cmd_is_batch_ (cmd)) ||
-       (! GNUNET_TESTING_cmd_batch_next_ (cmd->cls)) )
+
+  if (GNUNET_TESTING_cmd_is_batch_ (cmd))
+  {
+    if (GNUNET_TESTING_cmd_batch_next_ (cmd->cls))
+    {
+      /* batch is done */
+      cmd->finish_time = GNUNET_TIME_absolute_get ();
+      is->ip++;
+    }
+  }
+  else
+  {
+    cmd->finish_time = GNUNET_TIME_absolute_get ();
     is->ip++;
+  }
+
   if (0 == (ipc % 1000))
   {
     if (0 != ipc)
@@ -462,7 +456,12 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
     GNUNET_break (0);
     return; /* ignore, we already failed! */
   }
-  if (NULL != cmd)
+  if (NULL == cmd)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed with CMD being NULL!\n");
+  }
+  else
   {
     const struct GNUNET_TESTING_Command *pos = cmd;
 
@@ -478,11 +477,6 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
                   "Failed in batch during command `%s'\n",
                   pos->label.value);
     }
-  }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed with CMD being NULL!\n");
   }
   is->result = GNUNET_SYSERR;
   GNUNET_assert (NULL == is->final_task);
@@ -717,16 +711,18 @@ GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
 
 
 unsigned int
-GNUNET_TESTING_barrier_count_ (struct GNUNET_TESTING_Interpreter *is)
+GNUNET_TESTING_barrier_count_ (
+  struct GNUNET_TESTING_Interpreter *is)
 {
   return GNUNET_CONTAINER_multishortmap_size (is->barriers);
 }
 
 
 void
-GNUNET_TESTING_barrier_iterate_ (struct GNUNET_TESTING_Interpreter *is,
-                                 GNUNET_CONTAINER_ShortmapIterator cb,
-                                 void *cb_cls)
+GNUNET_TESTING_barrier_iterate_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  GNUNET_CONTAINER_ShortmapIterator cb,
+  void *cb_cls)
 {
   GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
                                           cb,
