@@ -261,7 +261,6 @@ struct GNUNET_TESTING_NetjailTopology
 
 
 /**
- * FIXME: this could use a "to_string".
  * Parse the topology data.
  *
  * @param data The topology data.
@@ -278,9 +277,10 @@ GNUNET_TESTING_get_topo_from_string_ (const char *data);
  * @return The number of additional connects
  */
 unsigned int
-GNUNET_TESTING_get_additional_connects (unsigned int num,
-                                        struct GNUNET_TESTING_NetjailTopology *
-                                        topology);
+GNUNET_TESTING_get_additional_connects (
+  unsigned int num,
+  struct GNUNET_TESTING_NetjailTopology *topology);
+
 
 /**
  * Get a node from the topology.
@@ -302,9 +302,9 @@ GNUNET_TESTING_get_node (unsigned int num,
  * @return The connections of the node.
  */
 struct GNUNET_TESTING_NodeConnection *
-GNUNET_TESTING_get_connections (unsigned int num,
-                                const struct GNUNET_TESTING_NetjailTopology *
-                                topology);
+GNUNET_TESTING_get_connections (
+  unsigned int num,
+  const struct GNUNET_TESTING_NetjailTopology *topology);
 
 
 /**
@@ -315,14 +315,15 @@ GNUNET_TESTING_get_connections (unsigned int num,
  * @return The address of the communicator.
  */
 char *
-GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
-                            const char *prefix);
+GNUNET_TESTING_get_address (
+  struct GNUNET_TESTING_NodeConnection *connection,
+  const char *prefix);
 
 
 /**
  * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
  *
- * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
+ * @param[in] topology The GNUNET_TESTING_NetjailTopology to be deallocated.
  */
 void
 GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology);
@@ -336,42 +337,19 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology);
  * @return The unique id of the node from the connection.
  */
 unsigned int
-GNUNET_TESTING_calculate_num (struct
-                              GNUNET_TESTING_NodeConnection *node_connection,
-                              struct GNUNET_TESTING_NetjailTopology *topology);
-
-
-/**
- * Struct with information for callbacks.
- *
- */
-struct GNUNET_TESTING_BlockState
-{
-  /**
-   * Context for our asynchronous completion.
-   */
-  struct GNUNET_TESTING_AsyncContext ac;
-
-  /**
-   * The label of this command.
-   */
-  const char *label;
-
-  /**
-   * If this command will block.
-   */
-  unsigned int asynchronous_finish;
-};
+GNUNET_TESTING_calculate_num (
+  struct GNUNET_TESTING_NodeConnection *node_connection,
+  struct GNUNET_TESTING_NetjailTopology *topology);
 
 
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op, prefix)                            \
-  op (prefix, get_topology, const struct GNUNET_TESTING_NetjailTopology)            \
-  op (prefix, get_topology_string, const char *)                                    \
-  op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
-  op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)                  
+        op (prefix, get_topology, const struct GNUNET_TESTING_NetjailTopology)            \
+        op (prefix, get_topology_string, const char *)                                    \
+        op (prefix, async_context, struct GNUNET_TESTING_AsyncContext)                    \
+        op (prefix, helper_handles, const struct GNUNET_HELPER_Handle *)
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
                                       GNUNET_TESTING)
