@@ -34,16 +34,16 @@ GNUNET_TESTING_MAKE_PLUGIN (
                               GNUNET_OS_PROCESS_EXITED,
                               0,
                               "ping",
-                              "-c1"
+                              "-c1",
                               (0 == strcmp (strchr (my_node_id,
                                                     '-'),
                                             "-0001"))
                               ? "127.0.0.1"
-                              : "127.0.0.2"
+                              : "127.0.0.2",
                               NULL),
   GNUNET_TESTING_cmd_barrier_create ("barrier",
                                      1)
-#if
+#if LATER
   GNUNET_TESTING_cmd_barrier_reached ("label",
                                       "peers-started-barrier"
                                       ),

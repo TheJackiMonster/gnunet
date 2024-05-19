@@ -58,55 +58,45 @@
  * this string are seperated by special sequences of characters. An integer value seperated
  * by ':' is returned by this function.
  *
- * @param line The line of configuration.
- * @return An integer value.
+ * @param line The line of configuration. Example: "a:42[:43]"
+ * @return An integer value (42)
  */
 static unsigned int
 get_first_value (const char *line)
 {
-  char *copy;
-  size_t slen;
-  char *token;
-  unsigned int ret;
-  char *rest = NULL;
+  const char *colon = strchr (line, ':');
+  char dummy;
+  int ret;
 
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  GNUNET_assert (1 == sscanf (token, "%u", &ret));
-  GNUNET_free (copy);
+  GNUNET_assert (NULL != colon);
+  ret = sscanf (colon + 1,
+                "%u%c",
+                &ret,
+                &dummy);
+  if (2 == ret)
+    GNUNET_assert (':' == dummy);
+  else
+    GNUNET_assert (1 == ret);
   return ret;
 }
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. This string is returned by this function.
+ * Every line in the topology configuration starts with a string indicating
+ * which kind of information will be configured with this line. This string is
+ * returned by this function.
  *
- * @param line The line of configuration.
- * @return The leading string of this configuration line.
+ * @param line The line of configuration, e.g. "D:452"
+ * @return The leading string of this configuration line ("D")
  */
 static char *
 get_key (const char *line)
 {
-  char *copy;
-  size_t slen;
-  size_t tlen;
-  char *token;
-  char *ret;
-  char *rest = NULL;
+  const char *colon = strchr (line, ':');
 
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  tlen = strlen (token) + 1;
-  ret = GNUNET_malloc (tlen);
-  memcpy (ret, token, tlen);
-  GNUNET_free (copy);
-  return ret;
+  GNUNET_assert (NULL != colon);
+  return GNUNET_strndup (line,
+                         colon - line);
 }
 
 
@@ -116,60 +106,46 @@ get_key (const char *line)
  * this string are seperated by special sequences of characters. A string value seperated
  * by ':' is returned by this function.
  *
- * @param line The line of configuration.
- * @return A string value.
+ * @param line The line of configuration ("FOO:BAR")
+ * @return A string value ("BAR").
  */
+// FIXME: avoid strdup, return const?
 static char *
 get_first_string_value (const char *line)
 {
-  char *copy;
-  size_t slen, slen_token;
-  char *token;
-  char *ret;
-  char *rest = NULL;
+  const char *colon = strchr (line, ':');
 
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "first token %s\n",
-       token);
-  slen_token = strlen (token);
-  ret = GNUNET_malloc (slen_token + 1);
-  memcpy (ret, token, slen_token + 1);
-  GNUNET_free (copy);
-  return ret;
+  GNUNET_assert (NULL != colon);
+  return GNUNET_strdup (colon + 1);
 }
 
 
 /**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A second integer value
- * seperated by ':' from a first value is returned by this function.
+ * Every line in the topology configuration starts with a string indicating
+ * which kind of information will be configured with this line. Configuration
+ * values following this string are seperated by special sequences of
+ * characters. A second integer value seperated by ':' from a first value is
+ * returned by this function.
  *
- * @param line The line of configuration.
- * @return An integer value.
+ * @param line The line of configuration (example: "P:1:3")
+ * @return An integer value (3)
  */
 static unsigned int
 get_second_value (const char *line)
 {
-  char *copy;
-  char *token;
-  unsigned int ret;
-  char *rest = NULL;
+  const char *colon;
+  char dummy;
+  int ret;
 
-  copy = GNUNET_strdup (line);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Format error in configuration line: %s\n",
-       line);
-  GNUNET_assert (1 == sscanf (token, "%u", &ret));
-  GNUNET_free (copy);
+  colon = strchr (line, ':');
+  GNUNET_assert (NULL != colon);
+  colon = strchr (colon + 1, ':');
+  GNUNET_assert (NULL != colon);
+  GNUNET_assert (1 ==
+                 sscanf (colon + 1,
+                         "%u%c",
+                         &ret,
+                         &dummy));
   return ret;
 }
 
