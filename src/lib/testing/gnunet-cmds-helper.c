@@ -255,7 +255,8 @@ write_message (const struct GNUNET_MessageHeader *message)
 
 
 static void
-finished_cb (enum GNUNET_GenericReturnValue rv)
+finished_cb (void *cls,
+             enum GNUNET_GenericReturnValue rv)
 {
   struct GNUNET_TESTING_CommandLocalFinished reply = {
     .header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED),
@@ -263,6 +264,7 @@ finished_cb (enum GNUNET_GenericReturnValue rv)
     .rv = htonl ((uint32_t) rv)
   };
 
+  (void) cls;
   finished = true;
   write_message (&reply.header);
 }
@@ -337,7 +339,8 @@ handle_helper_init (
                                barrier_count,
                                bd,
                                &write_message,
-                               &finished_cb);
+                               &finished_cb,
+                               NULL);
 }
 
 

@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2021, 2023 GNUnet e.V.
+      Copyright (C) 2021, 2023, 2024 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -70,13 +70,6 @@ struct GNUNET_TESTING_AsyncContext
   struct GNUNET_TESTING_Interpreter *is;
 
   /**
-   * Indication if the command finished (#GNUNET_OK).
-   * #GNUNET_NO if it did not finish,
-   * #GNUNET_SYSERR if it failed.
-   */
-  enum GNUNET_GenericReturnValue finished;
-
-  /**
    * Function to call when async operation is done.
    */
   GNUNET_SCHEDULER_TaskCallback notify_finished;
@@ -85,6 +78,13 @@ struct GNUNET_TESTING_AsyncContext
    * Closure for @e notify_finished.
    */
   void *notify_finished_cls;
+
+  /**
+   * Indication if the command finished (#GNUNET_OK).
+   * #GNUNET_NO if it did not finish,
+   * #GNUNET_SYSERR if it failed.
+   */
+  enum GNUNET_GenericReturnValue finished;
 
   /**
    * Set to true if interpreter_next() has already been
@@ -120,8 +120,9 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac);
  * @param is interpreter running the command
  */
 typedef void
-(*GNUNET_TESTING_CommandRunRoutine)(void *cls,
-                                    struct GNUNET_TESTING_Interpreter *is);
+(*GNUNET_TESTING_CommandRunRoutine)(
+  void *cls,
+  struct GNUNET_TESTING_Interpreter *is);
 
 
 /**
@@ -203,8 +204,9 @@ struct GNUNET_TESTING_CommandLabel
  * @param value value to store into @a label
  */
 void
-GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
-                          const char *value);
+GNUNET_TESTING_set_label (
+  struct GNUNET_TESTING_CommandLabel *label,
+  const char *value);
 
 
 /**
@@ -212,15 +214,16 @@ GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
  */
 struct GNUNET_TESTING_Command
 {
-  /**
-   * Closure for all commands with command-specific context information.
-   */
-  void *cls;
 
   /**
    * Label for the command.
    */
   struct GNUNET_TESTING_CommandLabel label;
+
+  /**
+   * Closure for all commands with command-specific context information.
+   */
+  void *cls;
 
   /**
    * Variable name for the command, NULL for none.
@@ -301,6 +304,8 @@ struct GNUNET_TESTING_Command
    * command to complete? If @e finish did not complete after this amount of
    * time, the interpreter will fail.  Should be set generously to ensure
    * tests do not fail on slow systems.
+   *
+   * FIXME: currently not used!
    */
   struct GNUNET_TIME_Relative default_timeout;
 
@@ -312,10 +317,10 @@ struct GNUNET_TESTING_Command
   unsigned int num_tries;
 
   /**
-   * If "true", the interpreter should not immediately call
-   * @e finish, even if @e finish is non-NULL.  Otherwise,
-   * #GNUNET_TESTING_cmd_finish() must be used
-   * to ensure that a command actually completed.
+   * If "true", the interpreter should not immediately run the next command,
+   * even if this command did not complete via #GNUNET_TESTING_async_finish().
+   * Otherwise, #GNUNET_TESTING_cmd_finish() must be used to ensure that a
+   * command actually completed.
    */
   bool asynchronous_finish;
 
@@ -352,6 +357,19 @@ GNUNET_TESTING_interpreter_lookup_command (
 
 
 /**
+ * Get command from hash map by variable name.
+ *
+ * @param is interpreter state.
+ * @param name name of the variable to get command by
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_get_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *name);
+
+
+/**
  * Lookup command by label.
  * All commands, first into the past, then into the future are looked up.
  *
@@ -360,6 +378,7 @@ GNUNET_TESTING_interpreter_lookup_command (
  * @return the command, if it is found, or NULL.
  * @deprecated (still in use in a very odd way)
  */
+// FIXME: think harder about whether this is actually needed, likely not.
 const struct GNUNET_TESTING_Command *
 GNUNET_TESTING_interpreter_lookup_command_all (
   struct GNUNET_TESTING_Interpreter *is,
@@ -373,6 +392,164 @@ GNUNET_TESTING_interpreter_lookup_command_all (
  */
 void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
+
+
+/* ************** Fundamental interpreter commands ************ */
+
+
+/**
+ * Create command array terminator.
+ *
+ * @return a end-command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end (void);
+
+
+/**
+ * Create a "batch" command.  Such command takes a end_CMD-terminated array of
+ * CMDs and executed them.  Once it hits the end CMD, it passes the control to
+ * the next top-level CMD, regardless of it being another batch or ordinary
+ * CMD.
+ *
+ * @param label the command label.
+ * @param batch array of CMDs to execute.
+ * @return the command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_batch (const char *label,
+                          struct GNUNET_TESTING_Command *batch);
+
+
+/**
+ * Performance counter.
+ */
+struct GNUNET_TESTING_Timer
+{
+  /**
+   * For which type of commands.
+   */
+  const char *prefix;
+
+  /**
+   * Total time spend in all commands of this type.
+   */
+  struct GNUNET_TIME_Relative total_duration;
+
+  /**
+   * Total time spend waiting for the *successful* exeuction
+   * in all commands of this type.
+   */
+  struct GNUNET_TIME_Relative success_latency;
+
+  /**
+   * Number of commands summed up.
+   */
+  unsigned int num_commands;
+
+  /**
+   * Number of retries summed up.
+   */
+  unsigned int num_retries;
+};
+
+/**
+ * Obtain performance data from the interpreter.
+ *
+ * @param[in,out] timers what commands (by label) to obtain runtimes for
+ * @return the command
+ */
+// FIXME: review this API, seems, well, dangerous!
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
+
+
+/**
+ * Set variable to command as side-effect of
+ * running a command.
+ *
+ * @param name name of the variable to set
+ * @param cmd command to set to variable when run
+ * @return modified command
+ */
+struct GNUNET_TESTING_Command
+GNUENT_TESTING_cmd_set_var (const char *name,
+                            struct GNUNET_TESTING_Command cmd);
+
+
+/**
+ * Command to create a barrier.
+ *
+ * @param label The label of this command.
+ * @param number_to_be_reached If this number of processes reached
+ *                             this barrier, all processes waiting at
+ *                             this barrier can pass it.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_create (
+  const char *label,
+  unsigned int number_to_be_reached);
+
+
+/**
+ * If this command is executed the the process is signaling the master process
+ * that it reached a barrier. If this command is synchronous it will block.
+ *
+ * @param label name for command.
+ * @param barrier_label The name of the barrier we waited for and which was reached.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_reached (
+  const char *label,
+  const char *barrier_label);
+
+
+#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start.sh"
+
+#define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
+
+/**
+ * Create command.
+ *
+ * @param label Name for the command.
+ * @param topology_data topology data
+ * @param timeout Before this timeout is reached this cmd MUST finish.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_helpers (
+  const char *label,
+  const char *topology_cmd_label,
+  struct GNUNET_TIME_Relative timeout);
+
+
+/**
+ * This command executes a shell script to setup the netjail environment.
+ *
+ * @param label name for command.
+ * @param script which script to run, e.g. #GNUNET_TESTING_NETJAIL_START_SCRIPT
+ * @param topology_config Configuration file for the test topology.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_setup (
+  const char *label,
+  const char *script,
+  const char *topology_cmd_label);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_topology_from_file (
+  const char *label,
+  const char *filename);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_topology_from_data (
+  const char *label,
+  const char *topology_data);
 
 
 /**
@@ -462,17 +639,18 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
                               unsigned int counter);
 
 
+/* ***************** main loop logic ************* */
+
 /**
  * Function called with the final result of the test.
- * FIXME: This may want to use a GNUNET_ErrorCode (namespaced, e.g.
- * GNUNET_EC_TESTING_*)
  *
  * @param cls closure
  * @param rv #GNUNET_OK if the test passed
  */
 typedef void
-(*GNUNET_TESTING_ResultCallback)(void *cls,
-                                 enum GNUNET_GenericReturnValue rv);
+(*GNUNET_TESTING_ResultCallback)(
+  void *cls,
+  enum GNUNET_GenericReturnValue rv);
 
 
 /**
@@ -488,10 +666,11 @@ typedef void
  * @return The interpreter.
  */
 struct GNUNET_TESTING_Interpreter *
-GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
-                    struct GNUNET_TIME_Relative timeout,
-                    GNUNET_TESTING_ResultCallback rc,
-                    void *rc_cls);
+GNUNET_TESTING_run (
+  const struct GNUNET_TESTING_Command *commands,
+  struct GNUNET_TIME_Relative timeout,
+  GNUNET_TESTING_ResultCallback rc,
+  void *rc_cls);
 
 
 /**
@@ -505,8 +684,9 @@ GNUNET_TESTING_run (const struct GNUNET_TESTING_Command *commands,
  * @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
  */
 int
-GNUNET_TESTING_main (struct GNUNET_TESTING_Command *commands,
-                     struct GNUNET_TIME_Relative timeout);
+GNUNET_TESTING_main (
+  struct GNUNET_TESTING_Command *commands,
+  struct GNUNET_TIME_Relative timeout);
 
 
 /* ***************** plugin logic ************* */
@@ -538,153 +718,6 @@ GNUNET_TESTING_make_plugin (
           GNUNET_free (api);                                   \
         }
 
-/* ************** Fundamental interpreter commands ************ */
-
-
-/**
- * Create command array terminator.
- *
- * @return a end-command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_end (void);
-
-
-/**
- * Create a "batch" command.  Such command takes a end_CMD-terminated array of
- * CMDs and executed them.  Once it hits the end CMD, it passes the control to
- * the next top-level CMD, regardless of it being another batch or ordinary
- * CMD.
- *
- * @param label the command label.
- * @param batch array of CMDs to execute.
- * @return the command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_batch (const char *label,
-                          struct GNUNET_TESTING_Command *batch);
-
-
-/**
- * Performance counter.
- */
-struct GNUNET_TESTING_Timer
-{
-  /**
-   * For which type of commands.
-   */
-  const char *prefix;
-
-  /**
-   * Total time spend in all commands of this type.
-   */
-  struct GNUNET_TIME_Relative total_duration;
-
-  /**
-   * Total time spend waiting for the *successful* exeuction
-   * in all commands of this type.
-   */
-  struct GNUNET_TIME_Relative success_latency;
-
-  /**
-   * Number of commands summed up.
-   */
-  unsigned int num_commands;
-
-  /**
-   * Number of retries summed up.
-   */
-  unsigned int num_retries;
-};
-
-/**
- * Obtain performance data from the interpreter.
- *
- * @param[in,out] timers what commands (by label) to obtain runtimes for
- * @return the command
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
-
-
-struct TALER_TESTING_Command
-GNUENT_TESTING_cmd_set_var (const char *name,
-                            struct GNUNET_TESTING_Command cmd);
-
-
-/**
- * Command to create a barrier.
- *
- * @param label The label of this command.
- * @param number_to_be_reached If this number of processes reached
- *                             this barrier, all processes waiting at
- *                             this barrier can pass it.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_create (
-  const char *label,
-  unsigned int number_to_be_reached);
-
-
-/**
- * If this command is executed the the process is signaling the master process
- * that it reached a barrier. If this command is synchronous it will block.
- *
- * @param label name for command.
- * @param barrier_label The name of the barrier we waited for and which was reached.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_barrier_reached (
-  const char *label,
-  const char *barrier_label);
-
-
-#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start.sh"
-
-#define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
-
-/**
- * Create command.
- *
- * @param label Name for the command.
- * @param topology_data topology data
- * @param timeout Before this timeout is reached this cmd MUST finish.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_helpers (
-  const char *label,
-  const char *topology_cmd_label,
-  struct GNUNET_TIME_Relative timeout);
-
-
-/**
- * This command executes a shell script to setup the netjail environment.
- *
- * @param label name for command.
- * @param script which script to run, e.g. #GNUNET_TESTING_NETJAIL_START_SCRIPT
- * @param topology_config Configuration file for the test topology.
- * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_setup (
-  const char *label,
-  const char *script,
-  const char *topology_cmd_label);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_topology_from_file (
-  const char *label,
-  const char *filename);
-
-
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_topology_from_data (
-  const char *label,
-  const char *topology_data);
 
 /* *** Generic trait logic for implementing traits ********* */
 

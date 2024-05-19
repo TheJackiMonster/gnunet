@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2021-2023 GNUnet e.V.
+      Copyright (C) 2021-2024 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -660,7 +660,8 @@ start_testcase (
   uint32_t inherited_barrier_count,
   const struct GNUNET_ShortHashCode *inherited_barriers,
   GNUNET_TESTING_cmd_helper_write_cb parent_writer,
-  GNUNET_TESTING_cmd_helper_finish_cb finish_cb)
+  GNUNET_TESTING_ResultCallback finish_cb,
+  void *finish_cb_cls)
 {
   const struct GNUNET_TESTING_Command *commands = cls;
   struct GNUNET_TESTING_Interpreter *is;
@@ -687,7 +688,7 @@ start_testcase (
   }
   is->parent_writer = parent_writer;
   is->rc = finish_cb;
-  is->rc_cls = NULL;
+  is->rc_cls = finish_cb_cls;
   {
     struct GNUNET_TESTING_Command bcmd;
 

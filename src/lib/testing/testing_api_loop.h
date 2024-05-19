@@ -39,13 +39,6 @@ typedef void
 (*GNUNET_TESTING_cmd_helper_write_cb) (
   const struct GNUNET_MessageHeader *message);
 
-/**
- * Callback function which writes a message from the helper process running on a netjail node to the master process * signaling that the test case running on the netjail node finished.
- */
-typedef void
-(*GNUNET_TESTING_cmd_helper_finish_cb) (
-  enum GNUNET_GenericReturnValue status);
-
 
 /**
  * The plugin API every test case plugin has to implement.
@@ -78,7 +71,8 @@ struct GNUNET_TESTING_PluginFunctions
     uint32_t barrier_count,
     const struct GNUNET_ShortHashCode *barriers,
     GNUNET_TESTING_cmd_helper_write_cb write_message,
-    GNUNET_TESTING_cmd_helper_finish_cb finish_cb);
+    GNUNET_TESTING_ResultCallback finish_cb,
+    void *finish_cb_cls);
 
 };
 
