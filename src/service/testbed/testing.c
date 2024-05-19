@@ -2776,18 +2776,11 @@ GNUNET_TESTING_get_topo_from_string (const char *input)
 }
 
 
-/**
- * Getting the topology from file.
- *
- * @param filename The name of the topology file.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_file (const char *filename)
+char *
+GNUNET_TESTING_get_topo_string_from_file (const char *filename)
 {
   uint64_t fs;
   char *data;
-  struct GNUNET_TESTING_NetjailTopology *topo;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (filename))
   {
@@ -2818,6 +2811,24 @@ GNUNET_TESTING_get_topo_from_file (const char *filename)
        "file length %" PRIu64 "\n",
        fs);
   data[fs] = '\0';
+
+  return data;
+}
+
+
+/**
+ * Getting the topology from file.
+ *
+ * @param filename The name of the topology file.
+ * @return The GNUNET_TESTING_NetjailTopology
+ */
+struct GNUNET_TESTING_NetjailTopology *
+GNUNET_TESTING_get_topo_from_file (const char *filename)
+{
+  char *data;
+  struct GNUNET_TESTING_NetjailTopology *topo;
+
+  data = GNUNET_TESTING_get_topo_string+from_file (filename);
 
   topo = GNUNET_TESTING_get_topo_from_string (data);
 

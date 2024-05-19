@@ -73,7 +73,8 @@ netjail_topology_traits (void *cls,
 {
   struct NetJailState *ts = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology)
+    GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology),
+    GNUNET_TESTING_make_trait_get_topology_string ((const void *) ts->topology_string),
     GNUNET_TESTING_trait_end ()
   };
 

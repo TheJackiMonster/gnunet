@@ -39,6 +39,12 @@ struct TopologyState
   struct GNUNET_TESTING_NetjailTopology *topology;
 
   /**
+   * A string with the name of the topology file, if @e read_file is true,
+   * otherwise a string containing the topology data.
+   */
+  char *topology_string;
+
+  /**
    * A string with the name of the topology file.
    */
   char *file_name;
@@ -67,7 +73,8 @@ traits (void *cls,
 {
   struct NetJailState *ts = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology)
+    GNUNET_TESTING_make_trait_get_topology ((const void *) ts->topology),
+    GNUNET_TESTING_make_trait_get_topology_string ((const void *) ts->topology_string),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -89,7 +96,8 @@ run (void *cls,
 {
   struct TopologyState *ts = cls;
 
-  ts->topology = GNUNET_TESTING_get_topo_from_file (ts->file_name);
+  ts->topology_string = GNUNET_TESTING_get_topo_string_from_file (ts->file_name);
+  ts->topology = GNUNET_TESTING_get_topo_from_string (ts->file_nametopology_string);
 }
 
 struct GNUNET_TESTING_Command
