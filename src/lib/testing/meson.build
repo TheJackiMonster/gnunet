@@ -5,12 +5,14 @@ libgnunettesting_src = [
                         'testing_api_cmd_batch.c',
                         'testing_api_cmd_exec.c',
                         'testing_api_cmd_finish.c',
+                        'testing_api_cmd_get_topo.c',
                         'testing_api_cmd_netjail_start.c',
                         'testing_api_cmd_netjail_start_cmds_helper.c',
                         'testing_api_cmds.c',
-                        'testing_api_main.c',
                         'testing_api_loop.c',
+                        'testing_api_main.c',
                         'testing_api_traits.c'
+                        'testing_api_topology.c'
                         ]
 
 libgnunettesting = library('gnunettesting',
