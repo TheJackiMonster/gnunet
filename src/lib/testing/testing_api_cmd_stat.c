@@ -139,7 +139,7 @@ stat_run (void *cls,
 {
   struct GNUNET_TESTING_Timer *timings = cls;
 
-  GNUNET_TESTING_iterate (is,
+  GNUNET_TESTING_interpreter_commands_iterate (is,
                           true,
                           &do_stat,
                           timings);

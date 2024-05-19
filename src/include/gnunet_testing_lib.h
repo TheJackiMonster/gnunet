@@ -62,7 +62,7 @@
                       label,                                              \
                       __FILE__,                                           \
                       __LINE__,                                           \
-                      GNUNET_TESTING_interpreter_get_current_label (is)); \
+                      GNUNET_TESTING_interpreter_current_cmd_get_label (is)); \
         } while (0)
 
 
@@ -372,7 +372,7 @@ GNUNET_TESTING_interpreter_get_command (
  *       that we are doing something
  */
 void
-GNUNET_TESTING_touch_cmd (
+GNUNET_TESTING_interpreter_current_cmd_touch (
   struct GNUNET_TESTING_Interpreter *is);
 
 
@@ -383,7 +383,7 @@ GNUNET_TESTING_touch_cmd (
  *   increment the counter
  */
 void
-GNUNET_TESTING_inc_tries (
+GNUNET_TESTING_interpreter_current_cmd_inc_tries (
   struct GNUNET_TESTING_Interpreter *is);
 
 
@@ -394,7 +394,7 @@ GNUNET_TESTING_inc_tries (
  * @return the label.
  */
 const char *
-GNUNET_TESTING_interpreter_get_current_label (
+GNUNET_TESTING_interpreter_current_cmd_get_label (
   struct GNUNET_TESTING_Interpreter *is);
 
 
@@ -430,7 +430,7 @@ typedef void
  * @param cb_cls closure for cb
  */
 void
-GNUNET_TESTING_iterate (
+GNUNET_TESTING_interpreter_commands_iterate (
   struct GNUNET_TESTING_Interpreter *is,
   bool asc,
   GNUNET_TESTING_CommandIterator cb,

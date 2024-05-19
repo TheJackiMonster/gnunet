@@ -731,7 +731,7 @@ GNUNET_TESTING_barrier_iterate_ (
 
 
 void
-GNUNET_TESTING_iterate (
+GNUNET_TESTING_interpreter_commands_iterate (
   struct GNUNET_TESTING_Interpreter *is,
   bool asc,
   GNUNET_TESTING_CommandIterator cb,
@@ -765,7 +765,7 @@ GNUNET_TESTING_iterate (
 
 
 void
-GNUNET_TESTING_touch_cmd (
+GNUNET_TESTING_interpreter_current_cmd_touch (
   struct GNUNET_TESTING_Interpreter *is)
 {
   is->commands[is->ip].last_req_time
@@ -774,7 +774,7 @@ GNUNET_TESTING_touch_cmd (
 
 
 void
-GNUNET_TESTING_inc_tries (
+GNUNET_TESTING_interpreter_current_cmd_inc_tries (
   struct GNUNET_TESTING_Interpreter *is)
 {
   is->commands[is->ip].num_tries++;
@@ -782,7 +782,7 @@ GNUNET_TESTING_inc_tries (
 
 
 const char *
-GNUNET_TESTING_interpreter_get_current_label (
+GNUNET_TESTING_interpreter_current_cmd_get_label (
   struct GNUNET_TESTING_Interpreter *is)
 {
   return is->commands[is->ip].label.value;
