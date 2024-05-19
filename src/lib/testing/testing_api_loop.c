@@ -786,4 +786,38 @@ GNUNET_TESTING_barrier_iterate_ (struct GNUNET_TESTING_Interpreter *is,
 }
 
 
+void
+GNUNET_TESTING_iterate (
+  struct GNUNET_TESTING_Interpreter *is,
+  bool asc,
+  GNUNET_TESTING_CommandIterator cb,
+  void *cb_cls)
+{
+  unsigned int start;
+  unsigned int end;
+  int inc;
+
+  if (asc)
+  {
+    inc = 1;
+    start = 0;
+    end = is->ip;
+  }
+  else
+  {
+    inc = -1;
+    start = is->ip;
+    end = 0;
+  }
+  for (unsigned int off = start; off != end + inc; off += inc)
+  {
+    const struct GNUNET_TESTING_Command *cmd
+      = &is->commands[off];
+
+    cb (cb_cls,
+        cmd);
+  }
+}
+
+
 /* end of testing_api_loop.c */

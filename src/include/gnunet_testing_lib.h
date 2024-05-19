@@ -394,6 +394,35 @@ void
 GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is);
 
 
+/**
+ * Callback over commands of an interpreter.
+ *
+ * @param cls closure
+ * @param cmd a command to process
+ */
+typedef void
+(*GNUNET_TESTING_CommandIterator)(
+  void *cls,
+  const struct GNUNET_TESTING_Command *cmd);
+
+
+/**
+ * Iterates over all of the top-level commands of an
+ * interpreter.
+ *
+ * @param[in] is interpreter to iterate over
+ * @param asc true in execution order, false for reverse execution order
+ * @param cb function to call on each command
+ * @param cb_cls closure for cb
+ */
+void
+GNUNET_TESTING_iterate (
+  struct GNUNET_TESTING_Interpreter *is,
+  bool asc,
+  GNUNET_TESTING_CommandIterator cb,
+  void *cb_cls);
+
+
 /* ************** Fundamental interpreter commands ************ */
 
 
@@ -456,12 +485,13 @@ struct GNUNET_TESTING_Timer
 /**
  * Obtain performance data from the interpreter.
  *
- * @param[in,out] timers what commands (by label) to obtain runtimes for
+ * @param label command label.
+ * @param[in,out] timers NULL-prefix terminated array that specifies what commands (by label) to obtain runtimes for
  * @return the command
  */
-// FIXME: review this API, seems, well, dangerous!
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stat (struct GNUNET_TESTING_Timer *timers);
+GNUNET_TESTING_cmd_stat (const char *label,
+                         struct GNUNET_TESTING_Timer *timers);
 
 
 /**
