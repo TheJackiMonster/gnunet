@@ -312,7 +312,7 @@ handle_helper_init (
   struct GNUNET_TESTING_NetjailTopology *njt;
 
   GNUNET_assert ('\0' == topo[left - 1]);
-  njt = GNUNET_TESTING_get_topo_from_string (topo);
+  njt = GNUNET_TESTING_get_topo_from_string_ (topo);
   if (NULL == njt)
   {
     GNUNET_break_op (0);
