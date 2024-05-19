@@ -120,8 +120,9 @@ timeout_finish (void *cls)
  *
  */
 static void
-run_finish (void *cls,
-            struct GNUNET_TESTING_Interpreter *is)
+run_finish (
+  void *cls,
+  struct GNUNET_TESTING_Interpreter *is)
 {
   struct FinishState *finish_state = cls;
   const struct GNUNET_TESTING_Command *async_cmd;
@@ -145,7 +146,7 @@ run_finish (void *cls,
                 finish_state->async_label);
     GNUNET_TESTING_FAIL (is);
   }
-  if (GNUNET_NO != aac->finished)
+  if (aac->finished)
   {
     /* Command is already finished, so are we! */
     GNUNET_TESTING_async_finish (&finish_state->ac);
@@ -184,26 +185,29 @@ cleanup_finish (void *cls)
 
 
 const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_finish (const char *finish_label,
-                           const char *cmd_ref,
-                           struct GNUNET_TIME_Relative timeout)
+GNUNET_TESTING_cmd_finish (
+  const char *finish_label,
+  const char *cmd_ref,
+  struct GNUNET_TIME_Relative timeout)
 {
   struct FinishState *finish_state;
 
   finish_state = GNUNET_new (struct FinishState);
   finish_state->async_label = cmd_ref;
   finish_state->timeout = timeout;
-  return GNUNET_TESTING_command_new_ac (finish_state,
-                                        finish_label,
-                                        &run_finish,
-                                        &cleanup_finish,
-                                        NULL,
-                                        &finish_state->ac);
+  return GNUNET_TESTING_command_new_ac (
+    finish_state,
+    finish_label,
+    &run_finish,
+    &cleanup_finish,
+    NULL,
+    &finish_state->ac);
 }
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd)
+GNUNET_TESTING_cmd_make_unblocking (
+  struct GNUNET_TESTING_Command cmd)
 {
   /* do not permit this function to be used on
      a finish command! */

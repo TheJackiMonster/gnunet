@@ -115,9 +115,16 @@ barrier_reached_run (void *cls,
   if (barrier->satisfied)
   {
     GNUNET_TESTING_async_finish (&brs->ac);
+    for (unsigned int i = 0; i<barrier->cnt_waiting; i++)
+      GNUNET_TESTING_async_finish (barrier->waiting[i]);
+    GNUNET_array_grow (barrier->waiting,
+                       barrier->cnt_waiting,
+                       0);
     return;
   }
-  barrier->cmd_ac = &brs->ac;
+  GNUNET_array_append (barrier->waiting,
+                       barrier->cnt_waiting,
+                       &brs->ac);
 }
 
 

@@ -372,11 +372,11 @@ handle_helper_barrier_crossable (
   barrier->satisfied = true;
   GNUNET_TESTING_loop_notify_children_ (is,
                                         &cbs->header);
-  if (NULL != barrier->cmd_ac)
-  {
-    GNUNET_TESTING_async_finish (barrier->cmd_ac);
-    barrier->cmd_ac = NULL;
-  }
+  for (unsigned int i = 0; i<barrier->cnt_waiting; i++)
+    GNUNET_TESTING_async_finish (barrier->waiting[i]);
+  GNUNET_array_grow (barrier->waiting,
+                     barrier->cnt_waiting,
+                     0);
 }
 
 

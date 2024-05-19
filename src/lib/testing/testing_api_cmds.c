@@ -56,8 +56,9 @@ GNUNET_TESTING_command_new_ac (
 
 
 void
-GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
-                          const char *value)
+GNUNET_TESTING_set_label (
+  struct GNUNET_TESTING_CommandLabel *label,
+  const char *value)
 {
   size_t len;
 
@@ -71,8 +72,9 @@ GNUNET_TESTING_set_label (struct GNUNET_TESTING_CommandLabel *label,
 
 
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_set_var (const char *name,
-                            struct GNUNET_TESTING_Command cmd)
+GNUNET_TESTING_cmd_set_var (
+  const char *name,
+  struct GNUNET_TESTING_Command cmd)
 {
   cmd.name = name;
   return cmd;

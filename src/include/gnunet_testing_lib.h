@@ -117,7 +117,8 @@ struct GNUNET_TESTING_AsyncContext
  * @param ac command-specific context
  */
 void
-GNUNET_TESTING_async_fail (struct GNUNET_TESTING_AsyncContext *ac);
+GNUNET_TESTING_async_fail (
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
@@ -126,7 +127,8 @@ GNUNET_TESTING_async_fail (struct GNUNET_TESTING_AsyncContext *ac);
  * @param ac command-specific context
  */
 void
-GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac);
+GNUNET_TESTING_async_finish (
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
@@ -460,8 +462,9 @@ GNUNET_TESTING_cmd_end (void);
  * @return the command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_batch (const char *label,
-                          struct GNUNET_TESTING_Command *batch);
+GNUNET_TESTING_cmd_batch (
+  const char *label,
+  struct GNUNET_TESTING_Command *batch);
 
 
 /**
@@ -504,8 +507,9 @@ struct GNUNET_TESTING_Timer
  * @return the command
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_stat (const char *label,
-                         struct GNUNET_TESTING_Timer *timers);
+GNUNET_TESTING_cmd_stat (
+  const char *label,
+  struct GNUNET_TESTING_Timer *timers);
 
 
 /**
@@ -517,8 +521,9 @@ GNUNET_TESTING_cmd_stat (const char *label,
  * @return modified command
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_set_var (const char *name,
-                            struct GNUNET_TESTING_Command cmd);
+GNUNET_TESTING_cmd_set_var (
+  const char *name,
+  struct GNUNET_TESTING_Command cmd);
 
 
 /**
@@ -609,7 +614,8 @@ GNUNET_TESTING_cmd_load_topology_from_string (
  * @return a finish-command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd);
+GNUNET_TESTING_cmd_make_unblocking (
+  struct GNUNET_TESTING_Command cmd);
 
 
 /**
@@ -624,9 +630,10 @@ GNUNET_TESTING_cmd_make_unblocking (struct GNUNET_TESTING_Command cmd);
  * @return a finish-command.
  */
 const struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_finish (const char *finish_label,
-                           const char *cmd_ref,
-                           struct GNUNET_TIME_Relative timeout);
+GNUNET_TESTING_cmd_finish (
+  const char *finish_label,
+  const char *cmd_ref,
+  struct GNUNET_TIME_Relative timeout);
 
 
 /**
@@ -638,9 +645,10 @@ GNUNET_TESTING_cmd_finish (const char *finish_label,
  * @return the command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_signal (const char *label,
-                           const char *process_label,
-                           int signal);
+GNUNET_TESTING_cmd_signal (
+  const char *label,
+  const char *process_label,
+  int signal);
 
 
 /**
@@ -651,8 +659,9 @@ GNUNET_TESTING_cmd_signal (const char *label,
  * @return the command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_sleep (const char *label,
-                          struct GNUNET_TIME_Relative duration);
+GNUNET_TESTING_cmd_sleep (
+  const char *label,
+  struct GNUNET_TIME_Relative duration);
 
 
 /**
@@ -691,9 +700,10 @@ GNUNET_TESTING_cmd_exec_va (
  * @param counter counts how many times the rewinding is to happen.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_rewind_ip (const char *label,
-                              const char *target_label,
-                              unsigned int counter);
+GNUNET_TESTING_cmd_rewind_ip (
+  const char *label,
+  const char *target_label,
+  unsigned int counter);
 
 
 /* ***************** main loop logic ************* */
@@ -824,10 +834,11 @@ GNUNET_TESTING_trait_end (void);
  * @return #GNUNET_OK when the trait is found.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_TESTING_get_trait (const struct GNUNET_TESTING_Trait *traits,
-                          const void **ret,
-                          const char *trait,
-                          unsigned int index);
+GNUNET_TESTING_get_trait (
+  const struct GNUNET_TESTING_Trait *traits,
+  const void **ret,
+  const char *trait,
+  unsigned int index);
 
 
 /**

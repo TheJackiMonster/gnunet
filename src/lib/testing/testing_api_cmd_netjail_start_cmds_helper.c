@@ -217,8 +217,11 @@ handle_helper_barrier_reached (
       GNUNET_TESTING_loop_notify_children_ (ns->is,
                                             &cbs.header);
       /* unblock self */
-      if (NULL != barrier->cmd_ac)
-        GNUNET_TESTING_async_finish (barrier->cmd_ac);
+      for (unsigned int i = 0; i<barrier->cnt_waiting; i++)
+        GNUNET_TESTING_async_finish (barrier->waiting[i]);
+      GNUNET_array_grow (barrier->waiting,
+                         barrier->cnt_waiting,
+                         0);
     }
   }
 }

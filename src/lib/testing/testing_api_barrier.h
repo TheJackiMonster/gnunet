@@ -36,11 +36,15 @@ struct GNUNET_TESTING_Barrier
   struct GNUNET_ShortHashCode barrier_id;
 
   /**
-   * Context of a barrier reached command of our local interpreter that is
-   * currently blocked on this barrier, or NULL if
-   * no command is currently blocked on this barrier.
+   * Context of barrier reached commands of our local interpreter that are
+   * currently blocked on this barrier.
    */
-  struct GNUNET_TESTING_AsyncContext *cmd_ac;
+  struct GNUNET_TESTING_AsyncContext **waiting;
+
+  /**
+   * Length of the @e waiting array.
+   */
+  unsigned int cnt_waiting;
 
   /**
    * Number of total commands expected to be reached by the barrier.
