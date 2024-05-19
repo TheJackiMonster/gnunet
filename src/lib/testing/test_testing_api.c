@@ -51,6 +51,12 @@ main (int argc,
                                 NULL),
     GNUNET_TESTING_cmd_end ()
   };
+  struct GNUNET_TESTING_Command netjail[] = {
+    GNUNET_TESTING_cmd_load_topology_from_string (
+      "load-topology",
+      ""),
+    GNUNET_TESTING_cmd_end ()
+  };
   struct GNUNET_TESTING_Command commands[] = {
     GNUNET_TESTING_cmd_batch ("batch",
                               batch),
@@ -108,6 +114,8 @@ main (int argc,
     GNUNET_TESTING_cmd_rewind_ip ("rewind",
                                   "wait-sleep",
                                   4),
+    GNUNET_TESTING_cmd_batch ("netjail",
+                              netjail),
     GNUNET_TESTING_cmd_end ()
   };
 

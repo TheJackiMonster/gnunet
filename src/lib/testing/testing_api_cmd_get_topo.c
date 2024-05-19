@@ -50,6 +50,10 @@ struct TopologyState
    */
   const char *topology_string;
 
+  /**
+   * Same as @e topology_string, but set if we need
+   * to release the memory.
+   */
   char *topology_alloc;
 
   /**
@@ -67,6 +71,11 @@ cleanup (void *cls)
 {
   struct TopologyState *ts = cls;
 
+  if (NULL != ts->topology)
+  {
+    GNUNET_TESTING_free_topology (ts->topology);
+    ts->topology = NULL;
+  }
   GNUNET_free (ts->topology_alloc);
   GNUNET_free (ts);
 }
@@ -107,7 +116,7 @@ get_topo_string_from_file (const char *topology_data_file)
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Topology file %s not found\n",
          topology_data_file);
-    GNUNET_assert (0);
+    return NULL;
   }
   if (GNUNET_OK !=
       GNUNET_DISK_file_size (topology_data_file,
@@ -118,7 +127,7 @@ get_topo_string_from_file (const char *topology_data_file)
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Could not determine size of topology file %s\n",
          topology_data_file);
-    GNUNET_assert (0);
+    return NULL;
   }
   data = GNUNET_malloc_large (fs + 1);
   GNUNET_assert (NULL != data);
@@ -151,10 +160,16 @@ run (void *cls,
 
   if (NULL == ts->topology_string)
   {
-    ts->topology_alloc = get_topo_string_from_file (ts->file_name);
+    ts->topology_alloc
+      = get_topo_string_from_file (ts->file_name);
+    if (NULL == ts->topology_alloc)
+      GNUNET_TESTING_FAIL (is);
     ts->topology_string = ts->topology_alloc;
   }
-  ts->topology = GNUNET_TESTING_get_topo_from_string_ (ts->topology_string);
+  ts->topology
+    = GNUNET_TESTING_get_topo_from_string_ (ts->topology_string);
+  if (NULL == ts->topology)
+    GNUNET_TESTING_FAIL (is);
 }
 
 
@@ -185,6 +200,7 @@ GNUNET_TESTING_cmd_load_topology_from_string (
 {
   struct TopologyState *ts;
 
+  GNUNET_assert (NULL != topology_string);
   ts = GNUNET_new (struct TopologyState);
   ts->label = label;
   ts->topology_string = topology_string;
