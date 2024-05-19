@@ -322,7 +322,7 @@ handle_helper_init (
   }
   plugin_name = GNUNET_TESTING_get_plugin_from_topo (njt,
                                                      my_node_id);
-  GNUNET_TESTING_free_toplogy (njt);
+  GNUNET_TESTING_free_topology (njt);
   plugin = GNUNET_PLUGIN_load (plugin_name,
                                (void *) my_node_id);
   if (NULL == plugin)

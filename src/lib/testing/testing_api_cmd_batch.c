@@ -25,8 +25,8 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_ng_lib.h"
-#include "testing.h"
+#include "gnunet_testing_lib.h"
+#include "testing_api_cmd_batch.h"
 
 /**
  * State for a "batch" CMD.
