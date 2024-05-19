@@ -11726,7 +11726,7 @@ check_for_global_natted (void *cls,
   hello = record->value;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "before not global natted %lu\n",
+              "before not global natted %u\n",
               queue->is_global_natted);
   GNUNET_HELLO_builder_iterate (builder,
                                 &iterate_address_and_compare_cb,
@@ -11745,7 +11745,7 @@ check_for_global_natted (void *cls,
                                               &tgna_cls);
   if (NULL != tgna_cls.tgna)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                " tgna_cls.tgna tgna %p %u %u %u\n",
+                " tgna_cls.tgna tgna %p %lu %u %u\n",
                 tgna_cls.tgna,
                 neighbour->size_of_global_addresses,
                 ntohl (tgna_cls.tgna->address_length),
