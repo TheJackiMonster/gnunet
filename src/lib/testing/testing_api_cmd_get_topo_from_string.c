@@ -42,7 +42,7 @@ struct TopologyState
    * A string with the name of the topology file, if @e read_file is true,
    * otherwise a string containing the topology data.
    */
-  char *topology_data;
+  char *topology_string;
 
   /**
    * Are we reading from file, or did we get a string with the topology data?
