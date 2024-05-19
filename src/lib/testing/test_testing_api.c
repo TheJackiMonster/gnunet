@@ -30,10 +30,24 @@ int
 main (int argc,
       char *const *argv)
 {
+  struct GNUNET_TESTING_Timer timers[] = {
+    { .prefix = "batch" },
+    { .prefix = NULL }
+  };
+  struct GNUNET_TESTING_Command batch[] = {
+    GNUNET_TESTING_cmd_end ()
+  };
   struct GNUNET_TESTING_Command commands[] = {
+    GNUNET_TESTING_cmd_batch ("batch",
+                              batch),
+    GNUNET_TESTING_cmd_stat ("stat",
+                             timers),
     GNUNET_TESTING_cmd_end ()
   };
 
+  GNUNET_log_setup ("test-testing-api",
+                    "DEBUG",
+                    NULL);
   return GNUNET_TESTING_main (commands,
                               GNUNET_TIME_UNIT_MINUTES);
 }

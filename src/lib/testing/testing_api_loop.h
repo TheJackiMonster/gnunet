@@ -83,8 +83,9 @@ struct GNUNET_TESTING_PluginFunctions
  * @param is The interpreter loop.
  */
 void
-GNUNET_TESTING_loop_notify_parent_ (struct GNUNET_TESTING_Interpreter *is,
-                                    const struct GNUNET_MessageHeader *hdr);
+GNUNET_TESTING_loop_notify_parent_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  const struct GNUNET_MessageHeader *hdr);
 
 
 /**
@@ -94,9 +95,22 @@ GNUNET_TESTING_loop_notify_parent_ (struct GNUNET_TESTING_Interpreter *is,
  * @param is The interpreter loop.
  */
 void
-GNUNET_TESTING_loop_notify_children_ (struct GNUNET_TESTING_Interpreter *is,
-                                      const struct GNUNET_MessageHeader *hdr);
+GNUNET_TESTING_loop_notify_children_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  const struct GNUNET_MessageHeader *hdr);
 
+
+/**
+ * Current command is done, run the next one.
+ */
+void
+GNUNET_TESTING_interpreter_next_ (void *cls);
+
+
+void
+GNUNET_TESTING_interpreter_run_cmd_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  struct GNUNET_TESTING_Command *cmd);
 
 /**
  * Adding a helper handle to the interpreter.
@@ -105,8 +119,9 @@ GNUNET_TESTING_loop_notify_children_ (struct GNUNET_TESTING_Interpreter *is,
  * @param helper The helper handle.
  */
 void
-GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
-                                    struct GNUNET_HELPER_Handle *helper);
+GNUNET_TESTING_add_netjail_helper_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  struct GNUNET_HELPER_Handle *helper);
 
 
 /**
@@ -117,27 +132,32 @@ GNUNET_TESTING_add_netjail_helper_ (struct GNUNET_TESTING_Interpreter *is,
  * @param barrier The barrier to add.
  */
 void
-GNUNET_TESTING_add_barrier_ (struct GNUNET_TESTING_Interpreter *is,
-                             struct GNUNET_TESTING_Barrier *barrier);
+GNUNET_TESTING_add_barrier_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  struct GNUNET_TESTING_Barrier *barrier);
 
 
 struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier2_ (struct GNUNET_TESTING_Interpreter *is,
-                              const struct GNUNET_ShortHashCode *create_key);
+GNUNET_TESTING_get_barrier2_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  const struct GNUNET_ShortHashCode *create_key);
 
 
 struct GNUNET_TESTING_Barrier *
-GNUNET_TESTING_get_barrier_ (struct GNUNET_TESTING_Interpreter *is,
-                             const char *barrier_name);
+GNUNET_TESTING_get_barrier_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *barrier_name);
 
 
 unsigned int
-GNUNET_TESTING_barrier_count_ (struct GNUNET_TESTING_Interpreter *is);
+GNUNET_TESTING_barrier_count_ (
+  struct GNUNET_TESTING_Interpreter *is);
 
 
 void
-GNUNET_TESTING_barrier_iterate_ (struct GNUNET_TESTING_Interpreter *is,
-                                 GNUNET_CONTAINER_ShortmapIterator cb,
-                                 void *cb_cls);
+GNUNET_TESTING_barrier_iterate_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  GNUNET_CONTAINER_ShortmapIterator cb,
+  void *cb_cls);
 
 #endif

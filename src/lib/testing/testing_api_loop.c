@@ -342,11 +342,8 @@ static void
 interpreter_run (void *cls);
 
 
-/**
- * Current command is done, run the next one.
- */
-static void
-interpreter_next (void *cls)
+void
+GNUNET_TESTING_interpreter_next_ (void *cls)
 {
   static unsigned long long ipc;
   static struct GNUNET_TIME_Absolute last_report;
@@ -387,29 +384,11 @@ interpreter_next (void *cls)
 }
 
 
-/**
- * Run the main interpreter loop.
- *
- * @param cls contains the `struct GNUNET_TESTING_Interpreter`
- */
-static void
-interpreter_run (void *cls)
+void
+GNUNET_TESTING_interpreter_run_cmd_ (
+  struct GNUNET_TESTING_Interpreter *is,
+  struct GNUNET_TESTING_Command *cmd)
 {
-  struct GNUNET_TESTING_Interpreter *is = cls;
-  struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
-
-  is->task = NULL;
-  if (NULL == cmd->run)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Running command END\n");
-    is->result = GNUNET_OK;
-    finish_test (is);
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Running command `%s'\n",
-              cmd->label.value);
   cmd->last_req_time
     = GNUNET_TIME_absolute_get ();
   if (0 == cmd->num_tries)
@@ -435,13 +414,42 @@ interpreter_run (void *cls)
   }
   cmd->run (cmd->cls,
             is);
-  if ( (NULL == cmd->ac) ||
-       (cmd->asynchronous_finish) )
+  if ( (! GNUNET_TESTING_cmd_is_batch_ (cmd)) &&
+       ( (NULL == cmd->ac) ||
+         (cmd->asynchronous_finish) ) )
   {
     if (NULL != cmd->ac)
       cmd->ac->next_called = true;
-    interpreter_next (is);
+    GNUNET_TESTING_interpreter_next_ (is);
   }
+}
+
+
+/**
+ * Run the main interpreter loop.
+ *
+ * @param cls contains the `struct GNUNET_TESTING_Interpreter`
+ */
+static void
+interpreter_run (void *cls)
+{
+  struct GNUNET_TESTING_Interpreter *is = cls;
+  struct GNUNET_TESTING_Command *cmd = &is->commands[is->ip];
+
+  is->task = NULL;
+  if (NULL == cmd->run)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Running command END\n");
+    is->result = GNUNET_OK;
+    finish_test (is);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Running command `%s'\n",
+              cmd->label.value);
+  GNUNET_TESTING_interpreter_run_cmd_ (is,
+                                       cmd);
 }
 
 
@@ -507,7 +515,7 @@ GNUNET_TESTING_async_finish (struct GNUNET_TESTING_AsyncContext *ac)
   if (! ac->next_called)
   {
     ac->next_called = true;
-    interpreter_next (ac->is);
+    GNUNET_TESTING_interpreter_next_ (ac->is);
   }
 }
 

@@ -27,6 +27,7 @@
 #include "platform.h"
 #include "gnunet_testing_lib.h"
 #include "testing_api_cmd_batch.h"
+#include "testing_api_loop.h"
 
 /**
  * State for a "batch" CMD.
@@ -61,26 +62,25 @@ batch_run (void *cls,
            struct GNUNET_TESTING_Interpreter *is)
 {
   struct BatchState *bs = cls;
+  struct GNUNET_TESTING_Command *cmd;
 
-  if (NULL != bs->batch[bs->batch_ip].run)
+  cmd = &bs->batch[bs->batch_ip];
+  if (NULL != cmd->run)
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Running batched command: %s\n",
-                bs->batch[bs->batch_ip].label.value);
+                cmd->label.value);
 
   /* hit end command, leap to next top-level command.  */
-  if (NULL == bs->batch[bs->batch_ip].run)
+  if (NULL == cmd->run)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Exiting from batch: %s\n",
                 bs->label.value);
+    GNUNET_TESTING_interpreter_next_ (is);
     return;
   }
-  bs->batch[bs->batch_ip].start_time
-    = bs->batch[bs->batch_ip].last_req_time
-      = GNUNET_TIME_absolute_get ();
-  bs->batch[bs->batch_ip].num_tries = 1;
-  bs->batch[bs->batch_ip].run (bs->batch[bs->batch_ip].cls,
-                               is);
+  GNUNET_TESTING_interpreter_run_cmd_ (is,
+                                       cmd);
 }
 
 
@@ -178,13 +178,24 @@ bool
 GNUNET_TESTING_cmd_batch_next_ (void *cls)
 {
   struct BatchState *bs = cls;
+  struct GNUNET_TESTING_Command *bcmd = &bs->batch[bs->batch_ip];
 
-  if (NULL == bs->batch[bs->batch_ip].run)
-    return false;
-  bs->batch[bs->batch_ip].finish_time
-    = GNUNET_TIME_absolute_get ();
+  if (NULL == bcmd->run)
+    return true; /* this batch is done */
+  if (GNUNET_TESTING_cmd_is_batch_ (bcmd))
+  {
+    if (GNUNET_TESTING_cmd_batch_next_ (bcmd->cls))
+    {
+      /* sub-batch is done */
+      bcmd->finish_time = GNUNET_TIME_absolute_get ();
+      bs->batch_ip++;
+      return false;
+    }
+  }
+  /* Simple command is done */
+  bcmd->finish_time = GNUNET_TIME_absolute_get ();
   bs->batch_ip++;
-  return true;
+  return false;
 }
 
 
