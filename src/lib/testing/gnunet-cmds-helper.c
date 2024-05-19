@@ -37,11 +37,9 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "testing.h"
+#include "testing_api_loop.h"
 #include "testing_cmds.h"
-#include <zlib.h>
-
+#include "netjail.h"
 
 /**
  * Generic logging shortcut
@@ -86,10 +84,17 @@ static struct WriteContext *wc_tail;
 
 static struct GNUNET_TESTING_Interpreter *is;
 
+static const char *my_node_id;
+
 /**
  * Plugin to dynamically load a test case.
  */
-static struct TestcasePlugin *plugin;
+static struct GNUNET_TESTING_PluginFunctions *plugin;
+
+/**
+ * Name of our plugin.
+ */
+static char *plugin_name;
 
 /**
  * Our message stream tokenizer
@@ -148,7 +153,7 @@ do_shutdown (void *cls)
     GNUNET_SCHEDULER_cancel (write_task_id);
     write_task_id = NULL;
   }
-  while (NULL != (wc = we_head))
+  while (NULL != (wc = wc_head))
   {
     GNUNET_CONTAINER_DLL_remove (wc_head,
                                  wc_tail,
@@ -163,9 +168,9 @@ do_shutdown (void *cls)
   }
   if (NULL != plugin)
   {
-    GNUNET_PLUGIN_unload (plugin->library_name,
-                          NULL);
-    GNUNET_free (plugin);
+    GNUNET_PLUGIN_unload (plugin_name,
+                          plugin);
+    GNUNET_free (plugin_name);
   }
 }
 
@@ -272,8 +277,9 @@ check_helper_init (
   uint32_t barrier_count = htonl (msg->barrier_count);
   size_t bs = barrier_count * sizeof (struct GNUNET_ShortHashCode);
   size_t left = msize - bs - sizeof (*msg);
-  const struct GNUNET_ShortHashCode *bd = &msg[1];
-  const char *topo = &bd[barrier_count];
+  const struct GNUNET_ShortHashCode *bd
+    = (const struct GNUNET_ShortHashCode *) &msg[1];
+  const char *topo = (const char *) &bd[barrier_count];
 
   if (msize < bs + sizeof (*msg))
   {
@@ -298,11 +304,12 @@ handle_helper_init (
   uint32_t barrier_count = htonl (msg->barrier_count);
   size_t bs = barrier_count * sizeof (struct GNUNET_ShortHashCode);
   size_t left = msize - bs - sizeof (*msg);
-  const struct GNUNET_ShortHashCode *bd = &msg[1];
-  const char *topo = &bd[barrier_count];
+  const struct GNUNET_ShortHashCode *bd
+    = (const struct GNUNET_ShortHashCode *) &msg[1];
+  const char *topo = (const char *) &bd[barrier_count];
   struct GNUNET_TESTING_NetjailTopology *njt;
-  const char *plugin_name;
 
+  GNUNET_assert ('\0' == topo[left - 1]);
   njt = GNUNET_TESTING_get_topo_from_string (topo);
   if (NULL == njt)
   {
@@ -314,9 +321,9 @@ handle_helper_init (
   plugin_name = GNUNET_TESTING_get_plugin_from_topo (njt,
                                                      my_node_id);
   GNUNET_TESTING_free_toplogy (njt);
-  api = GNUNET_PLUGIN_load (plugin_name,
-                            my_node_id);
-  if (NULL == api)
+  plugin = GNUNET_PLUGIN_load (plugin_name,
+                               (void *) my_node_id);
+  if (NULL == plugin)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Plugin `%s' not found!\n",
@@ -325,11 +332,12 @@ handle_helper_init (
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  is = api->start_testcase (topo,
-                            barrier_count,
-                            bd,
-                            &write_message,
-                            &finished_cb);
+  is = plugin->start_testcase (plugin->cls,
+                               topo,
+                               barrier_count,
+                               bd,
+                               &write_message,
+                               &finished_cb);
 }
 
 
@@ -338,6 +346,8 @@ handle_helper_barrier_crossable (
   void *cls,
   const struct GNUNET_TESTING_CommandBarrierSatisfied *cbs)
 {
+  struct GNUNET_TESTING_Barrier *barrier;
+
   if (NULL == is)
   {
     /* Barrier satisfied *before* helper_init?! */
@@ -346,8 +356,24 @@ handle_helper_barrier_crossable (
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_TESTING_finish_barrier_ (is,
-                                  &cbs->barrier_key);
+  barrier = GNUNET_TESTING_get_barrier2_ (is,
+                                          &cbs->barrier_key);
+  if (barrier->satisfied)
+  {
+    /* Barrier satisfied *twice* is strange... */
+    GNUNET_break_op (0);
+    global_ret = EXIT_FAILURE;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  barrier->satisfied = true;
+  GNUNET_TESTING_loop_notify_children_ (is,
+                                        &cbs->header);
+  if (NULL != barrier->cmd_ac)
+  {
+    GNUNET_TESTING_async_finish (barrier->cmd_ac);
+    barrier->cmd_ac = NULL;
+  }
 }
 
 
@@ -367,14 +393,14 @@ static enum GNUNET_GenericReturnValue
 tokenizer_cb (void *cls,
               const struct GNUNET_MessageHeader *message)
 {
-  struct GNUNET_MQ_MessageHandlers handlers[] = {
+  struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_var_size (
       helper_init,
       GNUNET_MESSAGE_TYPE_CMDS_HELPER_INIT,
       struct GNUNET_TESTING_CommandHelperInit,
       NULL),
     GNUNET_MQ_hd_fixed_size (
-      barrier_crossable,
+      helper_barrier_crossable,
       GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_CROSSABLE,
       struct GNUNET_TESTING_CommandBarrierSatisfied,
       NULL),

@@ -27,64 +27,10 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
-#include "testing.h"
-
-
-/**
- * Callback function to write messages from the helper process running on a netjail node to the master process.
- *
- * @param message The message to write.
- */
-typedef void
-(*GNUNET_TESTING_cmd_helper_write_cb) (
-  struct GNUNET_MessageHeader *message);
-
-/**
- * Callback function which writes a message from the helper process running on a netjail node to the master process * signaling that the test case running on the netjail node finished.
- */
-typedef void
-(*GNUNET_TESTING_cmd_helper_finish_cb) (
-  enum GNUNET_GenericReturnValue status);
-
-
-/**
- * The plugin API every test case plugin has to implement.
- */
-struct GNUNET_TESTING_PluginFunctions
-{
-
-  /**
-   * Closure to pass to start_testcase.
-   */
-  void *cls;
-
-  /**
-   * Function to be implemented for each test case plugin which starts the test case on a netjail node.
-   *
-   * @param topology_data A file name for the file containing the topology configuration, or a string containing
-   *        the topology configuration.
-   * @param barrier_count length of the @a barriers array
-   * @param barriers inherited barriers
-   * @param write_message Callback function to write messages from the helper process running on a
-   * netjail node to the master process.
-   * @param finish_cb Callback function which writes a message from the helper process running on a netjail
-   *                  node to the master process * signaling that the test case running on the netjail node finished.
-   * @return Returns The struct GNUNET_TESTING_Interpreter of the command loop running on this netjail node.
-   */
-  struct GNUNET_TESTING_Interpreter *
-  (*start_testcase) (
-    void *cls,
-    const char *topology_data,
-    uint32_t barrier_count,
-    const struct GNUNET_ShortHashCode *barriers,
-    GNUNET_TESTING_cmd_helper_write_cb write_message,
-    GNUNET_TESTING_cmd_helper_finish_cb finish_cb);
-
-};
+#include "gnunet_testing_lib.h"
+#include "testing_api_loop.h"
+#include "netjail.h"
+#include "testing_cmds.h"
 
 
 struct SendContext
@@ -150,6 +96,9 @@ struct GNUNET_TESTING_Interpreter
    * Hash map mapping variable names to commands.
    */
   struct GNUNET_CONTAINER_MultiHashMap *vars;
+
+  struct SendContext *sender_head;
+  struct SendContext *sender_tail;
 
   /**
    * Function to call to send messages to our parent.
@@ -301,9 +250,9 @@ GNUNET_TESTING_interpreter_lookup_command_all (
 }
 
 
-const struct TALER_TESTING_Command *
-TALER_TESTING_interpreter_get_command (struct TALER_TESTING_Interpreter *is,
-                                       const char *name)
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_get_command (struct GNUNET_TESTING_Interpreter *is,
+                                        const char *name)
 {
   const struct TALER_TESTING_Command *cmd;
   struct GNUNET_HashCode h_name;
@@ -650,8 +599,8 @@ do_timeout (void *cls)
 
 static void
 setup_is (struct GNUNET_TESTING_Interpreter *is,
-          const struct GNUNET_TESTING_Command *bcommand)
-const struct GNUNET_TESTING_Command *commands)
+          const struct GNUNET_TESTING_Command *bcommand,
+          const struct GNUNET_TESTING_Command *commands)
 {
   unsigned int i;
 
@@ -721,7 +670,6 @@ start_testcase (
 {
   const struct GNUNET_TESTING_Command *commands = cls;
   struct GNUNET_TESTING_Interpreter *is;
-  unsigned int i;
 
   is = GNUNET_new (struct GNUNET_TESTING_Interpreter);
   if (0 != inherited_barrier_count)
@@ -745,7 +693,7 @@ start_testcase (
   }
   is->parent_writer = parent_writer;
   is->rc = finish_cb;
-  is->rc_cls = finish_cb_cls;
+  is->rc_cls = NULL;
   {
     struct GNUNET_TESTING_Command bcmd;
 
@@ -767,6 +715,8 @@ struct GNUNET_TESTING_PluginFunctions *
 GNUNET_TESTING_make_plugin (
   const struct GNUNET_TESTING_Command *commands)
 {
+  struct GNUNET_TESTING_PluginFunctions *api;
+
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
   api->cls = (void *) commands;
   api->start_testcase = &start_testcase;

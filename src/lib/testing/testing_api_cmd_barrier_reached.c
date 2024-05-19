@@ -26,6 +26,7 @@
 #include "platform.h"
 #include "gnunet_testing_lib.h"
 #include "testing_api_loop.h"
+#include "testing_cmds.h"
 
 /**
  * Generic logging shortcut
@@ -68,8 +69,6 @@ barrier_reached_run (void *cls,
 {
   struct BarrierReachedState *brs = cls;
   struct GNUNET_TESTING_Barrier *barrier;
-  struct GNUNET_TESTING_Command *cmd
-    = GNUNET_TESTING_interpreter_get_current_command (is);
 
   barrier = GNUNET_TESTING_get_barrier_ (is,
                                          brs->barrier_name);
@@ -88,11 +87,13 @@ barrier_reached_run (void *cls,
   }
   if (barrier->inherited)
   {
-    struct GNUNET_TESTING_CommandBarrierReached cbr;
+    struct GNUNET_TESTING_CommandBarrierReached cbr = {
+      .header.size = htons (sizeof (cbr)),
+      .header.type = htons (GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED)
+    };
 
     GNUNET_TESTING_barrier_name_hash_ (brs->barrier_name,
                                        &cbr.barrier_key);
-    // FIXME: init cbr!
     GNUNET_TESTING_loop_notify_parent_ (is,
                                         &cbr.header);
     return;

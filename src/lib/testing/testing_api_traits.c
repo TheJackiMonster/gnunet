@@ -26,23 +26,14 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
+#include "gnunet_testing_lib.h"
 
 
-/* FIXME: move these into respective sub-libs? */
+GNUNET_TESTING_LOOP_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                                   GNUNET_TESTING)
 
-GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TESTING)
-
-GNUNET_TESTING_INDEXED_TRAITS (GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT, GNUNET_TESTING)
-
-GNUNET_TESTING_LOOP_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TESTING)
-
-GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT, GNUNET_TESTING)
-
-GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TESTING)
+GNUNET_TESTING_LOOP_INDEXED_TRAITS (GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT,
+                                    GNUNET_TESTING)
 
 /**
  * End a trait array.  Usually, commands offer several traits,
