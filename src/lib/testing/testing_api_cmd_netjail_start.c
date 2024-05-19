@@ -186,7 +186,6 @@ netjail_start_run (void *cls,
     char *const script_argv[] = {
       script_name,
       (char *) topology_data,
-      pid, // FIXME: use $PPID!
       "0",
       NULL
     };

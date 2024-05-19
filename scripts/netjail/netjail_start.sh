@@ -8,8 +8,8 @@ set -x
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 filename=$1
-PREFIX=$2
-readfile=$3
+PREFIX=$PPID
+readfile=$2
 
 BROADCAST=0
 
