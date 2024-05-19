@@ -53,9 +53,9 @@ struct BashScriptState
   struct GNUNET_OS_Process *start_proc;
 
   /**
-   * Arguments for the script
+   * NULL-terminated array of command-line arguments.
    */
-  char *const*script_argv;
+  char **args;
 
   /**
    *
@@ -97,6 +97,9 @@ exec_bash_script_cleanup (void *cls)
     GNUNET_OS_process_destroy (bss->start_proc);
     bss->start_proc = NULL;
   }
+  for (unsigned int i = 0; NULL != bss->args[i]; i++)
+    GNUNET_free (bss->args[i]);
+  GNUNET_free (bss->args);
   GNUNET_free (bss);
 }
 
@@ -147,8 +150,8 @@ exec_bash_script_run (void *cls,
         NULL,
         NULL,
         NULL,
-        bss->script_argv[0],
-        bss->script_argv);
+        bss->args[0],
+        bss->args);
   bss->cwh = GNUNET_wait_child (bss->start_proc,
                                 &child_completed_callback,
                                 bss);
@@ -156,7 +159,6 @@ exec_bash_script_run (void *cls,
 }
 
 
-// FIXME: support variadic style...
 const struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec (
   const char *label,
@@ -165,9 +167,57 @@ GNUNET_TESTING_cmd_exec (
   char *const script_argv[])
 {
   struct BashScriptState *bss;
+  unsigned int cnt;
+
+  cnt = 0;
+  while (NULL != script_argv[cnt])
+    cnt++;
+  bss = GNUNET_new (struct BashScriptState);
+  bss->args = GNUNET_new_array (cnt + 1,
+                                char *);
+  for (unsigned int i = 0; i<cnt; i++)
+    bss->args[i] = GNUNET_strdup (script_argv[i]);
+  bss->expected_type = expected_type;
+  bss->expected_exit_code = expected_exit_code;
+  return GNUNET_TESTING_command_new_ac (
+    bss,
+    label,
+    &exec_bash_script_run,
+    &exec_bash_script_cleanup,
+    NULL,
+    &bss->ac);
+}
+
+
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_exec_va (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  ...)
+{
+  struct BashScriptState *bss;
+  va_list ap;
+  const char *arg;
+  unsigned int cnt;
 
   bss = GNUNET_new (struct BashScriptState);
-  bss->script_argv = script_argv; // FIXME: make copy?
+  va_start (ap,
+            expected_exit_code);
+  cnt = 1;
+  while (NULL != (arg = va_arg (ap,
+                                const char *)))
+    cnt++;
+  va_end (ap);
+  bss->args = GNUNET_new_array (cnt,
+                                char *);
+  cnt = 0;
+  va_start (ap,
+            expected_exit_code);
+  while (NULL != (arg = va_arg (ap,
+                                const char *)))
+    bss->args[cnt++] = GNUNET_strdup (arg);
+  va_end (ap);
   bss->expected_type = expected_type;
   bss->expected_exit_code = expected_exit_code;
   return GNUNET_TESTING_command_new_ac (

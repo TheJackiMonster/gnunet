@@ -679,6 +679,19 @@ GNUNET_TESTING_cmd_exec (
 
 
 /**
+ * Command to execute a command.
+ *
+ * @param label Label of the command.
+*/
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_exec_va (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  ...);
+
+
+/**
  * Make the instruction pointer point to @a target_label
  * only if @a counter is greater than zero.
  *
