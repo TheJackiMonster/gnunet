@@ -321,6 +321,15 @@ GNUNET_TESTING_get_address (
 
 
 /**
+ * Get the global plugin name form the topology file
+ */
+char *
+GNUNET_TESTING_get_plugin_from_topo (
+  struct GNUNET_TESTING_NetjailTopology *njt,
+  const char *my_node_id);
+
+
+/**
  * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
  *
  * @param[in] topology The GNUNET_TESTING_NetjailTopology to be deallocated.

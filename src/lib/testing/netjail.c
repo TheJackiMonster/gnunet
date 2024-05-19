@@ -811,6 +811,15 @@ parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
 }
 
 
+char *
+GNUNET_TESTING_get_plugin_from_topo (
+  struct GNUNET_TESTING_NetjailTopology *njt,
+  const char *my_node_id)
+{
+  return njt->plugin;
+}
+
+
 /**
  * Parse the topology data.
  *
