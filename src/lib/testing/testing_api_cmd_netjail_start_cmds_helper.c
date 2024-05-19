@@ -29,6 +29,7 @@
 #include "netjail.h"
 #include "testing_api_loop.h"
 #include "testing_cmds.h"
+#include "netjail.h"
 
 
 /**
@@ -89,6 +90,8 @@ struct NetJailState
    * Kept in a DLL.
    */
   struct TestingSystemCount *tbc_tail;
+
+  char *topology_data;
 
   /**
    * Size of the array @e helpers.
@@ -321,10 +324,14 @@ send_start_messages (struct NetJailState *ns,
   struct TestingSystemCount *tbc;
   struct GNUNET_ShortHashCode *bar;
   unsigned int num_barriers = 0;
-  size_t topo_length = strlen (ns->topology_data) + 1;
+  size_t topo_length;
   size_t msg_len;
 
-
+  topo_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                   ns->topology_cmd_label);
+  GNUNET_TESTING_get_trait_get_topology_string (topo_cmd,
+                                                &ns->topology_data);
+  topo_length = strlen (ns->topology_data) + 1;
   msg_len = sizeof (*msg) + topo_length
             + num_barriers * sizeof (struct GNUNET_ShortHashCode);
   // FIXME: check for integer arithmetic overflow in the above code; theoretically.
@@ -546,70 +553,3 @@ GNUNET_TESTING_cmd_netjail_start_helpers (
                                         &netjail_exec_traits,
                                         &ns->ac);
 }
-
-
-#if MOVEME
-/**
- * Create command.
- *
- * @param label Name for the command.
- * @param topology_data_file topology data file name
- * @param timeout Before this timeout is reached this cmd MUST finish.
- * @return command.
- */
-struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_netjail_start_helpers2 (
-  const char *label,
-  const char *topology_data_file,
-  struct GNUNET_TIME_Relative timeout)
-{
-  uint64_t fs;
-  char *data;
-  struct GNUNET_TESTING_NetjailTopology *topo;
-
-  if (GNUNET_YES !=
-      GNUNET_DISK_file_test (topology_data_file))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Topology file %s not found\n",
-         topology_data_file);
-    GNUNET_assert (0);
-  }
-  if (GNUNET_OK !=
-      GNUNET_DISK_file_size (topology_data_file,
-                             &fs,
-                             GNUNET_YES,
-                             GNUNET_YES))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Could not determine size of topology file %s\n",
-         topology_data_file);
-    GNUNET_assert (0);
-  }
-  data = GNUNET_malloc_large (fs + 1);
-  GNUNET_assert (NULL != data);
-  if (fs !=
-      GNUNET_DISK_fn_read (topology_data_file,
-                           data,
-                           fs))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Topology file %s cannot be read\n",
-         topology_data_file);
-    GNUNET_free (data);
-    return NULL;
-  }
-
-  {
-    struct GNUNET_TESTING_Command cmd;
-
-    cmd = GNUNET_TESTING_cmd_netjail_start_helpers (label,
-                                                    data,
-                                                    timeout);
-    GNUNET_free (data);
-    return cmd;
-  }
-}
-
-
-#endif
