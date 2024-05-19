@@ -165,7 +165,8 @@ netjail_start_run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "%s not found!\n",
                 script_name);
-    GNUNET_TESTING_FAIL (is);
+    GNUNET_TESTING_interpreter_skip (is);
+    return;
   }
 
   GNUNET_snprintf (pid,

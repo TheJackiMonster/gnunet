@@ -124,7 +124,8 @@ struct GNUNET_TESTING_Interpreter
   int ip;
 
   /**
-   * Result of the testcases, #GNUNET_OK on success
+   * Result of the testcases, #GNUNET_OK on success,
+   * #GNUNET_SYSERR on failure, #GNUNET_NO if undecided.
    */
   enum GNUNET_GenericReturnValue result;
 
@@ -132,6 +133,12 @@ struct GNUNET_TESTING_Interpreter
    * Is the interpreter finishing?
    */
   bool finishing;
+
+  /**
+   * Is the real result to "skip" because we could not
+   * get the environment working?
+   */
+  bool skip;
 
 };
 
@@ -317,7 +324,7 @@ finish_test (void *cls)
   }
   GNUNET_free (is->commands);
   is->rc (is->rc_cls,
-          is->result);
+          is->skip ? GNUNET_NO : is->result);
   if (NULL != is->barriers)
   {
     GNUNET_CONTAINER_multishortmap_destroy (is->barriers);
@@ -496,6 +503,15 @@ GNUNET_TESTING_interpreter_fail (struct GNUNET_TESTING_Interpreter *is)
   GNUNET_assert (NULL == is->final_task);
   is->final_task = GNUNET_SCHEDULER_add_now (&finish_test,
                                              is);
+}
+
+
+void
+GNUNET_TESTING_interpreter_skip (
+  struct GNUNET_TESTING_Interpreter *is)
+{
+  is->skip = true;
+  GNUNET_TESTING_interpreter_fail (is);
 }
 
 
@@ -966,6 +982,15 @@ rewind_ip_run (void *cls,
 }
 
 
+static void
+rewind_ip_free (void *cls)
+{
+  struct RewindIpState *ris = cls;
+
+  GNUNET_free (ris);
+}
+
+
 struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_rewind_ip (const char *label,
                               const char *target_label,
@@ -979,7 +1004,7 @@ GNUNET_TESTING_cmd_rewind_ip (const char *label,
   return GNUNET_TESTING_command_new (ris,
                                      label,
                                      &rewind_ip_run,
-                                     NULL,
+                                     &rewind_ip_free,
                                      NULL);
 }
 

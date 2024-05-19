@@ -70,12 +70,22 @@ handle_result (void *cls,
 {
   struct MainParams *mp = cls;
 
+  mp->is = NULL;
+  switch (rv)
+  {
+  case GNUNET_OK:
+    mp->rv = EXIT_SUCCESS;
+    break;
+  case GNUNET_NO:
+    mp->rv = 77;
+    break;
+  case GNUNET_SYSERR:
+    mp->rv = EXIT_FAILURE;
+    break;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Test exits with status %d\n",
-              rv);
-  mp->is = NULL;
-  if (GNUNET_OK != rv)
-    mp->rv = EXIT_FAILURE;
+              mp->rv);
   GNUNET_SCHEDULER_shutdown ();
 }
 

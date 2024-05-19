@@ -411,6 +411,17 @@ GNUNET_TESTING_interpreter_fail (
 
 
 /**
+ * Skips the current test, the environment is
+ * not prepared correctly.
+ *
+ * @param is interpreter state.
+ */
+void
+GNUNET_TESTING_interpreter_skip (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
  * Callback over commands of an interpreter.
  *
  * @param cls closure
