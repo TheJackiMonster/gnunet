@@ -107,7 +107,11 @@ create_unique_cfgs (const char *template,
       GNUNET_asprintf (&cur_file, "%04u%s", cur, ".conf");
 
     cfg_new = GNUNET_CONFIGURATION_dup (cfg_tmpl);
-    if (GNUNET_OK != GNUNET_TESTBED_configuration_create (system, cfg_new))
+    if (GNUNET_OK !=
+        GNUNET_TESTBED_configuration_create (system,
+                                             cfg_new,
+                                             NULL,
+                                             NULL))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Could not create another configuration\n");
@@ -119,7 +123,9 @@ create_unique_cfgs (const char *template,
                 "Writing configuration no. %u to file `%s' \n",
                 cur,
                 cur_file);
-    if (GNUNET_OK != GNUNET_CONFIGURATION_write (cfg_new, cur_file))
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_write (cfg_new,
+                                    cur_file))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed to write configuration no. %u \n",
@@ -132,7 +138,8 @@ create_unique_cfgs (const char *template,
       break;
   }
   GNUNET_CONFIGURATION_destroy (cfg_tmpl);
-  GNUNET_TESTBED_system_destroy (system, GNUNET_NO);
+  GNUNET_TESTBED_system_destroy (system,
+                                 false);
   if (GNUNET_YES == fail)
     return 1;
   return 0;

@@ -148,9 +148,9 @@ GNUNET_TESTBED_system_create (
 
 void
 GNUNET_TESTBED_system_destroy (struct GNUNET_TESTBED_System *system,
-                               int remove_paths)
+                               bool remove_paths)
 {
-  if (GNUNET_YES == remove_paths)
+  if (remove_paths)
     GNUNET_DISK_directory_remove (system->tmppath);
   GNUNET_free (system->tmppath);
   GNUNET_free (system->trusted_ip);
