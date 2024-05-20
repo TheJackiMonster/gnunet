@@ -75,7 +75,6 @@ EXTRA_DIST = \
 test_gnsrecord_lsd0001testvectors_SOURCES = \
  test_gnsrecord_testvectors.c
 test_gnsrecord_lsd0001testvectors_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -83,14 +82,12 @@ test_gnsrecord_lsd0001testvectors_LDADD = \
 test_gnsrecord_serialization_SOURCES = \
  test_gnsrecord_serialization.c
 test_gnsrecord_serialization_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_gnsrecord_block_expiration_SOURCES = \
  test_gnsrecord_block_expiration.c
 test_gnsrecord_block_expiration_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -98,7 +95,6 @@ test_gnsrecord_block_expiration_LDADD = \
 test_gnsrecord_crypto_SOURCES = \
  test_gnsrecord_crypto.c
 test_gnsrecord_crypto_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
@@ -106,6 +102,5 @@ test_gnsrecord_crypto_LDADD = \
 perf_gnsrecord_crypto_SOURCES = \
  perf_gnsrecord_crypto.c
 perf_gnsrecord_crypto_LDADD = \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   libgnunetgnsrecord.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
