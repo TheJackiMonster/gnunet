@@ -52,11 +52,11 @@ libgnunetmessenger_la_LDFLAGS = \
   -version-info 0:0:0
 
 libgnunettestingmessenger_la_SOURCES = \
-  messenger_api_cmd_join_room.c \
-  messenger_api_cmd_start_service.c \
-  messenger_api_cmd_stop_service.c \
-  messenger_api_traits.c \
-  messenger-testing.c messenger-testing.h
+  testing_messenger_cmd_join_room.c \
+  testing_messenger_cmd_start_service.c \
+  testing_messenger_cmd_stop_service.c \
+  testing_messenger_traits.c \
+  testing_messenger.c testing_messenger.h
 libgnunettestingmessenger_la_LIBADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
@@ -80,14 +80,14 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_SOURCES = \
   test_messenger_plugin_cmd_simple_join.c
 libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessenger.la \
-  libgnunetmessengertesting.la \
-  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/service/core/libgnunetcore.la \
+  libgnunettestingmessenger.la \
   $(top_builddir)/src/service/core/libgnunettestingcore.la \
   $(top_builddir)/src/service/transport/libgnunettestingtransport.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/cadet/libgnunetcadet.la \
+  $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
