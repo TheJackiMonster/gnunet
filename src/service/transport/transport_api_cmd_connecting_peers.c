@@ -25,7 +25,8 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testbed_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
 #include "transport-testing-cmds.h"
 #include "gnunet_transport_application_service.h"
@@ -45,7 +46,7 @@ connect_peers_run (void *cls,
 {
   struct ConnectPeersState *cps = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
 
   const struct GNUNET_TESTING_Command *peer1_cmd;
@@ -83,7 +84,7 @@ connect_peers_run (void *cls,
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           cps->create_label);
-  GNUNET_TESTING_get_trait_test_system (system_cmd,
+  GNUNET_TESTBED_get_trait_test_system (system_cmd,
                                         &tl_system);
 
   cps->tl_system = tl_system;

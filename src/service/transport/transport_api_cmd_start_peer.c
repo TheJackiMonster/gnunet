@@ -172,7 +172,7 @@ start_peer_run (void *cls,
   char *emsg = NULL;
   struct GNUNET_PeerIdentity dummy;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
   char *home;
   char *transport_unix_path;
   char *tcp_communicator_unix_path;
@@ -258,7 +258,7 @@ start_peer_run (void *cls,
 
   if (GNUNET_SYSERR ==
       GNUNET_TESTING_configuration_create ((struct
-                                            GNUNET_TESTING_System *) tl_system,
+                                            GNUNET_TESTBED_System *) tl_system,
                                            sps->cfg))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -270,7 +270,7 @@ start_peer_run (void *cls,
   }
 
   sps->peer = GNUNET_TESTING_peer_configure ((struct
-                                              GNUNET_TESTING_System *) sps->
+                                              GNUNET_TESTBED_System *) sps->
                                              tl_system,
                                              sps->cfg,
                                              sps->no,

@@ -67,7 +67,7 @@ struct CheckState
   /**
    * The testing system of this node.
    */
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
@@ -402,7 +402,7 @@ backchannel_check_run (void *cls,
 {
   struct CheckState *cs = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_CONTAINER_MultiShortmapIterator *node_it;

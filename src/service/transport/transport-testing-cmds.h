@@ -27,7 +27,7 @@
 #ifndef TRANSPORT_TESTING_CMDS_H
 #define TRANSPORT_TESTING_CMDS_H
 
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
 
 
@@ -48,7 +48,7 @@ struct ConnectPeersState
   /**
    * The testing system of this node.
    */
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
@@ -104,26 +104,13 @@ struct ConnectPeersState
 };
 
 
-
 typedef void *
 (*GNUNET_TRANSPORT_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
                                        const struct GNUNET_PeerIdentity *peer);
 
 
-
 struct TestState
 {
-  /**
-   * Callback to write messages to the master loop.
-   *
-   */
-  GNUNET_TESTING_cmd_helper_write_cb write_message;
-
-  /**
-   * Callback to notify the helper test case has finished.
-   */
-  GNUNET_TESTING_cmd_helper_finish_cb finished_cb;
-
   /**
    * The name for a specific test environment directory.
    *
@@ -214,7 +201,7 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   topology);
 
 /**
- * 
+ *
  *
  * @param label name for command.
  * @param start_peer_label Label of the cmd to start a peer.
@@ -227,13 +214,14 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
  */
 struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
-                                  const char *start_peer_label,
-                                  const char *create_label,
-                                  uint32_t num,
-                                  int size,
-                                  int max_send,
-                                  struct GNUNET_TESTING_NetjailTopology *
-                                  topology);
+                                              const char *start_peer_label,
+                                              const char *create_label,
+                                              uint32_t num,
+                                              int size,
+                                              int max_send,
+                                              struct
+                                              GNUNET_TESTING_NetjailTopology *
+                                              topology);
 
 
 /**
@@ -259,14 +247,14 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
                                         topology);
 
 
-
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_TRANSPORT_SIMPLE_TRAITS(op, prefix)                 \
-  op (prefix, connect_peer_state, const struct ConnectPeersState) 
+        op (prefix, connect_peer_state, const struct ConnectPeersState)
 
-GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
+GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                GNUNET_TRANSPORT_TESTING)
 
 
 #endif

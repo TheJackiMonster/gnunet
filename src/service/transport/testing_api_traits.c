@@ -24,9 +24,12 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_netjail_lib.h"
-#include "transport-testing-cmds.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_testing_lib.h"
+#include "transport-testing-cmds.h"
 
-GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
+GNUNET_TRANSPORT_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                                GNUNET_TRANSPORT_TESTING)
+
+GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+                                        GNUNET_TRANSPORT_TESTING)

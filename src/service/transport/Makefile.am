@@ -15,7 +15,6 @@ if USE_COVERAGE
 endif
 
 noinst_PROGRAMS = \
- test_transport_start_with_config \
  gnunet-communicator-udp
 
 TESTING_LIBS = \
@@ -29,25 +28,26 @@ lib_LTLIBRARIES = \
   $(TESTING_LIBS)
 
 libgnunettransporttesting2_la_SOURCES = \
-  transport_api_traits.c \
+  testing_api_traits.c \
   testing_api_cmd_stop_peer.c \
-  testing_api_cmd_start_peer.c \
-  transport_api_cmd_connecting_peers.c \
-  transport_api_cmd_backchannel_check.c \
-  transport_api_cmd_start_peer.c \
-  transport_api_cmd_stop_peer.c \
-  transport_api_cmd_send_simple.c \
-  transport_api_cmd_send_simple_performance.c \
-  transport-testing2.c transport-testing2.h \
-  transport-testing-cmds.h \
-  transport-testing-filenames2.c \
-  transport-testing-loggers2.c \
-  transport-testing-main2.c \
-  transport-testing-send2.c \
-  transport-testing-communicator.c transport-testing-communicator.h
+  testing_api_cmd_start_peer.c
+#  transport_api_cmd_connecting_peers.c \
+#  transport_api_cmd_backchannel_check.c \
+#  transport_api_cmd_start_peer.c \
+#  transport_api_cmd_stop_peer.c \
+#  transport_api_cmd_send_simple.c \
+#  transport_api_cmd_send_simple_performance.c \
+#  transport-testing2.c transport-testing2.h \
+#  transport-testing-cmds.h \
+#  transport-testing-filenames2.c \
+#  transport-testing-loggers2.c \
+#  transport-testing-main2.c \
+#  transport-testing-send2.c \
+#  transport-testing-communicator.c transport-testing-communicator.h
 libgnunettransporttesting2_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -189,13 +189,13 @@ gnunet_service_transport_LDADD = \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL)
 
-plugin_LTLIBRARIES = \
-  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
-  libgnunet_test_transport_plugin_cmd_nat_upnp.la \
-  libgnunet_test_transport_plugin_cmd_simple_send.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
-  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
+#plugin_LTLIBRARIES = \
+#  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
+#  libgnunet_test_transport_plugin_cmd_nat_upnp.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
+#  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
 
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_SOURCES = \
  test_transport_plugin_cmd_nat_upnp.c
@@ -325,14 +325,6 @@ TESTS = \
 endif
 
 
-test_transport_start_with_config_SOURCES = \
- test_transport_start_with_config.c
-test_transport_start_with_config_LDADD = \
- $(top_builddir)/src/lib/testing/libgnunettesting.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/lib/hello/libgnunethello.la \
- libgnunettransportcore.la \
- libgnunettransporttesting2.la
 
 test_communicator_basic_unix_SOURCES = \
  test_communicator_basic.c

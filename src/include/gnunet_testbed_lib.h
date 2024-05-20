@@ -1,3 +1,8 @@
+#ifndef GNUNET_TESTBED_LIB_H
+#define GNUNET_TESTBED_LIB_H
+
+struct GNUNET_TESTBED_System;
+
 /**
  * This command destroys the ressources allocated for the test system setup.
  *
@@ -7,7 +12,7 @@
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_destroy (const char *label,
+GNUNET_TESTBED_cmd_system_destroy (const char *label,
                                    const char *create_label);
 
 /**
@@ -18,7 +23,7 @@ GNUNET_TESTING_cmd_system_destroy (const char *label,
  *                directory used for all service homes.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_create (const char *label,
+GNUNET_TESTBED_cmd_system_create (const char *label,
                                   const char *testdir);
 
 
@@ -34,7 +39,7 @@ GNUNET_TESTING_cmd_system_create (const char *label,
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_start_peer (const char *label,
+GNUNET_TESTBED_cmd_start_peer (const char *label,
                                const char *system_label,
                                uint32_t no,
                                const char *node_ip,
@@ -45,8 +50,11 @@ GNUNET_TESTING_cmd_start_peer (const char *label,
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS(op, prefix)                            \
-        op (prefix, test_system, const struct GNUNET_TESTING_System)
+        op (prefix, test_system, const struct GNUNET_TESTBED_System)
 
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
                                       GNUNET_TESTBED)
+
+
+#endif

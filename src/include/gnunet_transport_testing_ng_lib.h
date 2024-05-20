@@ -27,7 +27,7 @@
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 
 /**
  * Application handle; FIXME: what exactly is this?
@@ -44,7 +44,6 @@ struct GNUNET_TESTING_StartPeerState;
 typedef void *
 (*GNUNET_TESTING_notify_connect_cb) (struct GNUNET_TESTING_Interpreter *is,
                                      const struct GNUNET_PeerIdentity *peer);
-
 
 
 // FIXME: breaks naming conventions! Needed public?
@@ -153,7 +152,6 @@ struct GNUNET_TESTING_StartPeerState
 };
 
 
-
 /**
  * Create command.
  *
@@ -191,21 +189,22 @@ GNUNET_TESTING_get_peer (unsigned int num,
                          const struct GNUNET_TESTING_System *tl_system);
 
 
-
-
 /**
  * Call #op on all simple traits.
  */
 #define GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS(op, prefix)                         \
-  op (prefix, connected_peers_map, const struct GNUNET_CONTAINER_MultiShortmap)    \
-  op (prefix, peer_id, const struct GNUNET_PeerIdentity)                           \
-  op (prefix, hello_size, const size_t)                                            \
-  op (prefix, hello, const char)                                                   \
-  op (prefix, application_handle, const struct GNUNET_TRANSPORT_ApplicationHandle) \
-  op (prefix, state, const struct GNUNET_TESTING_StartPeerState)                   \
-  op (prefix, broadcast, const enum GNUNET_GenericReturnValue)
+        op (prefix, connected_peers_map, const struct \
+            GNUNET_CONTAINER_MultiShortmap)    \
+        op (prefix, peer_id, const struct GNUNET_PeerIdentity)                           \
+        op (prefix, hello_size, const size_t)                                            \
+        op (prefix, hello, const char)                                                   \
+        op (prefix, application_handle, const struct \
+            GNUNET_TRANSPORT_ApplicationHandle) \
+        op (prefix, state, const struct GNUNET_TESTING_StartPeerState)                   \
+        op (prefix, broadcast, const enum GNUNET_GenericReturnValue)
 
 
-GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_TRANSPORT_TESTING)
+GNUNET_TRANSPORT_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                        GNUNET_TRANSPORT_TESTING)
 
 #endif

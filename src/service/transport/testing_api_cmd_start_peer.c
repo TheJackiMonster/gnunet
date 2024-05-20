@@ -25,9 +25,10 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "transport-testing-cmds.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testbed_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
+#include "transport-testing-cmds.h"
 
 
 /**
@@ -48,7 +49,7 @@ start_peer_run (void *cls,
   char *emsg = NULL;
   struct GNUNET_PeerIdentity dummy;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
   char *home;
   char *transport_unix_path;
   char *tcp_communicator_unix_path;
@@ -123,7 +124,7 @@ start_peer_run (void *cls,
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           sps->system_label);
-  GNUNET_TESTING_get_trait_test_system (system_cmd,
+  GNUNET_TESTBED_get_trait_test_system (system_cmd,
                                         &tl_system);
 
   sps->tl_system = tl_system;
@@ -133,8 +134,7 @@ start_peer_run (void *cls,
        sps->no);
 
   if (GNUNET_SYSERR ==
-      GNUNET_TESTING_configuration_create ((struct
-                                            GNUNET_TESTING_System *) tl_system,
+      GNUNET_TESTBED_configuration_create (tl_system,
                                            sps->cfg))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -145,13 +145,12 @@ start_peer_run (void *cls,
     return;
   }
 
-  sps->peer = GNUNET_TESTING_peer_configure ((struct
-                                              GNUNET_TESTING_System *) sps->
-                                             tl_system,
-                                             sps->cfg,
-                                             sps->no,
-                                             NULL,
-                                             &emsg);
+  sps->peer = GNUNET_TESTBED_peer_configure (
+    (struct GNUNET_TESTBED_System *) sps->tl_system,
+    sps->cfg,
+    sps->no,
+    NULL,
+    &emsg);
   if (NULL == sps->peer)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -164,7 +163,8 @@ start_peer_run (void *cls,
     return;
   }
 
-  if (GNUNET_OK != GNUNET_TESTING_peer_start (sps->peer))
+  if (GNUNET_OK !=
+      GNUNET_TESTBED_peer_start (sps->peer))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Testing library failed to create unique configuration based on `%s'\n",
@@ -178,7 +178,7 @@ start_peer_run (void *cls,
           '\0',
           sizeof(dummy));
 
-  GNUNET_TESTING_peer_get_identity (sps->peer,
+  GNUNET_TESTBED_peer_get_identity (sps->peer,
                                     &sps->id);
 
   if (0 == memcmp (&dummy,

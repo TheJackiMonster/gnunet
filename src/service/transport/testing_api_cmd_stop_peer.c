@@ -25,7 +25,8 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testbed_lib.h"
 #include "gnunet_transport_testing_ng_lib.h"
 
 /**
@@ -65,14 +66,14 @@ stop_peer_run (void *cls,
   if (NULL != sps->peer)
   {
     if (GNUNET_OK !=
-        GNUNET_TESTING_peer_stop (sps->peer))
+        GNUNET_TESTBED_peer_stop (sps->peer))
     {
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Testing lib failed to stop peer %u (`%s')\n",
            sps->no,
            GNUNET_i2s (&sps->id));
     }
-    GNUNET_TESTING_peer_destroy (sps->peer);
+    GNUNET_TESTBED_peer_destroy (sps->peer);
   }
   if (NULL != sps->rh_task)
     GNUNET_SCHEDULER_cancel (sps->rh_task);
