@@ -649,10 +649,8 @@ struct GNUNET_CONFIGURATION_ConfigSettings
 {
 
   /**
-   * Must be set to the API version, i.e.
-   * #GNUNET_UTIL_VERSION. Used to detect
-   * which version of the struct the client
-   * is using.
+   * Must be set to the API version, i.e.  #GNUNET_UTIL_VERSION. Used to
+   * detect which version of the struct the client is using.
    */
   unsigned int api_version;
 
@@ -696,7 +694,6 @@ struct GNUNET_CONFIGURATION_ConfigSettings
    */
   int full;
 
-
   /**
    * Return value from the operation, to be returned
    * from 'main'.
@@ -714,50 +711,52 @@ struct GNUNET_CONFIGURATION_ConfigSettings
  * @param cs configuration settings to initialize
  */
 #define GNUNET_CONFIGURATION_CONFIG_OPTIONS(cs) \
-  GNUNET_GETOPT_option_flag ( \
-    'F', \
-    "full", \
-    gettext_noop ( \
-      "write the full configuration file, including default values"), \
-    &(cs)->full), \
-  GNUNET_GETOPT_option_flag ( \
-    'f', \
-    "filename", \
-    gettext_noop ("interpret option value as a filename (with $-expansion)"), \
-    &(cs)->is_filename), \
-  GNUNET_GETOPT_option_string ('o', \
-                               "option", \
-                               "OPTION", \
-                               gettext_noop ("name of the option to access"), \
-                               &(cs)->option), \
-  GNUNET_GETOPT_option_flag ( \
-    'r', \
-    "rewrite", \
-    gettext_noop ( \
-      "rewrite the configuration file, even if nothing changed"), \
-    &(cs)->rewrite), \
-  GNUNET_GETOPT_option_flag ( \
-    'd', \
-    "diagnostics", \
-    gettext_noop ( \
-      "output extra diagnostics"), \
-    &(cs)->diagnostics), \
-  GNUNET_GETOPT_option_flag ('S', \
-                             "list-sections", \
-                             gettext_noop ( \
-                               "print available configuration sections"), \
-                             &(cs)->list_sections), \
-  GNUNET_GETOPT_option_string ('s', \
-                               "section", \
-                               "SECTION", \
-                               gettext_noop ( \
-                                 "name of the section to access"), \
-                               &(cs)->section), \
-  GNUNET_GETOPT_option_string ('V', \
-                               "value", \
-                               "VALUE", \
-                               gettext_noop ("value to set"), \
-                               &(cs)->value)
+        GNUNET_GETOPT_option_flag ( \
+          'F', \
+          "full", \
+          gettext_noop ( \
+            "write the full configuration file, including default values"), \
+          &(cs)->full), \
+        GNUNET_GETOPT_option_flag ( \
+          'f', \
+          "filename", \
+          gettext_noop ( \
+            "interpret option value as a filename (with $-expansion)"), \
+          &(cs)->is_filename), \
+        GNUNET_GETOPT_option_string ('o', \
+                                     "option", \
+                                     "OPTION", \
+                                     gettext_noop ( \
+                                       "name of the option to access"), \
+                                     &(cs)->option), \
+        GNUNET_GETOPT_option_flag ( \
+          'r', \
+          "rewrite", \
+          gettext_noop ( \
+            "rewrite the configuration file, even if nothing changed"), \
+          &(cs)->rewrite), \
+        GNUNET_GETOPT_option_flag ( \
+          'd', \
+          "diagnostics", \
+          gettext_noop ( \
+            "output extra diagnostics"), \
+          &(cs)->diagnostics), \
+        GNUNET_GETOPT_option_flag ('S', \
+                                   "list-sections", \
+                                   gettext_noop ( \
+                                     "print available configuration sections"), \
+                                   &(cs)->list_sections), \
+        GNUNET_GETOPT_option_string ('s', \
+                                     "section", \
+                                     "SECTION", \
+                                     gettext_noop ( \
+                                       "name of the section to access"), \
+                                     &(cs)->section), \
+        GNUNET_GETOPT_option_string ('V', \
+                                     "value", \
+                                     "VALUE", \
+                                     gettext_noop ("value to set"), \
+                                     &(cs)->value)
 
 
 /**
