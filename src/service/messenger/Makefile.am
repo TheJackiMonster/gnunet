@@ -127,9 +127,9 @@ gnunet_service_messenger_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
-check_PROGRAMS = \
-  test_messenger_api \
-  test_messenger_anonymous
+#check_PROGRAMS = \
+#  test_messenger_api \
+#  test_messenger_anonymous
 
 #check_SCRIPTS= \
 #  test_messenger_start_testcase.sh

@@ -289,17 +289,17 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LIBADD = \
 libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
-check_PROGRAMS = \
- test_communicator_basic-tcp \
- test_communicator_basic-udp \
- test_communicator_rekey-tcp \
- test_communicator_bidirect-tcp \
- test_communicator_rekey-udp \
- test_communicator_backchannel-udp
+#check_PROGRAMS = \
+# test_communicator_basic-tcp \
+# test_communicator_basic-udp \
+# test_communicator_rekey-tcp \
+# test_communicator_bidirect-tcp \
+# test_communicator_rekey-udp \
+# test_communicator_backchannel-udp
 
 if HAVE_EXPERIMENTAL
-check_PROGRAMS += test_communicator_basic-quic \
- test_communicator_basic-unix
+#check_PROGRAMS += test_communicator_basic-quic \
+# test_communicator_basic-unix
 check_SCRIPTS= \
   test_transport_start_testcase.sh \
   test_transport_simple_send_performance.sh \

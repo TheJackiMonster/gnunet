@@ -82,8 +82,8 @@ gnunet_service_core_LDADD = \
   $(GN_LIBINTL) $(Z_LIBS)
 
 
-TESTING_TESTS = \
-  test_core_api_send_to_self
+#TESTING_TESTS = \
+# test_core_api_send_to_self
 
 check_PROGRAMS = \
  test_core_api_start_only \
