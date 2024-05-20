@@ -260,6 +260,7 @@ start_peer_traits (void *cls,
   struct GNUNET_TESTING_Trait traits[] = {
     GNUNET_TESTING_make_trait_process (
       &sps->arm),
+    // FIXME: expose sps->cfg as trait...
     GNUNET_TESTING_ARM_make_trait_arm_handle (
       sps->ah),
     GNUNET_TESTING_trait_end ()

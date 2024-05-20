@@ -17,6 +17,20 @@ GNUNET_TESTING_ARM_cmd_start_peer (
   const char *system_label,
   const char *cfgname);
 
+
+/**
+ * Create command.
+ *
+ * @param label name for command.
+ * @param start_label Label of the cmd to start the peer.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_stop_peer (
+  const char *label,
+  const char *start_label);
+
+
 /**
  * Call #op on all simple traits.
  */
