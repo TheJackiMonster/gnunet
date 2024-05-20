@@ -34,11 +34,6 @@
  */
 struct GNUNET_TRANSPORT_ApplicationHandle;
 
-/**
- * FIXME: what is this?
- */
-struct GNUNET_TESTING_StartPeerState;
-
 
 // FIXME: breaks naming conventions
 typedef void *

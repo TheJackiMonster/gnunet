@@ -27,13 +27,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testbed_lib.h"
-#include "gnunet_transport_testing_ng_lib.h"
-
-/**
- * Generic logging shortcut
- */
-#define LOG(kind, ...) GNUNET_log (kind, __VA_ARGS__)
-
+#include "gnunet_testing_transport_lib.h"
 
 /**
  * Struct to hold information for callbacks.
@@ -41,7 +35,9 @@
  */
 struct StopPeerState
 {
-  // Label of the cmd to start the peer.
+  /**
+   * Label of the cmd to start the peer.
+   */
   const char *start_label;
 };
 
@@ -55,28 +51,28 @@ stop_peer_run (void *cls,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct StopPeerState *stop_ps = cls;
-  const struct GNUNET_TESTING_StartPeerState *sps;
   const struct GNUNET_TESTING_Command *start_cmd;
+  struct GNUNET_OS_Process **proc;
 
-  start_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
-                                                         stop_ps->start_label);
-  GNUNET_TRANSPORT_TESTING_get_trait_state (start_cmd,
-                                            &sps);
-
-  if (NULL != sps->peer)
-  {
-    if (GNUNET_OK !=
-        GNUNET_TESTBED_peer_stop (sps->peer))
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "Testing lib failed to stop peer %u (`%s')\n",
-           sps->no,
-           GNUNET_i2s (&sps->id));
-    }
-    GNUNET_TESTBED_peer_destroy (sps->peer);
-  }
-  if (NULL != sps->rh_task)
-    GNUNET_SCHEDULER_cancel (sps->rh_task);
+  start_cmd
+    = GNUNET_TESTING_interpreter_lookup_command (is,
+                                                 stop_ps->start_label);
+  if (NULL == start_cmd)
+    GNUNET_TESTING_FAIL (is);
+  /* FIMXE: maybe use the *ARM* handle to stop the peer
+     and actually _wait_ for it to be down (making this
+     an asynchronous operation...) instead of just
+     killing it without waiting for it to be done?
+     Or use a child wait handle and wait for
+     completion, and then NULL *proc in start? */
+  if (GNUNET_OK !=
+      GNUNET_TESTING_get_trait_process (start_cmd,
+                                        &proc))
+    GNUNET_TESTING_FAIL (is);
+  if (0 !=
+      GNUNET_OS_process_kill (*proc,
+                              SIGTERM))
+    GNUNET_TESTING_FAIL (is);
 }
 
 
@@ -103,7 +99,15 @@ stop_peer_traits (void *cls,
                   const char *trait,
                   unsigned int index)
 {
-  return GNUNET_OK;
+  struct GNUNET_TESTING_Trait traits[] = {
+    GNUNET_TESTING_trait_end ()
+  };
+
+  (void) cls;
+  return GNUNET_TESTING_get_trait (traits,
+                                   ret,
+                                   trait,
+                                   index);
 }
 
 

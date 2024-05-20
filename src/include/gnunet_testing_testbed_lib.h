@@ -32,7 +32,7 @@ GNUNET_TESTBED_cmd_system_create (const char *label,
  * Call #op on all simple traits.
  */
 #define GNUNET_TESTING_TESTBED_SIMPLE_TRAITS(op, prefix)                            \
-        op (prefix, test_system, const struct GNUNET_TESTBED_System)
+        op (prefix, test_system, struct GNUNET_TESTBED_System)
 
 
 GNUNET_TESTING_TESTBED_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,

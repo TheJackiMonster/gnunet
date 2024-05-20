@@ -34,6 +34,8 @@ libgnunettestingarm_la_SOURCES = \
   testing_arm_traits.c
 libgnunettestingarm_la_LIBADD = \
   libgnunetarm.la \
+  $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)

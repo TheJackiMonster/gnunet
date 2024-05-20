@@ -71,8 +71,9 @@ GNUNET_TESTBED_system_create (
  *        be removed (clean up on shutdown)?
  */
 void
-GNUNET_TESTBED_system_destroy (struct GNUNET_TESTBED_System *system,
-                               int remove_paths);
+GNUNET_TESTBED_system_destroy (
+  struct GNUNET_TESTBED_System *system,
+  bool remove_paths);
 
 
 /**
@@ -82,7 +83,8 @@ GNUNET_TESTBED_system_destroy (struct GNUNET_TESTBED_System *system,
  * @return 0 if no free port was available
  */
 uint16_t
-GNUNET_TESTBED_reserve_port (struct GNUNET_TESTBED_System *system);
+GNUNET_TESTBED_reserve_port (
+  struct GNUNET_TESTBED_System *system);
 
 
 /**
@@ -93,8 +95,9 @@ GNUNET_TESTBED_reserve_port (struct GNUNET_TESTBED_System *system);
  * @param port reserved port to release
  */
 void
-GNUNET_TESTBED_release_port (struct GNUNET_TESTBED_System *system,
-                             uint16_t port);
+GNUNET_TESTBED_release_port (
+  struct GNUNET_TESTBED_System *system,
+  uint16_t port);
 
 
 /**
@@ -106,32 +109,22 @@ GNUNET_TESTBED_release_port (struct GNUNET_TESTBED_System *system,
  * out of "*port" numbers, return #GNUNET_SYSERR.
  *
  * This is primarily a helper function used internally
- * by #GNUNET_TESTBED_peer_configure().
+ * by 'GNUNET_TESTBED_peer_configure'.
  *
  * @param system system to use to coordinate resource usage
  * @param cfg template configuration to update
+ * @param ports array with port numbers used in the created configuration.
+ *          Will be updated upon successful return.  Can be NULL
+ * @param nports the size of the `ports' array.  Will be updated.
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error - the configuration will
  *           be incomplete and should not be used there upon
  */
-int
-GNUNET_TESTBED_configuration_create (struct GNUNET_TESTBED_System *system,
-                                     struct GNUNET_CONFIGURATION_Handle *cfg);
-
-/**
- * Configure a GNUnet peer.  GNUnet must be installed on the local
- * system and available in the PATH.
- *
- * @param system system to use to coordinate resource usage
- * @param cfg configuration to use; will be UPDATED (to reflect needed
- *            changes in port numbers and paths)
- * @param emsg set to freshly allocated error message (set to NULL on success),
- *          can be NULL
- * @return handle to the peer, NULL on error
- */
-struct GNUNET_TESTBED_Peer *
-GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
-                               struct GNUNET_CONFIGURATION_Handle *cfg,
-                               char **emsg);
+enum GNUNET_GenericReturnValue
+GNUNET_TESTBED_configuration_create (
+  struct GNUNET_TESTBED_System *system,
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  uint16_t **ports,
+  unsigned int *nports);
 
 
 #endif

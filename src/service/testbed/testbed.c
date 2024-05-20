@@ -45,49 +45,6 @@
  */
 #define HIGH_PORT 56000
 
-/**
- * Handle for a GNUnet peer controlled by testing.
- */
-struct GNUNET_TESTBED_Peer
-{
-  /**
-   * The TESTBED system associated with this peer
-   */
-  struct GNUNET_TESTBED_System *system;
-
-  /**
-   * Path to the configuration file for this peer.
-   */
-  char *cfgfile;
-
-  /**
-   * Binary to be executed during 'GNUNET_TESTBED_peer_start'.
-   * Typically 'gnunet-service-arm' (but can be set to a
-   * specific service by 'GNUNET_TESTBED_service_run' if
-   * necessary).
-   */
-  char *main_binary;
-  char *args;
-
-  /**
-   * The config of the peer
-   */
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /**
-   * Array of ports currently allocated to this peer.  These ports will be
-   * released upon peer destroy and can be used by other peers which are
-   * configured after.
-   */
-  uint16_t *ports;
-
-  /**
-   * The number of ports in the above array
-   */
-  unsigned int nports;
-
-};
-
 
 /**
  * Handle for a system on which GNUnet peers are executed;
@@ -571,30 +528,12 @@ update_config_sections (void *cls,
 }
 
 
-/**
- * Create a new configuration using the given configuration as a template;
- * ports and paths will be modified to select available ports on the local
- * system. The default configuration will be available in PATHS section under
- * the option DEFAULTCONFIG after the call. GNUNET_HOME is also set in PATHS
- * section to the temporary directory specific to this configuration. If we run
- * out of "*port" numbers, return #GNUNET_SYSERR.
- *
- * This is primarily a helper function used internally
- * by 'GNUNET_TESTBED_peer_configure'.
- *
- * @param system system to use to coordinate resource usage
- * @param cfg template configuration to update
- * @param ports array with port numbers used in the created configuration.
- *          Will be updated upon successful return.  Can be NULL
- * @param nports the size of the `ports' array.  Will be updated.
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error - the configuration will
- *           be incomplete and should not be used there upon
- */
-static int
-configuration_create_ (struct GNUNET_TESTBED_System *system,
-                       struct GNUNET_CONFIGURATION_Handle *cfg,
-                       uint16_t **ports,
-                       unsigned int *nports)
+enum GNUNET_GenericReturnValue
+GNUNET_TESTBED_configuration_create (
+  struct GNUNET_TESTBED_System *system,
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  uint16_t **ports,
+  unsigned int *nports)
 {
   struct UpdateContext uc;
   char *default_config;
@@ -634,108 +573,6 @@ configuration_create_ (struct GNUNET_TESTBED_System *system,
   else
     GNUNET_free (uc.ports);
   return uc.status;
-}
-
-
-int
-GNUNET_TESTBED_configuration_create (struct GNUNET_TESTBED_System *system,
-                                     struct GNUNET_CONFIGURATION_Handle *cfg)
-{
-  return configuration_create_ (system,
-                                cfg,
-                                NULL,
-                                NULL);
-}
-
-
-struct GNUNET_TESTBED_Peer *
-GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
-                               struct GNUNET_CONFIGURATION_Handle *cfg,
-                               char **emsg)
-{
-  struct GNUNET_TESTBED_Peer *peer;
-  char *config_filename;
-  char *libexec_binary;
-  char *emsg_;
-  uint16_t *ports;
-  unsigned int nports;
-
-  ports = NULL;
-  nports = 0;
-  if (NULL != emsg)
-    *emsg = NULL;
-  if (GNUNET_NO ==
-      GNUNET_CONFIGURATION_have_value (cfg,
-                                       "PEER",
-                                       "PRIVATE_KEY"))
-  {
-    GNUNET_asprintf (
-      &emsg_,
-      _ ("PRIVATE_KEY option in PEER section missing in configuration\n"));
-    goto err_ret;
-  }
-  if (GNUNET_OK !=
-      configuration_create_ (system,
-                             cfg,
-                             &ports,
-                             &nports))
-  {
-    GNUNET_asprintf (&emsg_,
-                     _ ("Failed to create configuration for peer "
-                        "(not enough free ports?)\n"));
-    goto err_ret;
-  }
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                                          "PATHS",
-                                                          "DEFAULTCONFIG",
-                                                          &config_filename));
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_write (cfg,
-                                  config_filename))
-  {
-    GNUNET_asprintf (&emsg_,
-                     _ (
-                       "Failed to write configuration file `%s': %s\n"),
-                     config_filename,
-                     strerror (errno));
-    GNUNET_free (config_filename);
-    goto err_ret;
-  }
-  peer = GNUNET_new (struct GNUNET_TESTBED_Peer);
-  peer->cfgfile = config_filename; /* Free in peer_destroy */
-  peer->cfg = GNUNET_CONFIGURATION_dup (cfg);
-  libexec_binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
-  if (GNUNET_SYSERR ==
-      GNUNET_CONFIGURATION_get_value_string (cfg,
-                                             "arm",
-                                             "PREFIX",
-                                             &peer->main_binary))
-  {
-    /* No prefix */
-    GNUNET_asprintf (&peer->main_binary,
-                     "%s",
-                     libexec_binary);
-    peer->args = GNUNET_strdup ("");
-  }
-  else
-  {
-    peer->args = GNUNET_strdup (libexec_binary);
-  }
-  peer->system = system;
-  GNUNET_free (libexec_binary);
-  peer->ports = ports; /* Free in peer_destroy */
-  peer->nports = nports;
-  return peer;
-
-err_ret:
-  GNUNET_free (ports);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
-  if (NULL != emsg)
-    *emsg = emsg_;
-  else
-    GNUNET_free (emsg_);
-  return NULL;
 }
 
 
