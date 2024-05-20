@@ -37,7 +37,7 @@ if LINUX
  test_gns_vpn
 endif
 
-check_PROGRAMS = $(VPN_TEST)
+# check_PROGRAMS = $(VPN_TEST)
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

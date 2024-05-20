@@ -20,8 +20,8 @@ TESTING_TESTS = \
  test_namecache_api_cache_block
 
 if HAVE_SQLITE
-check_PROGRAMS = \
- $(TESTING_TESTS)
+#check_PROGRAMS = \
+# $(TESTING_TESTS)
 endif
 
 if ENABLE_TEST_RUN

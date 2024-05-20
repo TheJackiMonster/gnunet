@@ -59,42 +59,36 @@ endif
 test_datacache_sqlite_SOURCES = \
  test_datacache.c
 test_datacache_sqlite_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_sqlite_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_sqlite_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_heap_SOURCES = \
  test_datacache.c
 test_datacache_heap_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_heap_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_heap_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_postgres_SOURCES = \
  test_datacache.c
 test_datacache_postgres_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_datacache_quota_postgres_SOURCES = \
  test_datacache_quota.c
 test_datacache_quota_postgres_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  libgnunetdatacache.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
