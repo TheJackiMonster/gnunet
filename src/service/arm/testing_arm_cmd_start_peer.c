@@ -27,8 +27,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "gnunet_testbed_lib.h"
-#include "gnunet_transport_testing_ng_lib.h"
-#include "transport-testing-cmds.h"
+#include "gnunet_testing_transport_lib.h"
 
 
 /**
