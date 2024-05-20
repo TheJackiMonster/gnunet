@@ -18,7 +18,7 @@ noinst_PROGRAMS = \
  gnunet-communicator-udp
 
 TESTING_LIBS = \
-  libgnunettransporttesting2.la
+  libgnunettestingtransport.la
 
 lib_LTLIBRARIES = \
   libgnunettransportapplication.la \
@@ -27,14 +27,10 @@ lib_LTLIBRARIES = \
   libgnunettransportmonitor.la \
   $(TESTING_LIBS)
 
-libgnunettransporttesting2_la_SOURCES = \
+libgnunettestingtransport_la_SOURCES = \
   testing_api_traits.c \
-  testing_api_cmd_stop_peer.c \
-  testing_api_cmd_start_peer.c
 #  transport_api_cmd_connecting_peers.c \
 #  transport_api_cmd_backchannel_check.c \
-#  transport_api_cmd_start_peer.c \
-#  transport_api_cmd_stop_peer.c \
 #  transport_api_cmd_send_simple.c \
 #  transport_api_cmd_send_simple_performance.c \
 #  transport-testing2.c transport-testing2.h \
@@ -44,7 +40,7 @@ libgnunettransporttesting2_la_SOURCES = \
 #  transport-testing-main2.c \
 #  transport-testing-send2.c \
 #  transport-testing-communicator.c transport-testing-communicator.h
-libgnunettransporttesting2_la_LIBADD = \
+libgnunettestingtransport_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
   $(top_builddir)/src/service/testbed/libgnunettestbed.la \

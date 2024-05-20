@@ -1,8 +1,8 @@
 SUBDIRS = \
 	util \
+    testbed \
 	statistics \
 	arm \
-    testbed \
 	peerstore \
 	nat \
 	nat-auto \

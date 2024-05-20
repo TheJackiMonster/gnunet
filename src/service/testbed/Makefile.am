@@ -14,41 +14,25 @@ dist_pkgcfg_DATA = \
   testbed.conf
 
 lib_LTLIBRARIES = \
-  libgnunettestbed.la
+  libgnunettestbed.la \
+  libgnunetestingtestbed.la
 
 libgnunettestbed_la_SOURCES = \
-  testbed_lib.h \
-  testbed.c \
-  testbed_api_cmd_system_create.c
+  testbed.c
 libgnunettestbed_la_LIBADD = \
- $(top_builddir)/src/service/arm/libgnunetarm.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/lib/testing/libgnunettesting.la
+ $(top_builddir)/src/lib/util/libgnunetutil.la
+
+libgnunettestingtestbed_la_SOURCES = \
+  testbed_api_cmd_system_create.c \
+  testing_testbed_traits.c
+libgnunettestingtestbed_la_LIBADD = \
+  libgnunettestbed.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la
+
 
 bin_PROGRAMS = \
  gnunet-testbed
-
-#libexec_PROGRAMS = \
-# test_testbed_start_with_config
-
-noinst_PROGRAMS = \
- list-keys
-
-#testbed_api_cmd_system_create_SOURCES = \
-# testbed_api_cmd_system_create.c
-#testbed_api_cmd_system_create_LDADD = \
-# libgnunettestbed.la \
-# $(top_builddir)/src/lib/util/libgnunetutil.la \
-# $(top_builddir)/src/lib/testing/libgnunettesting.la
-
-
-#testbed_SOURCES = \
-# testbed.c
-#testbed_LDADD = \
-# libgnunettestbed.la \
-# $(top_builddir)/src/lib/util/libgnunetutil.la \
-# $(top_builddir)/src/lib/testing/libgnunettesting.la \
-# $(GN_LIBINTL)
 
 gnunet_testbed_SOURCES = \
  gnunet-testbed.c
@@ -57,13 +41,6 @@ gnunet_testbed_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(GN_LIBINTL)
-
-list_keys_SOURCES = \
- list-keys.c
-list_keys_LDADD = \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(GN_LIBINTL)
-
 
 check_PROGRAMS = \
  test_testbed_portreservation \

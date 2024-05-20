@@ -25,8 +25,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_lib.h"
-#include "testbed_lib.h"
+#include "gnunet_testbed_lib.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "gnunet-testbed", __VA_ARGS__)
@@ -38,17 +37,6 @@
 static int ret;
 
 /**
- * Filename of the hostkey file we should write,
- * null if we should not write a hostkey file.
- */
-static char *create_hostkey;
-
-/**
- * Non-zero if we should create config files.
- */
-static int create_cfg;
-
-/**
  * Number of config files to create.
  */
 static unsigned int create_no;
@@ -58,38 +46,13 @@ static unsigned int create_no;
  */
 static char *create_cfg_template;
 
-/**
- * Service we are supposed to run.
- */
-static char *run_service_name;
-
-/**
- * File handle to STDIN, for reading resytart/quit commands.
- */
-static struct GNUNET_DISK_FileHandle *fh;
-
-/**
- * Temporary filename, used with '-r' to write the configuration to.
- */
-static char *tmpfilename;
-
-/**
- * Task identifier of the task that waits for stdin.
- */
-static struct GNUNET_SCHEDULER_Task *tid;
-
-/**
- * Peer started for '-r'.
- */
-static struct GNUNET_TESTBED_Peer *my_peer;
-
 
 static int
-create_unique_cfgs (const char *template, const unsigned int no)
+create_unique_cfgs (const char *template,
+                    const unsigned int no)
 {
   struct GNUNET_TESTBED_System *system;
   int fail;
-  unsigned int cur;
   char *cur_file;
   struct GNUNET_CONFIGURATION_Handle *cfg_new;
   struct GNUNET_CONFIGURATION_Handle *cfg_tmpl;
@@ -105,7 +68,9 @@ create_unique_cfgs (const char *template, const unsigned int no)
 
   /* load template */
   if ((create_cfg_template != NULL) &&
-      (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg_tmpl, create_cfg_template)))
+      (GNUNET_OK !=
+       GNUNET_CONFIGURATION_load (cfg_tmpl,
+                                  create_cfg_template)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Could not load template `%s'\n",
@@ -115,7 +80,9 @@ create_unique_cfgs (const char *template, const unsigned int no)
     return 1;
   }
   /* load defaults */
-  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg_tmpl, NULL))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_load (cfg_tmpl,
+                                 NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Could not load template `%s'\n",
@@ -126,8 +93,10 @@ create_unique_cfgs (const char *template, const unsigned int no)
 
   fail = GNUNET_NO;
   system =
-    GNUNET_TESTBED_system_create ("testing", NULL /* controller */, NULL, NULL);
-  for (cur = 0; cur < no; cur++)
+    GNUNET_TESTBED_system_create ("testing",
+                                  NULL /* controller */,
+                                  NULL);
+  for (unsigned int cur = 0; cur < no; cur++)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating configuration no. %u \n",
@@ -170,157 +139,6 @@ create_unique_cfgs (const char *template, const unsigned int no)
 }
 
 
-static int
-create_hostkeys (const unsigned int no)
-{
-  struct GNUNET_TESTBED_System *system;
-  struct GNUNET_PeerIdentity id;
-  struct GNUNET_DISK_FileHandle *fd;
-  struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
-
-  system = GNUNET_TESTBED_system_create ("testing", NULL, NULL, NULL);
-  pk = GNUNET_TESTBED_hostkey_get (system, create_no, &id);
-  if (NULL == pk)
-  {
-    fprintf (stderr,
-             _ ("Could not extract hostkey %u (offset too large?)\n"),
-             create_no);
-    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
-    return 1;
-  }
-  (void) GNUNET_DISK_directory_create_for_file (create_hostkey);
-  fd =
-    GNUNET_DISK_file_open (create_hostkey,
-                           GNUNET_DISK_OPEN_READWRITE | GNUNET_DISK_OPEN_CREATE,
-                           GNUNET_DISK_PERM_USER_READ
-                           | GNUNET_DISK_PERM_USER_WRITE);
-  GNUNET_assert (fd != NULL);
-  ret = GNUNET_DISK_file_write (fd,
-                                pk,
-                                sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fd));
-  GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
-                   "transport-testing",
-                   "Wrote hostkey to file: `%s'\n",
-                   create_hostkey);
-  GNUNET_free (pk);
-  GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
-  return 0;
-}
-
-
-/**
- * Cleanup called by signal handlers and when stdin is closed.
- * Removes the temporary file.
- *
- * @param cls unused
- */
-static void
-cleanup (void *cls)
-{
-  if (NULL != tmpfilename)
-  {
-    if (0 != unlink (tmpfilename))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,
-                                "unlink",
-                                tmpfilename);
-  }
-  if (NULL != tid)
-  {
-    GNUNET_SCHEDULER_cancel (tid);
-    tid = NULL;
-  }
-  if (NULL != fh)
-  {
-    GNUNET_DISK_file_close (fh);
-    fh = NULL;
-  }
-}
-
-
-/**
- * Called whenever we can read stdin non-blocking
- *
- * @param cls unused
- */
-static void
-stdin_cb (void *cls)
-{
-  int c;
-
-  tid = NULL;
-  c = getchar ();
-  switch (c)
-  {
-  case EOF:
-  case 'q':
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-
-  case 'r':
-    if (GNUNET_OK != GNUNET_TESTBED_peer_stop (my_peer))
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Failed to stop the peer\n");
-    if (GNUNET_OK != GNUNET_TESTBED_peer_start (my_peer))
-      LOG (GNUNET_ERROR_TYPE_ERROR, "Failed to start the peer\n");
-    printf ("restarted\n");
-    fflush (stdout);
-    break;
-
-  case '\n':
-  case '\r':
-    /* ignore whitespace */
-    break;
-
-  default:
-    fprintf (stderr,
-             _ ("Unknown command, use 'q' to quit or 'r' to restart peer\n"));
-    break;
-  }
-  tid = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
-                                        fh,
-                                        &stdin_cb,
-                                        NULL);
-}
-
-
-/**
- * Main function called by the testing library.
- * Executed inside a running scheduler.
- *
- * @param cls unused
- * @param cfg configuration of the peer that was started
- * @param peer handle to the peer
- */
-static void
-testing_main (void *cls,
-              const struct GNUNET_CONFIGURATION_Handle *cfg,
-              struct GNUNET_TESTBED_Peer *peer)
-{
-  my_peer = peer;
-  if (NULL == (tmpfilename = GNUNET_DISK_mktemp ("gnunet-testing")))
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CONFIGURATION_write ((struct GNUNET_CONFIGURATION_Handle *) cfg,
-                                  tmpfilename))
-  {
-    GNUNET_break (0);
-    return;
-  }
-  printf ("ok\n%s\n", tmpfilename);
-  fflush (stdout);
-  GNUNET_SCHEDULER_add_shutdown (&cleanup, NULL);
-  fh = GNUNET_DISK_get_handle_from_native (stdin);
-  tid = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
-                                        fh,
-                                        &stdin_cb,
-                                        NULL);
-}
-
-
 /**
  * Main function that will be running without scheduler.
  *
@@ -335,38 +153,21 @@ run_no_scheduler (void *cls,
                   const char *cfgfile,
                   const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  if (NULL != run_service_name)
+  if (create_no > 0)
   {
-    ret = GNUNET_TESTBED_service_run ("gnunet_service_test",
-                                      run_service_name,
-                                      cfgfile,
-                                      &testing_main,
-                                      NULL);
-    return;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Creating %u configuration files based on template `%s'\n",
+                create_no,
+                create_cfg_template);
+    ret = create_unique_cfgs (create_cfg_template,
+                              create_no);
   }
-
-  if (GNUNET_YES == create_cfg)
+  else
   {
-    if (create_no > 0)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Creating %u configuration files based on template `%s'\n",
-                  create_no,
-                  create_cfg_template);
-      ret = create_unique_cfgs (create_cfg_template, create_no);
-    }
-    else
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Missing arguments! \n");
-      ret = 1;
-    }
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Missing arguments!\n");
+    ret = 1;
   }
-  if (NULL != create_hostkey)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Extracting hostkey %u\n", create_no);
-    ret = create_hostkeys (create_no);
-  }
-  GNUNET_free (create_cfg_template);
 }
 
 
@@ -380,50 +181,27 @@ run_no_scheduler (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_option_flag ('C',
-                               "cfg",
-                               gettext_noop (
-                                 "create unique configuration files"),
-                               &create_cfg),
-    GNUNET_GETOPT_option_string (
-      'k',
-      "key",
-      "FILENAME",
-      gettext_noop ("extract hostkey file from pre-computed hostkey list"),
-      &create_hostkey),
-
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_uint (
       'n',
       "number",
       "NUMBER",
-      gettext_noop (
-        "number of unique configuration files to create, or number of the hostkey to extract"),
+      gettext_noop ("number of unique configuration files to create"),
       &create_no),
-
-
-    GNUNET_GETOPT_option_string ('t',
-                                 "template",
-                                 "FILENAME",
-                                 gettext_noop ("configuration template"),
-                                 &create_cfg_template),
-
     GNUNET_GETOPT_option_string (
-      'r',
-      "run",
-      "SERVICE",
-      gettext_noop (
-        "run the given service, wait on stdin for 'r' (restart) or 'q' (quit)"),
-      &run_service_name),
-    GNUNET_GETOPT_OPTION_END };
+      't',
+      "template",
+      "FILENAME",
+      gettext_noop ("configuration template"),
+      &create_cfg_template),
+    GNUNET_GETOPT_OPTION_END
+  };
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
+  if (GNUNET_OK !=
+      GNUNET_STRINGS_get_utf8_args (argc, argv,
+                                    &argc, &argv))
     return 2;
 
-  /* Run without scheduler, because we may want to call
-   * GNUNET_TESTBED_service_run, which starts the scheduler on its own.
-   * Furthermore, the other functionality currently does not require the scheduler, too,
-   * but beware when extending gnunet-testing. */
   ret =
     (GNUNET_OK ==
      GNUNET_PROGRAM_run2 (argc,
