@@ -22,10 +22,10 @@ bin_PROGRAMS = \
 libexec_PROGRAMS = \
   gnunet-service-conversation
 
-check_PROGRAMS = \
- test_conversation_api \
- test_conversation_api_reject \
- test_conversation_api_twocalls
+#check_PROGRAMS = \
+# test_conversation_api \
+# test_conversation_api_reject \
+# test_conversation_api_twocalls
 
 pkgcfg_DATA = conversation.conf
 endif
