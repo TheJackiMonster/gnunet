@@ -94,6 +94,9 @@ system_create_cleanup (void *cls)
 {
   struct TestSystemState *tss = cls;
 
+  GNUNET_TESTBED_system_destroy (tss->test_system,
+                                 GNUNET_YES);
+
   GNUNET_free (tss);
 }
 
