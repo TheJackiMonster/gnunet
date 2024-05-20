@@ -45,6 +45,49 @@
  */
 #define HIGH_PORT 56000
 
+/**
+ * Handle for a GNUnet peer controlled by testing.
+ */
+struct GNUNET_TESTBED_Peer
+{
+  /**
+   * The TESTBED system associated with this peer
+   */
+  struct GNUNET_TESTBED_System *system;
+
+  /**
+   * Path to the configuration file for this peer.
+   */
+  char *cfgfile;
+
+  /**
+   * Binary to be executed during 'GNUNET_TESTBED_peer_start'.
+   * Typically 'gnunet-service-arm' (but can be set to a
+   * specific service by 'GNUNET_TESTBED_service_run' if
+   * necessary).
+   */
+  char *main_binary;
+  char *args;
+
+  /**
+   * The config of the peer
+   */
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
+  /**
+   * Array of ports currently allocated to this peer.  These ports will be
+   * released upon peer destroy and can be used by other peers which are
+   * configured after.
+   */
+  uint16_t *ports;
+
+  /**
+   * The number of ports in the above array
+   */
+  unsigned int nports;
+
+};
+
 
 /**
  * Handle for a system on which GNUnet peers are executed;
@@ -653,15 +696,13 @@ GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
   {
     GNUNET_asprintf (&emsg_,
                      _ (
-                       "Failed to write configuration file `%s' for peer %u: %s\n"),
+                       "Failed to write configuration file `%s': %s\n"),
                      config_filename,
-                     (unsigned int) key_number,
                      strerror (errno));
     GNUNET_free (config_filename);
     goto err_ret;
   }
   peer = GNUNET_new (struct GNUNET_TESTBED_Peer);
-  peer->ss_instances = ss_instances;
   peer->cfgfile = config_filename; /* Free in peer_destroy */
   peer->cfg = GNUNET_CONFIGURATION_dup (cfg);
   libexec_binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
@@ -688,7 +729,6 @@ GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
   return peer;
 
 err_ret:
-  GNUNET_free (ss_instances);
   GNUNET_free (ports);
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s", emsg_);
   if (NULL != emsg)

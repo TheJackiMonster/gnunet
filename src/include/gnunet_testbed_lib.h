@@ -6,6 +6,7 @@
  */
 struct GNUNET_TESTBED_System;
 
+#define GNUNET_TESTBED_PREFIX "GNUNET_TESTBED_PREFIX"
 
 /**
  * Create a system handle.  There must only be one system

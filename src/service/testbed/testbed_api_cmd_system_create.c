@@ -26,7 +26,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
-#include "testbed_lib.h"
+#include "gnunet_testbed_lib.h"
+#include "gnunet_testing_testbed_lib.h"
 
 /**
  * Struct to hold information for callbacks.
@@ -50,15 +51,9 @@ system_create_run (void *cls,
 {
   struct TestSystemState *tss = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "system create\n");
-
   tss->test_system = GNUNET_TESTBED_system_create (tss->testdir,
                                                    NULL,
-                                                   NULL,
                                                    NULL);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "system created\n");
 }
 
 
@@ -74,7 +69,8 @@ system_create_traits (void *cls,
 {
   struct TestSystemState *tss = cls;
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTBED_make_trait_test_system (tss->test_system),
+    GNUNET_TESTING_TESTBED_make_trait_test_system (
+      tss->test_system),
     GNUNET_TESTING_trait_end ()
   };
 
