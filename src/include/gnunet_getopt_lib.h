@@ -33,7 +33,7 @@
  * @{
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -275,12 +275,12 @@ GNUNET_GETOPT_option_base32_fixed_size (char shortName,
                                          argumentHelp,  \
                                          description,   \
                                          val)           \
-  GNUNET_GETOPT_option_base32_fixed_size (shortName,    \
-                                          name,         \
-                                          argumentHelp, \
-                                          description,  \
-                                          val,          \
-                                          sizeof(*val))
+        GNUNET_GETOPT_option_base32_fixed_size (shortName,    \
+                                                name,         \
+                                                argumentHelp, \
+                                                description,  \
+                                                val,          \
+                                                sizeof(*val))
 
 
 /**
@@ -481,9 +481,9 @@ GNUNET_GETOPT_option_exclusive (struct GNUNET_GETOPT_CommandLineOption opt);
  * Marker for the end of the list of options.
  */
 #define GNUNET_GETOPT_OPTION_END                      \
-  {                                                   \
-    '\0', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, NULL \
-  }
+        {                                                   \
+          '\0', NULL, NULL, NULL, 0, 0, 0, NULL, NULL, NULL \
+        }
 
 
 /**
