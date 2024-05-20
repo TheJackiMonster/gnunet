@@ -23,9 +23,9 @@
  * @brief peerstore service implementation
  * @author Omar Tarabai
  */
+#include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_protocols.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "peerstore.h"
 #include "gnunet_peerstore_plugin.h"
@@ -492,7 +492,8 @@ iterate_proc (void *cls,
 }
 
 
-static void destroy_iteration(struct Iteration *ic)
+static void
+destroy_iteration (struct Iteration *ic)
 {
   GNUNET_free (ic->key);
   GNUNET_free (ic->sub_system);
@@ -525,7 +526,6 @@ iteration_done_client_continue (struct Iteration *ic)
   destroy_iteration (ic);
   return;
 }
-
 
 
 /**

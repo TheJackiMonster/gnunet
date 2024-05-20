@@ -23,11 +23,9 @@
  * @author Omar Tarabai
  * @author Christian Grothoff
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
-#include "gnunet_common.h"
-#include "gnunet_protocols.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_protocols.h"
 #include "gnunet_hello_uri_lib.h"
 #include "peerstore.h"
 #include "peerstore_common.h"
@@ -455,7 +453,7 @@ GNUNET_PEERSTORE_disconnect (struct GNUNET_PEERSTORE_Handle *h)
 /******************************************************************************/
 
 static void
-destroy_storecontext(struct GNUNET_PEERSTORE_StoreContext *sc)
+destroy_storecontext (struct GNUNET_PEERSTORE_StoreContext *sc)
 {
   GNUNET_CONTAINER_DLL_remove (sc->h->store_head, sc->h->store_tail, sc);
   GNUNET_free (sc->sub_system);
@@ -463,6 +461,7 @@ destroy_storecontext(struct GNUNET_PEERSTORE_StoreContext *sc)
   GNUNET_free (sc->key);
   GNUNET_free (sc);
 }
+
 
 /**
  * Cancel a store request
@@ -475,7 +474,7 @@ GNUNET_PEERSTORE_store_cancel (struct GNUNET_PEERSTORE_StoreContext *sc)
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "store cancel with sc %p \n",
        sc);
-  destroy_storecontext(sc);
+  destroy_storecontext (sc);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "store cancel with sc %p is null\n",
        sc);
@@ -591,7 +590,7 @@ handle_store_result (void *cls, const struct PeerstoreResultMessage *msg)
 /******************************************************************************/
 
 static void
-destroy_iteratecontext(struct GNUNET_PEERSTORE_IterateContext *ic)
+destroy_iteratecontext (struct GNUNET_PEERSTORE_IterateContext *ic)
 {
   GNUNET_CONTAINER_DLL_remove (ic->h->iterate_head, ic->h->iterate_tail, ic);
   GNUNET_free (ic->sub_system);

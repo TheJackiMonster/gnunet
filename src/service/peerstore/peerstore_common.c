@@ -22,7 +22,6 @@
  * @brief Helper peerstore functions
  * @author Omar Tarabai
  */
-
 #include "platform.h"
 #include "peerstore_common.h"
 
