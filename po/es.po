@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-03-15 09:19+0100\n"
+"POT-Creation-Date: 2024-05-20 20:21+0200\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -360,28 +360,28 @@ msgstr "Se produjo un fallo al procesar la identidad del par «%s»\n"
 msgid "Failed to connect to CORE service!\n"
 msgstr "¡Se produjo un fallo al conectar con el servicio DHT!\n"
 
-#: src/cli/core/gnunet-core.c:212
+#: src/cli/core/gnunet-core.c:213
 #, fuzzy
 msgid "No argument given.\n"
 msgstr "No se han proporcionado opciones\n"
 
 # Miguel: ¿Quizá continuamente fuese mejor?
-#: src/cli/core/gnunet-core.c:235 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:238 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr ""
 "provee información sobre todas las conexiones actuales (de forma continua)"
 
-#: src/cli/core/gnunet-core.c:241
+#: src/cli/core/gnunet-core.c:244
 #, fuzzy
 msgid "Show our current peer identity"
 msgstr "identidad del par"
 
-#: src/cli/core/gnunet-core.c:248
+#: src/cli/core/gnunet-core.c:251
 #, fuzzy
 msgid "Show current connections"
 msgstr "# conexiones activas"
 
-#: src/cli/core/gnunet-core.c:259
+#: src/cli/core/gnunet-core.c:262
 msgid "Print information about connected peers."
 msgstr "Imprime información sobre los pares conectados."
 
@@ -1117,55 +1117,55 @@ msgstr "No se pudo empezar la operación de desindexado.\n"
 msgid "Unindex a file that was previously indexed with gnunet-publish."
 msgstr "Desindexa un fichero previamente indexado con «gnunet-publish»."
 
-#: src/cli/gns/gnunet-gns.c:268
+#: src/cli/gns/gnunet-gns.c:269
 #, fuzzy, c-format
 msgid "`%s' is not a valid DNS domain name\n"
 msgstr "«%s» no es una dirección IP válida.\n"
 
-#: src/cli/gns/gnunet-gns.c:279 src/lib/util/dnsparser.c:273
+#: src/cli/gns/gnunet-gns.c:280 src/lib/util/dnsparser.c:273
 #, c-format
 msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
 msgstr ""
 "Se produjo un fallo al convertir el nombre en formato DNS IDNA «%s» a UTF-8: "
 "%s\n"
 
-#: src/cli/gns/gnunet-gns.c:294
+#: src/cli/gns/gnunet-gns.c:295
 msgid "Cannot resolve using GNS: GNUnet peer not running\n"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:305
+#: src/cli/gns/gnunet-gns.c:306
 #: src/contrib/service/abd/gnunet-service-abd.c:1745
 #, c-format
 msgid "Failed to connect to GNS\n"
 msgstr "Se produjo un fallo al conectar con GNS\n"
 
-#: src/cli/gns/gnunet-gns.c:318
+#: src/cli/gns/gnunet-gns.c:325
 #, c-format
 msgid "Invalid typename specified, assuming `ANY'\n"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:358
+#: src/cli/gns/gnunet-gns.c:365
 msgid "Lookup a record for the given name"
 msgstr "Buscar el registro para el nombre dado"
 
-#: src/cli/gns/gnunet-gns.c:364
+#: src/cli/gns/gnunet-gns.c:371
 msgid "Specify the type of the record to lookup"
 msgstr "Especificar el tipo del registro a buscar"
 
-#: src/cli/gns/gnunet-gns.c:370
+#: src/cli/gns/gnunet-gns.c:377
 #, fuzzy
 msgid "Specify a timeout for the lookup"
 msgstr "Especificar el tipo del registro a buscar"
 
-#: src/cli/gns/gnunet-gns.c:374
+#: src/cli/gns/gnunet-gns.c:381
 msgid "No unneeded output"
 msgstr "Sin salida innecesaria"
 
-#: src/cli/gns/gnunet-gns.c:379
+#: src/cli/gns/gnunet-gns.c:386
 msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:393
+#: src/cli/gns/gnunet-gns.c:400
 #, fuzzy
 msgid "GNUnet GNS resolver tool"
 msgstr "Herramienta de acceso GNUnet GNS"
@@ -1702,7 +1702,11 @@ msgstr "# pares desconectados debido a petición externa"
 msgid "GNUnet NAT traversal autoconfigure daemon"
 msgstr "Demonio de ayuda en las pruebas de recorrido NAT de GNUnet"
 
-#: src/cli/nse/gnunet-nse.c:124
+#: src/cli/nse/gnunet-nse.c:126
+msgid "Monitor and output current estimates"
+msgstr ""
+
+#: src/cli/nse/gnunet-nse.c:137
 #, fuzzy
 msgid "Show network size estimates from NSE service."
 msgstr "# Estimaciones del tamaño de red recibidas"
@@ -1751,87 +1755,91 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:805
+#: src/cli/reclaim/gnunet-reclaim.c:813
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "Las opción «%s» o «%s» es necesaria.\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:812
+#: src/cli/reclaim/gnunet-reclaim.c:820
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:819
+#: src/cli/reclaim/gnunet-reclaim.c:827
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "el parámetro --section es necesario\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:837
+#: src/cli/reclaim/gnunet-reclaim.c:846
 msgid "Add or update an attribute NAME"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:842
+#: src/cli/reclaim/gnunet-reclaim.c:851
 msgid "Delete the attribute with ID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:847
+#: src/cli/reclaim/gnunet-reclaim.c:856
 msgid "The attribute VALUE"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:852
+#: src/cli/reclaim/gnunet-reclaim.c:861
 #, fuzzy
 msgid "The EGO to use"
 msgstr "tamaño del mensaje"
 
-#: src/cli/reclaim/gnunet-reclaim.c:858
+#: src/cli/reclaim/gnunet-reclaim.c:867
 msgid "Specify the relying party for issue"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:862
-msgid "List attributes for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:866
-msgid "List credentials for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:872
-msgid "Credential to use for attribute"
+#: src/cli/reclaim/gnunet-reclaim.c:873
+msgid "Specify the relying party URI for a ticket to consume"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:877
+msgid "List attributes for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:881
+msgid "List credentials for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:887
+msgid "Credential to use for attribute"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:892
 msgid "Credential name"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:883
+#: src/cli/reclaim/gnunet-reclaim.c:898
 msgid "Issue a ticket for a set of attributes separated by comma"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:888
+#: src/cli/reclaim/gnunet-reclaim.c:903
 msgid "Consume a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:893
+#: src/cli/reclaim/gnunet-reclaim.c:908
 msgid "Revoke a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:898
+#: src/cli/reclaim/gnunet-reclaim.c:913
 msgid "Type of attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:903
+#: src/cli/reclaim/gnunet-reclaim.c:918
 msgid "Type of credential"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:907
+#: src/cli/reclaim/gnunet-reclaim.c:922
 msgid "List tickets of ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:913
+#: src/cli/reclaim/gnunet-reclaim.c:928
 msgid "Expiration interval of the attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:921
+#: src/cli/reclaim/gnunet-reclaim.c:936
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -2071,33 +2079,59 @@ msgstr "Imprime estadísticas acerca de las operaciones de GNUnet."
 msgid "run decoder modus, otherwise runs as encoder"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:154
+#: src/cli/util/gnunet-config.c:101
 msgid "test if the current installation supports the specified BACKEND"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:160
+#: src/cli/util/gnunet-config.c:107
 msgid ""
 "Provide an appropriate value for CFLAGS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:165
+#: src/cli/util/gnunet-config.c:112
 msgid "Is this an experimental build of GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:171
+#: src/cli/util/gnunet-config.c:118
 msgid ""
 "Provide an appropriate value for LIBS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:177
+#: src/cli/util/gnunet-config.c:123
+#, fuzzy
+msgid "Do not parse default configuration files"
+msgstr "Manipular ficheros de configuración de GNUnet"
+
+#: src/cli/util/gnunet-config.c:129
 msgid "Provide the path under which GNUnet was installed"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:192
-msgid "Manipulate GNUnet configuration files"
-msgstr "Manipular ficheros de configuración de GNUnet"
+#: src/cli/util/gnunet-config.c:136
+msgid ""
+"Parse main configuration from this command-line argument and not from disk"
+msgstr ""
+
+#: src/cli/util/gnunet-config.c:225
+#, fuzzy
+msgid "Failed to load default configuration, exiting ...\n"
+msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
+
+#: src/cli/util/gnunet-config.c:237
+#, fuzzy
+msgid "Failed to parse configuration, exiting ...\n"
+msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
+
+#: src/cli/util/gnunet-config.c:249 src/lib/util/program.c:287
+#, fuzzy, c-format
+msgid "Unreadable configuration file `%s', exiting ...\n"
+msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
+
+#: src/cli/util/gnunet-config.c:263 src/lib/util/program.c:299
+#, fuzzy, c-format
+msgid "Malformed configuration file `%s', exiting ...\n"
+msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
 #: src/cli/util/gnunet-crypto-tvg.c:1588
 msgid "verify a test vector from stdin"
@@ -2146,57 +2180,56 @@ msgstr ""
 msgid "Hostkeys file `%s' not found\n"
 msgstr "El fichero de máquinas %s no fue encontrado\n"
 
-#: src/cli/util/gnunet-ecc.c:314
+#: src/cli/util/gnunet-ecc.c:318
 #, fuzzy, c-format
 msgid "Hostkeys file `%s' is empty\n"
 msgstr "El archivo de amigos «%s» está vacío.\n"
 
-#: src/cli/util/gnunet-ecc.c:319 src/service/testing/list-keys.c:47
-#: src/service/testing/testing.c:308
+#: src/cli/util/gnunet-ecc.c:324
 #, c-format
 msgid "Incorrect hostkey file format: %s\n"
 msgstr "El fichero de máquinas no tiene el formato correcto: %s\n"
 
-#: src/cli/util/gnunet-ecc.c:334
+#: src/cli/util/gnunet-ecc.c:340
 #, fuzzy, c-format
 msgid "Could not read hostkey file: %s\n"
 msgstr "¡No se puede leer el fichero de claves de máquina!\n"
 
-#: src/cli/util/gnunet-ecc.c:388
+#: src/cli/util/gnunet-ecc.c:394
 msgid "No hostkey file specified on command line\n"
 msgstr "No se ha especificado la clave de máquina en la línea de comandos\n"
 
-#: src/cli/util/gnunet-ecc.c:452
+#: src/cli/util/gnunet-ecc.c:458
 msgid "list keys included in a file (for testing)"
 msgstr ""
 
-#: src/cli/util/gnunet-ecc.c:458
+#: src/cli/util/gnunet-ecc.c:464
 msgid "number of keys to list included in a file (for testing)"
 msgstr ""
 
-#: src/cli/util/gnunet-ecc.c:464
+#: src/cli/util/gnunet-ecc.c:470
 msgid "create COUNT public-private key pairs (for testing)"
 msgstr "crea «COUNT» pares de claves pública-privada (para pruebas)"
 
-#: src/cli/util/gnunet-ecc.c:469
+#: src/cli/util/gnunet-ecc.c:475
 msgid "print the public key in ASCII format"
 msgstr "imprime la clave pública en formato ASCII"
 
-#: src/cli/util/gnunet-ecc.c:474
+#: src/cli/util/gnunet-ecc.c:480
 #, fuzzy
 msgid "print the private key in ASCII format"
 msgstr "imprime la clave pública en formato ASCII"
 
-#: src/cli/util/gnunet-ecc.c:479
+#: src/cli/util/gnunet-ecc.c:485
 #, fuzzy
 msgid "print the public key in HEX format"
 msgstr "imprime la clave pública en formato ASCII"
 
-#: src/cli/util/gnunet-ecc.c:485
+#: src/cli/util/gnunet-ecc.c:491
 msgid "print examples of ECC operations (used for compatibility testing)"
 msgstr ""
 
-#: src/cli/util/gnunet-ecc.c:499
+#: src/cli/util/gnunet-ecc.c:505
 msgid "Manipulate GNUnet private ECC key files"
 msgstr "Manipular los ficheros de clave privada ECC de GNUnet"
 
@@ -3289,14 +3322,14 @@ msgstr ""
 msgid "Invalid handle type while writing `%s'"
 msgstr "Formato de tiempo no válido «%s»\n"
 
-#: src/lib/util/client.c:531 src/lib/util/service.c:1134
+#: src/lib/util/client.c:531 src/lib/util/service.c:1139
 #: src/service/arm/gnunet-service-arm.c:452
 #, c-format
 msgid "UNIXPATH `%s' too long, maximum length is %llu\n"
 msgstr ""
 "La ruta tipo UNIX «%s» es demasiado larga, la longitud máxima es %llu\n"
 
-#: src/lib/util/client.c:536 src/lib/util/service.c:1138
+#: src/lib/util/client.c:536 src/lib/util/service.c:1143
 #: src/service/arm/gnunet-service-arm.c:456
 #, c-format
 msgid "Using `%s' instead\n"
@@ -3431,17 +3464,17 @@ msgstr ""
 msgid "`%s' failed at %s:%d with error: %s\n"
 msgstr "«%s» falló en %s: %d con el error: %s\n"
 
-#: src/lib/util/crypto_ecc.c:554
+#: src/lib/util/crypto_ecc.c:569
 #, c-format
 msgid "ECC signing failed at %s:%d: %s\n"
 msgstr "El firmado ECC falló en %s:%d: %s\n"
 
-#: src/lib/util/crypto_ecc.c:677
+#: src/lib/util/crypto_ecc.c:692
 #, fuzzy, c-format
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "La verificación de la firma RSA fallo en %s:%d: %s\n"
 
-#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:304
+#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:305
 #, fuzzy
 msgid "Could not load peer's private key\n"
 msgstr "No se pudo acceder a la clave de máquina.\n"
@@ -3466,7 +3499,7 @@ msgstr "La verificación de la firma RSA fallo en %s:%d: %s\n"
 msgid "Expected `%s' to be a directory!\n"
 msgstr "¡Se esperaba que «%s» fuera un directorio!\n"
 
-#: src/lib/util/disk.c:1222 src/lib/util/service.c:1642
+#: src/lib/util/disk.c:1222 src/lib/util/service.c:1651
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "No se pudo obtener información acerca del usuario «%s»: %s\n"
@@ -3661,102 +3694,102 @@ msgstr "Tienes que introducir un número en la opción «%s».\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:60
+#: src/lib/util/gnunet_error_codes.c:59
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:66
+#: src/lib/util/gnunet_error_codes.c:65
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "Error desconocido"
 
 # Miguel: ¿Conectar y conexión?
-#: src/lib/util/gnunet_error_codes.c:72
+#: src/lib/util/gnunet_error_codes.c:71
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Error al comunicar con el servicio ARM.\n"
 
-#: src/lib/util/gnunet_error_codes.c:78
+#: src/lib/util/gnunet_error_codes.c:77
 #, fuzzy
 msgid "Ego not found."
 msgstr "Contenido no encontrado"
 
-#: src/lib/util/gnunet_error_codes.c:84
+#: src/lib/util/gnunet_error_codes.c:83
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:90
+#: src/lib/util/gnunet_error_codes.c:89
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:96
+#: src/lib/util/gnunet_error_codes.c:95
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "Error desconocido"
 
-#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
+#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# sesiones wlan creadas"
 
-#: src/lib/util/gnunet_error_codes.c:108
+#: src/lib/util/gnunet_error_codes.c:107
 #, fuzzy
 msgid "Zone not found."
 msgstr "Contenido no encontrado"
 
-#: src/lib/util/gnunet_error_codes.c:114
+#: src/lib/util/gnunet_error_codes.c:113
 #, fuzzy
 msgid "Record not found."
 msgstr "«upnpc» no encontrado\n"
 
-#: src/lib/util/gnunet_error_codes.c:126
+#: src/lib/util/gnunet_error_codes.c:125
 #, fuzzy
 msgid "Zone does not contain any records."
 msgstr "El fichero '%s' no contiene un pseudónimo.\n"
 
-#: src/lib/util/gnunet_error_codes.c:132
+#: src/lib/util/gnunet_error_codes.c:131
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "El almacén de nombres no pudo añadir el registro\n"
 
-#: src/lib/util/gnunet_error_codes.c:138
+#: src/lib/util/gnunet_error_codes.c:137
 #, fuzzy
 msgid "No records given."
 msgstr "No se han proporcionado opciones\n"
 
-#: src/lib/util/gnunet_error_codes.c:144
+#: src/lib/util/gnunet_error_codes.c:143
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:150
+#: src/lib/util/gnunet_error_codes.c:149
 #, fuzzy
 msgid "No label given."
 msgstr "No se han proporcionado opciones\n"
 
-#: src/lib/util/gnunet_error_codes.c:156
+#: src/lib/util/gnunet_error_codes.c:155
 #, fuzzy
 msgid "No results given."
 msgstr "No se han proporcionado opciones\n"
 
-#: src/lib/util/gnunet_error_codes.c:162
+#: src/lib/util/gnunet_error_codes.c:161
 #, fuzzy
 msgid "Record already exists."
 msgstr "El registro ya existía en el almacén de nombres"
 
-#: src/lib/util/gnunet_error_codes.c:168
+#: src/lib/util/gnunet_error_codes.c:167
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:174
+#: src/lib/util/gnunet_error_codes.c:173
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:180
+#: src/lib/util/gnunet_error_codes.c:179
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "El almacén de nombres no pudo añadir el registro\n"
 
-#: src/lib/util/gnunet_error_codes.c:186
+#: src/lib/util/gnunet_error_codes.c:185
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -3828,16 +3861,6 @@ msgstr "Falló «%s» para la biblioteca «%s» con error: %s\n"
 msgid "Could not determine plugin installation path.\n"
 msgstr "No se pudo determinar la ruta de instalación de los módulos.\n"
 
-#: src/lib/util/program.c:287
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s', exiting ...\n"
-msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
-
-#: src/lib/util/program.c:299
-#, fuzzy, c-format
-msgid "Malformed configuration file `%s', exiting ...\n"
-msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
-
 #: src/lib/util/program.c:314
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s'. Exiting ...\n"
@@ -3893,7 +3916,7 @@ msgid "Could not resolve our FQDN: %s\n"
 msgstr ""
 "No se pudo resolver nuestro nombre de dominio cualificado (FQDN) : %s\n"
 
-#: src/lib/util/service.c:654
+#: src/lib/util/service.c:650
 #, fuzzy, c-format
 msgid ""
 "Processing code for message of type %u did not call "
@@ -3902,22 +3925,22 @@ msgstr ""
 "El código de procesado para el mensaje del tipo %u no llamó a "
 "«GNUNET_SERVER_receive_done» después de %s\n"
 
-#: src/lib/util/service.c:838
+#: src/lib/util/service.c:841
 #, c-format
 msgid "Unknown address family %d\n"
 msgstr "Familia de direcciones %d desconocida\n"
 
-#: src/lib/util/service.c:951
+#: src/lib/util/service.c:956
 #, c-format
 msgid "Could not parse IPv4 network specification `%s' for `%s:%s'\n"
 msgstr "No se pudo procesar la especificación de red IPv4 «%s» para «%s:%s»\n"
 
-#: src/lib/util/service.c:992
+#: src/lib/util/service.c:997
 #, c-format
 msgid "Could not parse IPv6 network specification `%s' for `%s:%s'\n"
 msgstr "No se pudo procesar la especificación de red IPv6 «%s» para «%s:%s»\n"
 
-#: src/lib/util/service.c:1095 src/lib/util/service.c:1101
+#: src/lib/util/service.c:1100 src/lib/util/service.c:1106
 #: src/service/arm/gnunet-service-arm.c:412
 #: src/service/arm/gnunet-service-arm.c:418
 #, c-format
@@ -3926,7 +3949,7 @@ msgstr ""
 "¡Se requiere un número de puerto válido para el servicio «%s» en la "
 "configuración!\n"
 
-#: src/lib/util/service.c:1158 src/service/arm/gnunet-service-arm.c:484
+#: src/lib/util/service.c:1163 src/service/arm/gnunet-service-arm.c:484
 #, c-format
 msgid ""
 "Disabling UNIX domain socket support for service `%s', failed to create UNIX "
@@ -3935,89 +3958,89 @@ msgstr ""
 "Deshabilitando el soporte de dominio de «sockets» UNIX para el servicio "
 "«%s», no se pudo crear un «socket» UNIX: %s\n"
 
-#: src/lib/util/service.c:1176 src/service/arm/gnunet-service-arm.c:505
+#: src/lib/util/service.c:1181 src/service/arm/gnunet-service-arm.c:505
 #, c-format
 msgid "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"
 msgstr ""
 "No hay ni puerto (PORT) ni ruta unix (UNIXPATH) para el servicio «%s», pero "
 "uno es necesario\n"
 
-#: src/lib/util/service.c:1207 src/service/arm/gnunet-service-arm.c:536
+#: src/lib/util/service.c:1212 src/service/arm/gnunet-service-arm.c:536
 #, c-format
 msgid "Failed to resolve `%s': %s\n"
 msgstr "Se produjo un fallo al resolver «%s»: %s\n"
 
-#: src/lib/util/service.c:1226 src/service/arm/gnunet-service-arm.c:555
+#: src/lib/util/service.c:1231 src/service/arm/gnunet-service-arm.c:555
 #, c-format
 msgid "Failed to find %saddress for `%s'.\n"
 msgstr "No se encontró la dirección %s para «%s».\n"
 
-#: src/lib/util/service.c:1401
+#: src/lib/util/service.c:1406
 #, c-format
 msgid "`%s' failed for port %d (%s).\n"
 msgstr "«%s» falló para el puerto %d (%s).\n"
 
-#: src/lib/util/service.c:1413
+#: src/lib/util/service.c:1418
 #, c-format
 msgid "`%s' failed for port %d (%s): address already in use\n"
 msgstr "«%s» falló para el puerto %d (%s): dirección en uso actualmente\n"
 
-#: src/lib/util/service.c:1420
+#: src/lib/util/service.c:1425
 #, fuzzy, c-format
 msgid "`%s' failed for `%s': address already in use\n"
 msgstr "«%s» falló para «%.*s»: dirección en uso actualmente\n"
 
-#: src/lib/util/service.c:1481
+#: src/lib/util/service.c:1486
 #, c-format
 msgid "Specified value for `%s' of service `%s' is invalid\n"
 msgstr "El valor especificado «%s» para el servicio «%s» no es válido\n"
 
-#: src/lib/util/service.c:1505
+#: src/lib/util/service.c:1510
 #, c-format
 msgid "Could not access pre-bound socket %u, will try to bind myself\n"
 msgstr ""
 "No se pudo acceder al «socket» pre-ascociado %u, lo intentaré asociar yo "
 "mismo\n"
 
-#: src/lib/util/service.c:1573
+#: src/lib/util/service.c:1583
 msgid ""
 "Could not bind to any of the ports I was supposed to, refusing to run!\n"
 msgstr ""
 
-#: src/lib/util/service.c:1644
+#: src/lib/util/service.c:1653
 msgid "No such user"
 msgstr "No existe tal usuario"
 
-#: src/lib/util/service.c:1658
+#: src/lib/util/service.c:1668
 #, c-format
 msgid "Cannot change user/group to `%s': %s\n"
 msgstr "Imposible cambiar el usuario/grupo a «%s»: %s\n"
 
-#: src/lib/util/service.c:1751
+#: src/lib/util/service.c:1767
 msgid "Service process failed to initialize\n"
 msgstr "No se pudo inicializar el proceso del servicio\n"
 
-#: src/lib/util/service.c:1756
+#: src/lib/util/service.c:1772
 msgid "Service process could not initialize server function\n"
 msgstr ""
 "No se pudo inicializar la función del servidor en el proceso del servicio\n"
 
-#: src/lib/util/service.c:1761
+#: src/lib/util/service.c:1777
 msgid "Service process failed to report status\n"
 msgstr "El proceso del servicio no devolvió un estado\n"
 
-#: src/lib/util/service.c:1960 src/lib/util/service.c:2255
+#: src/lib/util/service.c:1990 src/lib/util/service.c:2304
 msgid "do daemonize (detach from terminal)"
 msgstr "demonizar (desasociar del terminal)"
 
-#: src/lib/util/service.c:2036 src/lib/util/service.c:2048
-#: src/lib/util/service.c:2298 src/lib/util/service.c:2310
-#: src/service/transport/transport-testing-communicator.c:1056
+#: src/lib/util/service.c:2065 src/lib/util/service.c:2080
+#: src/lib/util/service.c:2353 src/lib/util/service.c:2368
+#: src/service/transport/transport-testing-communicator.c:1059
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/service.c:2058 src/lib/util/service.c:2321
+#: src/lib/util/service.c:2092 src/lib/util/service.c:2381
 #, fuzzy
 msgid "Malformed configuration, exit ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
@@ -4515,6 +4538,11 @@ msgstr "El servicio «%s» finalizó con estado %s/%d, se reiniciará en %llu ms
 msgid "Initiating shutdown as requested by client.\n"
 msgstr "Iniciando apagado bajo petición del cliente.\n"
 
+#: src/service/arm/testing_arm_cmd_start_peer.c:197
+#, c-format
+msgid "Failed to start `%s': %s\n"
+msgstr "Se produjo un fallo al arrancar «%s»: %s\n"
+
 #: src/service/core/gnunet-service-core.c:329
 msgid "# send requests dropped (disconnected)"
 msgstr "# peticiones de envío descartadas (desconectado)"
@@ -4688,8 +4716,8 @@ msgstr "# bytes de «payload» descifrados"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:484
 #: src/service/fs/gnunet-service-fs_cp.c:1377
-#: src/service/topology/gnunet-daemon-topology.c:551
-#: src/service/topology/gnunet-daemon-topology.c:633
+#: src/service/topology/gnunet-daemon-topology.c:545
+#: src/service/topology/gnunet-daemon-topology.c:627
 msgid "# peers connected"
 msgstr "# pares conectados"
 
@@ -5777,7 +5805,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1066
+#: src/service/topology/gnunet-daemon-topology.c:1062
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Se produjo un fallo al conectar con el servicio «%s».\n"
@@ -6606,7 +6634,7 @@ msgid "# hostlist advertisements send"
 msgstr "# anuncios de listas de máquinas enviados"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:786
+#: src/service/topology/gnunet-daemon-topology.c:781
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr ""
@@ -6890,12 +6918,12 @@ msgstr ""
 msgid "Malformed punched hole specification `%s' (IPv6 address invalid)"
 msgstr ""
 
-#: src/service/nat/gnunet-service-nat.c:1861
+#: src/service/nat/gnunet-service-nat.c:1860
 #, fuzzy
 msgid "Connection reversal request failed\n"
 msgstr "Colección detenida.\n"
 
-#: src/service/nat/gnunet-service-nat.c:1935
+#: src/service/nat/gnunet-service-nat.c:1999
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -6919,44 +6947,44 @@ msgstr "comando «external-ip» no encontrado\n"
 msgid "`upnpc' command not found\n"
 msgstr "comando «upnpc» no encontrado\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1141
+#: src/service/peerstore/gnunet-service-peerstore.c:1150
 #, fuzzy, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Se produjo un fallo al procesar «HELLO» en el fichero «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1214
+#: src/service/peerstore/gnunet-service-peerstore.c:1223
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "No se pudo leer el fichero de la lista negra «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1233
+#: src/service/peerstore/gnunet-service-peerstore.c:1242
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr "Importando HELLO de «%s»\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1244
+#: src/service/peerstore/gnunet-service-peerstore.c:1253
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:574
+#: src/service/peerstore/peerstore_api.c:579
 #, fuzzy
 msgid "Unexpected store response.\n"
 msgstr "Respuesta inesperada a la operación '%s'.\n"
 
-#: src/service/peerstore/peerstore_api.c:606
+#: src/service/peerstore/peerstore_api.c:620
 #, fuzzy
 msgid "Unexpected iteration response.\n"
 msgstr "El formato de salida es desconocido, ésto no debería pasar.\n"
 
-#: src/service/peerstore/peerstore_api.c:652
+#: src/service/peerstore/peerstore_api.c:666
 #, fuzzy
 msgid ""
 "Unexpected iteration response, no iterating client found, discarding "
 "message.\n"
 msgstr "El formato de salida es desconocido, ésto no debería pasar.\n"
 
-#: src/service/peerstore/peerstore_api.c:662
-#: src/service/peerstore/peerstore_api_monitor.c:164
+#: src/service/peerstore/peerstore_api.c:676
+#: src/service/peerstore/peerstore_api_monitor.c:163
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Recibida petición DNS mal formada de %s\n"
@@ -7133,12 +7161,12 @@ msgstr "Conexión fallida\n"
 msgid "Namestore REST API initialized\n"
 msgstr "Conexión fallida\n"
 
-#: src/service/rest/openid_plugin.c:3102
+#: src/service/rest/openid_plugin.c:3121
 #, fuzzy
 msgid "OpenID Connect REST API initialized\n"
 msgstr "Conexión fallida\n"
 
-#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1523
+#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1494
 #, fuzzy
 msgid "Identity Provider REST API initialized\n"
 msgstr "Conexión fallida\n"
@@ -7191,134 +7219,21 @@ msgstr "Cargando %llu bytes de estadísticas de «%s»\n"
 msgid "Could not save some persistent statistics\n"
 msgstr "No se pudieron guardar algunas estadísticas persistentes\n"
 
-#: src/service/testing/gnunet-testing.c:185
-#, c-format
-msgid "Could not extract hostkey %u (offset too large?)\n"
-msgstr ""
-"No se pudo extraer la clave de máquina %u (¿desplazamiento demasiado "
-"grande?)\n"
-
-#: src/service/testing/gnunet-testing.c:275
-#, c-format
-msgid "Unknown command, use 'q' to quit or 'r' to restart peer\n"
-msgstr "Comando desconocido, use «q» para salir o «r» para reiniciar el par\n"
-
-#: src/service/testing/gnunet-testing.c:386
-msgid "create unique configuration files"
-msgstr "crear ficheros de configuración únicos"
-
-#: src/service/testing/gnunet-testing.c:392
-msgid "extract hostkey file from pre-computed hostkey list"
-msgstr ""
-"extraer los ficheros de claves de máquinas de una lista pre-computada de "
-"claves de máquinas"
-
-#: src/service/testing/gnunet-testing.c:400
-msgid ""
-"number of unique configuration files to create, or number of the hostkey to "
-"extract"
+#: src/service/testbed/gnunet-testbed.c:196
+#, fuzzy
+msgid "number of unique configuration files to create"
 msgstr ""
 "número de ficheros de configuración únicos o claves de máquina a crear, o el "
 "número de claves de máquina a extraer"
 
-#: src/service/testing/gnunet-testing.c:407
+#: src/service/testbed/gnunet-testbed.c:202
 msgid "configuration template"
 msgstr "plantilla de configuración"
 
-#: src/service/testing/gnunet-testing.c:415
-msgid "run the given service, wait on stdin for 'r' (restart) or 'q' (quit)"
-msgstr ""
-
-#: src/service/testing/gnunet-testing.c:432
+#: src/service/testbed/gnunet-testbed.c:218
 msgid "Command line tool to access the testing library"
 msgstr ""
 "Herramienta de línea de comandos para acceder a la biblioteca de pruebas"
-
-#: src/service/testing/list-keys.c:92
-#, fuzzy
-msgid "list COUNT number of keys"
-msgstr "crea «COUNT» número de pares"
-
-#: src/service/testing/testing.c:291
-#, c-format
-msgid "Hostkeys file not found: %s\n"
-msgstr "El fichero de máquinas no fue encontrado: %s\n"
-
-#: src/service/testing/testing.c:743
-#, c-format
-msgid "Key number %u does not exist\n"
-msgstr "El número de clave %u no existe\n"
-
-# Miguel: "testbed" lo he traducido como batería de pruebas, pero
-# no es una traducción muy literal.
-#: src/service/testing/testing.c:1217
-#, c-format
-msgid ""
-"You attempted to create a testbed with more than %u hosts.  Please "
-"precompute more hostkeys first.\n"
-msgstr ""
-"Se ha intentado crear una batería de pruebas con más de %u máquinas.  Por "
-"favor, pre-compute más claves de máquinas primero.\n"
-
-#: src/service/testing/testing.c:1226
-#, c-format
-msgid "Failed to initialize hostkey for peer %u\n"
-msgstr ""
-"Se produjo un fallo al inicializar la clave de la máquina desde el par %u\n"
-
-#: src/service/testing/testing.c:1236
-#, fuzzy
-msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
-msgstr "¡Falta la opción «%s» en la sección «%s» de la configuración!\n"
-
-#: src/service/testing/testing.c:1249
-msgid "Failed to create configuration for peer (not enough free ports?)\n"
-msgstr ""
-"Se produjo un fallo al crear la configuración para el par (¿no hay "
-"suficientes puertos libres?)\n"
-
-#: src/service/testing/testing.c:1265
-#, fuzzy, c-format
-msgid "Cannot open hostkey file `%s': %s\n"
-msgstr "No se pudo abrir el fichero de claves de máquina: %s\n"
-
-#: src/service/testing/testing.c:1279
-#, c-format
-msgid "Failed to write hostkey file for peer %u: %s\n"
-msgstr ""
-"Se produjo un fallo al escribir la clave de la máquina para el par %u: %s\n"
-
-#: src/service/testing/testing.c:1307
-#, c-format
-msgid "Failed to write configuration file `%s' for peer %u: %s\n"
-msgstr ""
-"Se produjo un fallo al escribir el fichero de configuración «%s» para el par "
-"%u: %s\n"
-
-#: src/service/testing/testing.c:1413
-#, c-format
-msgid "Failed to start `%s': %s\n"
-msgstr "Se produjo un fallo al arrancar «%s»: %s\n"
-
-#: src/service/testing/testing.c:1664
-#, c-format
-msgid "Failed to load configuration from %s\n"
-msgstr "Se produjo un fallo al cargar la configuración de %s\n"
-
-#: src/service/testing/testing.c:2795
-#, c-format
-msgid "Topology file %s not found\n"
-msgstr "El fichero de topología %s no fue encontrado\n"
-
-#: src/service/testing/testing.c:2803
-#, c-format
-msgid "Topology file %s has no data\n"
-msgstr "El fichero de topología %s no tiene datos\n"
-
-#: src/service/testing/testing.c:2811
-#, c-format
-msgid "Topology file %s cannot be read\n"
-msgstr "El fichero de topología %s no puede ser leido\n"
 
 #: src/service/topology/gnunet-daemon-topology.c:286
 #, fuzzy
@@ -7326,39 +7241,39 @@ msgid "# connect requests issued to ATS"
 msgstr "# peticiones de conexión requeridas al servicio de transporte"
 
 # gossiped??
-#: src/service/topology/gnunet-daemon-topology.c:480
+#: src/service/topology/gnunet-daemon-topology.c:475
 msgid "# HELLO messages gossipped"
 msgstr "# Mensajes «HELLO» rumoreados"
 
-#: src/service/topology/gnunet-daemon-topology.c:752
+#: src/service/topology/gnunet-daemon-topology.c:747
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr ""
 "Error en la comunicación con el servicio de información de pares (PEERINFO): "
 "%s\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:761
+#: src/service/topology/gnunet-daemon-topology.c:756
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:869
+#: src/service/topology/gnunet-daemon-topology.c:864
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "¡Se produjo un fallo al conectar con el servicio principal, no se puede "
 "gestionar la topología!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:943
+#: src/service/topology/gnunet-daemon-topology.c:938
 msgid "# HELLO messages received"
 msgstr "# mensajes «HELLO» recibidos"
 
-#: src/service/topology/gnunet-daemon-topology.c:1095
+#: src/service/topology/gnunet-daemon-topology.c:1091
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3814
-#: src/service/transport/gnunet-communicator-udp.c:3562
-#: src/service/transport/gnunet-service-transport.c:12124
+#: src/service/transport/gnunet-communicator-udp.c:3579
+#: src/service/transport/gnunet-service-transport.c:12543
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
@@ -7375,7 +7290,7 @@ msgstr "Configurador Gtk de GNUnet"
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-udp.c:3637
+#: src/service/transport/gnunet-communicator-udp.c:3654
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -7694,6 +7609,94 @@ msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#, c-format
+#~ msgid "Could not extract hostkey %u (offset too large?)\n"
+#~ msgstr ""
+#~ "No se pudo extraer la clave de máquina %u (¿desplazamiento demasiado "
+#~ "grande?)\n"
+
+#, c-format
+#~ msgid "Unknown command, use 'q' to quit or 'r' to restart peer\n"
+#~ msgstr ""
+#~ "Comando desconocido, use «q» para salir o «r» para reiniciar el par\n"
+
+#~ msgid "create unique configuration files"
+#~ msgstr "crear ficheros de configuración únicos"
+
+#~ msgid "extract hostkey file from pre-computed hostkey list"
+#~ msgstr ""
+#~ "extraer los ficheros de claves de máquinas de una lista pre-computada de "
+#~ "claves de máquinas"
+
+#, fuzzy
+#~ msgid "list COUNT number of keys"
+#~ msgstr "crea «COUNT» número de pares"
+
+#, c-format
+#~ msgid "Hostkeys file not found: %s\n"
+#~ msgstr "El fichero de máquinas no fue encontrado: %s\n"
+
+#, c-format
+#~ msgid "Key number %u does not exist\n"
+#~ msgstr "El número de clave %u no existe\n"
+
+# Miguel: "testbed" lo he traducido como batería de pruebas, pero
+# no es una traducción muy literal.
+#, c-format
+#~ msgid ""
+#~ "You attempted to create a testbed with more than %u hosts.  Please "
+#~ "precompute more hostkeys first.\n"
+#~ msgstr ""
+#~ "Se ha intentado crear una batería de pruebas con más de %u máquinas.  Por "
+#~ "favor, pre-compute más claves de máquinas primero.\n"
+
+#, c-format
+#~ msgid "Failed to initialize hostkey for peer %u\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al inicializar la clave de la máquina desde el par "
+#~ "%u\n"
+
+#, fuzzy
+#~ msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
+#~ msgstr "¡Falta la opción «%s» en la sección «%s» de la configuración!\n"
+
+#~ msgid "Failed to create configuration for peer (not enough free ports?)\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al crear la configuración para el par (¿no hay "
+#~ "suficientes puertos libres?)\n"
+
+#, fuzzy, c-format
+#~ msgid "Cannot open hostkey file `%s': %s\n"
+#~ msgstr "No se pudo abrir el fichero de claves de máquina: %s\n"
+
+#, c-format
+#~ msgid "Failed to write hostkey file for peer %u: %s\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al escribir la clave de la máquina para el par %u: "
+#~ "%s\n"
+
+#, c-format
+#~ msgid "Failed to write configuration file `%s' for peer %u: %s\n"
+#~ msgstr ""
+#~ "Se produjo un fallo al escribir el fichero de configuración «%s» para el "
+#~ "par %u: %s\n"
+
+#, c-format
+#~ msgid "Failed to load configuration from %s\n"
+#~ msgstr "Se produjo un fallo al cargar la configuración de %s\n"
+
+#, c-format
+#~ msgid "Topology file %s not found\n"
+#~ msgstr "El fichero de topología %s no fue encontrado\n"
+
+#, c-format
+#~ msgid "Topology file %s has no data\n"
+#~ msgstr "El fichero de topología %s no tiene datos\n"
+
+#, c-format
+#~ msgid "Topology file %s cannot be read\n"
+#~ msgstr "El fichero de topología %s no puede ser leido\n"
 
 #, fuzzy, c-format
 #~ msgid ""
@@ -9369,10 +9372,6 @@ msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
 #~ msgid "value to set"
 #~ msgstr "valor a establecer"
-
-#, fuzzy
-#~ msgid "Unreadable or malformed default configuration file `%s', exit ...\n"
-#~ msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
 #, fuzzy
 #~ msgid "Unreadable or malformed configuration, exit ...\n"
