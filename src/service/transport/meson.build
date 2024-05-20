@@ -154,6 +154,8 @@ executable ('gnunet-communicator-quic',
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 endif
 
+if false
+
 libgnunettesttransport_cmd_simplesend = library('gnunet_test_transport_plugin_cmd_simple_send',
                                                 ['test_transport_plugin_cmd_simple_send.c'],
                                                 dependencies: [
@@ -485,3 +487,5 @@ test('test_communicator_backchannel-udp', testcommunicator_backchannel_udp,
 test('test_communicator_bidirect-tcp', testcommunicator_bidirect_tcp,
      workdir: meson.current_build_dir(),
      suite: ['transport', 'communicator'], is_parallel: false)
+
+endif

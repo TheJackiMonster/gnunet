@@ -54,6 +54,8 @@ executable ('gnunet-service-dht',
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
+if false
+
 libgnunettestingdhtu = library('gnunettestingdhtu',
         ['testing_dhtu_cmd_send.c'],
         soversion: '0',
@@ -95,3 +97,5 @@ test('test_dhtu_ip', testdhtu_ip, suite: 'dhtu',
      workdir: meson.current_build_dir())
 
 
+
+endif

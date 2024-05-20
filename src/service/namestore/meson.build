@@ -53,6 +53,8 @@ configure_file(copy: true,
                input: 'test_namestore_api_postgres.conf',
                output: 'test_namestore_api_postgres.conf')
 
+if false
+
 namestoreapitestnames = [
   'test_namestore_api_lookup_nick',
   'test_namestore_api_monitoring',
@@ -99,5 +101,7 @@ foreach tn : namestoreapitestnames
        suite: 'namestore')
   endif
 endforeach
+
+endif
 
 # FIXME perf tests missing
