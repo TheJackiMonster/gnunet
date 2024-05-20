@@ -42,11 +42,9 @@ gnunet_testbed_LDADD = \
 check_PROGRAMS = \
  test_testbed_portreservation
 
-if ENABLE_TEST_RUN_TESTBED
-  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
+AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 # TESTS = \
 #  test_testbed_portreservation
-endif
 
 test_testbed_portreservation_SOURCES = \
  test_testbed_portreservation.c
