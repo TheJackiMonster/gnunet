@@ -91,7 +91,7 @@ main (int argc,
     GNUNET_GETOPT_option_help ("gnunet-config [OPTIONS]"),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
-    GNUNET_GETOPT_option_version (&version)
+    GNUNET_GETOPT_option_version (pd->version),
     GNUNET_GETOPT_option_exclusive (
       GNUNET_GETOPT_option_string (
         'b',
