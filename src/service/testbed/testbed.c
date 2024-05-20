@@ -33,11 +33,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_arm_service.h"
 #include "gnunet_testing_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
-#include "testing_cmds.h"
+#include "testbed_lib.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "testing-api", __VA_ARGS__)
 
@@ -118,7 +114,7 @@ struct SharedService
  * Handle for a system on which GNUnet peers are executed;
  * a system is used for reserving unique paths and ports.
  */
-struct GNUNET_TESTING_System
+struct GNUNET_TESTBED_System
 {
   /**
    * Prefix (e.g. "/tmp/gnunet-testing/") we prepend to each
@@ -138,7 +134,7 @@ struct GNUNET_TESTING_System
   char *hostname;
 
   /**
-   * Hostkeys data, contains "GNUNET_TESTING_HOSTKEYFILESIZE * total_hostkeys" bytes.
+   * Hostkeys data, contains "GNUNET_TESTBED_HOSTKEYFILESIZE * total_hostkeys" bytes.
    */
   char *hostkeys_data;
 
@@ -191,12 +187,12 @@ struct GNUNET_TESTING_System
 /**
  * Handle for a GNUnet peer controlled by testing.
  */
-struct GNUNET_TESTING_Peer
+struct GNUNET_TESTBED_Peer
 {
   /**
-   * The TESTING system associated with this peer
+   * The TESTBED system associated with this peer
    */
-  struct GNUNET_TESTING_System *system;
+  struct GNUNET_TESTBED_System *system;
 
   /**
    * Path to the configuration file for this peer.
@@ -204,9 +200,9 @@ struct GNUNET_TESTING_Peer
   char *cfgfile;
 
   /**
-   * Binary to be executed during 'GNUNET_TESTING_peer_start'.
+   * Binary to be executed during 'GNUNET_TESTBED_peer_start'.
    * Typically 'gnunet-service-arm' (but can be set to a
-   * specific service by 'GNUNET_TESTING_service_run' if
+   * specific service by 'GNUNET_TESTBED_service_run' if
    * necessary).
    */
   char *main_binary;
@@ -231,7 +227,7 @@ struct GNUNET_TESTING_Peer
   /**
    * The callback to call asynchronously when a peer is stopped
    */
-  GNUNET_TESTING_PeerStopCallback cb;
+  GNUNET_TESTBED_PeerStopCallback cb;
 
   /**
    * The closure for the above callback
@@ -240,7 +236,7 @@ struct GNUNET_TESTING_Peer
 
   /**
    * The cached identity of this peer.  Will be populated on call to
-   * GNUNET_TESTING_peer_get_identity()
+   * GNUNET_TESTBED_peer_get_identity()
    */
   struct GNUNET_PeerIdentity *id;
 
@@ -273,7 +269,7 @@ struct GNUNET_TESTING_Peer
  * @return #GNUNET_OK on success; #GNUNET_SYSERR on error
  */
 static enum GNUNET_GenericReturnValue
-hostkeys_load (struct GNUNET_TESTING_System *system)
+hostkeys_load (struct GNUNET_TESTBED_System *system)
 {
   uint64_t fs;
   char *data_dir;
@@ -302,7 +298,7 @@ hostkeys_load (struct GNUNET_TESTING_System *system)
     GNUNET_free (filename);
     return GNUNET_SYSERR;   /* File is empty */
   }
-  if (0 != (fs % GNUNET_TESTING_HOSTKEYFILESIZE))
+  if (0 != (fs % GNUNET_TESTBED_HOSTKEYFILESIZE))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          _ ("Incorrect hostkey file format: %s\n"),
@@ -325,7 +321,7 @@ hostkeys_load (struct GNUNET_TESTING_System *system)
   GNUNET_DISK_file_close (fd);
   if (NULL == system->hostkeys_data)
     return GNUNET_SYSERR;
-  system->total_hostkeys = fs / GNUNET_TESTING_HOSTKEYFILESIZE;
+  system->total_hostkeys = fs / GNUNET_TESTBED_HOSTKEYFILESIZE;
   return GNUNET_OK;
 }
 
@@ -336,7 +332,7 @@ hostkeys_load (struct GNUNET_TESTING_System *system)
  * @param system the testing system handle
  */
 static void
-hostkeys_unload (struct GNUNET_TESTING_System *system)
+hostkeys_unload (struct GNUNET_TESTBED_System *system)
 {
   GNUNET_break (NULL != system->hostkeys_data);
   system->hostkeys_data = NULL;
@@ -375,7 +371,7 @@ cfg_copy_iterator (void *cls,
  *          all service homes; the directory will be created in a temporary
  *          location depending on the underlying OS.  This variable will be
  *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
+ *          GNUNET_TESTBED_PREFIX, if it exists.
  * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
  *          service configurations generated to allow control connections from
  *          this ip. This can either be a single ip address or a network address
@@ -388,23 +384,23 @@ cfg_copy_iterator (void *cls,
  * @param highport highest port number this system is allowed to allocate (exclusive)
  * @return handle to this system, NULL on error
  */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create_with_portrange (
+struct GNUNET_TESTBED_System *
+GNUNET_TESTBED_system_create_with_portrange (
   const char *testdir,
   const char *trusted_ip,
   const char *hostname,
-  const struct GNUNET_TESTING_SharedService *shared_services,
+  const struct GNUNET_TESTBED_SharedService *shared_services,
   uint16_t lowport,
   uint16_t highport)
 {
-  struct GNUNET_TESTING_System *system;
-  struct GNUNET_TESTING_SharedService tss;
+  struct GNUNET_TESTBED_System *system;
+  struct GNUNET_TESTBED_SharedService tss;
   struct SharedService ss;
   unsigned int cnt;
 
   GNUNET_assert (NULL != testdir);
-  system = GNUNET_new (struct GNUNET_TESTING_System);
-  if (NULL == (system->tmppath = getenv (GNUNET_TESTING_PREFIX)))
+  system = GNUNET_new (struct GNUNET_TESTBED_System);
+  if (NULL == (system->tmppath = getenv (GNUNET_TESTBED_PREFIX)))
     system->tmppath = GNUNET_DISK_mkdtemp (testdir);
   else
     system->tmppath = GNUNET_strdup (system->tmppath);
@@ -421,7 +417,7 @@ GNUNET_TESTING_system_create_with_portrange (
     system->hostname = GNUNET_strdup (hostname);
   if (GNUNET_OK != hostkeys_load (system))
   {
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return NULL;
   }
   if (NULL == shared_services)
@@ -437,7 +433,7 @@ GNUNET_TESTING_system_create_with_portrange (
                                                  &cfg_copy_iterator,
                                                  ss.cfg);
     GNUNET_CONFIGURATION_iterate_section_values (tss.cfg,
-                                                 "TESTING",
+                                                 "TESTBED",
                                                  &cfg_copy_iterator,
                                                  ss.cfg);
     GNUNET_CONFIGURATION_iterate_section_values (tss.cfg,
@@ -462,7 +458,7 @@ GNUNET_TESTING_system_create_with_portrange (
  *          service homes; the directory will be created in a temporary location
  *          depending on the underlying OS.  This variable will be
  *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
+ *          GNUNET_TESTBED_PREFIX, if it exists.
  * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
  *          service configurations generated to allow control connections from
  *          this ip. This can either be a single ip address or a network address
@@ -473,14 +469,14 @@ GNUNET_TESTING_system_create_with_portrange (
  *          be shared among peers
  * @return handle to this system, NULL on error
  */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create (
+struct GNUNET_TESTBED_System *
+GNUNET_TESTBED_system_create (
   const char *testdir,
   const char *trusted_ip,
   const char *hostname,
-  const struct GNUNET_TESTING_SharedService *shared_services)
+  const struct GNUNET_TESTBED_SharedService *shared_services)
 {
-  return GNUNET_TESTING_system_create_with_portrange (testdir,
+  return GNUNET_TESTBED_system_create_with_portrange (testdir,
                                                       trusted_ip,
                                                       hostname,
                                                       shared_services,
@@ -554,7 +550,7 @@ stop_shared_service_instance (struct SharedServiceInstance *i)
  *        be removed (clean up on shutdown)?
  */
 void
-GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_system_destroy (struct GNUNET_TESTBED_System *system,
                                int remove_paths)
 {
   struct SharedService *ss;
@@ -595,7 +591,7 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
  * @return 0 if no free port was available
  */
 uint16_t
-GNUNET_TESTING_reserve_port (struct GNUNET_TESTING_System *system)
+GNUNET_TESTBED_reserve_port (struct GNUNET_TESTBED_System *system)
 {
   struct GNUNET_NETWORK_Handle *socket;
   struct addrinfo hint;
@@ -685,13 +681,13 @@ GNUNET_TESTING_reserve_port (struct GNUNET_TESTING_System *system)
 
 /**
  * Release reservation of a TCP or UDP port for a peer
- * (used during #GNUNET_TESTING_peer_destroy()).
+ * (used during #GNUNET_TESTBED_peer_destroy()).
  *
  * @param system system to use for reservation tracking
  * @param port reserved port to release
  */
 void
-GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_release_port (struct GNUNET_TESTBED_System *system,
                              uint16_t port)
 {
   uint32_t *port_buckets;
@@ -720,7 +716,7 @@ GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
  * GNUnet source code.
  *
  * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure.
+ * by #GNUNET_TESTBED_peer_configure.
  *
  * @param system the testing system handle
  * @param key_number desired pre-created hostkey to obtain
@@ -729,7 +725,7 @@ GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
  * @return NULL on error (not enough keys)
  */
 struct GNUNET_CRYPTO_EddsaPrivateKey *
-GNUNET_TESTING_hostkey_get (const struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_hostkey_get (const struct GNUNET_TESTBED_System *system,
                             uint32_t key_number,
                             struct GNUNET_PeerIdentity *id)
 {
@@ -747,8 +743,8 @@ GNUNET_TESTING_hostkey_get (const struct GNUNET_TESTING_System *system,
   private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
   GNUNET_memcpy (private_key,
                  system->hostkeys_data
-                 + (key_number * GNUNET_TESTING_HOSTKEYFILESIZE),
-                 GNUNET_TESTING_HOSTKEYFILESIZE);
+                 + (key_number * GNUNET_TESTBED_HOSTKEYFILESIZE),
+                 GNUNET_TESTBED_HOSTKEYFILESIZE);
   GNUNET_CRYPTO_eddsa_key_get_public (private_key, &id->public_key);
   return private_key;
 }
@@ -763,7 +759,7 @@ struct UpdateContext
   /**
    * The system for which we are building configurations
    */
-  struct GNUNET_TESTING_System *system;
+  struct GNUNET_TESTBED_System *system;
 
   /**
    * The configuration we are building
@@ -833,7 +829,7 @@ update_config (void *cls,
                                                              "testing",
                                                              single_variable)))
     {
-      new_port = GNUNET_TESTING_reserve_port (uc->system);
+      new_port = GNUNET_TESTBED_reserve_port (uc->system);
       if (0 == new_port)
       {
         uc->status = GNUNET_SYSERR;
@@ -919,12 +915,12 @@ update_config_sections (void *cls, const char *section)
   /* Ignore certain options from sections.  See
      https://gnunet.org/bugs/view.php?id=2476 */
   if (GNUNET_YES ==
-      GNUNET_CONFIGURATION_have_value (uc->cfg, section, "TESTING_IGNORE_KEYS"))
+      GNUNET_CONFIGURATION_have_value (uc->cfg, section, "TESTBED_IGNORE_KEYS"))
   {
     GNUNET_assert (GNUNET_YES ==
                    GNUNET_CONFIGURATION_get_value_string (uc->cfg,
                                                           section,
-                                                          "TESTING_IGNORE_KEYS",
+                                                          "TESTBED_IGNORE_KEYS",
                                                           &val));
     ptr = val;
     for (ikeys_cnt = 0; NULL != (ptr = strstr (ptr, ";")); ikeys_cnt++)
@@ -1008,7 +1004,7 @@ update_config_sections (void *cls, const char *section)
 
 
 static struct SharedServiceInstance *
-associate_shared_service (struct GNUNET_TESTING_System *system,
+associate_shared_service (struct GNUNET_TESTBED_System *system,
                           struct SharedService *ss,
                           struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -1030,7 +1026,7 @@ associate_shared_service (struct GNUNET_TESTING_System *system,
                             ss->sname,
                             ss->n_instances);
     (void) GNUNET_asprintf (&i->unix_sock, "%s/sock", gnunet_home);
-    port = GNUNET_TESTING_reserve_port (system);
+    port = GNUNET_TESTBED_reserve_port (system);
     if (0 == port)
     {
       GNUNET_free (gnunet_home);
@@ -1090,7 +1086,7 @@ associate_shared_service (struct GNUNET_TESTING_System *system,
  * out of "*port" numbers, return #GNUNET_SYSERR.
  *
  * This is primarily a helper function used internally
- * by 'GNUNET_TESTING_peer_configure'.
+ * by 'GNUNET_TESTBED_peer_configure'.
  *
  * @param system system to use to coordinate resource usage
  * @param cfg template configuration to update
@@ -1101,7 +1097,7 @@ associate_shared_service (struct GNUNET_TESTING_System *system,
  *           be incomplete and should not be used there upon
  */
 static int
-GNUNET_TESTING_configuration_create_ (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_configuration_create_ (struct GNUNET_TESTBED_System *system,
                                       struct GNUNET_CONFIGURATION_Handle *cfg,
                                       uint16_t **ports,
                                       unsigned int *nports)
@@ -1156,7 +1152,7 @@ GNUNET_TESTING_configuration_create_ (struct GNUNET_TESTING_System *system,
  * out of "*port" numbers, return #GNUNET_SYSERR.
  *
  * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure().
+ * by #GNUNET_TESTBED_peer_configure().
  *
  * @param system system to use to coordinate resource usage
  * @param cfg template configuration to update
@@ -1164,10 +1160,10 @@ GNUNET_TESTING_configuration_create_ (struct GNUNET_TESTING_System *system,
  *           be incomplete and should not be used there upon
  */
 int
-GNUNET_TESTING_configuration_create (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_configuration_create (struct GNUNET_TESTBED_System *system,
                                      struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  return GNUNET_TESTING_configuration_create_ (system, cfg, NULL, NULL);
+  return GNUNET_TESTBED_configuration_create_ (system, cfg, NULL, NULL);
 }
 
 
@@ -1184,14 +1180,14 @@ GNUNET_TESTING_configuration_create (struct GNUNET_TESTING_System *system,
  *          can be NULL
  * @return handle to the peer, NULL on error
  */
-struct GNUNET_TESTING_Peer *
-GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
+struct GNUNET_TESTBED_Peer *
+GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
                                struct GNUNET_CONFIGURATION_Handle *cfg,
                                uint32_t key_number,
                                struct GNUNET_PeerIdentity *id,
                                char **emsg)
 {
-  struct GNUNET_TESTING_Peer *peer;
+  struct GNUNET_TESTBED_Peer *peer;
   struct GNUNET_DISK_FileHandle *fd;
   char *hostkey_filename;
   char *config_filename;
@@ -1220,7 +1216,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
   }
   pk = NULL;
   if ((NULL != id) &&
-      (NULL == (pk = GNUNET_TESTING_hostkey_get (system, key_number, id))))
+      (NULL == (pk = GNUNET_TESTBED_hostkey_get (system, key_number, id))))
   {
     GNUNET_asprintf (&emsg_,
                      _ ("Failed to initialize hostkey for peer %u\n"),
@@ -1243,7 +1239,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
     GNUNET_CONFIGURATION_remove_section (cfg, ss->sname);
   }
   if (GNUNET_OK !=
-      GNUNET_TESTING_configuration_create_ (system, cfg, &ports, &nports))
+      GNUNET_TESTBED_configuration_create_ (system, cfg, &ports, &nports))
   {
     GNUNET_asprintf (&emsg_,
                      _ ("Failed to create configuration for peer "
@@ -1269,11 +1265,11 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
     goto err_ret;
   }
   GNUNET_free (hostkey_filename);
-  if (GNUNET_TESTING_HOSTKEYFILESIZE !=
+  if (GNUNET_TESTBED_HOSTKEYFILESIZE !=
       GNUNET_DISK_file_write (fd,
                               system->hostkeys_data
-                              + (key_number * GNUNET_TESTING_HOSTKEYFILESIZE),
-                              GNUNET_TESTING_HOSTKEYFILESIZE))
+                              + (key_number * GNUNET_TESTBED_HOSTKEYFILESIZE),
+                              GNUNET_TESTBED_HOSTKEYFILESIZE))
   {
     GNUNET_asprintf (&emsg_,
                      _ ("Failed to write hostkey file for peer %u: %s\n"),
@@ -1311,7 +1307,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
     GNUNET_free (config_filename);
     goto err_ret;
   }
-  peer = GNUNET_new (struct GNUNET_TESTING_Peer);
+  peer = GNUNET_new (struct GNUNET_TESTBED_Peer);
   peer->ss_instances = ss_instances;
   peer->cfgfile = config_filename; /* Free in peer_destroy */
   peer->cfg = GNUNET_CONFIGURATION_dup (cfg);
@@ -1356,7 +1352,7 @@ err_ret:
  * @param id identifier for the daemon, will be set
  */
 void
-GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
+GNUNET_TESTBED_peer_get_identity (struct GNUNET_TESTBED_Peer *peer,
                                   struct GNUNET_PeerIdentity *id)
 {
   if (NULL != peer->id)
@@ -1366,7 +1362,7 @@ GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
   }
   peer->id = GNUNET_new (struct GNUNET_PeerIdentity);
   GNUNET_free_nz (
-    GNUNET_TESTING_hostkey_get (peer->system, peer->key_number, peer->id));
+    GNUNET_TESTBED_hostkey_get (peer->system, peer->key_number, peer->id));
   GNUNET_memcpy (id, peer->id, sizeof(struct GNUNET_PeerIdentity));
 }
 
@@ -1378,7 +1374,7 @@ GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error (i.e. peer already running)
  */
 int
-GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_start (struct GNUNET_TESTBED_Peer *peer)
 {
   struct SharedServiceInstance *i;
   unsigned int cnt;
@@ -1427,7 +1423,7 @@ GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer)
  *           or upon any error while sending SIGTERM
  */
 int
-GNUNET_TESTING_peer_kill (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_kill (struct GNUNET_TESTBED_Peer *peer)
 {
   struct SharedServiceInstance *i;
   unsigned int cnt;
@@ -1459,7 +1455,7 @@ GNUNET_TESTING_peer_kill (struct GNUNET_TESTING_Peer *peer)
  *           or upon any error while waiting
  */
 int
-GNUNET_TESTING_peer_wait (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_wait (struct GNUNET_TESTBED_Peer *peer)
 {
   int ret;
 
@@ -1482,11 +1478,11 @@ GNUNET_TESTING_peer_wait (struct GNUNET_TESTING_Peer *peer)
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 int
-GNUNET_TESTING_peer_stop (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_stop (struct GNUNET_TESTBED_Peer *peer)
 {
-  if (GNUNET_SYSERR == GNUNET_TESTING_peer_kill (peer))
+  if (GNUNET_SYSERR == GNUNET_TESTBED_peer_kill (peer))
     return GNUNET_SYSERR;
-  if (GNUNET_SYSERR == GNUNET_TESTING_peer_wait (peer))
+  if (GNUNET_SYSERR == GNUNET_TESTBED_peer_wait (peer))
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
@@ -1502,7 +1498,7 @@ GNUNET_TESTING_peer_stop (struct GNUNET_TESTING_Peer *peer)
 static void
 disconn_status (void *cls, int connected)
 {
-  struct GNUNET_TESTING_Peer *peer = cls;
+  struct GNUNET_TESTBED_Peer *peer = cls;
 
   if (GNUNET_SYSERR == connected)
   {
@@ -1511,10 +1507,10 @@ disconn_status (void *cls, int connected)
   }
   if (GNUNET_YES == connected)
   {
-    GNUNET_break (GNUNET_OK == GNUNET_TESTING_peer_kill (peer));
+    GNUNET_break (GNUNET_OK == GNUNET_TESTBED_peer_kill (peer));
     return;
   }
-  GNUNET_break (GNUNET_OK == GNUNET_TESTING_peer_wait (peer));
+  GNUNET_break (GNUNET_OK == GNUNET_TESTBED_peer_wait (peer));
   GNUNET_ARM_disconnect (peer->ah);
   peer->ah = NULL;
   peer->cb (peer->cb_cls, peer, GNUNET_YES);
@@ -1522,8 +1518,8 @@ disconn_status (void *cls, int connected)
 
 
 int
-GNUNET_TESTING_peer_stop_async (struct GNUNET_TESTING_Peer *peer,
-                                GNUNET_TESTING_PeerStopCallback cb,
+GNUNET_TESTBED_peer_stop_async (struct GNUNET_TESTBED_Peer *peer,
+                                GNUNET_TESTBED_PeerStopCallback cb,
                                 void *cb_cls)
 {
   if (NULL == peer->main_process)
@@ -1539,15 +1535,15 @@ GNUNET_TESTING_peer_stop_async (struct GNUNET_TESTING_Peer *peer,
 
 /**
  * Cancel a previous asynchronous peer stop request.
- * GNUNET_TESTING_peer_stop_async() should have been called before on the given
+ * GNUNET_TESTBED_peer_stop_async() should have been called before on the given
  * peer.  It is an error to call this function if the peer stop callback was
  * already called
  *
- * @param peer the peer on which GNUNET_TESTING_peer_stop_async() was called
+ * @param peer the peer on which GNUNET_TESTBED_peer_stop_async() was called
  *          before.
  */
 void
-GNUNET_TESTING_peer_stop_async_cancel (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_stop_async_cancel (struct GNUNET_TESTBED_Peer *peer)
 {
   GNUNET_assert (NULL != peer->ah);
   GNUNET_ARM_disconnect (peer->ah);
@@ -1563,12 +1559,12 @@ GNUNET_TESTING_peer_stop_async_cancel (struct GNUNET_TESTING_Peer *peer)
  * @param peer peer to destroy
  */
 void
-GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer)
+GNUNET_TESTBED_peer_destroy (struct GNUNET_TESTBED_Peer *peer)
 {
   unsigned int cnt;
 
   if (NULL != peer->main_process)
-    GNUNET_TESTING_peer_stop (peer);
+    GNUNET_TESTBED_peer_stop (peer);
   if (NULL != peer->ah)
     GNUNET_ARM_disconnect (peer->ah);
   GNUNET_free (peer->cfgfile);
@@ -1581,7 +1577,7 @@ GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer)
   if (NULL != peer->ports)
   {
     for (cnt = 0; cnt < peer->nports; cnt++)
-      GNUNET_TESTING_release_port (peer->system, peer->ports[cnt]);
+      GNUNET_TESTBED_release_port (peer->system, peer->ports[cnt]);
     GNUNET_free (peer->ports);
   }
   GNUNET_free (peer);
@@ -1589,12 +1585,12 @@ GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer)
 
 
 int
-GNUNET_TESTING_peer_run (const char *testdir,
+GNUNET_TESTBED_peer_run (const char *testdir,
                          const char *cfgfilename,
-                         GNUNET_TESTING_TestMain tm,
+                         GNUNET_TESTBED_TestMain tm,
                          void *tm_cls)
 {
-  return GNUNET_TESTING_service_run (testdir, "arm", cfgfilename, tm, tm_cls);
+  return GNUNET_TESTBED_service_run (testdir, "arm", cfgfilename, tm, tm_cls);
 }
 
 
@@ -1611,12 +1607,12 @@ struct ServiceContext
   /**
    * Callback to signal service startup
    */
-  GNUNET_TESTING_TestMain tm;
+  GNUNET_TESTBED_TestMain tm;
 
   /**
    * The peer in which the service is run.
    */
-  struct GNUNET_TESTING_Peer *peer;
+  struct GNUNET_TESTBED_Peer *peer;
 
   /**
    * Closure for the above callback
@@ -1640,21 +1636,21 @@ service_run_main (void *cls)
 
 
 int
-GNUNET_TESTING_service_run (const char *testdir,
+GNUNET_TESTBED_service_run (const char *testdir,
                             const char *service_name,
                             const char *cfgfilename,
-                            GNUNET_TESTING_TestMain tm,
+                            GNUNET_TESTBED_TestMain tm,
                             void *tm_cls)
 {
   struct ServiceContext sc;
-  struct GNUNET_TESTING_System *system;
-  struct GNUNET_TESTING_Peer *peer;
+  struct GNUNET_TESTBED_System *system;
+  struct GNUNET_TESTBED_Peer *peer;
   struct GNUNET_CONFIGURATION_Handle *cfg;
   char *binary;
   char *libexec_binary;
 
   GNUNET_log_setup (testdir, "WARNING", NULL);
-  system = GNUNET_TESTING_system_create (testdir, "127.0.0.1", NULL, NULL);
+  system = GNUNET_TESTBED_system_create (testdir, "127.0.0.1", NULL, NULL);
   if (NULL == system)
     return 1;
   cfg = GNUNET_CONFIGURATION_create ();
@@ -1664,15 +1660,15 @@ GNUNET_TESTING_service_run (const char *testdir,
          _ ("Failed to load configuration from %s\n"),
          cfgfilename);
     GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return 1;
   }
-  peer = GNUNET_TESTING_peer_configure (system, cfg, 0, NULL, NULL);
+  peer = GNUNET_TESTBED_peer_configure (system, cfg, 0, NULL, NULL);
   if (NULL == peer)
   {
     GNUNET_CONFIGURATION_destroy (cfg);
     hostkeys_unload (system);
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return 1;
   }
   GNUNET_free (peer->main_binary);
@@ -1694,11 +1690,11 @@ GNUNET_TESTING_service_run (const char *testdir,
 
   GNUNET_free (libexec_binary);
   GNUNET_free (binary);
-  if (GNUNET_OK != GNUNET_TESTING_peer_start (peer))
+  if (GNUNET_OK != GNUNET_TESTBED_peer_start (peer))
   {
-    GNUNET_TESTING_peer_destroy (peer);
+    GNUNET_TESTBED_peer_destroy (peer);
     GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return 1;
   }
   sc.cfg = cfg;
@@ -1707,1135 +1703,23 @@ GNUNET_TESTING_service_run (const char *testdir,
   sc.peer = peer;
   GNUNET_SCHEDULER_run (&service_run_main, &sc);  /* Scheduler loop */
   if ((NULL != peer->main_process) &&
-      (GNUNET_OK != GNUNET_TESTING_peer_stop (peer)))
+      (GNUNET_OK != GNUNET_TESTBED_peer_stop (peer)))
   {
-    GNUNET_TESTING_peer_destroy (peer);
+    GNUNET_TESTBED_peer_destroy (peer);
     GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return 1;
   }
-  GNUNET_TESTING_peer_destroy (peer);
+  GNUNET_TESTBED_peer_destroy (peer);
   GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+  GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
   return 0;
 }
 
 
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. An integer value seperated
- * by ':' is returned by this function.
- *
- * @param line The line of configuration.
- * @return An integer value.
- */
-static unsigned int
-get_first_value (const char *line)
-{
-  char *copy;
-  size_t slen;
-  char *token;
-  unsigned int ret;
-  char *rest = NULL;
-
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  GNUNET_assert (1 == sscanf (token, "%u", &ret));
-  GNUNET_free (copy);
-  return ret;
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. This string is returned by this function.
- *
- * @param line The line of configuration.
- * @return The leading string of this configuration line.
- */
-static char *
-get_key (const char *line)
-{
-  char *copy;
-  size_t slen;
-  size_t tlen;
-  char *token;
-  char *ret;
-  char *rest = NULL;
-
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  tlen = strlen (token) + 1;
-  ret = GNUNET_malloc (tlen);
-  memcpy (ret, token, tlen);
-  GNUNET_free (copy);
-  return ret;
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A string value seperated
- * by ':' is returned by this function.
- *
- * @param line The line of configuration.
- * @return A string value.
- */
-static char *
-get_first_string_value (const char *line)
-{
-  char *copy;
-  size_t slen, slen_token;
-  char *token;
-  char *ret;
-  char *rest = NULL;
-
-  slen = strlen (line) + 1;
-  copy = GNUNET_malloc (slen);
-  memcpy (copy, line, slen);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "first token %s\n",
-       token);
-  slen_token = strlen (token);
-  ret = GNUNET_malloc (slen_token + 1);
-  memcpy (ret, token, slen_token + 1);
-  GNUNET_free (copy);
-  return ret;
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A second integer value
- * seperated by ':' from a first value is returned by this function.
- *
- * @param line The line of configuration.
- * @return An integer value.
- */
-static unsigned int
-get_second_value (const char *line)
-{
-  char *copy;
-  char *token;
-  unsigned int ret;
-  char *rest = NULL;
-
-  copy = GNUNET_strdup (line);
-  token = strtok_r (copy, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  token = strtok_r (NULL, ":", &rest);
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Format error in configuration line: %s\n",
-       line);
-  GNUNET_assert (1 == sscanf (token, "%u", &ret));
-  GNUNET_free (copy);
-  return ret;
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
- * a key value pair.
- * This function returns the value for a specific key in a configuration line.
- *
- * @param key The key of the key value pair.
- * @return The value of the key value pair.
- */
-static char *
-get_value (const char *key, const char *line)
-{
-  char copy[strlen (line) + 1];
-  size_t slen;
-  char *token;
-  char *token2;
-  char *temp;
-  char *rest = NULL;
-
-  slen = strlen (line) + 1;
-  memcpy (copy, line, slen);
-  temp = strstr (copy, key);
-  if (NULL == temp)
-    return NULL;
-  token = strtok_r (temp, ":", &rest);
-  if (NULL == token)
-    return NULL;
-  token = strtok_r (NULL, ":", &rest);
-  if (NULL == token)
-    return NULL;
-  token2 = strtok_r (token, "}", &rest);
-  if (NULL == token2)
-    return NULL;
-  return GNUNET_strdup (token2);
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
- * a key value pair. A special key is the 'connect' key which can appear more than once.
- * The value is the information about a connection via some protocol to some other node.
- * This function returns the struct GNUNET_TESTING_NodeConnection which holds the information
- * of the connect value.
- *
- * @param value The value of the connect key value pair.
- * @return The struct GNUNET_TESTING_NodeConnection.
- */
-static struct GNUNET_TESTING_NodeConnection *
-get_connect_value (const char *line,
-                   struct GNUNET_TESTING_NetjailNode *node)
-{
-  struct GNUNET_TESTING_NodeConnection *node_connection;
-  char *copy;
-  char *token;
-  char *token2;
-  unsigned int node_n;
-  unsigned int namespace_n;
-  char *rest = NULL;
-  char *rest2 = NULL;
-  struct GNUNET_TESTING_AddressPrefix *prefix;
-  unsigned int sscanf_ret;
-
-  node_connection = GNUNET_new (struct GNUNET_TESTING_NodeConnection);
-  node_connection->node = node;
-
-  copy = GNUNET_strdup (line);
-  token = strtok_r (copy, ":", &rest);
-  if (0 == strcmp ("{K", token))
-  {
-    node_connection->node_type = GNUNET_TESTING_GLOBAL_NODE;
-    token = strtok_r (NULL, ":", &rest);
-    GNUNET_assert (1 == sscanf (token, "%u", &node_n));
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "node_n %u\n",
-         node_n);
-    node_connection->node_n = node_n;
-    node_connection->namespace_n = 0;
-  }
-  else if (0 == strcmp ("{P", token))
-  {
-    node_connection->node_type = GNUNET_TESTING_SUBNET_NODE;
-    token = strtok_r (NULL, ":", &rest);
-    errno = 0;
-    sscanf_ret = sscanf (token, "%u", &namespace_n);
-    if (errno != 0)
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
-    }
-    GNUNET_assert (0 < sscanf_ret);
-    node_connection->namespace_n = namespace_n;
-    token = strtok_r (NULL, ":", &rest);
-    errno = 0;
-    sscanf_ret = sscanf (token, "%u", &node_n);
-    if (errno != 0)
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
-    }
-    GNUNET_assert (0 < sscanf_ret);
-    node_connection->node_n = node_n;
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "node_n %u namespace_n %u node->node_n %u node->namespace_n %u\n",
-         node_n,
-         namespace_n,
-         node->node_n,
-         node->namespace_n);
-  }
-  else
-  {
-    GNUNET_break (0);
-    GNUNET_free (node_connection);
-    GNUNET_free (copy);
-    return NULL;
-  }
-
-  while (NULL != (token = strtok_r (NULL, ":", &rest)))
-  {
-    prefix = GNUNET_new (struct GNUNET_TESTING_AddressPrefix);
-    token2 = strtok_r (token, "}", &rest2);
-    if (NULL != token2)
-      prefix->address_prefix = GNUNET_strdup (token2);
-    else
-      prefix->address_prefix = GNUNET_strdup (token);
-
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "address_prefix %s\n",
-         prefix->address_prefix);
-
-    GNUNET_CONTAINER_DLL_insert (node_connection->address_prefixes_head,
-                                 node_connection->address_prefixes_tail,
-                                 prefix);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "address_prefix %s\n",
-         prefix->address_prefix);
-  }
-
-  GNUNET_free (copy);
-  return node_connection;
-}
-
-
-/**
- * Every line in the topology configuration starts with a string indicating which
- * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
- * a key value pair. A special key is the 'connect' key.
- * The value is the information about a connections via some protocol to other nodes.
- * Each connection itself is a key value pair separated by the character '|' and
- * surrounded by the characters '{' and '}'.
- * The struct GNUNET_TESTING_NodeConnection holds the information of each connection value.
- * This function extracts the values of each connection into a DLL of
- * struct GNUNET_TESTING_NodeConnection which will be added to a node.
- *
- * @param line The line of configuration.
- * @param node The struct GNUNET_TESTING_NetjailNode to which the DLL of
- *             struct GNUNET_TESTING_NodeConnection will be added.
- */
-static void
-node_connections (const char *line, struct GNUNET_TESTING_NetjailNode *node)
-{
-  char *value, *value2;
-  char *temp;
-  char *copy;
-  char *rest = NULL;
-  char *rest2 = NULL;
-  struct GNUNET_TESTING_NodeConnection *node_connection;
-
-
-  temp = strstr (line, "connect");
-  if (NULL != temp)
-  {
-    copy = GNUNET_strdup (temp);
-    strtok_r (copy, ":", &rest);
-    value = strtok_r (rest, "|", &rest2);
-
-    while (NULL != value)
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "node_connections value %s\n",
-           value);
-      node_connection = get_connect_value (value, node);
-      if (NULL == node_connection)
-      {
-        LOG (GNUNET_ERROR_TYPE_WARNING,
-             "connect key was not expected in this configuration line: %s\n",
-             line);
-        break;
-      }
-      GNUNET_CONTAINER_DLL_insert (node->node_connections_head,
-                                   node->node_connections_tail,
-                                   node_connection);
-      value2 = strstr (value, "}}");
-      if (NULL != value2)
-        break;
-      value = strtok_r (NULL, "|", &rest2);
-
-    }
-    GNUNET_free (copy);
-  }
-}
-
-
-/**
- * A helper function to log information about individual nodes.
- *
- * @param cls This is not used actually.
- * @param id The key of this value in the map.
- * @param value A struct GNUNET_TESTING_NetjailNode which holds information about a node.
- * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
- */
-static int
-log_nodes (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
-{
-  struct GNUNET_TESTING_NetjailNode *node = value;
-  struct GNUNET_TESTING_NodeConnection *pos_connection;
-  struct GNUNET_TESTING_AddressPrefix *pos_prefix;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "plugin: %s space: %u node: %u global: %u\n",
-       node->plugin,
-       node->namespace_n,
-       node->node_n,
-       node->is_global);
-
-  for (pos_connection = node->node_connections_head; NULL != pos_connection;
-       pos_connection = pos_connection->next)
-  {
-
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "namespace_n: %u node_n: %u node_type: %u\n",
-         pos_connection->namespace_n,
-         pos_connection->node_n,
-         pos_connection->node_type);
-
-    for (pos_prefix = pos_connection->address_prefixes_head; NULL != pos_prefix;
-         pos_prefix =
-           pos_prefix->next)
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "prefix: %s\n",
-           pos_prefix->address_prefix);
-    }
-  }
-  return GNUNET_YES;
-}
-
-
-/**
- * Helper function to log information about namespaces.
- *
- * @param cls This is not used actually.
- * @param id The key of this value in the map.
- * @param value A struct GNUNET_TESTING_NetjailNamespace which holds information about a subnet.
- * return GNUNET_YES to continue with iterating, GNUNET_NO otherwise.
- */
-static int
-log_namespaces (void *cls, const struct GNUNET_ShortHashCode *id, void *value)
-{
-  struct GNUNET_TESTING_NetjailNamespace *namespace = value;
-
-  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, &log_nodes, NULL);
-  return GNUNET_YES;
-}
-
-
-/**
- * Helper function to log the configuration in case of a problem with configuration.
- *
- * @param topology The struct GNUNET_TESTING_NetjailTopology holding the configuration information.
- */
-static int
-log_topo (const struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "plugin: %s spaces: %u nodes: %u known: %u\n",
-       topology->plugin,
-       topology->namespaces_n,
-       topology->nodes_m,
-       topology->nodes_x);
-
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
-                                          log_namespaces, NULL);
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, &log_nodes,
-                                          NULL);
-  return GNUNET_YES;
-}
-
-
-/**
- * This function extracts information about a specific node from the topology.
- *
- * @param num The global index number of the node.
- * @param[out] node_ex A struct GNUNET_TESTING_NetjailNode with information about the node.
- * @param[out] namespace_ex A struct GNUNET_TESTING_NetjailNamespace with information about the namespace
-               the node is in or NULL, if the node is a global node.
- * @param[out] node_connections_ex A struct GNUNET_TESTING_NodeConnection with information about the connection
-               of this node to other nodes.
-*/
-static void
-get_node_info (unsigned int num,
-               const struct GNUNET_TESTING_NetjailTopology *topology,
-               struct GNUNET_TESTING_NetjailNode **node_ex,
-               struct GNUNET_TESTING_NetjailNamespace **namespace_ex,
-               struct GNUNET_TESTING_NodeConnection **node_connections_ex)
-{
-  struct GNUNET_ShortHashCode hkey;
-  struct GNUNET_HashCode hc;
-  unsigned int namespace_n;
-  unsigned int node_m;
-  struct GNUNET_TESTING_NetjailNode *node;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_TESTING_NodeConnection *node_connections = NULL;
-
-  log_topo (topology);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "num: %u \n",
-       num);
-  if (topology->nodes_x >= num)
-  {
-
-    GNUNET_CRYPTO_hash (&num, sizeof(num), &hc);
-    memcpy (&hkey,
-            &hc,
-            sizeof (hkey));
-    node = GNUNET_CONTAINER_multishortmap_get (topology->map_globals,
-                                               &hkey);
-    if (NULL != node)
-    {
-      *node_ex = node;
-      *node_connections_ex = node->node_connections_head;
-    }
-  }
-  else
-  {
-    namespace_n = (unsigned int) ceil ((double) (num - topology->nodes_x)
-                                       / topology->nodes_m);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "ceil num: %u nodes_x: %u nodes_m: %u namespace_n: %u\n",
-         num,
-         topology->nodes_x,
-         topology->nodes_m,
-         namespace_n);
-    GNUNET_CRYPTO_hash (&namespace_n, sizeof(namespace_n), &hc);
-    memcpy (&hkey,
-            &hc,
-            sizeof (hkey));
-    namespace = GNUNET_CONTAINER_multishortmap_get (topology->map_namespaces,
-                                                    &hkey);
-    if (NULL != namespace)
-    {
-      node_m = num - topology->nodes_x - topology->nodes_m * (namespace_n - 1);
-      GNUNET_CRYPTO_hash (&node_m, sizeof(node_m), &hc);
-      memcpy (&hkey,
-              &hc,
-              sizeof (hkey));
-      node = GNUNET_CONTAINER_multishortmap_get (namespace->nodes,
-                                                 &hkey);
-      if (NULL != node)
-      {
-        LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "node additional_connects: %u %p\n",
-             node->additional_connects,
-             node);
-        node_connections = node->node_connections_head;
-      }
-      *node_ex = node;
-      *namespace_ex = namespace;
-      *node_connections_ex = node_connections;
-    }
-  }
-}
-
-
-/**
- * Get a node from the topology.
- *
- * @param num The specific node we want the connections for.
- * @param topology The topology we get the connections from.
- * @return The connections of the node.
- */
-struct GNUNET_TESTING_NetjailNode *
-GNUNET_TESTING_get_node (unsigned int num,
-                         struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_TESTING_NodeConnection *node_connections;
-
-  get_node_info (num, topology, &node, &namespace, &node_connections);
-
-  return node;
-
-}
-
-
-/**
- * Get the connections to other nodes for a specific node.
- *
- * @param num The specific node we want the connections for.
- * @param topology The topology we get the connections from.
- * @return The connections of the node.
- */
-struct GNUNET_TESTING_NodeConnection *
-GNUNET_TESTING_get_connections (unsigned int num,
-                                const struct
-                                GNUNET_TESTING_NetjailTopology *topology)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_TESTING_NodeConnection *node_connections;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "get_connections\n");
-
-  get_node_info (num, topology, &node, &namespace, &node_connections);
-
-  return node_connections;
-}
-
-
-/**
- * Retrieve the peer identity from the test system with the unique node id.
- *
- * @param num The unique node id.
- * @param tl_system The test system.
- * @return The peer identity wrapping the public key.
- */
-struct GNUNET_PeerIdentity *
-GNUNET_TESTING_get_peer (unsigned int num,
-                         const struct GNUNET_TESTING_System *tl_system)
-{
-  struct GNUNET_PeerIdentity *peer = GNUNET_new (struct GNUNET_PeerIdentity);
-  struct GNUNET_CRYPTO_EddsaPrivateKey *priv_key;
-
-  priv_key = GNUNET_TESTING_hostkey_get (tl_system,
-                                         num,
-                                         peer);
-
-  GNUNET_CRYPTO_eddsa_key_get_public (priv_key,
-                                      &peer->public_key);
-  GNUNET_free (priv_key);
-  return peer;
-}
-
-
-int
-free_nodes_cb (void *cls,
-               const struct GNUNET_ShortHashCode *key,
-               void *value)
-{
-  (void) cls;
-  struct GNUNET_TESTING_NetjailNode *node = value;
-  struct GNUNET_TESTING_NodeConnection *pos_connection;
-  struct GNUNET_TESTING_AddressPrefix *pos_prefix;
-
-  while (NULL != (pos_connection = node->node_connections_head))
-  {
-    while (NULL != (pos_prefix = pos_connection->address_prefixes_head))
-    {
-      GNUNET_CONTAINER_DLL_remove (pos_connection->address_prefixes_head,
-                                   pos_connection->address_prefixes_tail,
-                                   pos_prefix);
-      GNUNET_free (pos_prefix->address_prefix);
-      GNUNET_free (pos_prefix);
-    }
-    GNUNET_CONTAINER_DLL_remove (node->node_connections_head,
-                                 node->node_connections_tail,
-                                 pos_connection);
-    GNUNET_free (pos_connection);
-  }
-
-  GNUNET_free (node->plugin);
-  GNUNET_free (node);
-  return GNUNET_OK;
-}
-
-
-int
-free_namespaces_cb (void *cls,
-                    const struct GNUNET_ShortHashCode *key,
-                    void *value)
-{
-  (void) cls;
-  struct GNUNET_TESTING_NetjailNamespace *namespace = value;
-
-  GNUNET_free (namespace->router);
-  GNUNET_CONTAINER_multishortmap_iterate (namespace->nodes, free_nodes_cb,
-                                          namespace->nodes);
-  return GNUNET_OK;
-
-}
-
-
-/**
- * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
- *
- * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
- */
-void
-GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_namespaces,
-                                          free_namespaces_cb, NULL);
-  GNUNET_CONTAINER_multishortmap_destroy (topology->map_namespaces);
-  GNUNET_CONTAINER_multishortmap_iterate (topology->map_globals, free_nodes_cb,
-                                          NULL);
-  GNUNET_CONTAINER_multishortmap_destroy (topology->map_globals);
-  GNUNET_free (topology->plugin);
-  GNUNET_free (topology);
-}
-
-
-unsigned int
-GNUNET_TESTING_calculate_num (
-  struct GNUNET_TESTING_NodeConnection *node_connection,
-  struct GNUNET_TESTING_NetjailTopology *topology)
-{
-  unsigned int n, m, num;
-
-  n = node_connection->namespace_n;
-  m = node_connection->node_n;
-
-  if (0 == n)
-    num = m;
-  else
-    num = (n - 1) * topology->nodes_m + m + topology->nodes_x;
-
-  return num;
-}
-
-
-/**
- * Get the address for a specific communicator from a connection.
- *
- * @param connection The connection we like to have the address from.
- * @param prefix The communicator protocol prefix.
- * @return The address of the communicator.
- */
-char *
-GNUNET_TESTING_get_address (struct GNUNET_TESTING_NodeConnection *connection,
-                            const char *prefix)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  char *addr;
-  char *template;
-  unsigned int node_n;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "get address prefix: %s node_n: %u\n",
-       prefix,
-       connection->node_n);
-
-  node = connection->node;
-  if (connection->namespace_n == node->namespace_n)
-  {
-    template = CONNECT_ADDRESS_TEMPLATE;
-    node_n = connection->node_n;
-  }
-  else if (0 == connection->namespace_n)
-  {
-    template = KNOWN_CONNECT_ADDRESS_TEMPLATE;
-    node_n = connection->node_n;
-  }
-  else if (1 == connection->node_n)
-  {
-    template = ROUTER_CONNECT_ADDRESS_TEMPLATE;
-    node_n = connection->namespace_n;
-  }
-  else
-  {
-    return NULL;
-  }
-
-  if (0 == strcmp (PREFIX_TCP, prefix) ||
-      0 == strcmp (PREFIX_UDP, prefix) ||
-      0 == strcmp (PREFIX_UDP_NATTED, prefix) ||
-      0 == strcmp (PREFIX_TCP_NATTED, prefix))
-  {
-    GNUNET_asprintf (&addr,
-                     template,
-                     prefix,
-                     node_n);
-  }
-  else
-  {
-    GNUNET_assert (0);
-  }
-
-  return addr;
-}
-
-
-/**
- * Get the number of unintentional additional connections the node waits for.
- *
- * @param num The specific node we want the additional connects for.
- * @return The number of additional connects
- */
-unsigned int
-GNUNET_TESTING_get_additional_connects (unsigned int num,
-                                        struct GNUNET_TESTING_NetjailTopology *
-                                        topology)
-{
-  struct GNUNET_TESTING_NetjailNode *node;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_TESTING_NodeConnection *node_connections;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "get_additional_connects\n");
-
-  get_node_info (num, topology, &node, &namespace, &node_connections);
-
-  if (NULL == node)
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "No info found for node %d\n", num);
-    return 0;
-  }
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "node additional_connects for node %p\n",
-       node);
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "node additional_connects: %u\n",
-       node->additional_connects);
-
-  return node->additional_connects;
-}
-
-
-static void
-parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
-{
-  char *ac_value;
-  int ret;
-
-  ac_value = get_value ("AC", token);
-  if (NULL != ac_value)
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "ac value: %s\n",
-         ac_value);
-    errno = 0;
-    ret = sscanf (ac_value, "%u", &p_node->additional_connects);
-    if (errno != 0)
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
-    }
-    GNUNET_assert (0 < ret);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "AC %u\n",
-         p_node->additional_connects);
-  }
-  else
-  {
-    p_node->additional_connects = 0;
-  }
-  GNUNET_free (ac_value);
-}
-
-
-/**
- * Parse the topology data.
- *
- * @param data The topology data.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_string (const char *input)
-{
-  char *token;
-  char *key = NULL;
-  unsigned int out;
-  char *rest = NULL;
-  char *value = NULL;
-  char *value2;
-  char *data;
-  int ret;
-  struct GNUNET_TESTING_NetjailTopology *topo;
-  struct GNUNET_TESTING_NetjailRouter *router;
-  struct GNUNET_TESTING_NetjailNamespace *namespace;
-  struct GNUNET_HashCode hc;
-
-  data = GNUNET_strdup (input);
-  token = strtok_r (data, "\n", &rest);
-  topo = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
-  topo->map_namespaces =
-    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-  topo->map_globals =
-    GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-
-  while (NULL != token)
-  {
-    if (NULL != key)
-      GNUNET_free (key);
-    key = get_key (token);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "In the loop with token: %s beginning with %s\n",
-         token,
-         key);
-    if (0 == strcmp (key, "M"))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for M.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "M: %u\n",
-           out);
-      topo->nodes_m = out;
-    }
-    else if (0 == strcmp (key, "N"))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for N.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "N: %u\n",
-           out);
-      topo->namespaces_n = out;
-    }
-    else if (0 == strcmp (key, "X"))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for X.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "X: %u\n",
-           out);
-      topo->nodes_x = out;
-    }
-    else if (0 == strcmp (key, "AC"))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for AC.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "AC: %u\n",
-           out);
-      topo->additional_connects = out;
-    }
-    else if (0 == strcmp (key, "T"))
-    {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first string value for T.\n");
-      value = get_first_string_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "value: %s\n",
-           value);
-      topo->plugin = value;
-    }
-    else if (0 == strcmp (key, "K"))
-    {
-      struct GNUNET_ShortHashCode hkey_k;
-      struct GNUNET_TESTING_NetjailNode *k_node = GNUNET_new (struct
-                                                              GNUNET_TESTING_NetjailNode);
-
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for K.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "K: %u\n",
-           out);
-      k_node->node_n = out;
-      GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (&hkey_k,
-              &hc,
-              sizeof (hkey_k));
-      k_node->is_global = GNUNET_YES;
-
-      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
-            topo->map_globals,
-            &hkey_k))
-        GNUNET_break (0);
-      else
-        GNUNET_CONTAINER_multishortmap_put (topo->map_globals,
-                                            &hkey_k,
-                                            k_node,
-                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get value for key value on K.\n");
-      value = get_value ("plugin", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "value: %s\n",
-           value);
-      k_node->plugin = value;
-      parse_ac (k_node, token);
-      node_connections (token, k_node);
-      GNUNET_free (value);
-    }
-    else if (0 == strcmp (key, "R"))
-    {
-      struct GNUNET_ShortHashCode hkey_r;
-      router = GNUNET_new (struct GNUNET_TESTING_NetjailRouter);
-
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for R.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "R: %u\n",
-           out);
-      GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (&hkey_r,
-              &hc,
-              sizeof (hkey_r));
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get value for key tcp_port on R.\n");
-      value = get_value ("tcp_port", token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "tcp_port: %s\n",
-           value);
-      ret = sscanf (value, "%u", &(router->tcp_port));
-      GNUNET_free (value);
-      GNUNET_break (0 != ret && 1 >= router->tcp_port);
-
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get value for key udp_port on R.\n");
-      value2 = get_value ("udp_port", token);
-      ret = sscanf (value2, "%u", &(router->udp_port));
-      GNUNET_free (value2);
-      GNUNET_break (0 != ret && 1 >= router->udp_port);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "udp_port: %s\n",
-           value2);
-      GNUNET_free (value2);
-      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
-            topo->map_namespaces,
-            &hkey_r))
-      {
-        namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
-                                                        &hkey_r);
-      }
-      else
-      {
-        namespace = GNUNET_new (struct GNUNET_TESTING_NetjailNamespace);
-        namespace->namespace_n = out;
-        namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-        GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
-                                            &hkey_r,
-                                            namespace,
-                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-      }
-      namespace->router = router;
-
-    }
-    else if (0 == strcmp (key, "P"))
-    {
-      struct GNUNET_TESTING_NetjailNode *p_node = GNUNET_new (struct
-                                                              GNUNET_TESTING_NetjailNode);
-      struct GNUNET_ShortHashCode hkey_p;
-
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get first Value for P.\n");
-      out = get_first_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "P: %u\n",
-           out);
-      GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (&hkey_p,
-              &hc,
-              sizeof (hkey_p));
-
-      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
-            topo->map_namespaces,
-            &hkey_p))
-      {
-        namespace = GNUNET_CONTAINER_multishortmap_get (topo->map_namespaces,
-                                                        &hkey_p);
-      }
-      else
-      {
-        namespace = GNUNET_new (struct GNUNET_TESTING_NetjailNamespace);
-        namespace->nodes = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-        namespace->namespace_n = out;
-        GNUNET_CONTAINER_multishortmap_put (topo->map_namespaces,
-                                            &hkey_p,
-                                            namespace,
-                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-      }
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get second Value for P.\n");
-      out = get_second_value (token);
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "P: %u\n",
-           out);
-      GNUNET_CRYPTO_hash (&out, sizeof(out), &hc);
-      memcpy (&hkey_p,
-              &hc,
-              sizeof (hkey_p));
-      if (GNUNET_YES == GNUNET_CONTAINER_multishortmap_contains (
-            namespace->nodes,
-            &hkey_p))
-      {
-        GNUNET_break (0);
-      }
-      else
-      {
-
-        GNUNET_CONTAINER_multishortmap_put (namespace->nodes,
-                                            &hkey_p,
-                                            p_node,
-                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
-        LOG (GNUNET_ERROR_TYPE_DEBUG,
-             "Get value for key plugin on P.\n");
-        value = get_value ("plugin", token);
-        if (NULL != value)
-        {
-          LOG (GNUNET_ERROR_TYPE_DEBUG,
-               "plugin: %s\n",
-               value);
-          p_node->plugin = value;
-        }
-        p_node->node_n = out;
-        p_node->namespace_n = namespace->namespace_n;
-      }
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Get AC Value for P.\n");
-      parse_ac (p_node, token);
-      node_connections (token, p_node);
-    }
-    token = strtok_r (NULL, "\n", &rest);
-    if (NULL != token)
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Next token %s\n",
-           token);
-  }
-  if (NULL != key)
-    GNUNET_free (key);
-  GNUNET_free (data);
-  return topo;
-}
-
-
-char *
-GNUNET_TESTING_get_topo_string_from_file (const char *filename)
-{
-  uint64_t fs;
-  char *data;
-
-  if (GNUNET_YES != GNUNET_DISK_file_test (filename))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s not found\n"),
-         filename);
-    return NULL;
-  }
-  if (GNUNET_OK !=
-      GNUNET_DISK_file_size (filename, &fs, GNUNET_YES, GNUNET_YES))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s has no data\n"),
-         filename);
-    return NULL;
-  }
-  data = GNUNET_malloc (fs + 1);
-  if (fs != GNUNET_DISK_fn_read (filename, data, fs))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ ("Topology file %s cannot be read\n"),
-         filename);
-    GNUNET_free (data);
-    return NULL;
-  }
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "file length %" PRIu64 "\n",
-       fs);
-  data[fs] = '\0';
-
-  return data;
-}
-
-
-/**
- * Getting the topology from file.
- *
- * @param filename The name of the topology file.
- * @return The GNUNET_TESTING_NetjailTopology
- */
-struct GNUNET_TESTING_NetjailTopology *
-GNUNET_TESTING_get_topo_from_file (const char *filename)
-{
-  char *data;
-  struct GNUNET_TESTING_NetjailTopology *topo;
-
-  data = GNUNET_TESTING_get_topo_string_from_file (filename);
-
-  topo = GNUNET_TESTING_get_topo_from_string (data);
-
-  GNUNET_free (data);
-
-  return topo;
-}
+GNUNET_TESTING_SIMPLE_TESTBED_TRAITS (
+  GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT,
+  GNUNET_TESTBED)
 
 
 /* end of testing.c */

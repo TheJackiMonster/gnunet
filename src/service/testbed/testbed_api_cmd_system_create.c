@@ -25,10 +25,8 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_testing_lib.h"
+#include "testbed_lib.h"
 
 /**
  * Struct to hold information for callbacks.
@@ -36,7 +34,7 @@
  */
 struct TestSystemState
 {
-  struct GNUNET_TESTING_System *test_system;
+  struct GNUNET_TESTBED_System *test_system;
 
   const char *testdir;
 };
@@ -55,7 +53,7 @@ system_create_run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "system create\n");
 
-  tss->test_system = GNUNET_TESTING_system_create (tss->testdir,
+  tss->test_system = GNUNET_TESTBED_system_create (tss->testdir,
                                                    NULL,
                                                    NULL,
                                                    NULL);
@@ -75,10 +73,10 @@ system_create_traits (void *cls,
                       unsigned int index)
 {
   struct TestSystemState *tss = cls;
-  struct GNUNET_TESTING_System *test_system = tss->test_system;
+  struct GNUNET_TESTBED_System *test_system = tss->test_system;
 
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_test_system ((const void *) test_system),
+    GNUNET_TESTING_make_trait_test_system (test_system),
     GNUNET_TESTING_trait_end ()
   };
 
@@ -110,7 +108,7 @@ system_create_cleanup (void *cls)
  * @return command.
  */
 struct GNUNET_TESTING_Command
-GNUNET_TESTING_cmd_system_create (const char *label,
+GNUNET_TESTBED_cmd_system_create (const char *label,
                                   const char *testdir)
 {
   struct TestSystemState *tss;

@@ -19,8 +19,8 @@
  */
 
 /**
- * @file testing/test_testing_new_servicestartup.c
- * @brief test case for testing service startup using new testing API
+ * @file tested/test_testeb_new_servicestartup.c
+ * @brief test case for testing service startup using new testeb API
  * @author Sree Harsha Totakura
  */
 #include "platform.h"
@@ -42,11 +42,11 @@ static int test_success;
  * The testing callback function
  *
  * @param cls NULL
- * @param cfg the configuration with which the current testing service is run
+ * @param cfg the configuration with which the current testeb service is run
  */
 static void
 test_run (void *cls, const struct GNUNET_CONFIGURATION_Handle *cfg,
-          struct GNUNET_TESTING_Peer *peer)
+          struct GNUNET_TESTBED_Peer *peer)
 {
   GNUNET_assert (NULL == cls);
   GNUNET_assert (NULL != cfg);
@@ -63,13 +63,13 @@ int
 main (int argc, char *argv[])
 {
   test_success = GNUNET_NO;
-  GNUNET_assert (0 == GNUNET_TESTING_service_run ("test-testing-servicestartup",
+  GNUNET_assert (0 == GNUNET_TESTBED_service_run ("test-testing-servicestartup",
                                                   "arm",
-                                                  "test_testing_defaults.conf",
+                                                  "test_testbed_defaults.conf",
                                                   &test_run,
                                                   NULL));
   return (GNUNET_YES == test_success) ? 0 : 1;
 }
 
 
-/* end of test_testing_servicestartup.c */
+/* end of test_testbed_servicestartup.c */

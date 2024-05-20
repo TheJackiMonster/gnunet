@@ -1,6 +1,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
+#include "testbed_lib.h"
 
 static unsigned int nkeys;
 static unsigned int nskip;
@@ -42,7 +43,7 @@ run (void *cls,
     GNUNET_break (0);
     return;
   }
-  if (0 != (fsize % GNUNET_TESTING_HOSTKEYFILESIZE))
+  if (0 != (fsize % GNUNET_TESTBED_HOSTKEYFILESIZE))
   {
     fprintf (stderr, _ ("Incorrect hostkey file format: %s\n"), idfile);
     return;
@@ -62,7 +63,7 @@ run (void *cls,
     GNUNET_DISK_file_close (f);
     return;
   }
-  nmax = fsize / GNUNET_TESTING_HOSTKEYFILESIZE;
+  nmax = fsize / GNUNET_TESTBED_HOSTKEYFILESIZE;
   for (cnt = nskip; cnt < (nskip + nkeys); cnt++)
   {
     if (nskip + cnt >= nmax)
@@ -71,8 +72,8 @@ run (void *cls,
       break;
     }
     GNUNET_memcpy (&pkey,
-                   data + (cnt * GNUNET_TESTING_HOSTKEYFILESIZE),
-                   GNUNET_TESTING_HOSTKEYFILESIZE);
+                   data + (cnt * GNUNET_TESTBED_HOSTKEYFILESIZE),
+                   GNUNET_TESTBED_HOSTKEYFILESIZE);
     GNUNET_CRYPTO_eddsa_key_get_public (&pkey, &id.public_key);
     printf ("Key %u: %s\n", cnt, GNUNET_i2s_full (&id));
   }

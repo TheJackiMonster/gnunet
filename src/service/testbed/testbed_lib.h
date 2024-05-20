@@ -41,8 +41,8 @@
  * @{
  */
 
-#ifndef GNUNET_TESTING_LIB_H
-#define GNUNET_TESTING_LIB_H
+#ifndef GNUNET_TESTBED_LIB_H
+#define GNUNET_TESTBED_LIB_H
 
 
 #include "gnunet_util_lib.h"
@@ -60,33 +60,33 @@ extern "C"
 /**
  * Size of each hostkey in the hostkey file (in BYTES).
  */
-#define GNUNET_TESTING_HOSTKEYFILESIZE sizeof(struct \
+#define GNUNET_TESTBED_HOSTKEYFILESIZE sizeof(struct \
                                               GNUNET_CRYPTO_EddsaPrivateKey)
 
 /**
  * The environmental variable, if set, that dictates where testing should place
  * generated peer configurations
  */
-#define GNUNET_TESTING_PREFIX "GNUNET_TESTING_PREFIX"
+#define GNUNET_TESTBED_PREFIX "GNUNET_TESTBED_PREFIX"
 
 
 /**
  * Handle for a system on which GNUnet peers are executed;
  * a system is used for reserving unique paths and ports.
  */
-struct GNUNET_TESTING_System;
+struct GNUNET_TESTBED_System;
 
 
 /**
  * Handle for a GNUnet peer controlled by testing.
  */
-struct GNUNET_TESTING_Peer;
+struct GNUNET_TESTBED_Peer;
 
 
 /**
  * Specification of a service that is to be shared among peers
  */
-struct GNUNET_TESTING_SharedService
+struct GNUNET_TESTBED_SharedService
 {
   /**
    * The name of the service.
@@ -115,7 +115,7 @@ struct GNUNET_TESTING_SharedService
  *          service homes; the directory will be created in a temporary location
  *          depending on the underlying OS.  This variable will be
  *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
+ *          GNUNET_TESTBED_PREFIX, if it exists.
  * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
  *          service configurations generated to allow control connections from
  *          this ip. This can either be a single ip address or a network address
@@ -126,11 +126,11 @@ struct GNUNET_TESTING_SharedService
  *          be shared among peers
  * @return handle to this system, NULL on error
  */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create (const char *testdir,
+struct GNUNET_TESTBED_System *
+GNUNET_TESTBED_system_create (const char *testdir,
                               const char *trusted_ip,
                               const char *hostname,
-                              const struct GNUNET_TESTING_SharedService *
+                              const struct GNUNET_TESTBED_SharedService *
                               shared_services);
 
 
@@ -145,7 +145,7 @@ GNUNET_TESTING_system_create (const char *testdir,
  *          all service homes; the directory will be created in a temporary
  *          location depending on the underlying OS.  This variable will be
  *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
+ *          GNUNET_TESTBED_PREFIX, if it exists.
  * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
  *          service configurations generated to allow control connections from
  *          this ip. This can either be a single ip address or a network address
@@ -158,12 +158,12 @@ GNUNET_TESTING_system_create (const char *testdir,
  * @param highport highest port number this system is allowed to allocate (exclusive)
  * @return handle to this system, NULL on error
  */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create_with_portrange (const char *testdir,
+struct GNUNET_TESTBED_System *
+GNUNET_TESTBED_system_create_with_portrange (const char *testdir,
                                              const char *trusted_ip,
                                              const char *hostname,
                                              const struct
-                                             GNUNET_TESTING_SharedService *
+                                             GNUNET_TESTBED_SharedService *
                                              shared_services,
                                              uint16_t lowport,
                                              uint16_t highport);
@@ -177,7 +177,7 @@ GNUNET_TESTING_system_create_with_portrange (const char *testdir,
  *        be removed (clean up on shutdown)?
  */
 void
-GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_system_destroy (struct GNUNET_TESTBED_System *system,
                                int remove_paths);
 
 
@@ -190,7 +190,7 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
  * GNUnet source code.
  *
  * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure().
+ * by #GNUNET_TESTBED_peer_configure().
  *
  * @param system the testing system handle
  * @param key_number desired pre-created hostkey to obtain
@@ -199,7 +199,7 @@ GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
  * @return NULL on error (not enough keys)
  */
 struct GNUNET_CRYPTO_EddsaPrivateKey *
-GNUNET_TESTING_hostkey_get (const struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_hostkey_get (const struct GNUNET_TESTBED_System *system,
                             uint32_t key_number,
                             struct GNUNET_PeerIdentity *id);
 
@@ -211,18 +211,18 @@ GNUNET_TESTING_hostkey_get (const struct GNUNET_TESTING_System *system,
  * @return 0 if no free port was available
  */
 uint16_t
-GNUNET_TESTING_reserve_port (struct GNUNET_TESTING_System *system);
+GNUNET_TESTBED_reserve_port (struct GNUNET_TESTBED_System *system);
 
 
 /**
  * Release reservation of a TCP or UDP port for a peer
- * (used during GNUNET_TESTING_peer_destroy).
+ * (used during GNUNET_TESTBED_peer_destroy).
  *
  * @param system system to use for reservation tracking
  * @param port reserved port to release
  */
 void
-GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_release_port (struct GNUNET_TESTBED_System *system,
                              uint16_t port);
 
 
@@ -235,7 +235,7 @@ GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
  * out of "*port" numbers, return #GNUNET_SYSERR.
  *
  * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure().
+ * by #GNUNET_TESTBED_peer_configure().
  *
  * @param system system to use to coordinate resource usage
  * @param cfg template configuration to update
@@ -244,7 +244,7 @@ GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
  *           be incomplete and should not be used there upon
  */
 int
-GNUNET_TESTING_configuration_create (struct GNUNET_TESTING_System *system,
+GNUNET_TESTBED_configuration_create (struct GNUNET_TESTBED_System *system,
                                      struct GNUNET_CONFIGURATION_Handle *cfg);
 
 // FIXME: add dual to 'release' ports again...
@@ -263,8 +263,8 @@ GNUNET_TESTING_configuration_create (struct GNUNET_TESTING_System *system,
  *          can be NULL
  * @return handle to the peer, NULL on error
  */
-struct GNUNET_TESTING_Peer *
-GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
+struct GNUNET_TESTBED_Peer *
+GNUNET_TESTBED_peer_configure (struct GNUNET_TESTBED_System *system,
                                struct GNUNET_CONFIGURATION_Handle *cfg,
                                uint32_t key_number,
                                struct GNUNET_PeerIdentity *id,
@@ -278,7 +278,7 @@ GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
  * @param id identifier for the daemon, will be set
  */
 void
-GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
+GNUNET_TESTBED_peer_get_identity (struct GNUNET_TESTBED_Peer *peer,
                                   struct GNUNET_PeerIdentity *id);
 
 
@@ -290,20 +290,20 @@ GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
  *         #GNUNET_SYSERR on error (i.e. peer already running)
  */
 int
-GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_start (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
  * Stop the peer. This call is blocking as it kills the peer's main ARM process
  * by sending a SIGTERM and waits on it.  For asynchronous shutdown of peer, see
- * GNUNET_TESTING_peer_stop_async().
+ * GNUNET_TESTBED_peer_stop_async().
  *
  * @param peer peer to stop
  * @return #GNUNET_OK on success,
  *         #GNUNET_SYSERR on error (i.e. peer not running)
  */
 int
-GNUNET_TESTING_peer_stop (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_stop (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
@@ -314,7 +314,7 @@ GNUNET_TESTING_peer_stop (struct GNUNET_TESTING_Peer *peer);
  * @param peer peer to destroy
  */
 void
-GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_destroy (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
@@ -325,7 +325,7 @@ GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer);
  *           or upon any error while sending SIGTERM
  */
 int
-GNUNET_TESTING_peer_kill (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_kill (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
@@ -336,26 +336,26 @@ GNUNET_TESTING_peer_kill (struct GNUNET_TESTING_Peer *peer);
  *           or upon any error while waiting
  */
 int
-GNUNET_TESTING_peer_wait (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_wait (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
  * Callback to inform whether the peer is running or stopped.
  *
- * @param cls the closure given to GNUNET_TESTING_peer_stop_async()
+ * @param cls the closure given to GNUNET_TESTBED_peer_stop_async()
  * @param peer the respective peer whose status is being reported
  * @param success #GNUNET_YES if the peer is stopped; #GNUNET_SYSERR upon any
  *          error
  */
 typedef void
-(*GNUNET_TESTING_PeerStopCallback) (void *cls,
-                                    struct GNUNET_TESTING_Peer *peer,
+(*GNUNET_TESTBED_PeerStopCallback) (void *cls,
+                                    struct GNUNET_TESTBED_Peer *peer,
                                     int success);
 
 
 /**
  * Stop a peer asynchronously using ARM API.  Peer's shutdown is signaled
- * through the GNUNET_TESTING_PeerStopCallback().
+ * through the GNUNET_TESTBED_PeerStopCallback().
  *
  * @param peer the peer to stop
  * @param cb the callback to signal peer shutdown
@@ -365,36 +365,36 @@ typedef void
  *           upon any error.
  */
 int
-GNUNET_TESTING_peer_stop_async (struct GNUNET_TESTING_Peer *peer,
-                                GNUNET_TESTING_PeerStopCallback cb,
+GNUNET_TESTBED_peer_stop_async (struct GNUNET_TESTBED_Peer *peer,
+                                GNUNET_TESTBED_PeerStopCallback cb,
                                 void *cb_cls);
 
 
 /**
  * Cancel a previous asynchronous peer stop request.
- * GNUNET_TESTING_peer_stop_async() should have been called before on the given
+ * GNUNET_TESTBED_peer_stop_async() should have been called before on the given
  * peer.  It is an error to call this function if the peer stop callback was
  * already called
  *
- * @param peer the peer on which GNUNET_TESTING_peer_stop_async() was called
+ * @param peer the peer on which GNUNET_TESTBED_peer_stop_async() was called
  *          before.
  */
 void
-GNUNET_TESTING_peer_stop_async_cancel (struct GNUNET_TESTING_Peer *peer);
+GNUNET_TESTBED_peer_stop_async_cancel (struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
  * Signature of the 'main' function for a (single-peer) testcase that
- * is run using #GNUNET_TESTING_peer_run().
+ * is run using #GNUNET_TESTBED_peer_run().
  *
  * @param cls closure
  * @param cfg configuration of the peer that was started
  * @param peer identity of the peer that was created
  */
 typedef void
-(*GNUNET_TESTING_TestMain) (void *cls,
+(*GNUNET_TESTBED_TestMain) (void *cls,
                             const struct GNUNET_CONFIGURATION_Handle *cfg,
-                            struct GNUNET_TESTING_Peer *peer);
+                            struct GNUNET_TESTBED_Peer *peer);
 
 
 /**
@@ -414,9 +414,9 @@ typedef void
  * @return 0 on success, 1 on error
  */
 int
-GNUNET_TESTING_peer_run (const char *testdir,
+GNUNET_TESTBED_peer_run (const char *testdir,
                          const char *cfgfilename,
-                         GNUNET_TESTING_TestMain tm,
+                         GNUNET_TESTBED_TestMain tm,
                          void *tm_cls);
 
 
@@ -442,11 +442,21 @@ GNUNET_TESTING_peer_run (const char *testdir,
  * @return 0 on success, 1 on error
  */
 int
-GNUNET_TESTING_service_run (const char *testdir,
+GNUNET_TESTBED_service_run (const char *testdir,
                             const char *service_name,
                             const char *cfgfilename,
-                            GNUNET_TESTING_TestMain tm,
+                            GNUNET_TESTBED_TestMain tm,
                             void *tm_cls);
+
+
+/**
+ * Call #op on all simple traits.
+ */
+#define GNUNET_TESTING_SIMPLE_TESTBED_TRAITS(op, prefix) \
+        op (prefix, test_system, const struct GNUNET_TESTBED_System)
+
+GNUNET_TESTING_SIMPLE_TESTBED_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+GNUNET_TESTING)
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

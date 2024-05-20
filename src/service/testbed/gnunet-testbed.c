@@ -9,7 +9,7 @@
 
      GNUnet is distributed in the hope that it will be useful, but
      WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     MERCHANTABILITY or FITNESS FORp A PARTICULAR PURPOSE.  See the GNU
      Affero General Public License for more details.
 
      You should have received a copy of the GNU Affero General Public License
@@ -19,16 +19,17 @@
  */
 
 /**
- * @file testing/gnunet-testing.c
+ * @file testbed/gnunet-testbed.c
  * @brief tool to use testing functionality from cmd line
  * @author Christian Grothoff
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
+#include "testbed_lib.h"
 
 
-#define LOG(kind, ...) GNUNET_log_from (kind, "gnunet-testing", __VA_ARGS__)
+#define LOG(kind, ...) GNUNET_log_from (kind, "gnunet-testbed", __VA_ARGS__)
 
 
 /**
@@ -63,7 +64,7 @@ static char *create_cfg_template;
 static char *run_service_name;
 
 /**
- * File handle to STDIN, for reading restart/quit commands.
+ * File handle to STDIN, for reading resytart/quit commands.
  */
 static struct GNUNET_DISK_FileHandle *fh;
 
@@ -80,13 +81,13 @@ static struct GNUNET_SCHEDULER_Task *tid;
 /**
  * Peer started for '-r'.
  */
-static struct GNUNET_TESTING_Peer *my_peer;
+static struct GNUNET_TESTBED_Peer *my_peer;
 
 
 static int
 create_unique_cfgs (const char *template, const unsigned int no)
 {
-  struct GNUNET_TESTING_System *system;
+  struct GNUNET_TESTBED_System *system;
   int fail;
   unsigned int cur;
   char *cur_file;
@@ -125,7 +126,7 @@ create_unique_cfgs (const char *template, const unsigned int no)
 
   fail = GNUNET_NO;
   system =
-    GNUNET_TESTING_system_create ("testing", NULL /* controller */, NULL, NULL);
+    GNUNET_TESTBED_system_create ("testing", NULL /* controller */, NULL, NULL);
   for (cur = 0; cur < no; cur++)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -137,7 +138,7 @@ create_unique_cfgs (const char *template, const unsigned int no)
       GNUNET_asprintf (&cur_file, "%04u%s", cur, ".conf");
 
     cfg_new = GNUNET_CONFIGURATION_dup (cfg_tmpl);
-    if (GNUNET_OK != GNUNET_TESTING_configuration_create (system, cfg_new))
+    if (GNUNET_OK != GNUNET_TESTBED_configuration_create (system, cfg_new))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Could not create another configuration\n");
@@ -162,7 +163,7 @@ create_unique_cfgs (const char *template, const unsigned int no)
       break;
   }
   GNUNET_CONFIGURATION_destroy (cfg_tmpl);
-  GNUNET_TESTING_system_destroy (system, GNUNET_NO);
+  GNUNET_TESTBED_system_destroy (system, GNUNET_NO);
   if (GNUNET_YES == fail)
     return 1;
   return 0;
@@ -172,19 +173,19 @@ create_unique_cfgs (const char *template, const unsigned int no)
 static int
 create_hostkeys (const unsigned int no)
 {
-  struct GNUNET_TESTING_System *system;
+  struct GNUNET_TESTBED_System *system;
   struct GNUNET_PeerIdentity id;
   struct GNUNET_DISK_FileHandle *fd;
   struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
 
-  system = GNUNET_TESTING_system_create ("testing", NULL, NULL, NULL);
-  pk = GNUNET_TESTING_hostkey_get (system, create_no, &id);
+  system = GNUNET_TESTBED_system_create ("testing", NULL, NULL, NULL);
+  pk = GNUNET_TESTBED_hostkey_get (system, create_no, &id);
   if (NULL == pk)
   {
     fprintf (stderr,
              _ ("Could not extract hostkey %u (offset too large?)\n"),
              create_no);
-    GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+    GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
     return 1;
   }
   (void) GNUNET_DISK_directory_create_for_file (create_hostkey);
@@ -203,7 +204,7 @@ create_hostkeys (const unsigned int no)
                    "Wrote hostkey to file: `%s'\n",
                    create_hostkey);
   GNUNET_free (pk);
-  GNUNET_TESTING_system_destroy (system, GNUNET_YES);
+  GNUNET_TESTBED_system_destroy (system, GNUNET_YES);
   return 0;
 }
 
@@ -257,9 +258,9 @@ stdin_cb (void *cls)
     return;
 
   case 'r':
-    if (GNUNET_OK != GNUNET_TESTING_peer_stop (my_peer))
+    if (GNUNET_OK != GNUNET_TESTBED_peer_stop (my_peer))
       LOG (GNUNET_ERROR_TYPE_ERROR, "Failed to stop the peer\n");
-    if (GNUNET_OK != GNUNET_TESTING_peer_start (my_peer))
+    if (GNUNET_OK != GNUNET_TESTBED_peer_start (my_peer))
       LOG (GNUNET_ERROR_TYPE_ERROR, "Failed to start the peer\n");
     printf ("restarted\n");
     fflush (stdout);
@@ -293,7 +294,7 @@ stdin_cb (void *cls)
 static void
 testing_main (void *cls,
               const struct GNUNET_CONFIGURATION_Handle *cfg,
-              struct GNUNET_TESTING_Peer *peer)
+              struct GNUNET_TESTBED_Peer *peer)
 {
   my_peer = peer;
   if (NULL == (tmpfilename = GNUNET_DISK_mktemp ("gnunet-testing")))
@@ -336,7 +337,7 @@ run_no_scheduler (void *cls,
 {
   if (NULL != run_service_name)
   {
-    ret = GNUNET_TESTING_service_run ("gnunet_service_test",
+    ret = GNUNET_TESTBED_service_run ("gnunet_service_test",
                                       run_service_name,
                                       cfgfile,
                                       &testing_main,
@@ -420,7 +421,7 @@ main (int argc, char *const *argv)
     return 2;
 
   /* Run without scheduler, because we may want to call
-   * GNUNET_TESTING_service_run, which starts the scheduler on its own.
+   * GNUNET_TESTBED_service_run, which starts the scheduler on its own.
    * Furthermore, the other functionality currently does not require the scheduler, too,
    * but beware when extending gnunet-testing. */
   ret =
@@ -441,4 +442,4 @@ main (int argc, char *const *argv)
 }
 
 
-/* end of gnunet-testing.c */
+/* end of gnunet-testbed.c */
