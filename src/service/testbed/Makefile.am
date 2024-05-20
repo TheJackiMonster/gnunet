@@ -19,8 +19,7 @@ lib_LTLIBRARIES = \
 libgnunettestbed_la_SOURCES = \
   testbed_lib.h \
   testbed.c \
-  testbed_api_cmd_system_create.c \
-  testbed_api_cmd_system_destroy.c
+  testbed_api_cmd_system_create.c
 libgnunettestbed_la_LIBADD = \
  $(top_builddir)/src/service/arm/libgnunetarm.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \

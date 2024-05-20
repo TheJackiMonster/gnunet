@@ -73,10 +73,8 @@ system_create_traits (void *cls,
                       unsigned int index)
 {
   struct TestSystemState *tss = cls;
-  struct GNUNET_TESTBED_System *test_system = tss->test_system;
-
   struct GNUNET_TESTING_Trait traits[] = {
-    GNUNET_TESTING_make_trait_test_system (test_system),
+    GNUNET_TESTBED_make_trait_test_system (tss->test_system),
     GNUNET_TESTING_trait_end ()
   };
 

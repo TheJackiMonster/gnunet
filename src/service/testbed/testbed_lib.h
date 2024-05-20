@@ -456,7 +456,7 @@ GNUNET_TESTBED_service_run (const char *testdir,
         op (prefix, test_system, const struct GNUNET_TESTBED_System)
 
 GNUNET_TESTING_SIMPLE_TESTBED_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
-GNUNET_TESTING)
+                                      GNUNET_TESTBED)
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */
