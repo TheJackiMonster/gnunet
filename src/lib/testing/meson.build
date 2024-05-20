@@ -11,7 +11,7 @@ libgnunettesting_src = [
                         'testing_api_cmds.c',
                         'testing_api_loop.c',
                         'testing_api_main.c',
-                        'testing_api_traits.c'
+                        'testing_api_traits.c',
                         'testing_api_topology.c'
                         ]
 

@@ -6,6 +6,7 @@ endif
 
 subdir('util')
 subdir('statistics')
+# FIXME: subdir('testbed')
 subdir('arm')
 subdir('peerstore')
 subdir('nat')
