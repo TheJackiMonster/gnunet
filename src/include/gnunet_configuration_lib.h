@@ -66,7 +66,8 @@ GNUNET_CONFIGURATION_create (void);
  * @return duplicate configuration
  */
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_dup (const struct GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_CONFIGURATION_dup (
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -75,7 +76,8 @@ GNUNET_CONFIGURATION_dup (const struct GNUNET_CONFIGURATION_Handle *cfg);
  * @param cfg configuration to destroy
  */
 void
-GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_CONFIGURATION_destroy (
+  struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -88,8 +90,9 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
-                           const char *filename);
+GNUNET_CONFIGURATION_load (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *filename);
 
 
 /**
@@ -101,8 +104,9 @@ GNUNET_CONFIGURATION_load (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_load_from (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                const char *defaults_d);
+GNUNET_CONFIGURATION_load_from (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *defaults_d);
 
 
 /**
@@ -138,8 +142,9 @@ GNUNET_CONFIGURATION_default_filename (void);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
-                            const char *filename);
+GNUNET_CONFIGURATION_parse (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *filename);
 
 
 /**
@@ -151,8 +156,9 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
  *           present. This memory should be freed by the caller
  */
 char *
-GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                                size_t *size);
+GNUNET_CONFIGURATION_serialize (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  size_t *size);
 
 
 /**
@@ -168,6 +174,7 @@ char *
 GNUNET_CONFIGURATION_serialize_diagnostics (
   const struct GNUNET_CONFIGURATION_Handle *cfg);
 
+
 /**
  * De-serializes configuration
  *
@@ -179,10 +186,11 @@ GNUNET_CONFIGURATION_serialize_diagnostics (
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                  const char *mem,
-                                  size_t size,
-                                  const char *source_filename);
+GNUNET_CONFIGURATION_deserialize (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *mem,
+  size_t size,
+  const char *source_filename);
 
 
 /**
@@ -193,8 +201,9 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_write (struct GNUNET_CONFIGURATION_Handle *cfg,
-                            const char *filename);
+GNUNET_CONFIGURATION_write (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *filename);
 
 
 /**
@@ -233,7 +242,8 @@ GNUNET_CONFIGURATION_get_diff (
  * @return #GNUNET_NO if clean, #GNUNET_YES if dirty, #GNUNET_SYSERR on error (i.e. last save failed)
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_CONFIGURATION_is_dirty (
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -244,8 +254,9 @@ GNUNET_CONFIGURATION_is_dirty (const struct GNUNET_CONFIGURATION_Handle *cfg);
  * @return status code
  */
 typedef enum GNUNET_GenericReturnValue
-(*GNUNET_CONFIGURATION_Callback)(void *cls,
-                                 const struct GNUNET_CONFIGURATION_Handle *cfg);
+(*GNUNET_CONFIGURATION_Callback)(
+  void *cls,
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
@@ -260,9 +271,10 @@ typedef enum GNUNET_GenericReturnValue
  *   otherwise return value from @a cb.
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_parse_and_run (const char *filename,
-                                    GNUNET_CONFIGURATION_Callback cb,
-                                    void *cb_cls);
+GNUNET_CONFIGURATION_parse_and_run (
+  const char *filename,
+  GNUNET_CONFIGURATION_Callback cb,
+  void *cb_cls);
 
 /**
  * Enable extra diagnostics.  Will produce more log output
@@ -309,9 +321,10 @@ typedef void
  * @param iter_cls closure for @a iter
  */
 void
-GNUNET_CONFIGURATION_iterate (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                              GNUNET_CONFIGURATION_Iterator iter,
-                              void *iter_cls);
+GNUNET_CONFIGURATION_iterate (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  GNUNET_CONFIGURATION_Iterator iter,
+  void *iter_cls);
 
 
 /**
@@ -335,8 +348,9 @@ GNUNET_CONFIGURATION_iterate_sections (
  * @param section name of the section to remove
  */
 void
-GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                     const char *section);
+GNUNET_CONFIGURATION_remove_section (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section);
 
 
 /**
@@ -596,10 +610,11 @@ GNUNET_CONFIGURATION_set_value_number (struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param value value to set
  */
 void
-GNUNET_CONFIGURATION_set_value_string (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       const char *value);
+GNUNET_CONFIGURATION_set_value_string (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  const char *value);
 
 
 /**

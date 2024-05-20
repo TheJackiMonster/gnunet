@@ -214,26 +214,58 @@ main (int argc,
 
     cfg = GNUNET_CONFIGURATION_create ();
 
-    if (GNUNET_YES !=
-        GNUNET_DISK_file_test (cfgfile))
+    if (NULL != ram_config)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Unreadable configuration file `%s', exiting ...\n"),
-                  cfgfile);
-      GNUNET_free_nz ((void *) argv);
-      GNUNET_CONFIGURATION_destroy (cfg);
-      return EXIT_FAILURE;
+      if ( (! no_defaults) &&
+           (GNUNET_SYSERR ==
+            GNUNET_CONFIGURATION_load (cfg,
+                                       NULL)) )
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to load default configuration, exiting ...\n"));
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_deserialize (cfg,
+                                            ram_config,
+                                            strlen (ram_config),
+                                            NULL))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to parse configuration, exiting ...\n"));
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
     }
-    if (GNUNET_SYSERR ==
-        GNUNET_CONFIGURATION_load (cfg,
-                                   cfgfile))
+    else
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Malformed configuration file `%s', exiting ...\n"),
-                  cfgfile);
-      GNUNET_free_nz ((void *) argv);
-      GNUNET_CONFIGURATION_destroy (cfg);
-      return EXIT_FAILURE;
+      if (GNUNET_YES !=
+          GNUNET_DISK_file_test (cfgfile))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unreadable configuration file `%s', exiting ...\n"),
+                    cfgfile);
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+      if (GNUNET_SYSERR ==
+          (no_defaults
+        ? GNUNET_CONFIGURATION_parse (cfg,
+                                      cfgfile)
+         : GNUNET_CONFIGURATION_load (cfg,
+                                      cfgfile)) )
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Malformed configuration file `%s', exiting ...\n"),
+                    cfgfile);
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
     }
     GNUNET_CONFIGURATION_config_tool_run (&cs,
                                           &argv[iret],
