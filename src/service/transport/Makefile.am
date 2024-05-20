@@ -28,7 +28,7 @@ lib_LTLIBRARIES = \
   $(TESTING_LIBS)
 
 libgnunettestingtransport_la_SOURCES = \
-  testing_api_traits.c \
+  testing_api_traits.c
 #  transport_api_cmd_connecting_peers.c \
 #  transport_api_cmd_backchannel_check.c \
 #  transport_api_cmd_send_simple.c \

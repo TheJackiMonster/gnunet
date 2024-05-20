@@ -25,7 +25,7 @@
  */
 
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 #include "gnunet_messenger_service.h"
 #include "messenger-testing-cmds.h"
 

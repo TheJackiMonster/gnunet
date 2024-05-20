@@ -21,16 +21,13 @@ libexec_PROGRAMS = \
  gnunet-service-messenger \
  $(EXP_LIBEXEC)
 
-plugin_LTLIBRARIES = \
-  libgnunet_test_messenger_plugin_cmd_simple_join.la
-
-TESTING_LIBS = \
-  libgnunetmessengertesting.la
+#plugin_LTLIBRARIES = \
+#  libgnunet_test_messenger_plugin_cmd_simple_join.la
 
 lib_LTLIBRARIES = \
   libgnunetmessenger.la \
-  $(EXP_LIB) \
-  $(TESTING_LIBS)
+  $(EXP_LIB)
+#  libgnunettestingmessenger.la
 
 libgnunetmessenger_la_SOURCES = \
   messenger_api.c \
@@ -54,17 +51,17 @@ libgnunetmessenger_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
 
-libgnunetmessengertesting_la_SOURCES = \
+libgnunettestingmessenger_la_SOURCES = \
   messenger_api_cmd_join_room.c \
   messenger_api_cmd_start_service.c \
   messenger_api_cmd_stop_service.c \
   messenger_api_traits.c \
   messenger-testing.c messenger-testing.h
-libgnunetmessengertesting_la_LIBADD = \
+libgnunettestingmessenger_la_LIBADD = \
   libgnunetmessenger.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
+  $(top_builddir)/src/service/transport/libgnunettestingtransporttesting.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
@@ -86,8 +83,8 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessengertesting.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
-  $(top_builddir)/src/service/core/libgnunetcoretesting.la \
-  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
+  $(top_builddir)/src/service/core/libgnunettestingcore.la \
+  $(top_builddir)/src/service/transport/libgnunettestingtransport.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \

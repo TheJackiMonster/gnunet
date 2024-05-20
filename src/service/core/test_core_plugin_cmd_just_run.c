@@ -24,15 +24,13 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_core_service.h"
-#include "gnunet_testing_barrier.h"
 #include "gnunet_core_service.h"
-#include "gnunet_transport_testing_ng_lib.h"
-#include "gnunet_core_testing_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testing_transport_lib.h"
+#include "gnunet_testing_core_lib.h"
 
 /**
  * Generic logging shortcut
@@ -250,11 +248,11 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   block_script = GNUNET_TESTING_cmd_block_until_external_trigger (
     "block-script");
   connect_peers = GNUNET_CORE_cmd_connect_peers ("connect-peers",
-                                                      "start-peer",
-                                                      "system-create",
-                                                      num,
-                                                      topology,
-                                                      0,
+                                                 "start-peer",
+                                                 "system-create",
+                                                 num,
+                                                 topology,
+                                                 0,
                                                  GNUNET_NO,
                                                  NULL);
   local_prepared = GNUNET_TESTING_cmd_local_test_prepared (
@@ -270,7 +268,7 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
   else
   {
     GNUNET_asprintf (&ts->cfgname,
-                   "test_core_just_run.conf");
+                     "test_core_just_run.conf");
   }
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -334,7 +332,7 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
                                         GNUNET_NO,
                                         write_message),
     GNUNET_TESTING_cmd_stop_peer ("stop-peer",
-                                    "start-peer"),
+                                  "start-peer"),
     GNUNET_TESTING_cmd_system_destroy ("system-destroy",
                                        "system-create"),
     GNUNET_TESTING_cmd_end ()

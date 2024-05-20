@@ -28,7 +28,7 @@
 #define TRANSPORT_TESTING_CMDS_H
 
 #include "gnunet_testing_lib.h"
-#include "gnunet_transport_testing_ng_lib.h"
+#include "gnunet_testing_transport_lib.h"
 
 
 /**

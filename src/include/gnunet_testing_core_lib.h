@@ -22,12 +22,12 @@
  * @brief API for cmds working with core sub system provided by libgnunetcoretesting
  * @author t3sserakt
  */
-#ifndef GNUNET_CORE_TESTING_LIB_H
-#define GNUNET_CORE_TESTING_LIB_H
+#ifndef GNUNET_TESTING_CORE_LIB_H
+#define GNUNET_TESTING_CORE_LIB_H
 
 
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
 
 
 /**
@@ -149,10 +149,11 @@ GNUNET_CORE_cmd_connect_peers (
  * Call #op on all simple traits.
  */
 #define GNUNET_CORE_TESTING_SIMPLE_TRAITS(op, prefix)   \
-  op (prefix, connect_peer_state, const struct GNUNET_TESTING_ConnectPeersState) 
+        op (prefix, connect_peer_state, const struct \
+            GNUNET_TESTING_ConnectPeersState)
 
-GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT, GNUNET_CORE_TESTING)
-
+GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                                   GNUNET_CORE_TESTING)
 
 
 #endif

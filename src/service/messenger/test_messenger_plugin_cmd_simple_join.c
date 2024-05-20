@@ -25,15 +25,13 @@
  */
 
 #include "platform.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_core_service.h"
-#include "gnunet_testing_barrier.h"
 #include "gnunet_core_service.h"
-#include "gnunet_core_testing_lib.h"
-#include "gnunet_transport_testing_ng_lib.h"
+#include "gnunet_testing_lib.h"
+#include "gnunet_testing_core_lib.h"
+#include "gnunet_testing_transport_lib.h"
 #include "messenger-testing-cmds.h"
 
 /**

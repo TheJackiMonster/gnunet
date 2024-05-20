@@ -26,9 +26,7 @@
 #ifndef MESSENGER_TESTING_CMDS_H
 #define MESSENGER_TESTING_CMDS_H
 
-#include "gnunet_testing_ng_lib.h"
-#include "gnunet_testing_plugin.h"
-
+#include "gnunet_testing_lib.h"
 #include "messenger-testing.h"
 
 struct GNUNET_TESTING_Command
@@ -57,7 +55,7 @@ GNUNET_MESSENGER_cmd_join_room (const char *label,
         enum GNUNET_GenericReturnValue                          \
         GNUNET_MESSENGER_get_trait_ ## name (                    \
           const struct GNUNET_TESTING_Command *cmd,              \
-          type **ret);                                          \
+          type * *ret);                                          \
         struct GNUNET_TESTING_Trait                              \
         GNUNET_MESSENGER_make_trait_ ## name (                   \
           type * value);

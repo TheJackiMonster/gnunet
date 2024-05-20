@@ -24,7 +24,6 @@
  * @author Bartlomiej Polot
  * @author Christian Grothoff
  */
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
