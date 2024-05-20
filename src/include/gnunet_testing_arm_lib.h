@@ -37,7 +37,7 @@ GNUNET_TESTING_cmd_stop_peer (
 #define GNUNET_TESTING_ARM_SIMPLE_TRAITS(op, prefix) \
         op (prefix,                                  \
             arm_handle,                              \
-            const struct GNUNET_ARM_Handle)
+            struct GNUNET_ARM_Handle)
 
 
 GNUNET_TESTING_ARM_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
