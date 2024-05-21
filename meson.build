@@ -422,26 +422,44 @@ endif
 if cc.has_function('getloadavg') == false
   error('getloadadv missing')
 endif
-if cc.has_function('strnlen', prefix : '#include <string.h>')
-  cdata.set('HAVE_STRNLEN', 1)
-endif
 if cc.has_function('memset_s')
   cdata.set('HAVE_MEMSET_S', 1)
 endif
 if cc.has_function('explicit_bzero')
   cdata.set('HAVE_EXPLICIT_BZERO', 1)
 endif
-if cc.has_function('getaddrinfo')
-  cdata.set('HAVE_GETADDRINFO', 1)
+if cc.has_function('atoll')
+  cdata.set('HAVE_ATOLL', 1)
 endif
-if cc.has_function('initgroups')
-  cdata.set('HAVE_INITGROUPS', 1)
+if cc.has_function('stat64')
+  cdata.set('HAVE_STAT64', 1)
 endif
-if cc.has_function('gethostbyname')
-  cdata.set('HAVE_GETHOSTBYNAME', 1)
+if cc.has_function('strnlen', prefix : '#include <string.h>')
+  cdata.set('HAVE_STRNLEN', 1)
+endif
+if cc.has_function('mremap')
+  cdata.set('HAVE_MREMAP', 1)
+endif
+if cc.has_function('getrlimit')
+  cdata.set('HAVE_GETRLIMIT', 1)
+endif
+if cc.has_function('setrlimit')
+  cdata.set('HAVE_SETRLIMIT', 1)
+endif
+if cc.has_function('strndup', prefix : '#include <string.h>')
+  cdata.set('HAVE_STRNDUP', 1)
 endif
 if cc.has_function('gethostbyname2')
   cdata.set('HAVE_GETHOSTBYNAME2', 1)
+endif
+if cc.has_function('getpeerucred')
+  cdata.set('HAVE_GETPEERUCRED', 1)
+endif
+if cc.has_function('getpeereid')
+  cdata.set('HAVE_GETPEEREID', 1)
+endif
+if cc.has_function('setresuid')
+  cdata.set('HAVE_SETRESUID', 1)
 endif
 if cc.has_function('getifaddrs')
   cdata.set('HAVE_GETIFADDRS', 1)
@@ -451,6 +469,51 @@ if cc.has_function('freeifaddrs')
 endif
 if cc.check_header('ifaddrs.h')
   add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
+endif
+if cc.has_function('getresgid')
+  cdata.set('HAVE_RESGID', 1)
+endif
+if cc.has_function('mallinfo2')
+  cdata.set('HAVE_MALLINFO2', 1)
+endif
+if cc.has_function('malloc_size')
+  cdata.set('HAVE_MALLOC_SIZE', 1)
+endif
+if cc.has_function('malloc_usable_size')
+  cdata.set('HAVE_MALLOC_USABLE_SIZE', 1)
+endif
+if cc.has_function('getrusage')
+  cdata.set('HAVE_GETRUSAGE', 1)
+endif
+if cc.has_function('random')
+  cdata.set('HAVE_RANDOM', 1)
+endif
+if cc.has_function('srandom')
+  cdata.set('HAVE_SRANDOM', 1)
+endif
+if cc.has_function('stat')
+  cdata.set('HAVE_STAT', 1)
+endif
+if cc.has_function('statfs')
+  cdata.set('HAVE_STATFS', 1)
+endif
+if cc.has_function('statvfs')
+  cdata.set('HAVE_STATVFS', 1)
+endif
+if cc.has_function('wait4')
+  cdata.set('HAVE_WAIT4', 1)
+endif
+if cc.has_function('timegm')
+  cdata.set('HAVE_TIMEGM', 1)
+endif
+if cc.has_function('getaddrinfo')
+  cdata.set('HAVE_GETADDRINFO', 1)
+endif
+if cc.has_function('initgroups')
+  cdata.set('HAVE_INITGROUPS', 1)
+endif
+if cc.has_function('gethostbyname')
+  cdata.set('HAVE_GETHOSTBYNAME', 1)
 endif
 
 configure_file(#input: 'gnunet_private_config.h.in',
