@@ -349,13 +349,6 @@ endif
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
-if cc.check_header('sys/time.h')
-  add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
-endif
-if cc.check_header('sys/param.h')
-  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
-endif
-
 # NSS
 have_nss = false
 if cc.check_header('nss.h')
@@ -389,9 +382,6 @@ if not tun_found and cc.check_header('net/tun/if_tun.h')
     tun_found = true
   endif
 endif
-
-
-
 
 # NSS
 if cc.check_header('nss.h')
@@ -467,9 +457,6 @@ endif
 if cc.has_function('freeifaddrs')
   cdata.set('HAVE_FREEIFADDRS', 1)
 endif
-if cc.check_header('ifaddrs.h')
-  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
-endif
 if cc.has_function('getresgid')
   cdata.set('HAVE_RESGID', 1)
 endif
@@ -500,9 +487,6 @@ endif
 if cc.has_function('statvfs')
   cdata.set('HAVE_STATVFS', 1)
 endif
-if cc.check_header('sys/statvfs.h')
-  add_project_arguments('-DHAVE_SYS_STATVFS_H', language : 'c')
-endif
 if cc.has_function('wait4')
   cdata.set('HAVE_WAIT4', 1)
 endif
@@ -518,6 +502,116 @@ endif
 if cc.has_function('gethostbyname')
   cdata.set('HAVE_GETHOSTBYNAME', 1)
 endif
+
+if cc.check_header('stdatomic.h')
+  add_project_arguments('-DHAVE_STDATOMIC_H', language : 'c')
+endif
+if cc.check_header('malloc.h')
+  add_project_arguments('-DHAVE_MALLOC_H', language : 'c')
+endif
+if cc.check_header('malloc/malloc.h')
+  add_project_arguments('-DHAVE_MALLOC_MALLOC_H', language : 'c')
+endif
+if cc.check_header('malloc/malloc_np.h')
+  add_project_arguments('-DHAVE_MALLOC_MALLOC_NP_H', language : 'c')
+endif
+if cc.check_header('langinfo.h')
+  add_project_arguments('-DHAVE_LANGINFO_H', language : 'c')
+endif
+if cc.check_header('sys/param.h')
+  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
+endif
+if cc.check_header('sys/mount.h')
+  add_project_arguments('-DHAVE_SYS_MOUNT_H', language : 'c')
+endif
+if cc.check_header('sys/statvfs.h')
+  add_project_arguments('-DHAVE_SYS_STATVFS_H', language : 'c')
+endif
+if cc.check_header('sys/select.h')
+  add_project_arguments('-DHAVE_SYS_SELECT_H', language : 'c')
+endif
+if cc.check_header('sockLib.h')
+  add_project_arguments('-DHAVE_SOCKLIB_H', language : 'c')
+endif
+if cc.check_header('sys/mman.h')
+  add_project_arguments('-DHAVE_SYS_MMAN_H', language : 'c')
+endif
+if cc.check_header('sys/msg.h')
+  add_project_arguments('-DHAVE_SYS_MSG_H', language : 'c')
+endif
+if cc.check_header('sys/vfs.h')
+  add_project_arguments('-DHAVE_SYS_VFS_H', language : 'c')
+endif
+if cc.check_header('arpa/inet.h')
+  add_project_arguments('-DHAVE_ARPA_INET_H', language : 'c')
+endif
+if cc.check_header('libintl.h')
+  add_project_arguments('-DHAVE_LIBINTL_H', language : 'c')
+endif
+if cc.check_header('netdb.h')
+  add_project_arguments('-DHAVE_NETDB_H', language : 'c')
+endif
+if cc.check_header('netinet/in.h')
+  add_project_arguments('-DHAVE_NETINET_IN_H', language : 'c')
+endif
+if cc.check_header('sys/ioctl.h')
+  add_project_arguments('-DHAVE_SYS_IOCTL_H', language : 'c')
+endif
+if cc.check_header('sys/socket.h')
+  add_project_arguments('-DHAVE_SYS_SOCKET_H', language : 'c')
+endif
+if cc.check_header('sys/time.h')
+  add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
+endif
+if cc.check_header('sys/sysinfo.h')
+  add_project_arguments('-DHAVE_SYS_SYSINFO_H', language : 'c')
+endif
+if cc.check_header('sys/file.h')
+  add_project_arguments('-DHAVE_SYS_FILE_H', language : 'c')
+endif
+if cc.check_header('sys/resource.h')
+  add_project_arguments('-DHAVE_SYS_RESOURCE_H', language : 'c')
+endif
+if cc.check_header('ifaddrs.h')
+  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
+endif
+if cc.check_header('mach/mach.h')
+  add_project_arguments('-DHAVE_MACH_MACH_H', language : 'c')
+endif
+if cc.check_header('sys/timeb.h')
+  add_project_arguments('-DHAVE_SYS_TIMEB_H', language : 'c')
+endif
+if cc.check_header('argz.h')
+  add_project_arguments('-DHAVE_ARGZ_H', language : 'c')
+endif
+if cc.check_header('ucred.h')
+  add_project_arguments('-DHAVE_UCRED_H', language : 'c')
+endif
+if cc.check_header('sys/ucred.h')
+  add_project_arguments('-DHAVE_SYS_UCRED_H', language : 'c')
+endif
+if cc.check_header('endian.h')
+  add_project_arguments('-DHAVE_ENDIAN_H', language : 'c')
+endif
+if cc.check_header('sys/endian.h')
+  add_project_arguments('-DHAVE_SYS_ENDIAN_H', language : 'c')
+endif
+if cc.check_header('execinfo.h')
+  add_project_arguments('-DHAVE_EXECINFO_H', language : 'c')
+endif
+if cc.check_header('byteswap.h')
+  add_project_arguments('-DHAVE_BYTESWAP_H', language : 'c')
+endif
+
+
+
+
+
+
+
+
+
+
 
 configure_file(#input: 'gnunet_private_config.h.in',
   output : 'gnunet_private_config.h',
