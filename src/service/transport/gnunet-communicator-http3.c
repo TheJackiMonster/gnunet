@@ -179,8 +179,37 @@ struct Connection
    * Flag to indicate whether we have sent OUR PeerIdentity to this peer
    */
   int id_sent;
+
+  /**
+   * MTU we allowed transport for this receiver's default queue.
+   */
+  size_t d_mtu;
+
+  /**
+   * Default message queue we are providing for the #ch.
+   */
+  struct GNUNET_MQ_Handle *d_mq;
+
+  /**
+   * handle for default queue with the #ch.
+   */
+  struct GNUNET_TRANSPORT_QueueHandle *d_qh;
+
+  /**
+   * Address of the receiver in the human-readable format
+   * with the #COMMUNICATOR_ADDRESS_PREFIX.
+   */
+  char *foreign_addr;
+
+  /**
+   * connection_destroy already called on connection.
+   */
+  int connection_destroy_called;
 };
 
+
+static int
+connection_write (struct Connection *connection);
 
 /**
  * Get current timestamp
@@ -500,6 +529,223 @@ client_gnutls_init (struct Connection *connection)
 
 
 /**
+ * Increment connection timeout due to activity.
+ *
+ * @param connection address for which the timeout should be rescheduled
+ */
+static void
+reschedule_peer_timeout (struct Connection *connection)
+{
+  connection->timeout =
+    GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
+  // GNUNET_CONTAINER_heap_update_cost (peer->hn,
+  //                                    peer->timeout.abs_value_us);
+}
+
+
+/**
+ * Destroys a receiving state due to timeout or shutdown.
+ *
+ * @param connection entity to close down
+ */
+static void
+connection_destroy (struct Connection *connection)
+{
+  struct GNUNET_HashCode addr_key;
+  int rv;
+  connection->connection_destroy_called = GNUNET_YES;
+
+  if (NULL != connection->d_qh)
+  {
+    GNUNET_TRANSPORT_communicator_mq_del (connection->d_qh);
+    connection->d_qh = NULL;
+  }
+
+  GNUNET_CRYPTO_hash (connection->address,
+                      connection->address_len,
+                      &addr_key);
+  rv = GNUNET_CONTAINER_multihashmap_remove (addr_map, &addr_key, connection);
+  if (GNUNET_NO == rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "tried to remove non-existent connection from addr_map\n");
+    return;
+  }
+  GNUNET_STATISTICS_set (stats,
+                         "# connections active",
+                         GNUNET_CONTAINER_multihashmap_size (addr_map),
+                         GNUNET_NO);
+
+  ngtcp2_conn_del (connection->conn);
+  gnutls_deinit (connection->session);
+  GNUNET_free (connection->address);
+  GNUNET_free (connection->foreign_addr);
+  GNUNET_free (connection);
+}
+
+
+/**
+ * Signature of functions implementing the sending functionality of a
+ * message queue.
+ *
+ * @param mq the message queue
+ * @param msg the message to send
+ * @param impl_state our `struct PeerAddress`
+ */
+static void
+mq_send_d (struct GNUNET_MQ_Handle *mq,
+           const struct GNUNET_MessageHeader *msg,
+           void *impl_state)
+{
+  struct Connection *connection = impl_state;
+  uint16_t msize = ntohs (msg->size);
+
+  if (NULL == connection->conn)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "No quic connection has been established yet\n");
+    return;
+  }
+
+  GNUNET_assert (mq == connection->d_mq);
+
+  if (msize > connection->d_mtu)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "msize: %u, mtu: %lu\n",
+                msize,
+                connection->d_mtu);
+    GNUNET_break (0);
+    if (GNUNET_YES != connection->connection_destroy_called)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "connection destroy called, destroying connection\n");
+      connection_destroy (connection);
+    }
+    return;
+  }
+  reschedule_peer_timeout (connection);
+  connection->stream.data = (uint8_t *) msg;
+  connection->stream.datalen = msize;
+  connection->stream.nwrite = 0;
+  connection_write (connection);
+  GNUNET_MQ_impl_send_continue (mq);
+}
+
+
+/**
+ * Signature of functions implementing the destruction of a message
+ * queue.  Implementations must not free @a mq, but should take care
+ * of @a impl_state.
+ *
+ * @param mq the message queue to destroy
+ * @param impl_state our `struct PeerAddress`
+ */
+static void
+mq_destroy_d (struct GNUNET_MQ_Handle *mq, void *impl_state)
+{
+  struct Connection *connection;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Default MQ destroyed\n");
+  if (mq == connection->d_mq)
+  {
+    connection->d_mq = NULL;
+    if (GNUNET_YES != connection->connection_destroy_called)
+      connection_destroy (connection);
+  }
+}
+
+
+/**
+ * Implementation function that cancels the currently sent message.
+ *
+ * @param mq message queue
+ * @param impl_state our `struct PeerAddress`
+ */
+static void
+mq_cancel (struct GNUNET_MQ_Handle *mq, void *impl_state)
+{
+  /* Cancellation is impossible with QUIC; bail */
+  GNUNET_assert (0);
+}
+
+
+/**
+ * Generic error handler, called with the appropriate
+ * error code and the same closure specified at the creation of
+ * the message queue.
+ * Not every message queue implementation supports an error handler.
+ *
+ * @param cls our `struct ReceiverAddress`
+ * @param error error code
+ */
+static void
+mq_error (void *cls, enum GNUNET_MQ_Error error)
+{
+  struct Connection *connection = cls;
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "MQ error in queue to %s: %d\n",
+              GNUNET_i2s (&connection->target),
+              (int) error);
+  connection_destroy (connection);
+}
+
+
+/**
+ * Setup the MQ for the @a connection.  If a queue exists,
+ * the existing one is destroyed.  Then the MTU is
+ * recalculated and a fresh queue is initialized.
+ *
+ * @param connection connection to setup MQ for
+ */
+static void
+setup_connection_mq (struct Connection *connection)
+{
+  size_t base_mtu;
+
+  switch (connection->address->sa_family)
+  {
+  case AF_INET:
+    base_mtu = 1480     /* Ethernet MTU, 1500 - Ethernet header - VLAN tag */
+               - sizeof(struct GNUNET_TUN_IPv4Header) /* 20 */
+               - sizeof(struct GNUNET_TUN_UdpHeader) /* 8 */;
+    break;
+
+  case AF_INET6:
+    base_mtu = 1280     /* Minimum MTU required by IPv6 */
+               - sizeof(struct GNUNET_TUN_IPv6Header) /* 40 */
+               - sizeof(struct GNUNET_TUN_UdpHeader) /* 8 */;
+    break;
+
+  default:
+    GNUNET_assert (0);
+    break;
+  }
+  /* MTU == base_mtu */
+  connection->d_mtu = base_mtu;
+
+  if (NULL == connection->d_mq)
+    connection->d_mq = GNUNET_MQ_queue_for_callbacks (&mq_send_d,
+                                                      &mq_destroy_d,
+                                                      &mq_cancel,
+                                                      connection,
+                                                      NULL,
+                                                      &mq_error,
+                                                      connection);
+  connection->d_qh =
+    GNUNET_TRANSPORT_communicator_mq_add (ch,
+                                          &connection->target,
+                                          connection->foreign_addr,
+                                          1000,
+                                          GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
+                                          0, /* Priority */
+                                          connection->nt,
+                                          GNUNET_TRANSPORT_CS_OUTBOUND,
+                                          connection->d_mq);
+}
+
+
+/**
  * The callback function for ngtcp2_callbacks.rand
  */
 static void
@@ -532,6 +778,47 @@ get_new_connection_id_cb (ngtcp2_conn *conn, ngtcp2_cid *cid,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG,
                               token,
                               NGTCP2_STATELESS_RESET_TOKENLEN);
+  return GNUNET_NO;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.handshake_completed
+ *
+ * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
+ */
+static int
+handshake_completed_cb (ngtcp2_conn *conn, void *user_data)
+{
+  struct Connection *connection = user_data;
+  int64_t stream_id;
+  int rv;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "http3: handshake complete!\n");
+  if (GNUNET_YES == connection->is_initiator &&
+      GNUNET_NO == connection->id_sent)
+  {
+    if (-1 == connection->stream.id)
+    {
+      ngtcp2_conn_open_bidi_stream (connection->conn, &stream_id, NULL);
+      connection->stream.id = stream_id;
+    }
+    connection->stream.data = (uint8_t*) &my_identity;
+    connection->stream.datalen = sizeof (my_identity);
+    connection->stream.nwrite = 0;
+
+    rv = connection_write (connection);
+    if (rv < 0)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "handshake_complete_cb: connection_write error!\n");
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
+    connection->id_sent = GNUNET_YES;
+    setup_connection_mq (connection);
+
+  }
+
   return GNUNET_NO;
 }
 
@@ -579,7 +866,7 @@ client_quic_init (struct Connection *connection,
     .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
-    // .handshake_completed = handshake_completed_cb,
+    .handshake_completed = handshake_completed_cb,
     // .recv_stream_data = recv_stream_data_cb,
   };
 
@@ -816,6 +1103,8 @@ mq_init (void *cls,
   connection->is_initiator = GNUNET_YES;
   connection->id_rcvd = GNUNET_YES;
   connection->id_sent = GNUNET_NO;
+  connection->foreign_addr =
+    sockaddr_to_udpaddr_string (connection->address, connection->address_len);
   connection->nt = GNUNET_NT_scanner_get_type (is,
                                                remote_addr,
                                                remote_addrlen);
@@ -990,7 +1279,7 @@ accept_connection (struct sockaddr *local_addr,
                | GNUTLS_ENABLE_EARLY_DATA
                | GNUTLS_NO_END_OF_EARLY_DATA);
   gnutls_priority_set_direct (new_connection->session, PRIORITY, NULL);
-  
+
   gnutls_credentials_set (new_connection->session,
                           GNUTLS_CRD_CERTIFICATE, cred);
 
@@ -1032,6 +1321,9 @@ accept_connection (struct sockaddr *local_addr,
   new_connection->conn = conn;
   new_connection->address = GNUNET_memdup (remote_addr, remote_addrlen);
   new_connection->address_len = remote_addrlen;
+  new_connection->foreign_addr =
+    sockaddr_to_udpaddr_string (new_connection->address,
+                                new_connection->address_len);
   new_connection->is_initiator = GNUNET_NO;
   new_connection->id_rcvd = GNUNET_NO;
   new_connection->id_sent = GNUNET_NO;
