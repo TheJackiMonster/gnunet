@@ -500,6 +500,9 @@ endif
 if cc.has_function('statvfs')
   cdata.set('HAVE_STATVFS', 1)
 endif
+if cc.check_header('sys/statvfs.h')
+  add_project_arguments('-DHAVE_SYS_STATVFS_H', language : 'c')
+endif
 if cc.has_function('wait4')
   cdata.set('HAVE_WAIT4', 1)
 endif
