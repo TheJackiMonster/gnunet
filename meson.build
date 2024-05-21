@@ -412,206 +412,52 @@ endif
 if cc.has_function('getloadavg') == false
   error('getloadadv missing')
 endif
-if cc.has_function('memset_s')
-  cdata.set('HAVE_MEMSET_S', 1)
-endif
-if cc.has_function('explicit_bzero')
-  cdata.set('HAVE_EXPLICIT_BZERO', 1)
-endif
-if cc.has_function('atoll')
-  cdata.set('HAVE_ATOLL', 1)
-endif
-if cc.has_function('stat64')
-  cdata.set('HAVE_STAT64', 1)
-endif
-if cc.has_function('strnlen', prefix : '#include <string.h>')
-  cdata.set('HAVE_STRNLEN', 1)
-endif
-if cc.has_function('mremap')
-  cdata.set('HAVE_MREMAP', 1)
-endif
-if cc.has_function('getrlimit')
-  cdata.set('HAVE_GETRLIMIT', 1)
-endif
-if cc.has_function('setrlimit')
-  cdata.set('HAVE_SETRLIMIT', 1)
-endif
-if cc.has_function('strndup', prefix : '#include <string.h>')
-  cdata.set('HAVE_STRNDUP', 1)
-endif
-if cc.has_function('gethostbyname2')
-  cdata.set('HAVE_GETHOSTBYNAME2', 1)
-endif
-if cc.has_function('getpeerucred')
-  cdata.set('HAVE_GETPEERUCRED', 1)
-endif
-if cc.has_function('getpeereid')
-  cdata.set('HAVE_GETPEEREID', 1)
-endif
-if cc.has_function('setresuid')
-  cdata.set('HAVE_SETRESUID', 1)
-endif
-if cc.has_function('getifaddrs')
-  cdata.set('HAVE_GETIFADDRS', 1)
-endif
-if cc.has_function('freeifaddrs')
-  cdata.set('HAVE_FREEIFADDRS', 1)
-endif
-if cc.has_function('getresgid')
-  cdata.set('HAVE_RESGID', 1)
-endif
-if cc.has_function('mallinfo2')
-  cdata.set('HAVE_MALLINFO2', 1)
-endif
-if cc.has_function('malloc_size')
-  cdata.set('HAVE_MALLOC_SIZE', 1)
-endif
-if cc.has_function('malloc_usable_size')
-  cdata.set('HAVE_MALLOC_USABLE_SIZE', 1)
-endif
-if cc.has_function('getrusage')
-  cdata.set('HAVE_GETRUSAGE', 1)
-endif
-if cc.has_function('random')
-  cdata.set('HAVE_RANDOM', 1)
-endif
-if cc.has_function('srandom')
-  cdata.set('HAVE_SRANDOM', 1)
-endif
-if cc.has_function('stat')
-  cdata.set('HAVE_STAT', 1)
-endif
-if cc.has_function('statfs')
-  cdata.set('HAVE_STATFS', 1)
-endif
-if cc.has_function('statvfs')
-  cdata.set('HAVE_STATVFS', 1)
-endif
-if cc.has_function('wait4')
-  cdata.set('HAVE_WAIT4', 1)
-endif
-if cc.has_function('timegm')
-  cdata.set('HAVE_TIMEGM', 1)
-endif
-if cc.has_function('getaddrinfo')
-  cdata.set('HAVE_GETADDRINFO', 1)
-endif
-if cc.has_function('initgroups')
-  cdata.set('HAVE_INITGROUPS', 1)
-endif
-if cc.has_function('gethostbyname')
-  cdata.set('HAVE_GETHOSTBYNAME', 1)
-endif
 
-if cc.check_header('stdatomic.h')
-  add_project_arguments('-DHAVE_STDATOMIC_H', language : 'c')
-endif
-if cc.check_header('malloc.h')
-  add_project_arguments('-DHAVE_MALLOC_H', language : 'c')
-endif
-if cc.check_header('malloc/malloc.h')
-  add_project_arguments('-DHAVE_MALLOC_MALLOC_H', language : 'c')
-endif
-if cc.check_header('malloc/malloc_np.h')
-  add_project_arguments('-DHAVE_MALLOC_MALLOC_NP_H', language : 'c')
-endif
-if cc.check_header('langinfo.h')
-  add_project_arguments('-DHAVE_LANGINFO_H', language : 'c')
-endif
-if cc.check_header('sys/param.h')
-  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
-endif
-if cc.check_header('sys/mount.h')
-  add_project_arguments('-DHAVE_SYS_MOUNT_H', language : 'c')
-endif
-if cc.check_header('sys/statvfs.h')
-  add_project_arguments('-DHAVE_SYS_STATVFS_H', language : 'c')
-endif
-if cc.check_header('sys/select.h')
-  add_project_arguments('-DHAVE_SYS_SELECT_H', language : 'c')
-endif
-if cc.check_header('sockLib.h')
-  add_project_arguments('-DHAVE_SOCKLIB_H', language : 'c')
-endif
-if cc.check_header('sys/mman.h')
-  add_project_arguments('-DHAVE_SYS_MMAN_H', language : 'c')
-endif
-if cc.check_header('sys/msg.h')
-  add_project_arguments('-DHAVE_SYS_MSG_H', language : 'c')
-endif
-if cc.check_header('sys/vfs.h')
-  add_project_arguments('-DHAVE_SYS_VFS_H', language : 'c')
-endif
-if cc.check_header('arpa/inet.h')
-  add_project_arguments('-DHAVE_ARPA_INET_H', language : 'c')
-endif
-if cc.check_header('libintl.h')
-  add_project_arguments('-DHAVE_LIBINTL_H', language : 'c')
-endif
-if cc.check_header('netdb.h')
-  add_project_arguments('-DHAVE_NETDB_H', language : 'c')
-endif
-if cc.check_header('netinet/in.h')
-  add_project_arguments('-DHAVE_NETINET_IN_H', language : 'c')
-endif
-if cc.check_header('sys/ioctl.h')
-  add_project_arguments('-DHAVE_SYS_IOCTL_H', language : 'c')
-endif
-if cc.check_header('sys/socket.h')
-  add_project_arguments('-DHAVE_SYS_SOCKET_H', language : 'c')
-endif
-if cc.check_header('sys/time.h')
-  add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
-endif
-if cc.check_header('sys/sysinfo.h')
-  add_project_arguments('-DHAVE_SYS_SYSINFO_H', language : 'c')
-endif
-if cc.check_header('sys/file.h')
-  add_project_arguments('-DHAVE_SYS_FILE_H', language : 'c')
-endif
-if cc.check_header('sys/resource.h')
-  add_project_arguments('-DHAVE_SYS_RESOURCE_H', language : 'c')
-endif
-if cc.check_header('ifaddrs.h')
-  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
-endif
-if cc.check_header('mach/mach.h')
-  add_project_arguments('-DHAVE_MACH_MACH_H', language : 'c')
-endif
-if cc.check_header('sys/timeb.h')
-  add_project_arguments('-DHAVE_SYS_TIMEB_H', language : 'c')
-endif
-if cc.check_header('argz.h')
-  add_project_arguments('-DHAVE_ARGZ_H', language : 'c')
-endif
-if cc.check_header('ucred.h')
-  add_project_arguments('-DHAVE_UCRED_H', language : 'c')
-endif
-if cc.check_header('sys/ucred.h')
-  add_project_arguments('-DHAVE_SYS_UCRED_H', language : 'c')
-endif
-if cc.check_header('endian.h')
-  add_project_arguments('-DHAVE_ENDIAN_H', language : 'c')
-endif
-if cc.check_header('sys/endian.h')
-  add_project_arguments('-DHAVE_SYS_ENDIAN_H', language : 'c')
-endif
-if cc.check_header('execinfo.h')
-  add_project_arguments('-DHAVE_EXECINFO_H', language : 'c')
-endif
-if cc.check_header('byteswap.h')
-  add_project_arguments('-DHAVE_BYTESWAP_H', language : 'c')
-endif
+syscalls = [
+  'memset_s', 'explicit_bzero', 'atoll', 'stat64',
+  'mremap', 'getrlimit', 'setrlimit', 'gethostbyname2',
+  'getpeerucred', 'getpeereid', 'setresuid', 'getifaddrs', 'freeifaddrs',
+  'getresgid', 'mallinfo2', 'malloc_size', 'malloc_usable_size', 'getrusage',
+  'random', 'srandom', 'stat', 'statfs', 'statvfs', 'wait4', 'timegm',
+  'getaddrinfo', 'initgroups', 'gethostbyname'
+]
+
+str_syscalls = [
+  'strnlen', 'strndup',
+]
+
+foreach f : syscalls
+  if cc.has_function(f)
+    define = 'HAVE_' + f.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
+
+foreach f : str_syscalls
+  if cc.has_function(f, prefix : '#include <string.h>')
+    define = 'HAVE_' + f.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
 
 
+headers = [
+  'stdatomic.h', 'malloc.h', 'malloc/malloc.h', 'malloc/malloc_np.h',
+  'langinfo.h', 'sys/param.h', 'sys/mount.h', 'sys/statvfs.h',
+  'sys/select.h', 'sockLib.h', 'sys/mman.h', 'sys/msg.h', 'sys/vfs.h',
+  'arpa/inet.h', 'libintl.h', 'netdb.h', 'netinet/in.h', 'sys/ioctl.h',
+  'sys/socket.h', 'sys/time.h', 'sys/sysinfo.h', 'sys/file.h', 'sys/resource.h',
+  'ifaddrs.h', 'mach/mach.h', 'sys/timeb.h', 'argz.h', 'ucred.h', 'sys/ucred.h',
+  'endian.h', 'sys/endian.h', 'execinfo.h', 'byteswap.h', 'sys/types.h'
+]
 
-
-
-
-
-
-
-
+foreach h : headers
+  if cc.check_header(h)
+    define = '-DHAVE_' + h.underscorify().to_upper()
+    message(define)
+    add_project_arguments(define, language : 'c')
+  endif
+endforeach
 
 configure_file(#input: 'gnunet_private_config.h.in',
   output : 'gnunet_private_config.h',
