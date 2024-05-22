@@ -1266,6 +1266,27 @@ nat_address_cb (void *cls,
 
 
 /**
+ * Iterator over all connection to clean up.
+ *
+ * @param cls NULL
+ * @param key connection->address
+ * @param value the connection to destroy
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+get_connection_delete_it (void *cls,
+                          const struct GNUNET_HashCode *key,
+                          void *value)
+{
+  struct Connection *connection = value;
+  (void) cls;
+  (void) key;
+  connection_destroy (connection);
+  return GNUNET_OK;
+}
+
+
+/**
  * Shutdown the HTTP3 communicator.
  *
  * @param cls NULL (always)
@@ -1273,7 +1294,57 @@ nat_address_cb (void *cls,
 static void
 do_shutdown (void *cls)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown start\n");
+  GNUNET_CONTAINER_multihashmap_iterate (addr_map,
+                                         &get_connection_delete_it,
+                                         NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (addr_map);
+  gnutls_certificate_free_credentials (cred);
 
+  if (NULL != nat)
+  {
+    GNUNET_NAT_unregister (nat);
+    nat = NULL;
+  }
+  if (NULL != read_task)
+  {
+    GNUNET_SCHEDULER_cancel (read_task);
+    read_task = NULL;
+  }
+  if (NULL != udp_sock)
+  {
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_NETWORK_socket_close (udp_sock));
+    udp_sock = NULL;
+  }
+  if (NULL != ch)
+  {
+    GNUNET_TRANSPORT_communicator_disconnect (ch);
+    ch = NULL;
+  }
+  if (NULL != ah)
+  {
+    GNUNET_TRANSPORT_application_done (ah);
+    ah = NULL;
+  }
+  if (NULL != stats)
+  {
+    GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
+    stats = NULL;
+  }
+  if (NULL != my_private_key)
+  {
+    GNUNET_free (my_private_key);
+    my_private_key = NULL;
+  }
+  if (NULL != is)
+  {
+    GNUNET_NT_scanner_done (is);
+    is = NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "do_shutdown finished\n");
 }
 
 
