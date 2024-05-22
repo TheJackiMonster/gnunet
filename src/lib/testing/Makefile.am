@@ -17,7 +17,7 @@ lib_LTLIBRARIES = \
   libgnunettesting.la
 
 gnunet_cmds_helper_SOURCES = \
-  gnunet-cmds-helper.c
+  gnunet-cmds-helper.c testing_cmds.h
 gnunet_cmds_helper_LDADD = $(XLIB) \
   libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -35,7 +35,7 @@ libgnunettesting_la_SOURCES = \
   testing_api_cmd_netjail_start_cmds_helper.c \
   testing_api_cmd_signal.c \
   testing_api_cmd_stat.c \
-  testing_api_cmds.c \
+  testing_api_cmds.c testing_cmds.h \
   testing_api_loop.c testing_api_loop.h \
   testing_api_main.c \
   testing_api_traits.c \
