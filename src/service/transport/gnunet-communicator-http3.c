@@ -40,6 +40,12 @@
         "%DISABLE_TLS13_COMPAT_MODE"
 
 /**
+ * How long do we believe our addresses to remain up (before
+ * the other peer should revalidate).
+ */
+#define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
+
+/**
  * Map of sockaddr -> struct Connection
  *
  * TODO: Maybe it would be better to use cid as key?
@@ -824,6 +830,64 @@ handshake_completed_cb (ngtcp2_conn *conn, void *user_data)
 
 
 /**
+ * The callback function for ngtcp2_callbacks.recv_stream_data
+ *
+ * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
+ */
+static int
+recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
+                     uint64_t offset, const uint8_t *data, size_t datalen,
+                     void *user_data,
+                     void *stream_user_data)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "recv_stream_data: datalen = %lu\n", datalen);
+  struct Connection *connection = user_data;
+  struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_MessageHeader *hdr;
+  int rv;
+
+  if (GNUNET_NO == connection->is_initiator &&
+      GNUNET_NO == connection->id_rcvd)
+  {
+    if (datalen < sizeof (struct GNUNET_PeerIdentity))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "message recv len of %zd less than length of peer identity\n",
+                  datalen);
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
+    pid = (struct GNUNET_PeerIdentity *) data;
+    connection->target = *pid;
+    connection->id_rcvd = GNUNET_YES;
+
+    return GNUNET_NO;
+  }
+
+  hdr = (struct GNUNET_MessageHeader *) data;
+  rv = GNUNET_TRANSPORT_communicator_receive (ch,
+                                              &connection->target,
+                                              hdr,
+                                              ADDRESS_VALIDITY_PERIOD,
+                                              NULL,
+                                              NULL);
+  if (GNUNET_YES != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
+                rv, ntohs (hdr->size), datalen);
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
+              rv, ntohs (hdr->size), datalen);
+
+
+  return GNUNET_NO;
+}
+
+
+/**
  * Create new ngtcp2_conn as client side.
  *
  * @param connection new connection of the peer
@@ -867,7 +931,7 @@ client_quic_init (struct Connection *connection,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
     .handshake_completed = handshake_completed_cb,
-    // .recv_stream_data = recv_stream_data_cb,
+    .recv_stream_data = recv_stream_data_cb,
   };
 
 
@@ -976,6 +1040,7 @@ connection_write_streams (struct Connection *connection)
       switch (nwrite)
       {
       case NGTCP2_ERR_WRITE_MORE:
+        connection->stream.nwrite += (size_t) wdatalen;
         continue;
       default:
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -994,7 +1059,7 @@ connection_write_streams (struct Connection *connection)
     {
       connection->stream.nwrite += (size_t) wdatalen;
     }
-    if (GNUNET_NO != send_packet (connection, buf, sizeof (buf)))
+    if (GNUNET_NO != send_packet (connection, buf, (size_t) nwrite))
     {
       return GNUNET_SYSERR;
     }
@@ -1013,7 +1078,7 @@ static int
 connection_write (struct Connection *connection)
 {
   ngtcp2_tstamp expiry, now;
-  if (connection_write_streams (connection) != 0)
+  if (GNUNET_NO != connection_write_streams (connection))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "connection_write_streams failed\n");
@@ -1257,7 +1322,7 @@ accept_connection (struct sockaddr *local_addr,
     .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
 
     // .acked_stream_data_offset = acked_stream_data_offset_cb,
-    // .recv_stream_data = recv_stream_data_cb,
+    .recv_stream_data = recv_stream_data_cb,
     // .stream_open = stream_open_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
