@@ -634,7 +634,8 @@ free_value_cb (void *cls,
   (void) cls;
 
   GNUNET_free (value);
-
+}
+  
 /**
  * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
  *
@@ -646,9 +647,9 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
   GNUNET_CONTAINER_multishortmap_iterate (topology->backbone_peers,
                                           &free_value_cb,
                                           NULL);
-  GNUNET_CONTAINER_multishortmap_iterate (topology->carriers,
+  /*GNUNET_CONTAINER_multishortmap_iterate (topology->carriers,
                                           &free_carriers_cb,
-                                          NULL);
+                                          NULL);*/
   GNUNET_free (topology->plugin);
   GNUNET_free (topology);
 }
@@ -790,38 +791,6 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 
   return node->additional_connects;
 }
-
-
-static void
-parse_ac (struct GNUNET_TESTING_NetjailNode *p_node, const char *token)
-{
-  char *ac_value;
-  int ret;
-
-  ac_value = get_value ("AC", token);
-  if (NULL != ac_value)
-  {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "ac value: %s\n",
-         ac_value);
-    errno = 0;
-    ret = sscanf (ac_value, "%u", &p_node->additional_connects);
-    if (errno != 0)
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR, "sscanf");
-    }
-    GNUNET_assert (0 < ret);
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "AC %u\n",
-         p_node->additional_connects);
-  }
-  else
-  {
-    p_node->additional_connects = 0;
-  }
-  GNUNET_free (ac_value);
-}
-
 
 char *
 GNUNET_TESTING_get_plugin_from_topo (
@@ -1328,7 +1297,7 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
     GNUNET_free (key);
   GNUNET_free (data);
   return topo;
-}*/
+  }*/
 
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (
