@@ -626,11 +626,39 @@ free_namespaces_cb (void *cls,
 }
 
 
+static int
+free_value_cb (void *cls,
+                    const struct GNUNET_ShortHashCode *key,
+                    void *value)
+{
+  (void) cls;
+
+  GNUNET_free (value);
+
 /**
  * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
  *
  * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
  */
+void
+GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
+{
+  GNUNET_CONTAINER_multishortmap_iterate (topology->backbone_peers,
+                                          &free_value_cb,
+                                          NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (topology->carriers,
+                                          &free_carriers_cb,
+                                          NULL);
+  GNUNET_free (topology->plugin);
+  GNUNET_free (topology);
+}
+
+
+/**
+ * Deallocate memory of the struct GNUNET_TESTING_NetjailTopology.
+ *
+ * @param topology The GNUNET_TESTING_NetjailTopology to be deallocated.
+ *
 void
 GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
 {
@@ -644,7 +672,7 @@ GNUNET_TESTING_free_topology (struct GNUNET_TESTING_NetjailTopology *topology)
   GNUNET_CONTAINER_multishortmap_destroy (topology->map_globals);
   GNUNET_free (topology->plugin);
   GNUNET_free (topology);
-}
+  }*/
 
 
 unsigned int
@@ -804,12 +832,240 @@ GNUNET_TESTING_get_plugin_from_topo (
 }
 
 
+static void
+create_subnet_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
+               struct GNUNET_TESTING_NetjailTopology *topology,
+               struct GNUNET_TESTING_NetjailSubnet *subnet)
+{
+  struct GNUNET_HashCode hc;
+
+  for (int i = 1; i < subnet->number_peers; i++)
+  {
+    struct GNUNET_ShortHashCode hkey;
+    struct GNUNET_TESTING_NetjailSubnetPeer *subnet_peer = GNUNET_new (struct GNUNET_TESTING_NetjailSubnetPeer);
+
+    topology->total++;
+    GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
+      memcpy (&hkey,
+              &hc,
+              sizeof (hkey));
+    GNUNET_CONTAINER_multishortmap_put (subnet->peers,
+                                        &hkey,
+                                        subnet_peer,
+                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+  }
+}
+
+
+static void
+create_subnets (struct GNUNET_CONFIGURATION_Handle *cfg,
+               struct GNUNET_TESTING_NetjailTopology *topology,
+               struct GNUNET_TESTING_NetjailCarrier *carrier)
+{
+  struct GNUNET_HashCode hc;
+  
+  for (int i = 1; i < carrier->number_subnets; i++)
+  {
+    struct GNUNET_ShortHashCode hkey;
+    struct GNUNET_TESTING_NetjailSubnet *subnet = GNUNET_new (struct GNUNET_TESTING_NetjailSubnet);
+    char *section;
+ 
+    topology->total++;
+    subnet->number = topology->total;
+    subnet->index = i;
+    GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
+      memcpy (&hkey,
+              &hc,
+              sizeof (hkey));
+    GNUNET_CONTAINER_multishortmap_put (carrier->subnets,
+                                        &hkey,
+                                        subnet,
+                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+    GNUNET_asprintf (&section, "CARRIER-%u-SUBNET-%u", carrier->index, i);
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          section,
+                                                          "SUBNET_PEERS",
+                                                          (unsigned long long *) &subnet->number_peers))
+    {
+      subnet->number_peers = topology->default_subnet_peers;
+    }
+
+    create_subnet_peers (cfg, topology, subnet);
+
+    GNUNET_free (section);
+  }
+}
+
+
+static void
+create_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
+               struct GNUNET_TESTING_NetjailTopology *topology,
+               struct GNUNET_TESTING_NetjailCarrier *carrier)
+{
+  struct GNUNET_HashCode hc;
+  
+  for (int i = 1; i < carrier->number_peers; i++)
+  {
+    struct GNUNET_ShortHashCode hkey;
+    struct GNUNET_TESTING_NetjailCarrierPeer *peer = GNUNET_new (struct GNUNET_TESTING_NetjailCarrierPeer);
+
+    topology->total++;
+    peer->number = topology->total;
+    GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
+      memcpy (&hkey,
+              &hc,
+              sizeof (hkey));
+    GNUNET_CONTAINER_multishortmap_put (carrier->peers,
+                                        &hkey,
+                                        peer,
+                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+    //GNUNET_asprintf (&section, "CARRIER-%u-PEER-%u", carrier->index, i);
+  }
+}
+
+
+struct GNUNET_TESTING_NetjailTopology *
+GNUNET_TESTING_get_topo_from_string_ (const char *input)
+{
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+  struct GNUNET_TESTING_NetjailTopology *topology = GNUNET_new (struct GNUNET_TESTING_NetjailTopology);
+  topology->backbone_peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
+  topology->carriers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
+  struct GNUNET_HashCode hc;
+
+  cfg = GNUNET_CONFIGURATION_create ();
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_deserialize (cfg,
+                                        input,
+                                        strlen (input),
+                                        NULL))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to parse configuration.\n"));
+    GNUNET_CONFIGURATION_destroy (cfg);
+    return NULL;
+  }
+
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          "DEFAULTS",
+                                                          "SUBNETS",
+                                                          (unsigned long long *) &topology->default_subnets))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Missing default SUBNETS!\n");
+    return NULL;
+  }
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                          "DEFAULTS",
+                                                          "TESTBED_PLUGIN",
+                                                          &topology->plugin))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Missing default TESTBED_PLUGIN!\n");
+    return NULL;
+  }
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          "DEFAULTS",
+                                                          "CARRIER_PEERS",
+                                                          (unsigned long long *) &topology->default_carrier_peers))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Missing default CARRIER_PEERS!\n");
+    return NULL;
+  }
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          "DEFAULTS",
+                                                          "SUBNET_PEERS",
+                                                          (unsigned long long *) &topology->default_subnet_peers))
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Missing default SUBNET_PEERS!\n");
+    return NULL;
+  }
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          "BACKBONE",
+                                                          "CARRIERS",
+                                                          (unsigned long long *) &topology->num_carriers))
+  {
+    LOG (GNUNET_ERROR_TYPE_INFO,
+         "No carrier configured!\n");
+    return NULL;
+  }
+  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          "BACKBONE",
+                                                          "CARRIERS",
+                                                          (unsigned long long *) &topology->num_backbone_peers))
+  {
+    LOG (GNUNET_ERROR_TYPE_INFO,
+         "No backbone peers configured!\n");
+    return NULL;
+  }
+  for (int i = 0;i < topology->num_backbone_peers; i++)
+  {
+    struct GNUNET_TESTING_NetjailBackbonePeer *peer = GNUNET_new (struct GNUNET_TESTING_NetjailBackbonePeer);
+    struct GNUNET_ShortHashCode hkey;
+
+    topology->total++;
+    peer->number = topology->total;
+    GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
+      memcpy (&hkey,
+              &hc,
+              sizeof (hkey));
+    GNUNET_CONTAINER_multishortmap_put (topology->backbone_peers,
+                                        &hkey,
+                                        peer,
+                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+  }
+  for (int i = 0;i < topology->num_carriers; i++)
+  {
+    struct GNUNET_TESTING_NetjailCarrier *carrier = GNUNET_new (struct GNUNET_TESTING_NetjailCarrier);
+    struct GNUNET_ShortHashCode hkey;
+    char *section;
+
+    topology->total++;
+    carrier->number = topology->total;
+    GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
+      memcpy (&hkey,
+              &hc,
+              sizeof (hkey));
+    GNUNET_CONTAINER_multishortmap_put (topology->carriers,
+                                        &hkey,
+                                        carrier,
+                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
+    GNUNET_asprintf (&section, "CARRIER-%u", i); 
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          section,
+                                                          "SUBNETS",
+                                                          (unsigned long long *) &carrier->number_subnets))
+    {
+      carrier->number_subnets = topology->default_subnets;
+    }
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                          section,
+                                                          "CARRIER_PEERS",
+                                                          (unsigned long long *) &carrier->number_peers))
+    {
+      carrier->number_peers = topology->default_carrier_peers;
+    }
+    create_peers  (cfg, topology, carrier);
+    create_subnets (cfg, topology, carrier);
+
+    GNUNET_free (section);
+  }
+
+  GNUNET_free (cfg);
+  
+  return topology;
+}
+
+
 /**
  * Parse the topology data.
  *
  * @param data The topology data.
  * @return The GNUNET_TESTING_NetjailTopology
- */
+ *
 struct GNUNET_TESTING_NetjailTopology *
 GNUNET_TESTING_get_topo_from_string_ (const char *input)
 {
@@ -1072,7 +1328,7 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
     GNUNET_free (key);
   GNUNET_free (data);
   return topo;
-}
+}*/
 
 
 GNUNET_TESTING_SIMPLE_NETJAIL_TRAITS (

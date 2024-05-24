@@ -189,7 +189,6 @@ struct GNUNET_TESTING_NetjailNode
   unsigned int expected_reaches;
 };
 
-
 /**
  * Subnet in a topology.
  */
@@ -212,19 +211,147 @@ struct GNUNET_TESTING_NetjailNamespace
 };
 
 /**
+ * Backbone peer.
+ */
+struct GNUNET_TESTING_NetjailBackbonePeer
+{
+  /**
+   * Unique identifier this part of the topology can be identified.
+   */
+  unsigned int number;
+};
+
+/**
+ * Backbone peer.
+ */
+struct GNUNET_TESTING_NetjailCarrierPeer
+{
+  /**
+   * Unique identifier this part of the topology can be identified.
+   */
+  unsigned int number;
+};
+
+/**
+ * Carrier.
+ */
+struct GNUNET_TESTING_NetjailCarrier
+{
+  /**
+   * Unique identifier this part of the topology can be identified.
+   */
+  unsigned int number;
+
+  /**
+   * Of all carriers this has index.
+   */
+  unsigned int index;
+
+  /**
+   * Number of carrier peers.
+   */
+  unsigned int number_peers;
+
+  /**
+   * Number of carrier subnets.
+   */
+  unsigned int number_subnets;
+
+  /**
+   * Hash map containing subnets.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *subnets;
+
+  /**
+   * Hash map containing peers.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *peers;
+};
+
+/**
+ * Carrier subnet.
+ */
+struct GNUNET_TESTING_NetjailSubnet
+{
+  /**
+   * Unique identifier this part of the topology can be identified.
+   */
+  unsigned int number;
+
+  /**
+   * Of all subnets this has index.
+   */
+  unsigned int index;
+
+  /**
+   * Number of subnet peers.
+   */
+  unsigned int number_peers;
+
+  /**
+   * Hash map containing peers.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *peers;
+};
+
+/**
+ * Subnet peer.
+ */
+struct GNUNET_TESTING_NetjailSubnetPeer
+{
+  /**
+   * Unique identifier this part of the topology can be identified.
+   */
+  unsigned int number;
+};
+
+/**
  * Toplogy of our netjail setup.
  */
 struct GNUNET_TESTING_NetjailTopology
 {
 
   /**
+   * Default number of subnets per carrier.
+   */
+  unsigned int default_subnets;
+
+  /**
+   * Default number of peers per carrier.
+   */
+  unsigned int default_carrier_peers;
+
+  /**
+   * Default number of peers per subnet.
+   */
+  unsigned int default_subnet_peers;
+  /**
    * Default plugin for the test case to be run on nodes.
    */
   char *plugin;
 
   /**
-   * Total number of namespaces in the topology;
-   * numbered starting from 1 (!).
+   * Number of carriers.
+   */
+  unsigned int num_carriers;
+
+  /**
+   * Default number of backbone peers.
+   */
+  unsigned int num_backbone_peers;
+
+  /**
+   * Hash map containing the carriers.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *carriers;
+
+  /**
+   * Hash map containing the carriers.
+   */
+  struct GNUNET_CONTAINER_MultiShortmap *backbone_peers;
+
+  /**
+   * Total number of namespaces in the topology.
    */
   unsigned int total;
 
