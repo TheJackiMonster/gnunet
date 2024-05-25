@@ -1044,7 +1044,7 @@ connection_write_streams (struct Connection *connection)
         continue;
       default:
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "ngtcp2_conn_writev_stream",
+                    "ngtcp2_conn_writev_stream %s\n",
                     ngtcp2_strerror ((int) nwrite));
         ngtcp2_ccerr_set_liberr (&connection->last_error, (int) nwrite,
                                  NULL, 0);
