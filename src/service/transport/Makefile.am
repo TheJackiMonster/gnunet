@@ -306,6 +306,7 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 check_PROGRAMS = \
+ test_communicator_basic-http3 \
  test_communicator_basic-tcp \
  test_communicator_basic-udp \
  test_communicator_rekey-tcp \
@@ -365,6 +366,14 @@ test_communicator_basic_udp_LDADD = \
 test_communicator_basic_quic_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_quic_LDADD = \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+
+test_communicator_basic_http3_SOURCES = \
+ test_communicator_basic.c
+test_communicator_basic_http3_LDADD = \
  libgnunettestingtransport.la \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
@@ -451,6 +460,8 @@ test_communicator_unix_basic_peer2.conf \
 test_communicator_tcp_basic_peer1.conf \
 test_communicator_tcp_basic_peer2.conf \
 test_communicator_udp_basic_peer1.conf \
+test_communicator_http3_basic_peer1.conf \
+test_communicator_http3_basic_peer2.conf \
 test_communicator_udp_basic_peer2.conf \
 test_communicator_tcp_rekey_peer1.conf \
 test_communicator_tcp_rekey_peer2.conf \
