@@ -1264,22 +1264,35 @@ extract_array_generic (
   *((void **) dst) = NULL;
 
   #define FAIL_IF(cond) \
-  do { \
-    if ((cond)) \
-    { \
-      GNUNET_break (! (cond)); \
-      goto FAIL; \
-    } \
-  } while (0)
+          do { \
+            if ((cond)) \
+            { \
+              GNUNET_break (! (cond)); \
+              goto FAIL; \
+            } \
+          } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);
 
   data_sz = PQgetlength (result, row, col_num);
   FAIL_IF (0 > data_sz);
-  FAIL_IF (sizeof(header) > (size_t) data_sz);
-
   data = PQgetvalue (result, row, col_num);
+  if (sizeof(header) > (size_t) data_sz)
+  {
+    uint32_t ndim;
+
+    /* data_sz is shorter than header if the
+       array length is 0, in which case ndim is 0! */
+    FAIL_IF (sizeof(uint32_t) > (size_t) data_sz);
+    memcpy (&ndim,
+            data,
+            sizeof (ndim));
+    FAIL_IF (0 != ndim);
+    *info->num = 0;
+    return GNUNET_OK;
+  }
+  FAIL_IF (sizeof(header) > (size_t) data_sz);
   FAIL_IF (NULL == data);
 
   {
@@ -1391,7 +1404,8 @@ extract_array_generic (
     case array_of_rel_time:
       if (NULL != dst_size)
         *dst_size = sizeof(struct GNUNET_TIME_Relative) * (header.dim);
-      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Relative);
+      out = GNUNET_new_array (header.dim,
+                              struct GNUNET_TIME_Relative);
       *((void **) dst) = out;
       for (uint32_t i = 0; i < header.dim; i++)
       {
@@ -1408,7 +1422,8 @@ extract_array_generic (
     case array_of_timestamp:
       if (NULL != dst_size)
         *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (header.dim);
-      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Timestamp);
+      out = GNUNET_new_array (header.dim,
+                              struct GNUNET_TIME_Timestamp);
       *((void **) dst) = out;
       for (uint32_t i = 0; i < header.dim; i++)
       {
@@ -1920,7 +1935,8 @@ clean_blind_sign_pub (void *cls,
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_pub (const char *name,
-                                      struct GNUNET_CRYPTO_BlindSignPublicKey **pub)
+                                      struct GNUNET_CRYPTO_BlindSignPublicKey **
+                                      pub)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_pub,
@@ -2040,7 +2056,7 @@ extract_blind_sign_priv (void *cls,
  */
 static void
 clean_blind_sign_priv (void *cls,
-                      void *rd)
+                       void *rd)
 {
   struct GNUNET_CRYPTO_BlindSignPrivateKey **priv = rd;
 
@@ -2052,7 +2068,8 @@ clean_blind_sign_priv (void *cls,
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
-                                       struct GNUNET_CRYPTO_BlindSignPrivateKey **priv)
+                                       struct GNUNET_CRYPTO_BlindSignPrivateKey
+                                       **priv)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_priv,
@@ -2063,5 +2080,6 @@ GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
 
   return res;
 }
+
 
 /* end of pq_result_helper.c */
