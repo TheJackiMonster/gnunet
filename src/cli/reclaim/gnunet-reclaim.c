@@ -53,6 +53,11 @@ static int list_credentials;
 static char *credential_id;
 
 /**
+ * The expected RP URI
+ */
+static char *ex_rp_uri;
+
+/**
  * Credential ID
  */
 static struct GNUNET_RECLAIM_Identifier credential;
@@ -155,11 +160,6 @@ static struct GNUNET_RECLAIM_TicketIterator *ticket_iterator;
 static const struct GNUNET_CRYPTO_PrivateKey *pkey;
 
 /**
- * rp public key
- */
-static struct GNUNET_CRYPTO_PublicKey rp_key;
-
-/**
  * Ticket to consume
  */
 static struct GNUNET_RECLAIM_Ticket ticket;
@@ -234,17 +234,10 @@ ticket_issue_cb (void *cls,
                  const struct GNUNET_RECLAIM_Ticket *ticket,
                  const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
-  char *ticket_str;
-
   reclaim_op = NULL;
   if (NULL != ticket)
   {
-    ticket_str =
-      GNUNET_STRINGS_data_to_string_alloc (ticket,
-                                           sizeof(
-                                             struct GNUNET_RECLAIM_Ticket));
-    printf ("%s\n", ticket_str);
-    GNUNET_free (ticket_str);
+    printf ("%s\n", ticket->gns_name);
   }
   cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
 }
@@ -340,24 +333,9 @@ ticket_iter_fin (void *cls)
 
 
 static void
-ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket)
+ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket, const char* rp_uri)
 {
-  char *aud;
-  char *ref;
-  char *tkt;
-
-  aud =
-    GNUNET_STRINGS_data_to_string_alloc (&ticket->audience,
-                                         sizeof(struct
-                                                GNUNET_CRYPTO_PublicKey));
-  ref = GNUNET_STRINGS_data_to_string_alloc (&ticket->rnd, sizeof(ticket->rnd));
-  tkt =
-    GNUNET_STRINGS_data_to_string_alloc (ticket,
-                                         sizeof(struct GNUNET_RECLAIM_Ticket));
-  fprintf (stdout, "Ticket: %s | ID: %s | Audience: %s\n", tkt, ref, aud);
-  GNUNET_free (aud);
-  GNUNET_free (ref);
-  GNUNET_free (tkt);
+  fprintf (stdout, "Ticket: %s | RP URI: %s\n", ticket->gns_name, rp_uri);
   GNUNET_RECLAIM_ticket_iteration_next (ticket_iterator);
 }
 
@@ -413,6 +391,9 @@ process_delete (void *cls, int success, const char *msg)
 static void
 iter_finished (void *cls)
 {
+  struct GNUNET_RECLAIM_AttributeListEntry *le;
+  char *attrs_tmp;
+  char *attr_str;
   char *data;
   size_t data_size;
   int type;
@@ -426,9 +407,41 @@ iter_finished (void *cls)
 
   if (issue_attrs)
   {
+    attrs_tmp = GNUNET_strdup (issue_attrs);
+    attr_str = strtok (attrs_tmp, ",");
+    while (NULL != attr_str)
+    {
+      le = attr_list->list_head;
+      while (le)
+      {
+        if (0 == strcasecmp (attr_str, le->attribute->name))
+          break;
+
+        le = le->next;
+      }
+
+      if (! le)
+      {
+        fprintf (stdout, "No such attribute ``%s''\n", attr_str);
+        break;
+      }
+      attr_str = strtok (NULL, ",");
+    }
+    GNUNET_free (attrs_tmp);
+    if (NULL != attr_str)
+    {
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
+      return;
+    }
+    if (NULL == ex_rp_uri)
+    {
+      fprintf (stdout, "No RP URI provided\n");
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
+      return;
+    }
     reclaim_op = GNUNET_RECLAIM_ticket_issue (reclaim_handle,
                                               pkey,
-                                              &rp_key,
+                                              ex_rp_uri,
                                               attr_list,
                                               &ticket_issue_cb,
                                               NULL);
@@ -436,9 +449,15 @@ iter_finished (void *cls)
   }
   if (consume_ticket)
   {
+    if (NULL == ex_rp_uri)
+    {
+      fprintf (stderr, "Expected an RP URI to consume ticket\n");
+      GNUNET_SCHEDULER_add_now(&do_cleanup, NULL);
+      return;
+    }
     reclaim_op = GNUNET_RECLAIM_ticket_consume (reclaim_handle,
-                                                pkey,
                                                 &ticket,
+                                                ex_rp_uri,
                                                 &process_attrs,
                                                 NULL);
     timeout = GNUNET_SCHEDULER_add_delayed (
@@ -736,19 +755,8 @@ start_process ()
     return;
   }
 
-  if ((NULL != rp) &&
-      (GNUNET_OK !=
-       GNUNET_CRYPTO_public_key_from_string (rp, &rp_key)) )
-  {
-    fprintf (stderr, "%s is not a public key!\n", rp);
-    cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
-    return;
-  }
   if (NULL != consume_ticket)
-    GNUNET_STRINGS_string_to_data (consume_ticket,
-                                   strlen (consume_ticket),
-                                   &ticket,
-                                   sizeof(struct GNUNET_RECLAIM_Ticket));
+    memcpy (ticket.gns_name,  consume_ticket, strlen (consume_ticket) + 1);
   if (NULL != revoke_ticket)
     GNUNET_STRINGS_string_to_data (revoke_ticket,
                                    strlen (revoke_ticket),
@@ -834,7 +842,8 @@ main (int argc, char *const argv[])
     GNUNET_GETOPT_option_string ('a',
                                  "add",
                                  "NAME",
-                                 gettext_noop ("Add or update an attribute NAME"),
+                                 gettext_noop (
+                                   "Add or update an attribute NAME"),
                                  &attr_name),
     GNUNET_GETOPT_option_string ('d',
                                  "delete",
@@ -857,6 +866,12 @@ main (int argc, char *const argv[])
                                  gettext_noop (
                                    "Specify the relying party for issue"),
                                  &rp),
+    GNUNET_GETOPT_option_string ('U',
+                                 "rpuri",
+                                 "RPURI",
+                                 gettext_noop (
+                                   "Specify the relying party URI for a ticket to consume"),
+                                 &ex_rp_uri),
     GNUNET_GETOPT_option_flag ('D',
                                "dump",
                                gettext_noop ("List attributes for EGO"),

@@ -136,7 +136,10 @@ main()
       check_libtool
     fi
     pogen
-    install_hooks
+    if test -d .git
+    then
+        install_hooks
+    fi
 }
 
 main "$@"

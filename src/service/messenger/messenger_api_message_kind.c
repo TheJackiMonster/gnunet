@@ -98,7 +98,8 @@ create_message_id (const struct GNUNET_ShortHashCode *unique_id)
     return NULL;
 
   GNUNET_memcpy (&(message->body.id.id), unique_id, sizeof(struct
-                                                           GNUNET_ShortHashCode));
+                                                           GNUNET_ShortHashCode)
+                 );
 
   return message;
 }
@@ -143,7 +144,8 @@ create_message_invite (const struct GNUNET_PeerIdentity *door,
     return NULL;
 
   GNUNET_memcpy (&(message->body.invite.door), door, sizeof(struct
-                                                            GNUNET_PeerIdentity));
+                                                            GNUNET_PeerIdentity)
+                 );
   GNUNET_memcpy (&(message->body.invite.key), key, sizeof(struct
                                                           GNUNET_HashCode));
 
@@ -190,9 +192,9 @@ create_message_delete (const struct GNUNET_HashCode *hash,
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
+create_message_ticket (const struct GNUNET_RECLAIM_Ticket *ticket)
 {
-  if (! identifier)
+  if (! ticket)
     return NULL;
 
   struct GNUNET_MESSENGER_Message *message = create_message (
@@ -201,8 +203,7 @@ create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
   if (! message)
     return NULL;
 
-  GNUNET_memcpy (&(message->body.ticket.identifier), identifier,
-                 sizeof(struct GNUNET_RECLAIM_Identifier));
+  message->body.ticket.identifier = GNUNET_strdup (ticket->gns_name);
 
   return message;
 }

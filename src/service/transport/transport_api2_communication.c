@@ -598,8 +598,16 @@ handle_create_queue (void *cls, const struct GNUNET_TRANSPORT_CreateQueue *cq)
   const char *addr = (const char *) &cq[1];
   struct GNUNET_TRANSPORT_CreateQueueResponse *cqr;
   struct GNUNET_MQ_Envelope *env;
+  int ret = ch->mq_init (ch->mq_init_cls, &cq->receiver, addr);
 
-  if (GNUNET_OK != ch->mq_init (ch->mq_init_cls, &cq->receiver, addr))
+  if (GNUNET_NO == ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Address `%s' is already (beging) connected to.\n",
+                addr);
+    env = GNUNET_MQ_msg (cqr, GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_CREATE_FAIL);
+  }
+  else if (GNUNET_SYSERR == ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Address `%s' invalid for this communicator\n",

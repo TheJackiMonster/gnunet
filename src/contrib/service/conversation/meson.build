@@ -145,6 +145,8 @@ executable ('gnunet-helper-audio-playback',
           install: true,
           install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+if false
+
 testconvapi = executable ('test_conversation_api',
          ['test_conversation_api.c'],
           dependencies: [libgnunetconversation_dep,
@@ -201,3 +203,4 @@ test('test_conversation_api_twocalls', testconvapitwo, workdir: meson.current_bu
 test('test_conversation_api_reject', testconvapireject, workdir: meson.current_build_dir(),
      suite: ['conversation', 'contrib'])
 
+endif

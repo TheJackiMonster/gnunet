@@ -52,7 +52,7 @@ netjail_opts() {
 	local OPT=$1
 	local DEF=$2
 	shift 2
-	
+
 	while [ $# -gt 0 ]; do
 		if [ "$1" = "$OPT" ]; then
 			printf "$2"
@@ -61,7 +61,7 @@ netjail_opts() {
 
 		shift 1
 	done
-	
+
 	RESULT="$DEF"
 }
 
@@ -100,7 +100,7 @@ netjail_bridge() {
 
 	ip link add $BRIDGE type bridge
 	ip link set dev $BRIDGE up
-	
+
 	RESULT=$BRIDGE
 }
 
@@ -108,7 +108,7 @@ netjail_bridge_name() {
 	netjail_next_interface
 	local NUM=$RESULT
 	local BRIDGE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
-	
+
 	RESULT=$BRIDGE
 }
 
@@ -124,7 +124,7 @@ netjail_node() {
 	local NODE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
 
 	ip netns add $NODE
-	
+
 	RESULT=$NODE
 }
 
@@ -132,7 +132,7 @@ netjail_node_name() {
 	netjail_next_namespace
 	local NUM=$RESULT
 	local NODE=$(printf $INTERFACE_FORMAT_STRING $PREPREFIX $PREFIX $NUM)
-	
+
 	RESULT=$NODE
 }
 
@@ -215,21 +215,6 @@ netjail_node_exec() {
 	ip netns exec $NODE sudo -u $JAILOR -- $@ 1>& $FD_OUT 0<& $FD_IN
 }
 
-netjail_node_exec_without_fds() {
-    JAILOR=${SUDO_USER:?must run in sudo}
-	NODE=$1
-	shift 1
-
-	ip netns exec $NODE sudo -u $JAILOR -- $@
-}
-
-netjail_node_exec_without_fds_and_sudo() {
-	NODE=$1
-	shift 1
-
-	ip netns exec $NODE $@
-}
-
 netjail_kill() {
 	local PID=$1
 	local MATCH=$(ps --pid $PID | awk "{ if ( \$1 == $PID ) { print \$1 } }" | wc -l)
@@ -264,4 +249,3 @@ netjail_waitall() {
 		done
 	fi
 }
-

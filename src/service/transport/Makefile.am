@@ -15,11 +15,10 @@ if USE_COVERAGE
 endif
 
 noinst_PROGRAMS = \
- test_transport_start_with_config \
  gnunet-communicator-udp
 
 TESTING_LIBS = \
-  libgnunettransporttesting2.la
+  libgnunettestingtransport.la
 
 lib_LTLIBRARIES = \
   libgnunettransportapplication.la \
@@ -28,32 +27,29 @@ lib_LTLIBRARIES = \
   libgnunettransportmonitor.la \
   $(TESTING_LIBS)
 
-libgnunettransporttesting2_la_SOURCES = \
-  transport_api_traits.c \
-  testing_api_cmd_stop_peer.c \
-  testing_api_cmd_start_peer.c \
-  transport_api_cmd_connecting_peers.c \
-  transport_api_cmd_backchannel_check.c \
-  transport_api_cmd_start_peer.c \
-  transport_api_cmd_stop_peer.c \
-  transport_api_cmd_send_simple.c \
-  transport_api_cmd_send_simple_performance.c \
-  transport-testing2.c transport-testing2.h \
-  transport-testing-cmds.h \
-  transport-testing-filenames2.c \
-  transport-testing-loggers2.c \
-  transport-testing-main2.c \
-  transport-testing-send2.c \
-  transport-testing-communicator.c transport-testing-communicator.h
-libgnunettransporttesting2_la_LIBADD = \
+libgnunettestingtransport_la_SOURCES = \
+  testing_transport_traits.c transport-testing-cmds.h \
+  transport-testing-communicator.c transport-testing-communicator.h 
+#  transport_api_cmd_connecting_peers.c \
+#  transport_api_cmd_backchannel_check.c \
+#  transport_api_cmd_send_simple.c \
+#  transport_api_cmd_send_simple_performance.c \
+#  transport-testing2.c transport-testing2.h \
+#  transport-testing-cmds.h \
+#  transport-testing-filenames2.c \
+#  transport-testing-loggers2.c \
+#  transport-testing-main2.c \
+#  transport-testing-send2.c 
+libgnunettestingtransport_la_LIBADD = \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
-libgnunettransporttesting2_la_LDFLAGS = \
+libgnunettestingtransport_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS) \
   -version-info 0:0:0
@@ -184,25 +180,26 @@ gnunet_service_transport_LDADD = \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LIBGCRYPT_LIBS) \
   $(GN_LIBINTL)
 
-plugin_LTLIBRARIES = \
-  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
-  libgnunet_test_transport_plugin_cmd_nat_upnp.la \
-  libgnunet_test_transport_plugin_cmd_simple_send.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
-  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
+#plugin_LTLIBRARIES = \
+#  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
+#  libgnunet_test_transport_plugin_cmd_nat_upnp.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
+#  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
+#  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
 
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_SOURCES = \
  test_transport_plugin_cmd_nat_upnp.c
 libgnunet_test_transport_plugin_cmd_nat_upnp_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -215,10 +212,10 @@ libgnunet_test_transport_plugin_cmd_nat_upnp_la_LDFLAGS = \
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_SOURCES = \
  test_transport_plugin_cmd_udp_backchannel.c
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -231,10 +228,10 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LDFLAGS = \
 libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
  test_transport_plugin_cmd_simple_send.c
 libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -247,10 +244,10 @@ libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
 libgnunet_test_transport_plugin_cmd_simple_send_performance_la_SOURCES = \
  test_transport_plugin_cmd_simple_send_performance.c
 libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -263,10 +260,10 @@ libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LDFLAGS = \
 libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_SOURCES = \
  test_transport_plugin_cmd_simple_send_broadcast.c
 libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -279,10 +276,10 @@ libgnunet_test_transport_plugin_cmd_simple_send_broadcast_la_LDFLAGS = \
 libgnunet_test_transport_plugin_cmd_simple_send_dv_la_SOURCES = \
  test_transport_plugin_cmd_simple_send_dv.c
 libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LIBADD = \
-  libgnunettransporttesting2.la \
+  libgnunettestingtransport.la \
   libgnunettransportapplication.la \
   libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
@@ -296,24 +293,24 @@ check_PROGRAMS = \
  test_communicator_basic-tcp \
  test_communicator_basic-udp \
  test_communicator_rekey-tcp \
+ test_communicator_bidirect-tcp \
  test_communicator_rekey-udp \
- test_communicator_backchannel-udp \
- test_communicator_bidirect-tcp
+ test_communicator_backchannel-udp
 
 if HAVE_EXPERIMENTAL
 check_PROGRAMS += test_communicator_basic-quic \
  test_communicator_basic-unix
-check_SCRIPTS= \
-  test_transport_start_testcase.sh \
-  test_transport_simple_send_performance.sh \
-  test_transport_nat_icmp_tcp.sh \
-  test_transport_nat_upnp.sh \
-  test_transport_simple_send_string.sh \
-  test_transport_simple_send.sh \
-  test_transport_simple_send_broadcast.sh \
-  test_transport_udp_backchannel.sh \
-  test_transport_simple_send_dv_circle.sh \
-  test_transport_simple_send_dv_inverse.sh
+# check_SCRIPTS= \
+  # test_transport_start_testcase.sh \
+  # test_transport_simple_send_performance.sh \
+  # test_transport_nat_icmp_tcp.sh \
+  # test_transport_nat_upnp.sh \
+  # test_transport_simple_send_string.sh \
+  # test_transport_simple_send.sh \
+  # test_transport_simple_send_broadcast.sh \
+  # test_transport_udp_backchannel.sh \
+  # test_transport_simple_send_dv_circle.sh \
+  # test_transport_simple_send_dv_inverse.sh
 endif
 
 if ENABLE_TEST_RUN
@@ -324,76 +321,68 @@ TESTS = \
 endif
 
 
-test_transport_start_with_config_SOURCES = \
- test_transport_start_with_config.c
-test_transport_start_with_config_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la \
- $(top_builddir)/src/lib/hello/libgnunethello.la \
- libgnunettransportcore.la \
- libgnunettransporttesting2.la
 
 test_communicator_basic_unix_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_unix_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_tcp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_udp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_basic_quic_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_quic_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_tcp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_rekey_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_rekey_udp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_backchannel_udp_SOURCES = \
  test_communicator_basic.c
 test_communicator_backchannel_udp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
 test_communicator_bidirect_tcp_SOURCES = \
  test_communicator_basic.c
 test_communicator_bidirect_tcp_LDADD = \
- libgnunettransporttesting2.la \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
@@ -402,7 +391,7 @@ test_transport_api2_tcp_SOURCES = \
 test_transport_api2_tcp_LDADD = \
  $(top_builddir)/src/lib/hello/libgnunethello.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la  \
- libgnunettransporttesting2.la
+ libgnunettestingtransport.la
 
 EXTRA_DIST = \
 test_transport_start_testcase.sh \

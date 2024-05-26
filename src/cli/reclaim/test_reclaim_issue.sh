@@ -32,7 +32,7 @@ TEST_KEY=$(gnunet-identity -d -e testego -q -c test_reclaim.conf)
 gnunet-reclaim -e testego -a email -V john@doe.gnu -c test_reclaim.conf
 gnunet-reclaim -e testego -a name -V John -c test_reclaim.conf
 #gnunet-reclaim -e testego -D -c test_reclaim.conf
-gnunet-reclaim -e testego -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf > /dev/null 2>&1
+gnunet-reclaim -e testego -u "urn:gns:$TEST_KEY" -i "email,name" -r $SUBJECT_KEY -c test_reclaim.conf > /dev/null 2>&1
 if test $? != 0
 then
   echo "Failed."

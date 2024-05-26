@@ -76,6 +76,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &(element->hash),
                                                         NULL,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Notification of session message could be duplicated!\n");
 

@@ -577,7 +577,7 @@ GNUNET_PQ_query_param_uint32 (const uint32_t *x);
 
 
 /**
- * Generate query parameter for an uint16_t in host byte order.
+ * Generate query parameter for an uint64_t in host byte order.
  *
  * @param x pointer to the query parameter to pass
  * @return query parameter to use
@@ -585,6 +585,37 @@ GNUNET_PQ_query_param_uint32 (const uint32_t *x);
 struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_uint64 (const uint64_t *x);
 
+
+/**
+ * Generate query parameter for an int64_t in host byte order.
+ *
+ * @param x pointer to the query parameter to pass
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_int64 (const int64_t *x);
+
+/**
+ * Generate query parameter for a blind sign public key.
+ * Internally, the various attributes of the public key
+ * will be serialized into on variable-size BLOB.
+ *
+ * @param pub pointer to the query parameter to pass
+ *
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_blind_sign_pub (
+  const struct GNUNET_CRYPTO_BlindSignPublicKey *pub);
+
+/**
+ * Generate query parameter for a blind sign private key of variable size.
+ *
+ * @param priv pointer to the query parameter to pass
+ *
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_blind_sign_priv (
+  const struct GNUNET_CRYPTO_BlindSignPrivateKey *priv);
 
 /* ************************* pq_result_helper.c functions ************************ */
 
@@ -895,6 +926,19 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint64 (const char *name,
                               uint64_t *u64);
 
+
+/**
+ * int64_t expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] i64 where to store the result
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_int64 (const char *name,
+                             int64_t *i64);
+
+
 /**
  * array of bool expected.
  *
@@ -1080,6 +1124,32 @@ GNUNET_PQ_result_spec_array_string (
   const char *name,
   size_t *num,
   char **dst);
+
+
+/**
+ * Blind sign public key expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] public_key where to store the denomination signature
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_blind_sign_pub (
+  const char *name,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **public_key);
+
+
+/**
+ * Blind sign private key expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] private_key where to store the denomination signature
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_blind_sign_priv (
+  const char *name,
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **private_key);
 
 /* ************************* pq.c functions ************************ */
 

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-03-02 14:38+0100\n"
+"POT-Creation-Date: 2024-05-20 20:21+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -349,21 +349,26 @@ msgstr "Нисам успео да обрадим идентитет парња�
 msgid "Failed to connect to CORE service!\n"
 msgstr "Нисам успео да се повежем са ЈЕЗГРЕНОМ услугом!\n"
 
-#: src/cli/core/gnunet-core.c:230 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:213
+#, fuzzy
+msgid "No argument given.\n"
+msgstr "Нису дате опције\n"
+
+#: src/cli/core/gnunet-core.c:238 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr "обезбеђује податке о свим тренутним везама (непрекидно)"
 
-#: src/cli/core/gnunet-core.c:236
+#: src/cli/core/gnunet-core.c:244
 #, fuzzy
 msgid "Show our current peer identity"
 msgstr "идентитет парњака"
 
-#: src/cli/core/gnunet-core.c:243
+#: src/cli/core/gnunet-core.c:251
 #, fuzzy
 msgid "Show current connections"
 msgstr "# активних веза"
 
-#: src/cli/core/gnunet-core.c:254
+#: src/cli/core/gnunet-core.c:262
 msgid "Print information about connected peers."
 msgstr "Исписује податке о повезаним парњацима."
 
@@ -1093,53 +1098,53 @@ msgstr ""
 "Поништава индексирање датотеке која је претходно била индексирана са „gnunet-"
 "publish“."
 
-#: src/cli/gns/gnunet-gns.c:268
+#: src/cli/gns/gnunet-gns.c:269
 #, fuzzy, c-format
 msgid "`%s' is not a valid DNS domain name\n"
 msgstr "„%s“ није исправна ИП адреса.\n"
 
-#: src/cli/gns/gnunet-gns.c:279 src/lib/util/dnsparser.c:273
+#: src/cli/gns/gnunet-gns.c:280 src/lib/util/dnsparser.c:273
 #, c-format
 msgid "Failed to convert DNS IDNA name `%s' to UTF-8: %s\n"
 msgstr "Нисам успео да претворим ДНС ИДНА „%s“ у УТФ-8: %s\n"
 
-#: src/cli/gns/gnunet-gns.c:294
+#: src/cli/gns/gnunet-gns.c:295
 msgid "Cannot resolve using GNS: GNUnet peer not running\n"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:305
+#: src/cli/gns/gnunet-gns.c:306
 #: src/contrib/service/abd/gnunet-service-abd.c:1745
 #, c-format
 msgid "Failed to connect to GNS\n"
 msgstr "Нисам успео да се повежем са ГНС-ом\n"
 
-#: src/cli/gns/gnunet-gns.c:318
+#: src/cli/gns/gnunet-gns.c:325
 #, c-format
 msgid "Invalid typename specified, assuming `ANY'\n"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:358
+#: src/cli/gns/gnunet-gns.c:365
 msgid "Lookup a record for the given name"
 msgstr "Претражује запис за датим називом"
 
-#: src/cli/gns/gnunet-gns.c:364
+#: src/cli/gns/gnunet-gns.c:371
 msgid "Specify the type of the record to lookup"
 msgstr "Наводи врсту записа за претраживање"
 
-#: src/cli/gns/gnunet-gns.c:370
+#: src/cli/gns/gnunet-gns.c:377
 #, fuzzy
 msgid "Specify a timeout for the lookup"
 msgstr "Наводи време истека за претраживање"
 
-#: src/cli/gns/gnunet-gns.c:374
+#: src/cli/gns/gnunet-gns.c:381
 msgid "No unneeded output"
 msgstr "Нема непотребног излаза"
 
-#: src/cli/gns/gnunet-gns.c:379
+#: src/cli/gns/gnunet-gns.c:386
 msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:393
+#: src/cli/gns/gnunet-gns.c:400
 msgid "GNUnet GNS resolver tool"
 msgstr "Алат ГНУнет ГНС решавача"
 
@@ -1668,7 +1673,11 @@ msgstr ""
 msgid "GNUnet NAT traversal autoconfigure daemon"
 msgstr "Демон помоћника теста ГНУнет НАТ попречника"
 
-#: src/cli/nse/gnunet-nse.c:124
+#: src/cli/nse/gnunet-nse.c:126
+msgid "Monitor and output current estimates"
+msgstr ""
+
+#: src/cli/nse/gnunet-nse.c:137
 msgid "Show network size estimates from NSE service."
 msgstr "Показује процене величине мреже из НСЕ услуге."
 
@@ -1716,86 +1725,90 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:805
+#: src/cli/reclaim/gnunet-reclaim.c:813
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "Потребна је исправна врста\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:812
+#: src/cli/reclaim/gnunet-reclaim.c:820
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:819
+#: src/cli/reclaim/gnunet-reclaim.c:827
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "аргумент „--section“ је потребан\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:837
+#: src/cli/reclaim/gnunet-reclaim.c:846
 msgid "Add or update an attribute NAME"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:842
+#: src/cli/reclaim/gnunet-reclaim.c:851
 msgid "Delete the attribute with ID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:847
+#: src/cli/reclaim/gnunet-reclaim.c:856
 msgid "The attribute VALUE"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:852
+#: src/cli/reclaim/gnunet-reclaim.c:861
 msgid "The EGO to use"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:858
+#: src/cli/reclaim/gnunet-reclaim.c:867
 msgid "Specify the relying party for issue"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:862
-msgid "List attributes for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:866
-msgid "List credentials for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:872
-msgid "Credential to use for attribute"
+#: src/cli/reclaim/gnunet-reclaim.c:873
+msgid "Specify the relying party URI for a ticket to consume"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:877
+msgid "List attributes for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:881
+msgid "List credentials for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:887
+msgid "Credential to use for attribute"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:892
 msgid "Credential name"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:883
+#: src/cli/reclaim/gnunet-reclaim.c:898
 msgid "Issue a ticket for a set of attributes separated by comma"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:888
+#: src/cli/reclaim/gnunet-reclaim.c:903
 msgid "Consume a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:893
+#: src/cli/reclaim/gnunet-reclaim.c:908
 msgid "Revoke a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:898
+#: src/cli/reclaim/gnunet-reclaim.c:913
 msgid "Type of attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:903
+#: src/cli/reclaim/gnunet-reclaim.c:918
 msgid "Type of credential"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:907
+#: src/cli/reclaim/gnunet-reclaim.c:922
 msgid "List tickets of ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:913
+#: src/cli/reclaim/gnunet-reclaim.c:928
 msgid "Expiration interval of the attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:921
+#: src/cli/reclaim/gnunet-reclaim.c:936
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -2030,33 +2043,59 @@ msgstr "Исписује статистику о ГНУнет радњама."
 msgid "run decoder modus, otherwise runs as encoder"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:154
+#: src/cli/util/gnunet-config.c:101
 msgid "test if the current installation supports the specified BACKEND"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:160
+#: src/cli/util/gnunet-config.c:107
 msgid ""
 "Provide an appropriate value for CFLAGS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:165
+#: src/cli/util/gnunet-config.c:112
 msgid "Is this an experimental build of GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:171
+#: src/cli/util/gnunet-config.c:118
 msgid ""
 "Provide an appropriate value for LIBS to applications building on top of "
 "GNUnet"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:177
+#: src/cli/util/gnunet-config.c:123
+#, fuzzy
+msgid "Do not parse default configuration files"
+msgstr "Управља ГНУнет датотекама подешавања"
+
+#: src/cli/util/gnunet-config.c:129
 msgid "Provide the path under which GNUnet was installed"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:192
-msgid "Manipulate GNUnet configuration files"
-msgstr "Управља ГНУнет датотекама подешавања"
+#: src/cli/util/gnunet-config.c:136
+msgid ""
+"Parse main configuration from this command-line argument and not from disk"
+msgstr ""
+
+#: src/cli/util/gnunet-config.c:225
+#, fuzzy
+msgid "Failed to load default configuration, exiting ...\n"
+msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
+
+#: src/cli/util/gnunet-config.c:237
+#, fuzzy
+msgid "Failed to parse configuration, exiting ...\n"
+msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
+
+#: src/cli/util/gnunet-config.c:249 src/lib/util/program.c:287
+#, fuzzy, c-format
+msgid "Unreadable configuration file `%s', exiting ...\n"
+msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
+
+#: src/cli/util/gnunet-config.c:263 src/lib/util/program.c:299
+#, fuzzy, c-format
+msgid "Malformed configuration file `%s', exiting ...\n"
+msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
 #: src/cli/util/gnunet-crypto-tvg.c:1588
 msgid "verify a test vector from stdin"
@@ -2109,57 +2148,56 @@ msgstr ""
 msgid "Hostkeys file `%s' not found\n"
 msgstr "Нисам нашао датотеку кључа домаћина „%s“\n"
 
-#: src/cli/util/gnunet-ecc.c:314
+#: src/cli/util/gnunet-ecc.c:318
 #, c-format
 msgid "Hostkeys file `%s' is empty\n"
 msgstr "Датотека кључа домаћина „%s“ је празна\n"
 
-#: src/cli/util/gnunet-ecc.c:319 src/service/testing/list-keys.c:47
-#: src/service/testing/testing.c:308
+#: src/cli/util/gnunet-ecc.c:324
 #, c-format
 msgid "Incorrect hostkey file format: %s\n"
 msgstr "Нетачан формат датотеке кључа домаћина: %s\n"
 
-#: src/cli/util/gnunet-ecc.c:334
+#: src/cli/util/gnunet-ecc.c:340
 #, c-format
 msgid "Could not read hostkey file: %s\n"
 msgstr "Не могу да прочитам датотеку кључа домаћина: %s\n"
 
-#: src/cli/util/gnunet-ecc.c:388
+#: src/cli/util/gnunet-ecc.c:394
 msgid "No hostkey file specified on command line\n"
 msgstr "Није наведена датотека кључа домаћина на линији наредби\n"
 
-#: src/cli/util/gnunet-ecc.c:452
+#: src/cli/util/gnunet-ecc.c:458
 msgid "list keys included in a file (for testing)"
 msgstr "исписује кључеве укључене у датотеци (за тестирање)"
 
-#: src/cli/util/gnunet-ecc.c:458
+#: src/cli/util/gnunet-ecc.c:464
 msgid "number of keys to list included in a file (for testing)"
 msgstr "број кључева за испис укључених у датотеци (за тестирање)"
 
-#: src/cli/util/gnunet-ecc.c:464
+#: src/cli/util/gnunet-ecc.c:470
 msgid "create COUNT public-private key pairs (for testing)"
 msgstr "ствара БРОЈ пара јавног-личног кључа (за тестирање)"
 
-#: src/cli/util/gnunet-ecc.c:469
+#: src/cli/util/gnunet-ecc.c:475
 msgid "print the public key in ASCII format"
 msgstr "исписује јавни кључ у АСКРИ формату"
 
-#: src/cli/util/gnunet-ecc.c:474
+#: src/cli/util/gnunet-ecc.c:480
 #, fuzzy
 msgid "print the private key in ASCII format"
 msgstr "исписује јавни кључ у АСКРИ формату"
 
-#: src/cli/util/gnunet-ecc.c:479
+#: src/cli/util/gnunet-ecc.c:485
 #, fuzzy
 msgid "print the public key in HEX format"
 msgstr "исписује јавни кључ у АСКРИ формату"
 
-#: src/cli/util/gnunet-ecc.c:485
+#: src/cli/util/gnunet-ecc.c:491
 msgid "print examples of ECC operations (used for compatibility testing)"
 msgstr "исписује примере ЕЦЦ операција (користи се за тестирање сагласности)"
 
-#: src/cli/util/gnunet-ecc.c:499
+#: src/cli/util/gnunet-ecc.c:505
 msgid "Manipulate GNUnet private ECC key files"
 msgstr "Управља ГНУнет датотекама личног ЕЦЦ кључа"
 
@@ -3255,13 +3293,13 @@ msgstr ""
 msgid "Invalid handle type while writing `%s'"
 msgstr "Неисправан формат времена „%s“\n"
 
-#: src/lib/util/client.c:531 src/lib/util/service.c:1134
+#: src/lib/util/client.c:531 src/lib/util/service.c:1139
 #: src/service/arm/gnunet-service-arm.c:452
 #, c-format
 msgid "UNIXPATH `%s' too long, maximum length is %llu\n"
 msgstr "ЈУНИКС_ПУТАЊА „%s“ је предуга, највећа дужина је %llu\n"
 
-#: src/lib/util/client.c:536 src/lib/util/service.c:1138
+#: src/lib/util/client.c:536 src/lib/util/service.c:1143
 #: src/service/arm/gnunet-service-arm.c:456
 #, c-format
 msgid "Using `%s' instead\n"
@@ -3394,17 +3432,17 @@ msgstr ""
 msgid "`%s' failed at %s:%d with error: %s\n"
 msgstr "„%s“ није успело на %s:%d са грешком: %s\n"
 
-#: src/lib/util/crypto_ecc.c:554
+#: src/lib/util/crypto_ecc.c:569
 #, c-format
 msgid "ECC signing failed at %s:%d: %s\n"
 msgstr "„ECC“ потписивање није успело на %s:%d: %s\n"
 
-#: src/lib/util/crypto_ecc.c:677
+#: src/lib/util/crypto_ecc.c:692
 #, c-format
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr "Провера „ECDSA“ потписа није успела на %s:%d: %s\n"
 
-#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:304
+#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:305
 msgid "Could not load peer's private key\n"
 msgstr "Не могу да учитам лични кључ парњака\n"
 
@@ -3428,7 +3466,7 @@ msgstr "Провера „ECDSA“ потписа није успела на %s:
 msgid "Expected `%s' to be a directory!\n"
 msgstr "Очекивах да „%s“ буде директоријум!\n"
 
-#: src/lib/util/disk.c:1222 src/lib/util/service.c:1642
+#: src/lib/util/disk.c:1222 src/lib/util/service.c:1651
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "Не могу да добијем податке о кориснику „%s“: %s\n"
@@ -3620,101 +3658,101 @@ msgstr "Морате да проследите број опцији „%s“.\n
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:60
+#: src/lib/util/gnunet_error_codes.c:59
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:66
+#: src/lib/util/gnunet_error_codes.c:65
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "%.s Непознат код резултата."
 
-#: src/lib/util/gnunet_error_codes.c:72
+#: src/lib/util/gnunet_error_codes.c:71
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
 
-#: src/lib/util/gnunet_error_codes.c:78
+#: src/lib/util/gnunet_error_codes.c:77
 #, fuzzy
 msgid "Ego not found."
 msgstr "Нисам нашао садржај"
 
-#: src/lib/util/gnunet_error_codes.c:84
+#: src/lib/util/gnunet_error_codes.c:83
 #, fuzzy
 msgid "Identifier already in use for another ego."
 msgstr "одредник се већ користи за други его"
 
-#: src/lib/util/gnunet_error_codes.c:90
+#: src/lib/util/gnunet_error_codes.c:89
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:96
+#: src/lib/util/gnunet_error_codes.c:95
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "%.s Непознат код резултата."
 
-#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
+#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# Бирање парњака није успело"
 
-#: src/lib/util/gnunet_error_codes.c:108
+#: src/lib/util/gnunet_error_codes.c:107
 #, fuzzy
 msgid "Zone not found."
 msgstr "Нисам нашао садржај"
 
-#: src/lib/util/gnunet_error_codes.c:114
+#: src/lib/util/gnunet_error_codes.c:113
 #, fuzzy
 msgid "Record not found."
 msgstr "нисам нашао „upnpc“\n"
 
-#: src/lib/util/gnunet_error_codes.c:126
+#: src/lib/util/gnunet_error_codes.c:125
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:132
+#: src/lib/util/gnunet_error_codes.c:131
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Смештај назива није успео да смести запис\n"
 
-#: src/lib/util/gnunet_error_codes.c:138
+#: src/lib/util/gnunet_error_codes.c:137
 #, fuzzy
 msgid "No records given."
 msgstr "Није дат парњак!\n"
 
-#: src/lib/util/gnunet_error_codes.c:144
+#: src/lib/util/gnunet_error_codes.c:143
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:150
+#: src/lib/util/gnunet_error_codes.c:149
 #, fuzzy
 msgid "No label given."
 msgstr "Није дат парњак!\n"
 
-#: src/lib/util/gnunet_error_codes.c:156
+#: src/lib/util/gnunet_error_codes.c:155
 #, fuzzy
 msgid "No results given."
 msgstr "Нису дате опције\n"
 
-#: src/lib/util/gnunet_error_codes.c:162
+#: src/lib/util/gnunet_error_codes.c:161
 #, fuzzy
 msgid "Record already exists."
 msgstr "назив мете већ постоји"
 
-#: src/lib/util/gnunet_error_codes.c:168
+#: src/lib/util/gnunet_error_codes.c:167
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:174
+#: src/lib/util/gnunet_error_codes.c:173
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:180
+#: src/lib/util/gnunet_error_codes.c:179
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Смештај назива није успео да смести запис\n"
 
-#: src/lib/util/gnunet_error_codes.c:186
+#: src/lib/util/gnunet_error_codes.c:185
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -3785,16 +3823,6 @@ msgstr "„%s“ није успело за библиотеку '%s' са гр�
 msgid "Could not determine plugin installation path.\n"
 msgstr "Не могу да одредим путању инсталирања прикључка.\n"
 
-#: src/lib/util/program.c:287
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s', exiting ...\n"
-msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
-
-#: src/lib/util/program.c:299
-#, fuzzy, c-format
-msgid "Malformed configuration file `%s', exiting ...\n"
-msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
-
 #: src/lib/util/program.c:314
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s'. Exiting ...\n"
@@ -3845,7 +3873,7 @@ msgstr "Основна услуга „%s“ није подешена испр�
 msgid "Could not resolve our FQDN: %s\n"
 msgstr "Не могу да решим наш „FQDN“ : %s\n"
 
-#: src/lib/util/service.c:654
+#: src/lib/util/service.c:650
 #, fuzzy, c-format
 msgid ""
 "Processing code for message of type %u did not call "
@@ -3854,29 +3882,29 @@ msgstr ""
 "Обрађивачки код за поруку врсте %u није позвао „GNUNET_SERVER_receive_done“ "
 "након „%s“\n"
 
-#: src/lib/util/service.c:838
+#: src/lib/util/service.c:841
 #, c-format
 msgid "Unknown address family %d\n"
 msgstr "Непозната породица адресе „%d“\n"
 
-#: src/lib/util/service.c:951
+#: src/lib/util/service.c:956
 #, c-format
 msgid "Could not parse IPv4 network specification `%s' for `%s:%s'\n"
 msgstr "Не могу да обрадим спецификацију ИПв4 мреже „%s“ за `%s:%s'\n"
 
-#: src/lib/util/service.c:992
+#: src/lib/util/service.c:997
 #, c-format
 msgid "Could not parse IPv6 network specification `%s' for `%s:%s'\n"
 msgstr "Не могу да обрадим спецификацију ИПв6 мреже „%s“ за `%s:%s'\n"
 
-#: src/lib/util/service.c:1095 src/lib/util/service.c:1101
+#: src/lib/util/service.c:1100 src/lib/util/service.c:1106
 #: src/service/arm/gnunet-service-arm.c:412
 #: src/service/arm/gnunet-service-arm.c:418
 #, c-format
 msgid "Require valid port number for service `%s' in configuration!\n"
 msgstr "Захтева исправан број прикључника за услугу „%s“ у подешавањима!\n"
 
-#: src/lib/util/service.c:1158 src/service/arm/gnunet-service-arm.c:484
+#: src/lib/util/service.c:1163 src/service/arm/gnunet-service-arm.c:484
 #, c-format
 msgid ""
 "Disabling UNIX domain socket support for service `%s', failed to create UNIX "
@@ -3885,87 +3913,87 @@ msgstr ""
 "Искључујем подршку прикључнице ЈУНИКС домена за услугу „%s“, нисм успео да "
 "направим прикључницу ЈУНИКС домена: %s\n"
 
-#: src/lib/util/service.c:1176 src/service/arm/gnunet-service-arm.c:505
+#: src/lib/util/service.c:1181 src/service/arm/gnunet-service-arm.c:505
 #, c-format
 msgid "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"
 msgstr ""
 "Немам ни ПРИКЉУЧНИК ни ЈУНИКС_ПУТАЊУ за услугу „%s“, али је једно потребно\n"
 
-#: src/lib/util/service.c:1207 src/service/arm/gnunet-service-arm.c:536
+#: src/lib/util/service.c:1212 src/service/arm/gnunet-service-arm.c:536
 #, c-format
 msgid "Failed to resolve `%s': %s\n"
 msgstr "Нисам успео да решим „%s“: %s\n"
 
-#: src/lib/util/service.c:1226 src/service/arm/gnunet-service-arm.c:555
+#: src/lib/util/service.c:1231 src/service/arm/gnunet-service-arm.c:555
 #, c-format
 msgid "Failed to find %saddress for `%s'.\n"
 msgstr "Нисам успео да нађем %s адресу за „%s“.\n"
 
-#: src/lib/util/service.c:1401
+#: src/lib/util/service.c:1406
 #, c-format
 msgid "`%s' failed for port %d (%s).\n"
 msgstr "„%s“ није успело за прикључник %d (%s).\n"
 
-#: src/lib/util/service.c:1413
+#: src/lib/util/service.c:1418
 #, c-format
 msgid "`%s' failed for port %d (%s): address already in use\n"
 msgstr "„%s“ није успело за прикључник %d (%s): адреса је већ у употреби\n"
 
-#: src/lib/util/service.c:1420
+#: src/lib/util/service.c:1425
 #, c-format
 msgid "`%s' failed for `%s': address already in use\n"
 msgstr "„%s“ није успело за „%s“: адреса је већ у употреби\n"
 
-#: src/lib/util/service.c:1481
+#: src/lib/util/service.c:1486
 #, c-format
 msgid "Specified value for `%s' of service `%s' is invalid\n"
 msgstr "Наведена вредност за „%s“ услуге „%s“ је неисправна\n"
 
-#: src/lib/util/service.c:1505
+#: src/lib/util/service.c:1510
 #, c-format
 msgid "Could not access pre-bound socket %u, will try to bind myself\n"
 msgstr ""
 "Не могу да приступим унапред свезаној прикључници %u, покушаћу да свежем "
 "себе самог\n"
 
-#: src/lib/util/service.c:1573
+#: src/lib/util/service.c:1583
 msgid ""
 "Could not bind to any of the ports I was supposed to, refusing to run!\n"
 msgstr ""
 
-#: src/lib/util/service.c:1644
+#: src/lib/util/service.c:1653
 msgid "No such user"
 msgstr "Нема таквог корисника"
 
-#: src/lib/util/service.c:1658
+#: src/lib/util/service.c:1668
 #, c-format
 msgid "Cannot change user/group to `%s': %s\n"
 msgstr "Не могу да променим власника/групу на „%s“: %s\n"
 
-#: src/lib/util/service.c:1751
+#: src/lib/util/service.c:1767
 msgid "Service process failed to initialize\n"
 msgstr "Процес услуге није успео да се покрене\n"
 
-#: src/lib/util/service.c:1756
+#: src/lib/util/service.c:1772
 msgid "Service process could not initialize server function\n"
 msgstr "Процес услуге не може да покрене функцију сервера\n"
 
-#: src/lib/util/service.c:1761
+#: src/lib/util/service.c:1777
 msgid "Service process failed to report status\n"
 msgstr "Процес услуге није успео да извести о стању\n"
 
-#: src/lib/util/service.c:1960 src/lib/util/service.c:2255
+#: src/lib/util/service.c:1990 src/lib/util/service.c:2304
 msgid "do daemonize (detach from terminal)"
 msgstr "ради демонизацију (откачиње од терминала)"
 
-#: src/lib/util/service.c:2036 src/lib/util/service.c:2048
-#: src/lib/util/service.c:2298 src/lib/util/service.c:2310
-#: src/service/transport/transport-testing-communicator.c:1055
+#: src/lib/util/service.c:2065 src/lib/util/service.c:2080
+#: src/lib/util/service.c:2353 src/lib/util/service.c:2368
+#: src/service/transport/transport-testing-communicator.c:1059
 #, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
-#: src/lib/util/service.c:2058 src/lib/util/service.c:2321
+#: src/lib/util/service.c:2092 src/lib/util/service.c:2381
 msgid "Malformed configuration, exit ...\n"
 msgstr "Лоше подешавање, излазим ...\n"
 
@@ -4435,6 +4463,11 @@ msgstr ""
 msgid "Initiating shutdown as requested by client.\n"
 msgstr "Започињем гашење као што је затражио клијент.\n"
 
+#: src/service/arm/testing_arm_cmd_start_peer.c:197
+#, c-format
+msgid "Failed to start `%s': %s\n"
+msgstr "Нисам успео да покренем „%s“: %s\n"
+
 #: src/service/core/gnunet-service-core.c:329
 msgid "# send requests dropped (disconnected)"
 msgstr "# захтеви слања су одбачени (веза је прекинута)"
@@ -4604,8 +4637,8 @@ msgstr "# бајтови утовара су дешифровани"
 #: src/service/core/gnunet-service-core_sessions.c:337
 #: src/service/fs/gnunet-service-fs_cp.c:484
 #: src/service/fs/gnunet-service-fs_cp.c:1377
-#: src/service/topology/gnunet-daemon-topology.c:551
-#: src/service/topology/gnunet-daemon-topology.c:633
+#: src/service/topology/gnunet-daemon-topology.c:545
+#: src/service/topology/gnunet-daemon-topology.c:627
 msgid "# peers connected"
 msgstr "# парњаци су повезани"
 
@@ -4734,7 +4767,7 @@ msgstr "Недовољно простора за задовољавање зах
 #: src/service/datastore/gnunet-service-datastore.c:626
 #: src/service/datastore/gnunet-service-datastore.c:677
 #: src/service/datastore/gnunet-service-datastore.c:820
-#: src/service/datastore/gnunet-service-datastore.c:1428
+#: src/service/datastore/gnunet-service-datastore.c:1431
 msgid "# reserved"
 msgstr "# је резервисано"
 
@@ -4785,66 +4818,66 @@ msgstr "# бајта је уклоњено (изричити захтев)"
 msgid "# REMOVE requests received"
 msgstr "# захтеви УКЛОНИ су уклоњени"
 
-#: src/service/datastore/gnunet-service-datastore.c:1107
+#: src/service/datastore/gnunet-service-datastore.c:1109
 #, fuzzy, c-format
 msgid ""
 "Datastore payload must have been inaccurate (%lld < %lld). Recomputing it.\n"
 msgstr ""
 "Утовар смештаја података није тачан (%lld < %lld).  Покушавам да поправим.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1112
-#: src/service/datastore/gnunet-service-datastore.c:1281
+#: src/service/datastore/gnunet-service-datastore.c:1114
+#: src/service/datastore/gnunet-service-datastore.c:1283
 #, c-format
 msgid "New payload: %lld\n"
 msgstr ""
 
-#: src/service/datastore/gnunet-service-datastore.c:1167
+#: src/service/datastore/gnunet-service-datastore.c:1169
 #, c-format
 msgid "Loading `%s' datastore plugin\n"
 msgstr "Учитавам прикључак „%s“ смештаја података\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1176
+#: src/service/datastore/gnunet-service-datastore.c:1178
 #, c-format
 msgid "Failed to load datastore plugin for `%s'\n"
 msgstr "Нисам успео да учитам прикључак смештаја података за „%s“\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1236
+#: src/service/datastore/gnunet-service-datastore.c:1238
 msgid "Bloomfilter construction complete.\n"
 msgstr "Изградња блумфилтера је завршена.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1288
+#: src/service/datastore/gnunet-service-datastore.c:1290
 msgid "Rebuilding bloomfilter.  Please be patient.\n"
 msgstr "Поново градим блумфилтер.  Будите стрпљиви.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1298
+#: src/service/datastore/gnunet-service-datastore.c:1300
 msgid "Plugin does not support get_keys function. Please fix!\n"
 msgstr "Прикључак не подржава функцију „get_keys“. Поправите то!\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1463
+#: src/service/datastore/gnunet-service-datastore.c:1466
 #, c-format
 msgid "# bytes used in file-sharing datastore `%s'"
 msgstr "# бајтови су коришћени у смештају података дељења датотека „%s“"
 
-#: src/service/datastore/gnunet-service-datastore.c:1472
+#: src/service/datastore/gnunet-service-datastore.c:1475
 msgid "# quota"
 msgstr "# квота"
 
-#: src/service/datastore/gnunet-service-datastore.c:1475
+#: src/service/datastore/gnunet-service-datastore.c:1478
 msgid "# cache size"
 msgstr "# величина кеша"
 
-#: src/service/datastore/gnunet-service-datastore.c:1491
+#: src/service/datastore/gnunet-service-datastore.c:1494
 #, c-format
 msgid "Could not use specified filename `%s' for bloomfilter.\n"
 msgstr "Не могу да користим наведени назив датотеке „%s“ за блумфилтер.\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1512
-#: src/service/datastore/gnunet-service-datastore.c:1534
+#: src/service/datastore/gnunet-service-datastore.c:1515
+#: src/service/datastore/gnunet-service-datastore.c:1537
 #, c-format
 msgid "Failed to remove bogus bloomfilter file `%s'\n"
 msgstr "Нисам успео да уклоним лажну датотеку блумфилтера „%s“\n"
 
-#: src/service/datastore/gnunet-service-datastore.c:1573
+#: src/service/datastore/gnunet-service-datastore.c:1576
 msgid "Failed to initialize bloomfilter.\n"
 msgstr "Нисам успео да покренем блумфилтер.\n"
 
@@ -5657,7 +5690,7 @@ msgstr ""
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1066
+#: src/service/topology/gnunet-daemon-topology.c:1062
 #, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Нисам успео да се повежем са „%s“ услугом.\n"
@@ -6469,7 +6502,7 @@ msgid "# hostlist advertisements send"
 msgstr "# рекламе списка домаћина су послате"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:786
+#: src/service/topology/gnunet-daemon-topology.c:781
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
@@ -6740,12 +6773,12 @@ msgstr ""
 msgid "Malformed punched hole specification `%s' (IPv6 address invalid)"
 msgstr ""
 
-#: src/service/nat/gnunet-service-nat.c:1861
+#: src/service/nat/gnunet-service-nat.c:1860
 #, fuzzy
 msgid "Connection reversal request failed\n"
 msgstr "Веза је успостављена.\n"
 
-#: src/service/nat/gnunet-service-nat.c:1935
+#: src/service/nat/gnunet-service-nat.c:1999
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -6769,43 +6802,43 @@ msgstr "нисам нашао наредбу „external-ip“\n"
 msgid "`upnpc' command not found\n"
 msgstr "нисам нашао „upnpc“ наредбу\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1141
+#: src/service/peerstore/gnunet-service-peerstore.c:1150
 #, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr "Нисам успео да обрадим „HELLO“ у датотеци „%s“: %s\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1214
+#: src/service/peerstore/gnunet-service-peerstore.c:1223
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Не могу да отворим „%s“.\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1233
+#: src/service/peerstore/gnunet-service-peerstore.c:1242
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr "Увозим „HELLO“-е из „%s“\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1244
+#: src/service/peerstore/gnunet-service-peerstore.c:1253
 msgid "Skipping import of included HELLOs\n"
 msgstr "Прескачем увоз укључених „HELLO“-а\n"
 
-#: src/service/peerstore/peerstore_api.c:574
+#: src/service/peerstore/peerstore_api.c:579
 #, fuzzy
 msgid "Unexpected store response.\n"
 msgstr "Неочекивано време за одговор са „fs“ услуге."
 
-#: src/service/peerstore/peerstore_api.c:606
+#: src/service/peerstore/peerstore_api.c:620
 #, fuzzy
 msgid "Unexpected iteration response.\n"
 msgstr "Неочекивано време за одговор са „fs“ услуге."
 
-#: src/service/peerstore/peerstore_api.c:652
+#: src/service/peerstore/peerstore_api.c:666
 msgid ""
 "Unexpected iteration response, no iterating client found, discarding "
 "message.\n"
 msgstr ""
 
-#: src/service/peerstore/peerstore_api.c:662
-#: src/service/peerstore/peerstore_api_monitor.c:164
+#: src/service/peerstore/peerstore_api.c:676
+#: src/service/peerstore/peerstore_api_monitor.c:163
 #, fuzzy
 msgid "Received a malformed response from service."
 msgstr "Примих лош ДНС захтев од „%s“\n"
@@ -6969,11 +7002,11 @@ msgstr ""
 msgid "Namestore REST API initialized\n"
 msgstr "Меш је покренут\n"
 
-#: src/service/rest/openid_plugin.c:3102
+#: src/service/rest/openid_plugin.c:3121
 msgid "OpenID Connect REST API initialized\n"
 msgstr ""
 
-#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1523
+#: src/service/rest/pabc_plugin.c:637 src/service/rest/reclaim_plugin.c:1494
 msgid "Identity Provider REST API initialized\n"
 msgstr ""
 
@@ -7024,162 +7057,56 @@ msgstr "Учитавам %llu бајта статистике из „%s“\n"
 msgid "Could not save some persistent statistics\n"
 msgstr "Не могу да сачувам нешто од трајне статистике\n"
 
-#: src/service/testing/gnunet-testing.c:185
-#, c-format
-msgid "Could not extract hostkey %u (offset too large?)\n"
-msgstr "Не могу да извучем кључ домаћина %u (померај је превелик?)\n"
-
-#: src/service/testing/gnunet-testing.c:275
-#, c-format
-msgid "Unknown command, use 'q' to quit or 'r' to restart peer\n"
-msgstr ""
-"Непозната наредба, користите „q“ да прекинете или „r“ да поново покренете "
-"парњака\n"
-
-#: src/service/testing/gnunet-testing.c:386
-msgid "create unique configuration files"
-msgstr "ствара јединствене датотеке подешавања"
-
-#: src/service/testing/gnunet-testing.c:392
-msgid "extract hostkey file from pre-computed hostkey list"
-msgstr ""
-"извлачи датотеку кључа доамћина из унапред прорачунатог списка кључа домаћина"
-
-#: src/service/testing/gnunet-testing.c:400
-msgid ""
-"number of unique configuration files to create, or number of the hostkey to "
-"extract"
+#: src/service/testbed/gnunet-testbed.c:196
+#, fuzzy
+msgid "number of unique configuration files to create"
 msgstr ""
 "број јединствених датотека подешавања за стварање, или број кључа домаћина "
 "за извлачење"
 
-#: src/service/testing/gnunet-testing.c:407
+#: src/service/testbed/gnunet-testbed.c:202
 msgid "configuration template"
 msgstr "шаблон подешавања"
 
-#: src/service/testing/gnunet-testing.c:415
-msgid "run the given service, wait on stdin for 'r' (restart) or 'q' (quit)"
-msgstr ""
-"покреће дату услугу, чека на стандардном улазу за „r“ (поновно покретање) "
-"или „q“ (излази)"
-
-#: src/service/testing/gnunet-testing.c:432
+#: src/service/testbed/gnunet-testbed.c:218
 msgid "Command line tool to access the testing library"
 msgstr "Алат линије наредби за приезуп библиотеци тестирања"
-
-#: src/service/testing/list-keys.c:92
-msgid "list COUNT number of keys"
-msgstr "исписује УКУПНОСТ број парњака"
-
-#: src/service/testing/testing.c:291
-#, c-format
-msgid "Hostkeys file not found: %s\n"
-msgstr "Нисам нашао датотеку кључева домаћина: %s\n"
-
-#: src/service/testing/testing.c:743
-#, c-format
-msgid "Key number %u does not exist\n"
-msgstr "Број кључа %u не постоји\n"
-
-#: src/service/testing/testing.c:1217
-#, c-format
-msgid ""
-"You attempted to create a testbed with more than %u hosts.  Please "
-"precompute more hostkeys first.\n"
-msgstr ""
-"Покушали сте да направите пробно место са више од %u домаћина.  Прво пре "
-"свега израчунајте више кључева домаћина.\n"
-
-#: src/service/testing/testing.c:1226
-#, c-format
-msgid "Failed to initialize hostkey for peer %u\n"
-msgstr "Нисам успео да покренем кључ домаћина за парњака %u\n"
-
-#: src/service/testing/testing.c:1236
-msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
-msgstr "опција „PRIVATE_KEY“ у одељку „PEER“ недостаје у подешавањима\n"
-
-#: src/service/testing/testing.c:1249
-msgid "Failed to create configuration for peer (not enough free ports?)\n"
-msgstr ""
-"Нисам успео да направим подешавање за парњака (нема довољно слободних "
-"прикључника?)\n"
-
-#: src/service/testing/testing.c:1265
-#, c-format
-msgid "Cannot open hostkey file `%s': %s\n"
-msgstr "Не могу да отворим датотеку кључа домаћина „%s“: %s\n"
-
-#: src/service/testing/testing.c:1279
-#, c-format
-msgid "Failed to write hostkey file for peer %u: %s\n"
-msgstr "Нисам успео да запишем датотеку кључа домаћина за парњака %u: %s\n"
-
-#: src/service/testing/testing.c:1307
-#, c-format
-msgid "Failed to write configuration file `%s' for peer %u: %s\n"
-msgstr "Нисам успео да запишем датотеку подешавања „%s“ за парњака %u: %s\n"
-
-#: src/service/testing/testing.c:1413
-#, c-format
-msgid "Failed to start `%s': %s\n"
-msgstr "Нисам успео да покренем „%s“: %s\n"
-
-#: src/service/testing/testing.c:1664
-#, c-format
-msgid "Failed to load configuration from %s\n"
-msgstr "Нисам успео да учитам подешавање за „%s“\n"
-
-#: src/service/testing/testing.c:2795
-#, c-format
-msgid "Topology file %s not found\n"
-msgstr "Нисам нашао датотеку размештаја „%s“\n"
-
-#: src/service/testing/testing.c:2803
-#, c-format
-msgid "Topology file %s has no data\n"
-msgstr "Датотека размештаја „%s“ нема података\n"
-
-#: src/service/testing/testing.c:2811
-#, c-format
-msgid "Topology file %s cannot be read\n"
-msgstr "Не могу да прочитам датотеку размештаја „%s“\n"
 
 #: src/service/topology/gnunet-daemon-topology.c:286
 #, fuzzy
 msgid "# connect requests issued to ATS"
 msgstr "# захтеви везе су издати преносу"
 
-#: src/service/topology/gnunet-daemon-topology.c:480
+#: src/service/topology/gnunet-daemon-topology.c:475
 msgid "# HELLO messages gossipped"
 msgstr "# „HELLO“ поруке су наклопљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:752
+#: src/service/topology/gnunet-daemon-topology.c:747
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:761
+#: src/service/topology/gnunet-daemon-topology.c:756
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:869
+#: src/service/topology/gnunet-daemon-topology.c:864
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 "Нисам успео да се повежем са услугом језгра, не могу да радим размештајем!\n"
 
-#: src/service/topology/gnunet-daemon-topology.c:943
+#: src/service/topology/gnunet-daemon-topology.c:938
 msgid "# HELLO messages received"
 msgstr "# „HELLO“ поруке су примљене"
 
-#: src/service/topology/gnunet-daemon-topology.c:1095
+#: src/service/topology/gnunet-daemon-topology.c:1091
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3777
-#: src/service/transport/gnunet-communicator-udp.c:3408
-#: src/service/transport/gnunet-service-transport.c:12128
+#: src/service/transport/gnunet-communicator-tcp.c:3814
+#: src/service/transport/gnunet-communicator-udp.c:3579
+#: src/service/transport/gnunet-service-transport.c:12543
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Услузи преноса недостају поставке подешавања кључа. Излазим.\n"
 
@@ -7187,11 +7114,11 @@ msgstr "Услузи преноса недостају поставке поде
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4114
+#: src/service/transport/gnunet-communicator-tcp.c:4171
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3483
+#: src/service/transport/gnunet-communicator-udp.c:3654
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -7370,7 +7297,7 @@ msgstr "шаље податке за оцењивање другим парња�
 msgid "Direct access to transport service."
 msgstr "Непосредан приступ услузи преноса."
 
-#: src/service/transport/transport_api2_communication.c:765
+#: src/service/transport/transport_api2_communication.c:773
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -7494,6 +7421,88 @@ msgstr "Нисам успео да реплицирам блок у остави
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1335
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
+
+#, c-format
+#~ msgid "Could not extract hostkey %u (offset too large?)\n"
+#~ msgstr "Не могу да извучем кључ домаћина %u (померај је превелик?)\n"
+
+#, c-format
+#~ msgid "Unknown command, use 'q' to quit or 'r' to restart peer\n"
+#~ msgstr ""
+#~ "Непозната наредба, користите „q“ да прекинете или „r“ да поново покренете "
+#~ "парњака\n"
+
+#~ msgid "create unique configuration files"
+#~ msgstr "ствара јединствене датотеке подешавања"
+
+#~ msgid "extract hostkey file from pre-computed hostkey list"
+#~ msgstr ""
+#~ "извлачи датотеку кључа доамћина из унапред прорачунатог списка кључа "
+#~ "домаћина"
+
+#~ msgid "run the given service, wait on stdin for 'r' (restart) or 'q' (quit)"
+#~ msgstr ""
+#~ "покреће дату услугу, чека на стандардном улазу за „r“ (поновно покретање) "
+#~ "или „q“ (излази)"
+
+#~ msgid "list COUNT number of keys"
+#~ msgstr "исписује УКУПНОСТ број парњака"
+
+#, c-format
+#~ msgid "Hostkeys file not found: %s\n"
+#~ msgstr "Нисам нашао датотеку кључева домаћина: %s\n"
+
+#, c-format
+#~ msgid "Key number %u does not exist\n"
+#~ msgstr "Број кључа %u не постоји\n"
+
+#, c-format
+#~ msgid ""
+#~ "You attempted to create a testbed with more than %u hosts.  Please "
+#~ "precompute more hostkeys first.\n"
+#~ msgstr ""
+#~ "Покушали сте да направите пробно место са више од %u домаћина.  Прво пре "
+#~ "свега израчунајте више кључева домаћина.\n"
+
+#, c-format
+#~ msgid "Failed to initialize hostkey for peer %u\n"
+#~ msgstr "Нисам успео да покренем кључ домаћина за парњака %u\n"
+
+#~ msgid "PRIVATE_KEY option in PEER section missing in configuration\n"
+#~ msgstr "опција „PRIVATE_KEY“ у одељку „PEER“ недостаје у подешавањима\n"
+
+#~ msgid "Failed to create configuration for peer (not enough free ports?)\n"
+#~ msgstr ""
+#~ "Нисам успео да направим подешавање за парњака (нема довољно слободних "
+#~ "прикључника?)\n"
+
+#, c-format
+#~ msgid "Cannot open hostkey file `%s': %s\n"
+#~ msgstr "Не могу да отворим датотеку кључа домаћина „%s“: %s\n"
+
+#, c-format
+#~ msgid "Failed to write hostkey file for peer %u: %s\n"
+#~ msgstr "Нисам успео да запишем датотеку кључа домаћина за парњака %u: %s\n"
+
+#, c-format
+#~ msgid "Failed to write configuration file `%s' for peer %u: %s\n"
+#~ msgstr "Нисам успео да запишем датотеку подешавања „%s“ за парњака %u: %s\n"
+
+#, c-format
+#~ msgid "Failed to load configuration from %s\n"
+#~ msgstr "Нисам успео да учитам подешавање за „%s“\n"
+
+#, c-format
+#~ msgid "Topology file %s not found\n"
+#~ msgstr "Нисам нашао датотеку размештаја „%s“\n"
+
+#, c-format
+#~ msgid "Topology file %s has no data\n"
+#~ msgstr "Датотека размештаја „%s“ нема података\n"
+
+#, c-format
+#~ msgid "Topology file %s cannot be read\n"
+#~ msgstr "Не могу да прочитам датотеку размештаја „%s“\n"
 
 #, fuzzy, c-format
 #~ msgid ""
@@ -9273,10 +9282,6 @@ msgstr "Нисам успео да се повежем са смештајем �
 
 #~ msgid "value to set"
 #~ msgstr "вредност за постављање"
-
-#, fuzzy
-#~ msgid "Unreadable or malformed default configuration file `%s', exit ...\n"
-#~ msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
 #, fuzzy
 #~ msgid "Unreadable or malformed configuration, exit ...\n"

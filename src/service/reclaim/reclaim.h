@@ -420,13 +420,13 @@ struct IssueTicketMessage
   uint16_t key_len GNUNET_PACKED;
 
   /**
-   * The length of the relying party public key
+   * The length of the relying party URI
    */
-  uint16_t pkey_len GNUNET_PACKED;
+  uint16_t rp_uri_len GNUNET_PACKED;
 
   /**
    * Followed by the private key.
-   * Followed by the public key.
+   * Followed by the RP URI.
    * Followed by a serialized attribute list
    */
 };
@@ -506,12 +506,18 @@ struct TicketResultMessage
   uint16_t tkt_len GNUNET_PACKED;
 
   /**
+   * RP URI length
+   */
+  uint16_t rp_uri_len GNUNET_PACKED;
+
+  /**
    * Length of new presentations created
    */
   uint16_t presentations_len GNUNET_PACKED;
 
   /*
    * Followed by the serialized ticket
+   * Followed by the RP URI
    * Followed by the serialized GNUNET_RECLAIM_PresentationList
    */
 };
@@ -532,18 +538,18 @@ struct ConsumeTicketMessage
   uint32_t id GNUNET_PACKED;
 
   /**
-   * The length of the private key
-   */
-  uint16_t key_len GNUNET_PACKED;
-
-  /**
    * The length of the ticket
    */
   uint16_t tkt_len GNUNET_PACKED;
 
   /**
-   * Followed by the private key.
+   * RP URI length
+   */
+  uint16_t rp_uri_len GNUNET_PACKED;
+
+  /**
    * Followed by the serialized ticket.
+   * Followed by the RP URI
    */
 };
 
@@ -583,12 +589,12 @@ struct ConsumeTicketResultMessage
   uint16_t presentations_len;
 
   /**
-   * The length of the private key
+   * The length of the identity public key
    */
   uint16_t key_len GNUNET_PACKED;
 
   /**
-   * Followed by the private key.
+   * Followed by the identity public key.
    * followed by:
    * serialized attributes data
    */

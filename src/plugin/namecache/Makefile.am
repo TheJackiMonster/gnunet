@@ -86,19 +86,16 @@ libgnunet_plugin_namecache_postgres_la_LDFLAGS = \
 test_plugin_namecache_flat_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_flat_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_sqlite_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_sqlite_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_namecache_postgres_SOURCES = \
  test_plugin_namecache.c
 test_plugin_namecache_postgres_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

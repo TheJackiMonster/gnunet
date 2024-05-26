@@ -31,7 +31,6 @@ plugin_LTLIBRARIES = \
 test_plugin_peerstore_sqlite_SOURCES = \
   test_plugin_peerstore.c
 test_plugin_peerstore_sqlite_LDADD = \
-	$(top_builddir)/src/service/testing/libgnunettesting.la \
 	$(top_builddir)/src/lib/util/libgnunetutil.la
 
 check_PROGRAMS = \

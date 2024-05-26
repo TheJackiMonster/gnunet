@@ -455,6 +455,34 @@ GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
   return nh;
 }
 
+void
+GNUNET_NAT_add_global_address (struct GNUNET_NAT_Handle *nh,
+                               char *addr,
+                               unsigned int address_length)
+{
+  struct GNUNET_NAT_AddGlobalAddressMessage *aam;
+  struct GNUNET_MQ_Envelope *env;
+  //char *address_without_port = get_address_without_port (addr);
+  //unsigned int address_len_without_port = strlen (address_without_port);
+  char *off;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "natting address %s length %u\n",
+              addr,
+              address_length);
+
+  env = GNUNET_MQ_msg_extra (aam,
+                             address_length,
+                             GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS);
+  aam->address_length = htons (address_length);
+  off = (char *) &aam[1];
+  GNUNET_memcpy (off, addr, address_length);
+  GNUNET_MQ_send (nh->mq,
+                   env);
+  //GNUNET_free (address_without_port);
+}
+
+
 
 /**
  * Check if an incoming message is a STUN message.

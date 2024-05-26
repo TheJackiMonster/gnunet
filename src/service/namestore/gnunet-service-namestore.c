@@ -1091,7 +1091,7 @@ struct RecordLookupContext
   /**
    * The editor hint for set
    */
-  const char *editor_hint;
+  char *editor_hint;
 
   /**
    * The record result.
@@ -1157,7 +1157,8 @@ lookup_it (void *cls,
   if (0 != strcmp (label, rlc->label))
     return;
   rlc->found = GNUNET_YES;
-  rlc->editor_hint = editor_hint;
+  if (NULL == rlc->editor_hint)
+    rlc->editor_hint = GNUNET_strdup (editor_hint);
   if (GNUNET_OK != GNUNET_GNSRECORD_normalize_record_set (rlc->label,
                                                           rd_nf,
                                                           rd_count_nf,
@@ -1332,6 +1333,7 @@ handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
     return;
   }
   name_len = strlen (conv_name) + 1;
+  rlc.editor_hint = NULL;
   rlc.label = conv_name;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Looking up without filter\n");
@@ -1370,6 +1372,7 @@ handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
   GNUNET_memcpy ((char*) &rer_msg[1] + old_editor_hint_len, rlc.res_rd,
                  rlc.rd_ser_len);
   GNUNET_MQ_send (nc->mq, env);
+  GNUNET_free (rlc.editor_hint);
   GNUNET_free (rlc.res_rd);
   GNUNET_free (conv_name);
 }
@@ -1566,6 +1569,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
     return;
   }
   name_len = strlen (conv_name) + 1;
+  rlc.editor_hint = NULL;
   rlc.label = conv_name;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Looking up with filter %u\n", ntohs (ll_msg->filter));
@@ -1601,6 +1605,7 @@ handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
   GNUNET_memcpy (res_name, conv_name, name_len);
   GNUNET_memcpy (&res_name[name_len], rlc.res_rd, rlc.rd_ser_len);
   GNUNET_MQ_send (nc->mq, env);
+  GNUNET_free (rlc.editor_hint);
   GNUNET_free (rlc.res_rd);
   GNUNET_free (conv_name);
 }

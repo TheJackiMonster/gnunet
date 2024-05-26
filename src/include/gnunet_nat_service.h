@@ -345,6 +345,19 @@ GNUNET_NAT_register (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 
 /**
+ * Add global address to the list of addresses and notify clients.
+ *
+ * @param nh the handle returned by register
+ * @param addr IP address to add.
+ * @param address_length number of bytes in @a addr
+ */
+void
+GNUNET_NAT_add_global_address (struct GNUNET_NAT_Handle *nh,
+                               char *addr,
+                               unsigned int address_length);
+
+
+/**
  * Test if the given address is (currently) a plausible IP address for
  * this peer.  Mostly a convenience function so that clients do not
  * have to explicitly track all IPs that the #GNUNET_NAT_AddressCallback

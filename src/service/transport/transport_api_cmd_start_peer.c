@@ -70,7 +70,6 @@ hello_iter_cb (void *cb_cls,
   GNUNET_PEERSTORE_iteration_stop (sps->pic);
   sps->pic = NULL;
   GNUNET_TESTING_async_finish (&sps->ac);
-  GNUNET_PEERSTORE_iteration_next (sps->pic, 1);
 }
 
 
@@ -85,11 +84,11 @@ retrieve_hello (void *cls)
   struct GNUNET_TESTING_StartPeerState *sps = cls;
   sps->rh_task = NULL;
   sps->pic = GNUNET_PEERSTORE_iteration_start (sps->ph,
-                                             "transport",
-                                             &sps->id,
-                                             GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
-                                             hello_iter_cb,
-                                             sps);
+                                               "transport",
+                                               &sps->id,
+                                               GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
+                                               hello_iter_cb,
+                                               sps);
 
 }
 
@@ -173,7 +172,7 @@ start_peer_run (void *cls,
   char *emsg = NULL;
   struct GNUNET_PeerIdentity dummy;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
   char *home;
   char *transport_unix_path;
   char *tcp_communicator_unix_path;
@@ -259,7 +258,7 @@ start_peer_run (void *cls,
 
   if (GNUNET_SYSERR ==
       GNUNET_TESTING_configuration_create ((struct
-                                            GNUNET_TESTING_System *) tl_system,
+                                            GNUNET_TESTBED_System *) tl_system,
                                            sps->cfg))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -271,7 +270,7 @@ start_peer_run (void *cls,
   }
 
   sps->peer = GNUNET_TESTING_peer_configure ((struct
-                                              GNUNET_TESTING_System *) sps->
+                                              GNUNET_TESTBED_System *) sps->
                                              tl_system,
                                              sps->cfg,
                                              sps->no,
@@ -476,10 +475,10 @@ GNUNET_TRANSPORT_cmd_start_peer (const char *label,
                    handlers,
                    i * sizeof(struct GNUNET_MQ_MessageHandler));
   }
-  return GNUNET_TESTING_command_new (sps,
-                                     label,
-                                     &start_peer_run,
-                                     &start_peer_cleanup,
-                                     &start_peer_traits,
-                                     &sps->ac);
+  return GNUNET_TESTING_command_new_ac (sps,
+                                        label,
+                                        &start_peer_run,
+                                        &start_peer_cleanup,
+                                        &start_peer_traits,
+                                        &sps->ac);
 }

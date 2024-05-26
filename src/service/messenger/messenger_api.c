@@ -602,6 +602,8 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
     if ((! key) || (0 < GNUNET_CRYPTO_private_key_get_length (key)))
       set_handle_key (handle, key);
 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connect handle!\n");
+
     struct GNUNET_MESSENGER_CreateMessage *msg;
     struct GNUNET_MQ_Envelope *env;
 
@@ -623,6 +625,8 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle)
   if (! handle)
     return;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Disconnect handle!\n");
+
   struct GNUNET_MESSENGER_DestroyMessage *msg;
   struct GNUNET_MQ_Envelope *env;
 
@@ -630,6 +634,18 @@ GNUNET_MESSENGER_disconnect (struct GNUNET_MESSENGER_Handle *handle)
   GNUNET_MQ_send (handle->mq, env);
 
   destroy_handle (handle);
+}
+
+
+static void
+callback_leave_message_sent (void *cls)
+{
+  struct GNUNET_MESSENGER_Room *room = cls;
+
+  room->opened = GNUNET_NO;
+  clear_list_tunnels (&(room->entries));
+
+  send_close_room (room->handle, room);
 }
 
 
@@ -669,12 +685,15 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   hash_message (message, msg_length, msg_buffer, hash);
   sign_message (message, msg_length, msg_buffer, hash, key);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Send message (%s)!\n",
+              GNUNET_h2s (hash));
+
   update_room_last_message (room, hash);
 
-  GNUNET_MQ_send (room->handle->mq, env);
-
   if (GNUNET_MESSENGER_KIND_LEAVE == message->header.kind)
-    send_close_room (room->handle, room);
+    GNUNET_MQ_notify_sent (env, callback_leave_message_sent, room);
+
+  GNUNET_MQ_send (room->handle->mq, env);
 }
 
 
@@ -726,37 +745,43 @@ dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
     if (message)
       destroy_message (message);
 
+    memset (&key, 0, sizeof(key));
     message = dequeue_from_messages (&(room->queue), &key, &transcript);
 
     if (! message)
     {
       message = transcript;
+      transcript = NULL;
       continue;
     }
 
     send_message_to_room (room, message, &key, &hash);
 
     if (! transcript)
+    {
+      GNUNET_CRYPTO_private_key_clear (&key);
       continue;
+    }
 
     GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
+
+    memset (&pubkey, 0, sizeof(pubkey));
     GNUNET_CRYPTO_key_get_public (&key, &pubkey);
 
     if (GNUNET_YES == encrypt_message (transcript, &pubkey))
     {
       send_message_to_room (room, transcript, &key, &other);
+      GNUNET_CRYPTO_private_key_clear (&key);
 
       link_room_message (room, &hash, &other);
       link_room_message (room, &other, &hash);
     }
     else
-    {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Sending transcript aborted: Encryption failed!\n");
 
-      destroy_message (transcript);
-    }
-
+    destroy_message (transcript);
+    transcript = NULL;
   } while (message);
 
   return GNUNET_YES;
@@ -869,7 +894,9 @@ GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
   GNUNET_memcpy (&priv, key, sizeof (priv));
 
   GNUNET_MESSENGER_find_rooms (handle, NULL, iterate_send_key_to_room, &priv);
-  set_handle_key (handle, &priv);
+  GNUNET_CRYPTO_private_key_clear (&priv);
+
+  set_handle_key (handle, key);
   return GNUNET_YES;
 }
 
@@ -939,8 +966,10 @@ GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
 
   struct GNUNET_MESSENGER_Message *message = create_message_leave ();
 
-  if (message)
-    enqueue_message_to_room (room, message, NULL);
+  if (! message)
+    return;
+
+  enqueue_message_to_room (room, message, NULL);
 }
 
 
@@ -963,7 +992,8 @@ iterate_find_room (void *cls,
   if ((find->counter > 0) && ((! find->contact) || (GNUNET_YES ==
                                                     find_room_member (room,
                                                                       find->
-                                                                      contact))))
+                                                                      contact)))
+      )
   {
     find->counter--;
 
@@ -1205,6 +1235,9 @@ GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
 
   if (! message)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Request message (%s)!\n",
+                GNUNET_h2s (hash));
+
     struct GNUNET_MESSENGER_GetMessage *msg;
     struct GNUNET_MQ_Envelope *env;
 
@@ -1227,79 +1260,4 @@ GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
     return GNUNET_SYSERR;
 
   return iterate_room_members (room, callback, cls);
-}
-
-
-struct GNUNET_MESSENGER_CheckTicket
-{
-  const struct GNUNET_CRYPTO_PublicKey *audience;
-  enum GNUNET_GenericReturnValue result;
-};
-
-
-static enum GNUNET_GenericReturnValue
-check_ticket_audience (void *cls,
-                       struct GNUNET_MESSENGER_Room *room,
-                       const struct GNUNET_MESSENGER_Contact *contact)
-{
-  struct GNUNET_MESSENGER_CheckTicket *check = cls;
-
-  const struct GNUNET_CRYPTO_PublicKey *key;
-  key = get_non_anonymous_key (get_contact_key (contact));
-
-  if ((key) && (0 == GNUNET_memcmp (key, check->audience)))
-  {
-    check->result = GNUNET_YES;
-    return GNUNET_NO;
-  }
-
-  return GNUNET_YES;
-}
-
-
-void
-GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
-                              const struct GNUNET_RECLAIM_Ticket *ticket)
-{
-  if ((! room) || (! ticket))
-    return;
-
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
-  pubkey = get_handle_pubkey (room->handle);
-
-  if (0 != GNUNET_memcmp (pubkey, &(ticket->identity)))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Sending ticket aborted: Invalid identity!\n");
-    return;
-  }
-
-  struct GNUNET_MESSENGER_CheckTicket check;
-  check.audience = &(ticket->audience);
-  check.result = GNUNET_NO;
-
-  const int members = iterate_room_members (
-    room,
-    check_ticket_audience,
-    &check);
-
-  if ((! members) || (GNUNET_YES != check.result))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Sending ticket aborted: Audience not found!\n");
-    return;
-  }
-
-  struct GNUNET_MESSENGER_Message *message = create_message_ticket (
-    &(ticket->rnd)
-    );
-
-  if (! message)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Sending ticket aborted: Message creation failed!\n");
-    return;
-  }
-
-  send_message_to_room_with_key (room, message, &(ticket->audience));
 }

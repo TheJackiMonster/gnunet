@@ -23,9 +23,9 @@
  * @brief peerstore service implementation
  * @author Omar Tarabai
  */
+#include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_protocols.h"
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "peerstore.h"
 #include "gnunet_peerstore_plugin.h"
@@ -491,6 +491,16 @@ iterate_proc (void *cls,
   proc->limit--;
 }
 
+
+static void
+destroy_iteration (struct Iteration *ic)
+{
+  GNUNET_free (ic->key);
+  GNUNET_free (ic->sub_system);
+  GNUNET_free (ic);
+}
+
+
 /**
  * Function called once we are done with the iteration and
  * allow the zone iteration client to send us more messages.
@@ -512,13 +522,10 @@ iteration_done_client_continue (struct Iteration *ic)
   endmsg->rid = htons (ic->request_id);
   endmsg->result = htonl (GNUNET_OK);
   GNUNET_MQ_send (ic->pc->mq, env);
-  GNUNET_free (ic->key);
-  GNUNET_free (ic->sub_system);
   GNUNET_CONTAINER_DLL_remove (ic->pc->op_head, ic->pc->op_tail, ic);
-  GNUNET_free (ic);
+  destroy_iteration (ic);
   return;
 }
-
 
 
 /**
@@ -657,7 +664,7 @@ handle_iterate_stop (void *cls,
     return;
   }
   GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, ic);
-  GNUNET_free (ic);
+  destroy_iteration (ic);
   GNUNET_SERVICE_client_continue (pc->client);
 }
 
@@ -803,8 +810,8 @@ monitor_iteration_next (void *cls)
   {
     GNUNET_free (mc->key);
     GNUNET_free (mc->sub_system);
-    GNUNET_free (mc);
     GNUNET_SERVICE_client_drop (mc->pc->client);
+    GNUNET_free (mc);
     return;
   }
   if (GNUNET_NO == ret)
@@ -1090,13 +1097,15 @@ client_disconnect_cb (void *cls,
       GNUNET_SCHEDULER_cancel (mo->sa_wait_warning);
       mo->sa_wait_warning = NULL;
     }
+    GNUNET_free (mo->sub_system);
+    GNUNET_free (mo->key);
     GNUNET_free (mo);
     break;
   }
   while (NULL != (iter = pc->op_head))
   {
     GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, iter);
-    GNUNET_free (iter);
+    destroy_iteration (iter);
   }
   GNUNET_free (pc);
 }

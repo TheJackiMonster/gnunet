@@ -244,8 +244,9 @@ struct GNUNET_ARM_Operation;
  *                  #GNUNET_SYSERR if there was an error.
  */
 typedef void
-(*GNUNET_ARM_ConnectionStatusCallback) (void *cls,
-                                        int connected);
+(*GNUNET_ARM_ConnectionStatusCallback) (
+  void *cls,
+  enum GNUNET_GenericReturnValue connected);
 
 
 /**
@@ -259,9 +260,10 @@ typedef void
  * @param result result of the operation
  */
 typedef void
-(*GNUNET_ARM_ResultCallback) (void *cls,
-                              enum GNUNET_ARM_RequestStatus rs,
-                              enum GNUNET_ARM_Result result);
+(*GNUNET_ARM_ResultCallback) (
+  void *cls,
+  enum GNUNET_ARM_RequestStatus rs,
+  enum GNUNET_ARM_Result result);
 
 
 /**
@@ -276,10 +278,11 @@ typedef void
  * @param list list of services managed by arm
  */
 typedef void
-(*GNUNET_ARM_ServiceListCallback) (void *cls,
-                                   enum GNUNET_ARM_RequestStatus rs,
-                                   unsigned int count,
-                                   const struct GNUNET_ARM_ServiceInfo *list);
+(*GNUNET_ARM_ServiceListCallback) (
+  void *cls,
+  enum GNUNET_ARM_RequestStatus rs,
+  unsigned int count,
+  const struct GNUNET_ARM_ServiceInfo *list);
 
 
 /**
@@ -294,18 +297,20 @@ typedef void
  * @return context to use for further ARM operations, NULL on error.
  */
 struct GNUNET_ARM_Handle *
-GNUNET_ARM_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                    GNUNET_ARM_ConnectionStatusCallback conn_status,
-                    void *conn_status_cls);
+GNUNET_ARM_connect (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  GNUNET_ARM_ConnectionStatusCallback conn_status,
+  void *conn_status_cls);
 
 
 /**
  * Disconnect from the ARM service and destroy the handle.
  *
- * @param h the handle that was being used
+ * @param[in] h the handle that was being used
  */
 void
-GNUNET_ARM_disconnect (struct GNUNET_ARM_Handle *h);
+GNUNET_ARM_disconnect (
+  struct GNUNET_ARM_Handle *h);
 
 
 /**
@@ -315,7 +320,8 @@ GNUNET_ARM_disconnect (struct GNUNET_ARM_Handle *h);
  * @param op operation to cancel
  */
 void
-GNUNET_ARM_operation_cancel (struct GNUNET_ARM_Operation *op);
+GNUNET_ARM_operation_cancel (
+  struct GNUNET_ARM_Operation *op);
 
 
 /**
@@ -327,9 +333,10 @@ GNUNET_ARM_operation_cancel (struct GNUNET_ARM_Operation *op);
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_list (struct GNUNET_ARM_Handle *h,
-                                 GNUNET_ARM_ServiceListCallback cont,
-                                 void *cont_cls);
+GNUNET_ARM_request_service_list (
+  struct GNUNET_ARM_Handle *h,
+  GNUNET_ARM_ServiceListCallback cont,
+  void *cont_cls);
 
 
 /**
@@ -347,10 +354,11 @@ GNUNET_ARM_request_service_list (struct GNUNET_ARM_Handle *h,
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_stop (struct GNUNET_ARM_Handle *h,
-                                 const char *service_name,
-                                 GNUNET_ARM_ResultCallback cont,
-                                 void *cont_cls);
+GNUNET_ARM_request_service_stop (
+  struct GNUNET_ARM_Handle *h,
+  const char *service_name,
+  GNUNET_ARM_ResultCallback cont,
+  void *cont_cls);
 
 
 /**
@@ -364,12 +372,12 @@ GNUNET_ARM_request_service_stop (struct GNUNET_ARM_Handle *h,
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
-                                  const char *service_name,
-                                  enum GNUNET_OS_InheritStdioFlags
-                                  std_inheritance,
-                                  GNUNET_ARM_ResultCallback cont,
-                                  void *cont_cls);
+GNUNET_ARM_request_service_start (
+  struct GNUNET_ARM_Handle *h,
+  const char *service_name,
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  GNUNET_ARM_ResultCallback cont,
+  void *cont_cls);
 
 
 /**
@@ -386,10 +394,10 @@ struct GNUNET_ARM_MonitorHandle;
  * @param status status of the service
  */
 typedef void
-(*GNUNET_ARM_ServiceMonitorCallback) (void *cls,
-                                      const char *service,
-                                      enum GNUNET_ARM_ServiceMonitorStatus
-                                      status);
+(*GNUNET_ARM_ServiceMonitorCallback) (
+  void *cls,
+  const char *service,
+  enum GNUNET_ARM_ServiceMonitorStatus status);
 
 
 /**
@@ -404,9 +412,10 @@ typedef void
  * @return context to use for further ARM monitor operations, NULL on error.
  */
 struct GNUNET_ARM_MonitorHandle *
-GNUNET_ARM_monitor_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                          GNUNET_ARM_ServiceMonitorCallback cont,
-                          void *cont_cls);
+GNUNET_ARM_monitor_start (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  GNUNET_ARM_ServiceMonitorCallback cont,
+  void *cont_cls);
 
 
 /**
@@ -415,7 +424,8 @@ GNUNET_ARM_monitor_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param h the handle that was being used
  */
 void
-GNUNET_ARM_monitor_stop (struct GNUNET_ARM_MonitorHandle *h);
+GNUNET_ARM_monitor_stop (
+  struct GNUNET_ARM_MonitorHandle *h);
 
 #if 0                           /* keep Emacsens' auto-indent happy */
 {

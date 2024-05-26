@@ -118,12 +118,12 @@ send_simple_run (void *cls,
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                          sss->start_peer_label);
   GNUNET_TRANSPORT_TESTING_get_trait_connected_peers_map (peer1_cmd,
-                                                &connected_peers_map);
+                                                          &connected_peers_map);
 
   system_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
                                                           sss->create_label);
@@ -157,6 +157,5 @@ GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                      label,
                                      &send_simple_run,
                                      &send_simple_cleanup,
-                                     NULL,
                                      NULL);
 }

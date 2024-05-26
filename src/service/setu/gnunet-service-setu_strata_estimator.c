@@ -331,6 +331,12 @@ strata_estimator_create (unsigned int strata_count,
                     "Failed to allocate memory for strata estimator\n");
         for (j = 0; j < i; j++)
           ibf_destroy (se->stratas[strata_ctr]->strata[i]);
+        for (j = 0; j <= strata_ctr; j++)
+        {
+          GNUNET_free (se->stratas[j]->strata);
+          GNUNET_free (se->stratas[j]);
+        }
+        GNUNET_free (se->stratas);
         GNUNET_free (se);
         return NULL;
       }
@@ -463,6 +469,8 @@ strata_estimator_destroy (struct MultiStrataEstimator *se)
     for (i = 0; i < se->stratas[strata_ctr]->strata_count; i++)
       ibf_destroy (se->stratas[strata_ctr]->strata[i]);
     GNUNET_free (se->stratas[strata_ctr]->strata);
+    GNUNET_free (se->stratas[strata_ctr]);
   }
+  GNUNET_free (se->stratas);
   GNUNET_free (se);
 }

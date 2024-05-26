@@ -95,87 +95,87 @@ static const uint8_t lookupTable[8][crypto_scalarmult_SCALARBYTES] = {
 
 // main.c from Kleshnis's elligator implementation
 static const unsigned char p_bytes[P_BYTES] = {
-  0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x7f
+  0xed, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f
 };
 
 static const unsigned char negative_1_bytes[P_BYTES] = {
-  0xec, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x7f
+  0xec, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f
 };
 
 static const unsigned char negative_2_bytes[P_BYTES] = {
-  0xeb, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x7f
+  0xeb, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f
 };
 
 static const unsigned char divide_negative_1_2_bytes[P_BYTES] = {
-  0xf6, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x3f
+  0xf6, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f
 };
 
 static const unsigned char divide_plus_p_3_8_bytes[P_BYTES] = {
-  0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x0f
+  0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x0f
 };
 
 static const unsigned char divide_minus_p_1_2_bytes[P_BYTES] = {
-  0xf6, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x3f
+  0xf6, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f
 };
 
 static const unsigned char square_root_negative_1_bytes[P_BYTES] = {
-  0xb0, 0xa0, 0x0e, 0x4a, 0x27, 0x1b, 0xee, 0xc4, 0x78, 0xe4, 0x2f, 0xad, 0x06,
-  0x18, 0x43, 0x2f,
-  0xa7, 0xd7, 0xfb, 0x3d, 0x99, 0x00, 0x4d, 0x2b, 0x0b, 0xdf, 0xc1, 0x4f, 0x80,
-  0x24, 0x83, 0x2b
+  0xb0, 0xa0, 0x0e, 0x4a, 0x27, 0x1b, 0xee, 0xc4,
+  0x78, 0xe4, 0x2f, 0xad, 0x06, 0x18, 0x43, 0x2f,
+  0xa7, 0xd7, 0xfb, 0x3d, 0x99, 0x00, 0x4d, 0x2b,
+  0x0b, 0xdf, 0xc1, 0x4f, 0x80, 0x24, 0x83, 0x2b
 };
 
 static const unsigned char A_bytes[P_BYTES] = {
-  0x06, 0x6d, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00
+  0x06, 0x6d, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 static const unsigned char negative_A_bytes[P_BYTES] = {
-  0xe7, 0x92, 0xf8, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x7f
+  0xe7, 0x92, 0xf8, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f
 };
 
 static const unsigned char u_bytes[P_BYTES] = {
-  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00
+  0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 static const unsigned char inverted_u_bytes[P_BYTES] = {
-  0xf7, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff,
-  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-  0xff, 0xff, 0x3f
+  0xf7, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f
 };
 
 static const unsigned char d_bytes[P_BYTES] = {
-  0xa3, 0x78, 0x59, 0x13, 0xca, 0x4d, 0xeb, 0x75, 0xab, 0xd8, 0x41, 0x41, 0x4d,
-  0x0a, 0x70, 0x00,
-  0x98, 0xe8, 0x79, 0x77, 0x79, 0x40, 0xc7, 0x8c, 0x73, 0xfe, 0x6f, 0x2b, 0xee,
-  0x6c, 0x03, 0x52
+  0xa3, 0x78, 0x59, 0x13, 0xca, 0x4d, 0xeb, 0x75,
+  0xab, 0xd8, 0x41, 0x41, 0x4d, 0x0a, 0x70, 0x00,
+  0x98, 0xe8, 0x79, 0x77, 0x79, 0x40, 0xc7, 0x8c,
+  0x73, 0xfe, 0x6f, 0x2b, 0xee, 0x6c, 0x03, 0x52
 };
 
 static mp_limb_t p[P_LIMBS];
@@ -193,6 +193,7 @@ static mp_limb_t d[P_LIMBS];
 
 static mp_size_t scratch_space_length;
 
+// TODO
 static void
 decode_bytes (mp_limb_t *number, const uint8_t *bytes)
 {
@@ -206,8 +207,7 @@ decode_bytes (mp_limb_t *number, const uint8_t *bytes)
 }
 
 
-// Erases the number
-
+// TODO
 static void
 encode_bytes (uint8_t *bytes, mp_limb_t *number)
 {
@@ -218,8 +218,11 @@ encode_bytes (uint8_t *bytes, mp_limb_t *number)
 }
 
 
-void
-GNUNET_CRYPTO_ecdhe_elligator_initialize (void)
+/**
+ * Initialize elligator scratch space.
+*/
+void __attribute__ ((constructor))
+GNUNET_CRYPTO_ecdhe_elligator_initialize ()
 {
   static bool initialized = false;
 
@@ -268,14 +271,12 @@ GNUNET_CRYPTO_ecdhe_elligator_initialize (void)
     mpn_sec_powm_itch (P_LIMBS, P_BITS - 1, P_LIMBS),
 
     // For Elligator_2_Curve25519_convert_from_Ed25519
-    /*
     mpn_sec_sqr_itch (P_LIMBS),
     mpn_sec_div_r_itch (P_LIMBS + P_LIMBS, P_LIMBS),
     mpn_sec_mul_itch (P_LIMBS, P_LIMBS),
     mpn_sec_add_1_itch (P_LIMBS),
     mpn_sec_powm_itch (P_LIMBS, P_BITS - 1, P_LIMBS),
     mpn_sec_sub_1_itch (P_LIMBS)
-    */
   };
 
   for (size_t i = 0; i < sizeof scratch_space_lengths
@@ -291,10 +292,17 @@ GNUNET_CRYPTO_ecdhe_elligator_initialize (void)
 }
 
 
-// Returns trash if the number is a quadratic non-residue
-
+/**
+ * Calculates the root of a given number.
+ * Returns trash if the number is a quadratic non-residue.
+ *
+ * @param root storage for calculated root
+ * @param number value for which the root is calculated
+ * @param scratch_space buffer for calculation
+ */
 static void
-least_square_root (mp_limb_t *root, const mp_limb_t *number,
+least_square_root (mp_limb_t *root,
+                   const mp_limb_t *number,
                    mp_limb_t *scratch_space)
 {
   mp_limb_t a[P_LIMBS + P_LIMBS];
@@ -331,10 +339,14 @@ least_square_root (mp_limb_t *root, const mp_limb_t *number,
 
 
 bool
-GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative, const
-                                           uint8_t *point,
-                                           bool high_y)
+GNUNET_CRYPTO_ecdhe_elligator_encoding (
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+  bool high_y)
 {
+  uint8_t *representative = (uint8_t *) r->r;
+  uint8_t *point = (uint8_t *) pub->q_y;
+
   mp_limb_t scratch_space[scratch_space_length];
 
   mp_limb_t a[P_LIMBS + P_LIMBS];
@@ -383,9 +395,21 @@ GNUNET_CRYPTO_ecdhe_elligator_inverse_map (uint8_t *representative, const
 }
 
 
-bool
-GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point, bool *high_y,
-                                          uint8_t *representative)
+/**
+ * Takes a number of the underlying finite field of Curve25519 and projects it into a valid point on that curve.
+ * This function works deterministically.
+ * This step is also known as elligators "decoding" step.
+ * Taken from https://github.com/Kleshni/Elligator-2/blob/master/main.c.
+ *
+ * @param point storage for calculated point on Curve25519
+ * @param high_y The 'high_y' argument of the corresponding GNUNET_CRYPTO_ecdhe_elligator_encoding call
+ * @param representative Given representative
+ * @return 'false' if extra step during direct map calculation is needed, otherwise 'true'
+ */
+static bool
+elligator_direct_map (uint8_t *point,
+                      bool *high_y,
+                      uint8_t *representative)
 {
   mp_limb_t scratch_space[scratch_space_length];
 
@@ -442,25 +466,43 @@ GNUNET_CRYPTO_ecdhe_elligator_direct_map (uint8_t *point, bool *high_y,
 }
 
 
-// Removes most significant bit and second most significant bit before applying elligator direct map
-bool
-GNUNET_CRYPTO_ecdhe_elligator_decoding (struct
-                                        GNUNET_CRYPTO_EcdhePublicKey *point,
-                                        bool *high_y,
-                                        struct
-                                        GNUNET_CRYPTO_ElligatorRepresentative *
-                                        representative)
+void
+GNUNET_CRYPTO_ecdhe_elligator_decoding (
+  struct GNUNET_CRYPTO_EcdhePublicKey *point,
+  bool *high_y,
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *representative)
 {
-  representative->r[31] &= 63;
-  return GNUNET_CRYPTO_ecdhe_elligator_direct_map ((uint8_t *) point->q_y,
-                                                   high_y,
-                                                   (uint8_t *) representative->r);
+  // if sign of direct map transformation not needed throw it away
+  bool high_y_local;
+  bool *high_y_ptr;
+  if (NULL == high_y)
+    high_y_ptr = &high_y_local;
+  else
+    high_y_ptr = high_y;
+
+  struct GNUNET_CRYPTO_ElligatorRepresentative r_tmp;
+  memcpy (&r_tmp.r, &representative->r, sizeof(r_tmp.r));
+  r_tmp.r[31] &= 63;
+  // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"Print high_y\n");
+  elligator_direct_map ((uint8_t *) point->q_y,
+                        high_y_ptr,
+                        (uint8_t *) r_tmp.r);
 }
 
 
+/**
+ * Takes a number of the underlying finite field of Curve25519 and projects it into a valid point on that curve.
+ * This function works deterministically.
+ * This step is also known as elligators "decoding" step.
+ * Taken from https://github.com/Kleshni/Elligator-2/blob/master/main.c.
+ *
+ * @param point storage for calculated point on Curve25519
+ * @param source Ed25519 curve point
+ * @return 'false' if source is not a valid Ed25519 point. In this case the 'point' array will be undefined but dependend on source.
+ */
 static bool
-Elligator_2_Curve25519_convert_from_Ed25519 (uint8_t *point, const
-                                             uint8_t *source)
+convert_from_ed_to_curve (uint8_t *point,
+                          const uint8_t *source)
 {
   mp_limb_t scratch_space[scratch_space_length];
 
@@ -524,22 +566,15 @@ Elligator_2_Curve25519_convert_from_Ed25519 (uint8_t *point, const
 }
 
 
-// Would call GNUNET_CRYPTO_ecdhe_key_create (struct GNUNET_CRYPTO_EcdhePrivateKey *pk) for pk which is not clamped
-// Following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key
-int
-GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
-                                                   pub[
-                                                     crypto_scalarmult_SCALARBYTES
-                                                   ],
-                                                   struct
-                                                   GNUNET_CRYPTO_EcdhePrivateKey
-                                                   *pk)
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (
+  struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+  struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
   // eHigh
-  // Note crypto_scalarmult_ed25519_base clamps the scalar (here pk->d). TODO: test this
-  // TODO: if pk-d is zero cryto_scalarmult... return -1, otherwise 0. Problem if 0? Unlikely anyway
+  // crypto_scalarmult_ed25519_base clamps the scalar pk->d and return only 0 if pk->d is zero
   unsigned char eHigh[crypto_scalarmult_SCALARBYTES] = {0};
-  crypto_scalarmult_ed25519_base (eHigh, pk->d);
+  GNUNET_assert (0 == crypto_scalarmult_ed25519_base (eHigh, pk->d));
 
   // eLow: choose a random point of low order
   int sLow = (pk->d)[0] % 8;
@@ -553,14 +588,7 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
     return GNUNET_SYSERR;
   }
 
-  // Convert point in Ed25519 to Montgomery point
-  // TODO: libsodium convert function doesn't work. Figure out why. Maybe because we work on the whole curve rather than the prime subgroup.
-  /*if (crypto_sign_ed25519_pk_to_curve25519 (pub, edPub) == -1)
-  {
-    return -1;
-  }*/
-
-  if (Elligator_2_Curve25519_convert_from_Ed25519 (pub, edPub) == false)
+  if (convert_from_ed_to_curve (pub->q_y, edPub) == false)
   {
     return GNUNET_SYSERR;
   }
@@ -568,93 +596,14 @@ GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (unsigned char
 }
 
 
-/**
-Doesn't work because crypto_scalarmult clamps the scalar. We don't want this.
-Unfortunately a "noclamp" version of multiplication is only available for edwards25519 in libsodium.
-We therefore can't implement the second (alternative) method for generate_public_key.
-Keeping this code for discussion. Delete later.
-
-// Curve25519 point (only x-coordinate) which is needed for the alternativ method of
-//GNUNET_CRYPTO_ecdhe_elligator_generate_public_key_alternativ
-static const unsigned char kPoint[] = {
-  0xD8, 0x86, 0x1A, 0xA2, 0x78, 0x7A, 0xD9, 0x26,
-  0x8B, 0x74, 0x74, 0xB6, 0x82, 0xE3, 0xBE, 0xC3,
-  0xCE, 0x36, 0x9A, 0x1E, 0x5E, 0x31, 0x47, 0xA2,
-  0x6D, 0x37, 0x7C, 0xFD, 0x20, 0xB5, 0xDF, 0x75
-};
-
-// Curve25519 order of prime order subgroup
-static const unsigned char L[] = {
-  0xED, 0xD3, 0xF5, 0x5C, 0x1A, 0x63, 0x12, 0x58,
-  0xD6, 0x9C, 0xF7, 0xA2, 0xDE, 0xF9, 0xDE, 0x14,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10
-};
-
-static void multiplyLittleEndianArray(const unsigned char *input, int multiplier, unsigned char *output, int arraySize) {
-    int carry = 0;
-
-    for (int i = 0; i < arraySize; ++i) {
-        int result = input[i] * multiplier + carry;
-        output[i] = result & 0xFF;  // Store the lower 8 bits in the output array
-        carry = result >> 8;        // Carry the remaining bits to the next iteration
-    }
-}
-
-static void addLittleEndianArrays(const unsigned char *array1, const unsigned char *array2, unsigned char *result, int arraySize) {
-    int carry = 0;
-
-    for (int i = 0; i < arraySize; ++i) {
-        int sum = array1[i] + array2[i] + carry;
-        result[i] = sum & 0xFF;  // Store the lower 8 bits in the result array
-        carry = sum >> 8;        // Carry the remaining bits to the next iteration
-    }
-}
-
-Would call GNUNET_CRYPTO_ecdhe_key_create (struct GNUNET_CRYPTO_EcdhePrivateKey *pk) for pk which is not clamped
-Following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key
-int
-GNUNET_CRYPTO_ecdhe_elligator_generate_public_key_alternativ (unsigned char
-                                                   pub[
-                                                     crypto_scalarmult_SCALARBYTES
-                                                   ],
-                                                   struct
-                                                   GNUNET_CRYPTO_EcdhePrivateKey
-                                                   *pk)
-{
-  unsigned char sClamp[crypto_scalarmult_BYTES] = {0};
-  memcpy(sClamp, pk->d, sizeof(sClamp));
-  sClamp[0] &= 248;
-  sClamp[31] &= 127;
-  sClamp[31] |= 64;
-
-  unsigned char sLow[crypto_scalarmult_BYTES] = {0};
-  int multiplier = (pk->d)[0] % 8;
-  multiplyLittleEndianArray(L, multiplier, sLow, 32);
-  unsigned char sDirty[crypto_scalarmult_BYTES] = {0};
-  addLittleEndianArrays(sClamp, sLow, sDirty, 32);
-
-  int check =  crypto_scalarmult(pub, sDirty,
-                      kPoint);
-
-  if (check == -1)
-  {
-    printf("crypto_scalarmult didn't work\n");
-    return -1;
-  }
-
-  return 0;
-}
-**/
-
-enum GNUNET_GenericReturnValue
+void
 GNUNET_CRYPTO_ecdhe_elligator_key_create (
   struct GNUNET_CRYPTO_ElligatorRepresentative  *repr,
   struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
   // inverse map can fail for some public keys generated by GNUNET_CRYPTO_ecdhe_elligator_generate_public_key
   bool validKey = 0;
-  unsigned char pub[crypto_scalarmult_SCALARBYTES];
+  struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
   int8_t random_tweak;
   bool high_y;
   bool msb_set;
@@ -665,10 +614,12 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                                 pk,
                                 sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-    if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (pub, pk) ==
-        GNUNET_SYSERR)
+
+    // Continue if generate_public_key fails
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (&pub, pk))
     {
-      return GNUNET_SYSERR;
+      continue;
     }
 
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
@@ -676,12 +627,11 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
                                 sizeof(int8_t));
     high_y = random_tweak & 1;
 
-    validKey = GNUNET_CRYPTO_ecdhe_elligator_inverse_map ((unsigned
-                                                           char*) &(repr->r),
-                                                          (unsigned char*) pub,
-                                                          high_y ?
-                                                          GNUNET_YES :
-                                                          GNUNET_NO);
+    validKey = GNUNET_CRYPTO_ecdhe_elligator_encoding (repr,
+                                                       &pub,
+                                                       high_y ?
+                                                       GNUNET_YES :
+                                                       GNUNET_NO);
   }
 
   // Setting most significant bit and second most significant bit randomly
@@ -695,5 +645,30 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
   {
     repr->r[31] |= 64;
   }
-  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
+  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
+
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
+
+  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePublicKey pub;
+  GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub, NULL, r);
+  return GNUNET_CRYPTO_eddsa_ecdh (priv, &pub, key_material);
 }

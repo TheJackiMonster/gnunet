@@ -241,6 +241,7 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
+  const char *effective_lookup_type;
   (void) cls;
   (void) args;
   (void) cfgfile;
@@ -309,9 +310,15 @@ run (void *cls,
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
   if (NULL != lookup_type)
+  {
+    effective_lookup_type = lookup_type;
     rtype = GNUNET_GNSRECORD_typename_to_number (lookup_type);
+  }
   else
+  {
+    effective_lookup_type = "A";
     rtype = GNUNET_DNSPARSER_TYPE_A;
+  }
   if (UINT32_MAX == rtype)
   {
     fprintf (stderr,
@@ -321,7 +328,7 @@ run (void *cls,
   if (! raw)
   {
     printf (">>> Looking for `%s' records under `%s'\n",
-            lookup_type, lookup_name);
+            effective_lookup_type, lookup_name);
   }
   lr = GNUNET_GNS_lookup_with_tld (gns,
                                    lookup_name,

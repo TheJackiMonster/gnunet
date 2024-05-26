@@ -409,9 +409,9 @@ peer_respect_cb (void *cls,
   if (NULL != record)
   {
     GNUNET_PEERSTORE_iteration_stop (cp->respect_iterate_req);
+    cp->respect_iterate_req = NULL;
     return;
   }
-  cp->respect_iterate_req = NULL;
   GNUNET_PEERSTORE_iteration_next (cp->respect_iterate_req, 1);
 }
 

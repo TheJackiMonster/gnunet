@@ -349,13 +349,6 @@ endif
 
 add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 
-if cc.check_header('sys/time.h')
-  add_project_arguments('-DHAVE_SYS_TIME_H', language : 'c')
-endif
-if cc.check_header('sys/param.h')
-  add_project_arguments('-DHAVE_SYS_PARAM_H', language : 'c')
-endif
-
 # NSS
 have_nss = false
 if cc.check_header('nss.h')
@@ -390,9 +383,6 @@ if not tun_found and cc.check_header('net/tun/if_tun.h')
   endif
 endif
 
-
-
-
 # NSS
 if cc.check_header('nss.h')
   add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
@@ -422,30 +412,52 @@ endif
 if cc.has_function('getloadavg') == false
   error('getloadadv missing')
 endif
-if cc.has_function('strnlen', prefix : '#include <string.h>')
-  cdata.set('HAVE_STRNLEN', 1)
-endif
-if cc.has_function('memset_s')
-  cdata.set('HAVE_MEMSET_S', 1)
-endif
-if cc.has_function('explicit_bzero')
-  cdata.set('HAVE_EXPLICIT_BZERO', 1)
-endif
-if cc.has_function('gethostbyname')
-  cdata.set('HAVE_GETHOSTBYNAME', 1)
-endif
-if cc.has_function('gethostbyname2')
-  cdata.set('HAVE_GETHOSTBYNAME2', 1)
-endif
-if cc.has_function('getifaddrs')
-  cdata.set('HAVE_GETIFADDRS', 1)
-endif
-if cc.has_function('freeifaddrs')
-  cdata.set('HAVE_FREEIFADDRS', 1)
-endif
-if cc.check_header('ifaddrs.h')
-  add_project_arguments('-DHAVE_IFADDRS_H', language : 'c')
-endif
+
+syscalls = [
+  'memset_s', 'explicit_bzero', 'atoll', 'stat64',
+  'mremap', 'getrlimit', 'setrlimit', 'gethostbyname2',
+  'getpeerucred', 'getpeereid', 'setresuid', 'getifaddrs', 'freeifaddrs',
+  'getresgid', 'mallinfo2', 'malloc_size', 'malloc_usable_size', 'getrusage',
+  'random', 'srandom', 'stat', 'statfs', 'statvfs', 'wait4', 'timegm',
+  'getaddrinfo', 'initgroups', 'gethostbyname'
+]
+
+str_syscalls = [
+  'strnlen', 'strndup',
+]
+
+foreach f : syscalls
+  if cc.has_function(f)
+    define = 'HAVE_' + f.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
+
+foreach f : str_syscalls
+  if cc.has_function(f, prefix : '#include <string.h>')
+    define = 'HAVE_' + f.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
+
+
+headers = [
+  'stdatomic.h', 'malloc.h', 'malloc/malloc.h', 'malloc/malloc_np.h',
+  'langinfo.h', 'sys/param.h', 'sys/mount.h', 'sys/statvfs.h',
+  'sys/select.h', 'sockLib.h', 'sys/mman.h', 'sys/msg.h', 'sys/vfs.h',
+  'arpa/inet.h', 'libintl.h', 'netdb.h', 'netinet/in.h', 'sys/ioctl.h',
+  'sys/socket.h', 'sys/time.h', 'sys/sysinfo.h', 'sys/file.h', 'sys/resource.h',
+  'ifaddrs.h', 'mach/mach.h', 'sys/timeb.h', 'argz.h', 'ucred.h', 'sys/ucred.h',
+  'endian.h', 'sys/endian.h', 'execinfo.h', 'byteswap.h', 'sys/types.h'
+]
+
+foreach h : headers
+  if cc.check_header(h)
+    define = '-DHAVE_' + h.underscorify().to_upper()
+    message(define)
+    add_project_arguments(define, language : 'c')
+  endif
+endforeach
 
 configure_file(#input: 'gnunet_private_config.h.in',
   output : 'gnunet_private_config.h',

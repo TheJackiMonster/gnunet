@@ -217,6 +217,7 @@ load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store,
         (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->links,
                                                          &(storage.hash), link,
                                                          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+
       break;
   }
   while (link);
@@ -235,7 +236,8 @@ load_message_store (struct GNUNET_MESSENGER_MessageStore *store,
   GNUNET_assert ((store) && (directory));
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   if (store->storage_messages)
     GNUNET_DISK_file_close (store->storage_messages);
@@ -369,7 +371,8 @@ save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
   struct GNUNET_MESSENGER_ClosureMessageSave save;
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   char *filename;
 
@@ -526,6 +529,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
   if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (store->messages, hash,
                                                       message,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
     goto free_buffer;
 
   free_message : destroy_message (message);
@@ -609,6 +613,7 @@ add_link (struct GNUNET_MESSENGER_MessageStore *store,
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->links, hash, link,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
     GNUNET_free (link);
   else
     store->write_links = GNUNET_YES;

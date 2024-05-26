@@ -176,26 +176,15 @@ all_local_tests_prepared ()
 
 
 /**
- * Function to start a local test case.
+ * Entry point for the plugin.
  *
- * @param write_message Callback to send a message to the master loop.
- * @param router_ip Global address of the network namespace.
- * @param node_ip The IP address of the node.
- * @param m The number of the node in a network namespace.
- * @param n The number of the network namespace.
- * @param local_m The number of nodes in a network namespace.
+ * @param cls NULL
+ * @return the exported block API
  */
-static struct GNUNET_TESTING_Interpreter *
-start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
-                const char *router_ip,
-                const char *node_ip,
-                const char *m,
-                const char *n,
-                const char *local_m,
-                const char *topology_data,
-                unsigned int *read_file,
-                GNUNET_TESTING_cmd_helper_finish_cb finished_cb)
+void *
+libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
 {
+  struct GNUNET_TESTING_PluginFunctions *api;
 
   unsigned int n_int;
   unsigned int m_int;
@@ -318,38 +307,42 @@ start_testcase (GNUNET_TESTING_cmd_helper_write_cb write_message,
     GNUNET_TESTING_cmd_end ()
   };
 
-  ts->write_message = write_message;
-
-  is = GNUNET_TESTING_run (commands,
-                           TIMEOUT,
-                           &handle_result,
-                           ts);
-  return is;
+  return GNUNET_TESTING_make_plugin (commands);
 }
 
 
-/**
- * Entry point for the plugin.
- *
- * @param cls NULL
- * @return the exported block API
- */
-void *
-libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
-{
-  struct GNUNET_TESTING_PluginFunctions *api;
-
-  GNUNET_log_setup ("udp-backchannel",
-                    "DEBUG",
-                    "plugin.out");
-
-  api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
-  api->start_testcase = &start_testcase;
-  api->all_peers_started = &all_peers_started;
-  api->all_local_tests_prepared = all_local_tests_prepared;
-  api->get_waiting_for_barriers = get_waiting_for_barriers;
-  return api;
-}
+GNUNET_TESTING_MAKE_PLUGIN (
+  libgnunet,
+  udp_backchannel,
+  GNUNET_TESTING_cmd_system_create ("system-create",
+                                    ts->testdir),
+  GNUNET_TRANSPORT_cmd_start_peer ("start-peer",
+                                   "system-create",
+                                   num,
+                                   node_ip,
+                                   handlers,
+                                   ts->cfgname,
+                                   notify_connect,
+                                   GNUNET_NO),
+  GNUNET_TESTING_cmd_send_peer_ready (
+    "send-peer-ready",
+    write_message),
+  block_send,
+  connect_peers,
+  GNUNET_TRANSPORT_cmd_backchannel_check (
+    "backchannel-check",
+    "start-peer",
+    "system-create",
+    num,
+    m_int,
+    n_int,
+    topology),
+  local_prepared,
+  GNUNET_TRANSPORT_cmd_stop_peer ("stop-peer",
+                                  "start-peer"),
+  GNUNET_TESTING_cmd_system_destroy ("system-destroy",
+                                     "system-create")
+  );
 
 
 /**

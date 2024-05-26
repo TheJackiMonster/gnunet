@@ -137,7 +137,7 @@ GNUNET_CRYPTO_symmetric_encrypt (const void *block,
                                  void *result)
 {
   gcry_cipher_hd_t handle;
-  char tmp[size];
+  char tmp[GNUNET_NZL(size)];
 
   if (GNUNET_OK != setup_cipher_aes (&handle, sessionkey, iv))
     return -1;

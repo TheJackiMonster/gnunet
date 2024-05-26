@@ -149,6 +149,5 @@ GNUNET_TRANSPORT_cmd_stop_peer (const char *label,
                                      label,
                                      &stop_peer_run,
                                      &stop_peer_cleanup,
-                                     &stop_peer_traits,
-                                     NULL);
+                                     &stop_peer_traits);
 }

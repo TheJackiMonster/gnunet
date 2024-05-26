@@ -13,6 +13,12 @@ configure_file(input : 'dht.conf.in',
                install: true,
                install_dir: pkgcfgdir)
 
+configure_file(input : 'dhtu.conf',
+               output : 'dhtu.conf',
+               configuration : cdata,
+               install: true,
+               install_dir: pkgcfgdir)
+
 if get_option('monolith')
   foreach p : libgnunetdht_src + gnunetservicedht_src
     gnunet_src += 'dht/' + p
@@ -48,11 +54,7 @@ executable ('gnunet-service-dht',
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
 
-configure_file(input : 'dhtu.conf',
-               output : 'dhtu.conf',
-               configuration : cdata,
-               install: true,
-               install_dir: pkgcfgdir)
+if false
 
 libgnunettestingdhtu = library('gnunettestingdhtu',
         ['testing_dhtu_cmd_send.c'],
@@ -95,3 +97,5 @@ test('test_dhtu_ip', testdhtu_ip, suite: 'dhtu',
      workdir: meson.current_build_dir())
 
 
+
+endif

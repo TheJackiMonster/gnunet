@@ -411,24 +411,39 @@ GNUNET_CRYPTO_eddsa_private_key_from_string (
 }
 
 
+static void
+buffer_clear (void *buf, size_t len)
+{
+#if HAVE_MEMSET_S
+  memset_s (buf, len, 0, len);
+#elif HAVE_EXPLICIT_BZERO
+  explicit_bzero (buf, len);
+#else
+  volatile unsigned char *p = buf;
+  while (len--)
+    *p++ = 0;
+#endif
+}
+
+
 void
 GNUNET_CRYPTO_ecdhe_key_clear (struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
-  memset (pk, 0, sizeof(struct GNUNET_CRYPTO_EcdhePrivateKey));
+  buffer_clear (pk, sizeof(struct GNUNET_CRYPTO_EcdhePrivateKey));
 }
 
 
 void
 GNUNET_CRYPTO_ecdsa_key_clear (struct GNUNET_CRYPTO_EcdsaPrivateKey *pk)
 {
-  memset (pk, 0, sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
+  buffer_clear (pk, sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey));
 }
 
 
 void
 GNUNET_CRYPTO_eddsa_key_clear (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
 {
-  memset (pk, 0, sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
+  buffer_clear (pk, sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
 }
 
 

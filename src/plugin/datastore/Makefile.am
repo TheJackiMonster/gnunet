@@ -103,39 +103,33 @@ endif
 perf_plugin_datastore_heap_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_heap_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_datastore_heap_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_heap_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 perf_plugin_datastore_sqlite_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_sqlite_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_plugin_datastore_sqlite_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_sqlite_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 
 test_plugin_datastore_postgres_SOURCES = \
  test_plugin_datastore.c
 test_plugin_datastore_postgres_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 perf_plugin_datastore_postgres_SOURCES = \
  perf_plugin_datastore.c
 perf_plugin_datastore_postgres_LDADD = \
- $(top_builddir)/src/service/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la
 
 

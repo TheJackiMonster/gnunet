@@ -22,10 +22,9 @@
  * @brief API for peerstore
  * @author Martin Schanzenbach
  */
-#include "gnunet_common.h"
-#include "gnunet_protocols.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_protocols.h"
 #include "peerstore.h"
 #include "peerstore_common.h"
 #include "gnunet_peerstore_service.h"
@@ -85,7 +84,7 @@ struct GNUNET_PEERSTORE_Monitor
   /**
    * The sub system requested the watch.
    */
-  const char *sub_system;
+  char *sub_system;
 
   /**
    * Request ID
@@ -237,17 +236,18 @@ reconnect (struct GNUNET_PEERSTORE_Monitor *mc)
 
 
 struct GNUNET_PEERSTORE_Monitor *
-GNUNET_PEERSTORE_monitor_start (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                                int iterate_first,
-                                const char *sub_system,
-                                const struct GNUNET_PeerIdentity *peer,
-                                const char *key,
-                                GNUNET_SCHEDULER_TaskCallback error_cb,
-                                void *error_cb_cls,
-                                GNUNET_SCHEDULER_TaskCallback sync_cb,
-                                void *sync_cb_cls,
-                                GNUNET_PEERSTORE_Processor callback,
-                                void *callback_cls)
+GNUNET_PEERSTORE_monitor_start (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  int iterate_first,
+  const char *sub_system,
+  const struct GNUNET_PeerIdentity *peer,
+  const char *key,
+  GNUNET_SCHEDULER_TaskCallback error_cb,
+  void *error_cb_cls,
+  GNUNET_SCHEDULER_TaskCallback sync_cb,
+  void *sync_cb_cls,
+  GNUNET_PEERSTORE_Processor callback,
+  void *callback_cls)
 {
   struct GNUNET_PEERSTORE_Monitor *mc;
 
@@ -286,6 +286,7 @@ GNUNET_PEERSTORE_monitor_stop (struct GNUNET_PEERSTORE_Monitor *zm)
     GNUNET_MQ_destroy (zm->mq);
     zm->mq = NULL;
   }
+  GNUNET_free (zm->sub_system);
   GNUNET_free (zm);
 }
 

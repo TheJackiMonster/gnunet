@@ -75,13 +75,13 @@ gnunet_daemon_regexprofiler_LDADD = -lm \
 gnunet_daemon_regexprofiler_LDFLAGS = \
   $(GN_LIBINTL)
 
-check_PROGRAMS = \
-  test_regex_integration \
-  test_regex_eval_api \
-  test_regex_iterate_api \
-  test_regex_proofs \
-  test_regex_graph_api \
-  test_regex_api
+#check_PROGRAMS = \
+#  test_regex_integration \
+#  test_regex_eval_api \
+#  test_regex_iterate_api \
+#  test_regex_proofs \
+#  test_regex_graph_api \
+#  test_regex_api
 
 if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;

@@ -36,8 +36,6 @@
 
 #include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_testing_lib.h"
-#include "gnunet_testing_ng_lib.h"
 
 /**
  * Handle to the TRANSPORT subsystem for making suggestions about

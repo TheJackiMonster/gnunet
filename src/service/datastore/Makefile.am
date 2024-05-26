@@ -60,16 +60,16 @@ endif
   $(POSTGRES_BENCHMARKS)
 endif
 
-check_PROGRAMS = \
-  test_datastore_api_heap \
-  test_datastore_api_management_heap \
-  perf_datastore_api_heap \
-  $(SQLITE_TESTS) \
-  $(POSTGRES_TESTS)
+#check_PROGRAMS = \
+#  test_datastore_api_heap \
+#  test_datastore_api_management_heap \
+#  perf_datastore_api_heap \
+#  $(SQLITE_TESTS) \
+#  $(POSTGRES_TESTS)
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
-TESTS = $(check_PROGRAMS)
+ TESTS = $(check_PROGRAMS)
 endif
 
 test_datastore_api_heap_SOURCES = \

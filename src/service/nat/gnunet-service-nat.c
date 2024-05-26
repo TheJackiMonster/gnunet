@@ -1816,10 +1816,9 @@ check_request_connection_reversal (void *cls,
  * @param message the message received
  */
 static void
-handle_request_connection_reversal (void *cls,
-                                    const struct
-                                    GNUNET_NAT_RequestConnectionReversalMessage
-                                    *message)
+handle_request_connection_reversal (
+  void *cls,
+  const struct GNUNET_NAT_RequestConnectionReversalMessage *message)
 {
   struct ClientHandle *ch = cls;
   const char *buf = (const char *) &message[1];
@@ -1859,6 +1858,71 @@ handle_request_connection_reversal (void *cls,
   if (GNUNET_OK != ret)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ ("Connection reversal request failed\n"));
+  GNUNET_SERVICE_client_continue (ch->client);
+}
+
+
+/**
+ * Check validity of #GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS message from
+ * client.
+ *
+ * @param cls client who sent the message
+ * @param message the message received
+ * @return #GNUNET_OK if message is well-formed
+ */
+static enum GNUNET_GenericReturnValue
+check_add_global_address (
+  void *cls,
+  const struct GNUNET_NAT_AddGlobalAddressMessage *message)
+{
+  const char *buf = (const char *) &message[1];
+  uint16_t blen = ntohs (message->address_length);
+  size_t left = ntohs (message->header.size) - sizeof(*message);
+
+  if (left != ntohs (message->address_length))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  if ('\0' != buf[blen - 1])
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+/**
+ * Handle #GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS message from
+ * client.
+ *
+ * @param cls client who sent the message
+ * @param message the message received
+ */
+static void
+handle_add_global_address (
+  void *cls,
+  const struct GNUNET_NAT_AddGlobalAddressMessage *message)
+{
+  struct ClientHandle *ch = cls;
+  const char *buf = (const char *) &message[1];
+  uint16_t blen = ntohs (message->address_length);
+  struct sockaddr_in sockaddr_ipv4 = {
+    .sin_family = AF_INET
+  };
+
+  GNUNET_assert ('\0' == buf[blen - 1]);
+  if (1 != inet_pton (AF_INET,
+                      buf,
+                      &sockaddr_ipv4.sin_addr))
+  {
+    GNUNET_break (0);
+    GNUNET_SERVICE_client_continue (ch->client);
+    return;
+  }
+  notify_clients_stun_change (&sockaddr_ipv4,
+                              GNUNET_YES);
   GNUNET_SERVICE_client_continue (ch->client);
 }
 
@@ -2059,6 +2123,10 @@ GNUNET_SERVICE_MAIN
   GNUNET_MQ_hd_var_size (request_connection_reversal,
                          GNUNET_MESSAGE_TYPE_NAT_REQUEST_CONNECTION_REVERSAL,
                          struct GNUNET_NAT_RequestConnectionReversalMessage,
+                         NULL),
+  GNUNET_MQ_hd_var_size (add_global_address,
+                         GNUNET_MESSAGE_TYPE_NAT_ADD_GLOBAL_ADDRESS,
+                         struct GNUNET_NAT_AddGlobalAddressMessage,
                          NULL),
   GNUNET_MQ_handler_end ());
 

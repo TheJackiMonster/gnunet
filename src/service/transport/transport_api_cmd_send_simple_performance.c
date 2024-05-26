@@ -168,7 +168,7 @@ send_simple_run (void *cls,
   const struct GNUNET_CONTAINER_MultiShortmap *connected_peers_map;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
 
   peer1_cmd = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -208,13 +208,12 @@ GNUNET_TRANSPORT_cmd_send_simple_performance (const char *label,
   sss->topology = topology;
   sss->size = size;
   sss->max_send = max_send;
-
-  cmd = GNUNET_TESTING_command_new (sss,
-                                    label,
-                                    &send_simple_run,
-                                    &send_simple_cleanup,
-                                    NULL,
-                                    &sss->ac);
+  cmd = GNUNET_TESTING_command_new_ac (sss,
+                                       label,
+                                       &send_simple_run,
+                                       &send_simple_cleanup,
+                                       NULL,
+                                       &sss->ac);
   cmd.asynchronous_finish = GNUNET_YES;
   return cmd;
 }

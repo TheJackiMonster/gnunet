@@ -13,16 +13,35 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
-lib_LTLIBRARIES = libgnunetarm.la
+lib_LTLIBRARIES = \
+  libgnunetarm.la \
+  libgnunettestingarm.la
 
 libgnunetarm_la_SOURCES = \
-  arm_api.c arm_monitor_api.c arm.h
+  arm_api.c \
+  arm_monitor_api.c \
+  arm.h
 libgnunetarm_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL) $(XLIB)
 libgnunetarm_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)   \
   -version-info 2:0:0
+
+libgnunettestingarm_la_SOURCES = \
+  testing_arm_cmd_start_peer.c \
+  testing_arm_cmd_stop_peer.c \
+  testing_arm_traits.c
+libgnunettestingarm_la_LIBADD = \
+  libgnunetarm.la \
+  $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(GN_LIBINTL) $(XLIB)
+libgnunettestingarm_la_LDFLAGS = \
+  $(GN_LIB_LDFLAGS)   \
+  -version-info 0:0:0
 
 
 noinst_PROGRAMS = \

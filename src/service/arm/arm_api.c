@@ -346,7 +346,7 @@ pool_get (const char *pool_start,
  * @param lres the message received from the arm service
  * @return #GNUNET_OK if message is well-formed
  */
-static int
+static enum GNUNET_GenericReturnValue
 check_arm_list_result (void *cls,
                        const struct GNUNET_ARM_ListResultMessage *lres)
 {
@@ -515,7 +515,7 @@ mq_error_handler (void *cls,
  * @param h arm handle
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-static int
+static enum GNUNET_GenericReturnValue
 reconnect_arm (struct GNUNET_ARM_Handle *h)
 {
   struct GNUNET_MQ_MessageHandler handlers[] = {
@@ -574,9 +574,10 @@ reconnect_arm (struct GNUNET_ARM_Handle *h)
  * @return context to use for further ARM operations, NULL on error.
  */
 struct GNUNET_ARM_Handle *
-GNUNET_ARM_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                    GNUNET_ARM_ConnectionStatusCallback conn_status,
-                    void *conn_status_cls)
+GNUNET_ARM_connect (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  GNUNET_ARM_ConnectionStatusCallback conn_status,
+  void *conn_status_cls)
 {
   struct GNUNET_ARM_Handle *h;
 
@@ -673,17 +674,19 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     ld[1] = -1;
     lsocks = ld;
   }
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (h->cfg,
-                                                          "arm",
-                                                          "PREFIX",
-                                                          &loprefix))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (h->cfg,
+                                             "arm",
+                                             "PREFIX",
+                                             &loprefix))
     loprefix = GNUNET_strdup ("");
   else
     loprefix = GNUNET_CONFIGURATION_expand_dollar (h->cfg, loprefix);
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (h->cfg,
-                                                          "arm",
-                                                          "OPTIONS",
-                                                          &lopostfix))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (h->cfg,
+                                             "arm",
+                                             "OPTIONS",
+                                             &lopostfix))
     lopostfix = GNUNET_strdup ("");
   else
     lopostfix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
@@ -701,10 +704,11 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     GNUNET_free (lopostfix);
     return GNUNET_ARM_RESULT_IS_NOT_KNOWN;
   }
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (h->cfg,
-                                                            "arm",
-                                                            "CONFIG",
-                                                            &config))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (h->cfg,
+                                               "arm",
+                                               "CONFIG",
+                                               &config))
     config = NULL;
   binary = GNUNET_OS_get_libexec_binary_path (cbinary);
   GNUNET_asprintf (&quotedbinary,
@@ -850,10 +854,14 @@ change_service (struct GNUNET_ARM_Handle *h,
   GNUNET_CONTAINER_DLL_insert_tail (h->operation_pending_head,
                                     h->operation_pending_tail,
                                     op);
-  env = GNUNET_MQ_msg_extra (msg, slen, type);
+  env = GNUNET_MQ_msg_extra (msg,
+                             slen,
+                             type);
   msg->reserved = htonl (0);
   msg->request_id = GNUNET_htonll (op->id);
-  GNUNET_memcpy (&msg[1], service_name, slen);
+  GNUNET_memcpy (&msg[1],
+                 service_name,
+                 slen);
   GNUNET_MQ_send (h->mq, env);
   return op;
 }
@@ -907,7 +915,7 @@ notify_starting (void *cls)
     op->result_cont (op->cont_cls,
                      GNUNET_ARM_REQUEST_SENT_OK,
                      op->starting_ret);
-  GNUNET_DISK_file_close(op->rfd);
+  GNUNET_DISK_file_close (op->rfd);
   GNUNET_free (op);
 }
 
@@ -923,12 +931,13 @@ notify_starting (void *cls)
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
-                                  const char *service_name,
-                                  enum GNUNET_OS_InheritStdioFlags
-                                  std_inheritance,
-                                  GNUNET_ARM_ResultCallback cont,
-                                  void *cont_cls)
+GNUNET_ARM_request_service_start (
+  struct GNUNET_ARM_Handle *h,
+  const char *service_name,
+  enum GNUNET_OS_InheritStdioFlags
+  std_inheritance,
+  GNUNET_ARM_ResultCallback cont,
+  void *cont_cls)
 {
   struct GNUNET_ARM_Operation *op;
   enum GNUNET_ARM_Result ret;
@@ -1035,10 +1044,11 @@ GNUNET_ARM_request_service_start (struct GNUNET_ARM_Handle *h,
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_stop (struct GNUNET_ARM_Handle *h,
-                                 const char *service_name,
-                                 GNUNET_ARM_ResultCallback cont,
-                                 void *cont_cls)
+GNUNET_ARM_request_service_stop (
+  struct GNUNET_ARM_Handle *h,
+  const char *service_name,
+  GNUNET_ARM_ResultCallback cont,
+  void *cont_cls)
 {
   struct GNUNET_ARM_Operation *op;
 
@@ -1070,9 +1080,10 @@ GNUNET_ARM_request_service_stop (struct GNUNET_ARM_Handle *h,
  * @return handle for the operation, NULL on error
  */
 struct GNUNET_ARM_Operation *
-GNUNET_ARM_request_service_list (struct GNUNET_ARM_Handle *h,
-                                 GNUNET_ARM_ServiceListCallback cont,
-                                 void *cont_cls)
+GNUNET_ARM_request_service_list (
+  struct GNUNET_ARM_Handle *h,
+  GNUNET_ARM_ServiceListCallback cont,
+  void *cont_cls)
 {
   struct GNUNET_ARM_Operation *op;
   struct GNUNET_MQ_Envelope *env;

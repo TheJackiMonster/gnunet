@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_json_lib.h"
 
-
 json_t *
 GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
 {
@@ -363,5 +362,119 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
   return ps;
 }
 
+
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_unblinded_signature (const char *name,
+                                      const struct GNUNET_CRYPTO_UnblindedSignature *sig)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name
+  };
+
+  if (NULL == sig)
+    return ps;
+
+  switch (sig->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "RSA"),
+      GNUNET_JSON_pack_rsa_signature ("rsa_signature",
+                                      sig->details.rsa_signature));
+    return ps;
+  case GNUNET_CRYPTO_BSA_CS:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "CS"),
+      GNUNET_JSON_pack_data_auto ("cs_signature_r",
+                                  &sig->details.cs_signature.r_point),
+      GNUNET_JSON_pack_data_auto ("cs_signature_s",
+                                  &sig->details.cs_signature.s_scalar));
+    return ps;
+  }
+  GNUNET_assert (0);
+  return ps;
+}
+
+
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_message (const char *name,
+                                  const struct GNUNET_CRYPTO_BlindedMessage *msg)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+  };
+
+  switch (msg->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "RSA"),
+      GNUNET_JSON_pack_data_varsize (
+        "rsa_blinded_planchet",
+        msg->details.rsa_blinded_message.blinded_msg,
+        msg->details.rsa_blinded_message.blinded_msg_size));
+    return ps;
+  case GNUNET_CRYPTO_BSA_CS:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "CS"),
+      GNUNET_JSON_pack_data_auto (
+        "cs_nonce",
+        &msg->details.cs_blinded_message.nonce),
+      GNUNET_JSON_pack_data_auto (
+        "cs_blinded_c0",
+        &msg->details.cs_blinded_message.c[0]),
+      GNUNET_JSON_pack_data_auto (
+        "cs_blinded_c1",
+        &msg->details.cs_blinded_message.c[1]));
+    return ps;
+  }
+  GNUNET_assert (0);
+  return ps;
+}
+
+
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_sig (
+  const char *name,
+  const struct GNUNET_CRYPTO_BlindedSignature *sig)
+{
+  struct GNUNET_JSON_PackSpec ps = {
+    .field_name = name,
+  };
+
+  if (NULL == sig)
+    return ps;
+  switch (sig->cipher)
+  {
+  case GNUNET_CRYPTO_BSA_INVALID:
+    break;
+  case GNUNET_CRYPTO_BSA_RSA:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "RSA"),
+      GNUNET_JSON_pack_rsa_signature ("blinded_rsa_signature",
+                                      sig->details.blinded_rsa_signature));
+    return ps;
+  case GNUNET_CRYPTO_BSA_CS:
+    ps.object = GNUNET_JSON_PACK (
+      GNUNET_JSON_pack_string ("cipher",
+                               "CS"),
+      GNUNET_JSON_pack_uint64 ("b",
+                               sig->details.blinded_cs_answer.b),
+      GNUNET_JSON_pack_data_auto ("s",
+                                  &sig->details.blinded_cs_answer.s_scalar));
+    return ps;
+  }
+  GNUNET_assert (0);
+  return ps;
+}
 
 /* end of json_pack.c */

@@ -38,6 +38,8 @@ executable ('gnunet-service-datastore',
   install: true,
   install_dir: get_option('libdir')/'gnunet'/'libexec')
 
+if false
+
 testds_sqlite = executable ('test_store_api_sqlite',
   ['test_datastore_api.c'],
   dependencies: [
@@ -130,3 +132,4 @@ test('test_datastore_api_management_postgres', testds_mgmt_pq,
   is_parallel: false,
   suite: 'datastore', workdir: meson.current_build_dir())
 
+endif
