@@ -76,7 +76,8 @@ libgnunettransportmonitor_dep = declare_dependency(link_with : libgnunettranspor
 
 libgnunettestingtransport = library('gnunettestingtransport',
                                      [
-                                       'testing_transport_traits.c'
+                                       'testing_transport_traits.c',
+                                       'transport-testing-communicator.c'
                                      ],
                                      soversion: '0',
                                      version: '0.0.0',
@@ -263,6 +264,7 @@ libgnunettesttransport_cmd_natupnp = library('gnunet_test_transport_plugin_cmd_n
                                              include_directories: [incdir, configuration_inc],
                                              install: true,
                                              install_dir: get_option('libdir')/'gnunet')
+endif
 
 configure_file(input : 'test_transport_defaults.conf',
                output : 'test_transport_defaults.conf',
@@ -487,5 +489,3 @@ test('test_communicator_backchannel-udp', testcommunicator_backchannel_udp,
 test('test_communicator_bidirect-tcp', testcommunicator_bidirect_tcp,
      workdir: meson.current_build_dir(),
      suite: ['transport', 'communicator'], is_parallel: false)
-
-endif
