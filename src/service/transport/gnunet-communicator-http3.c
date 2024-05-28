@@ -951,6 +951,17 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                      void *user_data,
                      void *stream_user_data)
 {
+  /**
+   * FIXME: When server side(!is_initiator) receives stream data, it should 
+   * call create_stream to create a new stream and reply something.
+   * But currently server has nothing to reply, so we don't call create_stream, 
+   * and the callback.stream_close won't find the stream in hashmap.
+   * There will be stream data to be sent after HTTP3 layer is implemented.
+   */
+
+  /* extend connection-level and stream-level flow control window. */
+  ngtcp2_conn_extend_max_offset(conn, datalen);
+  ngtcp2_conn_extend_max_stream_offset(conn, stream_id, datalen);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "recv_stream_data: datalen = %lu\n", datalen);
   struct Connection *connection = user_data;
