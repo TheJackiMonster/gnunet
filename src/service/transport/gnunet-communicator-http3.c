@@ -19,6 +19,7 @@
 #include <nghttp3/nghttp3.h>
 #include <gnutls/crypto.h>
 #include <gnutls/gnutls.h>
+#include <stdint.h>
 
 
 /**
@@ -123,6 +124,22 @@ static struct GNUNET_STATISTICS_Handle *stats;
 gnutls_certificate_credentials_t cred;
 
 /**
+ * Information of a stream.
+ */
+struct Stream
+{
+
+  int64_t stream_id;
+
+  uint8_t *data;
+  uint64_t datalen;
+
+  uint32_t sent_offset;
+  uint32_t ack_offset;
+  struct Connection *connection;
+};
+
+/**
  * Information of the connection with peer.
  */
 struct Connection
@@ -135,16 +152,8 @@ struct Connection
   gnutls_session_t session;
   /**
    * Information of the stream.
-   *
-   * TODO: Handle multiple streams.
    */
-  struct
-  {
-    int64_t id;
-    uint8_t *data;
-    size_t datalen;
-    size_t nwrite;
-  } stream;
+  struct GNUNET_CONTAINER_MultiHashMap *streams;
 
   /**
    * Address of the other peer.
@@ -464,6 +473,64 @@ send_packet (struct Connection *connection, const uint8_t *data, size_t datalen)
 
 
 /**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static struct Stream*
+create_stream (struct Connection *connection, int64_t stream_id)
+{
+  struct Stream *new_stream;
+  struct GNUNET_HashCode stream_key;
+
+  new_stream = GNUNET_new (struct Stream);
+  memset (new_stream, 0, sizeof (struct Stream));
+  new_stream->stream_id = stream_id;
+  new_stream->connection = connection;
+  GNUNET_CRYPTO_hash (&stream_id, sizeof (stream_id), &stream_key);
+  GNUNET_CONTAINER_multihashmap_put (connection->streams,
+                                     &stream_key,
+                                     new_stream,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  return new_stream;
+}
+
+
+/**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static void
+remove_stream (struct Connection *connection, int64_t stream_id)
+{
+  struct GNUNET_HashCode stream_key;
+  struct Stream *stream;
+  int rv;
+
+  GNUNET_CRYPTO_hash (&stream_id, sizeof (stream_id), &stream_key);
+  stream = GNUNET_CONTAINER_multihashmap_get (connection->streams, &stream_key);
+  rv = GNUNET_CONTAINER_multihashmap_remove (connection->streams,
+                                             &stream_key,
+                                             stream);
+  if (GNUNET_NO == rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "can't remove non-exist pair in connection->streams, stream_id = %ld\n",
+                stream_id);
+    return;
+  }
+  GNUNET_free (stream);
+}
+
+
+/**
  * As the client, initialize the corresponding connection.
  *
  * @param connection Corresponding connection
@@ -550,6 +617,27 @@ reschedule_peer_timeout (struct Connection *connection)
 
 
 /**
+ * Iterator over all streams to clean up.
+ *
+ * @param cls NULL
+ * @param key stream->stream_id
+ * @param value the stream to destroy
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+get_stream_delete_it (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
+{
+  struct Stream *stream = value;
+  (void) cls;
+  (void) key;
+  GNUNET_free (stream);
+  return GNUNET_OK;
+}
+
+
+/**
  * Destroys a receiving state due to timeout or shutdown.
  *
  * @param connection entity to close down
@@ -586,6 +674,10 @@ connection_destroy (struct Connection *connection)
   gnutls_deinit (connection->session);
   GNUNET_free (connection->address);
   GNUNET_free (connection->foreign_addr);
+  GNUNET_CONTAINER_multihashmap_iterate (connection->streams,
+                                         &get_stream_delete_it,
+                                         NULL);
+  GNUNET_CONTAINER_multihashmap_destroy (connection->streams);
   GNUNET_free (connection);
 }
 
@@ -605,6 +697,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 {
   struct Connection *connection = impl_state;
   uint16_t msize = ntohs (msg->size);
+  struct Stream *stream;
+  int64_t stream_id;
+  int rv;
 
   if (NULL == connection->conn)
   {
@@ -631,10 +726,18 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     return;
   }
   reschedule_peer_timeout (connection);
-  connection->stream.data = (uint8_t *) msg;
-  connection->stream.datalen = msize;
-  connection->stream.nwrite = 0;
+  // connection->stream.data = (uint8_t *) msg;
+  // connection->stream.datalen = msize;
+  // connection->stream.nwrite = 0;
+  rv = ngtcp2_conn_open_bidi_stream (connection->conn,
+                                     &stream_id,
+                                     NULL);
+  stream = create_stream (connection, stream_id);
+  stream->data = (uint8_t *) msg;
+  stream->datalen = msize;
   connection_write (connection);
+  /* currently use this way to shutdown the stream */
+  ngtcp2_conn_shutdown_stream (connection->conn, 0, stream_id, 5678);
   GNUNET_MQ_impl_send_continue (mq);
 }
 
@@ -798,20 +901,27 @@ handshake_completed_cb (ngtcp2_conn *conn, void *user_data)
 {
   struct Connection *connection = user_data;
   int64_t stream_id;
+  struct Stream *stream;
+
   int rv;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "http3: handshake complete!\n");
   if (GNUNET_YES == connection->is_initiator &&
       GNUNET_NO == connection->id_sent)
   {
-    if (-1 == connection->stream.id)
-    {
-      ngtcp2_conn_open_bidi_stream (connection->conn, &stream_id, NULL);
-      connection->stream.id = stream_id;
-    }
-    connection->stream.data = (uint8_t*) &my_identity;
-    connection->stream.datalen = sizeof (my_identity);
-    connection->stream.nwrite = 0;
+    rv = ngtcp2_conn_open_bidi_stream (conn, &stream_id, NULL);
+    stream = create_stream (connection, stream_id);
+    stream->data = (uint8_t *) &my_identity;
+    stream->datalen = sizeof (my_identity);
+    stream->sent_offset = 0;
+    // if (-1 == connection->stream.id)
+    // {
+    //   ngtcp2_conn_open_bidi_stream (connection->conn, &stream_id, NULL);
+    //   connection->stream.id = stream_id;
+    // }
+    // connection->stream.data = (uint8_t*) &my_identity;
+    // connection->stream.datalen = sizeof (my_identity);
+    // connection->stream.nwrite = 0;
 
     rv = connection_write (connection);
     if (rv < 0)
@@ -888,6 +998,30 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 
 
 /**
+ * The callback function for ngtcp2_callbacks.stream_close
+ *
+ * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
+ */
+static int
+stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
+                 uint64_t app_error_code, void *user_data,
+                 void *stream_user_data)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "stream_close id = %ld\n",
+              stream_id);
+  struct Connection *c = user_data;
+  remove_stream (c, stream_id);
+  if (GNUNET_NO == c->is_initiator &&
+      ngtcp2_is_bidi_stream (stream_id))
+  {
+    ngtcp2_conn_extend_max_streams_bidi (conn, 1);
+  }
+  return 0;
+}
+
+
+/**
  * Create new ngtcp2_conn as client side.
  *
  * @param connection new connection of the peer
@@ -932,6 +1066,7 @@ client_quic_init (struct Connection *connection,
     .get_new_connection_id = get_new_connection_id_cb,
     .handshake_completed = handshake_completed_cb,
     .recv_stream_data = recv_stream_data_cb,
+    .stream_close = stream_close_cb,
   };
 
 
@@ -970,7 +1105,6 @@ client_quic_init (struct Connection *connection,
   ngtcp2_conn_set_tls_native_handle (connection->conn, connection->session);
   connection->conn_ref.user_data = connection;
   connection->conn_ref.get_conn = get_conn;
-  connection->stream.id = -1;
   return GNUNET_NO;
 }
 
@@ -983,7 +1117,7 @@ client_quic_init (struct Connection *connection,
  * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
  */
 static int
-connection_write_streams (struct Connection *connection)
+connection_write_stream (struct Connection *connection, struct Stream *stream)
 {
   uint8_t buf[1280];
   int64_t stream_id;
@@ -1001,14 +1135,13 @@ connection_write_streams (struct Connection *connection)
 
   for (;;)
   {
-    if (connection->stream.id != -1 &&
-        connection->stream.nwrite < connection->stream.datalen)
+    if (NULL != stream &&
+        stream->sent_offset < stream->datalen)
     {
-      stream_id = connection->stream.id;
-      fin = 0;
-      datav.base = (uint8_t *) connection->stream.data
-                   + connection->stream.nwrite;
-      datav.len = connection->stream.datalen - connection->stream.nwrite;
+      stream_id = stream->stream_id;
+      fin = 1;
+      datav.base = (uint8_t *) stream->data + stream->sent_offset;
+      datav.len = stream->datalen - stream->sent_offset;
       datavcnt = 1;
     }
     else
@@ -1040,7 +1173,7 @@ connection_write_streams (struct Connection *connection)
       switch (nwrite)
       {
       case NGTCP2_ERR_WRITE_MORE:
-        connection->stream.nwrite += (size_t) wdatalen;
+        stream->sent_offset += (size_t) wdatalen;
         continue;
       default:
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1057,13 +1190,43 @@ connection_write_streams (struct Connection *connection)
     }
     if (0 < wdatalen)
     {
-      connection->stream.nwrite += (size_t) wdatalen;
+      stream->sent_offset += (size_t) wdatalen;
     }
     if (GNUNET_NO != send_packet (connection, buf, (size_t) nwrite))
     {
       return GNUNET_SYSERR;
     }
   }
+}
+
+
+/**
+ * Iterator over all streams to write.
+ *
+ * @param cls NULL
+ * @param key stream_id
+ * @param value the stream to write
+ * @return #GNUNET_OK to continue to iterate
+ */
+static int
+get_connection_write_stream_it (void *cls,
+                                const struct GNUNET_HashCode *key,
+                                void *value)
+{
+  struct Stream *stream = value;
+  (void) cls;
+  (void) key;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "get_connection_write_stream_it, stream_id = %ld\n",
+              stream->stream_id);
+  if (GNUNET_NO != connection_write_stream (stream->connection, stream))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection_write_stream failed, stream_id = %ld\n",
+                stream->stream_id);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -1077,13 +1240,41 @@ connection_write_streams (struct Connection *connection)
 static int
 connection_write (struct Connection *connection)
 {
-  ngtcp2_tstamp expiry, now;
-  if (GNUNET_NO != connection_write_streams (connection))
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "in connection_write\n");
+  ngtcp2_tstamp expiry;
+  ngtcp2_tstamp now;
+
+  if (0 == GNUNET_CONTAINER_multihashmap_size (connection->streams))
+  {
+    if (GNUNET_NO != connection_write_stream (connection, NULL))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "connection_write_stream failed, stream = NULL\n");
+      return GNUNET_SYSERR;
+    }
+  }
+  else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "connection_write_streams failed\n");
-    return GNUNET_SYSERR;
+                "size of streams map = %u\n",
+                GNUNET_CONTAINER_multihashmap_size (connection->streams));
+    if (GNUNET_SYSERR ==
+        GNUNET_CONTAINER_multihashmap_iterate (connection->streams,
+                                               &get_connection_write_stream_it,
+                                               NULL))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "GNUNET_CONTAINER_multihashmap_iterate failed\n");
+      return GNUNET_SYSERR;
+    }
   }
+  // if (GNUNET_NO != connection_write_stream (connection))
+  // {
+  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+  //               "connection_write_stream failed\n");
+  //   return GNUNET_SYSERR;
+  // }
   expiry = ngtcp2_conn_get_expiry (connection->conn);
   now = timestamp ();
 
@@ -1175,6 +1366,7 @@ mq_init (void *cls,
                                                remote_addrlen);
   connection->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
+  connection->streams = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
   GNUNET_STATISTICS_set (stats,
                          "# connections active",
                          GNUNET_CONTAINER_multihashmap_size (addr_map),
@@ -1397,6 +1589,7 @@ accept_connection (struct sockaddr *local_addr,
     // .stream_open = stream_open_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
+    .stream_close = stream_close_cb,
   };
   int rv;
 
@@ -1408,7 +1601,7 @@ accept_connection (struct sockaddr *local_addr,
     return NULL;
   }
   new_connection = GNUNET_new (struct Connection);
-  memset (new_connection, 0, sizeof (new_connection));
+  memset (new_connection, 0, sizeof (struct Connection));
 
   gnutls_init (&new_connection->session,
                GNUTLS_SERVER
@@ -1421,7 +1614,7 @@ accept_connection (struct sockaddr *local_addr,
 
   ngtcp2_transport_params_default (&params);
   params.initial_max_streams_uni = 3;
-  params.initial_max_streams_bidi = 3;
+  params.initial_max_streams_bidi = 128;
   params.initial_max_stream_data_bidi_local = 128 * 1024;
   params.initial_max_stream_data_bidi_remote = 128 * 1024;
   params.initial_max_data = 1024 * 1024;
@@ -1471,7 +1664,8 @@ accept_connection (struct sockaddr *local_addr,
 
   new_connection->conn_ref.get_conn = get_conn;
   new_connection->conn_ref.user_data = new_connection;
-  new_connection->stream.id = -1;
+  new_connection->streams = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO)
+  ;
 
   return new_connection;
 }
