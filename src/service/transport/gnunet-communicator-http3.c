@@ -924,6 +924,7 @@ handshake_completed_cb (ngtcp2_conn *conn, void *user_data)
     // connection->stream.nwrite = 0;
 
     rv = connection_write (connection);
+    ngtcp2_conn_shutdown_stream (connection->conn, 0, stream_id, 5678);
     if (rv < 0)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
