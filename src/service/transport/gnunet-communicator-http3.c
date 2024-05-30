@@ -30,7 +30,7 @@
 /**
  * Address prefix used by the communicator.
  */
-#define COMMUNICATOR_ADDRESS_PREFIX "quic"
+#define COMMUNICATOR_ADDRESS_PREFIX "http3"
 
 /**
  * the priorities to use on the ciphers, key exchange methods, and macs.
@@ -591,7 +591,7 @@ client_gnutls_init (struct Connection *connection)
   gnutls_alpn_set_protocols (connection->session, &alpn, 1,
                              GNUTLS_ALPN_MANDATORY);
 
-  /*
+  /**
    * TODO: Handle the situation when the remote host is an IP address
    */
   gnutls_server_name_set (connection->session, GNUTLS_NAME_DNS, "localhost",
@@ -1290,7 +1290,7 @@ connection_write (struct Connection *connection)
   expiry = ngtcp2_conn_get_expiry (connection->conn);
   now = timestamp ();
 
-  /*
+  /**
    * TODO: Set timer here.
    */
 
