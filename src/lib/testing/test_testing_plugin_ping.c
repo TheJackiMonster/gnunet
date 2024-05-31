@@ -28,7 +28,7 @@
 #include "gnunet_testing_lib.h"
 
 GNUNET_TESTING_MAKE_PLUGIN (
-  test_testing,
+  libgnunet_test_testing,
   ping,
   GNUNET_TESTING_cmd_exec_va ("ping",
                               GNUNET_OS_PROCESS_EXITED,
