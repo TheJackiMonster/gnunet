@@ -211,6 +211,16 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_TAG = 19,
 
   /**
+   * The subscribe kind. The message contains a #GNUNET_MESSENGER_MessageSubscribe body.
+   */
+  GNUNET_MESSENGER_KIND_SUBSCRIBE = 20,
+
+  /**
+   * The talk kind. The message contains a #GNUNET_MESSENGER_MessageTalk body.
+   */
+  GNUNET_MESSENGER_KIND_TALK = 21,
+
+  /**
    * The unknown kind. The message contains an unknown body.
    */
   GNUNET_MESSENGER_KIND_UNKNOWN = 0
@@ -588,6 +598,54 @@ struct GNUNET_MESSENGER_MessageTag
 };
 
 /**
+ * A subscribe message body
+ * This allows subscribing to a discourse.
+ *
+ * Message-body-size: 44
+ */
+struct GNUNET_MESSENGER_MessageSubscribe
+{
+  /**
+   * The hash of the discourse to subscribe.
+   */
+  struct GNUNET_ShortHashCode discourse;
+
+  /**
+   * The time window of the subscription.
+   */
+  struct GNUNET_TIME_RelativeNBO time;
+
+  /**
+   * The flags about the subscription to a discourse.
+   */
+  uint32_t flags;
+};
+
+/**
+ * A talk message body
+ * This allows talking in a discourse.
+ *
+ * Message-body-size: 34+
+ */
+struct GNUNET_MESSENGER_MessageTalk
+{
+  /**
+   * The hash of the discourse to talk.
+   */
+  struct GNUNET_ShortHashCode discourse;
+
+  /**
+   * The length of the talk message data.
+   */
+  uint16_t length;
+
+  /**
+   * The data of the talk message.
+   */
+  char *data;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -613,6 +671,8 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageTicket ticket;
     struct GNUNET_MESSENGER_MessageTranscript transcript;
     struct GNUNET_MESSENGER_MessageTag tag;
+    struct GNUNET_MESSENGER_MessageSubscribe subscribe;
+    struct GNUNET_MESSENGER_MessageTalk talk;
   };
 };
 
@@ -689,6 +749,28 @@ enum GNUNET_MESSENGER_ConnectionFlags
    * The auto flag. The flag indicates that a peer will automatically handle routing.
    */
   GNUNET_MESSENGER_FLAG_CONNECTION_AUTO = 1,/**< GNUNET_MESSENGER_FLAG_CONNECTION_AUTO */
+};
+
+/**
+ * Enum for the different supported flags used to specify subscribtion handling.
+ * Compatible flags can be OR'ed together.
+ */
+enum GNUNET_MESSENGER_SubscriptionFlags
+{
+  /**
+   * The none flag. The flag indicates that the subscribtion is not affected by any modifications.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_NONE = 0,
+
+  /**
+   * The unsubscribe flag. The flag indicates that a member will unsubscribe a discourse.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_UNSUBSCRIBE = 1,
+
+  /**
+   * The keep alive flag. The flag indicates that a member keeps a subscription alive implicitly.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE = 2,
 };
 
 /**

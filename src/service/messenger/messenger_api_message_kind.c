@@ -131,46 +131,6 @@ create_message_request (const struct GNUNET_HashCode *hash)
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_invite (const struct GNUNET_PeerIdentity *door,
-                       const struct GNUNET_HashCode *key)
-{
-  if ((! door) || (! key))
-    return NULL;
-
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_INVITE);
-
-  if (! message)
-    return NULL;
-
-  GNUNET_memcpy (&(message->body.invite.door), door, sizeof(struct
-                                                            GNUNET_PeerIdentity)
-                 );
-  GNUNET_memcpy (&(message->body.invite.key), key, sizeof(struct
-                                                          GNUNET_HashCode));
-
-  return message;
-}
-
-
-struct GNUNET_MESSENGER_Message*
-create_message_text (const char *text)
-{
-  if (! text)
-    return NULL;
-
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_TEXT);
-
-  if (! message)
-    return NULL;
-
-  message->body.text.text = GNUNET_strdup (text);
-  return message;
-}
-
-
-struct GNUNET_MESSENGER_Message*
 create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay)
 {
@@ -186,24 +146,6 @@ create_message_delete (const struct GNUNET_HashCode *hash,
   GNUNET_memcpy (&(message->body.deletion.hash), hash, sizeof(struct
                                                               GNUNET_HashCode));
   message->body.deletion.delay = GNUNET_TIME_relative_hton (delay);
-
-  return message;
-}
-
-
-struct GNUNET_MESSENGER_Message*
-create_message_ticket (const struct GNUNET_RECLAIM_Ticket *ticket)
-{
-  if (! ticket)
-    return NULL;
-
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_TICKET);
-
-  if (! message)
-    return NULL;
-
-  message->body.ticket.identifier = GNUNET_strdup (ticket->gns_name);
 
   return message;
 }

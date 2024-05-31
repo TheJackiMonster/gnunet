@@ -51,6 +51,7 @@ struct GNUNET_MESSENGER_MessageStore
   struct GNUNET_CONTAINER_MultiHashMap *entries;
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiHashMap *links;
+  struct GNUNET_CONTAINER_MultiHashMap *talks;
 
   enum GNUNET_GenericReturnValue rewrite_entries;
   enum GNUNET_GenericReturnValue write_links;

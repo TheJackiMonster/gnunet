@@ -1114,8 +1114,8 @@ handle_room_messages (struct GNUNET_MESSENGER_SrvRoom *room)
     get_srv_room_message_store (room);
   struct GNUNET_MESSENGER_MemberStore *member_store =
     get_srv_room_member_store (room);
-  struct GNUNET_MESSENGER_PeerStore *peer_store = get_srv_room_peer_store (
-    room);
+  struct GNUNET_MESSENGER_PeerStore *peer_store =
+    get_srv_room_peer_store (room);
   
   const struct GNUNET_HashCode *key = get_srv_room_key (room);
   
@@ -1188,19 +1188,25 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (room);
 
-  const struct GNUNET_MESSENGER_Message *old_message = get_store_message (
-    message_store, hash);
+  enum GNUNET_GenericReturnValue duplicate;
+  duplicate = contains_store_message (message_store, hash);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Handle a message in room (%s).\n",
               GNUNET_h2s (get_srv_room_key (room)));
-
-  if ((old_message) || (GNUNET_OK != put_store_message (message_store, hash,
-                                                        message)))
+  
+  if (GNUNET_YES == duplicate)
   {
-    if (old_message != message)
-      destroy_message (message);
+    destroy_message (message);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Duplicate message got dropped!\n");
+    return GNUNET_NO;
+  }
+
+  if (GNUNET_OK != put_store_message (message_store, hash, message))
+  {
+    destroy_message (message);
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Storing message failed!\n");
     return GNUNET_NO;
   }
 
@@ -1371,6 +1377,9 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
     break;
   case GNUNET_MESSENGER_KIND_CONNECTION:
     handle_message_connection (room, &session, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    handle_message_subscribe (room, &session, message, hash);
     break;
   default:
     break;

@@ -116,6 +116,7 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_operation_store.c gnunet-service-messenger_operation_store.h \
   gnunet-service-messenger_operation.c gnunet-service-messenger_operation.h \
   gnunet-service-messenger_peer_store.c gnunet-service-messenger_peer_store.h \
+  gnunet-service-messenger_subscription.c gnunet-service-messenger_subscription.h \
   gnunet-service-messenger_basement.c gnunet-service-messenger_basement.h \
   gnunet-service-messenger_handle.c gnunet-service-messenger_handle.h \
   gnunet-service-messenger_room.c gnunet-service-messenger_room.h \

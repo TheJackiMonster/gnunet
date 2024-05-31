@@ -183,3 +183,40 @@ handle_message_connection (struct GNUNET_MESSENGER_SrvRoom *room,
   memcpy (&(element->connection), &(message->body.connection),
           sizeof (struct GNUNET_MESSENGER_MessageConnection));
 }
+
+
+void
+handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
+                          struct GNUNET_MESSENGER_SenderSession *session,
+                          const struct GNUNET_MESSENGER_Message *message,
+                          const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_Member *member = session->member->member;
+
+  const struct GNUNET_TIME_Absolute timestamp =
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+
+  const struct GNUNET_ShortHashCode *discourse =
+    &(message->body.subscribe.discourse);
+  
+  const struct GNUNET_TIME_Relative duration =
+    GNUNET_TIME_relative_ntoh (message->body.subscribe.time);
+
+  struct GNUNET_MESSENGER_Subscription *subscription;
+  subscription = get_member_subscription (member, discourse);
+
+  if (subscription)
+    update_subscription (subscription, timestamp, duration);
+  else
+  {
+    subscription =
+      create_subscription (member, discourse, timestamp, duration);
+
+    if (! subscription)
+      return;
+
+    add_member_subscription (member, subscription);
+  }
+
+  update_subscription_timing (subscription);
+}
