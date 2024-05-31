@@ -314,31 +314,31 @@ struct GNUNET_TESTING_NetjailTopology
   /**
    * Default number of subnets per carrier.
    */
-  unsigned int default_subnets;
+  unsigned long long default_subnets;
 
   /**
    * Default number of peers per carrier.
    */
-  unsigned int default_carrier_peers;
+  unsigned long long default_carrier_peers;
 
   /**
    * Default number of peers per subnet.
    */
-  unsigned int default_subnet_peers;
+  unsigned long long default_subnet_peers;
   /**
    * Default plugin for the test case to be run on nodes.
    */
   char *plugin;
 
   /**
-   * Number of carriers.
-   */
-  unsigned int num_carriers;
-
-  /**
    * Default number of backbone peers.
    */
-  unsigned int num_backbone_peers;
+  unsigned long long num_backbone_peers;
+
+  /**
+   * Number of carriers.
+   */
+  unsigned long long num_carriers;
 
   /**
    * Hash map containing the carriers.

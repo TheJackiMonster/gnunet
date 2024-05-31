@@ -97,6 +97,11 @@ static struct GNUNET_TESTING_PluginFunctions *plugin;
 static char *plugin_name;
 
 /**
+ * The loaded topology.
+ */
+  struct GNUNET_TESTING_NetjailTopology *njt;
+
+/**
  * Our message stream tokenizer
  */
 static struct GNUNET_MessageStreamTokenizer *tokenizer;
@@ -170,7 +175,11 @@ do_shutdown (void *cls)
   {
     GNUNET_PLUGIN_unload (plugin_name,
                           plugin);
-    GNUNET_free (plugin_name);
+  }
+  if (NULL != njt)
+  {
+    GNUNET_TESTING_free_topology (njt);
+    njt = NULL;
   }
 }
 
@@ -232,7 +241,7 @@ static void
 write_message (const struct GNUNET_MessageHeader *message)
 {
   struct WriteContext *wc;
-  size_t msg_length = ntohl (message->size);
+  size_t msg_length = ntohs (message->size);
 
   wc = GNUNET_new (struct WriteContext);
   wc->length = msg_length;
@@ -309,7 +318,7 @@ handle_helper_init (
   const struct GNUNET_ShortHashCode *bd
     = (const struct GNUNET_ShortHashCode *) &msg[1];
   const char *topo = (const char *) &bd[barrier_count];
-  struct GNUNET_TESTING_NetjailTopology *njt;
+
 
   GNUNET_assert ('\0' == topo[left - 1]);
   njt = GNUNET_TESTING_get_topo_from_string_ (topo);
@@ -322,9 +331,12 @@ handle_helper_init (
   }
   plugin_name = GNUNET_TESTING_get_plugin_from_topo (njt,
                                                      my_node_id);
-  GNUNET_TESTING_free_topology (njt);
   plugin = GNUNET_PLUGIN_load (plugin_name,
                                (void *) my_node_id);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Starting plugin `%s' for node %s\n",
+              plugin_name,
+              my_node_id);
   if (NULL == plugin)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -334,6 +346,13 @@ handle_helper_init (
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
+  struct GNUNET_TESTING_Command *commands = plugin->cls;
+  unsigned int i;
+
+  for (i = 0; NULL != commands[i].run; i++)
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "helper %s\n",
+              commands[i].label.value);
   is = plugin->start_testcase (plugin->cls,
                                topo,
                                barrier_count,

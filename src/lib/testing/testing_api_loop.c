@@ -680,9 +680,20 @@ GNUNET_TESTING_make_plugin (
   const struct GNUNET_TESTING_Command *commands)
 {
   struct GNUNET_TESTING_PluginFunctions *api;
+  struct GNUNET_TESTING_Command *commands_copy;
+  unsigned int i;
+
+  for (i = 0; NULL != commands[i].run; i++)
+    ;
+  commands_copy = GNUNET_malloc_large ( (i + 1)
+                                       * sizeof (struct
+                                                 GNUNET_TESTING_Command));
+  memcpy (commands_copy,
+          commands,
+          sizeof (struct GNUNET_TESTING_Command) * i + 1);
 
   api = GNUNET_new (struct GNUNET_TESTING_PluginFunctions);
-  api->cls = (void *) commands;
+  api->cls = (void *) commands_copy;
   api->start_testcase = &start_testcase;
   return api;
 }
@@ -744,7 +755,7 @@ unsigned int
 GNUNET_TESTING_barrier_count_ (
   struct GNUNET_TESTING_Interpreter *is)
 {
-  return GNUNET_CONTAINER_multishortmap_size (is->barriers);
+  return NULL != is->barriers ? GNUNET_CONTAINER_multishortmap_size (is->barriers) : 0;
 }
 
 
@@ -754,7 +765,8 @@ GNUNET_TESTING_barrier_iterate_ (
   GNUNET_CONTAINER_ShortmapIterator cb,
   void *cb_cls)
 {
-  GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
+  if (NULL != is->barriers)
+    GNUNET_CONTAINER_multishortmap_iterate (is->barriers,
                                           cb,
                                           cb_cls);
 }
