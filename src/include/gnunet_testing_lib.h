@@ -565,7 +565,7 @@ GNUNET_TESTING_cmd_barrier_reached (
   const char *barrier_label);
 
 
-#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start.sh"
+#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start_new.sh"
 
 #define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
 

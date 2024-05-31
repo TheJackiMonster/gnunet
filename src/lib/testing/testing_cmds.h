@@ -27,8 +27,11 @@
 #ifndef TESTING_CMDS_H
 #define TESTING_CMDS_H
 
-#define HELPER_CMDS_BINARY "gnunet-cmds-helper"
 #include "gnunet_common.h"
+
+#define HELPER_CMDS_BINARY "gnunet-cmds-helper"
+
+#define NETJAIL_EXEC_SCRIPT "netjail_exec.sh"
 
 GNUNET_NETWORK_STRUCT_BEGIN
 

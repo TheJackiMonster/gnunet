@@ -409,29 +409,36 @@ start_helper (struct NetJailState *ns,
   char *gnunet_cmds_helper
     = GNUNET_OS_get_libexec_binary_path (HELPER_CMDS_BINARY);
   char node_id[32];
-  char *const script_argv[] = {
-    "ip",
-    "netns",
-    "exec",
-    node_id,
-    gnunet_cmds_helper,
-    node_id,
-    NULL
-  };
+  char *data_dir;
+  char *script_name;
   struct GNUNET_HELPER_Handle *helper;
 
+  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  GNUNET_asprintf (&script_name,
+                   "%s%s",
+                   data_dir,
+                   NETJAIL_EXEC_SCRIPT);
   GNUNET_snprintf (node_id,
                    sizeof (node_id),
                    "if%06x-%06x\n",
                    (unsigned int) getpid (),
                    script_num);
-  helper = GNUNET_HELPER_start (
-    GNUNET_YES,                             /* with control pipe */
-    script_argv[0],
-    script_argv,
-    &helper_mst,
-    &exp_cb,
-    ns);
+  {
+    char *const script_argv[] = {
+      script_name,
+      node_id,
+      gnunet_cmds_helper,
+      node_id,
+      NULL
+    };
+    helper = GNUNET_HELPER_start (
+                                  GNUNET_YES,                             /* with control pipe */
+                                  script_argv[0],
+                                  script_argv,
+                                  &helper_mst,
+                                  &exp_cb,
+                                  ns);
+  }
   GNUNET_free (gnunet_cmds_helper);
   if (NULL == helper)
   {
@@ -443,6 +450,8 @@ start_helper (struct NetJailState *ns,
                        helper);
   GNUNET_TESTING_add_netjail_helper_ (ns->is,
                                       helper);
+  GNUNET_free (data_dir);
+  GNUNET_free (script_name);
   return send_start_messages (ns,
                               helper);
 }
