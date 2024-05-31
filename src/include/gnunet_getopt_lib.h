@@ -440,15 +440,6 @@ GNUNET_GETOPT_option_verbose (unsigned int *level);
 
 
 /**
- * Allow user to specify log file name (-l option)
- *
- * @param[out] logfn set to the name of the logfile
- */
-struct GNUNET_GETOPT_CommandLineOption
-GNUNET_GETOPT_option_logfile (char **logfn);
-
-
-/**
  * Allow user to specify configuration file name (-c option)
  *
  * @param[out] fn set to the name of the configuration file
