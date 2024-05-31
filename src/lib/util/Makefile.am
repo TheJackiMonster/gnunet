@@ -84,7 +84,7 @@ libgnunetutil_la_SOURCES = \
   mq.c \
   nc.c \
   network.c \
-	nt.c \
+  nt.c \
   os_installation.c \
   os_network.c \
   os_priority.c \
