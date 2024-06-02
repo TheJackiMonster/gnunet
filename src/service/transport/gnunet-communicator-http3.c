@@ -1379,14 +1379,15 @@ mq_init (void *cls,
   connection->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
   connection->streams = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO);
-  GNUNET_STATISTICS_set (stats,
-                         "# connections active",
-                         GNUNET_CONTAINER_multihashmap_size (addr_map),
-                         GNUNET_NO);
   GNUNET_CONTAINER_multihashmap_put (addr_map,
                                      &remote_addr_key,
                                      connection,
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+  GNUNET_STATISTICS_set (stats,
+                         "# connections active",
+                         GNUNET_CONTAINER_multihashmap_size (addr_map),
+                         GNUNET_NO);
+
   /* client_gnutls_init */
   rv = client_gnutls_init (connection);
   if (GNUNET_NO != rv)
