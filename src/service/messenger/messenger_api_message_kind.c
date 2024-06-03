@@ -149,3 +149,27 @@ create_message_delete (const struct GNUNET_HashCode *hash,
 
   return message;
 }
+
+
+struct GNUNET_MESSENGER_Message*
+create_message_subscribe (const struct GNUNET_ShortHashCode *discourse,
+                          const struct GNUNET_TIME_Relative time,
+                          uint32_t flags)
+{
+  if (! discourse)
+    return NULL;
+
+  struct GNUNET_MESSENGER_Message *message = create_message (
+    GNUNET_MESSENGER_KIND_SUBSCRIBE);
+  
+  if (! message)
+    return NULL;
+
+  GNUNET_memcpy (&(message->body.subscribe.discourse), discourse,
+                 sizeof (struct GNUNET_ShortHashCode));
+  
+  message->body.subscribe.time = GNUNET_TIME_relative_hton (time);
+  message->body.subscribe.flags = flags;
+
+  return message;
+}

@@ -38,6 +38,15 @@
 #include "messenger_api_message_control.h"
 #include "messenger_api_queue_messages.h"
 
+struct GNUNET_MESSENGER_Room;
+
+struct GNUNET_MESSENGER_RoomSubscription
+{
+  struct GNUNET_MESSENGER_Room *room;
+  struct GNUNET_MESSENGER_Message *message;
+  struct GNUNET_SCHEDULER_Task *task;
+};
+
 struct GNUNET_MESSENGER_RoomMessageEntry
 {
   struct GNUNET_MESSENGER_Contact *sender;
@@ -66,6 +75,8 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiShortmap *members;
   struct GNUNET_CONTAINER_MultiHashMap *links;
+
+  struct GNUNET_CONTAINER_MultiShortmap *subscriptions;
 
   struct GNUNET_MESSENGER_QueueMessages queue;
 

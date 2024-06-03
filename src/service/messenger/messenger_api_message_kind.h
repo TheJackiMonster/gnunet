@@ -100,4 +100,19 @@ struct GNUNET_MESSENGER_Message*
 create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay);
 
+/**
+ * Creates and allocates a new subscribe message for a subscription of a given <i>discourse</i>
+ * with a specific <i>time</i> window and <i>flags</i>.
+ * (all values are stored as copy)
+ *
+ * @param[in] discourse Discourse
+ * @param[in] time Time of subscription
+ * @param[in] flags Subscription flags
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_subscribe (const struct GNUNET_ShortHashCode *discourse,
+                          const struct GNUNET_TIME_Relative time,
+                          uint32_t flags);
+
 #endif //GNUNET_MESSENGER_API_MESSAGE_KIND_H

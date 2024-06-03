@@ -27,10 +27,13 @@
 
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
+
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
 #include "messenger_api_message_control.h"
+#include "messenger_api_message_kind.h"
+
 #include <string.h>
 
 struct GNUNET_MESSENGER_Room*
@@ -58,6 +61,8 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
   room->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   room->members = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
   room->links = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+
+  room->subscriptions = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
 
   init_queue_messages (&(room->queue));
 
@@ -92,6 +97,24 @@ iterate_destroy_link (void *cls,
 }
 
 
+static enum GNUNET_GenericReturnValue
+iterate_destroy_subscription (void *cls,
+                              const struct GNUNET_ShortHashCode *key,
+                              void *value)
+{
+  struct GNUNET_MESSENGER_RoomSubscription *subscription = value;
+
+  if (subscription->task)
+    GNUNET_SCHEDULER_cancel (subscription->task);
+
+  if (subscription->message)
+    destroy_message (subscription->message);
+
+  GNUNET_free (subscription);
+  return GNUNET_YES;
+}
+
+
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room)
 {
@@ -101,6 +124,15 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
 
   clear_queue_messages (&(room->queue));
   clear_list_tunnels (&(room->entries));
+
+  if (room->subscriptions)
+  {
+    GNUNET_CONTAINER_multishortmap_iterate (room->subscriptions,
+                                            iterate_destroy_subscription,
+                                            NULL);
+    
+    GNUNET_CONTAINER_multishortmap_destroy (room->subscriptions);
+  }
 
   if (room->messages)
   {
@@ -601,6 +633,122 @@ read_transcript:
 }
 
 
+extern void
+enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
+                         struct GNUNET_MESSENGER_Message *message,
+                         struct GNUNET_MESSENGER_Message *transcript);
+
+static void
+keep_subscription_alive (void *cls)
+{
+  GNUNET_assert (cls);
+
+  struct GNUNET_MESSENGER_RoomSubscription *subscription = cls;
+  
+  subscription->task = NULL;
+  
+  struct GNUNET_MESSENGER_Room *room = subscription->room;
+  struct GNUNET_MESSENGER_Message *message = subscription->message;
+
+  const struct GNUNET_ShortHashCode *discourse =
+    &(message->body.subscribe.discourse);
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (room->subscriptions, 
+                                                           discourse, 
+                                                           subscription))
+    return;
+  
+  GNUNET_free (subscription);
+
+  enqueue_message_to_room (room, message, NULL);
+}
+
+static void
+handle_subscribe_message (struct GNUNET_MESSENGER_Room *room,
+                          const struct GNUNET_HashCode *hash,
+                          struct GNUNET_MESSENGER_RoomMessageEntry *entry)
+{
+  GNUNET_assert ((room) && (hash) && (entry));
+
+  if (get_handle_contact (room->handle, &(room->key)) != entry->sender)
+    return;
+
+  const uint32_t flags = entry->message->body.subscribe.flags;
+
+  const struct GNUNET_ShortHashCode *discourse =
+    &(entry->message->body.subscribe.discourse);
+
+  struct GNUNET_MESSENGER_RoomSubscription *subscription =
+    GNUNET_CONTAINER_multishortmap_get (room->subscriptions, discourse);
+  
+  if (0 == (flags & GNUNET_MESSENGER_FLAG_SUBSCRIPTION_UNSUBSCRIBE))
+    goto active_subscription;
+
+  if (! subscription)
+    return;
+
+  if (subscription->task)
+    GNUNET_SCHEDULER_cancel (subscription->task);
+
+  if (subscription->message)
+    destroy_message (subscription->message);
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->subscriptions,
+                                                          discourse,
+                                                          subscription))
+  {
+    subscription->task = NULL;
+    subscription->message = NULL;
+    return;
+  }
+
+  GNUNET_free (subscription);
+  return;
+
+active_subscription:
+  if (0 == (flags & GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE))
+    return;
+
+  struct GNUNET_TIME_Relative time = 
+    GNUNET_TIME_relative_ntoh (entry->message->body.subscribe.time);
+  
+  if (! subscription)
+  {
+    subscription = GNUNET_new (struct GNUNET_MESSENGER_RoomSubscription);
+
+    if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
+      room->subscriptions, discourse, subscription,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+    {
+      GNUNET_free (subscription);
+      return;
+    }
+
+    subscription->room = room;
+  }
+  else
+  {
+    if (subscription->task)
+      GNUNET_SCHEDULER_cancel (subscription->task);
+
+    if (subscription->message)
+      destroy_message (subscription->message);
+  }
+
+  subscription->message = create_message_subscribe (discourse, time, 
+                                                    flags);
+  
+  if (! subscription->message)
+  {
+    subscription->task = NULL;
+    return;
+  }
+
+  subscription->task = GNUNET_SCHEDULER_add_delayed (
+    time, keep_subscription_alive, subscription);
+}
+
+
 static void
 handle_message (struct GNUNET_MESSENGER_Room *room,
                 const struct GNUNET_HashCode *hash,
@@ -636,6 +784,9 @@ handle_message (struct GNUNET_MESSENGER_Room *room,
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     handle_transcript_message (room, hash, entry);
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    handle_subscribe_message (room, hash, entry);
     break;
   default:
     break;

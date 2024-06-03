@@ -182,7 +182,7 @@ handle_room_sync (void *cls,
 }
 
 
-static void
+void
 enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          struct GNUNET_MESSENGER_Message *message,
                          struct GNUNET_MESSENGER_Message *transcript);
@@ -697,7 +697,7 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
 }
 
 
-static void
+void
 enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          struct GNUNET_MESSENGER_Message *message,
                          struct GNUNET_MESSENGER_Message *transcript)
@@ -1207,7 +1207,7 @@ delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
     return;
   }
 
-  send_message_to_room_with_key (room, message, NULL);
+  enqueue_message_to_room (room, message, NULL);
 }
 
 
