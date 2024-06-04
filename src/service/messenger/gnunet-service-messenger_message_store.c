@@ -24,6 +24,9 @@
  */
 
 #include "gnunet-service-messenger_message_store.h"
+
+#include "gnunet-service-messenger_list_messages.h"
+
 #include "messenger_api_message.h"
 
 void
@@ -691,4 +694,53 @@ clear_entry:
 clear_memory:
   GNUNET_CONTAINER_multihashmap_remove_all (store->messages, hash);
   return GNUNET_OK;
+}
+
+
+struct GNUNET_MESSENGER_CleanupTalkMessages
+{
+  struct GNUNET_MESSENGER_ListMessages *list;
+  struct GNUNET_TIME_Absolute timestamp;
+};
+
+static enum GNUNET_GenericReturnValue
+iterate_flag_for_cleanup_talk_message (void *cls,
+                                       const struct GNUNET_HashCode *key,
+                                       void *value)
+{
+  struct GNUNET_MESSENGER_CleanupTalkMessages *cleanup = cls;
+  struct GNUNET_MESSENGER_Message *message = value;
+
+  struct GNUNET_TIME_Absolute timestamp =
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+
+  if (GNUNET_TIME_absolute_cmp(timestamp, >=, cleanup->timestamp))
+    return GNUNET_YES;
+
+  add_to_list_messages (cleanup->list, key);
+  destroy_message(message);
+
+  return GNUNET_YES;
+}
+
+void
+cleanup_store_talk_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
+                                    const struct GNUNET_TIME_Absolute timestamp)
+{
+  struct GNUNET_MESSENGER_ListMessages list;
+  init_list_messages (&list);
+
+  struct GNUNET_MESSENGER_CleanupTalkMessages cleanup;
+  cleanup.list = &list;
+  cleanup.timestamp = timestamp;
+
+  GNUNET_CONTAINER_multihashmap_iterate (store->talks, 
+                                         iterate_flag_for_cleanup_talk_message,
+                                         &cleanup);
+  
+  struct GNUNET_MESSENGER_ListMessage *element;
+  for (element = list.head; element; element = element->next)
+    GNUNET_CONTAINER_multihashmap_remove_all (store->talks, &(element->hash));
+  
+  clear_list_messages (&list);
 }

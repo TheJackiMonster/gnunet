@@ -165,4 +165,15 @@ enum GNUNET_GenericReturnValue
 delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                       const struct GNUNET_HashCode *hash);
 
+/**
+ * Cleans up and deletes all talk messages existing in the message store memory before a certain 
+ * timestamp.
+ *
+ * @param[in,out] store Message store
+ * @param[in] timestamp Timestamp
+ */
+void
+cleanup_store_talk_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
+                                    const struct GNUNET_TIME_Absolute timestamp);
+
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H
