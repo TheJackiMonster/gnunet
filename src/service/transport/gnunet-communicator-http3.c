@@ -54,6 +54,12 @@
 struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 
 /**
+ * Map of connection id (cid) -> struct Connection.
+ * Key is scid, which is the scid of the packet we sent.
+ */
+struct GNUNET_CONTAINER_MultiHashMap *cid_map;
+
+/**
  * Our configuration.
  */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -531,6 +537,76 @@ remove_stream (struct Connection *connection, int64_t stream_id)
 
 
 /**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static struct Connection *
+cid_map_find (const uint8_t *cid, size_t cidlen)
+{
+  struct GNUNET_HashCode cid_key;
+  struct Connection *connection;
+
+  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
+  connection = GNUNET_CONTAINER_multihashmap_get (cid_map, &cid_key);
+
+  return connection;
+}
+
+
+/**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static void
+cid_map_insert (const uint8_t *cid, size_t cidlen, struct Connection *connection
+                )
+{
+  struct GNUNET_HashCode cid_key;
+
+  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
+  GNUNET_CONTAINER_multihashmap_put (cid_map,
+                                     &cid_key,
+                                     connection,
+                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+}
+
+
+/**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static void
+cid_map_erase (const uint8_t *cid, size_t cidlen)
+{
+  struct GNUNET_HashCode cid_key;
+  struct Connection *connection;
+  int rv;
+
+  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
+  connection = GNUNET_CONTAINER_multihashmap_get (cid_map, &cid_key);
+  rv = GNUNET_CONTAINER_multihashmap_remove (cid_map, &cid_key, connection);
+
+  if (GNUNET_NO == rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "cid not in cid_map, can't remove it\n");
+  }
+}
+
+
+/**
  * As the client, initialize the corresponding connection.
  *
  * @param connection Corresponding connection
@@ -952,16 +1028,16 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                      void *stream_user_data)
 {
   /**
-   * FIXME: When server side(!is_initiator) receives stream data, it should 
+   * FIXME: When server side(!is_initiator) receives stream data, it should
    * call create_stream to create a new stream and reply something.
-   * But currently server has nothing to reply, so we don't call create_stream, 
+   * But currently server has nothing to reply, so we don't call create_stream,
    * and the callback.stream_close won't find the stream in hashmap.
    * There will be stream data to be sent after HTTP3 layer is implemented.
    */
 
   /* extend connection-level and stream-level flow control window. */
-  ngtcp2_conn_extend_max_offset(conn, datalen);
-  ngtcp2_conn_extend_max_stream_offset(conn, stream_id, datalen);
+  ngtcp2_conn_extend_max_offset (conn, datalen);
+  ngtcp2_conn_extend_max_stream_offset (conn, stream_id, datalen);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "recv_stream_data: datalen = %lu\n", datalen);
   struct Connection *connection = user_data;
@@ -1773,6 +1849,18 @@ sock_read (void *cls)
     GNUNET_free (addr_string);
     connection = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
 
+    // if (NULL == connection)
+    // {
+    //   ngtcp2_version_cid vc;
+    //   rv = ngtcp2_pkt_decode_version_cid (&vc, buf, rcvd, NGTCP2_MAX_CIDLEN);
+    //   if (rv < 0)
+    //   {
+    //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    //                 "ngtcp2_pkt_decode_version_cid error: %s\n",
+    //                 ngtcp2_strerror (rv));
+    //   }
+    //   connection = cid_map_find (vc.scid, vc.scidlen);
+    // }
     if (NULL == connection)
     {
       connection = accept_connection (local_addr, local_addrlen,
