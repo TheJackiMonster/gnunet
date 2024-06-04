@@ -28,8 +28,12 @@
 
 #include "gnunet_util_lib.h"
 
+struct GNUNET_MESSENGER_Member;
+struct GNUNET_MESSENGER_SrvRoom;
+
 struct GNUNET_MESSENGER_Subscription
 {
+  struct GNUNET_MESSENGER_SrvRoom *room;
   struct GNUNET_MESSENGER_Member *member;
   struct GNUNET_SCHEDULER_Task *task;
 
@@ -40,7 +44,8 @@ struct GNUNET_MESSENGER_Subscription
 };
 
 struct GNUNET_MESSENGER_Subscription*
-create_subscription (struct GNUNET_MESSENGER_Member *member,
+create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_Member *member,
                      const struct GNUNET_ShortHashCode *discourse,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration);

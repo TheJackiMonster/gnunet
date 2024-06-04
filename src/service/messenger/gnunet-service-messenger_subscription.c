@@ -27,14 +27,16 @@
 #include "gnunet-service-messenger_subscription.h"
 
 #include "gnunet-service-messenger_member.h"
+#include "gnunet-service-messenger_room.h"
 
 struct GNUNET_MESSENGER_Subscription*
-create_subscription (struct GNUNET_MESSENGER_Member *member,
+create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
+                     struct GNUNET_MESSENGER_Member *member,
                      const struct GNUNET_ShortHashCode *discourse,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration)
 {
-  GNUNET_assert ((member) && (discourse));
+  GNUNET_assert ((room) && (member) && (discourse));
 
   struct GNUNET_MESSENGER_Subscription *subscribtion;
   subscribtion = GNUNET_new (struct GNUNET_MESSENGER_Subscription);
@@ -42,6 +44,7 @@ create_subscription (struct GNUNET_MESSENGER_Member *member,
   if (! subscribtion)
     return NULL;
 
+  subscribtion->room = room;
   subscribtion->member = member;
   subscribtion->task = NULL;
 
@@ -115,9 +118,17 @@ task_subscription_exit (void *cls)
 
   if (! member)
     return;
+
+  struct GNUNET_MESSENGER_SrvRoom *room = subscribtion->room;
+  struct GNUNET_ShortHashCode discourse;
+
+  memcpy (&discourse, &(subscribtion->discourse), 
+          sizeof (struct GNUNET_ShortHashCode));
   
   remove_member_subscription (member, subscribtion);
   destroy_subscription (subscribtion);
+
+  cleanup_srv_room_talk_messages (room, &discourse);
 }
 
 void

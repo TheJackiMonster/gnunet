@@ -1232,6 +1232,54 @@ update_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
+struct GNUNET_MESSENGER_MemberSubscriptionIteration
+{
+  const struct GNUNET_ShortHashCode *discourse;
+  struct GNUNET_TIME_Absolute start;
+};
+
+static enum GNUNET_GenericReturnValue
+iterate_member_for_subscription (void *cls,
+                                 const struct GNUNET_CRYPTO_PublicKey *public_key,
+                                 struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct GNUNET_MESSENGER_MemberSubscriptionIteration *it = cls;
+  struct GNUNET_MESSENGER_Member *member = session->member;
+
+  struct GNUNET_MESSENGER_Subscription *subscribtion =
+    get_member_subscription (member, it->discourse);
+  
+  if (! subscribtion)
+    return GNUNET_YES;
+
+  if (GNUNET_TIME_absolute_cmp (subscribtion->start, <, it->start))
+    it->start = subscribtion->start;
+
+  return GNUNET_YES;
+}
+
+void
+cleanup_srv_room_talk_messages (struct GNUNET_MESSENGER_SrvRoom *room,
+                                const struct GNUNET_ShortHashCode *discourse)
+{
+  GNUNET_assert (room);
+
+  struct GNUNET_MESSENGER_MemberSubscriptionIteration it;
+  it.discourse = discourse;
+  it.start = GNUNET_TIME_absolute_get_forever_ ();
+
+  struct GNUNET_MESSENGER_MemberStore *member_store =
+    get_srv_room_member_store (room);
+
+  iterate_store_members (member_store, iterate_member_for_subscription, &it);
+
+  struct GNUNET_MESSENGER_MessageStore *message_store =
+    get_srv_room_message_store (room);
+
+  cleanup_store_talk_messages_before (message_store, it.start);
+}
+
+
 struct GNUNET_MESSENGER_MemberSessionCompletion
 {
   struct GNUNET_MESSENGER_MemberSessionCompletion *prev;
