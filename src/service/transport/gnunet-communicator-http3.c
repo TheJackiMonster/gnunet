@@ -50,6 +50,8 @@
  * Map of sockaddr -> struct Connection
  *
  * TODO: Maybe it would be better to use cid as key?
+ * #addr_map can't be discarded yet, because #mq_init parameter is address.
+ * So currently use cid_map seems not a perfet way.
  */
 struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 
@@ -668,7 +670,8 @@ client_gnutls_init (struct Connection *connection)
                              GNUTLS_ALPN_MANDATORY);
 
   /**
-   * TODO: Handle the situation when the remote host is an IP address
+   * TODO: Handle the situation when the remote host is an IP address.
+   * Numeric ip address are not permitted according to the document of GNUtls.
    */
   gnutls_server_name_set (connection->session, GNUTLS_NAME_DNS, "localhost",
                           strlen ("localhost"));
