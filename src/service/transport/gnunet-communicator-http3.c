@@ -228,6 +228,11 @@ struct Connection
    * connection_destroy already called on connection.
    */
   int connection_destroy_called;
+
+  /**
+   * The timer of this connection.
+   */
+  struct GNUNET_SCHEDULER_Task *timer;
 };
 
 
@@ -243,7 +248,7 @@ static uint64_t
 timestamp (void)
 {
   struct timespec tp;
-  clock_gettime (1, &tp);
+  clock_gettime (CLOCK_MONOTONIC, &tp);
   return (uint64_t) tp.tv_sec * NGTCP2_SECONDS + (uint64_t) tp.tv_nsec;
 }
 
@@ -1322,6 +1327,71 @@ get_connection_write_stream_it (void *cls,
 
 
 /**
+ * The timer callback function.
+ *
+ * @param cls The closure of struct Connection.
+ */
+static void
+timeoutcb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "timeoutcb func called!\n");
+  struct Connection *connection = cls;
+  connection->timer = NULL;
+  int rv;
+
+  rv = ngtcp2_conn_handle_expiry (connection->conn, timestamp ());
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_handle_expiry: %s\n",
+                ngtcp2_strerror (rv));
+    connection_destroy (connection);
+    return;
+  }
+  rv = connection_write (connection);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "connection_write error!\n");
+    connection_destroy (connection);
+  }
+}
+
+
+static void
+connection_update_timer (struct Connection *connection)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "update_timer!\n");
+  ngtcp2_tstamp expiry;
+  ngtcp2_tstamp now;
+  struct GNUNET_TIME_Relative delay;
+
+  expiry = ngtcp2_conn_get_expiry (connection->conn);
+  now = timestamp ();
+  
+  if (NULL != connection->timer)
+  {
+    GNUNET_SCHEDULER_cancel (connection->timer);
+  }
+  if (now >= expiry)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Timer has expired\n");
+    connection->timer = GNUNET_SCHEDULER_add_now (timeoutcb, connection);
+    return;
+  }
+  
+  /* ngtcp2_tstamp is nanosecond */
+  delay = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
+                                         (expiry - now) / 1000ULL + 1);
+  connection->timer = GNUNET_SCHEDULER_add_delayed (delay, timeoutcb,
+                                                    connection);
+}
+
+
+/**
  * Write the data in the stream into the packet and handle timer.
  *
  * @param connection the connection of the peer
@@ -1372,6 +1442,7 @@ connection_write (struct Connection *connection)
   /**
    * TODO: Set timer here.
    */
+  connection_update_timer (connection);
 
   return GNUNET_NO;
 }
@@ -1894,6 +1965,7 @@ sock_read (void *cls)
                   ngtcp2_strerror (rv));
       return;
     }
+    connection_update_timer (connection);
     rv = connection_write (connection);
     if (rv < 0)
     {
