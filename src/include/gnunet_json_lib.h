@@ -453,7 +453,7 @@ GNUNET_JSON_spec_blinded_signature (const char *field,
 
 
 /**
- * Specification for parsing a unblinded signature.
+ * Specification for parsing an unblinded signature.
  *
  * @param name name of the JSON field
  * @param sig where to store the unblinded signature found under @a name
