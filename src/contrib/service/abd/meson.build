@@ -3,7 +3,7 @@ libgnunetabd_src = ['abd_api.c',
                         'delegate_misc.c']
 gnunetserviceabd_src = ['gnunet-service-abd.c']
 
-configure_file(input : 'abd.conf',
+configure_file(input : 'abd.conf.in',
                output : 'abd.conf',
                configuration : cdata,
                install: true,
