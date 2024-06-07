@@ -44,9 +44,9 @@ extern "C" {
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.4
+ * Current version of the Messenger: 0.5
  */
-#define GNUNET_MESSENGER_VERSION 0x00000004
+#define GNUNET_MESSENGER_VERSION 0x00000005
 
 /**
  * Identifier of GNUnet MESSENGER Service.

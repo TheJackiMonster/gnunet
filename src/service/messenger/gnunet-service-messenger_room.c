@@ -1259,10 +1259,10 @@ iterate_member_for_subscription (void *cls,
 }
 
 void
-cleanup_srv_room_talk_messages (struct GNUNET_MESSENGER_SrvRoom *room,
-                                const struct GNUNET_ShortHashCode *discourse)
+cleanup_srv_room_discourse_messages (struct GNUNET_MESSENGER_SrvRoom *room,
+                                     const struct GNUNET_ShortHashCode *discourse)
 {
-  GNUNET_assert (room);
+  GNUNET_assert ((room) && (discourse));
 
   struct GNUNET_MESSENGER_MemberSubscriptionIteration it;
   it.discourse = discourse;
@@ -1276,7 +1276,9 @@ cleanup_srv_room_talk_messages (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_MessageStore *message_store =
     get_srv_room_message_store (room);
 
-  cleanup_store_talk_messages_before (message_store, it.start);
+  cleanup_store_discourse_messages_before (message_store,
+                                           discourse,
+                                           it.start);
 }
 
 

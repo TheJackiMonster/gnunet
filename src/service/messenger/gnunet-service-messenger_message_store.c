@@ -39,7 +39,7 @@ init_message_store (struct GNUNET_MESSENGER_MessageStore *store)
   store->entries = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   store->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   store->links = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
-  store->talks = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+  store->discourses = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
   store->rewrite_entries = GNUNET_NO;
   store->write_links = GNUNET_NO;
@@ -103,13 +103,13 @@ clear_message_store (struct GNUNET_MESSENGER_MessageStore *store)
                                          iterate_destroy_messages, NULL);
   GNUNET_CONTAINER_multihashmap_iterate (store->links, iterate_destroy_links,
                                          NULL);
-  GNUNET_CONTAINER_multihashmap_iterate (store->talks,
+  GNUNET_CONTAINER_multihashmap_iterate (store->discourses,
                                          iterate_destroy_messages, NULL);
 
   GNUNET_CONTAINER_multihashmap_destroy (store->entries);
   GNUNET_CONTAINER_multihashmap_destroy (store->messages);
   GNUNET_CONTAINER_multihashmap_destroy (store->links);
-  GNUNET_CONTAINER_multihashmap_destroy (store->talks);
+  GNUNET_CONTAINER_multihashmap_destroy (store->discourses);
 }
 
 
@@ -469,7 +469,7 @@ contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
                                                             hash))
     return GNUNET_YES;
 
-  if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (store->talks,
+  if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (store->discourses,
                                                             hash))
     return GNUNET_YES;
 
@@ -489,7 +489,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
   if (message)
     return message;
 
-  message = GNUNET_CONTAINER_multihashmap_get (store->talks, hash);
+  message = GNUNET_CONTAINER_multihashmap_get (store->discourses, hash);
 
   if (message)
     return message;
@@ -632,8 +632,8 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
 
   struct GNUNET_CONTAINER_MultiHashMap *map = store->messages;
 
-  if (GNUNET_MESSENGER_KIND_TALK == message->header.kind)
-    map = store->talks;
+  if (get_message_discourse (message))
+    map = store->discourses;
 
   return GNUNET_CONTAINER_multihashmap_put (map, hash, message,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
@@ -697,19 +697,25 @@ clear_memory:
 }
 
 
-struct GNUNET_MESSENGER_CleanupTalkMessages
+struct GNUNET_MESSENGER_CleanupDiscourseMessages
 {
   struct GNUNET_MESSENGER_ListMessages *list;
+  struct GNUNET_ShortHashCode discourse;
   struct GNUNET_TIME_Absolute timestamp;
 };
 
 static enum GNUNET_GenericReturnValue
-iterate_flag_for_cleanup_talk_message (void *cls,
-                                       const struct GNUNET_HashCode *key,
-                                       void *value)
+iterate_flag_for_cleanup_discourse_message (void *cls,
+                                            const struct GNUNET_HashCode *key,
+                                            void *value)
 {
-  struct GNUNET_MESSENGER_CleanupTalkMessages *cleanup = cls;
+  struct GNUNET_MESSENGER_CleanupDiscourseMessages *cleanup = cls;
   struct GNUNET_MESSENGER_Message *message = value;
+
+  const struct GNUNET_ShortHashCode *discourse = get_message_discourse (message);
+
+  if ((! discourse) || (0 != GNUNET_memcmp (discourse, &(cleanup->discourse))))
+    return GNUNET_YES;
 
   struct GNUNET_TIME_Absolute timestamp =
     GNUNET_TIME_absolute_ntoh (message->header.timestamp);
@@ -724,23 +730,29 @@ iterate_flag_for_cleanup_talk_message (void *cls,
 }
 
 void
-cleanup_store_talk_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
-                                    const struct GNUNET_TIME_Absolute timestamp)
+cleanup_store_discourse_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
+                                         const struct GNUNET_ShortHashCode *discourse,
+                                         const struct GNUNET_TIME_Absolute timestamp)
 {
+  GNUNET_assert ((store) && (discourse));
+  
   struct GNUNET_MESSENGER_ListMessages list;
   init_list_messages (&list);
 
-  struct GNUNET_MESSENGER_CleanupTalkMessages cleanup;
+  struct GNUNET_MESSENGER_CleanupDiscourseMessages cleanup;
   cleanup.list = &list;
   cleanup.timestamp = timestamp;
 
-  GNUNET_CONTAINER_multihashmap_iterate (store->talks, 
-                                         iterate_flag_for_cleanup_talk_message,
+  GNUNET_memcpy (&(cleanup.discourse), discourse, 
+                 sizeof (struct GNUNET_ShortHashCode));
+
+  GNUNET_CONTAINER_multihashmap_iterate (store->discourses, 
+                                         iterate_flag_for_cleanup_discourse_message,
                                          &cleanup);
   
   struct GNUNET_MESSENGER_ListMessage *element;
   for (element = list.head; element; element = element->next)
-    GNUNET_CONTAINER_multihashmap_remove_all (store->talks, &(element->hash));
+    GNUNET_CONTAINER_multihashmap_remove_all (store->discourses, &(element->hash));
   
   clear_list_messages (&list);
 }

@@ -223,5 +223,5 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
   }
 
   update_subscription_timing (subscription);
-  cleanup_srv_room_talk_messages (room, discourse);
+  cleanup_srv_room_discourse_messages (room, discourse);
 }

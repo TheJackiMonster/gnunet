@@ -1322,6 +1322,8 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
 enum GNUNET_GenericReturnValue
 is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
@@ -1339,6 +1341,8 @@ is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 enum GNUNET_GenericReturnValue
 is_service_message (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   if (GNUNET_YES == is_peer_message (message))
     return GNUNET_YES;
 
@@ -1395,6 +1399,8 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
 enum GNUNET_GenericReturnValue
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   if (GNUNET_YES == is_peer_message (message))
     return GNUNET_SYSERR; // Requires signature of peer rather than member!
 
@@ -1444,5 +1450,22 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
     return GNUNET_YES;
   default:
     return GNUNET_SYSERR;
+  }
+}
+
+
+const struct GNUNET_ShortHashCode*
+get_message_discourse (const struct GNUNET_MESSENGER_Message *message)
+{
+  GNUNET_assert (message);
+
+  switch (message->header.kind)
+  {
+    case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+      return &(message->body.subscribe.discourse);
+    case GNUNET_MESSENGER_KIND_TALK:
+      return &(message->body.talk.discourse);
+    default:
+      return NULL;
   }
 }

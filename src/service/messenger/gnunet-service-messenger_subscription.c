@@ -128,7 +128,7 @@ task_subscription_exit (void *cls)
   remove_member_subscription (member, subscribtion);
   destroy_subscription (subscribtion);
 
-  cleanup_srv_room_talk_messages (room, &discourse);
+  cleanup_srv_room_discourse_messages (room, &discourse);
 }
 
 void
