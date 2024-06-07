@@ -22,6 +22,7 @@
  * @brief command line tool to access command line Credential service
  * @author Martin Schanzenbach
  */
+#include "gnunet_error_codes.h"
 #include "platform.h"
 #include <gnunet_util_lib.h>
 #include <gnunet_abd_service.h>
@@ -485,12 +486,12 @@ error_cb (void *cls)
 
 
 static void
-add_continuation (void *cls, int32_t success, const char *emsg)
+add_continuation (void *cls, enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_NAMESTORE_QueueEntry **qe = cls;
   *qe = NULL;
 
-  if (GNUNET_OK == success)
+  if (GNUNET_OK == GNUNET_EC_NONE)
     printf ("Adding successful.\n");
   else
     fprintf (stderr, "Error occurred during adding, shutting down.\n");
@@ -528,7 +529,7 @@ get_existing_record (void *cls,
     rde->expiration_time = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
 
   GNUNET_assert (NULL != rec_name);
-  add_qe = GNUNET_NAMESTORE_records_store (ns,
+  add_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                            &zone_pkey,
                                            rec_name,
                                            rd_count + 1,
