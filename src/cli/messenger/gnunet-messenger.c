@@ -56,7 +56,8 @@ on_message (void *cls,
 {
   if (GNUNET_YES == talk_mode)
   {
-    if (GNUNET_MESSENGER_KIND_TALK == message->header.kind)
+    if ((GNUNET_MESSENGER_KIND_TALK == message->header.kind) &&
+        (! (flags & GNUNET_MESSENGER_FLAG_SENT)))
     {
       write(1, message->body.talk.data, message->body.talk.length);
     }
@@ -231,7 +232,7 @@ read_stdio (void *cls)
   char buffer[MAX_BUFFER_SIZE];
   ssize_t length;
 
-  length = read (0, buffer, MAX_BUFFER_SIZE);
+  length = read (0, buffer, MAX_BUFFER_SIZE - 1);
 
   if ((length <= 0) || (length >= MAX_BUFFER_SIZE))
   {
