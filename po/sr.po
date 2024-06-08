@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-05-20 20:21+0200\n"
+"POT-Creation-Date: 2024-06-08 11:29+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -1320,7 +1320,7 @@ msgid "Data `%s' invalid\n"
 msgstr "Кључ „%s“ је исправан\n"
 
 #: src/cli/namestore/gnunet-namestore-zonefile.c:644
-#: src/contrib/service/abd/gnunet-abd.c:392
+#: src/contrib/service/abd/gnunet-abd.c:393
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr "Его „%s“ није познат услузи идентитета\n"
@@ -1497,7 +1497,7 @@ msgid "Invalid URI `%s'\n"
 msgstr "Неисправан УРИ „%s“\n"
 
 #: src/cli/namestore/gnunet-namestore.c:1951
-#: src/contrib/service/abd/gnunet-abd.c:558
+#: src/contrib/service/abd/gnunet-abd.c:559
 #: src/contrib/service/abd/gnunet-service-abd.c:1750
 #, c-format
 msgid "Failed to connect to namestore\n"
@@ -2409,121 +2409,121 @@ msgstr "услуга се нуди путем УДП-ом"
 msgid "Setup tunnels via VPN."
 msgstr "Поставља тунеле путем ВПН-а."
 
-#: src/contrib/service/abd/gnunet-abd.c:407
-#: src/contrib/service/abd/gnunet-abd.c:909
+#: src/contrib/service/abd/gnunet-abd.c:408
+#: src/contrib/service/abd/gnunet-abd.c:910
 #, fuzzy, c-format
 msgid "Issuer public key `%s' is not well-formed\n"
 msgstr "Јавни кључ „%s“ није добро оформљен\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:566
+#: src/contrib/service/abd/gnunet-abd.c:567
 #, fuzzy
 msgid "Ego does not exist!\n"
 msgstr "Број кључа %u не постоји\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:850
-#: src/contrib/service/abd/gnunet-abd.c:900
+#: src/contrib/service/abd/gnunet-abd.c:851
+#: src/contrib/service/abd/gnunet-abd.c:901
 #, fuzzy, c-format
 msgid "Issuer public key not well-formed\n"
 msgstr "Јавни кључ „%s“ није добро оформљен\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:859
-#: src/contrib/service/abd/gnunet-abd.c:918
+#: src/contrib/service/abd/gnunet-abd.c:860
+#: src/contrib/service/abd/gnunet-abd.c:919
 #, fuzzy, c-format
 msgid "Failed to connect to ABD\n"
 msgstr "Нисам успео да се повежем са ГНС-ом\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:865
+#: src/contrib/service/abd/gnunet-abd.c:866
 #, c-format
 msgid "You must provide issuer the attribute\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:872
+#: src/contrib/service/abd/gnunet-abd.c:873
 #, fuzzy, c-format
 msgid "ego required\n"
 msgstr "Потребна је исправна врста\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:882
+#: src/contrib/service/abd/gnunet-abd.c:883
 #, c-format
 msgid "Subject public key needed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:890
+#: src/contrib/service/abd/gnunet-abd.c:891
 #, fuzzy, c-format
 msgid "Subject public key `%s' is not well-formed\n"
 msgstr "Јавни кључ „%s“ није добро оформљен\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:924
+#: src/contrib/service/abd/gnunet-abd.c:925
 #, c-format
 msgid "You must provide issuer and subject attributes\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:983
+#: src/contrib/service/abd/gnunet-abd.c:984
 #, fuzzy, c-format
 msgid "Please specify name to lookup, subject key and issuer key!\n"
 msgstr "Наведите назив за тражење!\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:1004
+#: src/contrib/service/abd/gnunet-abd.c:1005
 msgid "verify credential against attribute"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1011
+#: src/contrib/service/abd/gnunet-abd.c:1012
 msgid ""
 "The public key of the subject to lookup thecredential for, or for issuer "
 "side storage: subject and its attributes"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1018
+#: src/contrib/service/abd/gnunet-abd.c:1019
 msgid "The private, signed delegate presented by the subject"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1025
+#: src/contrib/service/abd/gnunet-abd.c:1026
 #, fuzzy
 msgid "The public key of the authority to verify the credential against"
 msgstr "Наводи јавни кључ зоне у којој ће се тражити запис"
 
-#: src/contrib/service/abd/gnunet-abd.c:1030
+#: src/contrib/service/abd/gnunet-abd.c:1031
 msgid "The ego/zone name to use"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1036
+#: src/contrib/service/abd/gnunet-abd.c:1037
 msgid "The issuer attribute to verify against or to issue"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1042
+#: src/contrib/service/abd/gnunet-abd.c:1043
 msgid ""
 "The time to live for the credential.e.g. 5m, 6h, \"1990-12-30 12:00:00\""
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1047
+#: src/contrib/service/abd/gnunet-abd.c:1048
 msgid "collect credentials"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1052
+#: src/contrib/service/abd/gnunet-abd.c:1053
 msgid "Create and issue a credential issuer side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1057
+#: src/contrib/service/abd/gnunet-abd.c:1058
 msgid "Issue a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1062
+#: src/contrib/service/abd/gnunet-abd.c:1063
 msgid "Create, sign and return a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1069
+#: src/contrib/service/abd/gnunet-abd.c:1070
 msgid "Import signed credentials that should be issued to a zone/ego"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1073
+#: src/contrib/service/abd/gnunet-abd.c:1074
 msgid "Create private record entry."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1079
-#: src/contrib/service/abd/gnunet-abd.c:1085
+#: src/contrib/service/abd/gnunet-abd.c:1080
+#: src/contrib/service/abd/gnunet-abd.c:1086
 msgid "Indicates that the collect/verify process is done via forward search."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1098
+#: src/contrib/service/abd/gnunet-abd.c:1099
 #, fuzzy
 msgid "GNUnet abd resolver tool"
 msgstr "Алат ГНУнет ГНС решавача"
@@ -3237,6 +3237,11 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "„%s“ није успело да реши метод '%s' са грешком: %s\n"
 
+#: src/lib/testing/testing_api_topology.c:960
+#, fuzzy
+msgid "Failed to parse configuration.\n"
+msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
+
 #: src/lib/util/bio.c:231 src/lib/util/bio.c:239
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
@@ -3658,101 +3663,101 @@ msgstr "Морате да проследите број опцији „%s“.\n
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:59
+#: src/lib/util/gnunet_error_codes.c:60
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:65
+#: src/lib/util/gnunet_error_codes.c:66
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "%.s Непознат код резултата."
 
-#: src/lib/util/gnunet_error_codes.c:71
+#: src/lib/util/gnunet_error_codes.c:72
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Грешка у комуникацији са услугом ПОДАЦИ_ПАРЊАКА: %s\n"
 
-#: src/lib/util/gnunet_error_codes.c:77
+#: src/lib/util/gnunet_error_codes.c:78
 #, fuzzy
 msgid "Ego not found."
 msgstr "Нисам нашао садржај"
 
-#: src/lib/util/gnunet_error_codes.c:83
+#: src/lib/util/gnunet_error_codes.c:84
 #, fuzzy
 msgid "Identifier already in use for another ego."
 msgstr "одредник се већ користи за други его"
 
-#: src/lib/util/gnunet_error_codes.c:89
+#: src/lib/util/gnunet_error_codes.c:90
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:95
+#: src/lib/util/gnunet_error_codes.c:96
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "%.s Непознат код резултата."
 
-#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
+#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# Бирање парњака није успело"
 
-#: src/lib/util/gnunet_error_codes.c:107
+#: src/lib/util/gnunet_error_codes.c:108
 #, fuzzy
 msgid "Zone not found."
 msgstr "Нисам нашао садржај"
 
-#: src/lib/util/gnunet_error_codes.c:113
+#: src/lib/util/gnunet_error_codes.c:114
 #, fuzzy
 msgid "Record not found."
 msgstr "нисам нашао „upnpc“\n"
 
-#: src/lib/util/gnunet_error_codes.c:125
+#: src/lib/util/gnunet_error_codes.c:126
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:131
+#: src/lib/util/gnunet_error_codes.c:132
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Смештај назива није успео да смести запис\n"
 
-#: src/lib/util/gnunet_error_codes.c:137
+#: src/lib/util/gnunet_error_codes.c:138
 #, fuzzy
 msgid "No records given."
 msgstr "Није дат парњак!\n"
 
-#: src/lib/util/gnunet_error_codes.c:143
+#: src/lib/util/gnunet_error_codes.c:144
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:149
+#: src/lib/util/gnunet_error_codes.c:150
 #, fuzzy
 msgid "No label given."
 msgstr "Није дат парњак!\n"
 
-#: src/lib/util/gnunet_error_codes.c:155
+#: src/lib/util/gnunet_error_codes.c:156
 #, fuzzy
 msgid "No results given."
 msgstr "Нису дате опције\n"
 
-#: src/lib/util/gnunet_error_codes.c:161
+#: src/lib/util/gnunet_error_codes.c:162
 #, fuzzy
 msgid "Record already exists."
 msgstr "назив мете већ постоји"
 
-#: src/lib/util/gnunet_error_codes.c:167
+#: src/lib/util/gnunet_error_codes.c:168
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:173
+#: src/lib/util/gnunet_error_codes.c:174
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:179
+#: src/lib/util/gnunet_error_codes.c:180
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Смештај назива није успео да смести запис\n"
 
-#: src/lib/util/gnunet_error_codes.c:185
+#: src/lib/util/gnunet_error_codes.c:186
 msgid "Label invalid or malformed."
 msgstr ""
 

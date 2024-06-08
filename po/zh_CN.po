@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-05-20 20:21+0200\n"
+"POT-Creation-Date: 2024-06-08 11:29+0200\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -1277,7 +1277,7 @@ msgid "Data `%s' invalid\n"
 msgstr ""
 
 #: src/cli/namestore/gnunet-namestore-zonefile.c:644
-#: src/contrib/service/abd/gnunet-abd.c:392
+#: src/contrib/service/abd/gnunet-abd.c:393
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr ""
@@ -1455,7 +1455,7 @@ msgid "Invalid URI `%s'\n"
 msgstr "无效条目。\n"
 
 #: src/cli/namestore/gnunet-namestore.c:1951
-#: src/contrib/service/abd/gnunet-abd.c:558
+#: src/contrib/service/abd/gnunet-abd.c:559
 #: src/contrib/service/abd/gnunet-service-abd.c:1750
 #, fuzzy, c-format
 msgid "Failed to connect to namestore\n"
@@ -2365,120 +2365,120 @@ msgstr ""
 msgid "Setup tunnels via VPN."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:407
-#: src/contrib/service/abd/gnunet-abd.c:909
+#: src/contrib/service/abd/gnunet-abd.c:408
+#: src/contrib/service/abd/gnunet-abd.c:910
 #, fuzzy, c-format
 msgid "Issuer public key `%s' is not well-formed\n"
 msgstr "“%s”的参数无效。\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:566
+#: src/contrib/service/abd/gnunet-abd.c:567
 msgid "Ego does not exist!\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:850
-#: src/contrib/service/abd/gnunet-abd.c:900
+#: src/contrib/service/abd/gnunet-abd.c:851
+#: src/contrib/service/abd/gnunet-abd.c:901
 #, fuzzy, c-format
 msgid "Issuer public key not well-formed\n"
 msgstr "“%s”的参数无效。\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:859
-#: src/contrib/service/abd/gnunet-abd.c:918
+#: src/contrib/service/abd/gnunet-abd.c:860
+#: src/contrib/service/abd/gnunet-abd.c:919
 #, fuzzy, c-format
 msgid "Failed to connect to ABD\n"
 msgstr "初始化“%s”服务失败。\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:865
+#: src/contrib/service/abd/gnunet-abd.c:866
 #, c-format
 msgid "You must provide issuer the attribute\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:872
+#: src/contrib/service/abd/gnunet-abd.c:873
 #, c-format
 msgid "ego required\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:882
+#: src/contrib/service/abd/gnunet-abd.c:883
 #, c-format
 msgid "Subject public key needed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:890
+#: src/contrib/service/abd/gnunet-abd.c:891
 #, fuzzy, c-format
 msgid "Subject public key `%s' is not well-formed\n"
 msgstr "“%s”的参数无效。\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:924
+#: src/contrib/service/abd/gnunet-abd.c:925
 #, c-format
 msgid "You must provide issuer and subject attributes\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:983
+#: src/contrib/service/abd/gnunet-abd.c:984
 #, c-format
 msgid "Please specify name to lookup, subject key and issuer key!\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1004
+#: src/contrib/service/abd/gnunet-abd.c:1005
 msgid "verify credential against attribute"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1011
+#: src/contrib/service/abd/gnunet-abd.c:1012
 msgid ""
 "The public key of the subject to lookup thecredential for, or for issuer "
 "side storage: subject and its attributes"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1018
+#: src/contrib/service/abd/gnunet-abd.c:1019
 msgid "The private, signed delegate presented by the subject"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1025
+#: src/contrib/service/abd/gnunet-abd.c:1026
 msgid "The public key of the authority to verify the credential against"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1030
+#: src/contrib/service/abd/gnunet-abd.c:1031
 #, fuzzy
 msgid "The ego/zone name to use"
 msgstr "消息尺寸"
 
-#: src/contrib/service/abd/gnunet-abd.c:1036
+#: src/contrib/service/abd/gnunet-abd.c:1037
 msgid "The issuer attribute to verify against or to issue"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1042
+#: src/contrib/service/abd/gnunet-abd.c:1043
 msgid ""
 "The time to live for the credential.e.g. 5m, 6h, \"1990-12-30 12:00:00\""
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1047
+#: src/contrib/service/abd/gnunet-abd.c:1048
 msgid "collect credentials"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1052
+#: src/contrib/service/abd/gnunet-abd.c:1053
 msgid "Create and issue a credential issuer side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1057
+#: src/contrib/service/abd/gnunet-abd.c:1058
 msgid "Issue a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1062
+#: src/contrib/service/abd/gnunet-abd.c:1063
 msgid "Create, sign and return a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1069
+#: src/contrib/service/abd/gnunet-abd.c:1070
 msgid "Import signed credentials that should be issued to a zone/ego"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1073
+#: src/contrib/service/abd/gnunet-abd.c:1074
 msgid "Create private record entry."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1079
-#: src/contrib/service/abd/gnunet-abd.c:1085
+#: src/contrib/service/abd/gnunet-abd.c:1080
+#: src/contrib/service/abd/gnunet-abd.c:1086
 msgid "Indicates that the collect/verify process is done via forward search."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1098
+#: src/contrib/service/abd/gnunet-abd.c:1099
 #, fuzzy
 msgid "GNUnet abd resolver tool"
 msgstr "GNUnet 错误日志"
@@ -3173,6 +3173,11 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "解析配置文件“%s”失败\n"
 
+#: src/lib/testing/testing_api_topology.c:960
+#, fuzzy
+msgid "Failed to parse configuration.\n"
+msgstr "解析配置文件“%s”失败\n"
+
 #: src/lib/util/bio.c:231 src/lib/util/bio.c:239
 #, fuzzy, c-format
 msgid "Error reading `%s' from file: %s"
@@ -3590,94 +3595,94 @@ msgstr "您必须向“%s”选项传递一个数字。\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:59
+#: src/lib/util/gnunet_error_codes.c:60
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:65
+#: src/lib/util/gnunet_error_codes.c:66
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "未知的用户“%s”\n"
 
-#: src/lib/util/gnunet_error_codes.c:71
+#: src/lib/util/gnunet_error_codes.c:72
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "连接 %s:%u 出错。守护程序在运行吗？\n"
 
-#: src/lib/util/gnunet_error_codes.c:77
+#: src/lib/util/gnunet_error_codes.c:78
 msgid "Ego not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:83
+#: src/lib/util/gnunet_error_codes.c:84
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:89
+#: src/lib/util/gnunet_error_codes.c:90
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:95
+#: src/lib/util/gnunet_error_codes.c:96
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "未知的用户“%s”\n"
 
-#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
+#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
 msgid "Zone iteration failed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:107
+#: src/lib/util/gnunet_error_codes.c:108
 msgid "Zone not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:113
+#: src/lib/util/gnunet_error_codes.c:114
 msgid "Record not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:125
+#: src/lib/util/gnunet_error_codes.c:126
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:131
+#: src/lib/util/gnunet_error_codes.c:132
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "运行 %s失败：%s %d\n"
 
-#: src/lib/util/gnunet_error_codes.c:137
+#: src/lib/util/gnunet_error_codes.c:138
 #, fuzzy
 msgid "No records given."
 msgstr "无法获取有关用户“%s”的信息：%s\n"
 
-#: src/lib/util/gnunet_error_codes.c:143
+#: src/lib/util/gnunet_error_codes.c:144
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:149
+#: src/lib/util/gnunet_error_codes.c:150
 msgid "No label given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:155
+#: src/lib/util/gnunet_error_codes.c:156
 #, fuzzy
 msgid "No results given."
 msgstr "无法获取有关用户“%s”的信息：%s\n"
 
-#: src/lib/util/gnunet_error_codes.c:161
+#: src/lib/util/gnunet_error_codes.c:162
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:167
+#: src/lib/util/gnunet_error_codes.c:168
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:173
+#: src/lib/util/gnunet_error_codes.c:174
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:179
+#: src/lib/util/gnunet_error_codes.c:180
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "运行 %s失败：%s %d\n"
 
-#: src/lib/util/gnunet_error_codes.c:185
+#: src/lib/util/gnunet_error_codes.c:186
 msgid "Label invalid or malformed."
 msgstr ""
 

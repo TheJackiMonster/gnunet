@@ -202,7 +202,6 @@ src/lib/util/mst.c
 src/lib/util/nc.c
 src/lib/util/network.c
 src/lib/util/nt.c
-src/lib/util/op.c
 src/lib/util/os_installation.c
 src/lib/util/os_network.c
 src/lib/util/os_priority.c
@@ -375,6 +374,7 @@ src/service/messenger/gnunet-service-messenger_operation_store.c
 src/service/messenger/gnunet-service-messenger_peer_store.c
 src/service/messenger/gnunet-service-messenger_room.c
 src/service/messenger/gnunet-service-messenger_service.c
+src/service/messenger/gnunet-service-messenger_subscription.c
 src/service/messenger/gnunet-service-messenger_tunnel.c
 src/service/messenger/messenger_api.c
 src/service/messenger/messenger_api_contact.c
