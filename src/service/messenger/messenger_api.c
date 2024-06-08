@@ -82,6 +82,10 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind)
     return "TRANSCRIPT";
   case GNUNET_MESSENGER_KIND_TAG:
     return "TAG";
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    return "SUBSCRIBE";
+  case GNUNET_MESSENGER_KIND_TALK:
+    return "TALK";
   default:
     return "UNKNOWN";
   }
