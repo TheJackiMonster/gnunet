@@ -233,6 +233,16 @@ struct Connection
    * The timer of this connection.
    */
   struct GNUNET_SCHEDULER_Task *timer;
+
+  /**
+   * conn_closebuf contains a packet which contains CONNECTION_CLOSE.
+   */
+  uint8_t *conn_closebuf;
+
+  /**
+   * The length of conn_closebuf;
+   */
+  ngtcp2_ssize conn_closebuflen;
 };
 
 
@@ -758,6 +768,7 @@ connection_destroy (struct Connection *connection)
   gnutls_deinit (connection->session);
   GNUNET_free (connection->address);
   GNUNET_free (connection->foreign_addr);
+  GNUNET_free (connection->conn_closebuf);
   GNUNET_CONTAINER_multihashmap_iterate (connection->streams,
                                          &get_stream_delete_it,
                                          NULL);
@@ -1327,6 +1338,158 @@ get_connection_write_stream_it (void *cls,
 
 
 /**
+ * The timeout callback function of closing/draining period.
+ *
+ * @param cls the closure of Connection.
+ */
+static void
+close_waitcb (void *cls)
+{
+  struct Connection *connection = cls;
+  connection->timer = NULL;
+
+  if (ngtcp2_conn_in_closing_period (connection->conn))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Closing period over\n");
+    connection_destroy (connection);
+    return;
+  }
+  if (ngtcp2_conn_in_draining_period (connection->conn))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Draining period over\n");
+    connection_destroy (connection);
+    return;
+  }
+}
+
+
+/**
+ * Start the draining period, called after receiving CONNECTION_CLOSE.
+ *
+ * @param connection The connection
+ */
+static void 
+start_draining_period (struct Connection *connection)
+{
+  ngtcp2_duration pto;
+  struct GNUNET_TIME_Relative delay;
+
+  if (NULL != connection->timer)
+  {
+    GNUNET_SCHEDULER_cancel (connection->timer);
+    connection->timer = NULL;
+  }
+  pto = ngtcp2_conn_get_pto (connection->conn);
+  delay = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
+                                         pto / 1000ULL * 3);
+  connection->timer = GNUNET_SCHEDULER_add_delayed (delay,
+                                                    close_waitcb,
+                                                    connection);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Start draining period\n");
+}
+
+
+/**
+ * Start the closing period and build the packet contains CONNECTION_CLOSE.
+ * If we are server side, the function will set the #close_waitcb and write 
+ * the packet to the conn_closebuf.
+ * If we are client side, send the CONNECTION_CLOSE packet directly, and won't
+ * wait close.
+ *
+ * @param connection the connection
+ * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed.
+ */
+static int
+start_closing_period (struct Connection *connection)
+{
+  ngtcp2_path_storage ps;
+  ngtcp2_pkt_info pi;
+  ngtcp2_ssize nwrite;
+  ngtcp2_duration pto;
+  struct GNUNET_TIME_Relative delay;
+
+  if (NULL == connection->conn ||
+      ngtcp2_conn_in_closing_period (connection->conn) ||
+      ngtcp2_conn_in_draining_period (connection->conn))
+  {
+    return GNUNET_NO;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Start closing period\n");
+
+  if (GNUNET_NO == connection->is_initiator)
+  {
+    if (NULL != connection->timer)
+    {
+      GNUNET_SCHEDULER_cancel (connection->timer);
+      connection->timer = NULL;
+    }
+    pto = ngtcp2_conn_get_pto (connection->conn);
+    delay = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
+                                           pto / 1000ULL * 3);
+    connection->timer = GNUNET_SCHEDULER_add_delayed (delay,
+                                                      close_waitcb,
+                                                      connection);
+  }
+
+  connection->conn_closebuf =
+    GNUNET_new_array (NGTCP2_MAX_UDP_PAYLOAD_SIZE, uint8_t);
+
+  ngtcp2_path_storage_zero (&ps);
+  nwrite = ngtcp2_conn_write_connection_close (connection->conn,
+                                               &ps.path,
+                                               &pi,
+                                               connection->conn_closebuf,
+                                               NGTCP2_MAX_UDP_PAYLOAD_SIZE,
+                                               &connection->last_error,
+                                               timestamp ());
+  if (nwrite < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_write_connection_close: %s\n",
+                ngtcp2_strerror (nwrite));
+    return GNUNET_SYSERR;
+  }
+  if (0 == nwrite)
+  {
+    return GNUNET_NO;
+  }
+  connection->conn_closebuflen = nwrite;
+  if (GNUNET_YES == connection->is_initiator)
+  {
+    return send_packet (connection,
+                        connection->conn_closebuf,
+                        connection->conn_closebuflen);
+  }
+  return GNUNET_NO;
+}
+
+
+/**
+ * Send the packet in the conn_closebuf.
+ *
+ * @param connection the connection
+ * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed. 
+ */
+static int
+send_conn_close (struct Connection *connection)
+{
+  int rv;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Closing period, send CONNECTION_CLOSE\n");
+  rv = send_packet (connection,
+                    connection->conn_closebuf,
+                    connection->conn_closebuflen);
+  return rv;
+}
+
+
+/**
  * The timer callback function.
  *
  * @param cls The closure of struct Connection.
@@ -1370,10 +1533,11 @@ connection_update_timer (struct Connection *connection)
 
   expiry = ngtcp2_conn_get_expiry (connection->conn);
   now = timestamp ();
-  
+
   if (NULL != connection->timer)
   {
     GNUNET_SCHEDULER_cancel (connection->timer);
+    connection->timer = NULL;
   }
   if (now >= expiry)
   {
@@ -1382,7 +1546,7 @@ connection_update_timer (struct Connection *connection)
     connection->timer = GNUNET_SCHEDULER_add_now (timeoutcb, connection);
     return;
   }
-  
+
   /* ngtcp2_tstamp is nanosecond */
   delay = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MICROSECONDS,
                                          (expiry - now) / 1000ULL + 1);
