@@ -111,16 +111,15 @@ GNUNET_CRYPTO_cs_blinding_secrets_derive (
 {
   GNUNET_assert (
     GNUNET_YES ==
-    GNUNET_CRYPTO_hkdf (bs,
-                        sizeof (struct GNUNET_CRYPTO_CsBlindingSecret) * 2,
-                        GCRY_MD_SHA512,
-                        GCRY_MD_SHA256,
-                        "alphabeta",
-                        strlen ("alphabeta"),
-                        blind_seed,
-                        sizeof(*blind_seed),
-                        NULL,
-                        0));
+    GNUNET_CRYPTO_hkdf_gnunet (bs,
+                               sizeof (struct GNUNET_CRYPTO_CsBlindingSecret)
+                               * 2,
+                               "alphabeta",
+                               strlen ("alphabeta"),
+                               blind_seed,
+                               sizeof(*blind_seed),
+                               NULL,
+                               0));
   map_to_scalar_subgroup (&bs[0].alpha);
   map_to_scalar_subgroup (&bs[0].beta);
   map_to_scalar_subgroup (&bs[1].alpha);
@@ -293,18 +292,16 @@ GNUNET_CRYPTO_cs_sign_derive (
 
   /* derive clause session identifier b (random bit) */
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf (&hkdf_out,
-                                     sizeof (hkdf_out),
-                                     GCRY_MD_SHA512,
-                                     GCRY_MD_SHA256,
-                                     "b",
-                                     strlen ("b"),
-                                     priv,
-                                     sizeof (*priv),
-                                     &bm->nonce,
-                                     sizeof (bm->nonce),
-                                     NULL,
-                                     0));
+                 GNUNET_CRYPTO_hkdf_gnunet (&hkdf_out,
+                                            sizeof (hkdf_out),
+                                            "b",
+                                            strlen ("b"),
+                                            priv,
+                                            sizeof (*priv),
+                                            &bm->nonce,
+                                            sizeof (bm->nonce),
+                                            NULL,
+                                            0));
   cs_blind_sig->b = hkdf_out % 2;
 
   /* s = r_b + c_b * priv */

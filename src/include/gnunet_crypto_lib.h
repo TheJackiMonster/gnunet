@@ -973,7 +973,7 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
  * @return #GNUNET_OK on success, #GNUNET_SYSERR if result has the wrong encoding
  */
 #define GNUNET_CRYPTO_hash_from_string(enc, result) \
-  GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
+        GNUNET_CRYPTO_hash_from_string2 (enc, strlen (enc), result)
 
 
 /**
@@ -1328,11 +1328,63 @@ GNUNET_CRYPTO_hmac_derive_key (
 
 /**
  * @ingroup hash
- * @brief Derive key
+ * @brief HKDF-Extract using SHA256. RFC 5869
+ * @param prk the PRK
+ * @param salt salt
+ * @param salt_len length of @a xts
+ * @param ikm source key material
+ * @param ikm_len length of @a skm
+ * @return #GNUNET_YES on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_extract (struct GNUNET_ShortHashCode *prk,
+                            const void *salt,
+                            size_t salt_len,
+                            const void *ikm,
+                            size_t ikm_len);
+
+/**
+ * @ingroup hash
+ * @brief HKDF-Expand using SHA256. RFC 5869
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
- * @param xtr_algo hash algorithm for the extraction phase, GCRY_MD_...
- * @param prf_algo hash algorithm for the expansion phase, GCRY_MD_...
+ * @param ... pair of void * & size_t for context chunks, terminated by NULL
+ * @return #GNUNET_YES on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_expand (void *result,
+                           size_t out_len,
+                           const struct GNUNET_ShortHashCode *prk,
+                           ...);
+
+/**
+ * @ingroup hash
+ * @brief HKDF-Expand using SHA256. See #GNUNET_CRYPTO_hkdf_expand
+ * @param result buffer for the derived key, allocated by caller
+ * @param out_len desired length of the derived key
+ * @param argp va_list of void * & size_t pairs for context chunks
+ * @return #GNUNET_YES on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_expand_v (void *result,
+                             size_t out_len,
+                             const struct GNUNET_ShortHashCode *prk,
+                             va_list argp);
+
+
+/**
+ * @ingroup hash
+ * @brief A peculiar HKDF instantiation that tried to mimic Truncated NMAC.
+ * But, what it actually does is HKDF-Extract with SHA512 and instead of
+ * truncating the PRK, it uses it as a 64 byte key in the HKDF-Expand
+ * phase with SHA256.
+ * (Truncated NMAC would require us to, well, truncate it to 32 byte.)
+ * ONLY USE FOR COMPATIBLITY WITH OLDER KEY DERIVATIONS.
+ * Use the more standard #GNUNET_CRYPTO_hkdf_extract and
+ * #GNUNET_CRYPTO_HKDF_expand instead!
+ *
+ * @param result buffer for the derived key, allocated by caller
+ * @param out_len desired length of the derived key
  * @param xts salt
  * @param xts_len length of @a xts
  * @param skm source key material
@@ -1341,24 +1393,20 @@ GNUNET_CRYPTO_hmac_derive_key (
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf (void *result,
-                    size_t out_len,
-                    int xtr_algo,
-                    int prf_algo,
-                    const void *xts,
-                    size_t xts_len,
-                    const void *skm,
-                    size_t skm_len,
-                    ...);
+GNUNET_CRYPTO_hkdf_gnunet (void *result,
+                           size_t out_len,
+                           const void *xts,
+                           size_t xts_len,
+                           const void *skm,
+                           size_t skm_len,
+                           ...);
 
 
 /**
  * @ingroup hash
- * @brief Derive key
+ * @brief Derive key. See #GNUNET_CRYPTO_hkdf_gnunet
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
- * @param xtr_algo hash algorithm for the extraction phase, GCRY_MD_...
- * @param prf_algo hash algorithm for the expansion phase, GCRY_MD_...
  * @param xts salt
  * @param xts_len length of @a xts
  * @param skm source key material
@@ -1367,15 +1415,13 @@ GNUNET_CRYPTO_hkdf (void *result,
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_v (void *result,
-                      size_t out_len,
-                      int xtr_algo,
-                      int prf_algo,
-                      const void *xts,
-                      size_t xts_len,
-                      const void *skm,
-                      size_t skm_len,
-                      va_list argp);
+GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
+                             size_t out_len,
+                             const void *xts,
+                             size_t xts_len,
+                             const void *skm,
+                             size_t skm_len,
+                             va_list argp);
 
 
 /**
@@ -2224,15 +2270,15 @@ GNUNET_CRYPTO_eddsa_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_eddsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_eddsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*ps));    \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_eddsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 
@@ -2286,15 +2332,15 @@ GNUNET_CRYPTO_eddsa_sign_raw (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_ecdsa_sign(priv,ps,sig) do {                 \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
-                                              &(ps)->purpose,      \
-                                              sig));               \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_ecdsa_sign_ (priv,                \
+                                                    &(ps)->purpose,      \
+                                                    sig));               \
 } while (0)
 
 /**
@@ -2333,15 +2379,15 @@ GNUNET_CRYPTO_edx25519_sign_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_edx25519_sign(priv,ps,sig) do {              \
-    /* check size is set correctly */                              \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
-    /* check 'ps' begins with the purpose */                       \
-    GNUNET_static_assert (((void*) (ps)) ==                        \
-                          ((void*) &(ps)->purpose));               \
-    GNUNET_assert (GNUNET_OK ==                                    \
-                   GNUNET_CRYPTO_edx25519_sign_ (priv,             \
-                                                 &(ps)->purpose,   \
-                                                 sig));            \
+          /* check size is set correctly */                              \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));  \
+          /* check 'ps' begins with the purpose */                       \
+          GNUNET_static_assert (((void*) (ps)) ==                        \
+                                ((void*) &(ps)->purpose));               \
+          GNUNET_assert (GNUNET_OK ==                                    \
+                         GNUNET_CRYPTO_edx25519_sign_ (priv,             \
+                                                       &(ps)->purpose,   \
+                                                       sig));            \
 } while (0)
 
 
@@ -4248,15 +4294,15 @@ GNUNET_CRYPTO_sign_raw_ (
  * @param[out] sig where to write the signature
  */
 #define GNUNET_CRYPTO_sign(priv,ps,sig) do {                \
-    /* check size is set correctly */                                     \
-    GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
-    /* check 'ps' begins with the purpose */                              \
-    GNUNET_static_assert (((void*) (ps)) ==                               \
-                          ((void*) &(ps)->purpose));                      \
-    GNUNET_assert (GNUNET_OK ==                                           \
-                   GNUNET_CRYPTO_sign_ (priv,               \
-                                        &(ps)->purpose,             \
-                                        sig));                      \
+          /* check size is set correctly */                                     \
+          GNUNET_assert (ntohl ((ps)->purpose.size) == sizeof (*(ps)));         \
+          /* check 'ps' begins with the purpose */                              \
+          GNUNET_static_assert (((void*) (ps)) ==                               \
+                                ((void*) &(ps)->purpose));                      \
+          GNUNET_assert (GNUNET_OK ==                                           \
+                         GNUNET_CRYPTO_sign_ (priv,               \
+                                              &(ps)->purpose,             \
+                                              sig));                      \
 } while (0)
 
 

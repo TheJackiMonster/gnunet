@@ -67,12 +67,11 @@ perfHKDF ()
   memset (buf, 1, sizeof(buf));
   memset (skm, 2, sizeof(skm));
   for (i = 0; i < 1024; i++)
-    GNUNET_CRYPTO_hkdf (res, sizeof(res),
-                        GCRY_MD_SHA512, GCRY_MD_SHA256,
-                        buf, sizeof(buf),
-                        skm, sizeof(skm),
-                        "test", (size_t) 4,
-                        NULL, 0);
+    GNUNET_CRYPTO_hkdf_gnunet (res, sizeof(res),
+                               buf, sizeof(buf),
+                               skm, sizeof(skm),
+                               "test", (size_t) 4,
+                               NULL, 0);
 }
 
 

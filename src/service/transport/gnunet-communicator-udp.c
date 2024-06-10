@@ -883,6 +883,7 @@ bi_destroy (struct BroadcastInterface *bi)
   GNUNET_free (bi);
 }
 
+
 static int
 secret_destroy (struct SharedSecret *ss);
 
@@ -967,19 +968,18 @@ get_kid (const struct GNUNET_HashCode *msec,
          struct GNUNET_ShortHashCode *kid)
 {
   uint32_t sid = htonl (serial);
+  struct GNUNET_ShortHashCode prk;
+  GNUNET_CRYPTO_hkdf_extract (&prk,
+                              &sid, sizeof (sid),
+                              msec, sizeof (*msec));
 
-  GNUNET_CRYPTO_hkdf (kid,
-                      sizeof(*kid),
-                      GCRY_MD_SHA512,
-                      GCRY_MD_SHA256,
-                      &sid,
-                      sizeof(sid),
-                      msec,
-                      sizeof(*msec),
-                      "UDP-KID",
-                      strlen ("UDP-KID"),
-                      NULL,
-                      0);
+  GNUNET_CRYPTO_hkdf_expand (kid,
+                             sizeof(*kid),
+                             &prk,
+                             "UDP-KID",
+                             strlen ("UDP-KID"),
+                             NULL,
+                             0);
 }
 
 
@@ -1111,19 +1111,18 @@ get_iv_key (const struct GNUNET_HashCode *msec,
 {
   uint32_t sid = htonl (serial);
   char res[AES_KEY_SIZE + AES_IV_SIZE];
+  struct GNUNET_ShortHashCode prk;
+  GNUNET_CRYPTO_hkdf_extract (&prk,
+                              &sid, sizeof (sid),
+                              msec, sizeof (*msec));
 
-  GNUNET_CRYPTO_hkdf (res,
-                      sizeof(res),
-                      GCRY_MD_SHA512,
-                      GCRY_MD_SHA256,
-                      &sid,
-                      sizeof(sid),
-                      msec,
-                      sizeof(*msec),
-                      "UDP-IV-KEY",
-                      strlen ("UDP-IV-KEY"),
-                      NULL,
-                      0);
+  GNUNET_CRYPTO_hkdf_expand (res,
+                             sizeof(res),
+                             &prk,
+                             "UDP-IV-KEY",
+                             strlen ("UDP-IV-KEY"),
+                             NULL,
+                             0);
   memcpy (key, res, AES_KEY_SIZE);
   memcpy (iv, &res[AES_KEY_SIZE], AES_IV_SIZE);
 }
@@ -1209,18 +1208,17 @@ check_timeouts (void *cls)
 static void
 calculate_cmac (struct SharedSecret *ss)
 {
-  GNUNET_CRYPTO_hkdf (&ss->cmac,
-                      sizeof(ss->cmac),
-                      GCRY_MD_SHA512,
-                      GCRY_MD_SHA256,
-                      "CMAC",
-                      strlen ("CMAC"),
-                      &ss->master,
-                      sizeof(ss->master),
-                      "UDP-CMAC",
-                      strlen ("UDP-CMAC"),
-                      NULL,
-                      0);
+  struct GNUNET_ShortHashCode prk;
+  GNUNET_CRYPTO_hkdf_extract (&prk,
+                              "CMAC", strlen ("CMAC"),
+                              &ss->master, sizeof (ss->master));
+  GNUNET_CRYPTO_hkdf_expand (&ss->cmac,
+                             sizeof(ss->cmac),
+                             &prk,
+                             "UDP-CMAC",
+                             strlen ("UDP-CMAC"),
+                             NULL,
+                             0);
 }
 
 
