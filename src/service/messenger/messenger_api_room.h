@@ -79,6 +79,7 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_CONTAINER_MultiShortmap *subscriptions;
 
   struct GNUNET_MESSENGER_QueueMessages queue;
+  struct GNUNET_SCHEDULER_Task *queue_task;
 
   struct GNUNET_MESSENGER_MessageControl *control;
 };

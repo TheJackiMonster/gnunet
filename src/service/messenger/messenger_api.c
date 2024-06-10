@@ -92,7 +92,7 @@ GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind)
 }
 
 
-static enum GNUNET_GenericReturnValue
+static void
 dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room);
 
 static void
@@ -654,6 +654,116 @@ callback_leave_message_sent (void *cls)
 
 
 static void
+keep_subscription_alive (void *cls)
+{
+  GNUNET_assert (cls);
+
+  struct GNUNET_MESSENGER_RoomSubscription *subscription = cls;
+  
+  subscription->task = NULL;
+  
+  struct GNUNET_MESSENGER_Room *room = subscription->room;
+  struct GNUNET_MESSENGER_Message *message = subscription->message;
+
+  const struct GNUNET_ShortHashCode *discourse =
+    &(message->body.subscribe.discourse);
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (room->subscriptions, 
+                                                           discourse, 
+                                                           subscription))
+    return;
+  
+  GNUNET_free (subscription);
+
+  enqueue_message_to_room (room, message, NULL);
+}
+
+
+static void
+handle_discourse_subscription (struct GNUNET_MESSENGER_Room *room,
+                               struct GNUNET_MESSENGER_Message *message)
+{
+  const uint32_t flags = message->body.subscribe.flags;
+
+  const struct GNUNET_ShortHashCode *discourse =
+    &(message->body.subscribe.discourse);
+
+  struct GNUNET_MESSENGER_RoomSubscription *subscription =
+    GNUNET_CONTAINER_multishortmap_get (room->subscriptions, discourse);
+  
+  if (0 == (flags & GNUNET_MESSENGER_FLAG_SUBSCRIPTION_UNSUBSCRIBE))
+    goto active_subscription;
+
+  if (! subscription)
+    return;
+
+  if (subscription->task)
+    GNUNET_SCHEDULER_cancel (subscription->task);
+
+  if (subscription->message)
+    destroy_message (subscription->message);
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove(room->subscriptions,
+                                                          discourse,
+                                                          subscription))
+  {
+    subscription->task = NULL;
+    subscription->message = NULL;
+    return;
+  }
+
+  GNUNET_free (subscription);
+  return;
+
+active_subscription:
+  if (0 == (flags & GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE))
+    return;
+
+  struct GNUNET_TIME_Relative time = 
+    GNUNET_TIME_relative_ntoh (message->body.subscribe.time);
+  
+  if (! subscription)
+  {
+    subscription = GNUNET_new (struct GNUNET_MESSENGER_RoomSubscription);
+
+    if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
+      room->subscriptions, discourse, subscription,
+      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+    {
+      GNUNET_free (subscription);
+      return;
+    }
+
+    subscription->room = room;
+  }
+  else
+  {
+    if (subscription->task)
+      GNUNET_SCHEDULER_cancel (subscription->task);
+
+    if (subscription->message)
+      destroy_message (subscription->message);
+  }
+
+  subscription->message = create_message_subscribe (discourse, time, 
+                                                    flags);
+  
+  if (! subscription->message)
+  {
+    subscription->task = NULL;
+    return;
+  }
+
+  const struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_multiply_double (
+    time, 0.9);
+
+  subscription->task = GNUNET_SCHEDULER_add_delayed_with_priority (
+    delay, GNUNET_SCHEDULER_PRIORITY_HIGH,
+    keep_subscription_alive, subscription);
+}
+
+
+static void
 send_message_to_room (struct GNUNET_MESSENGER_Room *room,
                       struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_CRYPTO_PrivateKey *key,
@@ -694,8 +804,17 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
 
   update_room_last_message (room, hash);
 
-  if (GNUNET_MESSENGER_KIND_LEAVE == message->header.kind)
+  switch (message->header.kind)
+  {
+  case GNUNET_MESSENGER_KIND_LEAVE:
     GNUNET_MQ_notify_sent (env, callback_leave_message_sent, room);
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    handle_discourse_subscription (room, message);
+    break;
+  default:
+    break;
+  }
 
   GNUNET_MQ_send (room->handle->mq, env);
 }
@@ -709,19 +828,8 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
   GNUNET_assert ((room) && (message));
 
   const struct GNUNET_CRYPTO_PrivateKey *key = get_handle_key (room->handle);
-  enum GNUNET_GenericReturnValue priority;
 
-  switch (message->header.kind)
-  {
-  case GNUNET_MESSENGER_KIND_JOIN:
-    priority = GNUNET_YES;
-    break;
-  default:
-    priority = GNUNET_NO;
-    break;
-  }
-
-  enqueue_to_messages (&(room->queue), key, message, transcript, priority);
+  enqueue_to_messages (&(room->queue), key, message, transcript);
 
   if (GNUNET_YES != is_room_available (room))
     return;
@@ -733,62 +841,78 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
 }
 
 
-static enum GNUNET_GenericReturnValue
-dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
+static void
+dequeue_message_from_room (void *cls)
 {
+  struct GNUNET_MESSENGER_Room *room = cls;
+
+  room->queue_task = NULL;
+
   if (GNUNET_YES != is_room_available (room))
-    return room->queue.head ? GNUNET_NO : GNUNET_YES;
+    return;
 
   struct GNUNET_MESSENGER_Message *message = NULL;
   struct GNUNET_MESSENGER_Message *transcript = NULL;
-  struct GNUNET_CRYPTO_PublicKey pubkey;
+
   struct GNUNET_CRYPTO_PrivateKey key;
-  struct GNUNET_HashCode hash, other;
+  memset (&key, 0, sizeof(key));
 
-  do {
-    if (message)
-      destroy_message (message);
+  message = dequeue_from_messages (&(room->queue), &key, &transcript);
 
-    memset (&key, 0, sizeof(key));
-    message = dequeue_from_messages (&(room->queue), &key, &transcript);
+  if (! message)
+  {
+    if (transcript)
+      destroy_message (transcript);
+    
+    return;
+  }
 
-    if (! message)
-    {
-      message = transcript;
-      transcript = NULL;
-      continue;
-    }
+  struct GNUNET_HashCode hash;
+  send_message_to_room (room, message, &key, &hash);
 
-    send_message_to_room (room, message, &key, &hash);
+  if (! transcript)
+  {
+    GNUNET_CRYPTO_private_key_clear (&key);
+    goto next_message;
+  }
 
-    if (! transcript)
-    {
-      GNUNET_CRYPTO_private_key_clear (&key);
-      continue;
-    }
+  GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
 
-    GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
+  struct GNUNET_CRYPTO_PublicKey pubkey;
+  memset (&pubkey, 0, sizeof(pubkey));
+  GNUNET_CRYPTO_key_get_public (&key, &pubkey);
 
-    memset (&pubkey, 0, sizeof(pubkey));
-    GNUNET_CRYPTO_key_get_public (&key, &pubkey);
+  if (GNUNET_YES == encrypt_message (transcript, &pubkey))
+  {
+    struct GNUNET_HashCode other;
+    send_message_to_room (room, transcript, &key, &other);
 
-    if (GNUNET_YES == encrypt_message (transcript, &pubkey))
-    {
-      send_message_to_room (room, transcript, &key, &other);
-      GNUNET_CRYPTO_private_key_clear (&key);
+    GNUNET_CRYPTO_private_key_clear (&key);
 
-      link_room_message (room, &hash, &other);
-      link_room_message (room, &other, &hash);
-    }
-    else
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Sending transcript aborted: Encryption failed!\n");
+    link_room_message (room, &hash, &other);
+    link_room_message (room, &other, &hash);
+  }
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending transcript aborted: Encryption failed!\n");
 
-    destroy_message (transcript);
-    transcript = NULL;
-  } while (message);
+  destroy_message (transcript);
 
-  return GNUNET_YES;
+next_message:
+  if (! room->queue.head)
+    return;
+
+  room->queue_task = GNUNET_SCHEDULER_add_with_priority (
+    GNUNET_SCHEDULER_PRIORITY_HIGH, dequeue_message_from_room, room);
+}
+
+static void
+dequeue_messages_from_room (struct GNUNET_MESSENGER_Room *room)
+{
+  if (GNUNET_YES != is_room_available (room))
+    return;
+
+  dequeue_message_from_room (room);
 }
 
 

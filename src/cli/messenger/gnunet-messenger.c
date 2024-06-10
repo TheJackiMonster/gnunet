@@ -33,7 +33,29 @@
 const struct GNUNET_CONFIGURATION_Handle *config;
 struct GNUNET_MESSENGER_Handle *messenger;
 
+uint64_t waiting;
+
+struct GNUNET_SCHEDULER_Task *read_task;
 int talk_mode;
+
+/**
+ * Delay forced shutdown by input to wait for data processing.
+ *
+ * @param[in,out] cls Closure
+ */
+static void
+delay_shutdown (void *cls)
+{
+  read_task = NULL;
+  
+  if (waiting)
+    return;
+
+  GNUNET_SCHEDULER_shutdown ();
+}
+
+static void
+idle (void *cls);
 
 /**
  * Function called whenever a message is received or sent.
@@ -54,12 +76,22 @@ on_message (void *cls,
             const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  const uint64_t waited = waiting;
+
   if (GNUNET_YES == talk_mode)
   {
-    if ((GNUNET_MESSENGER_KIND_TALK == message->header.kind) &&
-        (! (flags & GNUNET_MESSENGER_FLAG_SENT)))
+    if (GNUNET_MESSENGER_KIND_TALK == message->header.kind)
     {
-      write(1, message->body.talk.data, message->body.talk.length);
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+      {
+        waiting = waiting > message->body.talk.length?
+          waiting - message->body.talk.length : 0;
+      }
+      else
+      {
+        write (1, message->body.talk.data, message->body.talk.length);
+        fflush (stdout);
+      }
     }
 
     goto skip_printing;
@@ -107,8 +139,14 @@ on_message (void *cls,
     }
   case GNUNET_MESSENGER_KIND_TEXT:
     {
+      const uint16_t len = strlen (message->body.text.text) + 1;
+
       if (flags & GNUNET_MESSENGER_FLAG_SENT)
+      {
+        waiting = waiting > len? waiting - len : 0;
+
         printf (">");
+      }
       else
         printf ("<");
 
@@ -136,9 +174,19 @@ on_message (void *cls,
   }
 
 skip_printing:
+  if ((! read_task) && (! waiting) && (waited))
+    read_task = GNUNET_SCHEDULER_add_with_priority (
+      GNUNET_SCHEDULER_PRIORITY_IDLE, 
+      delay_shutdown, NULL);
+  
   if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) &&
       (flags & GNUNET_MESSENGER_FLAG_SENT))
   {
+    if (! read_task)
+      read_task = GNUNET_SCHEDULER_add_with_priority (
+        GNUNET_SCHEDULER_PRIORITY_IDLE,
+        idle, room);
+
     const char *name = GNUNET_MESSENGER_get_name (messenger);
 
     if (! name)
@@ -168,7 +216,6 @@ skip_printing:
 }
 
 
-struct GNUNET_SCHEDULER_Task *read_task;
 struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
 
 /**
@@ -236,9 +283,11 @@ read_stdio (void *cls)
 
   if ((length <= 0) || (length >= MAX_BUFFER_SIZE))
   {
-    GNUNET_SCHEDULER_shutdown ();
+    delay_shutdown (NULL);
     return;
   }
+
+  waiting += length;
 
   if (GNUNET_YES == talk_mode)
   {
@@ -374,15 +423,12 @@ skip_welcome:
 
   shutdown_task = GNUNET_SCHEDULER_add_shutdown (shutdown_hook, room);
 
+  waiting = 0;
+
   if (! room)
     GNUNET_SCHEDULER_shutdown ();
   else
-  {
-    GNUNET_SCHEDULER_add_delayed_with_priority (
-      GNUNET_TIME_relative_get_zero_ (),
-      GNUNET_SCHEDULER_PRIORITY_IDLE,
-      idle, room);
-  }
+    read_task = NULL;
 }
 
 

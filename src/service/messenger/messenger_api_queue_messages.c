@@ -67,8 +67,7 @@ void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
                      struct GNUNET_MESSENGER_Message *message,
-                     struct GNUNET_MESSENGER_Message *transcript,
-                     enum GNUNET_GenericReturnValue priority)
+                     struct GNUNET_MESSENGER_Message *transcript)
 {
   GNUNET_assert ((messages) && (sender) && (message));
 
@@ -77,6 +76,8 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   if (! element)
     return;
+
+  const enum GNUNET_MESSENGER_MessageKind kind = message->header.kind;
 
   element->message = message;
   element->transcript = transcript;
@@ -92,8 +93,22 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
     return;
   }
 
-  if (GNUNET_YES == priority)
+  if (GNUNET_MESSENGER_KIND_JOIN == kind)
     GNUNET_CONTAINER_DLL_insert (messages->head, messages->tail, element);
+  else if (GNUNET_MESSENGER_KIND_SUBSCRIBE == kind)
+  {
+    struct GNUNET_MESSENGER_QueueMessage *other = messages->head;
+    
+    while (other)
+    {
+      if (GNUNET_MESSENGER_KIND_TALK == other->message->header.kind)
+        break;
+
+      other = other->next;
+    }
+
+    GNUNET_CONTAINER_DLL_insert_before (messages->head, messages->tail, other, element);
+  }
   else
     GNUNET_CONTAINER_DLL_insert_tail (messages->head, messages->tail, element);
 }
