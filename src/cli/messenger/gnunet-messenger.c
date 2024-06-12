@@ -245,7 +245,7 @@ shutdown_hook (void *cls)
 static void
 listen_stdio (void *cls);
 
-#define MAX_BUFFER_SIZE 60000
+#define MAX_BUFFER_SIZE 57345
 
 static int
 iterate_send_private_message (void *cls,
