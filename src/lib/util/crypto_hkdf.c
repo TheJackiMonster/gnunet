@@ -36,7 +36,9 @@
  * - Matthias Wachs (08.10.2010)
  */
 
+#include "sodium/crypto_kdf_hkdf_sha256.h"
 #include "sodium/utils.h"
+#include <stdio.h>
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-hkdf", __VA_ARGS__)
 
 #include "platform.h"
@@ -51,13 +53,13 @@ hkdf_expand (void *result,
              size_t prk_len,
              va_list argp)
 {
-  unsigned char hc[crypto_auth_hmacsha256_BYTES];
-  unsigned long i;
-  unsigned long t;
-  unsigned long d;
-  int ret;
+  unsigned char *outbuf = (unsigned char*) result;
+  size_t i;
   size_t ctx_len;
   va_list args;
+
+  if (out_len > crypto_kdf_hkdf_sha256_BYTES_MAX)
+    return GNUNET_SYSERR;
 
   va_copy (args, argp);
 
@@ -70,7 +72,7 @@ hkdf_expand (void *result,
       /* integer overflow */
       GNUNET_break (0);
       va_end (args);
-      goto hkdf_error;
+      return GNUNET_SYSERR;
     }
     ctx_len += nxt;
   }
@@ -86,91 +88,56 @@ hkdf_expand (void *result,
   }
 
   memset (result, 0, out_len);
-  t = out_len / crypto_auth_hmacsha256_BYTES;
-  d = out_len % crypto_auth_hmacsha256_BYTES;
 
-  /* K(1) */
   {
-    size_t plain_len = crypto_auth_hmacsha256_BYTES + ctx_len + 1;
-    unsigned char *plain;
-    const void *ctx;
-    unsigned char *dst;
+    size_t left = out_len;
+    const void *ctx_arg;
+    unsigned char tmp[crypto_auth_hmacsha256_BYTES];
+    unsigned char *ctx = GNUNET_malloc (ctx_len);
+    unsigned char *dst = ctx;
     crypto_auth_hmacsha256_state st;
+    unsigned char counter = 1U;
 
-    plain = GNUNET_malloc (plain_len);
-    dst = plain + crypto_auth_hmacsha256_BYTES;
+    ctx = dst;
     va_copy (args, argp);
-    while ((ctx = va_arg (args, void *)))
+    while ((ctx_arg = va_arg (args, void *)))
     {
       size_t len;
 
       len = va_arg (args, size_t);
-      GNUNET_memcpy (dst, ctx, len);
+      GNUNET_memcpy (dst, ctx_arg, len);
       dst += len;
     }
     va_end (args);
 
-    if (t > 0)
+    for (i = 0; left > 0; i += crypto_auth_hmacsha256_BYTES)
     {
-      plain[crypto_auth_hmacsha256_BYTES + ctx_len] = (char) 1;
-      crypto_auth_hmacsha256_init (&st, prk, prk_len);
-      crypto_auth_hmacsha256_update (&st, &plain[crypto_auth_hmacsha256_BYTES
-                                     ],
-                                     ctx_len + 1);
-      crypto_auth_hmacsha256_final (&st, hc);
-      GNUNET_memcpy (result, hc, crypto_auth_hmacsha256_BYTES);
-      result += crypto_auth_hmacsha256_BYTES;
-    }
-
-    /* K(i+1) */
-    for (i = 1; i < t; i++)
-    {
-      GNUNET_memcpy (plain, result - crypto_auth_hmacsha256_BYTES,
-                     crypto_auth_hmacsha256_BYTES);
-      plain[crypto_auth_hmacsha256_BYTES + ctx_len] = (char) (i + 1);
-      crypto_auth_hmacsha256_init (&st, prk, prk_len);
-      crypto_auth_hmacsha256_update (&st, plain, plain_len);
-      crypto_auth_hmacsha256_final (&st, hc);
-      GNUNET_memcpy (result, hc, crypto_auth_hmacsha256_BYTES);
-      result += crypto_auth_hmacsha256_BYTES;
-    }
-
-    /* K(t):d */
-    if (d > 0)
-    {
-      if (t > 0)
+      crypto_auth_hmacsha256_init(&st, prk, prk_len);
+      if (0 != i)
       {
-        GNUNET_memcpy (plain, result - crypto_auth_hmacsha256_BYTES,
-                       crypto_auth_hmacsha256_BYTES);
-        i++;
+        crypto_auth_hmacsha256_update(&st,
+                                      &outbuf[i - crypto_auth_hmacsha256_BYTES],
+                                      crypto_auth_hmacsha256_BYTES);
       }
-      plain[ crypto_auth_hmacsha256_BYTES + ctx_len] = (char) i;
-      if (t > 0)
+      crypto_auth_hmacsha256_update(&st, ctx, ctx_len);
+      crypto_auth_hmacsha256_update(&st, &counter, 1);
+      if (left >= crypto_auth_hmacsha256_BYTES)
       {
-        crypto_auth_hmacsha256_init (&st, prk, prk_len);
-        crypto_auth_hmacsha256_update (&st, plain, plain_len);
-        crypto_auth_hmacsha256_final (&st, hc);
+        crypto_auth_hmacsha256_final(&st, &outbuf[i]);
+        left -= crypto_auth_hmacsha256_BYTES;
       }
       else
       {
-        crypto_auth_hmacsha256_init (&st, prk, prk_len);
-        crypto_auth_hmacsha256_update (&st, plain
-                                       + crypto_auth_hmacsha256_BYTES,
-                                       plain_len
-                                       - crypto_auth_hmacsha256_BYTES);
-        crypto_auth_hmacsha256_final (&st, hc);
+        crypto_auth_hmacsha256_final(&st, tmp);
+        memcpy (&outbuf[i], tmp, left);
+        sodium_memzero(tmp, sizeof tmp);
+        left = 0;
       }
-      GNUNET_memcpy (result, hc, d);
+      counter++;
     }
-
-    ret = GNUNET_YES;
-    GNUNET_free (plain);
-    goto hkdf_ok;
+    sodium_memzero(&st, sizeof st);
   }
-hkdf_error:
-  ret = GNUNET_SYSERR;
-hkdf_ok:
-  return ret;
+  return GNUNET_YES;
 }
 
 
