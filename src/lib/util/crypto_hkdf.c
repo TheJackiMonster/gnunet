@@ -36,7 +36,6 @@
  * - Matthias Wachs (08.10.2010)
  */
 
-#include "sodium/crypto_kdf_hkdf_sha256.h"
 #include "sodium/utils.h"
 #include <stdio.h>
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-hkdf", __VA_ARGS__)
