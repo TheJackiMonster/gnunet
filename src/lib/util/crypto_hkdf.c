@@ -57,7 +57,7 @@ hkdf_expand (void *result,
   size_t ctx_len;
   va_list args;
 
-  if (out_len > crypto_kdf_hkdf_sha256_BYTES_MAX)
+  if (out_len > (0xff * crypto_auth_hmacsha256_BYTES))
     return GNUNET_SYSERR;
 
   va_copy (args, argp);
