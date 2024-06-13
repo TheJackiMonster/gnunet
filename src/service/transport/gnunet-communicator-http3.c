@@ -1969,137 +1969,6 @@ do_shutdown (void *cls)
 
 
 /**
- * Accept new connections.
- *
- * @param local_addr local socket address
- * @param local_addrlen local socket address length
- * @param remote_addr remote(peer's) socket address
- * @param remote_addrlen remote socket address length
- *
- * @return the pointer of new connection on success, NULL if failed
- */
-static struct Connection*
-accept_connection (struct sockaddr *local_addr,
-                   socklen_t local_addrlen,
-                   struct sockaddr *remote_addr,
-                   socklen_t remote_addrlen,
-                   uint8_t *data,
-                   size_t datalen)
-{
-  ngtcp2_pkt_hd header;
-  struct Connection *new_connection = NULL;
-  ngtcp2_transport_params params;
-  ngtcp2_cid scid;
-  ngtcp2_conn *conn = NULL;
-  ngtcp2_settings settings;
-  uint8_t cid_buf[NGTCP2_MAX_CIDLEN];
-  ngtcp2_path path = {
-    {local_addr, local_addrlen},
-    {remote_addr, remote_addrlen},
-    NULL,
-  };
-  ngtcp2_callbacks callbacks = {
-    // .client_initial
-    .recv_client_initial = ngtcp2_crypto_recv_client_initial_cb,
-    .recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb,
-    .encrypt = ngtcp2_crypto_encrypt_cb,
-    .decrypt = ngtcp2_crypto_decrypt_cb,
-    .hp_mask = ngtcp2_crypto_hp_mask_cb,
-    // .recv_retry = ngtcp2_crypto_recv_retry_cb,
-    .update_key = ngtcp2_crypto_update_key_cb,
-    .delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb,
-    .delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb,
-    .get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb,
-    .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
-
-    // .acked_stream_data_offset = acked_stream_data_offset_cb,
-    .recv_stream_data = recv_stream_data_cb,
-    // .stream_open = stream_open_cb,
-    .rand = rand_cb,
-    .get_new_connection_id = get_new_connection_id_cb,
-    .stream_close = stream_close_cb,
-  };
-  int rv;
-
-  rv = ngtcp2_accept (&header, data, datalen);
-  if (rv < 0)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "ngtcp2_accept: %s\n", ngtcp2_strerror (rv));
-    return NULL;
-  }
-  new_connection = GNUNET_new (struct Connection);
-  memset (new_connection, 0, sizeof (struct Connection));
-
-  gnutls_init (&new_connection->session,
-               GNUTLS_SERVER
-               | GNUTLS_ENABLE_EARLY_DATA
-               | GNUTLS_NO_END_OF_EARLY_DATA);
-  gnutls_priority_set_direct (new_connection->session, PRIORITY, NULL);
-
-  gnutls_credentials_set (new_connection->session,
-                          GNUTLS_CRD_CERTIFICATE, cred);
-
-  ngtcp2_transport_params_default (&params);
-  params.initial_max_streams_uni = 3;
-  params.initial_max_streams_bidi = 128;
-  params.initial_max_stream_data_bidi_local = 128 * 1024;
-  params.initial_max_stream_data_bidi_remote = 128 * 1024;
-  params.initial_max_data = 1024 * 1024;
-  params.original_dcid_present = 1;
-  params.max_idle_timeout = 30 * NGTCP2_SECONDS;
-  memcpy (&params.original_dcid, &header.dcid,
-          sizeof (params.original_dcid));
-
-  ngtcp2_settings_default (&settings);
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG,
-                              cid_buf,
-                              sizeof (cid_buf));
-  ngtcp2_cid_init (&scid, cid_buf, sizeof (cid_buf));
-
-  rv = ngtcp2_conn_server_new (&conn,
-                               &header.scid,
-                               &scid,
-                               &path,
-                               header.version,
-                               &callbacks,
-                               &settings,
-                               &params,
-                               NULL,
-                               new_connection);
-  if (rv < 0)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "ngtcp2_conn_server_new: %s\n",
-                ngtcp2_strerror (rv));
-    return NULL;
-  }
-
-  new_connection->conn = conn;
-  new_connection->address = GNUNET_memdup (remote_addr, remote_addrlen);
-  new_connection->address_len = remote_addrlen;
-  new_connection->foreign_addr =
-    sockaddr_to_udpaddr_string (new_connection->address,
-                                new_connection->address_len);
-  new_connection->is_initiator = GNUNET_NO;
-  new_connection->id_rcvd = GNUNET_NO;
-  new_connection->id_sent = GNUNET_NO;
-  ngtcp2_crypto_gnutls_configure_server_session (new_connection->session);
-  ngtcp2_conn_set_tls_native_handle (new_connection->conn,
-                                     new_connection->session);
-  gnutls_session_set_ptr (new_connection->session,
-                          &new_connection->conn_ref);
-
-  new_connection->conn_ref.get_conn = get_conn;
-  new_connection->conn_ref.user_data = new_connection;
-  new_connection->streams = GNUNET_CONTAINER_multihashmap_create (10, GNUNET_NO)
-  ;
-
-  return new_connection;
-}
-
-
-/**
  * Decrypt QUIC packet. Both the server and the client will use this function.
  *
  * @param connection the connection
@@ -2578,7 +2447,6 @@ sock_read (void *cls)
                     "connection write error!\n");
         return;
       }
-      continue;
     }
     else
     {
@@ -2587,47 +2455,7 @@ sock_read (void *cls)
                        (struct sockaddr *) &sa, salen,
                        &pi, buf, rcvd);
     }
-    continue;
 
-
-    if (NULL == connection)
-    {
-      connection = accept_connection (local_addr, local_addrlen,
-                                      (struct sockaddr *) &sa,
-                                      salen, buf, rcvd);
-      if (NULL == connection)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "accept connection error!\n");
-        return;
-      }
-      GNUNET_CONTAINER_multihashmap_put (addr_map,
-                                         &addr_key,
-                                         connection,
-                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-    }
-
-    memcpy (&path, ngtcp2_conn_get_path (connection->conn), sizeof (path));
-    path.remote.addr = (struct sockaddr *) &sa;
-    path.remote.addrlen = salen;
-
-    rv = ngtcp2_conn_read_pkt (connection->conn, &path, NULL, buf, rcvd,
-                               timestamp ());
-    if (rv < 0)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "ngtcp2_conn_read_pkt: %s\n",
-                  ngtcp2_strerror (rv));
-      return;
-    }
-    connection_update_timer (connection);
-    rv = connection_write (connection);
-    if (rv < 0)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "connection write error!\n");
-      return;
-    }
   }
 
   GNUNET_free (local_addr);
