@@ -47,6 +47,19 @@
 #define ADDRESS_VALIDITY_PERIOD GNUNET_TIME_UNIT_HOURS
 
 /**
+ * Defines some error types related to network errors.
+ */
+enum network_error
+{
+  NETWORK_ERR_OK = 0,
+  NETWORK_ERR_FATAL = -10,
+  NETWORK_ERR_SEND_BLOCKED = -11,
+  NETWORK_ERR_CLOSE_WAIT = -12,
+  NETWORK_ERR_RETRY = -13,
+  NETWORK_ERR_DROP_CONN = -14,
+};
+
+/**
  * Map of sockaddr -> struct Connection
  *
  * TODO: Maybe it would be better to use cid as key?
@@ -1370,7 +1383,7 @@ close_waitcb (void *cls)
  *
  * @param connection The connection
  */
-static void 
+static void
 start_draining_period (struct Connection *connection)
 {
   ngtcp2_duration pto;
@@ -1394,7 +1407,7 @@ start_draining_period (struct Connection *connection)
 
 /**
  * Start the closing period and build the packet contains CONNECTION_CLOSE.
- * If we are server side, the function will set the #close_waitcb and write 
+ * If we are server side, the function will set the #close_waitcb and write
  * the packet to the conn_closebuf.
  * If we are client side, send the CONNECTION_CLOSE packet directly, and won't
  * wait close.
@@ -1473,7 +1486,7 @@ start_closing_period (struct Connection *connection)
  * Send the packet in the conn_closebuf.
  *
  * @param connection the connection
- * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed. 
+ * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed.
  */
 static int
 send_conn_close (struct Connection *connection)
@@ -1486,6 +1499,76 @@ send_conn_close (struct Connection *connection)
                     connection->conn_closebuf,
                     connection->conn_closebuflen);
   return rv;
+}
+
+
+/**
+ * Handle errors. Both server and client will use this function.
+ *
+ * @param connection the connection.
+ * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed or we are client side,
+ * #NETWORK_ERR_CLOSE_WAIT if need to wait for close.
+ */
+static int
+handle_error (struct Connection *connection)
+{
+  int rv;
+
+  /* if we are the client side */
+  if (GNUNET_YES == connection->is_initiator)
+  {
+    /* this will send CONNECTION_CLOSE immedietly and don't wait */
+    start_closing_period (connection);
+    connection_destroy (connection);
+    return GNUNET_SYSERR;
+  }
+
+  if (NGTCP2_CCERR_TYPE_IDLE_CLOSE == connection->last_error.type)
+  {
+    return GNUNET_SYSERR;
+  }
+
+  if (GNUNET_NO != start_closing_period (connection))
+  {
+    return GNUNET_SYSERR;
+  }
+
+  if (ngtcp2_conn_in_draining_period (connection->conn))
+  {
+    return NETWORK_ERR_CLOSE_WAIT;
+  }
+
+  rv = send_conn_close (connection);
+  if (NETWORK_ERR_OK != rv)
+  {
+    return rv;
+  }
+
+  return NETWORK_ERR_CLOSE_WAIT;
+}
+
+
+/**
+ * Handles expired timer.
+ *
+ * @param connection the connection
+ * @return #GNUNET_NO if success, else return #handle_error.
+ */
+static int
+handle_expiry (struct Connection *connection)
+{
+  int rv;
+
+  rv = ngtcp2_conn_handle_expiry (connection->conn, timestamp ());
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_handle_expiry: %s\n",
+                ngtcp2_strerror (rv));
+    ngtcp2_ccerr_set_liberr (&connection->last_error, rv, NULL, 0);
+    return handle_error (connection);
+  }
+  return GNUNET_NO;
 }
 
 
@@ -1503,21 +1586,39 @@ timeoutcb (void *cls)
   connection->timer = NULL;
   int rv;
 
-  rv = ngtcp2_conn_handle_expiry (connection->conn, timestamp ());
-  if (0 != rv)
+  rv = handle_expiry (connection);
+  if (GNUNET_NO != rv)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "ngtcp2_conn_handle_expiry: %s\n",
-                ngtcp2_strerror (rv));
-    connection_destroy (connection);
+    if (GNUNET_YES == connection->is_initiator)
+    {
+      return;
+    }
+    switch (rv)
+    {
+    case NETWORK_ERR_CLOSE_WAIT:
+      return;
+    default:
+      connection_destroy (connection);
+      return;
+    }
+  }
+
+  rv = connection_write (connection);
+  if (GNUNET_YES == connection->is_initiator)
+  {
     return;
   }
-  rv = connection_write (connection);
-  if (0 != rv)
+  if (GNUNET_NO != rv)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "connection_write error!\n");
-    connection_destroy (connection);
+    switch (rv)
+    {
+    case NETWORK_ERR_CLOSE_WAIT:
+      return;
+    default:
+      connection_destroy (connection);
+      return;
+    }
+
   }
 }
 
@@ -1999,6 +2100,365 @@ accept_connection (struct sockaddr *local_addr,
 
 
 /**
+ * Decrypt QUIC packet. Both the server and the client will use this function.
+ *
+ * @param connection the connection
+ * @param local_addr our address
+ * @param local_addrlen length of our address
+ * @param remote_addr peer's address
+ * @param remote_addrlen length of peer's address
+ * @param pi ngtcp2 packet info
+ * @param data the QUIC packet to be processed
+ * @param datalen the length of data
+ *
+ * @return #GNUNET_NO if success, or a negative value.
+ */
+static int
+connection_feed_data (struct Connection *connection,
+                      struct sockaddr *local_addr, socklen_t local_addrlen,
+                      struct sockaddr *remote_addr, socklen_t remote_addrlen,
+                      const ngtcp2_pkt_info *pi,
+                      const uint8_t *data, size_t datalen)
+{
+  ngtcp2_path path;
+  int rv;
+
+  path.local.addr = local_addr;
+  path.local.addrlen = local_addrlen;
+  path.remote.addr = remote_addr;
+  path.remote.addrlen = remote_addrlen;
+
+  rv = ngtcp2_conn_read_pkt (connection->conn, &path, pi, data, datalen,
+                             timestamp ());
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_read_pkt: %s\n",
+                ngtcp2_strerror (rv));
+    switch (rv)
+    {
+    case NGTCP2_ERR_DRAINING:
+      if (GNUNET_NO == connection->is_initiator)
+      {
+        start_draining_period (connection);
+        return NETWORK_ERR_CLOSE_WAIT;
+      }
+      else
+      {
+        ngtcp2_ccerr_set_liberr (&connection->last_error, rv, NULL, 0);
+      }
+    case NGTCP2_ERR_RETRY:
+      /* client side doesn't get this */
+      return NETWORK_ERR_RETRY;
+    case NGTCP2_ERR_DROP_CONN:
+      /* client side doesn't get this */
+      return NETWORK_ERR_DROP_CONN;
+    case NGTCP2_ERR_CRYPTO:
+      if (! connection->last_error.error_code)
+      {
+        ngtcp2_ccerr_set_tls_alert (
+          &connection->last_error,
+          ngtcp2_conn_get_tls_alert (connection->conn),
+          NULL, 0);
+      }
+      break;
+    default:
+      if (! connection->last_error.error_code)
+      {
+        ngtcp2_ccerr_set_liberr (&connection->last_error, rv, NULL, 0);
+      }
+    }
+    return handle_error (connection);
+  }
+  return GNUNET_NO;
+}
+
+
+/**
+ * Connection read the packet data. This function will only be called by the server.
+ *
+ * @param connection the connection
+ * @param local_addr our address
+ * @param local_addrlen length of our address
+ * @param remote_addr peer's address
+ * @param remote_addrlen length of peer's address
+ * @param pi ngtcp2 packet info
+ * @param data the QUIC packet to be processed
+ * @param datalen the length of data
+ *
+ * @return #GNUNET_NO if success, or the return 
+ * value of #connection_feed_data.
+ */
+static int
+connection_on_read (struct Connection *connection,
+                    struct sockaddr *local_addr, socklen_t local_addrlen,
+                    struct sockaddr *remote_addr, socklen_t remote_addrlen,
+                    const ngtcp2_pkt_info *pi,
+                    const uint8_t *data, size_t datalen)
+{
+  int rv;
+  rv = connection_feed_data (connection, local_addr, local_addrlen, remote_addr,
+                             remote_addrlen, pi, data, datalen);
+  if (GNUNET_NO != rv)
+  {
+    return rv;
+  }
+
+  connection_update_timer (connection);
+  return GNUNET_NO;
+}
+
+
+/**
+ * Create a new connection. This function will only be called by the server.
+ *
+ * @param local_addr our address
+ * @param local_addrlen length of our address
+ * @param remote_addr peer's address
+ * @param remote_addrlen length of peer's address
+ * @param dcid scid of the data packet from the client
+ * @param scid dcid of the data packet from the client
+ * @param version version of the data packet from the client
+ *
+ * @return a new connection, NULL if error occurs.
+ */
+struct Connection *
+connection_init (struct sockaddr *local_addr,
+                 socklen_t local_addrlen,
+                 struct sockaddr *remote_addr,
+                 socklen_t remote_addrlen,
+                 const ngtcp2_cid *dcid, const ngtcp2_cid *scid,
+                 uint32_t version)
+{
+  struct Connection *new_connection;
+  ngtcp2_path path;
+  ngtcp2_transport_params params;
+  ngtcp2_cid scid_;
+  ngtcp2_conn *conn = NULL;
+  ngtcp2_settings settings;
+  ngtcp2_callbacks callbacks = {
+    // .client_initial
+    .recv_client_initial = ngtcp2_crypto_recv_client_initial_cb,
+    .recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb,
+    .encrypt = ngtcp2_crypto_encrypt_cb,
+    .decrypt = ngtcp2_crypto_decrypt_cb,
+    .hp_mask = ngtcp2_crypto_hp_mask_cb,
+    // .recv_retry = ngtcp2_crypto_recv_retry_cb,
+    .update_key = ngtcp2_crypto_update_key_cb,
+    .delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb,
+    .delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb,
+    .get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb,
+    .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
+
+    // .acked_stream_data_offset = acked_stream_data_offset_cb,
+    .recv_stream_data = recv_stream_data_cb,
+    // .stream_open = stream_open_cb,
+    .rand = rand_cb,
+    .get_new_connection_id = get_new_connection_id_cb,
+    .stream_close = stream_close_cb,
+  };
+
+
+  int rv;
+
+  path.local.addr = local_addr;
+  path.local.addrlen = local_addrlen;
+  path.remote.addr = remote_addr;
+  path.remote.addrlen = remote_addrlen;
+
+  new_connection = GNUNET_new (struct Connection);
+  memset (new_connection, 0, sizeof (struct Connection));
+
+  gnutls_init (&new_connection->session,
+               GNUTLS_SERVER
+               | GNUTLS_ENABLE_EARLY_DATA
+               | GNUTLS_NO_END_OF_EARLY_DATA);
+  gnutls_priority_set_direct (new_connection->session, PRIORITY, NULL);
+  gnutls_credentials_set (new_connection->session,
+                          GNUTLS_CRD_CERTIFICATE, cred);
+
+  ngtcp2_transport_params_default (&params);
+  params.initial_max_streams_uni = 3;
+  params.initial_max_streams_bidi = 128;
+  params.initial_max_stream_data_bidi_local = 128 * 1024;
+  params.initial_max_stream_data_bidi_remote = 128 * 1024;
+  params.initial_max_data = 1024 * 1024;
+  params.original_dcid_present = 1;
+  params.max_idle_timeout = 30 * NGTCP2_SECONDS;
+  params.original_dcid = *scid;
+
+  ngtcp2_settings_default (&settings);
+
+  scid_.datalen = NGTCP2_MAX_CIDLEN;
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_STRONG,
+                              &scid_.data, scid_.datalen);
+
+  rv = ngtcp2_conn_server_new (&conn,
+                               dcid,
+                               &scid_,
+                               &path,
+                               version,
+                               &callbacks,
+                               &settings,
+                               &params,
+                               NULL,
+                               new_connection);
+  if (rv < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "ngtcp2_conn_server_new: %s\n",
+                ngtcp2_strerror (rv));
+    return NULL;
+  }
+  new_connection->conn = conn;
+  new_connection->address = GNUNET_memdup (remote_addr, remote_addrlen);
+  new_connection->address_len = remote_addrlen;
+  new_connection->foreign_addr =
+    sockaddr_to_udpaddr_string (new_connection->address,
+                                new_connection->address_len);
+  new_connection->is_initiator = GNUNET_NO;
+  new_connection->id_rcvd = GNUNET_NO;
+  new_connection->id_sent = GNUNET_NO;
+  ngtcp2_crypto_gnutls_configure_server_session (new_connection->session);
+  ngtcp2_conn_set_tls_native_handle (new_connection->conn,
+                                     new_connection->session);
+  gnutls_session_set_ptr (new_connection->session,
+                          &new_connection->conn_ref);
+
+  new_connection->conn_ref.get_conn = get_conn;
+  new_connection->conn_ref.user_data = new_connection;
+  new_connection->streams = GNUNET_CONTAINER_multihashmap_create (10,
+                                                                  GNUNET_NO);
+
+  return new_connection;
+}
+
+
+/**
+ * The server processes the newly received data packet. 
+ * This function will only be called by the server. 
+ *
+ * @param connection the connection
+ * @param addr_key the hash key of peer's address
+ * @param local_addr our address
+ * @param local_addrlen length of our address
+ * @param remote_addr peer's address
+ * @param remote_addrlen length of peer's address
+ * @param pi ngtcp2 packet info
+ * @param data the QUIC packet to be processed
+ * @param datalen the length of data
+ */
+static void
+server_read_pkt (struct Connection *connection,
+                 const struct GNUNET_HashCode *addr_key,
+                 struct sockaddr *local_addr, socklen_t local_addrlen,
+                 struct sockaddr *remote_addr, socklen_t remote_addrlen,
+                 const ngtcp2_pkt_info *pi,
+                 const uint8_t *data, size_t datalen)
+{
+  ngtcp2_version_cid version_cid;
+  int rv;
+
+  rv = ngtcp2_pkt_decode_version_cid (&version_cid, data, datalen,
+                                      NGTCP2_MAX_CIDLEN);
+  switch (rv)
+  {
+  case 0:
+    break;
+  case NGTCP2_ERR_VERSION_NEGOTIATION:
+    // TODO: send version negotiation
+    return;
+  default:
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Can't decode version and CID: %s\n",
+                ngtcp2_strerror (rv));
+    return;
+  }
+
+  if (NULL == connection)
+  {
+    ngtcp2_pkt_hd header;
+    rv = ngtcp2_accept (&header, data, datalen);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "ngtcp2_accept: %s\n",
+                  ngtcp2_strerror (rv));
+      return;
+    }
+
+    /**
+     * TODO: handle the stateless reset token.
+     */
+
+    connection = connection_init (local_addr, local_addrlen, remote_addr,
+                                  remote_addrlen, &header.scid, &header.dcid,
+                                  header.version);
+    if (NULL == connection)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "accept connection error!\n");
+      return;
+    }
+
+    GNUNET_CONTAINER_multihashmap_put (addr_map,
+                                       addr_key,
+                                       connection,
+                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
+    rv = connection_on_read (connection, local_addr, local_addrlen, remote_addr,
+                             remote_addrlen, pi, data, datalen);
+    switch (rv)
+    {
+    case 0:
+      break;
+    case NETWORK_ERR_RETRY:
+      // TODO: send retry
+      return;
+    default:
+      return;
+    }
+
+    rv = connection_write (connection);
+    if (GNUNET_NO != rv)
+    {
+      return;
+    }
+
+    // add to cid_map here
+    return;
+  }
+
+  if (ngtcp2_conn_in_closing_period (connection->conn))
+  {
+    rv = send_conn_close (connection);
+    if (GNUNET_NO != rv)
+    {
+      connection_destroy (connection);
+    }
+    return;
+  }
+
+  if (ngtcp2_conn_in_draining_period (connection->conn))
+  {
+    return;
+  }
+
+  rv = connection_on_read (connection, local_addr, local_addrlen, remote_addr,
+                           remote_addrlen, pi, data, datalen);
+  if (GNUNET_NO != rv)
+  {
+    if (NETWORK_ERR_CLOSE_WAIT != rv)
+    {
+      connection_destroy (connection);
+    }
+    return;
+  }
+
+  connection_write (connection);
+}
+
+
+/**
  * Socket read task.
  *
  * @param cls NULL
@@ -2099,6 +2559,37 @@ sock_read (void *cls)
     //   }
     //   connection = cid_map_find (vc.scid, vc.scidlen);
     // }
+
+
+    ngtcp2_pkt_info pi = {0};
+    if (NULL != connection && GNUNET_YES == connection->is_initiator)
+    {
+      rv = connection_feed_data (connection, local_addr, local_addrlen,
+                                 (struct sockaddr *) &sa,
+                                 salen, &pi, buf, rcvd);
+      if (GNUNET_NO != rv)
+      {
+        return;
+      }
+      rv = connection_write (connection);
+      if (rv < 0)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "connection write error!\n");
+        return;
+      }
+      continue;
+    }
+    else
+    {
+      server_read_pkt (connection, &addr_key,
+                       local_addr, local_addrlen,
+                       (struct sockaddr *) &sa, salen,
+                       &pi, buf, rcvd);
+    }
+    continue;
+
+
     if (NULL == connection)
     {
       connection = accept_connection (local_addr, local_addrlen,
