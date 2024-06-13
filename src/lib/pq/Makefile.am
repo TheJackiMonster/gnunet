@@ -32,7 +32,7 @@ libgnunetpq_la_LIBADD = -lpq \
 libgnunetpq_la_LDFLAGS = \
  $(POSTGRESQL_LDFLAGS) \
  $(GN_LIB_LDFLAGS) \
-  -version-info 7:1:2
+  -version-info 8:0:3
 
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
