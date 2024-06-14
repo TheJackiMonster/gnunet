@@ -137,9 +137,9 @@ struct TcpHandshakeSignature
   struct GNUNET_PeerIdentity receiver;
 
   /**
-   * Ephemeral key used by the @e sender.
+   * Ephemeral key used by the @e sender (as Elligator representative).
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_ElligatorRepresentative ephemeral;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -1341,6 +1341,24 @@ rekey_monotime_cb (void *cls,
                                                      GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                                      &rekey_monotime_store_cb,
                                                      queue);
+}
+
+
+/**
+ * Setup cipher of @a queue for decryption from an elligator representative.
+ *
+ * @param ephemeral ephemeral key we received from the other peer (elligator representative)
+ * @param[in,out] queue queue to initialize decryption cipher for
+ */
+static void
+setup_in_cipher_elligator (
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
+  struct Queue *queue)
+{
+  struct GNUNET_HashCode k;
+
+  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (my_private_key, repr, &k);
+  setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
 
@@ -2695,13 +2713,13 @@ boot_queue (struct Queue *queue)
  */
 static void
 transmit_kx (struct Queue *queue,
-             const struct GNUNET_CRYPTO_EcdhePublicKey *epub)
+             const struct GNUNET_CRYPTO_ElligatorRepresentative *repr)
 {
   struct TcpHandshakeSignature ths;
   struct TCPConfirmation tc;
 
-  memcpy (queue->cwrite_buf, epub, sizeof(*epub));
-  queue->cwrite_off = sizeof(*epub);
+  memcpy (queue->cwrite_buf, repr, sizeof(*repr));
+  queue->cwrite_off = sizeof(*repr);
   /* compute 'tc' and append in encrypted format to cwrite_buf */
   tc.sender = my_identity;
   tc.monotonic_time =
@@ -2714,7 +2732,7 @@ transmit_kx (struct Queue *queue,
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
-  ths.ephemeral = *epub;
+  ths.ephemeral = *repr;
   ths.monotonic_time = tc.monotonic_time;
   ths.challenge = tc.challenge;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
@@ -2744,13 +2762,13 @@ transmit_kx (struct Queue *queue,
 static void
 start_initial_kx_out (struct Queue *queue)
 {
-  struct GNUNET_CRYPTO_EcdhePublicKey epub;
+  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_HashCode k;
 
-  // TODO: We could use the Elligator KEM here! https://bugs.gnunet.org/view.php?id=8065
-  GNUNET_CRYPTO_eddsa_kem_encaps (&queue->target.public_key, &epub, &k);
+  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&queue->target.public_key,
+                                            &repr, &k);
   setup_out_cipher (queue, &k);
-  transmit_kx (queue, &epub);
+  transmit_kx (queue, &repr);
 }
 
 
@@ -2953,9 +2971,10 @@ queue_read_kx (void *cls)
     return;
   }
   /* we got all the data, let's find out who we are talking to! */
-  setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *)
-                   queue->cread_buf,
-                   queue);
+  setup_in_cipher_elligator ((const struct GNUNET_CRYPTO_ElligatorRepresentative
+                              *)
+                             queue->cread_buf,
+                             queue);
   if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, queue->cread_buf))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -3071,8 +3090,10 @@ proto_read_kx (void *cls)
   {
     /* we got all the data, let's find out who we are talking to! */
     queue = GNUNET_new (struct Queue);
-    setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *) pq->ibuf,
-                     queue);
+    setup_in_cipher_elligator ((const struct
+                                GNUNET_CRYPTO_ElligatorRepresentative *) pq->
+                               ibuf,
+                               queue);
     if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
