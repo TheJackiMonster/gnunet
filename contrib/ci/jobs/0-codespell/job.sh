@@ -88,6 +88,6 @@ ltmain.sh
 EOF
 );
 
-echo Current directory: `pwd`
+echo "Current directory: $(pwd)"
 
 codespell -I "${job_dir}"/dictionary.txt -S ${skip//$'\n'/,} $@
