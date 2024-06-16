@@ -5,16 +5,12 @@ job_dir=$(dirname "${BASH_SOURCE[0]}")
 
 skip=$(cat <<EOF
 ABOUT-NLS
-*/afl-tests/*
-**/auditor/*.sql
 */debian/tmp/**
 *.bbl
 *.bib
 *build-aux*
 *.bst
 *.cache/*
-*/cbdc-es.tex
-*/cbdc-it.tex
 ChangeLog
 *.cls
 configure*
@@ -35,7 +31,6 @@ depcomp
 *.epgz
 *.eps
 *.epub
-**/ExchangeSelection/example.ts
 *.fee
 *.fees
 *.file
@@ -68,7 +63,6 @@ ltmain.sh
 *.pdf
 *.png
 *.PNG
-**/pnpm-lock.yaml
 *.po
 *.pptx
 *.priv
@@ -76,13 +70,10 @@ ltmain.sh
 *.rpath
 **/signing-key.asc
 *.sqlite
-*/src/anastasis-data.ts
 **/*.svg
 *.svg
 *.tag
-**/templating/mustach**
 */templating/test?/**
-*/testcurl/test_tricky.c
 *.tgz
 *.ttf
 *.ttf
