@@ -15,7 +15,7 @@ if [ 0 -ne $ret ]; then
 fi
 
 ## GNUNET part
-# Check if identity exists and deletes and readds it to get rid of entries in zone
+# Check if identity exists and deletes and re-adds it to get rid of entries in zone
 gnunet-identity -d | grep randomtestingid 2>&1 /dev/null
 ret=$?
 

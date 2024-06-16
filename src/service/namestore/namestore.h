@@ -352,7 +352,7 @@ struct ZoneToNameMessage
 
 
 /**
- * Respone for zone to name lookup
+ * Response for zone to name lookup
  */
 struct ZoneToNameResponseMessage
 {
