@@ -24,7 +24,7 @@
  * TODO: Fix overwrite of records in @ if present look for other with same sub
  * TODO. Tests
  * TODO: Move constants to did.h
- * FIXME: Remove and lookup require differnt representations (did vs egoname)
+ * FIXME: Remove and lookup require different representations (did vs egoname)
  */
 
 /**
@@ -78,22 +78,22 @@ static int show;
 static int show_all;
 
 /**
- * DID Attribut String
+ * DID Attribute String
  */
 static char *did;
 
 /**
- * DID Document Attribut String
+ * DID Document Attribute String
  */
 static char *didd;
 
 /**
- * Ego Attribut String
+ * Ego Attribute String
  */
 static char *egoname;
 
 /**
- * DID Document expiration Date Attribut String
+ * DID Document expiration Date Attribute String
  */
 static char *expire;
 
@@ -164,7 +164,7 @@ print_did_document (
   if (GNUNET_OK == status)
     printf ("%s\n", did_document);
   else
-    printf ("An error occured: %s\n", did_document);
+    printf ("An error occurred: %s\n", did_document);
 
   GNUNET_SCHEDULER_add_now (cleanup, NULL);
   ret = 0;
@@ -189,7 +189,7 @@ resolve_did ()
 
   if (GNUNET_OK != DID_resolve (did, gns_handle, print_did_document, NULL))
   {
-    printf ("An error occured while resoling the DID\n");
+    printf ("An error occurred while resoling the DID\n");
     GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 0;
     return;
@@ -288,7 +288,7 @@ remove_did_document (remove_did_document_callback cont, void *cls)
 
   if (egoname == NULL)
   {
-    printf ("Remove requieres an ego option\n");
+    printf ("Remove requires an ego option\n");
     GNUNET_SCHEDULER_add_now (cleanup, NULL);
     ret = 1;
     return;
@@ -327,7 +327,7 @@ create_did_cb (enum GNUNET_GenericReturnValue status, void *cls)
   }
   else
   {
-    printf ("An error occured while creating the DID.\n");
+    printf ("An error occurred while creating the DID.\n");
     ret = 1;
   }
 
@@ -407,7 +407,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
                                  create_did_cb,
                                  cls))
     {
-      printf ("An error occured while creating the DID.\n");
+      printf ("An error occurred while creating the DID.\n");
       ret = 1;
       GNUNET_SCHEDULER_add_now (&cleanup, NULL);
       return;
@@ -440,7 +440,7 @@ create_did ()
 
 
 /**
- * @brief Replace a DID Docuemnt. Callback function after ego lockup
+ * @brief Replace a DID Document. Callback function after ego lockup
  *
  * @param cls
  * @param ego
@@ -468,7 +468,7 @@ replace_did_document_remove_cb (void *cls)
 
 
 /**
- * @brief Replace a DID Docuemnt
+ * @brief Replace a DID Document
  *
  */
 static void

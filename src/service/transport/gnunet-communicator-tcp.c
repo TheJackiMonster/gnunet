@@ -571,7 +571,7 @@ struct Queue
 
   /**
    * How may messages did we pass from this queue to CORE for which we
-   * have yet to receive an acknoweldgement that CORE is done with
+   * have yet to receive an acknowledgement that CORE is done with
    * them? If "large" (or even just non-zero), we should throttle
    * reading to provide flow control.  See also #DEFAULT_MAX_QUEUE_LENGTH
    * and #max_queue_length.
@@ -884,12 +884,12 @@ static struct ProtoQueue *proto_tail;
 struct GNUNET_RESOLVER_RequestHandle *resolve_request_handle;
 
 /**
- * Head of DLL with addresses we like to register at NAT servcie.
+ * Head of DLL with addresses we like to register at NAT service.
  */
 static struct Addresses *addrs_head;
 
 /**
- * Head of DLL with addresses we like to register at NAT servcie.
+ * Head of DLL with addresses we like to register at NAT service.
  */
 static struct Addresses *addrs_tail;
 

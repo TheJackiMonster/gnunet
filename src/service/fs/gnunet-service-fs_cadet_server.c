@@ -38,7 +38,7 @@
 #include "gnunet-service-fs_cadet.h"
 
 /**
- * After how long do we termiante idle connections?
+ * After how long do we terminate idle connections?
  */
 #define IDLE_TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 2)
 

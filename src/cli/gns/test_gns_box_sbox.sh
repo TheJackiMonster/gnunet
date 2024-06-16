@@ -45,7 +45,7 @@ rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 { read RES_A1; read RES_A2; read RES_B; read RES_S;} <<< "${RES_B_S}"
 if [ "$RES_B" = "$RES_S" ]
 then
-  echo "Failed to resolve to diffrent TXT records, got '$RES_B' and '$RES_S'."
+  echo "Failed to resolve to different TXT records, got '$RES_B' and '$RES_S'."
   exit 1
 fi
 

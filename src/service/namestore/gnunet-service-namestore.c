@@ -67,7 +67,7 @@ struct ZoneIteration
   struct ZoneIteration *prev;
 
   /**
-   * Namestore client which intiated this zone iteration
+   * Namestore client which initiated this zone iteration
    */
   struct NamestoreClient *nc;
 
@@ -133,7 +133,7 @@ struct NamestoreClient
   struct GNUNET_NAMESTORE_PluginFunctions *GSN_database;
 
   /**
-   * Name of loaded plugin (neeed for cleanup)
+   * Name of loaded plugin (needed for cleanup)
    */
   char *db_lib_name;
 
@@ -172,7 +172,7 @@ struct ZoneMonitor
   struct ZoneMonitor *prev;
 
   /**
-   * Namestore client which intiated this zone monitor
+   * Namestore client which initiated this zone monitor
    */
   struct NamestoreClient *nc;
 
@@ -1884,7 +1884,7 @@ store_record_set (struct NamestoreClient *nc,
           (GNUNET_YES == lctx.only_tombstone))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Client tried to remove non-existant record\n");
+                    "Client tried to remove non-existent record\n");
         ec = GNUNET_EC_NAMESTORE_RECORD_NOT_FOUND;
       }
     }
@@ -2474,7 +2474,7 @@ monitor_sync (struct ZoneMonitor *zm)
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *sync;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Synching zone monitor %p\n", zm);
+              "Syncing zone monitor %p\n", zm);
 
   env = GNUNET_MQ_msg (sync, GNUNET_MESSAGE_TYPE_NAMESTORE_MONITOR_SYNC);
   GNUNET_MQ_send (zm->nc->mq, env);

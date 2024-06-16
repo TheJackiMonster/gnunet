@@ -1367,7 +1367,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_MERGE:
     return GNUNET_YES; // Reserved for peers only!
   case GNUNET_MESSENGER_KIND_REQUEST:
-    return GNUNET_YES; // Requests should not apply individually! (inefficieny)
+    return GNUNET_YES; // Requests should not apply individually! (inefficiently)
   case GNUNET_MESSENGER_KIND_INVITE:
     return GNUNET_NO;
   case GNUNET_MESSENGER_KIND_TEXT:
@@ -1377,7 +1377,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_PRIVATE:
     return GNUNET_YES; // Prevent duplicate encryption breaking all access!
   case GNUNET_MESSENGER_KIND_DELETE:
-    return GNUNET_YES; // Deletion should not apply individually! (inefficieny)
+    return GNUNET_YES; // Deletion should not apply individually! (inefficiently)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_YES; // Reserved for connection handling only!
   case GNUNET_MESSENGER_KIND_TICKET:

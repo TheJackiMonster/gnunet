@@ -85,7 +85,7 @@ cleanup (void *cls)
 
 
 /**
- * Termiante the testcase (failure).
+ * Terminate the testcase (failure).
  *
  * @param cls NULL
  */

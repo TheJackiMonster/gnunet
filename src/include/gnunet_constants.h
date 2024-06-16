@@ -141,7 +141,7 @@ extern "C"
  * + sizeof (struct GNUNET_CADET_ChannelAppDataMessage)
  * + sizeof (struct GNUNET_CADET_ConnectionEncryptedAckMessage))
  *
- * Checked for correcteness in gnunet-service-cadet_tunnel.c: GCT_init().
+ * Checked for correctness in gnunet-service-cadet_tunnel.c: GCT_init().
  */
 #define GNUNET_CONSTANTS_CADET_P2P_OVERHEAD 164
 

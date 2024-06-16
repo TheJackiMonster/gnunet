@@ -291,7 +291,7 @@ action_loop (void *cls);
 
 /**
  * Function called whenever we connect to or disconnect from ARM.
- * Termiantes the process if we fail to connect to the service on
+ * Terminates the process if we fail to connect to the service on
  * our first attempt.
  *
  * @param cls closure

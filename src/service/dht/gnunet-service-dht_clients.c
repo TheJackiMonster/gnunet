@@ -1636,7 +1636,7 @@ GDS_CLIENTS_stop (void)
  * Define "main" method using service macro.
  *
  * @param name name of the service, like "dht" or "xdht"
- * @param run name of the initializaton method for the service
+ * @param run name of the initialization method for the service
  */
 #define GDS_DHT_SERVICE_INIT(name, run)          \
   GNUNET_SERVICE_MAIN \

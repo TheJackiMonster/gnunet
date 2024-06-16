@@ -33,7 +33,7 @@
  * @file util/getopt.c
  * @brief GNU style option parsing
  *
- * TODO: get rid of statics (make reentrant) and
+ * TODO: get rid of statistics (make reentrant) and
  * replace main GNU getopt parser with one that
  * actually fits our API.
  */

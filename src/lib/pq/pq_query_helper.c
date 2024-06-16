@@ -982,7 +982,7 @@ DONE:
 
 
 /**
- * Function to genreate a typ specific query parameter and corresponding closure
+ * Function to generate a typ specific query parameter and corresponding closure
  *
  * @param num Number of elements in @a elements
  * @param continuous If true, @a elements is an continuous array of data

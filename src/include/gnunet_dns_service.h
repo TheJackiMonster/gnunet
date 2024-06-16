@@ -132,7 +132,7 @@ typedef void
 
 /**
  * If a GNUNET_DNS_RequestHandler calls this function, the client
- * has no desire to interfer with the request and it should
+ * has no desire to interfere with the request and it should
  * continue to be processed normally.
  *
  * @param rh request that should now be forwarded

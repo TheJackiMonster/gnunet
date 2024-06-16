@@ -1516,7 +1516,7 @@ add_acks (struct SharedSecret *ss, int acks_to_add)
               "Tell transport we have %u more acks!\n",
               acks_to_add);
 
-  // Until here for alternativ 1
+  // Until here for alternative 1
 
   /* move ss to head to avoid discarding it anytime soon! */
 

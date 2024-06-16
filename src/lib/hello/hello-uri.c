@@ -236,7 +236,7 @@ struct AddressUriMergeResult
   struct GNUNET_HELLO_Builder *builder;
 
   /**
-   * The actual address to check, if it is allready in the hello uri we merge with.
+   * The actual address to check, if it is already in the hello uri we merge with.
    */
   const char *address_uri;
 

@@ -34,7 +34,7 @@
 
 /**
  * FIXME: the default ticket iteration interval should probably
- * be the minimim attribute expiration.
+ * be the minimum attribute expiration.
  */
 #define DEFAULT_TICKET_REFRESH_INTERVAL GNUNET_TIME_UNIT_HOURS
 

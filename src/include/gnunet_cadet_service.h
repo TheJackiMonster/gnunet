@@ -85,7 +85,7 @@ struct GNUNET_CADET_ConnectionTunnelIdentifier
 struct GNUNET_CADET_ChannelTunnelNumber
 {
   /**
-   * Which number does this channel have that uniquely identfies
+   * Which number does this channel have that uniquely identifies
    * it within its tunnel, in network byte order.
    *
    * Given two peers, both may initiate channels over the same tunnel.

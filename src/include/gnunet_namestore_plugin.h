@@ -214,7 +214,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
 
   /**
    * Drop existing tables.
-   * DANGEROUS: All existing data in the dabase will be lost!
+   * DANGEROUS: All existing data in the database will be lost!
    *
    * @param cls closure (internal context for the plugin)
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR

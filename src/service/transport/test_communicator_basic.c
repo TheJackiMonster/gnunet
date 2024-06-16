@@ -230,7 +230,7 @@ add_address_cb (
  * @param cls Closure - unused
  * @param tc_h Communicator handle - unused
  * @param will_try #GNUNET_YES if queue will be established
- *                #GNUNET_NO if queue will not be established (bogous address)
+ *                #GNUNET_NO if queue will not be established (bogus address)
  */
 static void
 queue_create_reply_cb (

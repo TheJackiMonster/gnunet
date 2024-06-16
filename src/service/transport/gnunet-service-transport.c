@@ -149,7 +149,7 @@
 /**
  * Window size. How many messages to the same target do we pass
  * to CORE without a RECV_OK in between? Small values limit
- * thoughput, large values will increase latency.
+ * throughput, large values will increase latency.
  *
  * FIXME-OPTIMIZE: find out what good values are experimentally,
  * maybe set adaptively (i.e. to observed available bandwidth).
@@ -553,11 +553,11 @@ struct TransportFragmentBoxMessage
 
 
 /**
- * Content signed by the initator during DV learning.
+ * Content signed by the initiator during DV learning.
  *
  * The signature is required to prevent DDoS attacks. A peer sending out this
  * message is potentially generating a lot of traffic that will go back to the
- * initator, as peers receiving this message will try to let the initiator
+ * initiator, as peers receiving this message will try to let the initiator
  * know that they got the message.
  *
  * Without this signature, an attacker could abuse this mechanism for traffic
@@ -666,7 +666,7 @@ struct DVPathEntryP
  * initiate.
  *
  * Unless received on a bidirectional queue and @e num_hops just
- * zero, peers that can forward to the initator should always try to
+ * zero, peers that can forward to the initiator should always try to
  * forward to the initiator.
  */
 struct TransportDVLearnMessage
@@ -1229,7 +1229,7 @@ struct CommunicatorMessageContext
 
 
 /**
- * Entry for the ring buffer caching messages send to core, when virtual link is avaliable.
+ * Entry for the ring buffer caching messages send to core, when virtual link is available.
  **/
 struct RingBufferEntry
 {
@@ -7796,7 +7796,7 @@ dv_neighbour_transmission (void *cls,
  * using NSE here would create a dependency issue in the build system.
  * => Left for later, hardcoded to 50 for now.
  *
- * The goal of the fomula is that we want to reach a total of LOG(NSE)
+ * The goal of the formula is that we want to reach a total of LOG(NSE)
  * peers via DV (`target_total`).  We want the reach to be spread out
  * over various distances to the origin, with a bias towards shorter
  * distances.
@@ -9584,7 +9584,7 @@ handle_validation_response (
 
 
 /**
- * Incoming meessage.  Process the request.
+ * Incoming message.  Process the request.
  *
  * @param im the send message that was received
  */
@@ -10247,7 +10247,7 @@ update_pm_next_attempt (struct PendingMessage *pm,
       root = root->frag_parent;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "frag_count next atempt %u\n",
+                "frag_count next attempt %u\n",
                 root->frag_count);
 
     if (GNUNET_NO == root->frags_in_flight)
@@ -11134,7 +11134,7 @@ lookup_communicator (const char *prefix)
   }
   GNUNET_log (
     GNUNET_ERROR_TYPE_WARNING,
-    "Somone suggested use of communicator for `%s', but we do not have such a communicator!\n",
+    "Someone suggested use of communicator for `%s', but we do not have such a communicator!\n",
     prefix);
   return NULL;
 }

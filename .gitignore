@@ -76,6 +76,7 @@ diffoscope_reports/
 # this exists outside of the main repository
 cmake/
 build
+!contrib/ci/common/build
 CMakeLists.txt
 CMakeFiles.txt
 

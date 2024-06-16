@@ -55,7 +55,7 @@
 /**
  * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. An integer value seperated
+ * this string are separated by special sequences of characters. An integer value separated
  * by ':' is returned by this function.
  *
  * @param line The line of configuration. Example: "a:42[:43]"
@@ -103,7 +103,7 @@ get_key (const char *line)
 /**
  * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A string value seperated
+ * this string are separated by special sequences of characters. A string value separated
  * by ':' is returned by this function.
  *
  * @param line The line of configuration ("FOO:BAR")
@@ -123,8 +123,8 @@ get_first_string_value (const char *line)
 /**
  * Every line in the topology configuration starts with a string indicating
  * which kind of information will be configured with this line. Configuration
- * values following this string are seperated by special sequences of
- * characters. A second integer value seperated by ':' from a first value is
+ * values following this string are separated by special sequences of
+ * characters. A second integer value separated by ':' from a first value is
  * returned by this function.
  *
  * @param line The line of configuration (example: "P:1:3")
@@ -153,7 +153,7 @@ get_second_value (const char *line)
 /**
  * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
+ * this string are separated by special sequences of characters. A value might be
  * a key value pair.
  * This function returns the value for a specific key in a configuration line.
  *
@@ -191,7 +191,7 @@ get_value (const char *key, const char *line)
 /**
  * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
+ * this string are separated by special sequences of characters. A value might be
  * a key value pair. A special key is the 'connect' key which can appear more than once.
  * The value is the information about a connection via some protocol to some other node.
  * This function returns the struct GNUNET_TESTING_NodeConnection which holds the information
@@ -296,7 +296,7 @@ get_connect_value (const char *line,
 /**
  * Every line in the topology configuration starts with a string indicating which
  * kind of information will be configured with this line. Configuration values following
- * this string are seperated by special sequences of characters. A value might be
+ * this string are separated by special sequences of characters. A value might be
  * a key value pair. A special key is the 'connect' key.
  * The value is the information about a connections via some protocol to other nodes.
  * Each connection itself is a key value pair separated by the character '|' and

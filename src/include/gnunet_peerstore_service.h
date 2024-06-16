@@ -184,7 +184,7 @@ struct GNUNET_PEERSTORE_StoreHelloContext;
  * Function called by PEERSTORE for each matching record.
  *
  * @param cls closure
- * @param seq sequence in interation
+ * @param seq sequence in iteration
  * @param record peerstore record information
  * @param emsg error message, or NULL if no errors
  */

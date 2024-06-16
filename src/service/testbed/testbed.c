@@ -85,7 +85,7 @@ struct GNUNET_TESTBED_System
    * UNIXPATH for a peer is also modified to include the respective
    * path counter to ensure uniqueness.  This field is incremented
    * by one for each configured peer.  Even if peers are destroyed,
-   * we never re-use path counters.
+   * we never reuse path counters.
    */
   uint32_t path_counter;
 

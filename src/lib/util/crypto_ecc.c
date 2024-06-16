@@ -40,7 +40,7 @@
  * For performance reasons, we use cryptographic operations from
  * libsodium wherever we can get away with it, even though libsodium
  * itself does not support ECDSA.
- * This is why the sign and verifiy functionality from libgcrypt is
+ * This is why the sign and verify functionality from libgcrypt is
  * required and used.
  *
  * EdDSA: We use a standard EdDSA construction.

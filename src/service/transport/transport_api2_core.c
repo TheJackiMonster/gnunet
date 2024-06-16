@@ -41,7 +41,7 @@
 /**
  * Window size. How many messages to the same target do we pass
  * to TRANSPORT without a SEND_OK in between? Small values limit
- * thoughput, large values will increase latency.
+ * throughput, large values will increase latency.
  *
  * FIXME-OPTIMIZE: find out what good values are experimentally,
  * maybe set adaptively (i.e. to observed available bandwidth).

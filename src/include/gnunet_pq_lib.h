@@ -230,7 +230,7 @@ GNUNET_PQ_query_param_array_bool (
 
 /**
  * Generate query parameter for an array of uint16_t in host byte order.
- * Note that the (unsigend) elements are not checked to wrap over INT2_MAX
+ * Note that the (unsigned) elements are not checked to wrap over INT2_MAX
  *
  * @param num Number of elements in @a elements
  * @param elements Continuous array of @a num uint16 elements
@@ -245,7 +245,7 @@ GNUNET_PQ_query_param_array_uint16 (
 
 /**
  * Generate query parameter for an array of uint32_t in host byte order.
- * Note that the (unsigend) elements are not checked to wrap over INT4_MAX
+ * Note that the (unsigned) elements are not checked to wrap over INT4_MAX
  *
  * @param num Number of elements in @a elements
  * @param elements Continuous Array of @a num uint32_t elements
@@ -260,7 +260,7 @@ GNUNET_PQ_query_param_array_uint32 (
 
 /**
  * Generate query parameter for an array of uint64 in host byte order.
- * Note that the (unsigend) elements are not checked to wrap over INT8_MAX
+ * Note that the (unsigned) elements are not checked to wrap over INT8_MAX
  *
  * @param num Number of elements in @a elements
  * @param elements Continuous array of @a num uint64_t elements
@@ -278,7 +278,7 @@ GNUNET_PQ_query_param_array_uint64 (
  * corresponding size given in @a sizes.
  *
  * @param num Number of elements in @a elements
- * @param elements Continous array of @a num buffers, each of corresponding size given in @a sizes.
+ * @param elements Continuous array of @a num buffers, each of corresponding size given in @a sizes.
  * @param sizes Pointer to sizes in bytes of each element in @a elements
  * @param db Database context, needed for database-depending encoding of @a elements
  * @return query parameter to use
@@ -295,7 +295,7 @@ GNUNET_PQ_query_param_array_bytes (
  * each of the same size @a size.
  *
  * @param num Number of elements in @a elements
- * @param elements Continous array of @a num buffers, each with the same size @a same_size
+ * @param elements Continuous array of @a num buffers, each with the same size @a same_size
  * @param same_size Size in bytes of each element in @a elements
  * @param db Database context, needed for database-depending encoding of @a elements
  * @return query parameter to use
@@ -1135,7 +1135,7 @@ GNUNET_PQ_result_spec_array_fixed_size (
  * @param db Database context, needed for OID lookup for the correct type
  * @param name name of the field in the table
  * @param[out] num where to store the number of elements
- * @param[out] dst where to store the allocated continous array of @a num 0-terminated strings
+ * @param[out] dst where to store the allocated continuous array of @a num 0-terminated strings
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
@@ -1543,7 +1543,7 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
  *
  * @param config_str configuration to use
  * @param load_path path to directory with SQL transactions to run, can be NULL
- * @param auto_suffix infix of SQL series to run on every reconnect; runs multiple (!) files, of the form auto_suffix-XXXX where XXXX is from 0 to 9999 (consequtive).
+ * @param auto_suffix infix of SQL series to run on every reconnect; runs multiple (!) files, of the form auto_suffix-XXXX where XXXX is from 0 to 9999 (consecutive).
  * @param es #GNUNET_PQ_PREPARED_STATEMENT_END-terminated
  *            array of statements to execute upon EACH connection, can be NULL
  * @param ps array of prepared statements to prepare, can be NULL

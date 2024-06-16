@@ -249,7 +249,7 @@ GNUNET_ABD_connect (const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**
- * Shutdown connection with the Credentail service.
+ * Shutdown connection with the Credential service.
  *
  * @param handle connection to shut down
  */

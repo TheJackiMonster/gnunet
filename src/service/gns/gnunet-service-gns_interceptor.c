@@ -40,7 +40,7 @@
 
 /**
  * Handle to a DNS intercepted
- * reslution request
+ * resolution request
  */
 struct InterceptLookupHandle
 {

@@ -449,7 +449,7 @@ GNUNET_RECLAIM_ticket_consume (
 
 /**
  * Lists all tickets that have been issued to remote
- * identites (relying parties)
+ * identities (relying parties)
  *
  * @param h the identity provider to use
  * @param identity the issuing identity

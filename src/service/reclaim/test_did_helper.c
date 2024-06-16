@@ -39,7 +39,7 @@ static const char test_skey_bytes[32] = {
   0x36, 0x30, 0xf9, 0x3a, 0x29, 0x52, 0x70, 0x17
 };
 
-// TODO: Create a did manual from private key / independet of implementation
+// TODO: Create a did manual from private key / independent of implementation
 static const char *test_did =
   "did:gns:000G0509BYD1MPAXVSTNV0KRD1JAT0YZMPJFQNM869B66S72PSF17K4Y8G";
 
