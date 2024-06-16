@@ -1,4 +1,5 @@
-FROM docker.io/library/debian:bookworm
+# FIXME: Only use unstable for riscv
+FROM docker.io/library/debian:unstable
 
 ENV DEBIAN_FRONTEND=noninteractive
 
