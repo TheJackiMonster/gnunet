@@ -1379,7 +1379,7 @@ GNUNET_CRYPTO_hkdf_expand_v (void *result,
  * truncating the PRK, it uses it as a 64 byte key in the HKDF-Expand
  * phase with SHA256.
  * (Truncated NMAC would require us to, well, truncate it to 32 byte.)
- * ONLY USE FOR COMPATIBLITY WITH OLDER KEY DERIVATIONS.
+ * ONLY USE FOR COMPATIBILITY WITH OLDER KEY DERIVATIONS.
  * Use the more standard #GNUNET_CRYPTO_hkdf_extract and
  * #GNUNET_CRYPTO_HKDF_expand instead!
  *

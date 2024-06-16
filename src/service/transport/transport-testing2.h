@@ -916,7 +916,7 @@ GNUNET_TRANSPORT_TESTING_get_config_name (const char *file, int count);
 
 
 /**
- * Extracts the plugin anme from an absolute file name and the test name
+ * Extracts the plugin name from an absolute file name and the test name
  * @param file absolute file name
  * @param test test name
  * @return the plugin name

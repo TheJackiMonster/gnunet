@@ -43,7 +43,7 @@
 
 
 /**
- * Context to store name resolutions for valiation
+ * Context to store name resolutions for validation
  */
 struct ValidationResolutionContext
 {
@@ -115,7 +115,7 @@ struct MonitoredPeer
 };
 
 /**
- * Context to store name resolutions for valiation
+ * Context to store name resolutions for validation
  */
 struct PeerResolutionContext
 {

@@ -532,7 +532,7 @@ GNUNET_GNSRECORD_z2s (const struct GNUNET_CRYPTO_PublicKey *z);
  * This is one of the very few calls in the entire API that is
  * NOT reentrant!
  *
- * @param pkey a public key with a point on the eliptic curve
+ * @param pkey a public key with a point on the elliptic curve
  * @return string "X.zkey" where X is the coordinates of the public
  *         key in an encoding suitable for DNS labels.
  */
@@ -546,7 +546,7 @@ GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_PublicKey *pkey);
  *
  * @param zkey string "X" where X is the public
  *         key in an encoding suitable for DNS labels.
- * @param pkey set to a public key on the eliptic curve
+ * @param pkey set to a public key on the elliptic curve
  * @return #GNUNET_SYSERR if @a zkey has the wrong syntax
  */
 int

@@ -494,7 +494,7 @@ struct GNUNET_TESTING_Timer
   struct GNUNET_TIME_Relative total_duration;
 
   /**
-   * Total time spend waiting for the *successful* exeuction
+   * Total time spend waiting for the *successful* execution
    * in all commands of this type.
    */
   struct GNUNET_TIME_Relative success_latency;
@@ -804,7 +804,7 @@ GNUNET_TESTING_make_plugin (
 /**
  * A `struct GNUNET_TESTING_Trait` can be used to exchange data between cmds.
  *
- * Therefor the cmd which like to provide data to other cmds has to implement
+ * Therefore the cmd which like to provide data to other cmds has to implement
  * the trait function, where an array of traits is defined with the help of
  * the #GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the
  * help of the #GNUNET_TESTING_get_trait_ macro. Traits name and type must be

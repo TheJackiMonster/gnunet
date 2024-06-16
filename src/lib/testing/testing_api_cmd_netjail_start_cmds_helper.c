@@ -356,7 +356,7 @@ send_start_messages (struct NetJailState *ns,
             + num_barriers * sizeof (struct GNUNET_ShortHashCode);
   if (msg_len > UINT16_MAX)
   {
-    /* ask a wizzard to enhance the protocol;
+    /* ask a wizard to enhance the protocol;
        start with gzip topology_data? multiple
        init messages for barriers + topo data,
        etc.*/

@@ -99,4 +99,4 @@ EOF
 
 echo Current directory: `pwd`
 
-codespell -I "${job_dir}"/dictionary.txt -S ${skip//$'\n'/,}
+codespell -I "${job_dir}"/dictionary.txt -S ${skip//$'\n'/,} $@

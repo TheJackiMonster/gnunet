@@ -603,7 +603,7 @@ handle_create_queue (void *cls, const struct GNUNET_TRANSPORT_CreateQueue *cq)
   if (GNUNET_NO == ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Address `%s' is already (beging) connected to.\n",
+                "Address `%s' is already (being) connected to.\n",
                 addr);
     env = GNUNET_MQ_msg (cqr, GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_CREATE_FAIL);
   }
@@ -967,7 +967,7 @@ GNUNET_TRANSPORT_communicator_mq_add (
 {
   struct GNUNET_TRANSPORT_QueueHandle *qh;
 
-  // Do not notify the service if there is no intial capacity.
+  // Do not notify the service if there is no initial capacity.
   GNUNET_assert (0 < q_len);
 
   qh = GNUNET_new (struct GNUNET_TRANSPORT_QueueHandle);

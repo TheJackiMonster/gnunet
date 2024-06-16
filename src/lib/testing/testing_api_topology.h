@@ -128,12 +128,12 @@ struct GNUNET_TESTING_NodeConnection
   struct GNUNET_TESTING_NetjailNode *node;
 
   /**
-   * Head of the DLL with the address prefixes for the protocolls this node is reachable.
+   * Head of the DLL with the address prefixes for the protocols this node is reachable.
    */
   struct GNUNET_TESTING_AddressPrefix *address_prefixes_head;
 
   /**
-   * Tail of the DLL with the address prefixes for the protocolls this node is reachable.
+   * Tail of the DLL with the address prefixes for the protocols this node is reachable.
    */
   struct GNUNET_TESTING_AddressPrefix *address_prefixes_tail;
 };

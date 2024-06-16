@@ -177,7 +177,7 @@ OIDC_access_token_parse (const char *token,
  *
  * @param scopes the scopes which have been requested
  * @param attr the attribute name to check
- * @return GNUNET_YES if attribute is implcitly requested
+ * @return GNUNET_YES if attribute is implicitly requested
  */
 enum GNUNET_GenericReturnValue
 OIDC_check_scopes_for_claim_request (const char *scopes,

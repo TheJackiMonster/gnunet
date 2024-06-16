@@ -879,7 +879,7 @@ GCP_path_entry_remove (struct CadetPeer *cp,
                        unsigned int off)
 {
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Removing knowledge about peer %s beging on path %s at offset %u\n",
+       "Removing knowledge about peer %s being on path %s at offset %u\n",
        GCP_2s (cp),
        GCPP_2s (entry->path),
        off);

@@ -560,12 +560,12 @@ handle_update_queue_message (void *cls,
   tc_queue->mtu = ntohl (msg->mtu);
   tc_queue->cs = msg->cs;
   tc_queue->priority = ntohl (msg->priority);
-  // Uncomment this for alternativ 1 of backchannel functionality
+  // Uncomment this for alternative 1 of backchannel functionality
   tc_queue->q_len += GNUNET_ntohll (msg->q_len);
-  // Until here for alternativ 1
-  // Uncomment this for alternativ 2 of backchannel functionality
+  // Until here for alternative 1
+  // Uncomment this for alternative 2 of backchannel functionality
   // tc_queue->q_len = GNUNET_ntohll (msg->q_len);
-  // Until here for alternativ 2
+  // Until here for alternative 2
   GNUNET_SERVICE_client_continue (client->client);
 }
 
@@ -1218,10 +1218,10 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
                 ntohl (tc_queue->qid), (unsigned long) tc_queue->q_len, tc_queue->mtu);
   GNUNET_assert (NULL != tc_queue);
   last_queue = tc_queue;
-  // Uncomment this for alternativ 1 of backchannel functionality
+  // Uncomment this for alternative 1 of backchannel functionality
   if (tc_queue->q_len != GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED)
     tc_queue->q_len--;
-  // Until here for alternativ 1
+  // Until here for alternative 1
   static int msg_count = 0;
   msg_count++;
   if (msg_count % 100 == 0)

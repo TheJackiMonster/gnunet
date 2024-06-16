@@ -74,7 +74,7 @@ static struct GNUNET_STATISTICS_Handle *stats;
 static struct GNUNET_CORE_Handle *core;
 
 /**
- * The task to delayed start the notification process intially.
+ * The task to delayed start the notification process initially.
  * We like to give transport some time to give us our hello to distribute it.
  */
 struct GNUNET_SCHEDULER_Task *peerstore_notify_task;

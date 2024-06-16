@@ -728,7 +728,7 @@ update_hostlist ()
       ((stat_testing_hostlist == GNUNET_YES) && (NULL != current_hostlist)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Updating hostlist statics for URI `%s'\n",
+                "Updating hostlist statistics for URI `%s'\n",
                 current_hostlist->hostlist_uri);
     current_hostlist->hello_count = stat_hellos_obtained;
     current_hostlist->time_last_usage = GNUNET_TIME_absolute_get ();

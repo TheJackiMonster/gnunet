@@ -840,7 +840,7 @@ gnunet (0.8.0c-7) unstable; urgency=low
 gnunet (0.8.0c-6) unstable; urgency=low
 
   * Removing optional debconf queries in gnunet-servers postrm to avoid
-    (spuriously?) hanging processes on the buildds (Closes: #541400).
+    (spuriously?) hanging processes on the builds (Closes: #541400).
 
  -- Daniel Baumann <daniel.baumann@progress-technologies.net>  Thu, 13 Aug 2009 23:51:23 +0200
 

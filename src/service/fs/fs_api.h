@@ -1846,7 +1846,7 @@ struct GNUNET_FS_DownloadContext
 
   /**
    * Map of active requests (those waiting for a response).  The key
-   * is the hash of the encryped block (aka query).
+   * is the hash of the encrypted block (aka query).
    */
   struct GNUNET_CONTAINER_MultiHashMap *active;
 

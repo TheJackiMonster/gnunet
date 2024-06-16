@@ -254,7 +254,7 @@ struct CadetChannel
 
   /**
    * Client owner of the tunnel, if any.
-   * (Used if this channel represends the initiating end of the tunnel.)
+   * (Used if this channel represents the initiating end of the tunnel.)
    */
   struct CadetChannelClient *owner;
 

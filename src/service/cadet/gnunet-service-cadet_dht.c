@@ -98,7 +98,7 @@ static struct GNUNET_TIME_Relative announce_delay;
  * @param cls closure
  * @param exp when will this value expire
  * @param key key of the result
- * @param trunc_peer peer preceeding with invalid signature, or NULL
+ * @param trunc_peer peer proceeding with invalid signature, or NULL
  * @param get_path path of the get request
  * @param get_path_length length of @a get_path
  * @param put_path path of the put request

@@ -29,7 +29,7 @@
 #include "gnunet_cadet_service.h"
 #include "../../service/cadet/cadet.h" // FIXME Smell: this should not be shared like this.
 
-#define STREAM_BUFFER_SIZE 1024 // Pakets
+#define STREAM_BUFFER_SIZE 1024 // Packets
 
 /**
  * Option -P.

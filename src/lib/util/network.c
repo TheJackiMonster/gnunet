@@ -206,7 +206,7 @@ GNUNET_NETWORK_unix_precheck (const struct sockaddr_un *un)
     return; /* refuse to unlink anything except sockets */
   /* finally, really unlink */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "Removing left-over `%s' from previous exeuction\n",
+              "Removing left-over `%s' from previous execution\n",
               un->sun_path);
   if (0 != unlink (un->sun_path))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING,

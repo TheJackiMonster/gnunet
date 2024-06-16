@@ -498,7 +498,7 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (
  *
  * @param point storage for calculated point on Curve25519
  * @param source Ed25519 curve point
- * @return 'false' if source is not a valid Ed25519 point. In this case the 'point' array will be undefined but dependend on source.
+ * @return 'false' if source is not a valid Ed25519 point. In this case the 'point' array will be undefined but dependent on source.
  */
 static bool
 convert_from_ed_to_curve (uint8_t *point,

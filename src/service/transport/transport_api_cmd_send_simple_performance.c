@@ -87,7 +87,7 @@ struct MQWrapper
   struct GNUNET_MQ_Handle *mq;
 
   /**
-   * Number of messages allready send.
+   * Number of messages already send.
    */
   uint32_t num_send;
 };

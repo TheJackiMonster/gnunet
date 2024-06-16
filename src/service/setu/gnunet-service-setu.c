@@ -1045,7 +1045,7 @@ calculate_perf_store ()
  * @param est_set_diff_local
  * @param bandwith_latency_tradeoff
  * @param ibf_bucket_number_factor
- * @return calcuated mode of operation
+ * @return calculated mode of operation
  */
 static uint8_t
 estimate_best_mode_of_operation (uint64_t avg_element_size,
@@ -5271,7 +5271,7 @@ handle_client_accept (void *cls,
 #endif
 
   /* Advance generation values, so that future mutations do not
-     interfer with the running operation. */
+     interfere with the running operation. */
   op->generation_created = set->current_generation;
   advance_generation (set);
   GNUNET_assert (NULL == op->se);

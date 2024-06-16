@@ -86,7 +86,7 @@ struct GNUNET_CADET_ConnectionCreateMessage
 
   /**
    * This flag indicates the peer sending the connection create
-   * meassage likes to trigger a KX handshake.
+   * message likes to trigger a KX handshake.
    */
   int has_monotime;
 

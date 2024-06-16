@@ -5,7 +5,7 @@
 #include "gnunet_testbed_lib.h"
 
 /**
- * This command destroys the ressources allocated for the test system setup.
+ * This command destroys the resources allocated for the test system setup.
  *
  * @param label Name for command.
  * @param create_label Label of the cmd which started the test system.
