@@ -1,5 +1,4 @@
-# FIXME: Only use unstable for riscv
-FROM docker.io/library/debian:unstable
+FROM docker.io/library/debian:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
 
