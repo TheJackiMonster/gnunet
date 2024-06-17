@@ -25,11 +25,14 @@
  * @author Florian Dold
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include <gcrypt.h>
 #include <sodium.h>
 #include "gnunet_util_lib.h"
 #include "benchmark.h"
+#include "sodium/crypto_scalarmult.h"
+#include "sodium/utils.h"
 
 #define EXTRA_CHECKS 0
 
@@ -761,12 +764,80 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
 
 
 enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_eddsa_ecdh_kdf (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                              const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                              struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_HashCode hc;
+  struct GNUNET_ShortHashCode prk;
+  uint8_t a[crypto_scalarmult_SCALARBYTES];
+  uint8_t p[crypto_scalarmult_BYTES];
+  uint8_t ikm[crypto_scalarmult_BYTES * 2];
+
+  GNUNET_CRYPTO_hash (priv,
+                      sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey),
+                      &hc);
+  memcpy (a, &hc, sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
+  // Z := X25519(x,A) with x = p
+  if (0 != crypto_scalarmult (p, a, pub->q_y))
+    return GNUNET_SYSERR;
+  memcpy (ikm, pub->q_y, crypto_scalarmult_BYTES);
+  memcpy (ikm + crypto_scalarmult_BYTES, p, crypto_scalarmult_BYTES);
+  // KDF(A, X25519(a,X))
+  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
+
+  // to get 512 bits, we call expand once
+  GNUNET_CRYPTO_hkdf_expand(&key_material, sizeof *key_material, &prk,
+                            "gnunet-ed25519-x25519-ecdh",
+                            strlen ("gnunet-ed25519-x25519-ecdh"),
+                            NULL);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdh_eddsa_kdf (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
+                              const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
+                              struct GNUNET_HashCode *key_material)
+{
+  struct GNUNET_CRYPTO_EcdhePublicKey A;
+  struct GNUNET_ShortHashCode prk;
+  uint8_t p[crypto_scalarmult_BYTES];
+  uint8_t curve25510_pk[crypto_scalarmult_BYTES];
+  uint8_t ikm[crypto_scalarmult_BYTES * 2];
+
+  // A := a * G
+  GNUNET_CRYPTO_ecdhe_key_get_public(priv, &A);
+  // This maps the ed25519 point to X25519
+  if (0 != crypto_sign_ed25519_pk_to_curve25519 (curve25510_pk, pub->q_y))
+    return GNUNET_SYSERR;
+  // Z := X25519(a,X)
+  if (0 != crypto_scalarmult (p, priv->d, curve25510_pk))
+    return GNUNET_SYSERR;
+  // From https://eprint.iacr.org/2021/509.pdf:
+  // To avoid potential malleability and preserve IND-CCA security, the original untranslated
+  // encapsulation A should be put into the KDF during decapsulation (and encapsulation).
+  memcpy (ikm, &A, crypto_scalarmult_BYTES);
+  memcpy (ikm + crypto_scalarmult_BYTES, p, crypto_scalarmult_BYTES);
+  // KDF(A, Z)
+  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
+
+  // to get 512 bits, we call expand once
+  GNUNET_CRYPTO_hkdf_expand(&key_material, sizeof *key_material, &prk,
+                            "gnunet-ed25519-x25519-ecdh",
+                            strlen ("gnunet-ed25519-x25519-ecdh"),
+                            NULL);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_kem_decaps (const struct
                                 GNUNET_CRYPTO_EddsaPrivateKey *priv,
                                 const struct GNUNET_CRYPTO_EcdhePublicKey *c,
                                 struct GNUNET_HashCode *key_material)
 {
-  return GNUNET_CRYPTO_eddsa_ecdh (priv, c, key_material);
+  return GNUNET_CRYPTO_eddsa_ecdh_kdf (priv, c, key_material);
 }
 
 
@@ -814,7 +885,7 @@ GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
 
   GNUNET_CRYPTO_ecdhe_key_create (&sk);
   GNUNET_CRYPTO_ecdhe_key_get_public (&sk, c);
-  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
+  return GNUNET_CRYPTO_ecdh_eddsa_kdf (&sk, pub, key_material);
 }
 
 

@@ -658,7 +658,7 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
 
   GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
 
-  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
+  return GNUNET_CRYPTO_ecdh_eddsa_kdf (&sk, pub, key_material);
 }
 
 
@@ -670,5 +670,5 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pub;
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub, NULL, r);
-  return GNUNET_CRYPTO_eddsa_ecdh (priv, &pub, key_material);
+  return GNUNET_CRYPTO_eddsa_ecdh_kdf (priv, &pub, key_material);
 }
