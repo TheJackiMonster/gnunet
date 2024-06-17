@@ -1221,45 +1221,49 @@ setup_cipher (const struct GNUNET_HashCode *dh,
 {
   char key[256 / 8];
   char ctr[128 / 8];
+  char ikm[sizeof (*pid) + sizeof (*dh)];
+  struct GNUNET_ShortHashCode prk;
 
   GNUNET_assert (0 == gcry_cipher_open (cipher,
                                         GCRY_CIPHER_AES256 /* low level: go for speed */
                                         ,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (key,
-                                                  sizeof(key),
-                                                  "TCP-key",
-                                                  strlen ("TCP-key"),
-                                                  dh,
-                                                  sizeof(*dh),
-                                                  pid,
-                                                  sizeof(*pid),
-                                                  NULL,
-                                                  0));
+  memcpy (ikm, pid, sizeof (*pid));
+  memcpy (ikm + sizeof (*pid), dh, sizeof (*dh));
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_extract (&prk,
+                                             NULL, 0,
+                                             ikm, sizeof (ikm)));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CRYPTO_hkdf_expand (key,
+                                            sizeof(key),
+                                            &prk,
+                                            "gnunet-communicator-tcp-key",
+                                            strlen (
+                                              "gnunet-communicator-tcp-key"),
+                                            pid,
+                                            sizeof(*pid),
+                                            NULL,
+                                            0));
   GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (ctr,
-                                                  sizeof(ctr),
-                                                  "TCP-ctr",
-                                                  strlen ("TCP-ctr"),
-                                                  dh,
-                                                  sizeof(*dh),
-                                                  pid,
-                                                  sizeof(*pid),
-                                                  NULL,
-                                                  0));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CRYPTO_hkdf_expand (ctr,
+                                            sizeof(ctr),
+                                            &prk,
+                                            "gnunet-communicator-tcp-ctr",
+                                            strlen (
+                                              "gnunet-communicator-tcp-ctr"),
+                                            NULL,
+                                            0));
   gcry_cipher_setctr (*cipher, ctr, sizeof(ctr));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (hmac_key,
-                                    sizeof(struct GNUNET_HashCode),
-                                    "TCP-hmac",
-                                    strlen ("TCP-hmac"),
-                                    dh,
-                                    sizeof(*dh),
-                                    pid,
-                                    sizeof(*pid),
-                                    NULL,
-                                    0));
+                 GNUNET_CRYPTO_hkdf_expand (hmac_key,
+                                            sizeof(struct GNUNET_HashCode),
+                                            &prk,
+                                            "gnunet-communicator-hmac",
+                                            strlen ("gnunet-communicator-hmac"),
+                                            NULL,
+                                            0));
 }
 
 
