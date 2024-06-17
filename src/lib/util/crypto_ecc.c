@@ -790,7 +790,7 @@ GNUNET_CRYPTO_eddsa_ecdh_kdf (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   GNUNET_CRYPTO_hkdf_expand(&key_material, sizeof *key_material, &prk,
                             "gnunet-ed25519-x25519-ecdh",
                             strlen ("gnunet-ed25519-x25519-ecdh"),
-                            NULL);
+                            NULL, 0);
   return GNUNET_OK;
 }
 
@@ -826,7 +826,7 @@ GNUNET_CRYPTO_ecdh_eddsa_kdf (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
   GNUNET_CRYPTO_hkdf_expand(&key_material, sizeof *key_material, &prk,
                             "gnunet-ed25519-x25519-ecdh",
                             strlen ("gnunet-ed25519-x25519-ecdh"),
-                            NULL);
+                            NULL, 0);
   return GNUNET_OK;
 }
 
