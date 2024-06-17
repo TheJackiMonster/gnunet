@@ -976,8 +976,8 @@ get_kid (const struct GNUNET_HashCode *msec,
   GNUNET_CRYPTO_hkdf_expand (kid,
                              sizeof(*kid),
                              &prk,
-                             "UDP-KID",
-                             strlen ("UDP-KID"),
+                             "gnunet-communicator-udp-kid",
+                             strlen ("gnunet-communicator-udp-kid"),
                              NULL,
                              0);
 }
@@ -1119,8 +1119,8 @@ get_iv_key (const struct GNUNET_HashCode *msec,
   GNUNET_CRYPTO_hkdf_expand (res,
                              sizeof(res),
                              &prk,
-                             "UDP-IV-KEY",
-                             strlen ("UDP-IV-KEY"),
+                             "gnunet-communicator-udp-key-iv",
+                             strlen ("gnunet-communicator-udp-key-iv"),
                              NULL,
                              0);
   memcpy (key, res, AES_KEY_SIZE);
@@ -1210,13 +1210,14 @@ calculate_cmac (struct SharedSecret *ss)
 {
   struct GNUNET_ShortHashCode prk;
   GNUNET_CRYPTO_hkdf_extract (&prk,
-                              "CMAC", strlen ("CMAC"),
+                              NULL,
+                              0,
                               &ss->master, sizeof (ss->master));
   GNUNET_CRYPTO_hkdf_expand (&ss->cmac,
                              sizeof(ss->cmac),
                              &prk,
-                             "UDP-CMAC",
-                             strlen ("UDP-CMAC"),
+                             "gnunet-communicator-udp-cmac",
+                             strlen ("gnunet-communicator-udp-cmac"),
                              NULL,
                              0);
 }
