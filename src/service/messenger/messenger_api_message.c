@@ -600,9 +600,11 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     encode_step (buffer, offset, &(body->privacy.key));
-    encode_step_ext (buffer, offset, body->privacy.data, min (length - offset,
-                                                              body->privacy.
-                                                              length));
+
+    if (body->privacy.data)
+      encode_step_ext (buffer, offset, body->privacy.data, min (length - offset,
+                                                                body->privacy.
+                                                                length));
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     encode_step (buffer, offset, &(body->deletion.hash));
@@ -622,14 +624,17 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
     encode_step_key (buffer, offset, &(body->transcript.key), length);
-    encode_step_ext (buffer, offset, body->transcript.data, min (length
-                                                                 - offset,
-                                                                 body->
-                                                                 transcript.
-                                                                 length));
+
+    if (body->transcript.data)
+      encode_step_ext (buffer, offset, body->transcript.data, min (length
+                                                                  - offset,
+                                                                  body->
+                                                                  transcript.
+                                                                  length));
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     encode_step (buffer, offset, &(body->tag.hash));
+    
     if (body->tag.tag)
       encode_step_ext (buffer, offset, body->tag.tag, min (length - offset,
                                                            strlen (
@@ -644,9 +649,11 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_TALK:
     encode_step (buffer, offset, &(body->talk.discourse));
-    encode_step_ext (buffer, offset, body->talk.data, min (length - offset,
-                                                           body->talk.
-                                                           length));
+
+    if (body->talk.data)
+      encode_step_ext (buffer, offset, body->talk.data, min (length - offset,
+                                                            body->talk.
+                                                            length));
     break;
   default:
     break;
@@ -830,8 +837,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_PRIVATE:
     decode_step (buffer, offset, &(body->privacy.key));
 
-    body->privacy.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->privacy.data, length - offset, 0);
+    if (length > offset)
+    {
+      body->privacy.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->privacy.data, length - offset,
+                          0);
+    }
+    else
+    {
+      body->privacy.length = 0;
+      body->privacy.data = NULL;
+    }
+    
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     decode_step (buffer, offset, &(body->deletion.hash));
@@ -855,9 +872,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     decode_step (buffer, offset, &(body->transcript.hash));
     decode_step_key (buffer, offset, &(body->transcript.key), length);
 
-    body->transcript.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->transcript.data, length - offset,
-                        0);
+    if (length > offset)
+    {
+      body->transcript.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->transcript.data, 
+                          length - offset, 0);
+    }
+    else
+    {
+      body->transcript.length = 0;
+      body->transcript.data = NULL;
+    }
+    
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     decode_step (buffer, offset, &(body->tag.hash));
@@ -876,8 +902,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_TALK:
     decode_step (buffer, offset, &(body->talk.discourse));
 
-    body->talk.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->talk.data, length - offset, 0);
+    if (length > offset)
+    {
+      body->talk.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->talk.data, length - offset,
+                          0);
+    }
+    else
+    {
+      body->talk.length = 0;
+      body->talk.data = NULL;
+    }
+
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
