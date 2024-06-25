@@ -5,7 +5,10 @@
 set -eu
 set -x
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+if [ -z ${PATH+x} ];
+then
+  export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+fi
 
 filename=$1
 PREFIX=$PPID
