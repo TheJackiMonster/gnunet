@@ -12,7 +12,7 @@ PREFIX=${PPID:?must run from a parent process}
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 export RESULT=
-export NAMESPACE_NUM=0
+export NAMESPACE_NUM=1
 export INTERFACE_NUM=0
 
 IPT=iptables-nft
