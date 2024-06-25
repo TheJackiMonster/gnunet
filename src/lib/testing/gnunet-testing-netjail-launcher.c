@@ -70,10 +70,14 @@ main (int argc,
       GNUNET_TESTING_cmd_barrier_create ("peers-started-barrier",
                                          NUM_PEERS),
 #endif
-      GNUNET_TESTING_cmd_netjail_setup (
-        "netjail-start",
-        GNUNET_TESTING_NETJAIL_START_SCRIPT,
-        "load-topology"),
+      GNUNET_TESTING_cmd_make_unblocking (
+          GNUNET_TESTING_cmd_netjail_setup (
+          "netjail-start",
+          GNUNET_TESTING_NETJAIL_START_SCRIPT,
+          "load-topology")),
+      GNUNET_TESTING_cmd_finish ("wait-netjail-start",
+                                 "netjail-start",
+                                 GNUNET_TIME_UNIT_SECONDS),
       GNUNET_TESTING_cmd_netjail_start_helpers (
         "netjail-start-testbed",
         "load-topology",
