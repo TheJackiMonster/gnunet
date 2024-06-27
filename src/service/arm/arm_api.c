@@ -170,7 +170,7 @@ struct GNUNET_ARM_Handle
  * @param h arm handle
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
-static int
+static enum GNUNET_GenericReturnValue
 reconnect_arm (struct GNUNET_ARM_Handle *h);
 
 
