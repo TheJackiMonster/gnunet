@@ -19,6 +19,11 @@ libgnunetgnsrecord_dep = declare_dependency(link_with : libgnunetgnsrecord)
 pkg.generate(libgnunetgnsrecord, url: 'https://www.gnunet.org',
              description : 'Provides API for manipulating GNS records')
 
+executable ('gnunet-gnsrecord-tvg',
+            ['gnunet-gnsrecord-tvg.c'],
+            dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
 
 libgnunetgnsrecordjson = library('gnunetgnsrecordjson',
         libgnunetgnsrecordjson_src,
