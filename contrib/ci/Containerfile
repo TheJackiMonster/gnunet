@@ -1,0 +1,2 @@
+# ci.sh handles the actual containerfile; this file exists to trick the CI into not exiting fatally due to there not being a contrib/ci/Containerfile: https://buildbot.taler.net/#/builders/18/builds/1041
+FROM scratch
