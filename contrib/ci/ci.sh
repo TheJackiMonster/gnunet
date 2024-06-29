@@ -12,7 +12,7 @@ CONTAINER_BUILD=$((grep CONTAINER_BUILD contrib/ci/jobs/${JOB_NAME}/config.ini |
 CONTAINERFILE="contrib/ci/$JOB_ARCH.Containerfile"
 
 if ! [[ -f "$CONTAINERFILE" ]]; then
-	CONTAINERFILE="$(dirname "$CONTAINERFILE")/Containerfile"
+	CONTAINERFILE="$(dirname "$CONTAINERFILE")/multiarch.Containerfile"
 fi;
 
 echo "Image name: ${JOB_CONTAINER}
