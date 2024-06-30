@@ -69,6 +69,11 @@
 #define GNUNET_REST_IDENTITY_PARAM_NAME "name"
 
 /**
+ * Parameter type
+ */
+#define GNUNET_REST_IDENTITY_PARAM_TYPE "type"
+
+/**
  * Parameter new name
  */
 #define GNUNET_REST_IDENTITY_PARAM_NEWNAME "newname"
@@ -761,6 +766,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   json_t *data_js;
   json_error_t err;
   char *egoname;
+  char *egotype;
   char *privkey;
   struct GNUNET_CRYPTO_PrivateKey pk;
   struct GNUNET_CRYPTO_PrivateKey *pk_ptr;
@@ -792,8 +798,9 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   json_unpack_state = 0;
   privkey = NULL;
   json_unpack_state =
-    json_unpack (data_js, "{s:s, s?:s!}",
+    json_unpack (data_js, "{s:s, s?:s, s?:s}",
                  GNUNET_REST_IDENTITY_PARAM_NAME, &egoname,
+                 GNUNET_REST_IDENTITY_PARAM_TYPE, &egotype,
                  GNUNET_REST_IDENTITY_PARAM_PRIVKEY, &privkey);
   if (0 != json_unpack_state)
   {
@@ -802,7 +809,9 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     json_decref (data_js);
     return;
   }
-
+  int type = GNUNET_PUBLIC_KEY_TYPE_ECDSA;
+  if ((NULL != egotype) && (0 == strcasecmp (egotype, "EDDSA")))
+    type = GNUNET_PUBLIC_KEY_TYPE_EDDSA;
   if (NULL == egoname)
   {
     handle->ec = GNUNET_EC_IDENTITY_INVALID;
@@ -834,7 +843,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   handle->op = GNUNET_IDENTITY_create (identity_handle,
                                        handle->name,
                                        pk_ptr,
-                                       GNUNET_PUBLIC_KEY_TYPE_ECDSA,
+                                       type,
                                        &do_finished_create,
                                        handle);
 }
