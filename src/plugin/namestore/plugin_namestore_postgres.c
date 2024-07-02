@@ -119,6 +119,17 @@ database_prepare (struct Plugin *plugin)
     return GNUNET_OK;
   {
     struct GNUNET_PQ_PreparedStatement ps[] = {
+      GNUNET_PQ_make_prepare ("store_records_bulk",
+                              "FOR i IN 1..cardinality($1) LOOP "
+                              "INSERT INTO namestore.ns098records"
+                              " (zone_private_key, pkey, rvalue, record_count, record_data, label, editor_hint)"
+                              " VALUES ($1, $2, $3, $4, $5, $6, '')"
+                              " ON CONFLICT ON CONSTRAINT zl"
+                              " DO UPDATE"
+                              "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
+                              "    WHERE ns098records.zone_private_key = $1"
+                              "          AND ns098records.label = $6"
+                              " END LOOP"),
       GNUNET_PQ_make_prepare ("store_records",
                               "INSERT INTO namestore.ns098records"
                               " (zone_private_key, pkey, rvalue, record_count, record_data, label, editor_hint)"
@@ -709,6 +720,62 @@ namestore_postgres_zone_to_name (void *cls,
   return GNUNET_OK;
 }
 
+/**
+ *
+ * @param cls closure (internal context for the plugin)
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_begin_tx (void *cls)
+{
+
+  struct Plugin *plugin = cls;
+
+  struct GNUNET_PQ_ExecuteStatement ess[] = {
+    GNUNET_PQ_make_try_execute ("BEGIN"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+}
+
+/**
+ *
+ * @param cls closure (internal context for the plugin)
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_commit_tx (void *cls)
+{
+
+  struct Plugin *plugin = cls;
+
+  struct GNUNET_PQ_ExecuteStatement ess[] = {
+    GNUNET_PQ_make_try_execute ("COMMIT"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+}
+
+/**
+ *
+ * @param cls closure (internal context for the plugin)
+ * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
+ */
+static int
+namestore_postgres_rollback_tx (void *cls)
+{
+
+  struct Plugin *plugin = cls;
+
+  struct GNUNET_PQ_ExecuteStatement ess[] = {
+    GNUNET_PQ_make_try_execute ("ROLLBACK"),
+    GNUNET_PQ_EXECUTE_STATEMENT_END
+  };
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
+  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+}
 
 /**
  * Shutdown database connection and associate data
@@ -755,6 +822,9 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   api->lookup_records = &namestore_postgres_lookup_records;
   api->edit_records = &namestore_postgres_edit_records;
   api->clear_editor_hint = &namestore_postgres_clear_editor_hint;
+  api->begin_tx = &namestore_postgres_begin_tx;
+  api->commit_tx = &namestore_postgres_commit_tx;
+  api->rollback_tx = &namestore_postgres_rollback_tx;
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Postgres namestore plugin running\n");
   return api;

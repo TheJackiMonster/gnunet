@@ -1946,6 +1946,8 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
   rid = ntohl (rp_msg->gns_header.r_id);
   rd_set_count = ntohs (rp_msg->rd_set_count);
   buf = (const char *) rp_msg + rs_off;
+  if (GNUNET_YES == ntohs (rp_msg->single_tx))
+    GSN_database->begin_tx (GSN_database->cls);
   for (int i = 0; i < rd_set_count; i++)
   {
     rs = (struct RecordSet *) buf;
@@ -1953,12 +1955,16 @@ handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
                             rs, &read);
     if (GNUNET_EC_NONE != res)
     {
+      if (GNUNET_YES == ntohs (rp_msg->single_tx))
+        GSN_database->rollback_tx (GSN_database->cls);
       send_store_response (nc, res, rid);
       GNUNET_SERVICE_client_continue (nc->client);
       return;
     }
     buf += read;
   }
+  if (GNUNET_YES == ntohs (rp_msg->single_tx))
+    GSN_database->commit_tx (GSN_database->cls);
   sa = GNUNET_malloc (sizeof(struct StoreActivity) + rs_len);
   GNUNET_CONTAINER_DLL_insert (sa_head, sa_tail, sa);
   sa->nc = nc;

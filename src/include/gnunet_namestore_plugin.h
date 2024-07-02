@@ -203,6 +203,39 @@ struct GNUNET_NAMESTORE_PluginFunctions
                        const char *label);
 
   /**
+   * Tell plugin that a set of procedures are coming that
+   * are ideally handled within a single TX (BEGIN/COMMIT).
+   * This may be implemented as a NOP, but can speed up
+   * store calls in some cases (e.g. SQL databases)
+   *
+   * @param cls closure (internal context for the plugin)
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  enum GNUNET_GenericReturnValue
+  (*begin_tx)(void *cls);
+
+  /**
+   * Tell plugin the we finished what we started with
+   * #begin_tx
+   *
+   * @param cls closure (internal context for the plugin)
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  enum GNUNET_GenericReturnValue
+  (*commit_tx)(void *cls);
+
+  /**
+   * Tell plugin to rollback what we started with
+   * #begin_tx
+   * This may be a NOP (and thus NOT roll anything back!)
+   *
+   * @param cls closure (internal context for the plugin)
+   * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
+   */
+  enum GNUNET_GenericReturnValue
+  (*rollback_tx)(void *cls);
+
+  /**
    * Setup the database.
    *
    * @param cls closure (internal context for the plugin)
