@@ -119,17 +119,6 @@ database_prepare (struct Plugin *plugin)
     return GNUNET_OK;
   {
     struct GNUNET_PQ_PreparedStatement ps[] = {
-      GNUNET_PQ_make_prepare ("store_records_bulk",
-                              "FOR i IN 1..cardinality($1) LOOP "
-                              "INSERT INTO namestore.ns098records"
-                              " (zone_private_key, pkey, rvalue, record_count, record_data, label, editor_hint)"
-                              " VALUES ($1, $2, $3, $4, $5, $6, '')"
-                              " ON CONFLICT ON CONSTRAINT zl"
-                              " DO UPDATE"
-                              "    SET pkey=$2,rvalue=$3,record_count=$4,record_data=$5"
-                              "    WHERE ns098records.zone_private_key = $1"
-                              "          AND ns098records.label = $6"
-                              " END LOOP"),
       GNUNET_PQ_make_prepare ("store_records",
                               "INSERT INTO namestore.ns098records"
                               " (zone_private_key, pkey, rvalue, record_count, record_data, label, editor_hint)"

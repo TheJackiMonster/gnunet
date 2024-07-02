@@ -1360,6 +1360,12 @@ del_monitor (void *cls,
 
 
 static void
+schedule_finish (void* cls)
+{
+  finish_command();
+}
+
+static void
 replace_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
@@ -1372,7 +1378,7 @@ replace_cont (void *cls, enum GNUNET_ErrorCode ec)
                 GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
-  finish_command ();
+  GNUNET_SCHEDULER_add_now(&schedule_finish, NULL);
 }
 
 
@@ -1396,7 +1402,7 @@ batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                            &replace_cont,
                                            NULL);
   ri_sent += sent_here;
-  fprintf (stderr, "Sent %d/%d record infos\n", ri_sent, ri_count);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent %d/%d record infos\n", ri_sent, ri_count);
   if (ri_sent == ri_count)
   {
     for (int i = 0; i < ri_count; i++)
@@ -1894,7 +1900,7 @@ process_command_stdin ()
      */
     if (buf[strlen (buf) - 1] == ':')
     {
-      fprintf (stderr, "Switching to %s\n", buf);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching to %s\n", buf);
       memset (next_name, 0, sizeof (next_name));
       strncpy (next_name, buf, strlen (buf) - 1);
       tmp = strchr (next_name, '.');
@@ -1917,11 +1923,13 @@ process_command_stdin ()
       /* Run a command for the previous record set */
       if (NULL != recordset)
       {
-        fprintf (stderr, "Recordset not empty\n");
         if (ri_count >= record_info_capacity)
         {
-          GNUNET_array_grow (record_info, record_info_capacity, record_info_capacity + max_batch_size);
-          fprintf (stderr, "Recordinfo array grown to %u bytes!\n", record_info_capacity);
+          GNUNET_array_grow (record_info,
+                             record_info_capacity,
+                             record_info_capacity + max_batch_size);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Recordinfo array grown to %u bytes!\n", record_info_capacity);
         }
         record_info[ri_count].a_label = GNUNET_strdup (current_name);
         int rd_count = 0;
@@ -1945,20 +1953,20 @@ process_command_stdin ()
         }
         record_info[ri_count].a_rd_count = rd_count;
         ri_count++;
-        fprintf (stderr, "Added %d records to record info\n", rd_count);
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added %d records to record info\n", rd_count);
         clear_recordset ();
         /* If the zone has changed, insert */
         /* If we have reached batch size, insert */
         if (0 != GNUNET_memcmp (&next_zone_key, &zone_pkey) ||
            (ri_count >= max_batch_size))
         {
-          fprintf (stderr, "Batch inserting %d RI\n", ri_count);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Batch inserting %d RI\n", ri_count);
           batch_insert_recordinfo (cfg);
           return;
         }
       }
       zone_pkey = next_zone_key;
-      fprintf (stderr, "Switching from %s to %s\n", current_name, next_name);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching from %s to %s\n", current_name, next_name);
       if (NULL != current_name)
         GNUNET_free (current_name);
       current_name = GNUNET_strdup (next_name);
@@ -1970,7 +1978,6 @@ process_command_stdin ()
       fprintf (stderr, "Warning, encountered recordline without zone\n");
       continue;
     }
-    fprintf (stderr, "Adding record line %s\n", buf);
     parse_recordline (buf);
   }
   if (GNUNET_NO == finished)
