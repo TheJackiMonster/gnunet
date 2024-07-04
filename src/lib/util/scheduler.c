@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2009-2017, 2022 GNUnet e.V.
+      Copyright (C) 2009-2017, 2022, 2024 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -520,6 +520,7 @@ remove_pass_end_marker ()
                                  ready_tail[pass_end_marker.priority],
                                  &pass_end_marker);
     pass_end_marker.in_ready_list = GNUNET_NO;
+    ready_count--;
   }
 }
 
@@ -534,6 +535,7 @@ set_work_priority (enum GNUNET_SCHEDULER_Priority p)
   pass_end_marker.priority = p;
   pass_end_marker.in_ready_list = GNUNET_YES;
   work_priority = p;
+  ready_count++;
 }
 
 
