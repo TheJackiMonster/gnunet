@@ -881,10 +881,9 @@ continue_store_activity (struct StoreActivity *sa,
   unsigned int rd_count;
   size_t name_len;
   size_t rd_ser_len;
-  const char *name_tmp;
+  const char *name;
   const char *rd_ser;
   const char *buf;
-  char *conv_name = NULL;
 
   buf = (const char *) &sa[1];
   for (int i = sa->rd_set_pos; i < sa->rd_set_count; i++)
@@ -893,10 +892,9 @@ continue_store_activity (struct StoreActivity *sa,
     name_len = ntohs (rd_set->name_len);
     rd_count = ntohs (rd_set->rd_count);
     rd_ser_len = ntohs (rd_set->rd_len);
-    name_tmp = (const char *) &rd_set[1];
+    name = (const char *) &rd_set[1];
     buf += sizeof (struct RecordSet) + name_len + rd_ser_len;
-    rd_ser = &name_tmp[name_len];
-    conv_name = GNUNET_GNSRECORD_string_normalize (name_tmp);
+    rd_ser = &name[name_len];
     {
       struct GNUNET_GNSRECORD_Data rd[GNUNET_NZL (rd_count)];
 
@@ -908,7 +906,7 @@ continue_store_activity (struct StoreActivity *sa,
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Checking monitors watching for `%s'\n",
-                  conv_name);
+                  name);
       for (struct ZoneMonitor *zm = sa->zm_pos; NULL != zm; zm = sa->zm_pos)
       {
         if ((0 != GNUNET_memcmp (&sa->private_key, &zm->zone)) &&
@@ -929,17 +927,16 @@ continue_store_activity (struct StoreActivity *sa,
                                           zm);
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                       "Monitor is blocking client for `%s'\n",
-                      conv_name);
-          GNUNET_free (conv_name);
+                      name);
           return GNUNET_NO;    /* blocked on zone monitor */
         }
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Notifying monitor about changes under label `%s'\n",
-                    conv_name);
+                    name);
         if (0 < send_lookup_response_with_filter (zm->nc,
                                                   0,
                                                   &sa->private_key,
-                                                  conv_name,
+                                                  name,
                                                   rd_count,
                                                   rd,
                                                   zm->filter))
@@ -953,7 +950,6 @@ continue_store_activity (struct StoreActivity *sa,
     GNUNET_SERVICE_client_continue (sa->nc->client);
   send_store_response (sa->nc, GNUNET_EC_NONE, sa->rid);
   free_store_activity (sa);
-  GNUNET_free (conv_name);
   return GNUNET_OK;
 }
 
