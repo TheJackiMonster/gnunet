@@ -672,12 +672,12 @@ batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg);
 static void
 finish_command (void)
 {
-  if (ri_sent < ri_count)
-  {
-    batch_insert_recordinfo (cfg);
-    return;
-  }
-  reset_handles ();
+  //if (ri_sent < ri_count)
+  //{
+  //  batch_insert_recordinfo (cfg);
+  //  return;
+  //}
+  //reset_handles ();
   if (read_from_stdin)
   {
     process_command_stdin ();
@@ -2014,6 +2014,11 @@ process_command_stdin ()
       }
       fprintf (stderr, "Warning, encountered recordline without zone\n");
     }
+  }
+  if (ri_sent < ri_count)
+  {
+    batch_insert_recordinfo(cfg);
+    return;
   }
   GNUNET_SCHEDULER_shutdown ();
   return;
