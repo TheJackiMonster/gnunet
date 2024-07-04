@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2012-2019 GNUnet e.V.
+     Copyright (C) 2012-2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -318,7 +318,8 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
   }
   ev->parent_queue = mq;
   /* is the implementation busy? queue it! */
-  if ((NULL != mq->current_envelope) || (NULL != mq->send_task))
+  if ((NULL != mq->current_envelope) || (NULL != mq->send_task) ||
+      (NULL != mq->envelope_head))
   {
     GNUNET_CONTAINER_DLL_insert_tail (mq->envelope_head,
                                       mq->envelope_tail,
