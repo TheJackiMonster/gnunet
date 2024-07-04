@@ -11,14 +11,16 @@ JOB_CONTAINER=$((grep CONTAINER_NAME contrib/ci/jobs/${JOB_NAME}/config.ini | cu
 CONTAINER_BUILD=$((grep CONTAINER_BUILD contrib/ci/jobs/${JOB_NAME}/config.ini | cut -d' ' -f 3) || echo "True")
 CONTAINERFILE="contrib/ci/$JOB_ARCH.Containerfile"
 
-if ! [[ -f "$CONTAINERFILE" ]]; then
+if ! [[ -f "$CONTAINERFILE" ]];
+then
 	CONTAINERFILE="$(dirname "$CONTAINERFILE")/Containerfile"
-fi;
+fi
 
-echo "Image name: ${JOB_CONTAINER}
-Containerfile: ${CONTAINERFILE}"
+echo "Image name: ${JOB_CONTAINER}" 2>&1
+echo "Containerfile: ${CONTAINERFILE}" 2>&1
 
-if [ "${CONTAINER_BUILD}" = "True" ] ; then
+if [ "${CONTAINER_BUILD}" = "True" ] ;
+then
 	"${OCI_RUNTIME}" build \
 		--arch "${JOB_ARCH}" \
 		-t "${JOB_CONTAINER}" \
