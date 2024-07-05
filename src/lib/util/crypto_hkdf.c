@@ -92,12 +92,12 @@ hkdf_expand (void *result,
     size_t left = out_len;
     const void *ctx_arg;
     unsigned char tmp[crypto_auth_hmacsha256_BYTES];
-    unsigned char *ctx = GNUNET_malloc (ctx_len);
+    unsigned char ctx[ctx_len];
     unsigned char *dst = ctx;
     crypto_auth_hmacsha256_state st;
     unsigned char counter = 1U;
 
-    ctx = dst;
+    sodium_memzero (ctx, sizeof ctx);
     va_copy (args, argp);
     while ((ctx_arg = va_arg (args, void *)))
     {
