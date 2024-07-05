@@ -24,9 +24,8 @@
  * @author Christian Grothoff
  * @author Florian Dold
  */
-
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include <gcrypt.h>
 #include <sodium.h>
 #include "gnunet_util_lib.h"
