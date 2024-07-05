@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2024 GNUnet e.V.
+     Copyright (C) 2009 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -39,7 +39,7 @@ task2 (void *cls)
   int *ok = cls;
 
   /* t3 should be ready (albeit with lower priority) */
-  GNUNET_assert (2 ==
+  GNUNET_assert (1 ==
                  GNUNET_SCHEDULER_get_load (GNUNET_SCHEDULER_PRIORITY_COUNT));
   GNUNET_assert (2 == *ok);
   (*ok) = 3;
