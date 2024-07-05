@@ -135,6 +135,7 @@ hkdf_expand (void *result,
       counter++;
     }
     sodium_memzero(&st, sizeof st);
+    GNUNET_free (ctx);
   }
   return GNUNET_YES;
 }
