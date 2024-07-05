@@ -284,8 +284,8 @@ check_helper_init (
   void *cls,
   const struct GNUNET_TESTING_CommandHelperInit *msg)
 {
-  uint16_t msize = htons (msg->header.size);
-  uint32_t barrier_count = htonl (msg->barrier_count);
+  uint16_t msize = ntohs (msg->header.size);
+  uint32_t barrier_count = ntohl (msg->barrier_count);
   size_t bs = barrier_count * sizeof (struct GNUNET_ShortHashCode);
   size_t left = msize - bs - sizeof (*msg);
   const struct GNUNET_ShortHashCode *bd
@@ -311,8 +311,9 @@ handle_helper_init (
   void *cls,
   const struct GNUNET_TESTING_CommandHelperInit *msg)
 {
-  uint16_t msize = htons (msg->header.size);
-  uint32_t barrier_count = htonl (msg->barrier_count);
+  uint16_t msize = ntohs (msg->header.size);
+  //uint32_t barrier_count = GNUNET_ntohll (msg->barrier_count);
+  uint32_t barrier_count = ntohl (msg->barrier_count);
   size_t bs = barrier_count * sizeof (struct GNUNET_ShortHashCode);
   size_t left = msize - bs - sizeof (*msg);
   const struct GNUNET_ShortHashCode *bd
