@@ -224,7 +224,7 @@ create_finished (void *cls,
     fprintf (stderr,
              _ ("Failed to create ego: %s\n"),
              GNUNET_ErrorCode_get_hint (ec));
-    global_ret = 1;
+    global_ret = ec;
   }
   else if (verbose)
   {
