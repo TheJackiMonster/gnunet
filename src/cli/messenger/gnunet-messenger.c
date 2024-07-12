@@ -36,6 +36,7 @@ struct GNUNET_MESSENGER_Handle *messenger;
 uint64_t waiting;
 
 struct GNUNET_SCHEDULER_Task *read_task;
+int silence_flag;
 int talk_mode;
 
 /**
@@ -87,7 +88,7 @@ on_message (void *cls,
         waiting = waiting > message->body.talk.length?
           waiting - message->body.talk.length : 0;
       }
-      else
+      else if (GNUNET_YES != silence_flag)
       {
         write (1, message->body.talk.data, message->body.talk.length);
         fflush (stdout);
@@ -96,6 +97,8 @@ on_message (void *cls,
 
     goto skip_printing;
   }
+  else if (GNUNET_YES == silence_flag)
+    goto skip_printing;
 
   const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
   const char *recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
@@ -351,7 +354,8 @@ idle (void *cls)
 {
   struct GNUNET_MESSENGER_Room *room = cls;
 
-  if (GNUNET_YES != talk_mode)
+  if ((GNUNET_YES != talk_mode) ||
+      (GNUNET_YES == silence_flag))
     printf ("* You joined the room.\n");
 
   read_task = GNUNET_SCHEDULER_add_now (listen_stdio, room);
@@ -393,7 +397,8 @@ on_identity (void *cls,
 
   struct GNUNET_MESSENGER_Room *room;
   
-  if (GNUNET_YES == talk_mode)
+  if ((GNUNET_YES == talk_mode) ||
+      (GNUNET_YES == silence_flag))
     goto skip_welcome;
 
   const char *name = GNUNET_MESSENGER_get_name (handle);
@@ -406,14 +411,16 @@ on_identity (void *cls,
 skip_welcome:
   if (door)
   {
-    if (GNUNET_YES != talk_mode)
+    if ((GNUNET_YES != talk_mode) ||
+        (GNUNET_YES == silence_flag))
       printf ("* You try to entry a room...\n");
 
     room = GNUNET_MESSENGER_enter_room (messenger, door, &key);
   }
   else
   {
-    if (GNUNET_YES != talk_mode)
+    if ((GNUNET_YES != talk_mode) ||
+        (GNUNET_YES == silence_flag))
       printf ("* You try to open a room...\n");
 
     room = GNUNET_MESSENGER_open_room (messenger, &key);
@@ -509,6 +516,8 @@ main (int argc,
                                  &room_key),
     GNUNET_GETOPT_option_flag ('p', "private", "flag to enable private mode",
                                &private_mode),
+    GNUNET_GETOPT_option_flag ('s', "silence", "flag to silence all others to send only",
+                               &silence_flag),
     GNUNET_GETOPT_option_flag ('t', "talk", "flag to enable talk mode",
                                &talk_mode),
     GNUNET_GETOPT_OPTION_END
