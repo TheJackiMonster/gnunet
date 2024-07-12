@@ -675,13 +675,18 @@ keep_subscription_alive (void *cls)
   struct GNUNET_MESSENGER_Room *room = subscription->room;
   struct GNUNET_MESSENGER_Message *message = subscription->message;
 
+  subscription->message = NULL;
+
   const struct GNUNET_ShortHashCode *discourse =
     &(message->body.subscribe.discourse);
 
   if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (room->subscriptions, 
                                                            discourse, 
                                                            subscription))
+  {
+    destroy_message (message);
     return;
+  }
   
   GNUNET_free (subscription);
 
