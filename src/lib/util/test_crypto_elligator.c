@@ -238,12 +238,9 @@ elligatorKEM ()
   GNUNET_CRYPTO_eddsa_elligator_kem_decaps (&pk_receiver, &r_sender,
                                             &key_material_decaps);
 
-  if (memcmp (&(key_material_encaps.bits),&(key_material_decaps.bits),
-              sizeof(key_material_encaps.bits)) != 0)
-  {
-    return GNUNET_SYSERR;
-  }
-
+  GNUNET_assert (0 == memcmp (&key_material_encaps,
+                              &key_material_decaps,
+                              sizeof(struct GNUNET_HashCode)));
   return GNUNET_OK;
 }
 
