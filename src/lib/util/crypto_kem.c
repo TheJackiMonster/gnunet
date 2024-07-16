@@ -54,8 +54,9 @@ labeled_extract (const char *ctx_str,
                  const uint8_t *suite_id, size_t suite_id_len,
                  struct GNUNET_ShortHashCode *prk)
 {
-  uint8_t labeled_ikm[strlen (ctx_str) + suite_id_len + label_len
-                      + ikm_len];
+  size_t labeled_ikm_len = strlen (ctx_str) + suite_id_len +
+    label_len + ikm_len;
+  uint8_t labeled_ikm[labeled_ikm_len];
   uint8_t *tmp = labeled_ikm;
 
   // labeled_ikm = concat("HPKE-v1", suite_id, label, ikm)
@@ -69,7 +70,7 @@ labeled_extract (const char *ctx_str,
   // return Extract(salt, labeled_ikm)
   return GNUNET_CRYPTO_hkdf_extract (prk,
                                      salt, salt_len,
-                                     labeled_ikm, sizeof *labeled_ikm);
+                                     labeled_ikm, labeled_ikm_len);
 }
 
 
@@ -129,7 +130,7 @@ labeled_expand (const char *ctx_str,
   uint8_t labeled_info[2 + strlen (ctx_str) + suite_id_len + label_len
                        + info_len];
   uint8_t *tmp = labeled_info;
-  uint16_t out_len_nbo = ntohs (out_len);
+  uint16_t out_len_nbo = htons (out_len);
 
   // labeled_info = concat(I2OSP(L, 2), "HPKE-v1", suite_id,
   //                      label, info)
@@ -143,7 +144,7 @@ labeled_expand (const char *ctx_str,
   tmp += label_len;
   memcpy (tmp, info, info_len);
   return GNUNET_CRYPTO_hkdf_expand (out_buf, out_len, prk,
-                                    labeled_info, sizeof *labeled_info, NULL);
+                                    labeled_info, sizeof labeled_info, NULL);
 }
 
 
@@ -198,15 +199,15 @@ rfc9180_extract_and_expand (const struct GNUNET_CRYPTO_EcdhePublicKey *dh,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                          struct GNUNET_CRYPTO_EcdhePublicKey *c,
-                          struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                                 struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                 struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+                                 struct GNUNET_ShortHashCode *shared_secret)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
   struct GNUNET_CRYPTO_EcdhePublicKey dh;
   uint8_t kem_context[sizeof *c + sizeof *pub];
   uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = ntohs (32); // FIXME hardcode as constant
+  uint16_t kem_id = htons (32); // FIXME hardcode as constant
 
   // DHKEM(X25519, HKDF-256): kem_id = 32
   // concat("KEM", I2OSP(kem_id, 2))
@@ -214,11 +215,10 @@ GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
   memcpy (suite_id + 3, &kem_id, 2);
 
   // skE, pkE = GenerateKeyPair()
-  GNUNET_CRYPTO_ecdhe_key_create (&sk);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, c);
+  GNUNET_CRYPTO_ecdhe_key_get_public (skE, c);
 
   // dh = DH(skE, pkR)
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_x25519 (&sk, pub,
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_x25519 (skE, pub,
                                                          &dh));
   // enc = SerializePublicKey(pkE) is a NOP, see Section 7.1.1
   // pkRm = SerializePublicKey(pkR) is a NOP, see Section 7.1.1
@@ -227,9 +227,22 @@ GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
   memcpy (kem_context + sizeof *c, pub, sizeof *pub);
   // shared_secret = ExtractAndExpand(dh, kem_context)
   return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof *kem_context,
-                                     suite_id, sizeof *suite_id,
+                                     kem_context, sizeof kem_context,
+                                     suite_id, sizeof suite_id,
                                      shared_secret);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                          struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                          struct GNUNET_ShortHashCode *shared_secret)
+{
+  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
+  // skE, pkE = GenerateKeyPair()
+  GNUNET_CRYPTO_ecdhe_key_create (&sk);
+
+  return GNUNET_CRYPTO_kem_encaps_norand (pub, c, &sk, shared_secret);
 }
 
 
@@ -257,7 +270,7 @@ GNUNET_CRYPTO_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
   uint8_t kem_context[sizeof *c + crypto_scalarmult_curve25519_BYTES];
   uint8_t pkR[crypto_scalarmult_BYTES];
   uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = ntohs (32); // FIXME hardcode as constant
+  uint16_t kem_id = htons (32); // FIXME hardcode as constant
 
   // DHKEM(X25519, HKDF-256): kem_id = 32
   // concat("KEM", I2OSP(kem_id, 2))
@@ -275,8 +288,8 @@ GNUNET_CRYPTO_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
   memcpy (kem_context + sizeof *c, pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
   return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof *kem_context,
-                                     suite_id, sizeof *suite_id,
+                                     kem_context, sizeof kem_context,
+                                     suite_id, sizeof suite_id,
                                      shared_secret);
 }
 
@@ -309,7 +322,7 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   struct GNUNET_CRYPTO_EcdhePublicKey dh;
   uint8_t kem_context[sizeof *r + sizeof *pub];
   uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = ntohs (256); // FIXME hardcode as constant
+  uint16_t kem_id = htons (256); // FIXME hardcode as constant
 
   // DHKEM(X25519, HKDF-256): kem_id = 32
   // concat("KEM", I2OSP(kem_id, 2))
@@ -334,8 +347,8 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   memcpy (kem_context + sizeof *r, &pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
   return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof *kem_context,
-                                     suite_id, sizeof *suite_id,
+                                     kem_context, sizeof kem_context,
+                                     suite_id, sizeof suite_id,
                                      shared_secret);
 }
 
@@ -352,7 +365,7 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   uint8_t kem_context[sizeof *r + crypto_scalarmult_curve25519_BYTES];
   uint8_t pkR[crypto_scalarmult_BYTES];
   uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = ntohs (256); // FIXME hardcode as constant
+  uint16_t kem_id = htons (256); // FIXME hardcode as constant
 
   // DHKEM(X25519, HKDF-256): kem_id = 32
   // concat("KEM", I2OSP(kem_id, 2))
@@ -374,8 +387,8 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   memcpy (kem_context + sizeof *r, pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
   return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof *kem_context,
-                                     suite_id, sizeof *suite_id,
+                                     kem_context, sizeof kem_context,
+                                     suite_id, sizeof suite_id,
                                      shared_secret);
 }
 

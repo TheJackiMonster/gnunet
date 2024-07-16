@@ -2087,6 +2087,59 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
                            const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
                            struct GNUNET_CRYPTO_EcdhePublicKey *dh);
 
+/**
+ * @ingroup crypto
+ * Decapsulate a key for a private X25519 key.
+ * Dual to #GNUNET_CRRYPTO_kem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param priv private key from X25519 to use for the ECDH (x)
+ * @param c the encapsulated key
+ * @param prk where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_kem_decaps (const struct
+                          GNUNET_CRYPTO_EcdhePrivateKey *priv,
+                          const struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                          struct GNUNET_ShortHashCode *prk);
+
+/**
+ * @ingroup crypto
+ * Encapsulate key material for a X25519 public key.
+ * Dual to #GNUNET_CRRYPTO_kem_decaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param priv private key to use for the ECDH (y)
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param prk where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                          struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                          struct GNUNET_ShortHashCode *prk);
+
+/**
+ * @ingroup crypto
+ * Deterministic variant of #GNUNET_CRRYPTO_kem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param priv private key to use for the ECDH (y)
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param skE ephemeral private key from X25519 to use
+ * @param prk where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                                 struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                 struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+                                 struct GNUNET_ShortHashCode *prk);
+
 
 /**
  * @ingroup crypto

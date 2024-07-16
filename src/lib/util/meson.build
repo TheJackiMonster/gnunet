@@ -321,6 +321,17 @@ test('test_crypto_ecdh_ecdsa', testcrypto_ecdh_ecdsa,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
+testcrypto_kem = executable ('test_crypto_kem',
+                                    ['test_crypto_kem.c'],
+                                    dependencies: [libgnunetutil_dep],
+                                    include_directories: [incdir, configuration_inc],
+                                    build_by_default: false,
+                                    install: false)
+test('test_crypto_kem', testcrypto_kem,
+     workdir: meson.current_build_dir(),
+     suite: ['util', 'util-crypto'])
+
+
 testcrypto_edx25519 = executable ('test_crypto_edx25519',
                                   ['test_crypto_edx25519.c'],
                                   dependencies: [gcrypt_dep, libgnunetutil_dep],
