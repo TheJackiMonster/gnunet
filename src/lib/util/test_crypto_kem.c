@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2002-2013 GNUnet e.V.
+     Copyright (C) 2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -19,15 +19,14 @@
 
  */
 /**
- * @file util/test_crypto_ecdhe.c
- * @brief testcase for ECC ECDHE public key crypto
- * @author Christian Grothoff
+ * @file util/test_crypto_kem.c
+ * @brief testcase for KEMs including RFC9180 DHKEM
+ * @author Martin Schanzenbach
  */
 
 #include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gcrypt.h>
 
 static char *rfc9180_a1_skEm_str =
   "52c4a758a802cd8b936eceea314432798d5baf2d7e9235dc084ab1b9cfa2f736";
@@ -147,4 +146,4 @@ main (int argc, char *argv[])
 }
 
 
-/* end of test_crypto_ecdhe.c */
+/* end of test_crypto_kem.c */
