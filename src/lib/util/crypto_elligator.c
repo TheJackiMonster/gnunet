@@ -655,10 +655,25 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   struct GNUNET_HashCode *key_material)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
+  struct GNUNET_CRYPTO_EcdhePublicKey Z;
+  struct GNUNET_ShortHashCode prk;
+  uint8_t ikm[sizeof *r + crypto_scalarmult_BYTES];
 
   GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
 
-  return GNUNET_CRYPTO_ecdh_eddsa_kdf (&sk, pub, key_material);
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_eddsa_nohash (&sk, pub,
+                                                               &Z));
+  memcpy (ikm, r, sizeof *r);
+  memcpy (ikm + crypto_scalarmult_BYTES, &Z, crypto_scalarmult_BYTES);
+  // KDF(AD, Z)
+  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
+
+  // to get 512 bits, we call expand once
+  GNUNET_CRYPTO_hkdf_expand (key_material, sizeof *key_material, &prk,
+                             "gnunet-ed25519-x25519-elligator-ecdh",
+                             strlen ("gnunet-ed25519-x25519-elligator-ecdh"),
+                             NULL, 0);
+  return GNUNET_OK;
 }
 
 
@@ -669,6 +684,22 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   struct GNUNET_HashCode *key_material)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pub;
+  struct GNUNET_CRYPTO_EcdhePublicKey Z;
+  struct GNUNET_ShortHashCode prk;
+  uint8_t ikm[sizeof *r + crypto_scalarmult_BYTES];
+
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub, NULL, r);
-  return GNUNET_CRYPTO_eddsa_ecdh_kdf (priv, &pub, key_material);
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_eddsa_ecdh_nohash (priv, &pub,
+                                                               &Z));
+  memcpy (ikm, r, sizeof *r);
+  memcpy (ikm + crypto_scalarmult_BYTES, &Z, crypto_scalarmult_BYTES);
+  // KDF(AD, Z)
+  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
+
+  // to get 512 bits, we call expand once
+  GNUNET_CRYPTO_hkdf_expand (key_material, sizeof *key_material, &prk,
+                             "gnunet-ed25519-x25519-elligator-ecdh",
+                             strlen ("gnunet-ed25519-x25519-elligator-ecdh"),
+                             NULL, 0);
+  return GNUNET_OK;
 }

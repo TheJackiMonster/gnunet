@@ -67,13 +67,13 @@ test_ecdh ()
 
 
 static int
-test_ecdh_kdf ()
+test_ecdh_nohash ()
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey priv_dsa;
   struct GNUNET_CRYPTO_EcdhePrivateKey priv_ecdh;
   struct GNUNET_CRYPTO_EddsaPublicKey id1;
   struct GNUNET_CRYPTO_EcdhePublicKey id2;
-  struct GNUNET_HashCode dh[2];
+  struct GNUNET_CRYPTO_EcdhePublicKey dh[2];
 
   /* Generate keys */
   GNUNET_CRYPTO_eddsa_key_create (&priv_dsa);
@@ -88,13 +88,13 @@ test_ecdh_kdf ()
                                         &id2);
     /* Do ECDH */
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_ecdh_kdf (&priv_dsa,
-                                                 &id2,
-                                                 &dh[0]));
+                   GNUNET_CRYPTO_eddsa_ecdh_nohash (&priv_dsa,
+                                                    &id2,
+                                                    &dh[0]));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_ecdh_eddsa_kdf (&priv_ecdh,
-                                                 &id1,
-                                                 &dh[1]));
+                   GNUNET_CRYPTO_ecdh_eddsa_nohash (&priv_ecdh,
+                                                    &id1,
+                                                    &dh[1]));
     /* Check that both DH results are equal. */
     GNUNET_assert (0 ==
                    GNUNET_memcmp (&dh[0],
@@ -114,7 +114,7 @@ main (int argc, char *argv[])
              ".");
     if (0 != test_ecdh ())
       return 1;
-    if (0 != test_ecdh_kdf ())
+    if (0 != test_ecdh_nohash ())
       return 1;
   }
   return 0;
