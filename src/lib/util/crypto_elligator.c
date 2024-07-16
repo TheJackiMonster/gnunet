@@ -652,11 +652,10 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
   struct GNUNET_CRYPTO_ElligatorRepresentative *r,
-  struct GNUNET_HashCode *key_material)
+  struct GNUNET_ShortHashCode *prk)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
   struct GNUNET_CRYPTO_EcdhePublicKey Z;
-  struct GNUNET_ShortHashCode prk;
   uint8_t ikm[sizeof *r + crypto_scalarmult_BYTES];
 
   GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
@@ -666,14 +665,7 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   memcpy (ikm, r, sizeof *r);
   memcpy (ikm + crypto_scalarmult_BYTES, &Z, crypto_scalarmult_BYTES);
   // KDF(AD, Z)
-  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
-
-  // to get 512 bits, we call expand once
-  GNUNET_CRYPTO_hkdf_expand (key_material, sizeof *key_material, &prk,
-                             "gnunet-ed25519-x25519-elligator-ecdh",
-                             strlen ("gnunet-ed25519-x25519-elligator-ecdh"),
-                             NULL, 0);
-  return GNUNET_OK;
+  return GNUNET_CRYPTO_hkdf_extract (prk, NULL, 0, ikm, sizeof ikm);
 }
 
 
@@ -681,11 +673,10 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   const struct GNUNET_CRYPTO_ElligatorRepresentative *r,
-  struct GNUNET_HashCode *key_material)
+  struct GNUNET_ShortHashCode *prk)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pub;
   struct GNUNET_CRYPTO_EcdhePublicKey Z;
-  struct GNUNET_ShortHashCode prk;
   uint8_t ikm[sizeof *r + crypto_scalarmult_BYTES];
 
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&pub, NULL, r);
@@ -694,12 +685,5 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   memcpy (ikm, r, sizeof *r);
   memcpy (ikm + crypto_scalarmult_BYTES, &Z, crypto_scalarmult_BYTES);
   // KDF(AD, Z)
-  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof ikm);
-
-  // to get 512 bits, we call expand once
-  GNUNET_CRYPTO_hkdf_expand (key_material, sizeof *key_material, &prk,
-                             "gnunet-ed25519-x25519-elligator-ecdh",
-                             strlen ("gnunet-ed25519-x25519-elligator-ecdh"),
-                             NULL, 0);
-  return GNUNET_OK;
+  return GNUNET_CRYPTO_hkdf_extract (prk, NULL, 0, ikm, sizeof ikm);
 }

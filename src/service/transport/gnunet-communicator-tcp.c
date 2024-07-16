@@ -1214,30 +1214,23 @@ pass_plaintext_to_core (struct Queue *queue,
  * @param[out] hmac_key HMAC key to initialize
  */
 static void
-setup_cipher (const struct GNUNET_HashCode *dh,
+setup_cipher (const struct GNUNET_ShortHashCode *prk,
               const struct GNUNET_PeerIdentity *pid,
               gcry_cipher_hd_t *cipher,
               struct GNUNET_HashCode *hmac_key)
 {
   char key[256 / 8];
   char ctr[128 / 8];
-  char ikm[sizeof (*pid) + sizeof (*dh)];
-  struct GNUNET_ShortHashCode prk;
 
   GNUNET_assert (0 == gcry_cipher_open (cipher,
                                         GCRY_CIPHER_AES256 /* low level: go for speed */
                                         ,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
-  memcpy (ikm, pid, sizeof (*pid));
-  memcpy (ikm + sizeof (*pid), dh, sizeof (*dh));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_extract (&prk,
-                                             NULL, 0,
-                                             ikm, sizeof (ikm)));
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_hkdf_expand (key,
                                             sizeof(key),
-                                            &prk,
+                                            prk,
                                             "gnunet-communicator-tcp-key",
                                             strlen (
                                               "gnunet-communicator-tcp-key"),
@@ -1249,7 +1242,7 @@ setup_cipher (const struct GNUNET_HashCode *dh,
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_hkdf_expand (ctr,
                                             sizeof(ctr),
-                                            &prk,
+                                            prk,
                                             "gnunet-communicator-tcp-ctr",
                                             strlen (
                                               "gnunet-communicator-tcp-ctr"),
@@ -1259,7 +1252,7 @@ setup_cipher (const struct GNUNET_HashCode *dh,
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CRYPTO_hkdf_expand (hmac_key,
                                             sizeof(struct GNUNET_HashCode),
-                                            &prk,
+                                            prk,
                                             "gnunet-communicator-hmac",
                                             strlen ("gnunet-communicator-hmac"),
                                             NULL,
@@ -1359,7 +1352,7 @@ setup_in_cipher_elligator (
   const struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
   struct Queue *queue)
 {
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_elligator_kem_decaps (my_private_key, repr, &k);
   setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
@@ -1376,7 +1369,7 @@ static void
 setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
                  struct Queue *queue)
 {
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &k);
   setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
@@ -1582,7 +1575,7 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
  * @param queue queue to setup outgoing (encryption) cipher for
  */
 static void
-setup_out_cipher (struct Queue *queue, struct GNUNET_HashCode *dh)
+setup_out_cipher (struct Queue *queue, struct GNUNET_ShortHashCode *dh)
 {
   setup_cipher (dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
   queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
@@ -1602,7 +1595,7 @@ inject_rekey (struct Queue *queue)
 {
   struct TCPRekey rekey;
   struct TcpRekeySignature thp;
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_assert (0 == queue->pwrite_off);
   memset (&rekey, 0, sizeof(rekey));
@@ -2767,7 +2760,7 @@ static void
 start_initial_kx_out (struct Queue *queue)
 {
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&queue->target.public_key,
                                             &repr, &k);

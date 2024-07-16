@@ -1809,7 +1809,7 @@ struct DistanceVector
   /**
    * Master secret for the setup of the Key material for the backchannel.
    */
-  struct GNUNET_HashCode *km;
+  struct GNUNET_ShortHashCode *km;
 };
 
 
@@ -4949,27 +4949,30 @@ struct DVKeyState
  * @param[out] key symmetric cipher and HMAC state to generate
  */
 static void
-dv_setup_key_state_from_km (const struct GNUNET_HashCode *km,
+dv_setup_key_state_from_km (const struct GNUNET_ShortHashCode *km,
                             const struct GNUNET_ShortHashCode *iv,
                             struct DVKeyState *key)
 {
   /* must match what we defive from decapsulated key */
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (&key->material,
-                                    sizeof(key->material),
-                                    "transport-backchannel-key",
-                                    strlen ("transport-backchannel-key"),
-                                    km,
-                                    sizeof(*km),
-                                    iv,
-                                    sizeof(*iv),
-                                    NULL));
+                 GNUNET_CRYPTO_hkdf_expand (&key->material,
+                                            sizeof(key->material),
+                                            km,
+                                            "gnunet-transport-dv-key",
+                                            strlen ("gnunet-transport-dv-key")
+                                            ,
+                                            km,
+                                            sizeof(*km),
+                                            iv,
+                                            sizeof(*iv),
+                                            NULL));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Deriving backchannel key based on KM %s and IV %s\n",
-              GNUNET_h2s (km),
+              GNUNET_sh2s (km),
               GNUNET_sh2s (iv));
   GNUNET_assert (0 == gcry_cipher_open (&key->cipher,
-                                        GCRY_CIPHER_AES256 /* low level: go for speed */,
+                                        GCRY_CIPHER_AES256 /* low level: go for speed */
+                                        ,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
   GNUNET_assert (0 == gcry_cipher_setkey (key->cipher,
@@ -5098,7 +5101,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   char enc[sizeof(struct TransportDVBoxPayloadP) + enc_body_size] GNUNET_ALIGN;
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
-  struct GNUNET_HashCode km;
+  struct GNUNET_ShortHashCode km;
 
   key = GNUNET_new (struct DVKeyState);
   /* Encrypt payload */
@@ -5112,8 +5115,8 @@ encapsulate_for_dv (struct DistanceVector *dv,
     GNUNET_CRYPTO_eddsa_kem_encaps (&dv->target.public_key,
                                     &dv->ephemeral_key,
                                     &km);
-    dv->km = GNUNET_new (struct GNUNET_HashCode);
-    GNUNET_memcpy (dv->km, &km, sizeof(struct GNUNET_HashCode));
+    dv->km = GNUNET_new (struct GNUNET_ShortHashCode);
+    GNUNET_memcpy (dv->km, &km, sizeof(struct GNUNET_ShortHashCode));
     sign_ephemeral (dv);
   }
   box_hdr.ephemeral_key = dv->ephemeral_key;
@@ -5368,10 +5371,13 @@ add_global_addresses (void *cls,
               "sending address %s length %lu\n",
               addr,
               address_len);
-  tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len);
+  tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress)
+                        + address_len);
   tgna->address_length = htonl (address_len);
   GNUNET_memcpy (&tgna[1], addr, address_len);
-  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
+  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct
+                                                        TransportGlobalNattedAddress)
+                 + address_len);
   GNUNET_free (tgna);
   ctx->off += sizeof(struct TransportGlobalNattedAddress) + address_len;
 
@@ -5398,14 +5404,17 @@ consider_sending_fc (void *cls)
   if (0 < n->number_of_addresses)
   {
     size_t addresses_size =
-      n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n->size_of_global_addresses;
+      n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n
+      ->size_of_global_addresses;
     char *tgnas = GNUNET_malloc (addresses_size);
     struct AddGlobalAddressesContext ctx;
     ctx.off = 0;
     ctx.tgnas = tgnas;
 
-    fc = GNUNET_malloc (sizeof (struct TransportFlowControlMessage) + addresses_size);
-    fc->header.size = htons (sizeof(struct TransportFlowControlMessage) + addresses_size);
+    fc = GNUNET_malloc (sizeof (struct TransportFlowControlMessage)
+                        + addresses_size);
+    fc->header.size = htons (sizeof(struct TransportFlowControlMessage)
+                             + addresses_size);
     fc->size_of_addresses = htonl (n->size_of_global_addresses);
     fc->number_of_addresses = htonl (n->number_of_addresses);
     GNUNET_CONTAINER_multipeermap_iterate (n->natted_addresses,
@@ -5440,8 +5449,8 @@ consider_sending_fc (void *cls)
   fc->header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_FLOW_CONTROL);
   fc->seq = htonl (vl->fc_seq_gen++);
   fc->inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size
-                                          + vl->incoming_fc_window_size_used
-                                          + vl->incoming_fc_window_size_loss);
+                                           + vl->incoming_fc_window_size_used
+                                           + vl->incoming_fc_window_size_loss);
   fc->outbound_sent = GNUNET_htonll (vl->outbound_fc_window_size_used);
   fc->outbound_window_size = GNUNET_htonll (vl->outbound_fc_window_size);
   fc->sender_time = GNUNET_TIME_absolute_hton (monotime);
@@ -5960,11 +5969,11 @@ handle_add_address (void *cls,
               (const char *) &aam[1]);
   slen = ntohs (aam->header.size) - sizeof(*aam);
   ale = create_address_entry (tc,
-                        GNUNET_TIME_relative_ntoh (aam->expiration),
-                        (enum GNUNET_NetworkType) ntohl (aam->nt),
-                        (const char *) &aam[1],
-                        aam->aid,
-                        slen);
+                              GNUNET_TIME_relative_ntoh (aam->expiration),
+                              (enum GNUNET_NetworkType) ntohl (aam->nt),
+                              (const char *) &aam[1],
+                              aam->aid,
+                              slen);
   GNUNET_CONTAINER_DLL_insert (tc->details.communicator.addr_head,
                                tc->details.communicator.addr_tail,
                                ale);
@@ -7453,7 +7462,8 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
           /* Some peer send DV learn messages too often, we are learning
              the same path faster than it would be useful; do not forward! */
           GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                      "Rediscovered path too quickly, not forwarding further\n");
+                      "Rediscovered path too quickly, not forwarding further\n")
+          ;
           return GNUNET_NO;
         }
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -8288,7 +8298,8 @@ forward_dv_box (struct Neighbour *next_hop,
   hdr->header.size = htons (msg_size);
   memcpy (msg_buf, hdr, sizeof(*hdr));
   dhops = (struct GNUNET_PeerIdentity *) &msg_buf[sizeof(struct
-                                                         TransportDVBoxMessage)];
+                                                         TransportDVBoxMessage)]
+  ;
   memcpy (dhops, hops, num_hops * sizeof(struct GNUNET_PeerIdentity));
   memcpy (&dhops[num_hops], enc_payload, enc_payload_size);
 
@@ -8675,7 +8686,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   cmc->total_hops = ntohs (dvb->total_hops);
 
   // DH key derivation with received DV, could be garbage.
-  struct GNUNET_HashCode km;
+  struct GNUNET_ShortHashCode km;
 
   if (GNUNET_YES != GNUNET_CRYPTO_eddsa_kem_decaps (GST_my_private_key,
                                                     &dvb->ephemeral_key,
@@ -9609,6 +9620,7 @@ handle_incoming_msg (void *cls,
   demultiplex_with_cmc (cmc);
 }
 
+
 /**
  * Communicator gave us a transport address validation response.  Check the
  * request.
@@ -9631,7 +9643,11 @@ check_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
               sizeof(struct TransportFlowControlMessage),
               sizeof (struct TransportGlobalNattedAddress));
 
-  if (0 == number_of_addresses || ntohs (fc->header.size) == sizeof(struct TransportFlowControlMessage) + ntohl (fc->number_of_addresses) * sizeof (struct TransportGlobalNattedAddress) + ntohl (fc->size_of_addresses))
+  if (0 == number_of_addresses || ntohs (fc->header.size) == sizeof(struct
+                                                                    TransportFlowControlMessage)
+      + ntohl (fc->number_of_addresses) * sizeof (struct
+                                                  TransportGlobalNattedAddress)
+      + ntohl (fc->size_of_addresses))
     return GNUNET_OK;
   else
   {
@@ -9639,6 +9655,7 @@ check_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
     return GNUNET_SYSERR;
   }
 }
+
 
 /**
  * Communicator gave us a transport address validation response.  Process the
@@ -9693,7 +9710,9 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 
     for (int i = 1; i <= number_of_addresses; i++)
     {
-      struct TransportGlobalNattedAddress *tgna = (struct TransportGlobalNattedAddress *) &tgnas[off];
+      struct TransportGlobalNattedAddress *tgna = (struct
+                                                   TransportGlobalNattedAddress
+                                                   *) &tgnas[off];
       char *addr = (char *) &tgna[1];
       unsigned int address_length;
 
@@ -9701,9 +9720,9 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
       off += sizeof(struct TransportGlobalNattedAddress) + address_length;
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "received address %s length %u\n",
-              addr,
-              ntohl (tgna->address_length));
+                  "received address %s length %u\n",
+                  addr,
+                  ntohl (tgna->address_length));
 
       GNUNET_NAT_add_global_address (nh, addr, ntohl (tgna->address_length));
     }
@@ -11535,7 +11554,7 @@ check_validation_request_pending (void *cls,
   char *address_without_port_q;
   int success = GNUNET_YES;
 
-  //TODO Check if this is really necessary.
+  // TODO Check if this is really necessary.
   address_without_port_vs = get_address_without_port (vs->address);
   address_without_port_q = get_address_without_port (q->address);
 
@@ -11682,7 +11701,7 @@ contains_address (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
 
-  if (strlen(tgna_cls->addr) == ntohl (tgna->address_length)
+  if (strlen (tgna_cls->addr) == ntohl (tgna->address_length)
       && 0 == strncmp (addr, tgna_cls->addr, ntohl (tgna->address_length)))
   {
     tgna_cls->tgna = tgna;
@@ -11707,8 +11726,8 @@ check_for_global_natted (void *cls,
   if (NULL != emsg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-         "Got failure from PEERSTORE: %s\n",
-         emsg);
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
     return;
   }
   if (NULL == record)
@@ -11754,7 +11773,8 @@ check_for_global_natted (void *cls,
   {
     struct TransportGlobalNattedAddress *tgna;
 
-    tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len_without_port);
+    tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress)
+                          + address_len_without_port);
     tgna->address_length = htonl (address_len_without_port);
     GNUNET_memcpy (&tgna[1], tgna_cls.addr, address_len_without_port);
     GNUNET_CONTAINER_multipeermap_put (neighbour->natted_addresses,
@@ -11772,8 +11792,11 @@ check_for_global_natted (void *cls,
     GNUNET_CONTAINER_multipeermap_remove (neighbour->natted_addresses,
                                           &neighbour->pid,
                                           tgna_cls.tgna);
-    GNUNET_assert (neighbour->size_of_global_addresses >= ntohl (tgna_cls.tgna->address_length));
-    neighbour->size_of_global_addresses -= ntohl (tgna_cls.tgna->address_length);
+    GNUNET_assert (neighbour->size_of_global_addresses >= ntohl (tgna_cls.tgna->
+                                                                 address_length)
+                   );
+    neighbour->size_of_global_addresses -= ntohl (tgna_cls.tgna->address_length)
+    ;
     GNUNET_assert (0 < neighbour->number_of_addresses);
     neighbour->number_of_addresses--;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -11832,7 +11855,8 @@ handle_add_queue_message (void *cls,
     if (NULL == neighbour)
     {
       neighbour = GNUNET_new (struct Neighbour);
-      neighbour->natted_addresses = GNUNET_CONTAINER_multipeermap_create (16, GNUNET_YES);
+      neighbour->natted_addresses = GNUNET_CONTAINER_multipeermap_create (16,
+                                                                          GNUNET_YES);
       neighbour->pid = aqm->receiver;
       GNUNET_assert (GNUNET_OK ==
                      GNUNET_CONTAINER_multipeermap_put (
@@ -11896,16 +11920,16 @@ handle_add_queue_message (void *cls,
   queue->cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (aqm->cs);
   queue->idle = GNUNET_YES;
   queue->mo = GNUNET_PEERSTORE_monitor_start (GST_cfg,
-                                    GNUNET_YES,
-                                    "peerstore",
-                                    &neighbour->pid,
-                                    GNUNET_PEERSTORE_HELLO_KEY,
-                                    &check_for_global_natted_error_cb,
-                                    NULL,
-                                    &check_for_global_natted_sync_cb,
-                                    NULL,
-                                    &check_for_global_natted,
-                                    queue);
+                                              GNUNET_YES,
+                                              "peerstore",
+                                              &neighbour->pid,
+                                              GNUNET_PEERSTORE_HELLO_KEY,
+                                              &check_for_global_natted_error_cb,
+                                              NULL,
+                                              &check_for_global_natted_sync_cb,
+                                              NULL,
+                                              &check_for_global_natted,
+                                              queue);
   /* check if valdiations are waiting for the queue */
   if (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (validation_map,
                                                             &aqm->receiver))

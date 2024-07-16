@@ -229,18 +229,17 @@ elligatorKEM ()
   struct GNUNET_CRYPTO_ElligatorRepresentative r_sender;
 
   // Sender side
-  struct GNUNET_HashCode key_material_encaps;
+  struct GNUNET_ShortHashCode key_material_encaps;
   GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&pub_receiver, &r_sender,
                                             &key_material_encaps);
 
   // Receiving side
-  struct GNUNET_HashCode key_material_decaps;
+  struct GNUNET_ShortHashCode key_material_decaps;
   GNUNET_CRYPTO_eddsa_elligator_kem_decaps (&pk_receiver, &r_sender,
                                             &key_material_decaps);
 
-  GNUNET_assert (0 == memcmp (&key_material_encaps,
-                              &key_material_decaps,
-                              sizeof(struct GNUNET_HashCode)));
+  GNUNET_assert (0 == GNUNET_memcmp (&key_material_encaps,
+                                     &key_material_decaps));
   return GNUNET_OK;
 }
 

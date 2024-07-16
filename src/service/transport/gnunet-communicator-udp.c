@@ -448,7 +448,7 @@ struct SharedSecret
   /**
    * Master shared secret.
    */
-  struct GNUNET_HashCode master;
+  struct GNUNET_ShortHashCode master;
 
   /**
    * CMAC is used to identify @e master in ACKs.
@@ -963,7 +963,7 @@ kce_destroy (struct KeyCacheEntry *kce)
  * @param[out] kid where to write the key ID
  */
 static void
-get_kid (const struct GNUNET_HashCode *msec,
+get_kid (const struct GNUNET_ShortHashCode *msec,
          uint32_t serial,
          struct GNUNET_ShortHashCode *kid)
 {
@@ -1029,7 +1029,7 @@ secret_destroy (struct SharedSecret *ss)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "secret %s destroy %u\n",
-              GNUNET_h2s (&ss->master),
+              GNUNET_sh2s (&ss->master),
               ss->sequence_allowed);
   if (NULL != (sender = ss->sender))
   {
@@ -1104,27 +1104,29 @@ sender_destroy (struct SenderAddress *sender)
  * @param[out] iv where to write the IV
  */
 static void
-get_iv_key (const struct GNUNET_HashCode *msec,
+get_iv_key (const struct GNUNET_ShortHashCode *msec,
             uint32_t serial,
             char key[AES_KEY_SIZE],
             char iv[AES_IV_SIZE])
 {
   uint32_t sid = htonl (serial);
-  char res[AES_KEY_SIZE + AES_IV_SIZE];
-  struct GNUNET_ShortHashCode prk;
-  GNUNET_CRYPTO_hkdf_extract (&prk,
-                              &sid, sizeof (sid),
-                              msec, sizeof (*msec));
 
-  GNUNET_CRYPTO_hkdf_expand (res,
-                             sizeof(res),
-                             &prk,
-                             "gnunet-communicator-udp-key-iv",
-                             strlen ("gnunet-communicator-udp-key-iv"),
+  GNUNET_CRYPTO_hkdf_expand (key,
+                             sizeof(*key),
+                             msec,
+                             "gnunet-communicator-udp-key",
+                             strlen ("gnunet-communicator-udp-key"),
+                             &sid, sizeof (sid),
                              NULL,
                              0);
-  memcpy (key, res, AES_KEY_SIZE);
-  memcpy (iv, &res[AES_KEY_SIZE], AES_IV_SIZE);
+  GNUNET_CRYPTO_hkdf_expand (iv,
+                             sizeof(*iv),
+                             msec,
+                             "gnunet-communicator-udp-iv",
+                             strlen ("gnunet-communicator-udp-iv"),
+                             &sid, sizeof (sid),
+                             NULL,
+                             0);
 }
 
 
@@ -1208,14 +1210,9 @@ check_timeouts (void *cls)
 static void
 calculate_cmac (struct SharedSecret *ss)
 {
-  struct GNUNET_ShortHashCode prk;
-  GNUNET_CRYPTO_hkdf_extract (&prk,
-                              NULL,
-                              0,
-                              &ss->master, sizeof (ss->master));
   GNUNET_CRYPTO_hkdf_expand (&ss->cmac,
                              sizeof(ss->cmac),
-                             &prk,
+                             &ss->master,
                              "gnunet-communicator-udp-cmac",
                              strlen ("gnunet-communicator-udp-cmac"),
                              NULL,
@@ -1281,7 +1278,7 @@ pass_plaintext_to_core (struct SenderAddress *sender,
  * @param cipher[out] cipher to initialize
  */
 static void
-setup_cipher (const struct GNUNET_HashCode *msec,
+setup_cipher (const struct GNUNET_ShortHashCode *msec,
               uint32_t serial,
               gcry_cipher_hd_t *cipher)
 {
@@ -1394,7 +1391,7 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
                                struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
   ss = GNUNET_new (struct SharedSecret);
@@ -1422,7 +1419,7 @@ setup_initial_shared_secret_ephemeral (struct
                                        struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&receiver->target.public_key,
                                             representative, &k);
@@ -1575,7 +1572,7 @@ handle_ack (void *cls, const struct GNUNET_HashCode *key, void *value)
                   allowed,
                   acks_to_add,
                   receiver->acks_available,
-                  GNUNET_h2s (&ss->master));
+                  GNUNET_sh2s (&ss->master));
       return GNUNET_NO;
     }
   }
@@ -1620,7 +1617,7 @@ consider_ss_ack (struct SharedSecret *ss)
               "Notifying transport with UDPAck %s, sequence %u and master %s\n",
               GNUNET_i2s_full (&ss->sender->target),
               ss->sequence_allowed,
-              GNUNET_h2s (&(ss->master)));
+              GNUNET_sh2s (&(ss->master)));
   GNUNET_TRANSPORT_communicator_notify (ch,
                                         &ss->sender->target,
                                         COMMUNICATOR_ADDRESS_PREFIX,
@@ -1637,7 +1634,7 @@ kce_generate_cb (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Precomputing %u keys for master %s\n",
               GENERATE_AT_ONCE,
-              GNUNET_h2s (&(ss->master)));
+              GNUNET_sh2s (&ss->master));
   if ((ss->override_available_acks != GNUNET_YES) &&
       (KCN_TARGET < ss->sender->acks_available))
     return;
@@ -1714,7 +1711,7 @@ try_handle_plaintext (struct SenderAddress *sender,
                 GNUNET_h2s (&(ss_rekey->cmac)));
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Received secret with master %s.\n",
-                GNUNET_h2s (&(ss_rekey->master)));
+                GNUNET_sh2s (&(ss_rekey->master)));
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "We have %u sequence_allowed.\n",
                 ss_rekey->sequence_allowed);
@@ -2529,7 +2526,7 @@ create_rekey (struct ReceiverAddress *receiver, struct SharedSecret *ss, struct
   ss_rekey->sequence_allowed = 0;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Setup secret with k = %s\n",
-              GNUNET_h2s (&(ss_rekey->master)));
+              GNUNET_sh2s (&ss_rekey->master));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Setup secret with H(k) = %s\n",
               GNUNET_h2s (&(ss_rekey->cmac)));
@@ -2593,7 +2590,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     size_t payload_len = sizeof(struct UDPBox) + receiver->d_mtu;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Considering SS %s sequence used: %u sequence allowed: %u bytes sent: %lu.\n",
-                GNUNET_h2s (&ss->master), ss->sequence_used,
+                GNUNET_sh2s (&ss->master), ss->sequence_used,
                 ss->sequence_allowed, ss->bytes_sent);
     if (ss->sequence_used >= ss->sequence_allowed)
     {
@@ -2628,7 +2625,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     if (0 < ss->sequence_used)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Trying to send UDPBox with shared secrect %s sequence_used %u and ss->sequence_allowed %u\n",
-                  GNUNET_h2s (&ss->master),
+                  GNUNET_sh2s (&ss->master),
                   ss->sequence_used,
                   ss->sequence_allowed);
 
