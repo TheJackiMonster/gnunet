@@ -1234,8 +1234,6 @@ setup_cipher (const struct GNUNET_ShortHashCode *prk,
                                             "gnunet-communicator-tcp-key",
                                             strlen (
                                               "gnunet-communicator-tcp-key"),
-                                            pid,
-                                            sizeof(*pid),
                                             NULL,
                                             0));
   GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
