@@ -2069,16 +2069,12 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
 
 /**
  * @ingroup crypto
- * Derive key material from a ECDH public key and a private EdDSA key.
- * Dual to #GNUNET_CRRYPTO_ecdh_eddsa.
- * This uses the Ed25519 private seed as X25519 seed.
- * As such, this also is a X25519 DH (see #GNUNET_CRYPTO_ecc_ecdh).
- * The resulting X25519 secret is then derived to a key using a
- * KDF (see also https://eprint.iacr.org/2021/509.pdf)
+ * Derive key material from a ECDH public key and a private X25519 key.
+ * Dual to #GNUNET_CRRYPTO_ecdh_x25519.
  * NOTE: Whenever you can get away with it, use separate key pairs
  * for signing and encryption (DH)!
  *
- * @param sk private key from EdDSA to use for the ECDH (x)
+ * @param sk private key from X25519 to use for the ECDH (x)
  * @param pk public key to use for the ECDH (yG)
  * @param additional_data this is fed into HKDF-Extract along with
                           the ECDH shared secret
@@ -2087,9 +2083,9 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_ecdh_nohash (const struct GNUNET_CRYPTO_EddsaPrivateKey *sk,
-                                 const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
-                                 struct GNUNET_CRYPTO_EcdhePublicKey *dh);
+GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
+                           const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
+                           struct GNUNET_CRYPTO_EcdhePublicKey *dh);
 
 
 /**
@@ -2254,11 +2250,7 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
 /**
  * @ingroup crypto
  * Derive key material from a EdDSA public key and a private ECDH key.
- * Dual to #GNUNET_CRRYPTO_eddsa_ecdh_nohash.
- * This converts the Edwards25519 public key @a pub to a Curve25519
- * public key before computing a X25519 DH (see #GNUNET_CRYPTO_ecc_ecdh).
- * The resulting X25519 secret is then derived to a key using a
- * KDF (see also https://eprint.iacr.org/2021/509.pdf)
+ * Dual to #GNUNET_CRRYPTO_x25519_ecdh.
  * NOTE: Whenever you can get away with it, use separate key pairs
  * for signing and encryption (DH)!
  *
@@ -2268,10 +2260,10 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdh_eddsa_nohash (const struct GNUNET_CRYPTO_EcdhePrivateKey *
-                                 priv,
-                                 const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                 struct GNUNET_CRYPTO_EcdhePublicKey *dh);
+GNUNET_CRYPTO_ecdh_x25519 (const struct GNUNET_CRYPTO_EcdhePrivateKey *
+                           priv,
+                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                           struct GNUNET_CRYPTO_EcdhePublicKey *dh);
 
 /**
  * @ingroup crypto

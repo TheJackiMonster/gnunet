@@ -64,6 +64,7 @@ libgnunetutil_la_SOURCES = \
   crypto_hash.c \
   crypto_hash_file.c \
   crypto_hkdf.c \
+  crypto_kem.c \
   crypto_kdf.c \
   crypto_mpi.c \
   crypto_paillier.c \
