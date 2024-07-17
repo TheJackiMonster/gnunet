@@ -130,7 +130,8 @@ handle_message_control (struct GNUNET_MESSENGER_MessageControl *control,
 
   handle_room_message (control->room, contact, message, hash, flags);
 
-  if (flags & GNUNET_MESSENGER_FLAG_RECENT)
+  if ((flags & GNUNET_MESSENGER_FLAG_RECENT) &&
+      (! get_message_discourse (message)))
     update_room_last_message (control->room, hash);
 
   callback_room_message (control->room, hash);

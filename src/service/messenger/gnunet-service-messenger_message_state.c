@@ -25,6 +25,8 @@
 
 #include "gnunet-service-messenger_message_state.h"
 
+#include "messenger_api_message.h"
+
 void
 init_message_state (struct GNUNET_MESSENGER_MessageState *state)
 {
@@ -78,7 +80,8 @@ update_message_state (struct GNUNET_MESSENGER_MessageState *state,
 
   if ((GNUNET_YES == requested) ||
       (GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
-      (GNUNET_MESSENGER_KIND_REQUEST == message->header.kind))
+      (GNUNET_MESSENGER_KIND_REQUEST == message->header.kind) ||
+      (get_message_discourse (message)))
     return;
 
   if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)

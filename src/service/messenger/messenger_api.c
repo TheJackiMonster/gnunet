@@ -821,7 +821,8 @@ send_message_to_room (struct GNUNET_MESSENGER_Room *room,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Send message (%s)!\n",
               GNUNET_h2s (hash));
 
-  update_room_last_message (room, hash);
+  if (! get_message_discourse (message))
+    update_room_last_message (room, hash);
 
   switch (message->header.kind)
   {
