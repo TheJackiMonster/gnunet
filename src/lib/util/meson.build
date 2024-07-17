@@ -31,7 +31,7 @@ libgnunetutil_src = ['bandwidth.c',
        'crypto_hash.c',
        'crypto_hash_file.c',
        'crypto_hkdf.c',
-       'crypto_kem.c',
+       'crypto_hpke.c',
        'crypto_kdf.c',
        'crypto_mpi.c',
        'crypto_paillier.c',
@@ -321,13 +321,13 @@ test('test_crypto_ecdh_ecdsa', testcrypto_ecdh_ecdsa,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 
-testcrypto_kem = executable ('test_crypto_kem',
-                                    ['test_crypto_kem.c'],
+testcrypto_hpke = executable ('test_crypto_hpke',
+                                    ['test_crypto_hpke.c'],
                                     dependencies: [libgnunetutil_dep],
                                     include_directories: [incdir, configuration_inc],
                                     build_by_default: false,
                                     install: false)
-test('test_crypto_kem', testcrypto_kem,
+test('test_crypto_hpke', testcrypto_hpke,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
 

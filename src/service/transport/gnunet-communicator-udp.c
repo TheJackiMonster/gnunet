@@ -350,7 +350,7 @@ struct UDPRekey
   /**
    * Ephemeral key to rekey with.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -1347,7 +1347,7 @@ try_decrypt (const struct SharedSecret *ss,
  * @return new shared secret
  */
 static struct SharedSecret *
-setup_shared_secret_dec (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral)
+setup_shared_secret_dec (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral)
 {
   struct SharedSecret *ss;
 
@@ -1387,7 +1387,7 @@ setup_initial_shared_secret_dec (const struct
  * @return new shared secret
  */
 static struct SharedSecret *
-setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
                                struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;

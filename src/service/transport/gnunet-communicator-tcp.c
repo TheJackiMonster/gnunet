@@ -301,7 +301,7 @@ struct TCPRekey
   /**
    * New ephemeral key.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Sender's signature of type #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY
@@ -339,7 +339,7 @@ struct TcpRekeySignature
   /**
    * Ephemeral key used by the @e sender.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -1364,7 +1364,7 @@ setup_in_cipher_elligator (
  * @param[in,out] queue queue to initialize decryption cipher for
  */
 static void
-setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+setup_in_cipher (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
                  struct Queue *queue)
 {
   struct GNUNET_ShortHashCode k;
@@ -1406,7 +1406,8 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   thp.ephemeral = rekey->ephemeral;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "ephemeral %s\n",
-              GNUNET_e2s (&thp.ephemeral));
+              GNUNET_e2s ((struct GNUNET_CRYPTO_EcdhePublicKey*) &thp.ephemeral)
+              );
   thp.monotonic_time = rekey->monotonic_time;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "time %s\n",
@@ -1619,7 +1620,8 @@ inject_rekey (struct Queue *queue)
   thp.ephemeral = rekey.ephemeral;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "ephemeral %s\n",
-              GNUNET_e2s (&thp.ephemeral));
+              GNUNET_e2s ((struct GNUNET_CRYPTO_EcdhePublicKey*) &thp.ephemeral)
+              );
   thp.monotonic_time = rekey.monotonic_time;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "time %s\n",

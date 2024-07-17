@@ -2087,6 +2087,58 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
                            const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
                            struct GNUNET_CRYPTO_EcdhePublicKey *dh);
 
+
+/** HPKE **/
+
+enum GNUNET_CRYPTO_HpkeMode
+{
+  GNUNET_CRYPTO_HPKE_MODE_BASE = 0x00,
+  GNUNET_CRYPTO_HPKE_MODE_PSK = 0x01,
+  GNUNET_CRYPTO_HPKE_MODE_AUTH = 0x02,
+  GNUNET_CRYPTO_HPKE_MODE_AUTH_PSK = 0x03
+};
+
+// Nt
+#define GNUNET_CRYPTO_HPKE_AEAD_ID 0x0003
+
+// Nn
+#define GNUNET_CRYPTO_HPKE_NONCE_LEN 12
+
+// Nk
+#define GNUNET_CRYPTO_HPKE_KEY_LEN 32
+
+// Nt
+#define GNUNET_CRYPTO_HPKE_TAG_LEN 16
+
+enum GNUNET_CRYPTO_HpkeRole
+{
+  GNUNET_CRYPTO_HPKE_ROLE_R,
+  GNUNET_CRYPTO_HPKE_ROLE_S
+};
+
+struct GNUNET_CRYPTO_HpkeContext
+{
+  enum GNUNET_CRYPTO_HpkeRole role;
+  uint8_t key[GNUNET_CRYPTO_HPKE_KEY_LEN];
+  uint8_t base_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
+  uint64_t seq;
+  struct GNUNET_ShortHashCode exporter_secret;
+};
+
+/**
+ * HPKE DHKEM encapsulation (X25519)
+ * See RFC 9180
+ */
+struct GNUNET_CRYPTO_HpkeEncapsulation
+{
+  /**
+   * Q consists of an x- and a y-value, each mod p (256 bits), given
+   * here in affine coordinates and Ed25519 standard compact format.
+   */
+  unsigned char q_y[256 / 8];
+};
+
+
 /**
  * @ingroup crypto
  * Decapsulate a key for a private X25519 key.
@@ -2102,7 +2154,7 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kem_decaps (const struct
                           GNUNET_CRYPTO_EcdhePrivateKey *priv,
-                          const struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                          const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                           struct GNUNET_ShortHashCode *prk);
 
 /**
@@ -2119,7 +2171,7 @@ GNUNET_CRYPTO_kem_decaps (const struct
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                          struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                          struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                           struct GNUNET_ShortHashCode *prk);
 
 /**
@@ -2136,10 +2188,9 @@ GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                                 struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                 struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                                  struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
                                  struct GNUNET_ShortHashCode *prk);
-
 
 /**
  * @ingroup crypto
@@ -2156,7 +2207,7 @@ GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_kem_decaps (const struct
                                 GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                const struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                                 struct GNUNET_ShortHashCode *prk);
 
 /**
@@ -2173,8 +2224,127 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
+                                struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                                 struct GNUNET_ShortHashCode *prk);
+
+
+/**
+ * RFC9180 HPKE encryption.
+ * This sets the encryption context up for a sender of
+ * encrypted messages.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be created and sent using "ctx"
+ *
+ * @param pkR the X25519 receiver public key
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param enc the encapsulation to exchange with the other party
+ * @param ctx the encryption context allocated by caller
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sender_setup (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+                                 const uint8_t *info, size_t info_len,
+                                 struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
+                                 struct GNUNET_CRYPTO_HpkeContext *ctx);
+
+/**
+ * RFC9180 HPKE encryption.
+ * This sets the encryption context up for a sender of
+ * encrypted messages.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be created and sent using "ctx"
+ *
+ * @param pkR the X25519 receiver public key
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param enc the encapsulation to exchange with the other party
+ * @param ctx the encryption context allocated by caller
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sender_setup_norand (
+  struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  const uint8_t *info, size_t info_len,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
+  struct GNUNET_CRYPTO_HpkeContext *ctx);
+
+/**
+ * RFC9180 HPKE encryption.
+ * This sets the encryption context up for a receiver of
+ * encrypted messages.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param enc the encapsulation from the sender
+ * @param pkR the X25519 receiver secret key
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param ctx the encryption context allocated by caller
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_receiver_setup (
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const uint8_t *info,
+  size_t info_len,
+  struct GNUNET_CRYPTO_HpkeContext *ctx);
+
+/**
+ * RFC9180 HPKE encryption.
+ * Encrypt messages in a context.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param ctx the encryption context
+ * @param aad addition authenticated data to send (not encrypted)
+ * @param aad_len length of aad in bytes
+ * @param pt plaintext data to encrypt
+ * @param pt_len length of pt in bytes
+ * @param ct ciphertext to send (to be allocated by caller)
+ * @param ct_len length of written bytes in ct
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_seal (struct GNUNET_CRYPTO_HpkeContext *ctx,
+                         const uint8_t*aad, size_t aad_len,
+                         const uint8_t *pt, size_t pt_len,
+                         uint8_t *ct, unsigned long long ct_len);
+
+/**
+ * RFC9180 HPKE encryption.
+ * Decrypt messages in a context.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param ctx the encryption context
+ * @param aad addition authenticated data to send (not encrypted)
+ * @param aad_len length of aad in bytes
+ * @param ct ciphertext to decrypt
+ * @param ct_len length of ct in bytes
+ * @param pt plaintext (to be allocated by caller)
+ * @param pt_len length of written bytes in pt
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
+                         const uint8_t*aad, size_t aad_len,
+                         const uint8_t *ct, size_t ct_len,
+                         uint8_t *pt, unsigned long long pt_len);
+
+/** HPKE END **/
 
 /**
  * This is the encapsulated key of our FO-KEM.

@@ -64,7 +64,7 @@ libgnunetutil_la_SOURCES = \
   crypto_hash.c \
   crypto_hash_file.c \
   crypto_hkdf.c \
-  crypto_kem.c \
+  crypto_hpke.c \
   crypto_kdf.c \
   crypto_mpi.c \
   crypto_paillier.c \
@@ -214,7 +214,7 @@ check_PROGRAMS = \
  test_crypto_hash \
  test_crypto_hash_context \
  test_crypto_hkdf \
- test_crypto_kem \
+ test_crypto_hpke \
  test_crypto_kdf \
  test_crypto_paillier \
  test_crypto_random \
@@ -439,9 +439,9 @@ test_crypto_hkdf_SOURCES = \
 test_crypto_hkdf_LDADD = \
  libgnunetutil.la
 
-test_crypto_kem_SOURCES = \
- test_crypto_kem.c
-test_crypto_kem_LDADD = \
+test_crypto_hpke_SOURCES = \
+ test_crypto_hpke.c
+test_crypto_hpke_LDADD = \
  libgnunetutil.la -lgcrypt
 
 test_crypto_kdf_SOURCES = \

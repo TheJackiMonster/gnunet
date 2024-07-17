@@ -404,7 +404,7 @@ struct EphemeralConfirmationPS
    * Ephemeral key setup by the sender for @e target, used
    * to encrypt the payload.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_key;
 };
 
 
@@ -788,7 +788,7 @@ struct TransportDVBoxMessage
    * Ephemeral key setup by the sender for target, used to encrypt the
    * payload.  Intermediaries must not change this value.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_key;
 
   /**
    * We use an IV here as the @e ephemeral_key is re-used for
@@ -1804,7 +1804,7 @@ struct DistanceVector
   /**
    * Our ephemeral key.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_key;
 
   /**
    * Master secret for the setup of the Key material for the backchannel.
@@ -2781,7 +2781,7 @@ struct Backtalker
   /**
    * Last (valid) ephemeral key received from this sender.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey last_ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation last_ephemeral;
 
   /**
    * Task associated with this backtalker. Can be for timeout,
