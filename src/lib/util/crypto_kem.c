@@ -75,35 +75,6 @@ labeled_extract (const char *ctx_str,
 
 
 /**
- * RFC9180 labeled extract.
- *
- * @param salt the extract salt
- * @param salt_len salt length in bytes
- * @param label the label to label with
- * @param label_len label length in bytes
- * @param ikm initial keying material
- * @param ikm_len ikm length in bytes
- * @param suite_id the suite ID
- * @param suite_id_len suite_id length in bytes
- * @param prk the resulting extracted PRK
- * @return GNUNET_OK on success
- */
-static enum GNUNET_GenericReturnValue
-rfc9180_labeled_extract (const void *salt, size_t salt_len,
-                         const void *label, size_t label_len,
-                         const void *ikm, size_t ikm_len,
-                         const uint8_t *suite_id, size_t suite_id_len,
-                         struct GNUNET_ShortHashCode *prk)
-{
-  return labeled_extract ("HPKE-v1", salt, salt_len,
-                          label, label_len,
-                          ikm, ikm_len,
-                          suite_id, suite_id_len,
-                          prk);
-}
-
-
-/**
  * A RFC9180 inspired labeled extract.
  *
  * @param ctx_str the context to label with (c string)
@@ -148,53 +119,36 @@ labeled_expand (const char *ctx_str,
 }
 
 
-/**
- * RFC9180 labeled extract.
- *
- * @param prk the extracted PRK
- * @param label the label to label with
- * @param label_len label length in bytes
- * @param info context info
- * @param info_len info in bytes
- * @param suite_id the suite ID (c string)
- * @param out_buf output buffer, must be allocated
- * @param out_len out_buf length in bytes
- * @return GNUNET_OK on success
- */
 static enum GNUNET_GenericReturnValue
-rfc9180_labeled_expand (const struct GNUNET_ShortHashCode *prk,
-                        const char *label, size_t label_len,
-                        const void *info, size_t info_len,
-                        const uint8_t *suite_id, size_t suite_id_len,
-                        void *out_buf,
-                        uint16_t out_len)
-{
-  return labeled_expand ("HPKE-v1",
-                         prk,
-                         label, label_len,
-                         info, info_len,
-                         suite_id, suite_id_len,
-                         out_buf, out_len);
-}
-
-
-static enum GNUNET_GenericReturnValue
-rfc9180_extract_and_expand (const struct GNUNET_CRYPTO_EcdhePublicKey *dh,
-                            const uint8_t *kem_context, size_t kem_context_len,
-                            const uint8_t *suite_id, size_t suite_id_len,
-                            struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_hpke_labeled_extract_and_expand (const struct
+                                               GNUNET_CRYPTO_EcdhePublicKey *dh,
+                                               const char *extract_ctx,
+                                               const char *expand_ctx,
+                                               const void*extract_lbl, size_t
+                                               extract_lbl_len,
+                                               const void*expand_lbl, size_t
+                                               expand_lbl_len,
+                                               const uint8_t *kem_context,
+                                               size_t kem_context_len,
+                                               const uint8_t *suite_id, size_t
+                                               suite_id_len,
+                                               struct GNUNET_ShortHashCode *
+                                               shared_secret)
 {
   struct GNUNET_ShortHashCode prk;
   // eae_prk = LabeledExtract("", "eae_prk", dh)
-  rfc9180_labeled_extract (NULL, 0, "eae_prk", strlen ("eae_prk"),
-                           dh, sizeof *dh,
-                           suite_id, suite_id_len,
-                           &prk);
-  return rfc9180_labeled_expand (&prk,
-                                 "shared_secret", strlen ("shared_secret"),
-                                 kem_context, kem_context_len,
-                                 suite_id, suite_id_len,
-                                 shared_secret, sizeof *shared_secret);
+  labeled_extract (extract_ctx,
+                   NULL, 0,
+                   extract_lbl, extract_lbl_len,
+                   dh, sizeof *dh,
+                   suite_id, suite_id_len,
+                   &prk);
+  return labeled_expand (expand_ctx,
+                         &prk,
+                         expand_lbl, expand_lbl_len,
+                         kem_context, kem_context_len,
+                         suite_id, suite_id_len,
+                         shared_secret, sizeof *shared_secret);
 }
 
 
@@ -227,10 +181,15 @@ GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
   memcpy (kem_context, c, sizeof *c);
   memcpy (kem_context + sizeof *c, pub, sizeof *pub);
   // shared_secret = ExtractAndExpand(dh, kem_context)
-  return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof kem_context,
-                                     suite_id, sizeof suite_id,
-                                     shared_secret);
+  return GNUNET_CRYPTO_hpke_labeled_extract_and_expand (
+    &dh,
+    "HPKE-v1",
+    "HPKE-v1",
+    "eae_prk", strlen ("eae_prk"),
+    "shared_secret", strlen ("shared_secret"),
+    kem_context, sizeof kem_context,
+    suite_id, sizeof suite_id,
+    shared_secret);
 }
 
 
@@ -290,10 +249,15 @@ GNUNET_CRYPTO_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
   memcpy (kem_context, c, sizeof *c);
   memcpy (kem_context + sizeof *c, pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
-  return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof kem_context,
-                                     suite_id, sizeof suite_id,
-                                     shared_secret);
+  return GNUNET_CRYPTO_hpke_labeled_extract_and_expand (
+    &dh,
+    "HPKE-v1",
+    "HPKE-v1",
+    "eae_prk", strlen ("eae_prk"),
+    "shared_secret", strlen ("shared_secret"),
+    kem_context, sizeof kem_context,
+    suite_id, sizeof suite_id,
+    shared_secret);
 }
 
 
@@ -349,10 +313,15 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
   memcpy (kem_context, r, sizeof *r);
   memcpy (kem_context + sizeof *r, &pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
-  return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof kem_context,
-                                     suite_id, sizeof suite_id,
-                                     shared_secret);
+  return GNUNET_CRYPTO_hpke_labeled_extract_and_expand (
+    &dh,
+    "HPKE-v1",
+    "HPKE-v1",
+    "eae_prk", strlen ("eae_prk"),
+    "shared_secret", strlen ("shared_secret"),
+    kem_context, sizeof kem_context,
+    suite_id, sizeof suite_id,
+    shared_secret);
 }
 
 
@@ -389,10 +358,15 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
   memcpy (kem_context, r, sizeof *r);
   memcpy (kem_context + sizeof *r, pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
-  return rfc9180_extract_and_expand (&dh,
-                                     kem_context, sizeof kem_context,
-                                     suite_id, sizeof suite_id,
-                                     shared_secret);
+  return GNUNET_CRYPTO_hpke_labeled_extract_and_expand (
+    &dh,
+    "HPKE-v1",
+    "HPKE-v1",
+    "eae_prk", strlen ("eae_prk"),
+    "shared_secret", strlen ("shared_secret"),
+    kem_context, sizeof kem_context,
+    suite_id, sizeof suite_id,
+    shared_secret);
 }
 
 
