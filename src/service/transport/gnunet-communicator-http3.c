@@ -158,6 +158,15 @@ struct Stream
   uint32_t sent_offset;
   uint32_t ack_offset;
   struct Connection *connection;
+
+  uint8_t *uri;
+  size_t urilen;
+  uint8_t *method;
+  size_t methodlen;
+  uint8_t *authority;
+  size_t authoritylen;
+  uint8_t *status_resp_body;
+  size_t status_resp_bodylen;
 };
 
 /**
@@ -166,6 +175,7 @@ struct Stream
 struct Connection
 {
   ngtcp2_conn *conn;
+  nghttp3_conn *h3_conn;
   ngtcp2_ccerr last_error;
   ngtcp2_crypto_conn_ref conn_ref;
 
@@ -562,7 +572,44 @@ remove_stream (struct Connection *connection, int64_t stream_id)
                 stream_id);
     return;
   }
+
+  if (stream->uri)
+  {
+    GNUNET_free (stream->uri);
+  }
+  if (stream->method)
+  {
+    GNUNET_free (stream->method);
+  }
+  if (stream->authority)
+  {
+    GNUNET_free (stream->authority);
+  }
+  if (stream->status_resp_body)
+  {
+    GNUNET_free (stream->status_resp_body);
+  }
   GNUNET_free (stream);
+}
+
+
+/**
+ *
+ *
+ * @param connection
+ * @param stream_id
+ *
+ * @return
+ */
+static struct Stream *
+find_stream (struct Connection *connection, int64_t stream_id)
+{
+  struct GNUNET_HashCode stream_key;
+  struct Stream *stream;
+
+  GNUNET_CRYPTO_hash (&stream_id, sizeof (stream_id), &stream_key);
+  stream = GNUNET_CONTAINER_multihashmap_get (connection->streams, &stream_key);
+  return stream;
 }
 
 
@@ -739,6 +786,23 @@ get_stream_delete_it (void *cls,
   struct Stream *stream = value;
   (void) cls;
   (void) key;
+
+  if (stream->uri)
+  {
+    GNUNET_free (stream->uri);
+  }
+  if (stream->method)
+  {
+    GNUNET_free (stream->method);
+  }
+  if (stream->authority)
+  {
+    GNUNET_free (stream->authority);
+  }
+  if (stream->status_resp_body)
+  {
+    GNUNET_free (stream->status_resp_body);
+  }
   GNUNET_free (stream);
   return GNUNET_OK;
 }
@@ -778,6 +842,10 @@ connection_destroy (struct Connection *connection)
                          GNUNET_NO);
 
   ngtcp2_conn_del (connection->conn);
+  if (connection->h3_conn)
+  {
+    nghttp3_conn_del (connection->h3_conn);
+  }
   gnutls_deinit (connection->session);
   GNUNET_free (connection->address);
   GNUNET_free (connection->foreign_addr);
@@ -963,6 +1031,347 @@ setup_connection_mq (struct Connection *connection)
 
 
 /**
+ * Extend connection and stream offset.
+ */
+static void
+http_consume (struct Connection *connection, int64_t stream_id, size_t consumed)
+{
+  ngtcp2_conn_extend_max_stream_offset (connection->conn, stream_id, consumed);
+  ngtcp2_conn_extend_max_offset (connection->conn, consumed);
+}
+
+
+/**
+ * The callback of nghttp3_callback.stream_close
+ */
+static int
+http_stream_close_cb (nghttp3_conn *conn, int64_t stream_id,
+                      uint64_t app_error_code, void *conn_user_data,
+                      void *stream_user_data)
+{
+  struct Connection *connection = conn_user_data;
+
+  remove_stream (connection, stream_id);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "HTTP stream %ld closed\n",
+              stream_id);
+  if (GNUNET_NO == connection->is_initiator &&
+      ngtcp2_is_bidi_stream (stream_id))
+  {
+    ngtcp2_conn_extend_max_streams_bidi (connection->conn, 1);
+  }
+  else if (GNUNET_YES == connection->is_initiator &&
+           ! ngtcp2_is_bidi_stream (stream_id))
+  {
+    ngtcp2_conn_extend_max_streams_uni (connection->conn, 1);
+  }
+
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.recv_data
+ */
+static int
+http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
+                   size_t datalen, void *user_data, void *stream_user_data)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "http_recv_data_cb\n");
+  struct Connection *connection = user_data;
+  http_consume (connection, stream_id, datalen);
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.deferred_consume
+ */
+static int
+http_deferred_consume_cb (nghttp3_conn *conn, int64_t stream_id,
+                          size_t nconsumed, void *user_data,
+                          void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  http_consume (connection, stream_id, nconsumed);
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.begin_headers
+ */
+static int
+http_begin_headers_cb (nghttp3_conn *conn, int64_t stream_id,
+                       void *user_data, void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  struct Stream *stream;
+
+  stream = find_stream (connection, stream_id);
+  if (NULL == stream)
+  {
+    return NGHTTP3_ERR_CALLBACK_FAILURE;
+  }
+  nghttp3_conn_set_stream_user_data (connection->h3_conn, stream_id, stream);
+
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.recv_header
+ */
+int
+http_recv_header_cb (nghttp3_conn *conn, int64_t stream_id, int32_t token,
+                     nghttp3_rcbuf *name, nghttp3_rcbuf *value, uint8_t flags,
+                     void *user_data, void *stream_user_data)
+{
+  nghttp3_vec namebuf = nghttp3_rcbuf_get_buf (name);
+  nghttp3_vec valbuf = nghttp3_rcbuf_get_buf (value);
+  struct Connection *connection = user_data;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "http header: [%.*s: %.*s]\n",
+              (int) namebuf.len, namebuf.base,
+              (int) valbuf.len, valbuf.base);
+
+  if (GNUNET_NO == connection->is_initiator)
+  {
+    struct Stream *stream = stream_user_data;
+    switch (token)
+    {
+    case NGHTTP3_QPACK_TOKEN__PATH:
+      stream->urilen = valbuf.len;
+      stream->uri = (uint8_t *) malloc (valbuf.len);
+      memcpy (stream->uri, valbuf.base, valbuf.len);
+      break;
+    case NGHTTP3_QPACK_TOKEN__METHOD:
+      stream->methodlen = valbuf.len;
+      stream->method = (uint8_t *) malloc (valbuf.len);
+      memcpy (stream->method, valbuf.base, valbuf.len);
+      break;
+    case NGHTTP3_QPACK_TOKEN__AUTHORITY:
+      stream->authoritylen = valbuf.len;
+      stream->authority = (uint8_t *) malloc (valbuf.len);
+      memcpy (stream->authority, valbuf.base, valbuf.len);
+      break;
+    }
+  }
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.stop_sending
+ */
+static int
+http_stop_sending_cb (nghttp3_conn *conn, int64_t stream_id,
+                      uint64_t app_error_code, void *user_data,
+                      void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  rv = ngtcp2_conn_shutdown_stream_read (connection->conn,
+                                         0,
+                                         stream_id,
+                                         app_error_code);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_shutdown_stream_read: %s\n",
+                ngtcp2_strerror (rv));
+    return NGHTTP3_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.end_stream
+ */
+static int
+http_end_stream_cb (nghttp3_conn *conn, int64_t stream_id, void *user_data,
+                    void *stream_user_data)
+{
+  struct Stream *stream = stream_user_data;
+  int rv;
+
+  // Send response
+  if (0 != rv)
+  {
+    return NGHTTP3_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * The callback of nghttp3_callback.reset_stream
+ */
+static int
+http_reset_stream_cb (nghttp3_conn *conn, int64_t stream_id,
+                      uint64_t app_error_code, void *user_data,
+                      void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  rv = ngtcp2_conn_shutdown_stream_write (connection->conn,
+                                          0,
+                                          stream_id,
+                                          app_error_code);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_shutdown_stream_write: %s\n",
+                ngtcp2_strerror (rv));
+    return NGHTTP3_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * Setup the http3 connection.
+ *
+ * @param connection the connection
+ *
+ * @return #GNUNET_NO if success, #GNUNET_SYSERR if failed
+ */
+static int
+setup_httpconn (struct Connection *connection)
+{
+  nghttp3_settings settings;
+  const nghttp3_mem *mem = nghttp3_mem_default ();
+  int64_t ctrl_stream_id;
+  int64_t enc_stream_id;
+  int64_t dec_stream_id;
+  nghttp3_callbacks callbacks = {
+    .stream_close = http_stream_close_cb,
+    .recv_data = http_recv_data_cb,
+    .deferred_consume = http_deferred_consume_cb,
+    .begin_headers = http_begin_headers_cb,
+    .recv_header = http_recv_header_cb,
+    .stop_sending = http_stop_sending_cb,
+    .end_stream = http_end_stream_cb,
+    .reset_stream = http_reset_stream_cb,
+  };
+  int rv;
+
+  if (NULL != connection->h3_conn)
+  {
+    return GNUNET_NO;
+  }
+
+  if (ngtcp2_conn_get_streams_uni_left (connection->conn) < 3)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "uni stream left less than 3\n");
+    return GNUNET_SYSERR;
+  }
+
+  if (GNUNET_YES == connection->is_initiator)
+  {
+    callbacks.begin_headers = NULL;
+    callbacks.end_stream = NULL;
+  }
+
+  nghttp3_settings_default (&settings);
+  settings.qpack_blocked_streams = 100;
+  settings.qpack_encoder_max_dtable_capacity = 4096;
+
+  if (GNUNET_NO == connection->is_initiator)
+  {
+    const ngtcp2_transport_params *params =
+      ngtcp2_conn_get_local_transport_params (connection->conn);
+    nghttp3_conn_set_max_client_streams_bidi (connection->h3_conn,
+                                              params->initial_max_streams_bidi);
+
+    rv = nghttp3_conn_server_new (&connection->h3_conn,
+                                  &callbacks,
+                                  &settings,
+                                  mem,
+                                  connection);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_server_new: %s\n",
+                  nghttp3_strerror (rv));
+      return GNUNET_SYSERR;
+    }
+  }
+  else
+  {
+    rv = nghttp3_conn_client_new (&connection->h3_conn,
+                                  &callbacks,
+                                  &settings,
+                                  mem,
+                                  connection);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_client_new: %s\n",
+                  nghttp3_strerror (rv));
+      return GNUNET_SYSERR;
+    }
+  }
+
+  rv = ngtcp2_conn_open_uni_stream (connection->conn, &ctrl_stream_id, NULL);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_open_uni_stream: %s\n",
+                ngtcp2_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  rv = nghttp3_conn_bind_control_stream (connection->h3_conn, ctrl_stream_id);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_bind_control_stream: %s\n",
+                nghttp3_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  rv = ngtcp2_conn_open_uni_stream (connection->conn, &enc_stream_id, NULL);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_open_uni_stream: %s\n",
+                ngtcp2_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  rv = ngtcp2_conn_open_uni_stream (connection->conn, &dec_stream_id, NULL);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "ngtcp2_conn_open_uni_stream: %s\n",
+                ngtcp2_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  rv = nghttp3_conn_bind_qpack_streams (connection->h3_conn,
+                                        enc_stream_id, dec_stream_id);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_bind_qpack_streams: %s\n",
+                nghttp3_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Bind control stream: %ld, enc stream: %ld, dec stream: %ld\n",
+              ctrl_stream_id, enc_stream_id, dec_stream_id);
+  return GNUNET_NO;
+}
+
+
+/**
  * The callback function for ngtcp2_callbacks.rand
  */
 static void
@@ -1118,6 +1527,57 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 
 
 /**
+ * The callback function for ngtcp2_callbacks.recv_stream_data
+ */
+static int
+recv_stream_data_cb2 (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
+                      uint64_t offset, const uint8_t *data, size_t datalen,
+                      void *user_data,
+                      void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  nghttp3_ssize nconsumed;
+
+  if (NULL == connection->h3_conn)
+  {
+    return 0;
+  }
+  nconsumed = nghttp3_conn_read_stream (connection->h3_conn, stream_id,
+                                        data, datalen,
+                                        flags & NGTCP2_STREAM_DATA_FLAG_FIN);
+  if (nconsumed < 0)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_read_stream: %s\n",
+                nghttp3_strerror (nconsumed));
+    ngtcp2_ccerr_set_application_error (
+      &connection->last_error,
+      nghttp3_err_infer_quic_app_error_code (nconsumed),
+      NULL, 0);
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+  http_consume (connection, stream_id, nconsumed);
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.stream_open
+ */
+int
+stream_open_cb (ngtcp2_conn *conn, int64_t stream_id, void *user_data)
+{
+  struct Connection *connection = user_data;
+  if (! ngtcp2_is_bidi_stream (stream_id))
+  {
+    return 0;
+  }
+  create_stream (connection, stream_id);
+  return 0;
+}
+
+
+/**
  * The callback function for ngtcp2_callbacks.stream_close
  *
  * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
@@ -1130,12 +1590,237 @@ stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "stream_close id = %ld\n",
               stream_id);
-  struct Connection *c = user_data;
-  remove_stream (c, stream_id);
-  if (GNUNET_NO == c->is_initiator &&
-      ngtcp2_is_bidi_stream (stream_id))
+  struct Connection *connection = user_data;
+  int rv;
+
+  if (! (flags & NGTCP2_STREAM_CLOSE_FLAG_APP_ERROR_CODE_SET))
   {
-    ngtcp2_conn_extend_max_streams_bidi (conn, 1);
+    app_error_code = NGHTTP3_H3_NO_ERROR;
+  }
+
+  if (connection->h3_conn)
+  {
+    if (0 == app_error_code)
+    {
+      app_error_code = NGHTTP3_H3_NO_ERROR;
+    }
+
+    rv = nghttp3_conn_close_stream (connection->h3_conn,
+                                    stream_id,
+                                    app_error_code);
+    switch (rv)
+    {
+    case 0:
+      break;
+    case NGHTTP3_ERR_STREAM_NOT_FOUND:
+      if (GNUNET_YES == connection->is_initiator &&
+          ngtcp2_is_bidi_stream (stream_id))
+      {
+        ngtcp2_conn_extend_max_streams_bidi (connection->conn, 1);
+      }
+      else if (GNUNET_NO == connection->is_initiator &&
+               ! ngtcp2_is_bidi_stream (stream_id))
+      {
+        ngtcp2_conn_extend_max_streams_uni (connection->conn, 1);
+      }
+      break;
+    default:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_close_stream: %s\n",
+                  nghttp3_strerror (rv));
+      ngtcp2_ccerr_set_application_error (
+        &connection->last_error,
+        nghttp3_err_infer_quic_app_error_code (rv),
+        NULL, 0);
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.acked_stream_data_offset
+ */
+static int
+acked_stream_data_offset_cb (ngtcp2_conn *conn, int64_t stream_id,
+                             uint64_t offset, uint64_t datalen, void *user_data,
+                             void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  if (NULL == connection->h3_conn)
+  {
+    return 0;
+  }
+
+  rv = nghttp3_conn_add_ack_offset (connection->h3_conn, stream_id, datalen);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_add_ack_offset: %s\n",
+                nghttp3_strerror (rv));
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.extend_max_stream_data
+ */
+static int
+extend_max_stream_data_cb (ngtcp2_conn *conn, int64_t stream_id,
+                           uint64_t max_data, void *user_data,
+                           void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  rv = nghttp3_conn_unblock_stream (connection->h3_conn, stream_id);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_unblock_stream: %s\n",
+                nghttp3_strerror (rv));
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.stream_reset
+ */
+static int
+stream_reset_cb (ngtcp2_conn *conn, int64_t stream_id, uint64_t final_size,
+                 uint64_t app_error_code, void *user_data,
+                 void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  if (connection->h3_conn)
+  {
+    rv = nghttp3_conn_shutdown_stream_read (connection->h3_conn, stream_id);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_shutdown_stream_read: %s\n",
+                  nghttp3_strerror (rv));
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.extend_max_remote_streams_bidi
+ */
+static int
+extend_max_remote_streams_bidi_cb (ngtcp2_conn *conn, uint64_t max_streams,
+                                   void *user_data)
+{
+  struct Connection *connection = user_data;
+  if (NULL == connection->h3_conn)
+  {
+    return 0;
+  }
+  nghttp3_conn_set_max_client_streams_bidi (connection->h3_conn, max_streams);
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.stream_stop_sending
+ */
+static int
+stream_stop_sending_cb (ngtcp2_conn *conn, int64_t stream_id,
+                        uint64_t app_error_code, void *user_data,
+                        void *stream_user_data)
+{
+  struct Connection *connection = user_data;
+  int rv;
+
+  if (connection->h3_conn)
+  {
+    rv = nghttp3_conn_shutdown_stream_read (connection->h3_conn, stream_id);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_shutdown_stream_read: %s\n",
+                  nghttp3_strerror (rv));
+      return NGTCP2_ERR_CALLBACK_FAILURE;
+    }
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.recv_tx_key
+ */
+static int
+recv_tx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
+                void *user_data)
+{
+  if (NGTCP2_ENCRYPTION_LEVEL_1RTT != level)
+  {
+    return 0;
+  }
+
+  struct Connection *connection = user_data;
+  int rv;
+
+  rv = setup_httpconn (connection);
+  if (0 != rv)
+  {
+    return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.extend_max_local_streams_bidi
+ */
+int
+extend_max_local_streams_bidi_cb (ngtcp2_conn *conn, uint64_t max_streams,
+                                  void *user_data)
+{
+  struct Connection *connection = user_data;
+  struct Stream *stream;
+
+  stream = create_stream (connection, -1);
+  ngtcp2_conn_open_bidi_stream (connection->conn,
+                                &stream->stream_id,
+                                NULL);
+  // Submit requests
+  return 0;
+}
+
+
+/**
+ * The callback function for ngtcp2_callbacks.recv_rx_key
+ */
+int
+recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
+                void *user_data)
+{
+  if (NGTCP2_ENCRYPTION_LEVEL_1RTT != level)
+  {
+    return 0;
+  }
+
+  struct Connection *connection = user_data;
+  int rv;
+
+  rv = setup_httpconn (connection);
+  if (0 != rv)
+  {
+    return NGTCP2_ERR_CALLBACK_FAILURE;
   }
   return 0;
 }
@@ -1185,8 +1870,14 @@ client_quic_init (struct Connection *connection,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
     .handshake_completed = handshake_completed_cb,
-    .recv_stream_data = recv_stream_data_cb,
+    .recv_stream_data = recv_stream_data_cb2,
     .stream_close = stream_close_cb,
+    .acked_stream_data_offset = acked_stream_data_offset_cb,
+    .extend_max_stream_data = extend_max_stream_data_cb,
+    .stream_reset = stream_reset_cb,
+    .stream_stop_sending = stream_stop_sending_cb,
+    .extend_max_local_streams_bidi = extend_max_local_streams_bidi_cb,
+    .recv_rx_key = recv_rx_key_cb,
   };
 
 
@@ -2055,7 +2746,7 @@ connection_feed_data (struct Connection *connection,
  * @param data the QUIC packet to be processed
  * @param datalen the length of data
  *
- * @return #GNUNET_NO if success, or the return 
+ * @return #GNUNET_NO if success, or the return
  * value of #connection_feed_data.
  */
 static int
@@ -2119,12 +2810,16 @@ connection_init (struct sockaddr *local_addr,
     .get_path_challenge_data = ngtcp2_crypto_get_path_challenge_data_cb,
     .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
 
-    // .acked_stream_data_offset = acked_stream_data_offset_cb,
-    .recv_stream_data = recv_stream_data_cb,
-    // .stream_open = stream_open_cb,
+    .acked_stream_data_offset = acked_stream_data_offset_cb,
+    .recv_stream_data = recv_stream_data_cb2,
+    .stream_open = stream_open_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
     .stream_close = stream_close_cb,
+    .extend_max_remote_streams_bidi = extend_max_remote_streams_bidi_cb,
+    .stream_stop_sending = stream_stop_sending_cb,
+    .extend_max_stream_data = extend_max_stream_data_cb,
+    .recv_tx_key = recv_tx_key_cb,
   };
 
 
@@ -2204,8 +2899,8 @@ connection_init (struct sockaddr *local_addr,
 
 
 /**
- * The server processes the newly received data packet. 
- * This function will only be called by the server. 
+ * The server processes the newly received data packet.
+ * This function will only be called by the server.
  *
  * @param connection the connection
  * @param addr_key the hash key of peer's address
