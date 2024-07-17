@@ -54,8 +54,8 @@ labeled_extract (const char *ctx_str,
                  const uint8_t *suite_id, size_t suite_id_len,
                  struct GNUNET_ShortHashCode *prk)
 {
-  size_t labeled_ikm_len = strlen (ctx_str) + suite_id_len +
-    label_len + ikm_len;
+  size_t labeled_ikm_len = strlen (ctx_str) + suite_id_len
+                           + label_len + ikm_len;
   uint8_t labeled_ikm[labeled_ikm_len];
   uint8_t *tmp = labeled_ikm;
 
@@ -218,8 +218,9 @@ GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
   GNUNET_CRYPTO_ecdhe_key_get_public (skE, c);
 
   // dh = DH(skE, pkR)
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_x25519 (skE, pub,
-                                                         &dh));
+  if (GNUNET_OK != GNUNET_CRYPTO_ecdh_x25519 (skE, pub,
+                                              &dh))
+    return GNUNET_SYSERR; // ValidationError
   // enc = SerializePublicKey(pkE) is a NOP, see Section 7.1.1
   // pkRm = SerializePublicKey(pkR) is a NOP, see Section 7.1.1
   // kem_context = concat(enc, pkRm)
@@ -279,8 +280,10 @@ GNUNET_CRYPTO_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
 
   // pkE = DeserializePublicKey(enc) is a NOP, see Section 7.1.1
   // dh = DH(skR, pkE)
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_x25519_ecdh (skR, c,
-                                                         &dh));
+  if (GNUNET_OK != GNUNET_CRYPTO_x25519_ecdh (skR, c,
+                                              &dh))
+    return GNUNET_SYSERR; // ValidationError
+
   // pkRm = DeserializePublicKey(pk(skR)) is a NOP, see Section 7.1.1
   crypto_scalarmult_curve25519_base (pkR, skR->d);
   // kem_context = concat(enc, pkRm)
