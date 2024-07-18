@@ -357,7 +357,7 @@ struct GNUNET_CRYPTO_ElligatorRepresentative
    * Represents an element of Curve25519 finite field.
    * Always smaller than 2 ^ 254 - 10 -> Needs to be serialized into a random-looking byte stream before transmission.
    */
-  unsigned char r[256 / 8];
+  uint8_t r[256 / 8];
 };
 
 /**
@@ -2139,6 +2139,13 @@ struct GNUNET_CRYPTO_HpkeContext
   struct GNUNET_ShortHashCode exporter_secret;
 };
 
+enum GNUNET_CRYPTO_HpkeKem
+{
+  GNUNET_CRYPTO_HPKE_KEM_DH_X25519_HKDF256 = 0x0020,
+  GNUNET_CRYPTO_HPKE_KEM_DH_X25519ELLIGATOR_HKDF256 = 0x0030,
+};
+
+
 /**
  * HPKE DHKEM encapsulation (X25519)
  * See RFC 9180
@@ -2296,6 +2303,7 @@ GNUNET_CRYPTO_hpke_sender_setup (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
  * The encapsulation "enc" must be exchanged with the receiver.
  * From then on, encrypted messages can be created and sent using "ctx"
  *
+ * @param kem the HPKE KEM to use
  * @param mode the HPKE mode
  * @param skE the X25519 ephemeral key to use as encapsulation
  * @param skR the X25519 sender private key (may be null for non-Auth modes)
@@ -2311,6 +2319,7 @@ GNUNET_CRYPTO_hpke_sender_setup (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_sender_setup2 (
+  enum GNUNET_CRYPTO_HpkeKem kem,
   enum GNUNET_CRYPTO_HpkeMode mode,
   struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
   struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
@@ -2330,6 +2339,7 @@ GNUNET_CRYPTO_hpke_sender_setup2 (
  * The encapsulation "enc" must be exchanged with the receiver.
  * From then on, encrypted messages can be decrypted using "ctx"
  *
+ * @param kem the HPKE KEM to use
  * @param mode the HPKE mode
  * @param enc the encapsulation from the sender
  * @param skR the X25519 receiver secret key
@@ -2345,6 +2355,7 @@ GNUNET_CRYPTO_hpke_sender_setup2 (
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_receiver_setup2 (
+  enum GNUNET_CRYPTO_HpkeKem kem,
   enum GNUNET_CRYPTO_HpkeMode mode,
   const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
   const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
@@ -3065,14 +3076,12 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (
  *
  * @param r storage for the calculated representative
  * @param pub a point on the curve
- * @param high_y encodes if y-coordinate is > 2 ^254 - 10, which determines the representative value out of two
  * @return 'true' if the given point can be encoded into a representative. Otherwise 'false' is returned and the content of the representative storage is undefined
  */
 bool
 GNUNET_CRYPTO_ecdhe_elligator_encoding (
   struct GNUNET_CRYPTO_ElligatorRepresentative *r,
-  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-  bool high_y);
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pub);
 
 
 /**
@@ -3080,27 +3089,27 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
  * Generates a valid public key for elligator's inverse map by adding a lower order point to a prime order point.
  * Following Method 1 in description https://elligator.org/key-exchange section Step 2: Generate a “special” public key.
  *
+ * @param sk private key for generating valid public key
  * @param pub valid public key for elligator inverse map
- * @param pk private key for generating valid public key
+ * @param repr storage for a calculated representative
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (
+GNUNET_CRYPTO_ecdhe_elligator_key_get_public (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
   struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-  struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
+  struct GNUNET_CRYPTO_ElligatorRepresentative *repr);
 
 
 /**
  * @ingroup crypto
- * Generates a private key for Curve25519 and the elligator representative of the corresponding public key.
+ * Generates a private key for Curve25519.
  *
- * @param repr representative of the public key
- * @param pk Curve25519 private key
+ * @param sk Curve25519 private key
  */
 void
 GNUNET_CRYPTO_ecdhe_elligator_key_create (
-  struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
-  struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
+  struct GNUNET_CRYPTO_EcdhePrivateKey *sk);
 
 /**
  * @ingroup crypto

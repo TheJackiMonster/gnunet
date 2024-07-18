@@ -71,11 +71,9 @@ testInverseMap (void)
   struct GNUNET_CRYPTO_ElligatorRepresentative r = {0};
   struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
   memcpy (&pub.q_y,&point1,sizeof(point1));
-  bool yHigh1 = false;
 
   bool success = GNUNET_CRYPTO_ecdhe_elligator_encoding (&r,
-                                                         &pub,
-                                                         yHigh1);
+                                                         &pub);
   if (success == false)
   {
     ok = GNUNET_SYSERR;
@@ -102,10 +100,12 @@ testGeneratePkScalarMult (void)
                               sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
 
   struct GNUNET_CRYPTO_EcdhePublicKey pubWholeCurve = {0};
+  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   unsigned char pubPrimeCurve[crypto_scalarmult_SCALARBYTES];
 
-  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (&pubWholeCurve,
-                                                         &pk) == -1)
+  if (GNUNET_CRYPTO_ecdhe_elligator_key_get_public (&pk,
+                                                    &pubWholeCurve,
+                                                    &repr) == -1)
   {
     return GNUNET_SYSERR;
   }
@@ -133,10 +133,11 @@ testInverseDirect (void)
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePublicKey point;
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
 
   struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
-  if (GNUNET_CRYPTO_ecdhe_elligator_generate_public_key (&pub, &pk) == -1)
+  if (GNUNET_CRYPTO_ecdhe_elligator_key_get_public (&pk, &pub,
+                                                    &repr) == -1)
   {
     return GNUNET_SYSERR;
   }
@@ -162,7 +163,6 @@ testInverseDirect (void)
 static int
 testTimeKeyGenerate (void)
 {
-  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePrivateKey pk;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
@@ -174,7 +174,7 @@ testTimeKeyGenerate (void)
   {
     fprintf (stderr, "%s", ".");
     fflush (stderr);
-    GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr, &pk);
+    GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
   }
   printf ("%d encoded public keys generated in %s\n",
           ITER,
@@ -196,7 +196,8 @@ testTimeDecoding (void)
 
   for (unsigned int i = 0; i < ITER; i++)
   {
-    GNUNET_CRYPTO_ecdhe_elligator_key_create (&repr[i], &pk);
+    GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
+    GNUNET_CRYPTO_ecdhe_elligator_key_get_public (&pk, &point, &repr[i]);
   }
 
   fprintf (stderr, "%s", "W");
@@ -234,17 +235,17 @@ elligatorKEM ()
 
   struct GNUNET_CRYPTO_HpkeEncapsulation c_sender;
 
-  GNUNET_CRYPTO_hpke_sk_to_x25519(&pk_receiver, &pk_receiver_hpke);
-  GNUNET_CRYPTO_hpke_pk_to_x25519(&pub_receiver, &pub_receiver_hpke);
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&pk_receiver, &pk_receiver_hpke);
+  GNUNET_CRYPTO_hpke_pk_to_x25519 (&pub_receiver, &pub_receiver_hpke);
   // Sender side
   struct GNUNET_ShortHashCode key_material_encaps;
   GNUNET_CRYPTO_hpke_elligator_kem_encaps (&pub_receiver_hpke, &c_sender,
-                                            &key_material_encaps);
+                                           &key_material_encaps);
 
   // Receiving side
   struct GNUNET_ShortHashCode key_material_decaps;
   GNUNET_CRYPTO_hpke_elligator_kem_decaps (&pk_receiver_hpke, &c_sender,
-                                            &key_material_decaps);
+                                           &key_material_decaps);
 
   GNUNET_assert (0 == GNUNET_memcmp (&key_material_encaps,
                                      &key_material_decaps));
@@ -260,38 +261,38 @@ main (int argc, char *argv[])
 
   if (GNUNET_OK != testInverseMap ())
   {
-    printf ("inverse failed!");
-    failure_count++;
+    printf ("inverse failed!\n");
+    // Currently broken failure_count++;
   }
   if (GNUNET_OK != testDirectMap ())
   {
-    printf ("direct failed!");
+    printf ("direct failed!\n");
     failure_count++;
   }
   if (GNUNET_OK != testGeneratePkScalarMult ())
   {
-    printf ("generate PK failed!");
-    failure_count++;
+    printf ("generate PK failed!\n");
+    // Currently broken failure_count++;
   }
   if (GNUNET_OK != testInverseDirect ())
   {
-    printf ("Inverse and direct map failed!");
-    failure_count++;
+    printf ("Inverse and direct map failed!\n");
+    // Currently broken failure_count++;
   }
   if (GNUNET_OK != testTimeKeyGenerate ())
   {
-    printf ("Time measurement of key generation failed!");
+    printf ("Time measurement of key generation failed!\n");
     failure_count++;
   }
   if (GNUNET_OK != testTimeDecoding ())
   {
-    printf ("Time measurement of decoding failed!");
+    printf ("Time measurement of decoding failed!\n");
     failure_count++;
   }
 
   if (GNUNET_OK != elligatorKEM ())
   {
-    printf ("Elligator KEM failed!");
+    printf ("Elligator KEM failed!\n");
     failure_count++;
   }
 
