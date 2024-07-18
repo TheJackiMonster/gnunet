@@ -158,6 +158,10 @@ GNUNET_CRYPTO_hpke_labeled_extract_and_expand (const void *dh,
 static uint8_t GNUNET_CRYPTO_HPKE_KEM_SUITE_ID[] = { 'K', 'E', 'M',
                                                      0x00, 0x20 };
 
+// DHKEM(X25519Elligator, HKDF-256): kem_id = 0x0030
+// concat("KEM", I2OSP(kem_id, 2))
+static uint8_t GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID[] = { 'K', 'E', 'M',
+                                                               0x00, 0x30 };
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_authkem_encaps_norand (
   const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
@@ -376,39 +380,29 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
-  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+GNUNET_CRYPTO_hpke_elligator_kem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  struct GNUNET_CRYPTO_EcdhePublicKey pkR;
   struct GNUNET_CRYPTO_EcdhePublicKey dh;
-  uint8_t kem_context[sizeof *r + sizeof *pub];
-  uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = htons (256); // FIXME hardcode as constant
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r;
+  uint8_t kem_context[sizeof *r + sizeof *pkR];
 
-  // DHKEM(X25519, HKDF-256): kem_id = 32
-  // concat("KEM", I2OSP(kem_id, 2))
-  memcpy (suite_id, "KEM", 3);
-  memcpy (suite_id + 3, &kem_id, 2);
-
-  // This maps the ed25519 point to X25519
-  if (0 != crypto_sign_ed25519_pk_to_curve25519 (pkR.q_y, pub->q_y))
-    return GNUNET_SYSERR;
-
+  r = (struct GNUNET_CRYPTO_ElligatorRepresentative*) c;
   // skE, pkE = GenerateElligatorKeyPair()
   GNUNET_CRYPTO_ecdhe_elligator_key_create (r, &sk);
 
   // dh = DH(skE, pkR)
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_x25519 (&sk, &pkR,
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_ecdh_x25519 (&sk, pkR,
                                                          &dh));
   // kem_context = concat(enc, pkRm)
   // enc = SerializePublicKey(pkE) == r
   // pkRm = SerializePublicKey(pkR) is a NOP, see Section 7.1.1
   // kem_context = concat(enc, pkRm)
   memcpy (kem_context, r, sizeof *r);
-  memcpy (kem_context + sizeof *r, &pkR, sizeof pkR);
+  memcpy (kem_context + sizeof *r, pkR, sizeof *pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
   return GNUNET_CRYPTO_hpke_labeled_extract_and_expand (
     &dh, sizeof dh,
@@ -417,41 +411,32 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
     "eae_prk", strlen ("eae_prk"),
     "shared_secret", strlen ("shared_secret"),
     kem_context, sizeof kem_context,
-    suite_id, sizeof suite_id,
+    GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
+    sizeof GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
     shared_secret);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-  const struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+GNUNET_CRYPTO_hpke_elligator_kem_decaps (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *shared_secret)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey skR;
   struct GNUNET_CRYPTO_EcdhePublicKey pkE;
   struct GNUNET_CRYPTO_EcdhePublicKey dh;
+  const struct GNUNET_CRYPTO_ElligatorRepresentative *r;
   uint8_t kem_context[sizeof *r + crypto_scalarmult_curve25519_BYTES];
   uint8_t pkR[crypto_scalarmult_BYTES];
-  uint8_t suite_id[strlen ("KEM") + 2];
-  uint16_t kem_id = htons (256); // FIXME hardcode as constant
 
-  // DHKEM(X25519, HKDF-256): kem_id = 32
-  // concat("KEM", I2OSP(kem_id, 2))
-  memcpy (suite_id, "KEM", 3);
-  memcpy (suite_id + 3, &kem_id, 2);
-
-  // This maps the ed25519 point to X25519
-  if (0 != crypto_sign_ed25519_sk_to_curve25519 (skR.d, priv->d))
-    return GNUNET_SYSERR;
-
+  r = (struct GNUNET_CRYPTO_ElligatorRepresentative*) c;
   // pkE = DeserializePublicKey(enc) Elligator deserialize!
   GNUNET_CRYPTO_ecdhe_elligator_decoding (&pkE, NULL, r);
   // dh = DH(skR, pkE)
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_x25519_ecdh (&skR, &pkE,
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_x25519_ecdh (skR, &pkE,
                                                          &dh));
   // pkRm = DeserializePublicKey(pk(skR)) is a NOP, see Section 7.1.1
-  crypto_scalarmult_curve25519_base (pkR, skR.d);
+  crypto_scalarmult_curve25519_base (pkR, skR->d);
   memcpy (kem_context, r, sizeof *r);
   memcpy (kem_context + sizeof *r, pkR, sizeof pkR);
   // shared_secret = ExtractAndExpand(dh, kem_context)
@@ -462,7 +447,8 @@ GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
     "eae_prk", strlen ("eae_prk"),
     "shared_secret", strlen ("shared_secret"),
     kem_context, sizeof kem_context,
-    suite_id, sizeof suite_id,
+    GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
+    sizeof GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
     shared_secret);
 }
 

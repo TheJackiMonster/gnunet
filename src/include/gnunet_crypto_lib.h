@@ -3109,15 +3109,15 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
- * @param pub given edwards curve public key (X)
- * @param r representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
+ * @param pkR Receiver public key (X)
+ * @param c representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
  * @param prk where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
-  const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+GNUNET_CRYPTO_hpke_elligator_kem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *prk);
 
 /**
@@ -3127,15 +3127,15 @@ GNUNET_CRYPTO_eddsa_elligator_kem_encaps (
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
- * @param priv own private key (x)
+ * @param skR own private key (x)
  * @param r received representative r, from which we can obtain the public key A (direct_map(r)=A=aG)
  * @param prk where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_elligator_kem_decaps (
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-  const struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+GNUNET_CRYPTO_hpke_elligator_kem_decaps (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *prk);
 
 

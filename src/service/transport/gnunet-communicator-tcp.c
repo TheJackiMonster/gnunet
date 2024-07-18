@@ -139,7 +139,7 @@ struct TcpHandshakeSignature
   /**
    * Ephemeral key used by the @e sender (as Elligator representative).
    */
-  struct GNUNET_CRYPTO_ElligatorRepresentative ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -436,6 +436,11 @@ struct Queue
    * To whom are we talking to.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * To whom are we talking to.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey target_hpke_key;
 
   /**
    * Listen socket.
@@ -854,6 +859,11 @@ static struct GNUNET_TIME_Relative rekey_interval;
 static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EcdhePrivateKey my_x25519_private_key;
+
+/**
  * Our configuration.
  */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -932,6 +942,26 @@ static struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
  */
 static void
 listen_cb (void *cls);
+
+static void
+eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
+                     struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+{
+  struct GNUNET_CRYPTO_PrivateKey key;
+  key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
+  key.eddsa_key = *edpk;
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
+}
+
+static void
+eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
+                     struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+{
+  struct GNUNET_CRYPTO_PublicKey key;
+  key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
+  key.eddsa_key = *edpk;
+  GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
+}
 
 /**
  * Functions with this signature are called whenever we need
@@ -1347,12 +1377,12 @@ rekey_monotime_cb (void *cls,
  */
 static void
 setup_in_cipher_elligator (
-  const struct GNUNET_CRYPTO_ElligatorRepresentative *repr,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct Queue *queue)
 {
   struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_eddsa_elligator_kem_decaps (my_private_key, repr, &k);
+  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key, c, &k);
   setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
@@ -2710,13 +2740,13 @@ boot_queue (struct Queue *queue)
  */
 static void
 transmit_kx (struct Queue *queue,
-             const struct GNUNET_CRYPTO_ElligatorRepresentative *repr)
+             const struct GNUNET_CRYPTO_HpkeEncapsulation *c)
 {
   struct TcpHandshakeSignature ths;
   struct TCPConfirmation tc;
 
-  memcpy (queue->cwrite_buf, repr, sizeof(*repr));
-  queue->cwrite_off = sizeof(*repr);
+  memcpy (queue->cwrite_buf, c, sizeof(*c));
+  queue->cwrite_off = sizeof(*c);
   /* compute 'tc' and append in encrypted format to cwrite_buf */
   tc.sender = my_identity;
   tc.monotonic_time =
@@ -2729,7 +2759,7 @@ transmit_kx (struct Queue *queue,
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
-  ths.ephemeral = *repr;
+  ths.ephemeral = *c;
   ths.monotonic_time = tc.monotonic_time;
   ths.challenge = tc.challenge;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
@@ -2759,13 +2789,13 @@ transmit_kx (struct Queue *queue,
 static void
 start_initial_kx_out (struct Queue *queue)
 {
-  struct GNUNET_CRYPTO_ElligatorRepresentative repr;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c;
   struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_eddsa_elligator_kem_encaps (&queue->target.public_key,
-                                            &repr, &k);
+  GNUNET_CRYPTO_hpke_elligator_kem_encaps (&queue->target_hpke_key,
+                                           &c, &k);
   setup_out_cipher (queue, &k);
-  transmit_kx (queue, &repr);
+  transmit_kx (queue, &c);
 }
 
 
@@ -2968,10 +2998,10 @@ queue_read_kx (void *cls)
     return;
   }
   /* we got all the data, let's find out who we are talking to! */
-  setup_in_cipher_elligator ((const struct GNUNET_CRYPTO_ElligatorRepresentative
-                              *)
-                             queue->cread_buf,
-                             queue);
+  setup_in_cipher_elligator (
+    (const struct GNUNET_CRYPTO_HpkeEncapsulation*)
+    queue->cread_buf,
+    queue);
   if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, queue->cread_buf))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -3073,6 +3103,7 @@ proto_read_kx (void *cls)
 
     queue = GNUNET_new (struct Queue);
     queue->target = pm->clientIdentity;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
     read_task = &queue_read_kx;
   }
@@ -3087,10 +3118,10 @@ proto_read_kx (void *cls)
   {
     /* we got all the data, let's find out who we are talking to! */
     queue = GNUNET_new (struct Queue);
-    setup_in_cipher_elligator ((const struct
-                                GNUNET_CRYPTO_ElligatorRepresentative *) pq->
-                               ibuf,
-                               queue);
+    setup_in_cipher_elligator (
+      (const struct GNUNET_CRYPTO_HpkeEncapsulation *) pq->
+      ibuf,
+      queue);
     if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -3836,6 +3867,8 @@ init_socket (struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
   GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
+  eddsa_priv_to_hpke_key (my_private_key,
+                          &my_x25519_private_key);
   /* start listening */
 
   lt = GNUNET_new (struct ListenTask);
