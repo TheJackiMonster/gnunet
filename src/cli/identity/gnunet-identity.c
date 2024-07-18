@@ -259,17 +259,22 @@ static void
 write_encrypted_message (void)
 {
   struct GNUNET_CRYPTO_PublicKey recipient;
+  struct GNUNET_CRYPTO_EcdhePublicKey hpke_key;
   size_t ct_len = strlen (write_msg) + 1
-                  + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES;
+                  + GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
   unsigned char ct[ct_len];
   if (GNUNET_CRYPTO_public_key_from_string (pubkey_msg, &recipient) !=
       GNUNET_SYSERR)
   {
+    GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient, &
+                                                                 hpke_key));
     size_t msg_len = strlen (write_msg) + 1;
-    if (GNUNET_OK == GNUNET_CRYPTO_encrypt (write_msg,
-                                              msg_len,
-                                              &recipient,
-                                              ct, ct_len))
+    if (GNUNET_OK == GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
+                                                      NULL, 0, // FIXME provide?
+                                                      NULL, 0,
+                                                      (uint8_t*) write_msg,
+                                                      msg_len,
+                                                      ct, ct_len))
     {
       char *serialized_msg;
       serialized_msg = GNUNET_STRINGS_data_to_string_alloc (ct, ct_len);
@@ -301,6 +306,7 @@ write_encrypted_message (void)
 static void
 read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
 {
+  struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
   char *deserialized_msg;
   size_t msg_len;
   if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (read_msg, strlen (
@@ -309,11 +315,19 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
                                                         deserialized_msg,
                                                         &msg_len))
   {
-    if (GNUNET_OK == GNUNET_CRYPTO_decrypt (deserialized_msg,
-                                              msg_len,
-                                              GNUNET_IDENTITY_ego_get_private_key (
-                                                ego),
-                                              deserialized_msg, msg_len))
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_hpke_sk_to_x25519 (
+                     GNUNET_IDENTITY_ego_get_private_key (ego),
+                     &hpke_key));
+    if (GNUNET_OK == GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
+                                                      NULL, 0,
+                                                      NULL, 0,
+                                                      (uint8_t*)
+                                                      deserialized_msg,
+                                                      msg_len,
+                                                      (uint8_t*)
+                                                      deserialized_msg,
+                                                      msg_len))
     {
       deserialized_msg[msg_len - 1] = '\0';
       fprintf (stdout,

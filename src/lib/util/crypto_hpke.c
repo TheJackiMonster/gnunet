@@ -641,6 +641,8 @@ GNUNET_CRYPTO_hpke_sender_setup_norand (
 {
   struct GNUNET_ShortHashCode shared_secret;
 
+  if (ctx->role != GNUNET_CRYPTO_HPKE_ROLE_R)
+    return GNUNET_SYSERR;
   if (GNUNET_OK != GNUNET_CRYPTO_kem_encaps_norand (pkR, enc, skR,
                                                     &shared_secret))
     return GNUNET_SYSERR;
@@ -680,6 +682,8 @@ GNUNET_CRYPTO_hpke_receiver_setup (
 {
   struct GNUNET_ShortHashCode shared_secret;
 
+  if (ctx->role != GNUNET_CRYPTO_HPKE_ROLE_R)
+    return GNUNET_SYSERR;
   if (GNUNET_OK != GNUNET_CRYPTO_kem_decaps (skR, enc, &shared_secret))
     return GNUNET_SYSERR;
   if (GNUNET_OK != key_schedule (GNUNET_CRYPTO_HPKE_ROLE_R,
@@ -765,4 +769,99 @@ GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
   if (GNUNET_OK != increment_seq (ctx))
     return GNUNET_SYSERR;
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+                                 const uint8_t *info, size_t info_len,
+                                 const uint8_t*aad, size_t aad_len,
+                                 const uint8_t *pt, size_t pt_len,
+                                 uint8_t *ct, unsigned long long ct_len)
+{
+  struct GNUNET_CRYPTO_HpkeContext ctx;
+  struct GNUNET_CRYPTO_HpkeEncapsulation *enc;
+  uint8_t *ct_off;
+
+  enc = (struct GNUNET_CRYPTO_HpkeEncapsulation*) ct;
+  ct_off = (uint8_t*) &enc[1];
+  if (GNUNET_OK != GNUNET_CRYPTO_hpke_sender_setup (pkR,
+                                                    info, info_len,
+                                                    enc, &ctx))
+    return GNUNET_SYSERR;
+  return GNUNET_CRYPTO_hpke_seal (&ctx,
+                                  aad, aad_len,
+                                  pt, pt_len,
+                                  ct_off,
+                                  ct_len - sizeof *enc);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_open_oneshot (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const uint8_t *info, size_t info_len,
+  const uint8_t*aad, size_t aad_len,
+  const uint8_t *ct, size_t ct_len,
+  uint8_t *pt, unsigned long long pt_len)
+{
+  struct GNUNET_CRYPTO_HpkeContext ctx;
+  struct GNUNET_CRYPTO_HpkeEncapsulation *enc;
+  uint8_t *ct_off;
+
+  enc = (struct GNUNET_CRYPTO_HpkeEncapsulation*) ct;
+  ct_off = (uint8_t*) &enc[1];
+  if (GNUNET_OK != GNUNET_CRYPTO_hpke_receiver_setup (enc, skR,
+                                                      info, info_len,
+                                                      &ctx))
+    return GNUNET_SYSERR;
+  return GNUNET_CRYPTO_hpke_open (&ctx,
+                                  aad, aad_len,
+                                  ct_off,
+                                  ct_len - sizeof *enc,
+                                  pt,
+                                  pt_len);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
+                                 struct GNUNET_CRYPTO_EcdhePublicKey *x25519)
+{
+  switch (ntohl (pk->type))
+  {
+  case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
+    memcpy (x25519->q_y, pk->ecdsa_key.q_y,
+            sizeof pk->ecdsa_key.q_y);
+  case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
+    if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->q_y,
+                                                   pk->eddsa_key.q_y))
+      return GNUNET_SYSERR;
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
+}
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_to_x25519 (const struct GNUNET_CRYPTO_PrivateKey *sk,
+                                 struct GNUNET_CRYPTO_EcdhePrivateKey *x25519)
+{
+  switch (ntohl (sk->type))
+  {
+  case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
+    memcpy (x25519->d, sk->ecdsa_key.d,
+            sizeof sk->ecdsa_key.d);
+  case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
+    if (0 != crypto_sign_ed25519_sk_to_curve25519 (x25519->d,
+                                                   sk->eddsa_key.d))
+      return GNUNET_SYSERR;
+    return GNUNET_OK;
+  default:
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+
 }

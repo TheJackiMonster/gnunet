@@ -2110,6 +2110,14 @@ enum GNUNET_CRYPTO_HpkeMode
 // Nt
 #define GNUNET_CRYPTO_HPKE_TAG_LEN 16
 
+// Overhead required for ciphertext
+#define GNUNET_CRYPTO_HPKE_SEAL_OVERHEAD_BYTES GNUNET_CRYPTO_HPKE_TAG_LEN
+
+// Overhead required for ciphertext
+#define GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES \
+  GNUNET_CRYPTO_HPKE_SEAL_OVERHEAD_BYTES + \
+  sizeof (struct GNUNET_CRYPTO_HpkeEncapsulation)
+
 enum GNUNET_CRYPTO_HpkeRole
 {
   GNUNET_CRYPTO_HPKE_ROLE_R,
@@ -2138,6 +2146,29 @@ struct GNUNET_CRYPTO_HpkeEncapsulation
   unsigned char q_y[256 / 8];
 };
 
+
+/**
+ * Convert a GNUnet identity key to a key sutiable for HPKE (X25519)
+ *
+ * @param sk the private key
+ * @param x25519 the new key
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_to_x25519 (const struct GNUNET_CRYPTO_PrivateKey *sk,
+                                 struct GNUNET_CRYPTO_EcdhePrivateKey *x25519);
+
+
+/**
+ * Convert a GNUnet identity key to a key sutiable for HPKE (X25519)
+ *
+ * @param pk the public key
+ * @param x25519 the new key
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
+                                 struct GNUNET_CRYPTO_EcdhePublicKey *x25519);
 
 /**
  * @ingroup crypto
@@ -2284,7 +2315,7 @@ GNUNET_CRYPTO_hpke_sender_setup_norand (
  * From then on, encrypted messages can be decrypted using "ctx"
  *
  * @param enc the encapsulation from the sender
- * @param pkR the X25519 receiver secret key
+ * @param skR the X25519 receiver secret key
  * @param info the info context separator
  * @param info_len length of info in bytes
  * @param ctx the encryption context allocated by caller
@@ -2317,9 +2348,40 @@ GNUNET_CRYPTO_hpke_receiver_setup (
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_seal (struct GNUNET_CRYPTO_HpkeContext *ctx,
-                         const uint8_t*aad, size_t aad_len,
-                         const uint8_t *pt, size_t pt_len,
-                         uint8_t *ct, unsigned long long ct_len);
+                         const uint8_t *aad,
+                         size_t aad_len,
+                         const uint8_t *pt,
+                         size_t pt_len,
+                         uint8_t *ct,
+                         unsigned long long ct_len);
+
+
+/**
+ * RFC9180 HPKE encryption.
+ * Encrypt messages in a context.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param pkR the X25519 receiver secret key
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param aad addition authenticated data to send (not encrypted)
+ * @param aad_len length of aad in bytes
+ * @param pt plaintext data to encrypt
+ * @param pt_len length of pt in bytes
+ * @param ct ciphertext to send (to be allocated by caller)
+ * @param ct_len length of written bytes in ct
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+                                 const uint8_t *info, size_t info_len,
+                                 const uint8_t*aad, size_t aad_len,
+                                 const uint8_t *pt, size_t pt_len,
+                                 uint8_t *ct, unsigned long long ct_len);
+
 
 /**
  * RFC9180 HPKE encryption.
@@ -2343,6 +2405,35 @@ GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
                          const uint8_t*aad, size_t aad_len,
                          const uint8_t *ct, size_t ct_len,
                          uint8_t *pt, unsigned long long pt_len);
+
+
+/**
+ * RFC9180 HPKE encryption.
+ * Decrypt messages in a context.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param skR the X25519 receiver secret key
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param aad addition authenticated data to send (not encrypted)
+ * @param aad_len length of aad in bytes
+ * @param ct ciphertext to decrypt
+ * @param ct_len length of ct in bytes
+ * @param pt plaintext (to be allocated by caller)
+ * @param pt_len length of written bytes in pt
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_open_oneshot (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const uint8_t *info, size_t info_len,
+  const uint8_t*aad, size_t aad_len,
+  const uint8_t *ct, size_t ct_len,
+  uint8_t *pt, unsigned long long pt_len);
+
 
 /** HPKE END **/
 
@@ -4650,97 +4741,6 @@ GNUNET_CRYPTO_signature_verify_raw_ (
                                      sig,                               \
                                      pub);                              \
   })
-
-
-/**
- * Encrypt a block with #GNUNET_CRYPTO_PublicKey and derives a
- * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
- * using ecdh to derive a symmetric key.
- *
- * @param block the block to encrypt
- * @param size the size of the @a block
- * @param pub public key to use for ecdh
- * @param ecc where to write the ecc public key
- * @param result the output parameter in which to store the encrypted result
- *               can be the same or overlap with @c block
- * @returns the size of the encrypted block, -1 for errors.
- *          Due to the use of CFB and therefore an effective stream cipher,
- *          this size should be the same as @c len.
- */
-ssize_t
-GNUNET_CRYPTO_encrypt_old (const void *block,
-                           size_t size,
-                           const struct GNUNET_CRYPTO_PublicKey *pub,
-                           struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-                           void *result);
-
-
-/**
- * Decrypt a given block with #GNUNET_CRYPTO_PrivateKey and a given
- * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
- *
- * @param block the data to decrypt, encoded as returned by encrypt
- * @param size the size of the @a block to decrypt
- * @param priv private key to use for ecdh
- * @param ecc the ecc public key
- * @param result address to store the result at
- *               can be the same or overlap with @c block
- * @return -1 on failure, size of decrypted block on success.
- *         Due to the use of CFB and therefore an effective stream cipher,
- *         this size should be the same as @c size.
- */
-ssize_t
-GNUNET_CRYPTO_decrypt_old (
-  const void *block,
-  size_t size,
-  const struct GNUNET_CRYPTO_PrivateKey *priv,
-  const struct GNUNET_CRYPTO_EcdhePublicKey *ecc,
-  void *result);
-
-#define GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES (crypto_secretbox_MACBYTES \
-                                              + sizeof (struct \
-                                                        GNUNET_CRYPTO_FoKemC))
-
-/**
- * Encrypt a block with #GNUNET_CRYPTO_PublicKey and derives a
- * #GNUNET_CRYPTO_EcdhePublicKey which is required for decryption
- * using ecdh to derive a symmetric key.
- *
- * Note that the result buffer for the ciphertext must be the length of
- * the message to encrypt plus #GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES.
- *
- * @param block the block to encrypt
- * @param size the size of the @a block
- * @param pub public key to encrypt for
- * @param result the output parameter in which to store the encrypted result
- *               can be the same or overlap with @c block
- * @returns GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_encrypt (const void *block,
-                       size_t size,
-                       const struct GNUNET_CRYPTO_PublicKey *pub,
-                       void *result,
-                       size_t result_size);
-
-
-/**
- * Decrypt a given block with #GNUNET_CRYPTO_PrivateKey and a given
- * #GNUNET_CRYPTO_EcdhePublicKey using ecdh to derive a symmetric key.
- *
- * @param block the data to decrypt, encoded as returned by encrypt
- * @param size the size of the @a block to decrypt
- * @param priv private key to use for ecdh
- * @param result address to store the result at
- *               can be the same or overlap with @c block
- * @returns GNUNET_OK on success.
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_decrypt (const void *block,
-                       size_t size,
-                       const struct GNUNET_CRYPTO_PrivateKey *priv,
-                       void *result,
-                       size_t result_size);
 
 
 /**

@@ -125,8 +125,8 @@ main (int argc, char *argv[])
   struct GNUNET_CRYPTO_EcdhePublicKey rfc9180_a2_pkEm;
   struct GNUNET_CRYPTO_EcdhePrivateKey rfc9180_a2_skRm;
   struct GNUNET_CRYPTO_EcdhePublicKey rfc9180_a2_pkRm;
-  struct GNUNET_CRYPTO_EcdhePublicKey rfc9180_a2_enc;
-  struct GNUNET_CRYPTO_EcdhePublicKey enc;
+  struct GNUNET_CRYPTO_HpkeEncapsulation rfc9180_a2_enc;
+  struct GNUNET_CRYPTO_HpkeEncapsulation enc;
   struct GNUNET_ShortHashCode rfc9180_a2_shared_secret;
   struct GNUNET_ShortHashCode shared_secret;
   struct GNUNET_CRYPTO_HpkeContext ctxS;
