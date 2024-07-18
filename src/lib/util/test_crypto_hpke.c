@@ -200,9 +200,13 @@ main (int argc, char *argv[])
   GNUNET_assert (0 == GNUNET_memcmp (&shared_secret, &rfc9180_a2_shared_secret))
   ;
   printf ("\n");
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sender_setup_norand (
-                   &rfc9180_a2_skEm, &rfc9180_a2_pkRm,
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sender_setup2 (
+                   GNUNET_CRYPTO_HPKE_MODE_BASE,
+                   &rfc9180_a2_skEm, NULL,
+                   &rfc9180_a2_pkRm,
                    rfc9180_a2_info, sizeof rfc9180_a2_info,
+                   NULL, 0,
+                   NULL, 0,
                    &enc, &ctxS));
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_receiver_setup (
                    &enc,

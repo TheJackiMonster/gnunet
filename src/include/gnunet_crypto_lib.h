@@ -2088,8 +2088,14 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
                            struct GNUNET_CRYPTO_EcdhePublicKey *dh);
 
 
-/** HPKE **/
+/** HPKE RFC 9180 **/
 
+/**
+ * The HPKE Mode
+ * "PSK" stands for "Pre-Shared Key".
+ * The "AUTH" variants use an authenticating KEM
+ * construction.
+ */
 enum GNUNET_CRYPTO_HpkeMode
 {
   GNUNET_CRYPTO_HPKE_MODE_BASE = 0x00,
@@ -2290,20 +2296,64 @@ GNUNET_CRYPTO_hpke_sender_setup (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
  * The encapsulation "enc" must be exchanged with the receiver.
  * From then on, encrypted messages can be created and sent using "ctx"
  *
- * @param pkR the X25519 receiver public key
+ * @param mode the HPKE mode
+ * @param skE the X25519 ephemeral key to use as encapsulation
+ * @param skR the X25519 sender private key (may be null for non-Auth modes)
  * @param info the info context separator
  * @param info_len length of info in bytes
+ * @param psk the pre-shared key (must not be set non-PSK modes)
+ * @param psk_len length of psk in bytes
+ * @param psk_id the ID of the pre-shared key (must be set of psk is set)
+ * @param psk_id_len length of psk_id in bytes
  * @param enc the encapsulation to exchange with the other party
  * @param ctx the encryption context allocated by caller
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_sender_setup_norand (
-  struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+GNUNET_CRYPTO_hpke_sender_setup2 (
+  enum GNUNET_CRYPTO_HpkeMode mode,
+  struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
   const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
   const uint8_t *info, size_t info_len,
+  const uint8_t *psk, size_t psk_len,
+  const uint8_t *psk_id, size_t psk_id_len,
   struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
   struct GNUNET_CRYPTO_HpkeContext *ctx);
+
+/**
+ * RFC9180 HPKE encryption.
+ * This sets the encryption context up for a receiver of
+ * encrypted messages.
+ * Algorithm: DHKEM(X25519, HKDF-SHA256), HKDF-SHA256, ChaCha20Poly1305
+ *
+ * The encapsulation "enc" must be exchanged with the receiver.
+ * From then on, encrypted messages can be decrypted using "ctx"
+ *
+ * @param mode the HPKE mode
+ * @param enc the encapsulation from the sender
+ * @param skR the X25519 receiver secret key
+ * @param pkS the X25519 sender public key (may be NULL for non-Auth modes)
+ * @param info the info context separator
+ * @param info_len length of info in bytes
+ * @param psk the pre-shared key (must not be set non-PSK modes)
+ * @param psk_len length of psk in bytes
+ * @param psk_id the ID of the pre-shared key (must be set of psk is set)
+ * @param psk_id_len length of psk_id in bytes
+ * @param ctx the encryption context allocated by caller
+ * @return GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_receiver_setup2 (
+  enum GNUNET_CRYPTO_HpkeMode mode,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkS,
+  const uint8_t *info, size_t info_len,
+  const uint8_t *psk, size_t psk_len,
+  const uint8_t *psk_id, size_t psk_id_len,
+  struct GNUNET_CRYPTO_HpkeContext *ctx);
+
 
 /**
  * RFC9180 HPKE encryption.
