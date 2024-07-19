@@ -2196,7 +2196,7 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_decaps (const struct
+GNUNET_CRYPTO_hpke_kem_decaps (const struct
                           GNUNET_CRYPTO_EcdhePrivateKey *priv,
                           const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                           struct GNUNET_ShortHashCode *prk);
@@ -2214,7 +2214,7 @@ GNUNET_CRYPTO_kem_decaps (const struct
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+GNUNET_CRYPTO_hpke_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                           struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                           struct GNUNET_ShortHashCode *prk);
 
@@ -2231,7 +2231,7 @@ GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+GNUNET_CRYPTO_hpke_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                                  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                                  struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
                                  struct GNUNET_ShortHashCode *prk);

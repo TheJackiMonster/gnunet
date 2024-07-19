@@ -190,8 +190,8 @@ main (int argc, char *argv[])
   print_bytes (&rfc9180_a2_pkEm, sizeof rfc9180_a2_pkEm, 0);
   printf ("\n");
   memcpy (enc.q_y, rfc9180_a2_pkEm.q_y, 32);
-  GNUNET_CRYPTO_kem_encaps_norand (&rfc9180_a2_pkRm, &enc,
-                                   &rfc9180_a2_skEm, &shared_secret);
+  GNUNET_CRYPTO_hpke_kem_encaps_norand (&rfc9180_a2_pkRm, &enc,
+                                        &rfc9180_a2_skEm, &shared_secret);
   GNUNET_assert (0 == GNUNET_memcmp (&enc, &rfc9180_a2_enc));
   printf ("enc: ");
   print_bytes (&enc, sizeof enc, 0);

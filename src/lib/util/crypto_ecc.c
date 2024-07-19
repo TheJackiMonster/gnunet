@@ -768,12 +768,13 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
                            const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
                            struct GNUNET_CRYPTO_EcdhePublicKey *dh)
 {
-  uint8_t checkbyte = 0;
+  uint64_t checkbyte = 0;
+  size_t num_words = sizeof *dh / sizeof (uint64_t);
   if (0 != crypto_scalarmult_curve25519 (dh->q_y, sk->d, pub->q_y))
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
-  for (int i = 0; i < sizeof *dh; i++)
-    checkbyte |= ((uint8_t*)dh)[i];
+  for (int i = 0; i < num_words; i++)
+    checkbyte |= ((uint64_t*)dh)[i];
   return (0 == checkbyte) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -783,12 +784,13 @@ GNUNET_CRYPTO_ecdh_x25519 (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
                            const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
                            struct GNUNET_CRYPTO_EcdhePublicKey *dh)
 {
-  uint8_t checkbyte = 0;
+  uint64_t checkbyte = 0;
+  size_t num_words = sizeof *dh / sizeof (uint64_t);
   if (0 != crypto_scalarmult_curve25519 (dh->q_y, sk->d, pk->q_y))
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
-  for (int i = 0; i < sizeof *dh; i++)
-    checkbyte |= ((uint8_t*)dh)[i];
+  for (int i = 0; i < num_words; i++)
+    checkbyte |= ((uint64_t*)dh)[i];
   if (0 == checkbyte)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

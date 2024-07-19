@@ -163,7 +163,7 @@ static uint8_t GNUNET_CRYPTO_HPKE_KEM_SUITE_ID[] = { 'K', 'E', 'M',
 static uint8_t GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID[] = { 'K', 'E', 'M',
                                                                0x00, 0x30 };
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_authkem_encaps_norand (
+GNUNET_CRYPTO_hpke_authkem_encaps_norand (
   const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
   struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
@@ -209,15 +209,16 @@ GNUNET_CRYPTO_authkem_encaps_norand (
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_authkem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                              struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-                              struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_hpke_authkem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey sk;
   // skE, pkE = GenerateKeyPair()
   GNUNET_CRYPTO_ecdhe_key_create (&sk);
 
-  return GNUNET_CRYPTO_kem_encaps_norand (pub, c, &sk, shared_secret);
+  return GNUNET_CRYPTO_hpke_kem_encaps_norand (pub, c, &sk, shared_secret);
 }
 
 
@@ -258,10 +259,13 @@ kem_encaps_norand (uint8_t *suite_id, size_t suite_id_len,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                                 struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
-                                 struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
-                                 struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_hpke_kem_encaps_norand (const struct
+                                      GNUNET_CRYPTO_EcdhePublicKey *pub,
+                                      struct GNUNET_CRYPTO_HpkeEncapsulation *
+                                      enc,
+                                      struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+                                      struct GNUNET_ShortHashCode *shared_secret
+                                      )
 {
   // enc = SerializePublicKey(pkE) is a NOP, see Section 7.1.1
   GNUNET_CRYPTO_ecdhe_key_get_public (
@@ -274,15 +278,15 @@ GNUNET_CRYPTO_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
-                          struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-                          struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_hpke_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                               struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+                               struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePrivateKey skE;
   // skE, pkE = GenerateKeyPair()
   GNUNET_CRYPTO_ecdhe_key_create (&skE);
 
-  return GNUNET_CRYPTO_kem_encaps_norand (pub, c, &skE, shared_secret);
+  return GNUNET_CRYPTO_hpke_kem_encaps_norand (pub, c, &skE, shared_secret);
 }
 
 
@@ -297,12 +301,12 @@ GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
   if (0 != crypto_sign_ed25519_pk_to_curve25519 (pkR.q_y, pub->q_y))
     return GNUNET_SYSERR;
 
-  return GNUNET_CRYPTO_kem_encaps (&pkR, c, shared_secret);
+  return GNUNET_CRYPTO_hpke_kem_encaps (&pkR, c, shared_secret);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_authkem_decaps (
+GNUNET_CRYPTO_hpke_authkem_decaps (
   const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
   const struct GNUNET_CRYPTO_EcdhePublicKey *pkS,
   const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
@@ -343,9 +347,9 @@ GNUNET_CRYPTO_authkem_decaps (
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
-                          const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-                          struct GNUNET_ShortHashCode *shared_secret)
+GNUNET_CRYPTO_hpke_kem_decaps (const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+                               const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+                               struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey dh;
   uint8_t kem_context[sizeof *c + crypto_scalarmult_curve25519_BYTES];
@@ -390,7 +394,7 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
   // This maps the ed25519 point to X25519
   if (0 != crypto_sign_ed25519_sk_to_curve25519 (skR.d, priv->d))
     return GNUNET_SYSERR;
-  return GNUNET_CRYPTO_kem_decaps (&skR, c, shared_secret);
+  return GNUNET_CRYPTO_hpke_kem_decaps (&skR, c, shared_secret);
 
 }
 
@@ -611,8 +615,8 @@ GNUNET_CRYPTO_hpke_sender_setup2 (
   case GNUNET_CRYPTO_HPKE_MODE_PSK:
     if (kem == GNUNET_CRYPTO_HPKE_KEM_DH_X25519_HKDF256)
     {
-      if (GNUNET_OK != GNUNET_CRYPTO_kem_encaps_norand (pkR, enc, skR,
-                                                        &shared_secret))
+      if (GNUNET_OK != GNUNET_CRYPTO_hpke_kem_encaps_norand (pkR, enc, skR,
+                                                             &shared_secret))
         return GNUNET_SYSERR;
       break;
     }
@@ -630,9 +634,9 @@ GNUNET_CRYPTO_hpke_sender_setup2 (
   case GNUNET_CRYPTO_HPKE_MODE_AUTH_PSK:
     if (NULL == skS)
       return GNUNET_SYSERR;
-    if (GNUNET_OK != GNUNET_CRYPTO_authkem_encaps_norand (pkR, enc,
-                                                          skR, skS,
-                                                          &shared_secret))
+    if (GNUNET_OK != GNUNET_CRYPTO_hpke_authkem_encaps_norand (pkR, enc,
+                                                               skR, skS,
+                                                               &shared_secret))
       return GNUNET_SYSERR;
     break;
   default:
@@ -692,8 +696,8 @@ GNUNET_CRYPTO_hpke_receiver_setup2 (
   case GNUNET_CRYPTO_HPKE_MODE_PSK:
     if (kem == GNUNET_CRYPTO_HPKE_KEM_DH_X25519_HKDF256)
     {
-      if (GNUNET_OK != GNUNET_CRYPTO_kem_decaps (skR, enc,
-                                                 &shared_secret))
+      if (GNUNET_OK != GNUNET_CRYPTO_hpke_kem_decaps (skR, enc,
+                                                      &shared_secret))
         return GNUNET_SYSERR;
     }
     else if (kem ==
@@ -709,9 +713,9 @@ GNUNET_CRYPTO_hpke_receiver_setup2 (
   case GNUNET_CRYPTO_HPKE_MODE_AUTH_PSK:
     if (NULL == pkS)
       return GNUNET_SYSERR;
-    if (GNUNET_OK != GNUNET_CRYPTO_authkem_decaps (skR, pkS,
-                                                   enc,
-                                                   &shared_secret))
+    if (GNUNET_OK != GNUNET_CRYPTO_hpke_authkem_decaps (skR, pkS,
+                                                        enc,
+                                                        &shared_secret))
       return GNUNET_SYSERR;
     break;
   default:
