@@ -773,7 +773,7 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
   for (int i = 0; i < sizeof *dh; i++)
-    checkbyte ^= ((uint8_t*)dh)[i];
+    checkbyte |= ((uint8_t*)dh)[i];
   return (0 == checkbyte) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -788,8 +788,14 @@ GNUNET_CRYPTO_ecdh_x25519 (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
   for (int i = 0; i < sizeof *dh; i++)
-    checkbyte ^= ((uint8_t*)dh)[i];
-  return (0 == checkbyte) ? GNUNET_SYSERR : GNUNET_OK;
+    checkbyte |= ((uint8_t*)dh)[i];
+  if (0 == checkbyte)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE ECDH: X25519 all zero value!\n");
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 

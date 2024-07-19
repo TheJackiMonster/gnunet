@@ -222,14 +222,14 @@ main (int argc, char *argv[])
                  GNUNET_CRYPTO_hpke_seal (&ctxS, rfc9180_a2_aad,
                                           sizeof rfc9180_a2_aad,
                                           rfc9180_a2_pt, sizeof rfc9180_a2_pt,
-                                          test_ct, sizeof test_ct));
+                                          test_ct, NULL));
   GNUNET_assert (0 == memcmp (rfc9180_a2_ct_seq0, test_ct, sizeof test_ct));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hpke_open (&ctxR,
                                           rfc9180_a2_aad, sizeof rfc9180_a2_aad,
                                           rfc9180_a2_ct_seq0, sizeof
                                           rfc9180_a2_ct_seq0,
-                                          test_pt, sizeof test_pt));
+                                          test_pt, NULL));
   GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
   parsehex (rfc9180_a2_aad_seq1_str,
             (char*) &rfc9180_a2_aad,
@@ -238,7 +238,7 @@ main (int argc, char *argv[])
                  GNUNET_CRYPTO_hpke_seal (&ctxS,
                                           rfc9180_a2_aad,sizeof rfc9180_a2_aad,
                                           rfc9180_a2_pt, sizeof rfc9180_a2_pt,
-                                          test_ct, sizeof test_ct));
+                                          test_ct, NULL));
   print_bytes (rfc9180_a2_ct_seq1, sizeof test_ct, 0);
   print_bytes (test_ct, sizeof test_ct, 0);
   GNUNET_assert (0 == memcmp (rfc9180_a2_ct_seq1, test_ct, sizeof test_ct));
@@ -248,7 +248,7 @@ main (int argc, char *argv[])
                                           sizeof rfc9180_a2_aad,
                                           test_ct,
                                           sizeof test_ct,
-                                          test_pt, sizeof test_pt));
+                                          test_pt, NULL));
   GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
   parsehex (rfc9180_a2_aad_seq255_str,
             (char*) &rfc9180_a2_aad_seq255,
@@ -259,14 +259,14 @@ main (int argc, char *argv[])
                    GNUNET_CRYPTO_hpke_seal (&ctxS, rfc9180_a2_aad,
                                             sizeof rfc9180_a2_aad,
                                             rfc9180_a2_pt, sizeof rfc9180_a2_pt,
-                                            test_ct, sizeof test_ct));
+                                            test_ct, NULL));
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_hpke_open (&ctxR,
                                             rfc9180_a2_aad,
                                             sizeof rfc9180_a2_aad,
                                             test_ct,
                                             sizeof test_ct,
-                                            test_pt, sizeof test_pt));
+                                            test_pt, NULL));
     GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
   }
   GNUNET_assert (GNUNET_OK ==
@@ -274,7 +274,7 @@ main (int argc, char *argv[])
                                           rfc9180_a2_aad_seq255, sizeof
                                           rfc9180_a2_aad_seq255,
                                           rfc9180_a2_pt, sizeof rfc9180_a2_pt,
-                                          test_ct, sizeof test_ct));
+                                          test_ct, NULL));
   print_bytes (rfc9180_a2_ct_seq255, sizeof test_ct, 0);
   print_bytes (test_ct, sizeof test_ct, 0);
   GNUNET_assert (0 == memcmp (rfc9180_a2_ct_seq255, test_ct, sizeof test_ct));
@@ -284,7 +284,7 @@ main (int argc, char *argv[])
                                           sizeof rfc9180_a2_aad_seq255,
                                           test_ct,
                                           sizeof test_ct,
-                                          test_pt, sizeof test_pt));
+                                          test_pt, NULL));
   GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
   return 0;
 }

@@ -181,7 +181,7 @@ struct UdpHandshakeSignature
   /**
    * Ephemeral key used by the @e sender.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation enc;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -867,7 +867,7 @@ static int disable_v6;
 
 static void
 eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
-                     struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+                        struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
   struct GNUNET_CRYPTO_PrivateKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
@@ -875,15 +875,17 @@ eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
   GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
 }
 
+
 static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
-                     struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+                       struct GNUNET_CRYPTO_EcdhePublicKey *pk)
 {
   struct GNUNET_CRYPTO_PublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
 }
+
 
 /**
  * An interface went away, stop broadcasting on it.
@@ -1141,7 +1143,7 @@ get_iv_key (const struct GNUNET_ShortHashCode *msec,
   uint32_t sid = htonl (serial);
 
   GNUNET_CRYPTO_hkdf_expand (key,
-                             sizeof(*key),
+                             AES_KEY_SIZE,
                              msec,
                              "gnunet-communicator-udp-key",
                              strlen ("gnunet-communicator-udp-key"),
@@ -1149,7 +1151,7 @@ get_iv_key (const struct GNUNET_ShortHashCode *msec,
                              NULL,
                              0);
   GNUNET_CRYPTO_hkdf_expand (iv,
-                             sizeof(*iv),
+                             AES_IV_SIZE,
                              msec,
                              "gnunet-communicator-udp-iv",
                              strlen ("gnunet-communicator-udp-iv"),
@@ -1322,6 +1324,8 @@ setup_cipher (const struct GNUNET_ShortHashCode *msec,
                                    GCRY_CIPHER_MODE_GCM,
                                    0 /* flags */));
   get_iv_key (msec, serial, key, iv);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "New AES key %s for serial %u\n", GNUNET_sh2s(key), serial);
   rc = gcry_cipher_setkey (*cipher, key, sizeof(key));
   GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
   rc = gcry_cipher_setiv (*cipher, iv, sizeof(iv));
@@ -1403,6 +1407,8 @@ setup_initial_shared_secret_dec (const struct
   ss = GNUNET_new (struct SharedSecret);
   GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key, c,
                                            &ss->master);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "New receiver SS master: %s\n", GNUNET_sh2s (&ss->master));
   calculate_cmac (ss);
   return ss;
 }
@@ -1416,15 +1422,15 @@ setup_initial_shared_secret_dec (const struct
  * @return new shared secret
  */
 static struct SharedSecret *
-setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
+setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral
+                               ,
                                struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;
-  struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral, &k);
   ss = GNUNET_new (struct SharedSecret);
-  memcpy (&ss->master, &k, sizeof (k));
+  GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral,
+                                  &ss->master);
   calculate_cmac (ss);
   ss->receiver = receiver;
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
@@ -1447,12 +1453,12 @@ setup_initial_shared_secret_ephemeral (
   struct ReceiverAddress *receiver)
 {
   struct SharedSecret *ss;
-  struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_hpke_elligator_kem_encaps (&receiver->target_hpke_key,
-                                           c, &k);
   ss = GNUNET_new (struct SharedSecret);
-  memcpy (&ss->master, &k, sizeof (k));
+  GNUNET_CRYPTO_hpke_elligator_kem_encaps (&receiver->target_hpke_key,
+                                           c, &ss->master);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "New sender SS master: %s\n", GNUNET_sh2s (&ss->master));
   calculate_cmac (ss);
   ss->receiver = receiver;
   GNUNET_CONTAINER_DLL_insert (receiver->ss_head, receiver->ss_tail, ss);
@@ -1973,7 +1979,7 @@ setup_sender (const struct GNUNET_PeerIdentity *target,
  * @return #GNUNET_OK if signature is valid
  */
 static int
-verify_confirmation (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+verify_confirmation (const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
                      const struct UDPConfirmation *uc)
 {
   struct UdpHandshakeSignature uhs;
@@ -1983,7 +1989,7 @@ verify_confirmation (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
   uhs.purpose.size = htonl (sizeof(uhs));
   uhs.sender = uc->sender;
   uhs.receiver = my_identity;
-  uhs.ephemeral = *ephemeral;
+  uhs.enc = *enc;
   uhs.monotonic_time = uc->monotonic_time;
   return GNUNET_CRYPTO_eddsa_verify (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE,
@@ -2214,11 +2220,7 @@ sock_read (void *cls)
 
       uc = (const struct UDPConfirmation *) pbuf;
 
-      struct GNUNET_CRYPTO_EcdhePublicKey pub_ephemeral;
-      GNUNET_CRYPTO_ecdhe_elligator_decoding (
-        &pub_ephemeral, NULL,
-        (struct GNUNET_CRYPTO_ElligatorRepresentative*) &kx->enc);
-      if (GNUNET_OK != verify_confirmation (&pub_ephemeral, uc)) // TODO: need ephemeral instead of representative
+      if (GNUNET_OK != verify_confirmation (&kx->enc, uc)) // TODO: need ephemeral instead of representative
       {
         GNUNET_break_op (0);
         GNUNET_free (ss);
@@ -2447,12 +2449,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   reschedule_receiver_timeout (receiver);
 
   /* setup key material */
-  struct GNUNET_CRYPTO_HpkeEncapsulation c;
-  struct GNUNET_CRYPTO_ElligatorRepresentative *repr;
-  ss = setup_initial_shared_secret_ephemeral (&c, receiver);
-  repr = (struct GNUNET_CRYPTO_ElligatorRepresentative*) &c;
-  GNUNET_CRYPTO_ecdhe_elligator_decoding (&uhs.ephemeral, NULL,
-                                          repr);
+  ss = setup_initial_shared_secret_ephemeral (&uhs.enc, receiver);
 
   if (0 == purge_secrets (receiver->ss_tail))
   {
@@ -2492,7 +2489,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   dpos += msize;
   do_pad (out_cipher, &dgram[dpos], sizeof(dgram) - dpos);
   /* Datagram starts with kx */
-  kx.enc = c;
+  kx.enc = uhs.enc;
   GNUNET_assert (
     0 == gcry_cipher_gettag (out_cipher, kx.gcm_tag, sizeof(kx.gcm_tag)));
   gcry_cipher_close (out_cipher);
@@ -2944,8 +2941,8 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   receiver->address = in;
   receiver->address_len = in_len;
   receiver->target = *peer;
-  eddsa_pub_to_hpke_key(&receiver->target.public_key,
-                        &receiver->target_hpke_key);
+  eddsa_pub_to_hpke_key (&receiver->target.public_key,
+                         &receiver->target_hpke_key);
   receiver->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   (void) GNUNET_CONTAINER_multihashmap_put (
     receivers,
@@ -3610,7 +3607,7 @@ run (void *cls,
     return;
   }
   GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
-  eddsa_priv_to_hpke_key(my_private_key, &my_x25519_private_key);
+  eddsa_priv_to_hpke_key (my_private_key, &my_x25519_private_key);
   /* start reading */
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,

@@ -234,7 +234,11 @@ kem_encaps_norand (uint8_t *suite_id, size_t suite_id_len,
   // dh = DH(skE, pkR)
   if (GNUNET_OK != GNUNET_CRYPTO_ecdh_x25519 (skE, pub,
                                               &dh))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE KEM encaps: Validation error\n");
     return GNUNET_SYSERR; // ValidationError
+  }
   // enc = SerializePublicKey(pkE) is a NOP, see Section 7.1.1
   // pkRm = SerializePublicKey(pkR) is a NOP, see Section 7.1.1
   // kem_context = concat(enc, pkRm)
@@ -775,20 +779,29 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_seal (struct GNUNET_CRYPTO_HpkeContext *ctx,
                          const uint8_t*aad, size_t aad_len,
                          const uint8_t *pt, size_t pt_len,
-                         uint8_t *ct, unsigned long long ct_len)
+                         uint8_t *ct, unsigned long long *ct_len_p)
 {
   uint8_t comp_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
   if (ctx->role != GNUNET_CRYPTO_HPKE_ROLE_S)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Wrong role; called as receiver (%d)!\n",
+                ctx->role);
     return GNUNET_SYSERR;
+  }
   compute_nonce (ctx, comp_nonce);
-  crypto_aead_chacha20poly1305_ietf_encrypt (ct, &ct_len,
+  crypto_aead_chacha20poly1305_ietf_encrypt (ct, ct_len_p,
                                              pt, pt_len,
                                              aad, aad_len,
                                              NULL,
                                              comp_nonce,
                                              ctx->key);
   if (GNUNET_OK != increment_seq (ctx))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Seq increment failed!\n");
     return GNUNET_SYSERR;
+  }
   return GNUNET_OK;
 }
 
@@ -797,13 +810,13 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
                          const uint8_t*aad, size_t aad_len,
                          const uint8_t *ct, size_t ct_len,
-                         uint8_t *pt, unsigned long long pt_len)
+                         uint8_t *pt, unsigned long long *pt_len)
 {
   uint8_t comp_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
   if (ctx->role != GNUNET_CRYPTO_HPKE_ROLE_R)
     return GNUNET_SYSERR;
   compute_nonce (ctx, comp_nonce);
-  if (0 != crypto_aead_chacha20poly1305_ietf_decrypt (pt, &pt_len,
+  if (0 != crypto_aead_chacha20poly1305_ietf_decrypt (pt, pt_len,
                                                       NULL,
                                                       ct, ct_len,
                                                       aad, aad_len,
@@ -824,7 +837,7 @@ GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
                                  const uint8_t *info, size_t info_len,
                                  const uint8_t*aad, size_t aad_len,
                                  const uint8_t *pt, size_t pt_len,
-                                 uint8_t *ct, unsigned long long ct_len)
+                                 uint8_t *ct, unsigned long long *ct_len_p)
 {
   struct GNUNET_CRYPTO_HpkeContext ctx;
   struct GNUNET_CRYPTO_HpkeEncapsulation *enc;
@@ -840,7 +853,7 @@ GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
                                   aad, aad_len,
                                   pt, pt_len,
                                   ct_off,
-                                  ct_len - sizeof *enc);
+                                  ct_len_p);
 }
 
 
@@ -850,7 +863,7 @@ GNUNET_CRYPTO_hpke_open_oneshot (
   const uint8_t *info, size_t info_len,
   const uint8_t*aad, size_t aad_len,
   const uint8_t *ct, size_t ct_len,
-  uint8_t *pt, unsigned long long pt_len)
+  uint8_t *pt, unsigned long long *pt_len_p)
 {
   struct GNUNET_CRYPTO_HpkeContext ctx;
   struct GNUNET_CRYPTO_HpkeEncapsulation *enc;
@@ -867,7 +880,7 @@ GNUNET_CRYPTO_hpke_open_oneshot (
                                   ct_off,
                                   ct_len - sizeof *enc,
                                   pt,
-                                  pt_len);
+                                  pt_len_p);
 }
 
 

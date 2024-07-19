@@ -2126,8 +2126,8 @@ enum GNUNET_CRYPTO_HpkeMode
 
 enum GNUNET_CRYPTO_HpkeRole
 {
-  GNUNET_CRYPTO_HPKE_ROLE_R,
-  GNUNET_CRYPTO_HPKE_ROLE_S
+  GNUNET_CRYPTO_HPKE_ROLE_R = 0,
+  GNUNET_CRYPTO_HPKE_ROLE_S = 1
 };
 
 struct GNUNET_CRYPTO_HpkeContext
@@ -2404,7 +2404,7 @@ GNUNET_CRYPTO_hpke_receiver_setup (
  * @param pt plaintext data to encrypt
  * @param pt_len length of pt in bytes
  * @param ct ciphertext to send (to be allocated by caller)
- * @param ct_len length of written bytes in ct
+ * @param ct_len[out] length of written bytes in ct. may be NULL
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
@@ -2414,7 +2414,7 @@ GNUNET_CRYPTO_hpke_seal (struct GNUNET_CRYPTO_HpkeContext *ctx,
                          const uint8_t *pt,
                          size_t pt_len,
                          uint8_t *ct,
-                         unsigned long long ct_len);
+                         unsigned long long *ct_len);
 
 
 /**
@@ -2433,7 +2433,7 @@ GNUNET_CRYPTO_hpke_seal (struct GNUNET_CRYPTO_HpkeContext *ctx,
  * @param pt plaintext data to encrypt
  * @param pt_len length of pt in bytes
  * @param ct ciphertext to send (to be allocated by caller)
- * @param ct_len length of written bytes in ct
+ * @param ct_len[out] length of written bytes in ct. may be NULL
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
@@ -2441,7 +2441,7 @@ GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
                                  const uint8_t *info, size_t info_len,
                                  const uint8_t*aad, size_t aad_len,
                                  const uint8_t *pt, size_t pt_len,
-                                 uint8_t *ct, unsigned long long ct_len);
+                                 uint8_t *ct, unsigned long long *ct_len);
 
 
 /**
@@ -2458,14 +2458,14 @@ GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
  * @param ct ciphertext to decrypt
  * @param ct_len length of ct in bytes
  * @param pt plaintext (to be allocated by caller)
- * @param pt_len length of written bytes in pt
+ * @param pt_len length of written bytes in pt. May be NULL
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
                          const uint8_t*aad, size_t aad_len,
                          const uint8_t *ct, size_t ct_len,
-                         uint8_t *pt, unsigned long long pt_len);
+                         uint8_t *pt, unsigned long long *pt_len_p);
 
 
 /**
@@ -2484,7 +2484,7 @@ GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
  * @param ct ciphertext to decrypt
  * @param ct_len length of ct in bytes
  * @param pt plaintext (to be allocated by caller)
- * @param pt_len length of written bytes in pt
+ * @param pt_len length of written bytes in pt. May be NULL
  * @return GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
@@ -2493,7 +2493,7 @@ GNUNET_CRYPTO_hpke_open_oneshot (
   const uint8_t *info, size_t info_len,
   const uint8_t*aad, size_t aad_len,
   const uint8_t *ct, size_t ct_len,
-  uint8_t *pt, unsigned long long pt_len);
+  uint8_t *pt, unsigned long long *pt_len);
 
 
 /** HPKE END **/

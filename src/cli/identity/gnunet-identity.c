@@ -274,7 +274,7 @@ write_encrypted_message (void)
                                                       NULL, 0,
                                                       (uint8_t*) write_msg,
                                                       msg_len,
-                                                      ct, ct_len))
+                                                      ct, NULL))
     {
       char *serialized_msg;
       serialized_msg = GNUNET_STRINGS_data_to_string_alloc (ct, ct_len);
@@ -327,7 +327,7 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
                                                       msg_len,
                                                       (uint8_t*)
                                                       deserialized_msg,
-                                                      msg_len))
+                                                      NULL))
     {
       deserialized_msg[msg_len - 1] = '\0';
       fprintf (stdout,

@@ -1185,7 +1185,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
                                                     encoded_length,
                                                     (uint8_t*) message->body.
                                                     privacy.data,
-                                                    padded_length))
+                                                    NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting message failed!\n");
 
@@ -1228,7 +1228,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
                                        (uint8_t*) message->body.privacy.data,
                                        padded_length,
                                        (uint8_t*) message->body.privacy.data,
-                                       encoded_length))
+                                       NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Decrypting message failed!\n");
 
