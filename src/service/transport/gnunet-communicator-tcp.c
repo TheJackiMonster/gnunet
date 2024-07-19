@@ -3133,6 +3133,7 @@ proto_read_kx (void *cls)
       return;
     }
     queue->target = tc.sender;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
     read_task = &queue_read;
   }
@@ -3513,6 +3514,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 
     queue = GNUNET_new (struct Queue);
     queue->target = *peer;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->key = queue_map_key;
     queue->address = in;
     queue->address_len = in_len;
