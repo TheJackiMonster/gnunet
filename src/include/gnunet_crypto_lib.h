@@ -2186,7 +2186,7 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
 /**
  * @ingroup crypto
  * Decapsulate a key for a private X25519 key.
- * Dual to #GNUNET_CRRYPTO_kem_encaps.
+ * Dual to #GNUNET_CRYPTO_hpke_kem_encaps.
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
@@ -2204,37 +2204,223 @@ GNUNET_CRYPTO_hpke_kem_decaps (const struct
 /**
  * @ingroup crypto
  * Encapsulate key material for a X25519 public key.
- * Dual to #GNUNET_CRRYPTO_kem_decaps.
+ * Dual to #GNUNET_CRYPTO_hpke_kem_decaps.
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
- * @param priv private key to use for the ECDH (y)
+ * @param pkR public key of receiver
  * @param c public key from X25519 to use for the ECDH (X=h(x)G)
  * @param prk where to write the key material
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+GNUNET_CRYPTO_hpke_kem_encaps (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
                           struct GNUNET_CRYPTO_HpkeEncapsulation *c,
                           struct GNUNET_ShortHashCode *prk);
 
 /**
  * @ingroup crypto
- * Deterministic variant of #GNUNET_CRRYPTO_kem_encaps.
+ * Deterministic variant of #GNUNET_CRYPTO_hpke_kem_encaps.
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
- * @param priv private key to use for the ECDH (y)
+ * @param pkR public key of receiver
  * @param c public key from X25519 to use for the ECDH (X=h(x)G)
  * @param skE ephemeral private key from X25519 to use
  * @param prk where to write the key material
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+GNUNET_CRYPTO_hpke_kem_encaps_norand (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
                                  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-                                 struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+                                 const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
                                  struct GNUNET_ShortHashCode *prk);
+
+/**
+ * @ingroup crypto
+ * Encapsulate authenticated key material for a X25519 public key.
+ * Deterministic variant of #GNUNET_CRYPTO_hpke_authkem_encaps.
+ * Dual to #GNUNET_CRYPTO_hpke_authkem_decaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR public key of receiver
+ * @param skS secret of the authenticating sender
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_authkem_encaps_norand (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+/**
+ * @ingroup crypto
+ * Encapsulate authenticated key material for a X25519 public key.
+ * Dual to #GNUNET_CRYPTO_hpke_kem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR public key of receiver
+ * @param skS secret of the authenticating sender
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_authkem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+
+/**
+ * @ingroup crypto
+ * Decapsulate a key for a private X25519 key.
+ * Dual to #GNUNET_CRYPTO_hpke_authkem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param skR secret key of receiver
+ * @param pkS public key of the authenticating sender
+ * @param c the encapsulated key
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_authkem_decaps (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkS,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+
+/**
+ * @ingroup crypto
+ * Carries out ecdh encapsulation with given public key and the private key from a freshly created ephemeral key pair.
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR public key of receiver
+ * @param c representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
+ * @param skE ephemeral private key from X25519 to use
+ * @param shared_secret where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+/**
+ * @ingroup crypto
+ * Carries out ecdh encapsulation with given public key and the private key from a freshly created ephemeral key pair.
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR Receiver public key (X)
+ * @param c representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
+ * @param shared_secret where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_kem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+/**
+ * @ingroup crypto
+ * Carries out ecdh decapsulation with own private key and the representative of the received public key.
+ * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param skR sender private key (x)
+ * @param r received representative r, from which we can obtain the public key A (direct_map(r)=A=aG)
+ * @param shared_secret where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_kem_decaps (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+/**
+ * @ingroup crypto
+ * Encapsulate authenticated key material for a X25519 public key.
+ * Elligator variant.
+ * Deterministic variant of #GNUNET_CRYPTO_hpke_authkem_encaps.
+ * Dual to #GNUNET_CRYPTO_hpke_authkem_decaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR public key  of receiver
+ * @param skS secret of the authenticating sender
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_authkem_encaps_norand (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+/**
+ * @ingroup crypto
+ * Encapsulate authenticated key material for a X25519 public key.
+ * Elligator variant.
+ * Dual to #GNUNET_CRYPTO_hpke_kem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param pkR public key  of receiver
+ * @param skS secret of the authenticating sender
+ * @param c public key from X25519 to use for the ECDH (X=h(x)G)
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_authkem_encaps (
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
+  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
+
+
+/**
+ * @ingroup crypto
+ * Decapsulate a key for a private X25519 key.
+ * Elligator variant.
+ * Dual to #GNUNET_CRYPTO_hpke_authkem_encaps.
+ * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
+ * keys from the key material.
+ *
+ * @param skR private key from X25519 to use for the ECDH (x)
+ * @param pkS public key of the authenticating sender
+ * @param c the encapsulated key
+ * @param shared_secret where to write the key material
+ * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_elligator_authkem_decaps (
+  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pkS,
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct GNUNET_ShortHashCode *shared_secret);
 
 /**
  * @ingroup crypto
@@ -3111,41 +3297,6 @@ void
 GNUNET_CRYPTO_ecdhe_elligator_key_create (
   struct GNUNET_CRYPTO_EcdhePrivateKey *sk);
 
-/**
- * @ingroup crypto
- * Carries out ecdh encapsulation with given public key and the private key from a freshly created ephemeral key pair.
- * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
- * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
- * keys from the key material.
- *
- * @param pkR Receiver public key (X)
- * @param c representative of ephemeral public key A to use for the ECDH (direct_map(r)=A=aG)
- * @param prk where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_elligator_kem_encaps (
-  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
-  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  struct GNUNET_ShortHashCode *prk);
-
-/**
- * @ingroup crypto
- * Carries out ecdh decapsulation with own private key and the representative of the received public key.
- * Following the terminology in https://eprint.iacr.org/2021/509.pdf.
- * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
- * keys from the key material.
- *
- * @param skR own private key (x)
- * @param r received representative r, from which we can obtain the public key A (direct_map(r)=A=aG)
- * @param prk where to write the key material HKDF-Extract(r||aX)=HKDF-Extract(r||x(aG))
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_elligator_kem_decaps (
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
-  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  struct GNUNET_ShortHashCode *prk);
 
 
 /**
