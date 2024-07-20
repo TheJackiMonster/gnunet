@@ -1324,8 +1324,6 @@ setup_cipher (const struct GNUNET_ShortHashCode *msec,
                                    GCRY_CIPHER_MODE_GCM,
                                    0 /* flags */));
   get_iv_key (msec, serial, key, iv);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "New AES key %s for serial %u\n", GNUNET_sh2s(key), serial);
   rc = gcry_cipher_setkey (*cipher, key, sizeof(key));
   GNUNET_assert ((0 == rc) || ((char) rc == GPG_ERR_WEAK_KEY));
   rc = gcry_cipher_setiv (*cipher, iv, sizeof(iv));
