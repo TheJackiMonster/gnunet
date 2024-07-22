@@ -338,22 +338,17 @@ least_square_root (mp_limb_t *root,
   mpn_cnd_swap (condition, root, a, P_LIMBS);
 }
 
-
 bool
-GNUNET_CRYPTO_ecdhe_elligator_encoding (
+GNUNET_CRYPTO_ecdhe_elligator_encoding_norand (
   struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  uint8_t seed,
   const struct GNUNET_CRYPTO_EcdhePublicKey *pub)
 {
   bool high_y;
   bool msb_set;
   bool smsb_set;
-  int8_t random_tweak;
 
-
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
-                              &random_tweak,
-                              sizeof(int8_t));
-  high_y = random_tweak & 1;
+  high_y = seed & 1;
 
   uint8_t *representative = r->r;
   uint8_t *point = (uint8_t *) pub->q_y;
@@ -403,8 +398,8 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
   encode_bytes (representative, b);
 
   // Setting most significant bit and second most significant bit randomly
-  msb_set = (random_tweak >> 1) & 1;
-  smsb_set = (random_tweak >> 2) & 1;
+  msb_set = (seed >> 1) & 1;
+  smsb_set = (seed >> 2) & 1;
   if (msb_set)
   {
     r->r[31] |= 128;
@@ -414,6 +409,20 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
     r->r[31] |= 64;
   }
   return result;
+}
+
+bool
+GNUNET_CRYPTO_ecdhe_elligator_encoding (
+  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
+  const struct GNUNET_CRYPTO_EcdhePublicKey *pub)
+{
+  uint8_t random_tweak;
+
+
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                              &random_tweak,
+                              sizeof(uint8_t));
+  return GNUNET_CRYPTO_ecdhe_elligator_encoding_norand(r, random_tweak, pub);
 }
 
 
