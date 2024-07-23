@@ -400,6 +400,9 @@ find_section (const struct GNUNET_CONFIGURATION_Handle *cfg,
 {
   struct ConfigSection *pos;
 
+  if (NULL == cfg)
+    return NULL;
+
   pos = cfg->sections;
   while ((pos != NULL) && (0 != strcasecmp (section, pos->name)))
     pos = pos->next;
