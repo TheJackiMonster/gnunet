@@ -911,7 +911,36 @@ GNUNET_i2s_full (const struct GNUNET_PeerIdentity *pid);
 const char *
 GNUNET_a2s (const struct sockaddr *addr, socklen_t addrlen);
 
+/**
+ * @ingroup logging
+ * Parse an ascii-encoded hexadecimal string into the
+ * buffer. The buffer must be (strlen (src) / 2) bytes
+ * in length.
+ *
+ * @param src the string
+ * @param dst the destination buffer
+ * @param dst_len the length of the @a dst buffer
+ * @param invert read from @a src in inverted direction.
+ * @return number of bytes written.
+ */
+size_t
+GNUNET_hex2b (char *src, void *dst, size_t dstlen, int invert);
 
+/**
+ * @ingroup logging
+ * Print a byte string in hexadecimal ascii notation
+ *
+ * @param buf the byte string
+ * @param buf_len the length of the @a buf buffer
+ * @param fold insert newline after this number of bytes
+               (0 for no folding)
+ * @param in_be Output byte string in NBO
+ */
+void
+GNUNET_print_bytes (const void *buf,
+                    size_t buf_len,
+                    int fold,
+                    int in_be);
 /**
  * @ingroup logging
  * Convert error type to string.

@@ -24,15 +24,16 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_neighbours.h"
 #include "gnunet-service-dht_routing.h"
 #include "dht.h"
+#include "dht_helper.h"
 
 #define LOG_TRAFFIC(kind, ...) GNUNET_log_from (kind, "dht-traffic", \
                                                 __VA_ARGS__)
@@ -98,65 +99,6 @@
 
 
 GNUNET_NETWORK_STRUCT_BEGIN
-
-/**
- * P2P PUT message
- */
-struct PeerPutMessage
-{
-  /**
-   * Type: #GNUNET_MESSAGE_TYPE_DHT_P2P_PUT
-   */
-  struct GNUNET_MessageHeader header;
-
-  /**
-   * Content type, must not be zero.
-   */
-  uint32_t type GNUNET_PACKED;
-
-  /**
-   * Processing options
-   */
-  uint16_t options GNUNET_PACKED;
-
-  /**
-   * Hop count
-   */
-  uint16_t hop_count GNUNET_PACKED;
-
-  /**
-   * Replication level for this message
-   */
-  uint16_t desired_replication_level GNUNET_PACKED;
-
-  /**
-   * Length of the PUT path that follows (if tracked).
-   */
-  uint16_t put_path_length GNUNET_PACKED;
-
-  /**
-   * When does the content expire?
-   */
-  struct GNUNET_TIME_AbsoluteNBO expiration_time;
-
-  /**
-   * Bloomfilter (for peer identities) to stop circular routes
-   */
-  char bloomfilter[DHT_BLOOM_SIZE];
-
-  /**
-   * The key we are storing under.
-   */
-  struct GNUNET_HashCode key;
-
-  /* trunc_peer (if truncated) */
-
-  /* put path (if tracked) */
-
-  /* sender_sig (if path tracking is on) */
-
-  /* Payload */
-};
 
 
 /**
@@ -521,44 +463,6 @@ do_send (struct PeerInfo *pi,
               ntohs (msg->size),
               &send_done_cb,
               t);
-}
-
-
-/**
- * Sign that we are routing a message from @a pred to @a succ.
- * (So the route is $PRED->us->$SUCC).
- *
- * @param data payload (the block)
- * @param data_size number of bytes in @a data
- * @param exp_time expiration time of @a data
- * @param pred predecessor peer ID
- * @param succ successor peer ID
- * @param[out] sig where to write the signature
- *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP)
- */
-static void
-sign_path (const void *data,
-           size_t data_size,
-           struct GNUNET_TIME_Absolute exp_time,
-           const struct GNUNET_PeerIdentity *pred,
-           const struct GNUNET_PeerIdentity *succ,
-           struct GNUNET_CRYPTO_EddsaSignature *sig)
-{
-  struct GNUNET_DHT_HopSignature hs = {
-    .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
-    .purpose.size = htonl (sizeof (hs)),
-    .expiration_time = GNUNET_TIME_absolute_hton (exp_time),
-    .succ = *succ
-  };
-
-  if (NULL != pred)
-    hs.pred = *pred;
-  GNUNET_CRYPTO_hash (data,
-                      data_size,
-                      &hs.h_data);
-  GNUNET_CRYPTO_eddsa_sign (&GDS_my_private_key,
-                            &hs,
-                            sig);
 }
 
 
@@ -1263,11 +1167,6 @@ get_target_peers (const struct GNUNET_HashCode *key,
     if (NULL == nxt)
       break;
     rtargets[off] = nxt;
-    GNUNET_break (GNUNET_NO ==
-                  GNUNET_CONTAINER_bloomfilter_test (bloom,
-                                                     &nxt->phash));
-    GNUNET_CONTAINER_bloomfilter_add (bloom,
-                                      &nxt->phash);
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Selected %u/%u peers at hop %u for %s (target was %u)\n",
@@ -1327,38 +1226,26 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   struct PeerInfo **targets;
   size_t msize;
   unsigned int skip_count;
-  enum GNUNET_DHT_RouteOption ro = bd->ro;
+  enum GNUNET_DHT_RouteOption ro;
   unsigned int put_path_length = bd->put_path_length;
   const struct GNUNET_DHT_PathElement *put_path = bd->put_path;
-  bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
-  bool tracking = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
+  bool truncated = (0 != (bd->ro & GNUNET_DHT_RO_TRUNCATED));
   const struct GNUNET_PeerIdentity *trunc_peer
     = truncated
     ? &bd->trunc_peer
     : NULL;
+  enum GNUNET_GenericReturnValue ret;
 
-#if SANITY_CHECKS > 1
-  unsigned int failure_offset;
-
-  failure_offset
-    = GNUNET_DHT_verify_path (bd->data,
-                              bd->data_size,
-                              bd->expiration_time,
-                              trunc_peer,
-                              put_path,
-                              put_path_length,
-                              NULL, 0,    /* get_path */
-                              &GDS_my_identity);
-  if (0 != failure_offset)
-  {
-    GNUNET_break_op (0);
-    truncated = true;
-    trunc_peer = &put_path[failure_offset - 1].pred;
-    put_path = &put_path[failure_offset];
-    put_path_length = put_path_length - failure_offset;
-    ro |= GNUNET_DHT_RO_TRUNCATED;
-  }
-#endif
+  ret = GDS_helper_put_message_get_size (&msize,
+                                         &GDS_my_identity,
+                                         bd->ro, &ro,
+                                         bd->expiration_time,
+                                         bd->data, bd->data_size,
+                                         put_path, put_path_length,
+                                         &put_path_length,
+                                         trunc_peer);
+  /* Path may have been truncated by the call above */
+  truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding myself (%s) to PUT bloomfilter for %s with RO(%s/%s)\n",
               GNUNET_i2s (&GDS_my_identity),
@@ -1375,63 +1262,8 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                             "# PUT requests routed",
                             1,
                             GNUNET_NO);
-  if (bd->data_size
-      > GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE
-      - sizeof(struct PeerPutMessage))
-  {
-    GNUNET_break (0);
-    return GNUNET_SYSERR;
-  }
-  msize = bd->data_size + sizeof(struct PeerPutMessage);
-  if (tracking)
-  {
-    if (msize + sizeof (struct GNUNET_CRYPTO_EddsaSignature)
-        > GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Discarding message that is too large due to tracking\n");
-      return GNUNET_NO;
-    }
-    msize += sizeof (struct GNUNET_CRYPTO_EddsaSignature);
-  }
-  else
-  {
-    /* If tracking is disabled, also discard any path we might have
-       gotten from some broken peer */
-    GNUNET_break_op (0 == put_path_length);
-    put_path_length = 0;
-  }
-  if (truncated)
-    msize += sizeof (struct GNUNET_PeerIdentity);
-  if (msize + put_path_length * sizeof(struct GNUNET_DHT_PathElement)
-      > GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE)
-  {
-    unsigned int mlen;
-    unsigned int ppl;
-
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Truncating path that is too large due\n");
-    mlen = GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE - msize;
-    if (! truncated)
-    {
-      /* We need extra space for the truncation, consider that,
-         too! */
-      truncated = true;
-      mlen -= sizeof (struct GNUNET_PeerIdentity);
-      msize += sizeof (struct GNUNET_PeerIdentity);
-    }
-    /* compute maximum length of path we can keep */
-    ppl = mlen / sizeof (struct GNUNET_DHT_PathElement);
-    GNUNET_assert (put_path_length - ppl > 0);
-    trunc_peer = &put_path[put_path_length - ppl - 1].pred;
-    put_path = &put_path[put_path_length - ppl];
-    put_path_length = ppl;
-    ro |= GNUNET_DHT_RO_TRUNCATED;
-  }
-  else
-  {
-    msize += bd->put_path_length * sizeof(struct GNUNET_DHT_PathElement);
-  }
+  if (GNUNET_OK != ret)
+    return ret;
   target_count
     = get_target_peers (&bd->key,
                         bf,
@@ -1453,89 +1285,25 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
     struct PeerInfo *target = targets[i];
     struct PeerPutMessage *ppm;
     char buf[msize] GNUNET_ALIGN;
-    struct GNUNET_DHT_PathElement *pp;
-    void *data;
 
+    ppm = (struct PeerPutMessage *) buf;
+    GNUNET_break (GNUNET_NO ==
+                  GNUNET_CONTAINER_bloomfilter_test (bf,
+                                                     &target->phash));
+    GNUNET_CONTAINER_bloomfilter_add (bf,
+                                      &target->phash);
+    GDS_helper_make_put_message (ppm, msize, &GDS_my_private_key,
+                                 &target->id, &target->phash, bf,
+                                 &bd->key, ro, bd->type, bd->expiration_time,
+                                 bd->data, bd->data_size,
+                                 put_path, put_path_length,
+                                 hop_count, desired_replication_level,
+                                 trunc_peer);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Routing PUT for %s after %u hops to %s\n",
                 GNUNET_h2s (&bd->key),
                 (unsigned int) hop_count,
                 GNUNET_i2s (&target->id));
-    ppm = (struct PeerPutMessage *) buf;
-    ppm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_PUT);
-    ppm->header.size = htons (sizeof (buf));
-    ppm->type = htonl (bd->type);
-    ppm->options = htons (ro);
-    ppm->hop_count = htons (hop_count + 1);
-    ppm->desired_replication_level = htons (desired_replication_level);
-    ppm->put_path_length = htons (put_path_length);
-    ppm->expiration_time = GNUNET_TIME_absolute_hton (bd->expiration_time);
-    GNUNET_break (GNUNET_YES ==
-                  GNUNET_CONTAINER_bloomfilter_test (bf,
-                                                     &target->phash));
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CONTAINER_bloomfilter_get_raw_data (bf,
-                                                              ppm->bloomfilter,
-                                                              DHT_BLOOM_SIZE));
-    ppm->key = bd->key;
-    if (truncated)
-    {
-      void *tgt = &ppm[1];
-
-      GNUNET_memcpy (tgt,
-                     trunc_peer,
-                     sizeof (struct GNUNET_PeerIdentity));
-      pp = (struct GNUNET_DHT_PathElement *)
-           (tgt + sizeof (struct GNUNET_PeerIdentity));
-    }
-    else
-    {
-      pp = (struct GNUNET_DHT_PathElement *) &ppm[1];
-    }
-    GNUNET_memcpy (pp,
-                   put_path,
-                   sizeof (struct GNUNET_DHT_PathElement) * put_path_length);
-    if (tracking)
-    {
-      void *tgt = &pp[put_path_length];
-      struct GNUNET_CRYPTO_EddsaSignature last_sig;
-
-      if (0 == put_path_length)
-      {
-        /* Note that the signature in 'put_path' was not initialized before,
-           so this is crucial to avoid sending garbage. */
-        sign_path (bd->data,
-                   bd->data_size,
-                   bd->expiration_time,
-                   trunc_peer,
-                   &target->id,
-                   &last_sig);
-      }
-      else
-      {
-        sign_path (bd->data,
-                   bd->data_size,
-                   bd->expiration_time,
-                   &pp[put_path_length - 1].pred,
-                   &target->id,
-                   &last_sig);
-      }
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Signing PUT PATH %u => %s\n",
-                  put_path_length,
-                  GNUNET_B2S (&last_sig));
-      memcpy (tgt,
-              &last_sig,
-              sizeof (last_sig));
-      data = tgt + sizeof (last_sig);
-    }
-    else /* ! tracking */
-    {
-      data = &ppm[1];
-    }
-    GNUNET_memcpy (data,
-                   bd->data,
-                   bd->data_size);
     do_send (target,
              &ppm->header);
   }
@@ -1829,12 +1597,13 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
         pred = NULL; /* we are first! */
       /* Note that the last signature in 'paths' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      sign_path (bd->data,
-                 bd->data_size,
-                 bd->expiration_time,
-                 pred,
-                 &pi->id,
-                 &sig);
+      GDS_helper_sign_path (bd->data,
+                            bd->data_size,
+                            &GDS_my_private_key,
+                            bd->expiration_time,
+                            pred,
+                            &pi->id,
+                            &sig);
       memcpy (tgt,
               &sig,
               sizeof (sig));
@@ -2374,7 +2143,8 @@ handle_dht_p2p_get (void *cls,
 
     peer_bf = GNUNET_CONTAINER_bloomfilter_init (get->bloomfilter,
                                                  DHT_BLOOM_SIZE,
-                                                 GNUNET_CONSTANTS_BLOOMFILTER_K);
+                                                 GNUNET_CONSTANTS_BLOOMFILTER_K)
+    ;
     GNUNET_break_op (GNUNET_YES ==
                      GNUNET_CONTAINER_bloomfilter_test (peer_bf,
                                                         &peer->phash));

@@ -1377,8 +1377,8 @@ const char *
 GNUNET_a2s (const struct sockaddr *addr, socklen_t addrlen)
 {
 #define LEN                           \
-  GNUNET_MAX ((INET6_ADDRSTRLEN + 8), \
-              (1 + sizeof(struct sockaddr_un) - sizeof(sa_family_t)))
+        GNUNET_MAX ((INET6_ADDRSTRLEN + 8), \
+                    (1 + sizeof(struct sockaddr_un) - sizeof(sa_family_t)))
   static GNUNET_THREAD_LOCAL char buf[LEN];
 #undef LEN
   static GNUNET_THREAD_LOCAL char b2[6];
@@ -1445,7 +1445,8 @@ GNUNET_log_config_missing (enum GNUNET_ErrorType kind,
 {
   GNUNET_log (kind,
               _ (
-                "Configuration fails to specify option `%s' in section `%s'!\n"),
+                "Configuration fails to specify option `%s' in section `%s'!\n")
+              ,
               option,
               section);
 }
@@ -1518,6 +1519,49 @@ void
 GNUNET_async_scope_get (struct GNUNET_AsyncScopeSave *scope_ret)
 {
   *scope_ret = current_async_scope;
+}
+
+
+size_t
+GNUNET_hex2b (char *src, void *dst, size_t dstlen, int invert)
+{
+  char *line = src;
+  char *data = line;
+  uint8_t *buf = dst;
+  int off;
+  int read_byte;
+  int data_len = 0;
+
+  while (sscanf (data, " %02x%n", &read_byte, &off) == 1)
+  {
+    if (invert)
+      buf[dstlen - 1 - data_len++] = read_byte;
+    else
+      buf[data_len++] = read_byte;
+    data += off;
+  }
+  return data_len;
+}
+
+
+void
+GNUNET_print_bytes (const void *buf, size_t buf_len, int fold, int in_be)
+{
+  int i;
+
+  for (i = 0; i < buf_len; i++)
+  {
+    if (0 != i)
+    {
+      if ((0 != fold) && (i % fold == 0))
+        printf ("\n");
+    }
+    if (in_be)
+      printf ("%02x", ((unsigned char*) buf)[buf_len - 1 - i]);
+    else
+      printf ("%02x", ((unsigned char*) buf)[i]);
+  }
+  printf ("\n");
 }
 
 
