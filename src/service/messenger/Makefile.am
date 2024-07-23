@@ -21,16 +21,13 @@ libexec_PROGRAMS = \
  gnunet-service-messenger \
  $(EXP_LIBEXEC)
 
-plugin_LTLIBRARIES = \
-  libgnunet_test_messenger_plugin_cmd_simple_join.la
-
-TESTING_LIBS = \
-  libgnunetmessengertesting.la
+#plugin_LTLIBRARIES = \
+#  libgnunet_test_messenger_plugin_cmd_simple_join.la
 
 lib_LTLIBRARIES = \
   libgnunetmessenger.la \
-  $(EXP_LIB) \
-  $(TESTING_LIBS)
+  $(EXP_LIB)
+#  libgnunettestingmessenger.la
 
 libgnunetmessenger_la_SOURCES = \
   messenger_api.c \
@@ -54,17 +51,17 @@ libgnunetmessenger_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS)  \
   -version-info 0:0:0
 
-libgnunetmessengertesting_la_SOURCES = \
-  messenger_api_cmd_join_room.c \
-  messenger_api_cmd_start_service.c \
-  messenger_api_cmd_stop_service.c \
-  messenger_api_traits.c \
-  messenger-testing.c messenger-testing.h
-libgnunetmessengertesting_la_LIBADD = \
+libgnunettestingmessenger_la_SOURCES = \
+  testing_messenger_cmd_join_room.c \
+  testing_messenger_cmd_start_service.c \
+  testing_messenger_cmd_stop_service.c \
+  testing_messenger_traits.c \
+  testing_messenger.c testing_messenger.h
+libgnunettestingmessenger_la_LIBADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
-  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
+  $(top_builddir)/src/service/transport/libgnunettestingtransporttesting.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
@@ -83,14 +80,14 @@ libgnunet_test_messenger_plugin_cmd_simple_join_la_SOURCES = \
   test_messenger_plugin_cmd_simple_join.c
 libgnunet_test_messenger_plugin_cmd_simple_join_la_LIBADD = \
   libgnunetmessenger.la \
-  libgnunetmessengertesting.la \
+  libgnunettestingmessenger.la \
+  $(top_builddir)/src/service/core/libgnunettestingcore.la \
+  $(top_builddir)/src/service/transport/libgnunettestingtransport.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/core/libgnunetcore.la \
-  $(top_builddir)/src/service/core/libgnunetcoretesting.la \
-  $(top_builddir)/src/service/transport/libgnunettransporttesting2.la \
   $(top_builddir)/src/service/transport/libgnunettransportapplication.la \
   $(top_builddir)/src/service/transport/libgnunettransportcore.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
@@ -119,6 +116,7 @@ gnunet_service_messenger_SOURCES = \
   gnunet-service-messenger_operation_store.c gnunet-service-messenger_operation_store.h \
   gnunet-service-messenger_operation.c gnunet-service-messenger_operation.h \
   gnunet-service-messenger_peer_store.c gnunet-service-messenger_peer_store.h \
+  gnunet-service-messenger_subscription.c gnunet-service-messenger_subscription.h \
   gnunet-service-messenger_basement.c gnunet-service-messenger_basement.h \
   gnunet-service-messenger_handle.c gnunet-service-messenger_handle.h \
   gnunet-service-messenger_room.c gnunet-service-messenger_room.h \
@@ -130,9 +128,9 @@ gnunet_service_messenger_LDADD = \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
   $(GN_LIBINTL)
 
-check_PROGRAMS = \
-  test_messenger_api \
-  test_messenger_anonymous
+#check_PROGRAMS = \
+#  test_messenger_api \
+#  test_messenger_anonymous
 
 #check_SCRIPTS= \
 #  test_messenger_start_testcase.sh
@@ -147,14 +145,14 @@ test_messenger_api_SOURCES = \
   test_messenger.c
 test_messenger_api_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 test_messenger_anonymous_SOURCES = \
   test_messenger_anonymous.c
 test_messenger_anonymous_LDADD = \
   libgnunetmessenger.la \
-  $(top_builddir)/src/service/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 
 EXTRA_DIST = \

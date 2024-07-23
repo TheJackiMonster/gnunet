@@ -655,6 +655,7 @@ main ()
       printf ("FAIL: query does not match:");
       printf ("  expected: %s", GNUNET_h2s (&expected_query));
       printf (", was: %s\n", GNUNET_h2s (&query));
+      GNUNET_free (rrblock);
       res = 1;
       break;
     }
@@ -671,6 +672,7 @@ main ()
     {
       printf ("FAIL: Deserialization of RDATA failed\n");
       res = 1;
+      GNUNET_free (rrblock);
       break;
     }
     expire = GNUNET_GNSRECORD_record_get_expiration_time (
@@ -681,6 +683,7 @@ main ()
         (GNUNET_OK != check_derivations_pkey (label, expire, &pub, &tvs[i])))
     {
       res = 1;
+      GNUNET_free (rrblock);
       break;
     }
     else if ((GNUNET_GNSRECORD_TYPE_EDKEY == ntohl (pub.type)) &&
@@ -688,6 +691,7 @@ main ()
                                                     &tvs[i])))
     {
       res = 1;
+      GNUNET_free (rrblock);
       break;
     }
     if (GNUNET_OK != GNUNET_GNSRECORD_block_decrypt (rrblock,
@@ -698,10 +702,14 @@ main ()
     {
       printf ("FAIL: Decryption of RRBLOCK failed\n");
       res = 1;
+      GNUNET_free (rrblock);
       break;
     }
     if (0 != res)
+    {
+      GNUNET_free (rrblock);
       break;
+    }
     printf ("Good.\n");
   }
   return res;

@@ -348,4 +348,14 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message);
 enum GNUNET_GenericReturnValue
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message);
 
+/**
+ * Returns the discourse hash of a message depending on its kind. If a message contains
+ * a discourse hash it will not be stored locally on peers.
+ *
+ * @param[in] message Message
+ * @return Discourse hash of message or NULL
+ */
+const struct GNUNET_ShortHashCode*
+get_message_discourse (const struct GNUNET_MESSENGER_Message *message);
+
 #endif //GNUNET_MESSENGER_API_MESSAGE_H

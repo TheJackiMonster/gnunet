@@ -617,6 +617,26 @@ struct GNUNET_PQ_QueryParam
 GNUNET_PQ_query_param_blind_sign_priv (
   const struct GNUNET_CRYPTO_BlindSignPrivateKey *priv);
 
+/**
+ * Generate query parameter for an unblinded signature of variable size.
+ *
+ * @param sig pointer to the query parameter to pass
+ *
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_unblinded_sig (
+  const struct GNUNET_CRYPTO_UnblindedSignature *sig);
+
+/**
+ * Generate query parameter for a blinded signature of variable size.
+ *
+ * @param b_sig pointer to the query parameter to pass
+ *
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_blinded_sig (
+  const struct GNUNET_CRYPTO_BlindedSignature *b_sig);
+
 /* ************************* pq_result_helper.c functions ************************ */
 
 
@@ -1136,7 +1156,7 @@ GNUNET_PQ_result_spec_array_string (
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_pub (
   const char *name,
-  struct GNUNET_CRYPTO_BlindSignPublicKey *public_key);
+  struct GNUNET_CRYPTO_BlindSignPublicKey **public_key);
 
 
 /**
@@ -1149,7 +1169,7 @@ GNUNET_PQ_result_spec_blind_sign_pub (
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_priv (
   const char *name,
-  struct GNUNET_CRYPTO_BlindSignPrivateKey *private_key);
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **private_key);
 
 /* ************************* pq.c functions ************************ */
 

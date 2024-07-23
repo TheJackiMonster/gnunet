@@ -1,6 +1,6 @@
 /*
       This file is part of GNUnet
-      Copyright (C) 2008, 2009, 2012 GNUnet e.V.
+      Copyright (C) 2021, 2023, 2024 GNUnet e.V.
 
       GNUnet is free software: you can redistribute it and/or modify it
       under the terms of the GNU Affero General Public License as published
@@ -19,445 +19,959 @@
  */
 
 /**
- * @addtogroup Testing
- * @{
- *
- * @author Christian Grothoff
- *
- * @file
- * Convenience API for writing testcases for GNUnet
- *
- * @defgroup testing  Testing library
- * Library for writing testcases for GNUnet.
- *
- * It can start/stop one or more peers on a system; testing is responsible for
- * managing private keys, ports and paths; it is a low-level library that does
- * not support higher-level functions such as P2P connection, topology
- * management or distributed testbed maintenance (those are provided by the
- * [Testbed service](@ref testbed))
- *
- * @see [Documentation](https://gnunet.org/writing_testcases)
- *
- * @{
+ * @brief Central interpreter and command loop for writing an interpreter to test asynchronous systems
+ * @author Christian Grothoff <christian@grothoff.org>
+ * @author Marcello Stanisci
+ * @author t3sserakt
  */
-
 #ifndef GNUNET_TESTING_LIB_H
 #define GNUNET_TESTING_LIB_H
 
-
 #include "gnunet_util_lib.h"
-#include "gnunet_statistics_service.h"
-#include "gnunet_arm_service.h"
 
-#ifdef __cplusplus
-extern "C"
+/**
+ * Maximum length of label in command
+ */
+#define GNUNET_TESTING_CMD_MAX_LABEL_LENGTH 127
+
+/* ********************* Helper functions ********************* */
+
+/**
+ * Print failing line number and trigger shutdown.  Useful
+ * quite any time after the command "run" method has been called.
+ * Returns from the current function.
+ */
+#define GNUNET_TESTING_FAIL(is)                 \
+        do {                                    \
+          GNUNET_break (0);                     \
+          GNUNET_TESTING_interpreter_fail (is); \
+          return;                               \
+        } while (0)
+
+
+/**
+ * Log an error message about a command not having run to completion.
+ *
+ * @param is interpreter
+ * @param label command label of the incomplete command
+ */
+#define GNUNET_TESTING_command_incomplete(is,label)                       \
+        do {                                                              \
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,                            \
+                      "Command %s (%s:%u) did not complete (at %s)\n",    \
+                      label,                                              \
+                      __FILE__,                                           \
+                      __LINE__,                                           \
+                      GNUNET_TESTING_interpreter_current_cmd_get_label (is)); \
+        } while (0)
+
+
+/* ******************* Generic interpreter logic ************ */
+
+/**
+ * Global state of the interpreter, used by a command
+ * to access information about other commands.
+ */
+struct GNUNET_TESTING_Interpreter;
+
+/**
+ * State each asynchronous command must have in its closure.
+ */
+struct GNUNET_TESTING_AsyncContext
 {
-#if 0                           /* keep Emacsens' auto-indent happy */
-}
-#endif
-#endif
-
-/**
- * Size of each hostkey in the hostkey file (in BYTES).
- */
-#define GNUNET_TESTING_HOSTKEYFILESIZE sizeof(struct \
-                                              GNUNET_CRYPTO_EddsaPrivateKey)
-
-/**
- * The environmental variable, if set, that dictates where testing should place
- * generated peer configurations
- */
-#define GNUNET_TESTING_PREFIX "GNUNET_TESTING_PREFIX"
-
-
-/**
- * Handle for a system on which GNUnet peers are executed;
- * a system is used for reserving unique paths and ports.
- */
-struct GNUNET_TESTING_System;
-
-
-/**
- * Handle for a GNUnet peer controlled by testing.
- */
-struct GNUNET_TESTING_Peer;
-
-
-/**
- * Specification of a service that is to be shared among peers
- */
-struct GNUNET_TESTING_SharedService
-{
-  /**
-   * The name of the service.
-   */
-  const char *service;
 
   /**
-   * The configuration template for the service.  Cannot be NULL
+   * Interpreter we are part of.  Initialized when
+   * the global interpreter starts.
    */
-  const struct GNUNET_CONFIGURATION_Handle *cfg;
+  struct GNUNET_TESTING_Interpreter *is;
 
   /**
-   * The number of peers which share an instance of the service.  0 for sharing
-   * among all peers
+   * Function to call when async operation is done.
    */
-  unsigned int share;
+  GNUNET_SCHEDULER_TaskCallback notify_finished;
+
+  /**
+   * Closure for @e notify_finished.
+   */
+  void *notify_finished_cls;
+
+  /**
+   * Indication if the command finished (#GNUNET_OK).
+   * #GNUNET_NO if it did not finish,
+   * #GNUNET_SYSERR if it failed.
+   */
+  enum GNUNET_GenericReturnValue finished;
+
+  /**
+   * Set to true if interpreter_next() has already been
+   * called for this command.
+   */
+  bool next_called;
 };
 
 
 /**
- * Create a system handle.  There must only be one system handle per operating
- * system.  Uses a default range for allowed ports.  Ports are still tested for
- * availability.
+ * The asynchronous command of @a ac has failed.
  *
- * @param testdir only the directory name without any path. This is used for all
- *          service homes; the directory will be created in a temporary location
- *          depending on the underlying OS.  This variable will be
- *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
- * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
- *          service configurations generated to allow control connections from
- *          this ip. This can either be a single ip address or a network address
- *          in CIDR notation.
- * @param hostname the hostname of the system we are using for testing; NULL for
- *          localhost
- * @param shared_services NULL terminated array describing services that are to
- *          be shared among peers
- * @return handle to this system, NULL on error
- */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create (const char *testdir,
-                              const char *trusted_ip,
-                              const char *hostname,
-                              const struct GNUNET_TESTING_SharedService *
-                              shared_services);
-
-
-/**
- * Create a system handle.  There must only be one system
- * handle per operating system.  Use this function directly
- * if multiple system objects are created for the same host
- * (only really useful when testing --- or to make the port
- * range configurable).
- *
- * @param testdir only the directory name without any path. This is used for
- *          all service homes; the directory will be created in a temporary
- *          location depending on the underlying OS.  This variable will be
- *          overridden with the value of the environmental variable
- *          GNUNET_TESTING_PREFIX, if it exists.
- * @param trusted_ip the ip address which will be set as TRUSTED HOST in all
- *          service configurations generated to allow control connections from
- *          this ip. This can either be a single ip address or a network address
- *          in CIDR notation.
- * @param hostname the hostname of the system we are using for testing; NULL for
- *          localhost
- * @param shared_services NULL terminated array describing services that are to
- *          be shared among peers
- * @param lowport lowest port number this system is allowed to allocate (inclusive)
- * @param highport highest port number this system is allowed to allocate (exclusive)
- * @return handle to this system, NULL on error
- */
-struct GNUNET_TESTING_System *
-GNUNET_TESTING_system_create_with_portrange (const char *testdir,
-                                             const char *trusted_ip,
-                                             const char *hostname,
-                                             const struct
-                                             GNUNET_TESTING_SharedService *
-                                             shared_services,
-                                             uint16_t lowport,
-                                             uint16_t highport);
-
-
-/**
- * Free system resources.
- *
- * @param system system to be freed
- * @param remove_paths should the 'testdir' and all subdirectories
- *        be removed (clean up on shutdown)?
+ * @param ac command-specific context
  */
 void
-GNUNET_TESTING_system_destroy (struct GNUNET_TESTING_System *system,
-                               int remove_paths);
+GNUNET_TESTING_async_fail (
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
- * Testing includes a number of pre-created hostkeys for
- * faster peer startup.  This function can be used to
- * access the n-th key of those pre-created hostkeys; note
- * that these keys are ONLY useful for testing and not
- * secure as the private keys are part of the public
- * GNUnet source code.
+ * The asynchronous command of @a ac has finished.
  *
- * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure().
- *
- * @param system the testing system handle
- * @param key_number desired pre-created hostkey to obtain
- * @param id set to the peer's identity (hash of the public
- *        key; if NULL, #GNUNET_SYSERR is returned immediately
- * @return NULL on error (not enough keys)
- */
-struct GNUNET_CRYPTO_EddsaPrivateKey *
-GNUNET_TESTING_hostkey_get (const struct GNUNET_TESTING_System *system,
-                            uint32_t key_number,
-                            struct GNUNET_PeerIdentity *id);
-
-
-/**
- * Reserve a port for a peer.
- *
- * @param system system to use for reservation tracking
- * @return 0 if no free port was available
- */
-uint16_t
-GNUNET_TESTING_reserve_port (struct GNUNET_TESTING_System *system);
-
-
-/**
- * Release reservation of a TCP or UDP port for a peer
- * (used during GNUNET_TESTING_peer_destroy).
- *
- * @param system system to use for reservation tracking
- * @param port reserved port to release
+ * @param ac command-specific context
  */
 void
-GNUNET_TESTING_release_port (struct GNUNET_TESTING_System *system,
-                             uint16_t port);
+GNUNET_TESTING_async_finish (
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
 /**
- * Create a new configuration using the given configuration as a template;
- * ports and paths will be modified to select available ports on the local
- * system. The default configuration will be available in PATHS section under
- * the option DEFAULTCONFIG after the call. SERVICE_HOME is also set in PATHS
- * section to the temporary directory specific to this configuration. If we run
- * out of "*port" numbers, return #GNUNET_SYSERR.
- *
- * This is primarily a helper function used internally
- * by #GNUNET_TESTING_peer_configure().
- *
- * @param system system to use to coordinate resource usage
- * @param cfg template configuration to update
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on error - the configuration will
- *           be incomplete and should not be used there upon
- */
-int
-GNUNET_TESTING_configuration_create (struct GNUNET_TESTING_System *system,
-                                     struct GNUNET_CONFIGURATION_Handle *cfg);
-
-// FIXME: add dual to 'release' ports again...
-
-
-/**
- * Configure a GNUnet peer.  GNUnet must be installed on the local
- * system and available in the PATH.
- *
- * @param system system to use to coordinate resource usage
- * @param cfg configuration to use; will be UPDATED (to reflect needed
- *            changes in port numbers and paths)
- * @param key_number number of the hostkey to use for the peer
- * @param id identifier for the daemon, will be set, can be NULL
- * @param emsg set to freshly allocated error message (set to NULL on success),
- *          can be NULL
- * @return handle to the peer, NULL on error
- */
-struct GNUNET_TESTING_Peer *
-GNUNET_TESTING_peer_configure (struct GNUNET_TESTING_System *system,
-                               struct GNUNET_CONFIGURATION_Handle *cfg,
-                               uint32_t key_number,
-                               struct GNUNET_PeerIdentity *id,
-                               char **emsg);
-
-
-/**
- * Obtain the peer identity from a peer handle.
- *
- * @param peer peer handle for which we want the peer's identity
- * @param id identifier for the daemon, will be set
- */
-void
-GNUNET_TESTING_peer_get_identity (struct GNUNET_TESTING_Peer *peer,
-                                  struct GNUNET_PeerIdentity *id);
-
-
-/**
- * Start the peer.
- *
- * @param peer peer to start
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on error (i.e. peer already running)
- */
-int
-GNUNET_TESTING_peer_start (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Stop the peer. This call is blocking as it kills the peer's main ARM process
- * by sending a SIGTERM and waits on it.  For asynchronous shutdown of peer, see
- * GNUNET_TESTING_peer_stop_async().
- *
- * @param peer peer to stop
- * @return #GNUNET_OK on success,
- *         #GNUNET_SYSERR on error (i.e. peer not running)
- */
-int
-GNUNET_TESTING_peer_stop (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Destroy the peer.  Releases resources locked during peer configuration.
- * If the peer is still running, it will be stopped AND a warning will be
- * printed (users of the API should stop the peer explicitly first).
- *
- * @param peer peer to destroy
- */
-void
-GNUNET_TESTING_peer_destroy (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Sends SIGTERM to the peer's main process
- *
- * @param peer the handle to the peer
- * @return #GNUNET_OK if successful; #GNUNET_SYSERR if the main process is NULL
- *           or upon any error while sending SIGTERM
- */
-int
-GNUNET_TESTING_peer_kill (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Waits for a peer to terminate. The peer's main process will also be destroyed.
- *
- * @param peer the handle to the peer
- * @return #GNUNET_OK if successful; #GNUNET_SYSERR if the main process is NULL
- *           or upon any error while waiting
- */
-int
-GNUNET_TESTING_peer_wait (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Callback to inform whether the peer is running or stopped.
- *
- * @param cls the closure given to GNUNET_TESTING_peer_stop_async()
- * @param peer the respective peer whose status is being reported
- * @param success #GNUNET_YES if the peer is stopped; #GNUNET_SYSERR upon any
- *          error
- */
-typedef void
-(*GNUNET_TESTING_PeerStopCallback) (void *cls,
-                                    struct GNUNET_TESTING_Peer *peer,
-                                    int success);
-
-
-/**
- * Stop a peer asynchronously using ARM API.  Peer's shutdown is signaled
- * through the GNUNET_TESTING_PeerStopCallback().
- *
- * @param peer the peer to stop
- * @param cb the callback to signal peer shutdown
- * @param cb_cls closure for the @a cb
- * @return #GNUNET_OK upon successfully giving the request to the ARM API (this
- *           does not mean that the peer is successfully stopped); #GNUNET_SYSERR
- *           upon any error.
- */
-int
-GNUNET_TESTING_peer_stop_async (struct GNUNET_TESTING_Peer *peer,
-                                GNUNET_TESTING_PeerStopCallback cb,
-                                void *cb_cls);
-
-
-/**
- * Cancel a previous asynchronous peer stop request.
- * GNUNET_TESTING_peer_stop_async() should have been called before on the given
- * peer.  It is an error to call this function if the peer stop callback was
- * already called
- *
- * @param peer the peer on which GNUNET_TESTING_peer_stop_async() was called
- *          before.
- */
-void
-GNUNET_TESTING_peer_stop_async_cancel (struct GNUNET_TESTING_Peer *peer);
-
-
-/**
- * Signature of the 'main' function for a (single-peer) testcase that
- * is run using #GNUNET_TESTING_peer_run().
+ * Signature of a function used to start executing a command of a test.  Runs
+ * the command.  Note that upon return, the interpreter will not automatically
+ * run the next command if this is an asynchronous command unless the command
+ * was wrapped in #GNUNET_TESTING_cmd_make_unblocking(), as the command may
+ * then continue asynchronously in other scheduler tasks.  In this case,
+ * #GNUNET_TESTING_async_finish() must be called to run the next task.
  *
  * @param cls closure
- * @param cfg configuration of the peer that was started
- * @param peer identity of the peer that was created
+ * @param is interpreter running the command
  */
 typedef void
-(*GNUNET_TESTING_TestMain) (void *cls,
-                            const struct GNUNET_CONFIGURATION_Handle *cfg,
-                            struct GNUNET_TESTING_Peer *peer);
+(*GNUNET_TESTING_CommandRunRoutine)(
+  void *cls,
+  struct GNUNET_TESTING_Interpreter *is);
 
 
 /**
- * Start a single peer and run a test using the testing library.
- * Starts a peer using the given configuration and then invokes the
- * given callback.  This function ALSO initializes the scheduler loop
- * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
+ * Signature of a function used to clean up resources allocated
+ * by a command.
  *
- * @param testdir only the directory name without any path. This is used for
- *          all service homes; the directory will be created in a temporary
- *          location depending on the underlying OS
- * @param cfgfilename name of the configuration file to use;
- *         use NULL to only run with defaults
- * @param tm main function of the testcase
- * @param tm_cls closure for @a tm
- * @return 0 on success, 1 on error
+ * @param cls closure
  */
-int
-GNUNET_TESTING_peer_run (const char *testdir,
-                         const char *cfgfilename,
-                         GNUNET_TESTING_TestMain tm,
-                         void *tm_cls);
+typedef void
+(*GNUNET_TESTING_CommandCleanupRoutine)(void *cls);
 
 
 /**
- * Start a single service (no ARM, except of course if the given
- * service name is 'arm') and run a test using the testing library.
- * Starts a service using the given configuration and then invokes the
- * given callback.  This function ALSO initializes the scheduler loop
- * and should thus be called directly from "main".  The testcase
- * should self-terminate by invoking #GNUNET_SCHEDULER_shutdown().
+ * Signature of a function used to extract traits exposed by a
+ * command.
  *
- * This function is useful if the testcase is for a single service
- * and if that service doesn't itself depend on other services.
- *
- * @param testdir only the directory name without any path. This is used for
- *          all service homes; the directory will be created in a temporary
- *          location depending on the underlying OS
- * @param service_name name of the service to run
- * @param cfgfilename name of the configuration file to use;
- *         use NULL to only run with defaults
- * @param tm main function of the testcase
- * @param tm_cls closure for @a tm
- * @return 0 on success, 1 on error
+ * @param cls closure
+ * @param[out] ret where to return the trait data
+ * @param trait name of the trait to return
+ * @param index index of the trait (for traits that are indexed)
+ * @return #GNUNET_OK on success
  */
-int
-GNUNET_TESTING_service_run (const char *testdir,
-                            const char *service_name,
-                            const char *cfgfilename,
-                            GNUNET_TESTING_TestMain tm,
-                            void *tm_cls);
+typedef enum GNUNET_GenericReturnValue
+(*GNUNET_TESTING_CommandGetTraits) (void *cls,
+                                    const void **ret,
+                                    const char *trait,
+                                    unsigned int index);
+
+/**
+ * Create a new command that may be asynchronous.
+ *
+ * @param cls the closure
+ * @param label the Label. Maximum length is #GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
+ * @param run the run routing
+ * @param cleanup the cleanup function
+ * @param traits the traits function (optional)
+ * @param ac the async context, NULL if command is always
+ *           synchronous
+ * @return the command the function cannot fail
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_command_new_ac (
+  void *cls,
+  const char *label,
+  GNUNET_TESTING_CommandRunRoutine run,
+  GNUNET_TESTING_CommandCleanupRoutine cleanup,
+  GNUNET_TESTING_CommandGetTraits traits,
+  struct GNUNET_TESTING_AsyncContext *ac);
 
 
-#if 0                           /* keep Emacsens' auto-indent happy */
+/**
+ * Create a new command
+ *
+ * @param cls the closure
+ * @param label the Label. Maximum length is #GNUNET_TESTING_CMD_MAX_LABEL_LENGTH
+ * @param run the run routing
+ * @param cleanup the cleanup function
+ * @param traits the traits function (optional)
+ * @return the command the function cannot fail
+ */
+#define GNUNET_TESTING_command_new(cls,label,run,cleanup,traits) \
+        GNUNET_TESTING_command_new_ac (cls,label,run,cleanup,traits,NULL)
+
+
+/**
+ * Structure with storage space for a label.
+ */
+struct GNUNET_TESTING_CommandLabel
 {
-#endif
-#ifdef __cplusplus
-}
-#endif
+  char value[GNUNET_TESTING_CMD_MAX_LABEL_LENGTH + 1];
+};
+
+
+/**
+ * Set @a label to @a value. Asserts that @a value is
+ * not longer than #GNUNET_TESTING_CMD_MAX_LABEL_LENGTH.
+ *
+ * @param[out] label label to initialize
+ * @param value value to store into @a label
+ */
+void
+GNUNET_TESTING_set_label (
+  struct GNUNET_TESTING_CommandLabel *label,
+  const char *value);
+
+
+/**
+ * A command to be run by the interpreter.
+ */
+struct GNUNET_TESTING_Command
+{
+
+  /**
+   * Label for the command.
+   */
+  struct GNUNET_TESTING_CommandLabel label;
+
+  /**
+   * Closure for all commands with command-specific context information.
+   */
+  void *cls;
+
+  /**
+   * Variable name for the command, NULL for none.
+   */
+  const char *name;
+
+  /**
+   * Runs the command.  Note that upon return, the interpreter
+   * will not automatically run the next command, as the command
+   * may continue asynchronously in other scheduler tasks.  Thus,
+   * the command must ensure to eventually call
+   * #GNUNET_TESTING_interpreter_next() or
+   * #GNUNET_TESTING_interpreter_fail().
+   *
+   * If this function creates some asynchronous activity, it should
+   * initialize @e finish to a function that can be used to wait for
+   * the asynchronous activity to terminate.
+   *
+   * @param cls closure
+   * @param is interpreter state
+   */
+  GNUNET_TESTING_CommandRunRoutine run;
+
+  /**
+   * Pointer to the asynchronous context in the command's
+   * closure. Used by the
+   * #GNUNET_TESTING_async_finish() and
+   * #GNUNET_TESTING_async_fail() functions.
+   *
+   * Must be NULL if a command is synchronous.
+   */
+  struct GNUNET_TESTING_AsyncContext *ac;
+
+  /**
+   * Clean up after the command.  Run during forced termination
+   * (CTRL-C) or test failure or test success.
+   *
+   * @param cls closure
+   */
+  GNUNET_TESTING_CommandCleanupRoutine cleanup;
+
+  /**
+   * Extract information from a command that is useful for other
+   * commands. Can be NULL if a command has no traits.
+   *
+   * @param cls closure
+   * @param[out] ret result (could be anything)
+   * @param trait name of the trait
+   * @param index index number of the object to extract.
+   * @return #GNUNET_OK on success,
+   *         #GNUNET_NO if no trait was found
+   */
+  GNUNET_TESTING_CommandGetTraits traits;
+
+  /**
+   * When did the execution of this command start?
+   */
+  struct GNUNET_TIME_Absolute start_time;
+
+  /**
+   * When did the execution of this command finish?
+   */
+  struct GNUNET_TIME_Absolute finish_time;
+
+  /**
+   * When did we start the last run of this command?  Delta to @e finish_time
+   * gives the latency for the last successful run.  Useful in case @e
+   * num_tries was positive and the command was run multiple times.  In that
+   * case, the @e start_time gives the time when we first tried to run the
+   * command, so the difference between @e start_time and @e finish_time would
+   * be the time all of the @e num_tries took, while the delta to @e
+   * last_req_time is the time the last (successful) execution took.
+   */
+  struct GNUNET_TIME_Absolute last_req_time;
+
+  /**
+   * How often did we try to execute this command? (In case it is a request
+   * that is repated.)  Note that a command must have some built-in retry
+   * mechanism for this value to be useful.
+   */
+  unsigned int num_tries;
+
+  /**
+   * If "true", the interpreter should not immediately run the next command,
+   * even if this command did not complete via #GNUNET_TESTING_async_finish().
+   * Otherwise, #GNUNET_TESTING_cmd_finish() must be used to ensure that a
+   * command actually completed.
+   */
+  bool asynchronous_finish;
+
+};
+
+
+/**
+ * Lookup command by label.
+ *
+ * @param is interpreter to lookup command in
+ * @param label label of the command to lookup.
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_lookup_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *label);
+
+
+/**
+ * Get command from hash map by variable name.
+ *
+ * @param is interpreter state.
+ * @param name name of the variable to get command by
+ * @return the command, if it is found, or NULL.
+ */
+const struct GNUNET_TESTING_Command *
+GNUNET_TESTING_interpreter_get_command (
+  struct GNUNET_TESTING_Interpreter *is,
+  const char *name);
+
+
+/**
+ * Update the last request time of the current command
+ * to the current time.
+ *
+ * @param[in,out] is interpreter state where to show
+ *       that we are doing something
+ */
+void
+GNUNET_TESTING_interpreter_current_cmd_touch (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Increment the 'num_tries' counter for the current command.
+ *
+ * @param[in,out] is interpreter state where to
+ *   increment the counter
+ */
+void
+GNUNET_TESTING_interpreter_current_cmd_inc_tries (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Obtain label of the command being now run.
+ *
+ * @param is interpreter state.
+ * @return the label.
+ */
+const char *
+GNUNET_TESTING_interpreter_current_cmd_get_label (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Current command failed, clean up and fail the test case.
+ *
+ * @param is interpreter state.
+ */
+void
+GNUNET_TESTING_interpreter_fail (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Skips the current test, the environment is
+ * not prepared correctly.
+ *
+ * @param is interpreter state.
+ */
+void
+GNUNET_TESTING_interpreter_skip (
+  struct GNUNET_TESTING_Interpreter *is);
+
+
+/**
+ * Callback over commands of an interpreter.
+ *
+ * @param cls closure
+ * @param cmd a command to process
+ */
+typedef void
+(*GNUNET_TESTING_CommandIterator)(
+  void *cls,
+  const struct GNUNET_TESTING_Command *cmd);
+
+
+/**
+ * Iterates over all of the top-level commands of an
+ * interpreter.
+ *
+ * @param[in] is interpreter to iterate over
+ * @param asc true in execution order, false for reverse execution order
+ * @param cb function to call on each command
+ * @param cb_cls closure for cb
+ */
+void
+GNUNET_TESTING_interpreter_commands_iterate (
+  struct GNUNET_TESTING_Interpreter *is,
+  bool asc,
+  GNUNET_TESTING_CommandIterator cb,
+  void *cb_cls);
+
+
+/* ************** Fundamental interpreter commands ************ */
+
+
+/**
+ * Create command array terminator.
+ *
+ * @return a end-command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_end (void);
+
+
+/**
+ * Create a "batch" command.  Such command takes a end_CMD-terminated array of
+ * CMDs and executed them.  Once it hits the end CMD, it passes the control to
+ * the next top-level CMD, regardless of it being another batch or ordinary
+ * CMD.
+ *
+ * @param label the command label.
+ * @param batch array of CMDs to execute.
+ * @return the command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_batch (
+  const char *label,
+  struct GNUNET_TESTING_Command *batch);
+
+
+/**
+ * Performance counter.
+ */
+struct GNUNET_TESTING_Timer
+{
+  /**
+   * For which type of commands.
+   */
+  const char *prefix;
+
+  /**
+   * Total time spend in all commands of this type.
+   */
+  struct GNUNET_TIME_Relative total_duration;
+
+  /**
+   * Total time spend waiting for the *successful* exeuction
+   * in all commands of this type.
+   */
+  struct GNUNET_TIME_Relative success_latency;
+
+  /**
+   * Number of commands summed up.
+   */
+  unsigned int num_commands;
+
+  /**
+   * Number of retries summed up.
+   */
+  unsigned int num_retries;
+};
+
+/**
+ * Obtain performance data from the interpreter.
+ *
+ * @param label command label.
+ * @param[in,out] timers NULL-prefix terminated array that specifies what commands (by label) to obtain runtimes for
+ * @return the command
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_stat (
+  const char *label,
+  struct GNUNET_TESTING_Timer *timers);
+
+
+/**
+ * Set variable to command as side-effect of
+ * running a command.
+ *
+ * @param name name of the variable to set
+ * @param cmd command to set to variable when run
+ * @return modified command
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_set_var (
+  const char *name,
+  struct GNUNET_TESTING_Command cmd);
+
+
+/**
+ * Command to create a barrier.
+ *
+ * @param label The label of this command.
+ * @param number_to_be_reached If this number of processes reached
+ *                             this barrier, all processes waiting at
+ *                             this barrier can pass it.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_create (
+  const char *label,
+  unsigned int number_to_be_reached);
+
+
+/**
+ * If this command is executed the the process is signaling the master process
+ * that it reached a barrier. If this command is synchronous it will block.
+ *
+ * @param label name for command.
+ * @param barrier_label The name of the barrier we waited for and which was reached.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_barrier_reached (
+  const char *label,
+  const char *barrier_label);
+
+
+#define GNUNET_TESTING_NETJAIL_START_SCRIPT "netjail_start_new.sh"
+
+#define GNUNET_TESTING_NETJAIL_STOP_SCRIPT "netjail_stop.sh"
+
+/**
+ * Create command.
+ *
+ * @param label Name for the command.
+ * @param topology_data topology data
+ * @param timeout Before this timeout is reached this cmd MUST finish.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_start_helpers (
+  const char *label,
+  const char *topology_cmd_label,
+  struct GNUNET_TIME_Relative timeout);
+
+
+/**
+ * This command executes a shell script to setup the netjail environment.
+ *
+ * @param label name for command.
+ * @param script which script to run, e.g. #GNUNET_TESTING_NETJAIL_START_SCRIPT
+ * @param topology_config Configuration file for the test topology.
+ * @param read_file Flag indicating if the the name of the topology file is send to the helper, or a string with the topology data.
+ * @return command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_netjail_setup (
+  const char *label,
+  const char *script,
+  const char *topology_cmd_label);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_load_topology_from_file (
+  const char *label,
+  const char *filename);
+
+
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_load_topology_from_string (
+  const char *label,
+  const char *topology_data);
+
+
+/**
+ * Turn asynchronous command into non-blocking command by setting
+ * asynchronous_finish to true.  Modifies (and then returns) @a cmd simply
+ * setting the bit. By default, most commands are blocking, and by wrapping
+ * the command construction in this function a blocking command can be turned
+ * into an asynchronous command where the interpreter continues after
+ * initiating the asynchronous action. Does nothing if the command is
+ * fundamentally synchronous.
+ *
+ * @param[in,out] cmd command to make non-blocking
+ * @return a finish-command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_make_unblocking (
+  struct GNUNET_TESTING_Command cmd);
+
+
+/**
+ * Create (synchronous) command that waits for another command to finish.
+ * If @a cmd_ref did not finish after @a timeout, this command will fail
+ * the test case.
+ *
+ * @param finish_label label for this command
+ * @param cmd_ref reference to a previous command which we should
+ *        wait for (call `finish()` on)
+ * @param timeout how long to wait at most for @a cmd_ref to finish
+ * @return a finish-command.
+ */
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_finish (
+  const char *finish_label,
+  const char *cmd_ref,
+  struct GNUNET_TIME_Relative timeout);
+
+
+/**
+ * Create a "signal" CMD.
+ *
+ * @param label command label.
+ * @param process_label label of a command that has a process trait
+ * @param signal signal to send to @a process.
+ * @return the command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_signal (
+  const char *label,
+  const char *process_label,
+  int signal);
+
+
+/**
+ * Sleep for @a duration.
+ *
+ * @param label command label.
+ * @param duration time to sleep
+ * @return the command.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_sleep (
+  const char *label,
+  struct GNUNET_TIME_Relative duration);
+
+
+/**
+ * Command to execute a command.
+ *
+ * @param label Label of the command.
+*/
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_exec (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  char *const script_argv[]);
+
+
+/**
+ * Command to execute a command.
+ *
+ * @param label Label of the command.
+*/
+const struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_exec_va (
+  const char *label,
+  enum GNUNET_OS_ProcessStatusType expected_type,
+  unsigned long int expected_exit_code,
+  ...);
+
+
+/**
+ * Make the instruction pointer point to @a target_label
+ * only if @a counter is greater than zero.  Note that
+ * the command that will be executed next in this case
+ * is the one AFTER @a target_label, as the command we
+ * jump to is skipped by the advancing IP after the
+ * rewind.
+ *
+ * @param label command label
+ * @param target_label label of the new instruction pointer's destination after the jump;
+ *                     must be before the current instruction (and the command at the @a target_label itself will not be run, but the one afterwards)
+ * @param counter counts how many times the rewinding is to happen.
+ */
+struct GNUNET_TESTING_Command
+GNUNET_TESTING_cmd_rewind_ip (
+  const char *label,
+  const char *target_label,
+  unsigned int counter);
+
+
+/* ***************** main loop logic ************* */
+
+/**
+ * Function called with the final result of the test.
+ *
+ * @param cls closure
+ * @param rv #GNUNET_OK if the test passed
+ */
+typedef void
+(*GNUNET_TESTING_ResultCallback)(
+  void *cls,
+  enum GNUNET_GenericReturnValue rv);
+
+
+/**
+ * Run the testsuite.  Note, CMDs are copied into the interpreter state
+ * because they are _usually_ defined into the "run" method that returns after
+ * having scheduled the test interpreter.
+ *
+ * @param commands the array of command to execute
+ * @param timeout how long to wait for each command to execute
+ * @param rc function to call with the final result
+ * @param rc_cls closure for @a rc
+ * @return The interpreter.
+ */
+struct GNUNET_TESTING_Interpreter *
+GNUNET_TESTING_run (
+  const struct GNUNET_TESTING_Command *commands,
+  struct GNUNET_TIME_Relative timeout,
+  GNUNET_TESTING_ResultCallback rc,
+  void *rc_cls);
+
+
+/**
+ * Start a GNUnet scheduler event loop and run the testsuite.  Return 0 upon
+ * success.  Expected to be called directly from main().
+ *
+ * @param commands the list of command to execute
+ * @param timeout how long to wait for each command to execute
+ * @return EXIT_SUCCESS on success, EXIT_FAILURE on failure
+ */
+int
+GNUNET_TESTING_main (
+  const struct GNUNET_TESTING_Command *commands,
+  struct GNUNET_TIME_Relative timeout);
+
+
+/* ***************** plugin logic ************* */
+
+
+/**
+ * The plugin API every test case plugin has to implement.
+ */
+struct GNUNET_TESTING_PluginFunctions;
+
+
+struct GNUNET_TESTING_PluginFunctions *
+GNUNET_TESTING_make_plugin (
+  const struct GNUNET_TESTING_Command *commands);
+
+#define GNUNET_TESTING_MAKE_PLUGIN(prefix,name,...)            \
+        void *                                                 \
+        prefix ## _plugin_ ## name ## _init (void *cls) { \
+          const char *my_node_id = cls; (void) my_node_id;     \
+          struct GNUNET_TESTING_Command commands[] = {         \
+            __VA_ARGS__,                                       \
+            GNUNET_TESTING_cmd_end ()                          \
+          };                                                   \
+          return GNUNET_TESTING_make_plugin (commands);        \
+        }                                                      \
+        void *                                                 \
+        prefix ## _plugin_ ## name ## _done (void *cls) {      \
+          struct GNUNET_TESTING_PluginFunctions *api = cls;    \
+          GNUNET_free (api);                                   \
+          return NULL;                                         \
+        }
+
+
+/* *** Generic trait logic for implementing traits ********* */
+
+/**
+ * A `struct GNUNET_TESTING_Trait` can be used to exchange data between cmds.
+ *
+ * Therefor the cmd which like to provide data to other cmds has to implement
+ * the trait function, where an array of traits is defined with the help of
+ * the #GNUNET_TESTING_make_trait_ macro. The data can be retrieved with the
+ * help of the #GNUNET_TESTING_get_trait_ macro. Traits name and type must be
+ * defined to make use of the macros.
+ */
+struct GNUNET_TESTING_Trait
+{
+  /**
+   * Index number associated with the trait.  This gives the
+   * possibility to have _multiple_ traits on offer under the
+   * same name.
+   */
+  unsigned int index;
+
+  /**
+   * Trait type, for example "reserve-pub" or "coin-priv".
+   */
+  const char *trait_name;
+
+  /**
+   * Pointer to the piece of data to offer.
+   */
+  const void *ptr;
+};
+
+
+/**
+ * "end" of traits array.  Because traits are offered into arrays, this type
+ * of trait is used to mark the end of such arrays; useful when iterating over
+ * those.
+ */
+struct GNUNET_TESTING_Trait
+GNUNET_TESTING_trait_end (void);
+
+
+/**
+ * Obtain value of a trait from a command.
+ *
+ * @param traits the array of all the traits.
+ * @param[out] ret where to store the result.
+ * @param trait type of the trait to extract.
+ * @param index index number of the trait to extract.
+ * @return #GNUNET_OK when the trait is found.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TESTING_get_trait (
+  const struct GNUNET_TESTING_Trait *traits,
+  const void **ret,
+  const char *trait,
+  unsigned int index);
+
+
+/**
+ * Create headers for a trait with name @a name for
+ * statically allocated data of type @a type.
+ *
+ * @param prefix symbol prefix to use
+ * @param name name of the trait
+ * @param type data type for the trait
+ */
+#define GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT(prefix,name,type)  \
+        enum GNUNET_GenericReturnValue                           \
+        prefix ## _get_trait_ ## name (                          \
+          const struct GNUNET_TESTING_Command *cmd,              \
+          type * *ret);                                          \
+        struct GNUNET_TESTING_Trait                              \
+        prefix ## _make_trait_ ## name (                         \
+          type * value);
+
+
+/**
+ * Create C implementation for a trait with name @a name for statically
+ * allocated data of type @a type.
+ *
+ * @param prefix symbol prefix to use
+ * @param name name of the trait
+ * @param type data type for the trait
+ */
+#define GNUNET_TESTING_MAKE_IMPL_SIMPLE_TRAIT(prefix,name,type) \
+        enum GNUNET_GenericReturnValue                          \
+        prefix ## _get_trait_ ## name (                         \
+          const struct GNUNET_TESTING_Command *cmd,             \
+          type * *ret)                                          \
+        {                                                       \
+          if (NULL == cmd->traits) return GNUNET_SYSERR;        \
+          return cmd->traits (cmd->cls,                         \
+                              (const void **) ret,              \
+                              GNUNET_S (name),                  \
+                              0);                               \
+        }                                                       \
+        struct GNUNET_TESTING_Trait                             \
+        prefix ## _make_trait_ ## name (                        \
+          type * value)                                         \
+        {                                                       \
+          struct GNUNET_TESTING_Trait ret = {                   \
+            .trait_name = GNUNET_S (name),                      \
+            .ptr = (const void *) value                         \
+          };                                                    \
+          return ret;                                           \
+        }
+
+
+/**
+ * Create headers for a trait with name @a name for
+ * statically allocated data of type @a type.
+ *
+ * @param prefix symbol prefix to use
+ * @param name name of the trait
+ * @param type data type for the trait
+ */
+#define GNUNET_TESTING_MAKE_DECL_INDEXED_TRAIT(prefix,name,type) \
+        enum GNUNET_GenericReturnValue                           \
+        prefix ## _get_trait_ ## name (                          \
+          const struct GNUNET_TESTING_Command *cmd,              \
+          unsigned int index,                                    \
+          type * *ret);                                          \
+        struct GNUNET_TESTING_Trait                              \
+        prefix ## _make_trait_ ## name (                         \
+          unsigned int index,                                    \
+          type * value);
+
+
+/**
+ * Create C implementation for a trait with name @a name for statically
+ * allocated data of type @a type.
+ */
+#define GNUNET_TESTING_MAKE_IMPL_INDEXED_TRAIT(prefix,name,type)    \
+        enum GNUNET_GenericReturnValue                          \
+        prefix ## _get_trait_ ## name (                         \
+          const struct GNUNET_TESTING_Command *cmd,             \
+          unsigned int index,                                   \
+          type * *ret)                                          \
+        {                                                       \
+          if (NULL == cmd->traits) return GNUNET_SYSERR;        \
+          return cmd->traits (cmd->cls,                         \
+                              (const void **) ret,              \
+                              GNUNET_S (name),                  \
+                              index);                           \
+        }                                                       \
+        struct GNUNET_TESTING_Trait                             \
+        prefix ## _make_trait_ ## name (                        \
+          unsigned int index,                                   \
+          type * value)                                         \
+        {                                                       \
+          struct GNUNET_TESTING_Trait ret = {                   \
+            .index = index,                                     \
+            .trait_name = GNUNET_S (name),                      \
+            .ptr = (const void *) value                         \
+          };                                                    \
+          return ret;                                           \
+        }
+
+
+/**
+ * Call #op on all simple traits needed by testing core logic.
+ *
+ * @param op operation to perform
+ * @param prefix prefix to pass to @e op
+ */
+#define GNUNET_TESTING_SIMPLE_TRAITS(op,prefix)                  \
+        op (prefix, process, struct GNUNET_OS_Process *)         \
+        op (prefix, cmd, const struct GNUNET_TESTING_Command)    \
+        op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)
+
+
+GNUNET_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,
+                              GNUNET_TESTING)
+
 
 #endif
-
-/** @} */  /* end of group */
-
-/** @} */ /* end of group addition */

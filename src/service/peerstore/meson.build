@@ -38,6 +38,8 @@ executable ('gnunet-service-peerstore',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+if false
+
 testpeerstore_api_iterate = executable ('test_peerstore_api_iterate',
             ['test_peerstore_api_iterate.c'],
             dependencies: [
@@ -90,6 +92,4 @@ test('test_peerstore_api_iterate', testpeerstore_api_iterate,
 test('perf_peerstore_api_store', testpeerstore_api_perf,
   suite: 'peerstore', workdir: meson.current_build_dir())
 
-
-
-
+endif

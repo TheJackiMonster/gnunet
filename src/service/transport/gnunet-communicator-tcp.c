@@ -27,8 +27,8 @@
  * - support NAT connection reversal method (#5529)
  * - support other TCP-specific NAT traversal methods (#5531)
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
 #include "gnunet_peerstore_service.h"
@@ -2369,7 +2369,6 @@ extract_address (const char *bindto)
   char *token;
   char *cp;
   char *rest = NULL;
-  char *res;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "extract address with bindto %s\n",
@@ -2402,8 +2401,7 @@ extract_address (const char *bindto)
     else
     {
       token++;
-      res = GNUNET_strdup (token);
-      addr = GNUNET_strdup (res);
+      addr = GNUNET_strdup (token);
     }
   }
 
@@ -3349,6 +3347,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Queue for %s already exists or is in construction\n", address);
+    GNUNET_free (in);
     return GNUNET_NO;
   }
   switch (in->sa_family)
@@ -3799,7 +3798,8 @@ init_socket (struct sockaddr *addr,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Bound to `%s'\n",
               GNUNET_a2s ((const struct sockaddr *) &in_sto, sto_len));
-  stats = GNUNET_STATISTICS_create ("communicator-tcp", cfg);
+  if (NULL == stats)
+    stats = GNUNET_STATISTICS_create ("communicator-tcp", cfg);
 
   if (NULL == is)
     is = GNUNET_NT_scanner_init ();

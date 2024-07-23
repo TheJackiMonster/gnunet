@@ -1,3 +1,10 @@
+v0.21.2:
+  - Reworked TESTING API
+  - Disabled many old-style tests
+  - TESTING: introduce GNUNET_TESTING_command_new_ac
+  - UTIL: change return type to 'bool' from GNUNET_is_zero()
+  - Added GNUNET_GNS_parse_ztld helper API
+
 v0.21.1:
   - Communicator and connectivity bugfixes
 

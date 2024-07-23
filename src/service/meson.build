@@ -6,8 +6,8 @@ endif
 
 subdir('util')
 subdir('statistics')
+# FIXME: subdir('testbed')
 subdir('arm')
-subdir('testing')
 subdir('peerstore')
 subdir('nat')
 subdir('nat-auto')

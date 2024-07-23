@@ -240,6 +240,7 @@ open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                                                       key,
                                                       NULL,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
+
     return GNUNET_NO;
 
   if ((! get_srv_handle_member_id (handle, key)) &&
@@ -429,8 +430,10 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   GNUNET_assert ((handle) && (room) && (session) && (message) && (hash));
 
   const struct GNUNET_HashCode *key = get_srv_room_key (room);
+  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle, 
+                                                                    key);
 
-  if ((! handle->mq) || (! get_srv_handle_member_id (handle, key)))
+  if ((! handle->mq) || (! id))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Notifying client about message requires membership!\n");
@@ -440,6 +443,39 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   struct GNUNET_HashCode sender;
   const struct GNUNET_HashCode *context = NULL;
 
+  if (GNUNET_MESSENGER_KIND_TALK != message->header.kind)
+    goto skip_message_filter;
+
+  struct GNUNET_TIME_Absolute timestamp =
+    GNUNET_TIME_absolute_ntoh(message->header.timestamp);
+  const struct GNUNET_ShortHashCode *discourse =
+    &(message->body.talk.discourse);
+
+  struct GNUNET_MESSENGER_MemberStore *member_store =
+    get_srv_room_member_store (room);
+  
+  if (! member_store)
+    return;
+
+  struct GNUNET_MESSENGER_Member *member =
+    get_store_member (member_store, id);
+  
+  if (! member)
+    return;
+
+  struct GNUNET_MESSENGER_Subscription *subscription =
+    get_member_subscription(member, discourse);
+  
+  if ((! subscription) ||
+      (GNUNET_YES != has_subscription_of_timestamp(subscription, timestamp)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, 
+                "Dropping message for client outside of subscription: %s\n",
+                GNUNET_h2s (hash));
+    return;
+  }
+  
+skip_message_filter:
   if (GNUNET_YES == is_peer_message (message))
   {
     const struct GNUNET_PeerIdentity *identity = session->peer;
@@ -449,8 +485,8 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   }
   else
   {
-    const struct GNUNET_CRYPTO_PublicKey *pubkey = get_contact_key (
-      session->member->contact);
+    const struct GNUNET_CRYPTO_PublicKey *pubkey;
+    pubkey = get_member_session_public_key (session->member);
     GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &sender);
 
     context = get_next_member_session_context (session->member);
@@ -498,6 +534,10 @@ iterate_next_member_ids (void *cls,
 {
   struct GNUNET_MESSENGER_SrvHandle *handle = cls;
   struct GNUNET_MESSENGER_NextMemberId *next = value;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Notifying client about next member id: %s (%s)\n",
+              GNUNET_sh2s (&(next->id)), GNUNET_h2s (key));
 
   struct GNUNET_MESSENGER_MemberMessage *msg;
   struct GNUNET_MQ_Envelope *env;

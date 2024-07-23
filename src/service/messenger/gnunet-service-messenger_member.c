@@ -51,6 +51,7 @@ create_member (struct GNUNET_MESSENGER_MemberStore *store,
   }
 
   member->sessions = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
+  member->subscriptions = GNUNET_CONTAINER_multishortmap_create (8, GNUNET_NO);
 
   return member;
 }
@@ -67,6 +68,17 @@ iterate_destroy_session (void *cls,
 }
 
 
+static enum GNUNET_GenericReturnValue
+iterate_destroy_subscription (void *cls,
+                              const struct GNUNET_ShortHashCode *key,
+                              void *value)
+{
+  struct GNUNET_MESSENGER_Subscription *subscription = value;
+  destroy_subscription (subscription);
+  return GNUNET_YES;
+}
+
+
 void
 destroy_member (struct GNUNET_MESSENGER_Member *member)
 {
@@ -74,7 +86,11 @@ destroy_member (struct GNUNET_MESSENGER_Member *member)
 
   GNUNET_CONTAINER_multihashmap_iterate (member->sessions,
                                          iterate_destroy_session, NULL);
+  GNUNET_CONTAINER_multishortmap_iterate (member->subscriptions,
+                                          iterate_destroy_subscription, NULL);
+  
   GNUNET_CONTAINER_multihashmap_destroy (member->sessions);
+  GNUNET_CONTAINER_multishortmap_destroy (member->subscriptions);
 
   GNUNET_free (member);
 }
@@ -459,4 +475,63 @@ iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
   return GNUNET_CONTAINER_multihashmap_iterate (member->sessions,
                                                 iterate_member_sessions_it,
                                                 &iterate);
+}
+
+
+void
+add_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                         struct GNUNET_MESSENGER_Subscription *subscription)
+{
+  GNUNET_assert ((member) && (member->subscriptions) && (subscription));
+
+  const struct GNUNET_ShortHashCode *discourse;
+  discourse = get_subscription_discourse(subscription);
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
+        member->subscriptions, discourse, subscription,
+        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Adding a member subscription failed: %s\n",
+                GNUNET_sh2s (discourse));
+}
+
+
+void
+remove_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                            struct GNUNET_MESSENGER_Subscription *subscription)
+{
+  GNUNET_assert ((member) && (member->subscriptions) && (subscription));
+
+  const struct GNUNET_ShortHashCode *discourse;
+  discourse = get_subscription_discourse(subscription);
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (member->subscriptions,
+                                                           discourse,
+                                                           subscription))
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Removing a member subscription failed: %s\n",
+                GNUNET_sh2s (discourse));
+}
+
+
+struct GNUNET_MESSENGER_Subscription*
+get_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                         const struct GNUNET_ShortHashCode *discourse)
+{
+  GNUNET_assert ((member) && (member->subscriptions) && (discourse));
+
+  return GNUNET_CONTAINER_multishortmap_get (member->subscriptions, discourse);
+}
+
+
+int
+iterate_member_subscriptions (struct GNUNET_MESSENGER_Member *member,
+                              GNUNET_MESSENGER_SubscriptionIteratorCallback it,
+                              void *cls)
+{
+  GNUNET_assert ((member) && (member->subscriptions) && (it));
+
+  return GNUNET_CONTAINER_multishortmap_iterate (member->subscriptions,
+                                                 (GNUNET_CONTAINER_ShortmapIterator) it,
+                                                 cls);
 }

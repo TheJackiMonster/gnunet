@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
 #include "gnunet_arm_service.h"
@@ -223,19 +224,18 @@ identity_zone_cb (void *cls,
 }
 
 
-/**
- * Perform an asynchronous lookup operation on the GNS,
- * determining the zone using the TLD of the given name
- * and the current configuration to resolve TLDs to zones.
- *
- * @param handle handle to the GNS service
- * @param name the name to look up, including TLD (in UTF-8 encoding)
- * @param type the record type to look up
- * @param options local options for the lookup
- * @param proc processor to call on result
- * @param proc_cls closure for @a proc
- * @return handle to the get request, NULL on error (e.g. bad configuration)
- */
+enum GNUNET_GenericReturnValue
+GNUNET_GNS_parse_ztld (const char *name,
+                       struct GNUNET_CRYPTO_PublicKey *ztld_key)
+{
+  const char *tld;
+
+  /* start with trivial case: TLD is zkey */
+  tld = get_tld (name);
+  return GNUNET_CRYPTO_public_key_from_string (tld, ztld_key);
+}
+
+
 struct GNUNET_GNS_LookupWithTldRequest *
 GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
                             const char *name,
@@ -258,10 +258,10 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
   ltr->lookup_proc = proc;
   ltr->lookup_proc_cls = proc_cls;
   /* start with trivial case: TLD is zkey */
-  tld = get_tld (ltr->name);
   if (GNUNET_OK ==
-      GNUNET_CRYPTO_public_key_from_string (tld, &pkey))
+      GNUNET_GNS_parse_ztld (ltr->name, &pkey))
   {
+    tld = get_tld (ltr->name);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "`%s' seems to be a valid zone key\n", tld);
     eat_tld (ltr->name, tld);
@@ -283,7 +283,7 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
     {
       if (GNUNET_OK !=
           GNUNET_CRYPTO_public_key_from_string (zonestr,
-                                                  &pkey))
+                                                &pkey))
       {
         GNUNET_log_config_invalid (
           GNUNET_ERROR_TYPE_ERROR,

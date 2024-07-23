@@ -2,7 +2,7 @@ subdir('template')
 subdir('set')
 subdir('consensus')
 #subdir('auction')
-#subdir('abd')
+subdir('abd')
 #subdir('rps')
 subdir('scalarproduct')
 if conversation_backend != 'none'

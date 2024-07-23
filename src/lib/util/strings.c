@@ -37,7 +37,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-strings", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-strings", syscall)
+        GNUNET_log_from_strerror (kind, "util-strings", syscall)
 
 
 size_t
@@ -1699,7 +1699,7 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define cvtfind(a)                        \
-  ((((a) >= 'A') && ((a) <= 'Z'))         \
+        ((((a) >= 'A') && ((a) <= 'Z'))         \
    ? (a) - 'A'                          \
    : (((a) >= 'a') && ((a) <= 'z'))     \
    ? (a) - 'a' + 26                 \
@@ -1709,15 +1709,15 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 
 
 #define CHECK_CRLF                                                \
-  while ( (data[i] == '\r') || (data[i] == '\n') )                \
-  {                                                               \
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
-                "ignoring CR/LF\n");                              \
-    i++;                                                          \
-    if (i >= len) {                                               \
-      goto END;                                                   \
-    }                                                             \
-  }
+        while ( (data[i] == '\r') || (data[i] == '\n') )                \
+        {                                                               \
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK, \
+                      "ignoring CR/LF\n");                              \
+          i++;                                                          \
+          if (i >= len) {                                               \
+            goto END;                                                   \
+          }                                                             \
+        }
 
 
 size_t
@@ -1853,7 +1853,15 @@ GNUNET_STRINGS_urldecode (const char *data,
       if (1 != sscanf (rpos + 1,
                        "%2x",
                        &num))
+      {
+        /* Invalid URL encoding, try to continue anyway */
+        GNUNET_break_op (0);
+        *wpos = *rpos;
+        wpos++;
+        resl++;
+        rpos++;
         break;
+      }
       *wpos = (char) ((unsigned char) num);
       wpos++;
       resl++;

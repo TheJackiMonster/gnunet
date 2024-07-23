@@ -8,10 +8,13 @@ set -x
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 filename=$1
-PREFIX=$2
-readfile=$3
+PREFIX=$PPID
+readfile=$2
 
 BROADCAST=0
+
+# FIXME: We need to test CGNAT. Therefore we have to change the address spaces.
+# We have the backbone network with 192.168.1.X/16 for the global reachable CGN routers and 192.168.2.X/16 for global reachable GNUnet nodes. Every CGN router spans a 10.X.0.0 carrier network for the home router subnets resp. mobile devices. With them given adresses like 10.X.Y.0 with Y being the number of those systems. Home router span a subnet 10.X.Y.0 with device getting address like 10.X.Y.Z with Z being the number of those devices.
 
 if [ $readfile -eq 0 ]
 then

@@ -14,7 +14,7 @@ then
   exit 77
 fi
 
-$LOCATION --version 1> /dev/null
+$LOCATION --list-sections 1> /dev/null
 if test $? != 0
 then
 	echo "GNUnet command line tools cannot be found, check environmental variables PATH and GNUNET_PREFIX"

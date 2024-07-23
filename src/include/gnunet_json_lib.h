@@ -430,6 +430,39 @@ GNUNET_JSON_spec_rsa_signature (const char *name,
                                 struct GNUNET_CRYPTO_RsaSignature **sig);
 
 
+/**
+ * Specification for parsing a blinded message.
+ *
+ * @param name name of the JSON field
+ * @param sig where to store the blinded message found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_blinded_message (const char *name,
+                                  struct GNUNET_CRYPTO_BlindedMessage **msg);
+
+
+/**
+ * Specification for parsing a blinded signature.
+ *
+ * @param name name of the JSON field
+ * @param sig where to store the blinded signature found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_blinded_signature (const char *field,
+                                    struct GNUNET_CRYPTO_BlindedSignature **b_sig);
+
+
+/**
+ * Specification for parsing an unblinded signature.
+ *
+ * @param name name of the JSON field
+ * @param sig where to store the unblinded signature found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_unblinded_signature (const char *field,
+                                     struct GNUNET_CRYPTO_UnblindedSignature **ub_sig);
+
+
 /* ****************** Generic generator interface ******************* */
 
 
@@ -965,6 +998,44 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_signature (const char *name,
                                 const struct GNUNET_CRYPTO_RsaSignature *sig);
 
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * unblinded signature.
+ *
+ * @param name name of the field to add to the object
+ * @param sig unblinded signature
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_unblinded_signature (const char *name,
+                                      const struct GNUNET_CRYPTO_UnblindedSignature *sig);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * blinded message.
+ *
+ * @param name name of the field to add to the object
+ * @param msg blinded message
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_message (const char *name,
+                                  const struct GNUNET_CRYPTO_BlindedMessage *msg);
+
+
+/**
+ * Generate packer instruction for a JSON field of type
+ * blinded signature.
+ *
+ * @param name name of the field to add to the object
+ * @param sig blinded signature
+ * @return json pack specification
+ */
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_blinded_sig (const char *name,
+                              const struct GNUNET_CRYPTO_BlindedSignature *sig);
 
 #endif
 

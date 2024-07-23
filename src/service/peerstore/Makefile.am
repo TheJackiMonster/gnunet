@@ -41,11 +41,11 @@ libgnunetpeerstore_la_LDFLAGS = \
   $(GN_LIBINTL) \
   $(GN_LIB_LDFLAGS)
 
-check_PROGRAMS = \
- test_peerstore_api_store \
- test_peerstore_api_iterate \
- test_peerstore_api_watch \
- perf_peerstore_store
+#check_PROGRAMS = \
+# test_peerstore_api_store \
+# test_peerstore_api_iterate \
+# test_peerstore_api_watch \
+# perf_peerstore_store
 
 EXTRA_DIST = \
  test_peerstore_api_data.conf

@@ -98,7 +98,8 @@ create_message_id (const struct GNUNET_ShortHashCode *unique_id)
     return NULL;
 
   GNUNET_memcpy (&(message->body.id.id), unique_id, sizeof(struct
-                                                           GNUNET_ShortHashCode));
+                                                           GNUNET_ShortHashCode)
+                 );
 
   return message;
 }
@@ -130,45 +131,6 @@ create_message_request (const struct GNUNET_HashCode *hash)
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_invite (const struct GNUNET_PeerIdentity *door,
-                       const struct GNUNET_HashCode *key)
-{
-  if ((! door) || (! key))
-    return NULL;
-
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_INVITE);
-
-  if (! message)
-    return NULL;
-
-  GNUNET_memcpy (&(message->body.invite.door), door, sizeof(struct
-                                                            GNUNET_PeerIdentity));
-  GNUNET_memcpy (&(message->body.invite.key), key, sizeof(struct
-                                                          GNUNET_HashCode));
-
-  return message;
-}
-
-
-struct GNUNET_MESSENGER_Message*
-create_message_text (const char *text)
-{
-  if (! text)
-    return NULL;
-
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_TEXT);
-
-  if (! message)
-    return NULL;
-
-  message->body.text.text = GNUNET_strdup (text);
-  return message;
-}
-
-
-struct GNUNET_MESSENGER_Message*
 create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay)
 {
@@ -190,19 +152,24 @@ create_message_delete (const struct GNUNET_HashCode *hash,
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier)
+create_message_subscribe (const struct GNUNET_ShortHashCode *discourse,
+                          const struct GNUNET_TIME_Relative time,
+                          uint32_t flags)
 {
-  if (! identifier)
+  if (! discourse)
     return NULL;
 
   struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_TICKET);
-
+    GNUNET_MESSENGER_KIND_SUBSCRIBE);
+  
   if (! message)
     return NULL;
 
-  GNUNET_memcpy (&(message->body.ticket.identifier), identifier,
-                 sizeof(struct GNUNET_RECLAIM_Identifier));
+  GNUNET_memcpy (&(message->body.subscribe.discourse), discourse,
+                 sizeof (struct GNUNET_ShortHashCode));
+  
+  message->body.subscribe.time = GNUNET_TIME_relative_hton (time);
+  message->body.subscribe.flags = flags;
 
   return message;
 }

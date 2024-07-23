@@ -32,7 +32,7 @@
 struct GNUNET_MESSENGER_MessageSignature
 {
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
-  struct GNUNET_HashCode hash;
+  struct GNUNET_HashCode hash GNUNET_PACKED;
 };
 
 struct GNUNET_MESSENGER_ShortMessage
@@ -64,12 +64,19 @@ create_message (enum GNUNET_MESSENGER_MessageKind kind)
     message->body.privacy.length = 0;
     message->body.privacy.data = NULL;
     break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    message->body.ticket.identifier = NULL;
+    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     message->body.transcript.length = 0;
     message->body.transcript.data = NULL;
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     message->body.tag.tag = NULL;
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    message->body.talk.length = 0;
+    message->body.talk.data = NULL;
     break;
   default:
     break;
@@ -112,6 +119,11 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
                      copy->body.privacy.length);
 
     break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    copy->body.ticket.identifier = message->body.ticket.identifier?
+                                   GNUNET_strdup (
+      message->body.ticket.identifier) : NULL;
+    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     copy->body.transcript.data = copy->body.transcript.length ? GNUNET_malloc (
       copy->body.transcript.length) : NULL;
@@ -124,6 +136,15 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_TAG:
     copy->body.tag.tag = message->body.tag.tag? GNUNET_strdup (
       message->body.tag.tag) : NULL;
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    copy->body.talk.data = copy->body.talk.length ? GNUNET_malloc (
+      copy->body.talk.length) : NULL;
+
+    if (copy->body.talk.data)
+      GNUNET_memcpy (copy->body.talk.data, message->body.talk.data,
+                     copy->body.talk.length);
+    
     break;
   default:
     break;
@@ -167,14 +188,24 @@ destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
       GNUNET_free (body->file.uri);
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
-    GNUNET_free (body->privacy.data);
+    if (body->privacy.data)
+      GNUNET_free (body->privacy.data);
+    break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    if (body->ticket.identifier)
+      GNUNET_free (body->ticket.identifier);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
-    GNUNET_free (body->transcript.data);
+    if (body->transcript.data)
+      GNUNET_free (body->transcript.data);
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     if (body->tag.tag)
       GNUNET_free (body->tag.tag);
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    if (body->talk.data)
+      GNUNET_free (body->talk.data);
     break;
   default:
     break;
@@ -294,16 +325,24 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     length += member_size (struct GNUNET_MESSENGER_Message,
                            body.connection.flags);
     break;
-  case GNUNET_MESSENGER_KIND_TICKET:
-    length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.ticket.identifier);
-    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     length += member_size (struct GNUNET_MESSENGER_Message,
                            body.transcript.hash);
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     length += member_size (struct GNUNET_MESSENGER_Message, body.tag.hash);
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.subscribe.discourse);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.subscribe.time);
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.subscribe.flags);
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    length += member_size (struct GNUNET_MESSENGER_Message,
+                           body.talk.discourse);
     break;
   default:
     break;
@@ -360,12 +399,18 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_PRIVATE:
     length += body->privacy.length;
     break;
+  case GNUNET_MESSENGER_KIND_TICKET:
+    length += (body->ticket.identifier ? strlen (body->ticket.identifier) : 0);
+    break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     length += GNUNET_CRYPTO_public_key_get_length (&(body->transcript.key));
     length += body->transcript.length;
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     length += (body->tag.tag ? strlen (body->tag.tag) : 0);
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    length += body->talk.length;
     break;
   default:
     break;
@@ -506,11 +551,14 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_JOIN:
     encode_step_key (buffer, offset, &(body->join.key), length);
     break;
+  case GNUNET_MESSENGER_KIND_LEAVE:
+    break;
   case GNUNET_MESSENGER_KIND_NAME:
     if (body->name.name)
       encode_step_ext (buffer, offset, body->name.name, min (length - offset,
                                                              strlen (
-                                                               body->name.name)));
+                                                               body->name.name))
+                       );
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     encode_step_key (buffer, offset, &(body->key.key), length);
@@ -538,7 +586,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     if (body->text.text)
       encode_step_ext (buffer, offset, body->text.text, min (length - offset,
                                                              strlen (
-                                                               body->text.text)));
+                                                               body->text.text))
+                       );
     break;
   case GNUNET_MESSENGER_KIND_FILE:
     encode_step (buffer, offset, &(body->file.key));
@@ -567,7 +616,8 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     encode_step (buffer, offset, &value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    encode_step (buffer, offset, &(body->ticket.identifier));
+    encode_step_ext (buffer, offset, body->ticket.identifier,
+                     min (length - offset, strlen (body->ticket.identifier)));
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
@@ -584,6 +634,19 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
       encode_step_ext (buffer, offset, body->tag.tag, min (length - offset,
                                                            strlen (
                                                              body->tag.tag)));
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    value0 = GNUNET_htobe32 (body->subscribe.flags);
+
+    encode_step (buffer, offset, &(body->subscribe.discourse));
+    encode_step (buffer, offset, &(body->subscribe.time));
+    encode_step (buffer, offset, &value0);
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    encode_step (buffer, offset, &(body->talk.discourse));
+    encode_step_ext (buffer, offset, body->talk.data, min (length - offset,
+                                                           body->talk.
+                                                           length));
     break;
   default:
     break;
@@ -711,15 +774,17 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   uint32_t value0, value1;
   switch (*kind)
   {
-  case GNUNET_MESSENGER_KIND_INFO: {
-      decode_step (buffer, offset, &value0);
+  case GNUNET_MESSENGER_KIND_INFO:
+    decode_step (buffer, offset, &value0);
 
-      body->info.messenger_version = GNUNET_be32toh (value0);
-      break;
-    } case GNUNET_MESSENGER_KIND_JOIN: {
-      decode_step_key (buffer, offset, &(body->join.key), length);
-      break;
-    } case GNUNET_MESSENGER_KIND_NAME:
+    body->info.messenger_version = GNUNET_be32toh (value0);
+    break;
+  case GNUNET_MESSENGER_KIND_JOIN:
+    decode_step_key (buffer, offset, &(body->join.key), length);
+    break;
+  case GNUNET_MESSENGER_KIND_LEAVE:
+    break;
+  case GNUNET_MESSENGER_KIND_NAME:
     if (length > offset)
       decode_step_malloc (buffer, offset, body->name.name, length - offset, 1);
     else
@@ -780,7 +845,11 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     body->connection.flags = GNUNET_be32toh (value1);
     break;
   case GNUNET_MESSENGER_KIND_TICKET:
-    decode_step (buffer, offset, &(body->ticket.identifier));
+    if (length > offset)
+      decode_step_malloc (buffer, offset, body->ticket.identifier, length
+                          - offset, 1);
+    else
+      body->ticket.identifier = NULL;
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     decode_step (buffer, offset, &(body->transcript.hash));
@@ -796,6 +865,19 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
       decode_step_malloc (buffer, offset, body->tag.tag, length - offset, 1);
     else
       body->tag.tag = NULL;
+    break;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    decode_step (buffer, offset, &(body->subscribe.discourse));
+    decode_step (buffer, offset, &(body->subscribe.time));
+    decode_step (buffer, offset, &value0);
+
+    body->subscribe.flags = GNUNET_be32toh (value0);
+    break;
+  case GNUNET_MESSENGER_KIND_TALK:
+    decode_step (buffer, offset, &(body->talk.discourse));
+
+    body->talk.length = (length - offset);
+    decode_step_malloc (buffer, offset, body->talk.data, length - offset, 0);
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
@@ -942,7 +1024,7 @@ sign_message (struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
   GNUNET_CRYPTO_sign (key, &signature, &(message->header.signature));
 
   message->header.signature.type = key->type;
@@ -969,8 +1051,8 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
-  GNUNET_CRYPTO_sign_by_peer_identity (cfg, &signature.purpose,
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
+  GNUNET_CRYPTO_sign_by_peer_identity (cfg, &(signature.purpose),
                                        &(message->header.signature.
                                          eddsa_signature));
 
@@ -996,7 +1078,7 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
 
   return GNUNET_CRYPTO_signature_verify (
     GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &signature,
@@ -1019,10 +1101,10 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(struct GNUNET_HashCode));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
 
   return GNUNET_CRYPTO_verify_peer_identity (
-    GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &signature.purpose,
+    GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE, &(signature.purpose),
     &(message->header.signature.
       eddsa_signature), identity);
 }
@@ -1240,6 +1322,8 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
 enum GNUNET_GenericReturnValue
 is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
@@ -1257,6 +1341,8 @@ is_peer_message (const struct GNUNET_MESSENGER_Message *message)
 enum GNUNET_GenericReturnValue
 is_service_message (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   if (GNUNET_YES == is_peer_message (message))
     return GNUNET_YES;
 
@@ -1300,6 +1386,10 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
     return GNUNET_NO;
   case GNUNET_MESSENGER_KIND_TAG:
     return GNUNET_NO;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    return GNUNET_YES; // Reserved for subscription handling only!
+  case GNUNET_MESSENGER_KIND_TALK:
+    return GNUNET_NO;
   default:
     return GNUNET_SYSERR;
   }
@@ -1309,6 +1399,8 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
 enum GNUNET_GenericReturnValue
 filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
 {
+  GNUNET_assert (message);
+
   if (GNUNET_YES == is_peer_message (message))
     return GNUNET_SYSERR; // Requires signature of peer rather than member!
 
@@ -1347,12 +1439,33 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_SYSERR; // Reserved for connection handling only!
   case GNUNET_MESSENGER_KIND_TICKET:
-    return GNUNET_NO; // Use #GNUNET_MESSENGER_send_ticket(...) instead!
+    return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     return GNUNET_NO; // Use #GNUNET_MESSENGER_send_message(...) with a contact instead!
   case GNUNET_MESSENGER_KIND_TAG:
     return GNUNET_YES;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    return GNUNET_YES;
+  case GNUNET_MESSENGER_KIND_TALK:
+    return GNUNET_YES;
   default:
     return GNUNET_SYSERR;
+  }
+}
+
+
+const struct GNUNET_ShortHashCode*
+get_message_discourse (const struct GNUNET_MESSENGER_Message *message)
+{
+  GNUNET_assert (message);
+
+  switch (message->header.kind)
+  {
+    case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+      return &(message->body.subscribe.discourse);
+    case GNUNET_MESSENGER_KIND_TALK:
+      return &(message->body.talk.discourse);
+    default:
+      return NULL;
   }
 }

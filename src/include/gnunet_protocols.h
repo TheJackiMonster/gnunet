@@ -2778,19 +2778,6 @@ extern "C" {
  */
 #define GNUNET_MESSAGE_TYPE_XDHT_P2P_NOTIFY_SUCCESSOR_CONFIRMATION 892
 
-#if ENABLE_MALICIOUS
-/**
- * Turn X-VINE DHT service malicious
- */
-#define GNUNET_MESSAGE_TYPE_DHT_ACT_MALICIOUS 893
-
-/**
- * Acknowledge receiving ACT MALICIOUS request
- */
-#define GNUNET_MESSAGE_TYPE_DHT_CLIENT_ACT_MALICIOUS_OK 894
-
-#endif
-
 
 /*******************************************************************************
  * Whanau DHT messages
@@ -2874,6 +2861,10 @@ extern "C" {
  * RPS CS SEED Message for the Client to seed peers into rps
  */
 #define GNUNET_MESSAGE_TYPE_RPS_CS_SEED 954
+
+#ifndef ENABLE_MALICIOUS
+#define ENABLE_MALICIOUS 0
+#endif
 
 #if ENABLE_MALICIOUS
 /**

@@ -85,7 +85,8 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
               path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
     path, GNUNET_DISK_OPEN_READ, permission
@@ -158,7 +159,8 @@ save_peer_store (const struct GNUNET_MESSENGER_PeerStore *store,
               path);
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
     path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission

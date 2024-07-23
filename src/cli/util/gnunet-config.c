@@ -35,7 +35,6 @@
  */
 static char *backend_check;
 
-
 /**
  * If printing the value of CFLAGS has been requested.
  */
@@ -46,87 +45,25 @@ static int cflags;
  */
 static int is_experimental;
 
+/**
+ * Do not load default configuration
+ */
+static int no_defaults;
+
+/**
+ * Parse configuration from this memory.
+ */
+static char *ram_config;
 
 /**
  * If printing the value of LIBS has been requested.
  */
 static int libs;
 
-
 /**
  * If printing the value of PREFIX has been requested.
  */
 static int prefix;
-
-
-/**
- * Print each option in a given section.
- * Main task to run to perform operations typical for
- * gnunet-config as per the configuration settings
- * given in @a cls.
- *
- * @param cls closure with the `struct GNUNET_CONFIGURATION_ConfigSettings`
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving,
- *                                                     can be NULL!)
- * @param cfg configuration
- */
-static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *cfg)
-{
-  struct GNUNET_CONFIGURATION_ConfigSettings *cs = cls;
-
-  if (1 == is_experimental)
-  {
-#ifdef GNUNET_EXPERIMENTAL
-    cs->global_ret = 0;
-#else
-    cs->global_ret = 1;
-#endif
-    return;
-  }
-  if (1 == cflags || 1 == libs || 1 == prefix)
-  {
-    char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
-    char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
-
-    if (1 == cflags)
-    {
-      fprintf (stdout, "-I%sinclude\n", prefixdir);
-    }
-    if (1 == libs)
-    {
-      fprintf (stdout, "-L%s -lgnunetutil\n", libdir);
-    }
-    if (1 == prefix)
-    {
-      fprintf (stdout, "%s\n", prefixdir);
-    }
-    cs->global_ret = 0;
-    GNUNET_free (prefixdir);
-    GNUNET_free (libdir);
-    return;
-  }
-  if (NULL != backend_check)
-  {
-    char *name;
-
-    GNUNET_asprintf (&name,
-                     "libgnunet_plugin_%s",
-                     backend_check);
-    cs->global_ret = (GNUNET_OK ==
-                      GNUNET_PLUGIN_test (name)) ? 0 : 77;
-    GNUNET_free (name);
-    return;
-  }
-  GNUNET_CONFIGURATION_config_tool_run (cs,
-                                        args,
-                                        cfgfile,
-                                        cfg);
-}
 
 
 /**
@@ -144,7 +81,17 @@ main (int argc,
     .api_version = GNUNET_UTIL_VERSION,
     .global_ret = EXIT_SUCCESS
   };
+  const struct GNUNET_OS_ProjectData *pd
+    = GNUNET_OS_project_data_get ();
+  char *cfgfile = NULL;
+  char *loglev = NULL;
+  char *logfile = NULL;
   struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_cfgfile (&cfgfile),
+    GNUNET_GETOPT_option_help ("gnunet-config [OPTIONS]"),
+    GNUNET_GETOPT_option_loglevel (&loglev),
+    GNUNET_GETOPT_option_logfile (&logfile),
+    GNUNET_GETOPT_option_version (pd->version),
     GNUNET_GETOPT_option_exclusive (
       GNUNET_GETOPT_option_string (
         'b',
@@ -171,34 +118,163 @@ main (int argc,
         "Provide an appropriate value for LIBS to applications building on top of GNUnet"),
       &libs),
     GNUNET_GETOPT_option_flag (
+      'n',
+      "no-defaults",
+      gettext_noop ("Do not parse default configuration files"),
+      &no_defaults),
+    GNUNET_GETOPT_option_flag (
       'p',
       "prefix",
       gettext_noop (
         "Provide the path under which GNUnet was installed"),
       &prefix),
+    GNUNET_GETOPT_option_string (
+      'R',
+      "ram-config",
+      "CONFIG_DATA",
+      gettext_noop (
+        "Parse main configuration from this command-line argument and not from disk"),
+      &ram_config),
     GNUNET_CONFIGURATION_CONFIG_OPTIONS (&cs),
     GNUNET_GETOPT_OPTION_END
   };
-  enum GNUNET_GenericReturnValue ret;
+  int iret;
 
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
                                     &argc, &argv))
     return EXIT_FAILURE;
-  ret =
-    GNUNET_PROGRAM_run (argc,
-                        argv,
-                        "gnunet-config [OPTIONS]",
-                        gettext_noop ("Manipulate GNUnet configuration files"),
-                        options,
-                        &run,
-                        &cs);
-  GNUNET_free_nz ((void *) argv);
-  GNUNET_CONFIGURATION_config_settings_free (&cs);
-  if (GNUNET_NO == ret)
-    return 0;
-  if (GNUNET_SYSERR == ret)
+  if ( (NULL != pd->config_file) &&
+       (NULL != pd->user_config_file) )
+    cfgfile = GNUNET_CONFIGURATION_default_filename ();
+  iret = GNUNET_GETOPT_run ("gnunet-config",
+                            options,
+                            argc,
+                            argv);
+  if (GNUNET_SYSERR == iret)
+  {
+    GNUNET_free_nz ((void *) argv);
     return EXIT_INVALIDARGUMENT;
+  }
+  if (GNUNET_OK !=
+      GNUNET_log_setup ("gnunet-config",
+                        loglev,
+                        logfile))
+  {
+    GNUNET_free_nz ((void *) argv);
+    return EXIT_FAILURE;
+  }
+  if (1 == is_experimental)
+  {
+    GNUNET_free_nz ((void *) argv);
+#ifdef GNUNET_EXPERIMENTAL
+    return 0;
+#else
+    return 1;
+#endif
+  }
+  if (1 == cflags || 1 == libs || 1 == prefix)
+  {
+    char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
+    char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+
+    if (1 == cflags)
+    {
+      fprintf (stdout, "-I%sinclude\n", prefixdir);
+    }
+    if (1 == libs)
+    {
+      fprintf (stdout, "-L%s -lgnunetutil\n", libdir);
+    }
+    if (1 == prefix)
+    {
+      fprintf (stdout, "%s\n", prefixdir);
+    }
+    GNUNET_free (prefixdir);
+    GNUNET_free (libdir);
+    GNUNET_free_nz ((void *) argv);
+    return 0;
+  }
+  if (NULL != backend_check)
+  {
+    char *name;
+
+    GNUNET_asprintf (&name,
+                     "libgnunet_plugin_%s",
+                     backend_check);
+    iret = (GNUNET_OK ==
+            GNUNET_PLUGIN_test (name)) ? 0 : 77;
+    GNUNET_free (name);
+    GNUNET_free_nz ((void *) argv);
+    return iret;
+  }
+
+  {
+    struct GNUNET_CONFIGURATION_Handle *cfg;
+
+    cfg = GNUNET_CONFIGURATION_create ();
+
+    if (NULL != ram_config)
+    {
+      if ( (! no_defaults) &&
+           (GNUNET_SYSERR ==
+            GNUNET_CONFIGURATION_load (cfg,
+                                       NULL)) )
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to load default configuration, exiting ...\n"));
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_deserialize (cfg,
+                                            ram_config,
+                                            strlen (ram_config),
+                                            NULL))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Failed to parse configuration, exiting ...\n"));
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      if (GNUNET_YES !=
+          GNUNET_DISK_file_test (cfgfile))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Unreadable configuration file `%s', exiting ...\n"),
+                    cfgfile);
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+      if (GNUNET_SYSERR ==
+          (no_defaults
+        ? GNUNET_CONFIGURATION_parse (cfg,
+                                      cfgfile)
+         : GNUNET_CONFIGURATION_load (cfg,
+                                      cfgfile)) )
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Malformed configuration file `%s', exiting ...\n"),
+                    cfgfile);
+        GNUNET_free_nz ((void *) argv);
+        GNUNET_CONFIGURATION_destroy (cfg);
+        return EXIT_FAILURE;
+      }
+    }
+    GNUNET_CONFIGURATION_config_tool_run (&cs,
+                                          &argv[iret],
+                                          cfgfile,
+                                          cfg);
+    GNUNET_free_nz ((void *) argv);
+    GNUNET_CONFIGURATION_config_settings_free (&cs);
+    GNUNET_CONFIGURATION_destroy (cfg);
+  }
   return cs.global_ret;
 }
 

@@ -51,6 +51,7 @@ struct GNUNET_MESSENGER_MessageStore
   struct GNUNET_CONTAINER_MultiHashMap *entries;
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiHashMap *links;
+  struct GNUNET_CONTAINER_MultiHashMap *discourses;
 
   enum GNUNET_GenericReturnValue rewrite_entries;
   enum GNUNET_GenericReturnValue write_links;
@@ -163,5 +164,18 @@ put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
 enum GNUNET_GenericReturnValue
 delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                       const struct GNUNET_HashCode *hash);
+
+/**
+ * Cleans up and deletes all discourse messages existing in the message store memory before a 
+ * certain timestamp.
+ *
+ * @param[in,out] store Message store
+ * @param[in] discourse Hash of discourse
+ * @param[in] timestamp Timestamp
+ */
+void
+cleanup_store_discourse_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
+                                         const struct GNUNET_ShortHashCode *discourse,
+                                         const struct GNUNET_TIME_Absolute timestamp);
 
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H

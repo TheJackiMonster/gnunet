@@ -1,9 +1,9 @@
 SUBDIRS = \
 	util \
+    testbed \
 	statistics \
 	arm \
 	peerstore \
-	testing \
 	nat \
 	nat-auto \
 	transport \
@@ -32,4 +32,3 @@ SUBDIRS = \
 	reclaim \
 	messenger \
 	rest
-

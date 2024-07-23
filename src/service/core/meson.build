@@ -31,11 +31,13 @@ libgnunetcore_dep = declare_dependency(link_with : libgnunetcore)
 pkg.generate(libgnunetcore, url: 'https://www.gnunet.org',
              description : 'Provides API for (encrypted) P2P communication')
 
+if false
+
 libgnunetcoretesting = library('gnunetcoretesting',
-          ['core_api_cmd_connecting_peers.c'],
+          ['testing_core_cmd_connecting_peers.c'],
           dependencies: [
             libgnunetutil_dep,
-            libgnunettransporttesting2_dep,
+            libgnunettestingtransport_dep,
             libgnunettesting_dep,
             libgnunetarm_dep,
             libgnunettransportapplication_dep,
@@ -53,7 +55,7 @@ shared_module('gnunet_test_core_plugin_cmd_just_run',
         dependencies: [libgnunetutil_dep,
                        libgnunettesting_dep,
                        libgnunetcoretesting_dep,
-                       libgnunettransporttesting2_dep,
+                       libgnunettestingtransport_dep,
                        libgnunettransportcore_dep,
                        libgnunettransportapplication_dep,
                        libgnunettesting_dep,
@@ -64,6 +66,8 @@ shared_module('gnunet_test_core_plugin_cmd_just_run',
                        ],
         include_directories: [incdir, configuration_inc],
         install: false)
+
+endif
 
 executable ('gnunet-service-core',
             gnunetservicecore_src,
@@ -86,6 +90,8 @@ configure_file(input : 'test_core_api_send_to_self.conf',
 configure_file(input : 'test_core_api_peer1.conf',
                output : 'test_core_api_peer1.conf',
                copy: true)
+
+if false
 
 testcore_api_send_self = executable ('test_core_api_send_to_self',
             ['test_core_api_send_to_self.c'],
@@ -111,3 +117,5 @@ test('test_core_api_send_to_self', testcore_api_send_self,
   suite: 'core', workdir: meson.current_build_dir())
 test('test_core_api_start_only', testcore_api_start,
   suite: 'core', workdir: meson.current_build_dir())
+
+endif

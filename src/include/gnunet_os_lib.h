@@ -403,6 +403,10 @@ void
 GNUNET_OS_network_interfaces_list (GNUNET_OS_NetworkInterfaceProcessor proc,
                                    void *proc_cls);
 
+#ifndef HAVE_SYSCONF
+#define HAVE_SYSCONF 0
+#endif
+
 /**
  * @brief Get maximum string length returned by gethostname()
  */
@@ -473,12 +477,13 @@ GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc);
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_vap (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                             struct GNUNET_DISK_PipeHandle *pipe_stdin,
-                             struct GNUNET_DISK_PipeHandle *pipe_stdout,
-                             struct GNUNET_DISK_PipeHandle *pipe_stderr,
-                             const char *filename,
-                             char *const argv[]);
+GNUNET_OS_start_process_vap (
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  struct GNUNET_DISK_PipeHandle *pipe_stdin,
+  struct GNUNET_DISK_PipeHandle *pipe_stdout,
+  struct GNUNET_DISK_PipeHandle *pipe_stderr,
+  const char *filename,
+  char *const argv[]);
 
 
 /**
@@ -493,11 +498,13 @@ GNUNET_OS_start_process_vap (enum GNUNET_OS_InheritStdioFlags std_inheritance,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                         struct GNUNET_DISK_PipeHandle *pipe_stdin,
-                         struct GNUNET_DISK_PipeHandle *pipe_stdout,
-                         struct GNUNET_DISK_PipeHandle *pipe_stderr,
-                         const char *filename, ...);
+GNUNET_OS_start_process (
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  struct GNUNET_DISK_PipeHandle *pipe_stdin,
+  struct GNUNET_DISK_PipeHandle *pipe_stdout,
+  struct GNUNET_DISK_PipeHandle *pipe_stderr,
+  const char *filename,
+  ...);
 
 
 /**
@@ -512,11 +519,14 @@ GNUNET_OS_start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_va (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                            struct GNUNET_DISK_PipeHandle *pipe_stdin,
-                            struct GNUNET_DISK_PipeHandle *pipe_stdout,
-                            struct GNUNET_DISK_PipeHandle *pipe_stderr,
-                            const char *filename, va_list va);
+GNUNET_OS_start_process_va (
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  struct GNUNET_DISK_PipeHandle *pipe_stdin,
+  struct GNUNET_DISK_PipeHandle *pipe_stdout,
+  struct GNUNET_DISK_PipeHandle *pipe_stderr,
+  const char *filename,
+  va_list va);
+
 
 /**
  * Start a process.
@@ -530,10 +540,11 @@ GNUNET_OS_start_process_va (enum GNUNET_OS_InheritStdioFlags std_inheritance,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_v (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                           const int *lsocks,
-                           const char *filename,
-                           char *const argv[]);
+GNUNET_OS_start_process_v (
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  const int *lsocks,
+  const char *filename,
+  char *const argv[]);
 
 
 /**
@@ -554,9 +565,11 @@ GNUNET_OS_start_process_v (enum GNUNET_OS_InheritStdioFlags std_inheritance,
  * @return pointer to process structure of the new process, NULL on error
  */
 struct GNUNET_OS_Process *
-GNUNET_OS_start_process_s (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                           const int *lsocks,
-                           const char *filename, ...);
+GNUNET_OS_start_process_s (
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
+  const int *lsocks,
+  const char *filename,
+  ...);
 
 
 /**
@@ -596,11 +609,12 @@ GNUNET_OS_command_stop (struct GNUNET_OS_CommandHandle *cmd);
  * @return NULL on error
  */
 struct GNUNET_OS_CommandHandle *
-GNUNET_OS_command_run (GNUNET_OS_LineProcessor proc,
-                       void *proc_cls,
-                       struct GNUNET_TIME_Relative timeout,
-                       const char *binary,
-                       ...);
+GNUNET_OS_command_run (
+  GNUNET_OS_LineProcessor proc,
+  void *proc_cls,
+  struct GNUNET_TIME_Relative timeout,
+  const char *binary,
+  ...);
 
 
 /**

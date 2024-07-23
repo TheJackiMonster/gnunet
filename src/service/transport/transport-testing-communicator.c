@@ -186,6 +186,7 @@ handle_communicator_available (
     return; /* receive-only communicator */
   }
   tc_h->c_characteristics = ntohl (msg->cc);
+  GNUNET_free (tc_h->c_addr_prefix);
   tc_h->c_addr_prefix = GNUNET_strdup ((const char *) &msg[1]);
   if (NULL != tc_h->communicator_available_cb)
   {
@@ -320,6 +321,7 @@ handle_add_address (void *cls,
   if (0 == size)
     return; /* receive-only communicator */
   LOG (GNUNET_ERROR_TYPE_DEBUG, "received add address cb %u\n", size);
+  GNUNET_free (tc_h->c_address);
   tc_h->c_address = GNUNET_strdup ((const char *) &msg[1]);
   if (NULL != tc_h->add_address_cb)
   {
@@ -852,6 +854,7 @@ communicator_start (
                                             "-c",
                                             tc_h->cfg_filename,
                                             NULL);
+  GNUNET_free (loprefix);
   if (NULL == tc_h->c_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start communicator!");
@@ -1093,6 +1096,7 @@ void
 GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
 {
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorQueue *queue;
   shutdown_communicator (tc_h->c_proc);
   shutdown_service (tc_h->sh);
   shutdown_nat (tc_h->nat_proc);
@@ -1100,6 +1104,14 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_stop (
   shutdown_peerstore (tc_h->ps_proc);
   shutdown_statistics (tc_h->stat_proc);
   GNUNET_CONFIGURATION_destroy (tc_h->cfg);
+  while (NULL != (queue = tc_h->queue_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (tc_h->queue_head, tc_h->queue_tail, queue);
+    GNUNET_free (queue);
+  }
+  GNUNET_free (tc_h->c_address);
+  GNUNET_free (tc_h->cfg_filename);
+  GNUNET_free (tc_h->c_addr_prefix);
   GNUNET_free (tc_h);
 }
 

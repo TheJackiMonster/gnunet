@@ -27,6 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_MEMBER_H
 
 #include "gnunet-service-messenger_member_store.h"
+#include "gnunet-service-messenger_subscription.h"
 
 struct GNUNET_MESSENGER_Member
 {
@@ -34,7 +35,13 @@ struct GNUNET_MESSENGER_Member
   struct GNUNET_ShortHashCode id;
 
   struct GNUNET_CONTAINER_MultiHashMap *sessions;
+  struct GNUNET_CONTAINER_MultiShortmap *subscriptions;
 };
+
+typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_SubscriptionIteratorCallback) (
+  void *cls,
+  const struct GNUNET_ShortHashCode *discourse,
+  struct GNUNET_MESSENGER_Subscription *subscribtion);
 
 /**
  * Creates and allocates a new member of a <i>room</i> with an optionally defined or
@@ -171,5 +178,52 @@ int
 iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
                          GNUNET_MESSENGER_MemberIteratorCallback it,
                          void *cls);
+
+/**
+ * Adds a given <i>subscription</i> to a <i>member</i>.
+ *
+ * @param[in,out] member Member
+ * @param[in,out] subscription Subscription
+ */
+void
+add_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                         struct GNUNET_MESSENGER_Subscription *subscription);
+
+/**
+ * Removes a given <i>subscription</i> from a <i>member</i>.
+ *
+ * @param[in,out] member Member
+ * @param[in,out] subscription Subscription
+ */
+void
+remove_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                            struct GNUNET_MESSENGER_Subscription *subscription);
+
+/**
+ * Returns the active subscription of a given <i>member<i> to a selected
+ * <i>discourse</i>.
+ *
+ * @param[in] member Member
+ * @param[in] discourse Discourse
+ * @return Subscription or NULL
+ */
+struct GNUNET_MESSENGER_Subscription*
+get_member_subscription (struct GNUNET_MESSENGER_Member *member,
+                         const struct GNUNET_ShortHashCode *discourse);
+
+/**
+ * Iterate through all subscriptions of a given <i>member</i> and call the 
+ * provided iterator callback with a selected closure. The function will 
+ * return the amount of subscriptions it iterated through.
+ *
+ * @param[in,out] member Member
+ * @param[in] it Iterator callback
+ * @param[in,out] cls Closure
+ * @return Amount of subscriptions iterated through
+ */
+int
+iterate_member_subscriptions (struct GNUNET_MESSENGER_Member *member,
+                              GNUNET_MESSENGER_SubscriptionIteratorCallback it,
+                              void *cls);
 
 #endif //GNUNET_SERVICE_MESSENGER_MEMBER_H

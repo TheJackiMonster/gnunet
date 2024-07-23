@@ -67,7 +67,7 @@ struct CheckState
   /**
    * The testing system of this node.
    */
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
@@ -402,7 +402,7 @@ backchannel_check_run (void *cls,
 {
   struct CheckState *cs = cls;
   const struct GNUNET_TESTING_Command *system_cmd;
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
   const struct GNUNET_TESTING_Command *peer1_cmd;
   const struct GNUNET_TRANSPORT_ApplicationHandle *ah;
   struct GNUNET_CONTAINER_MultiShortmapIterator *node_it;
@@ -467,7 +467,8 @@ backchannel_check_run (void *cls,
     node_it = GNUNET_CONTAINER_multishortmap_iterator_create (
       namespace->nodes);
     while (GNUNET_YES == GNUNET_CONTAINER_multishortmap_iterator_next (node_it,
-                                                                       &node_key,
+                                                                       &node_key
+                                                                       ,
                                                                        (const
                                                                         void**)
                                                                        &node))
@@ -544,10 +545,10 @@ GNUNET_TRANSPORT_cmd_backchannel_check (const char *label,
   cs->node_n = node_n;
   cs->namespace_n = namespace_n;
 
-  return GNUNET_TESTING_command_new (cs,
-                                     label,
-                                     &backchannel_check_run,
-                                     &backchannel_check_cleanup,
-                                     &backchannel_check_traits,
-                                     &cs->ac);
+  return GNUNET_TESTING_command_new_ac (cs,
+                                        label,
+                                        &backchannel_check_run,
+                                        &backchannel_check_cleanup,
+                                        &backchannel_check_traits,
+                                        &cs->ac);
 }

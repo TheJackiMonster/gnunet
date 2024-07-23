@@ -34,12 +34,10 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_identity_service.h"
-#include "gnunet_namestore_service.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
 #include "gnunet_rest_lib.h"
 #include "gnunet_rest_plugin.h"
-#include "gnunet_signatures.h"
 #include "microhttpd.h"
 #include "oidc_helper.h"
 
@@ -242,7 +240,7 @@
  * How long to wait for a consume in userinfo endpoint
  */
 #define CONSUME_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS,2)
+          GNUNET_TIME_UNIT_SECONDS,2)
 
 /**
  * OIDC ignored parameter array
@@ -1248,7 +1246,7 @@ oidc_cred_collect_finished_cb (void *cls)
                 le_m->attribute->name);
   handle->idp_op = GNUNET_RECLAIM_ticket_issue (idp,
                                                 &handle->priv_key,
-                                                &handle->oidc->client_pkey,
+                                                handle->oidc->client_id,
                                                 merged_list,
                                                 &oidc_ticket_issue_cb,
                                                 handle);
@@ -2193,6 +2191,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *oidc_jwk_path = NULL;
   char *oidc_directory = NULL;
   char *tmp_at = NULL;
+  char *received_cid = NULL;
 
   /*
    * Check Authorization
@@ -2204,6 +2203,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
+  received_cid = get_url_parameter_copy (handle, OIDC_CLIENT_ID_KEY);
 
   /*
    * Check parameter
@@ -2265,12 +2265,16 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // decode code
-  if (GNUNET_OK != OIDC_parse_authz_code (&cid, code, code_verifier, &ticket,
+  char *emsg = NULL;
+  if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid, code,
+                                          code_verifier,
+                                          &ticket,
                                           &cl, &pl, &nonce,
-                                          OIDC_VERIFICATION_DEFAULT))
+                                          OIDC_VERIFICATION_DEFAULT,
+                                          &emsg))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
-    handle->edesc = GNUNET_strdup ("invalid code");
+    handle->edesc = emsg;
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (code);
     if (NULL != code_verifier)
@@ -2311,6 +2315,9 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     jwa = JWT_ALG_VALUE_RSA;
   }
 
+  struct GNUNET_CRYPTO_PublicKey issuer;
+  GNUNET_GNS_parse_ztld (ticket.gns_name, &issuer);
+
   if (! strcmp (jwa, JWT_ALG_VALUE_RSA))
   {
     // Replace for now
@@ -2338,8 +2345,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     }
 
     // Generate oidc token
-    id_token = OIDC_generate_id_token_rsa (&ticket.audience,
-                                           &ticket.identity,
+    id_token = OIDC_generate_id_token_rsa (received_cid,
+                                           &issuer,
                                            cl,
                                            pl,
                                            &expiration_time,
@@ -2366,8 +2373,8 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
       return;
     }
 
-    id_token = OIDC_generate_id_token_hmac (&ticket.audience,
-                                            &ticket.identity,
+    id_token = OIDC_generate_id_token_hmac (received_cid,
+                                            &issuer,
                                             cl,
                                             pl,
                                             &expiration_time,
@@ -2383,7 +2390,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 
   if (NULL != nonce)
     GNUNET_free (nonce);
-  access_token = OIDC_access_token_new (&ticket);
+  access_token = OIDC_access_token_new (&ticket, handle->oidc->redirect_uri);
   /**
    * Store mapping from access token to code so we can later
    * fall back on the provided attributes in userinfo one time.
@@ -2481,7 +2488,15 @@ consume_ticket (void *cls,
 
   if (NULL == identity)
   {
-    result_str = OIDC_generate_userinfo (&handle->ticket.identity,
+    char *tmp = GNUNET_strdup (handle->ticket.gns_name);
+    GNUNET_assert (NULL != strtok (tmp, "."));
+    char *key = strtok (NULL, ".");
+    struct GNUNET_CRYPTO_PublicKey issuer;
+    GNUNET_assert (NULL != key);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_public_key_from_string (key, &issuer));
+    GNUNET_free (tmp);
+    result_str = OIDC_generate_userinfo (&issuer,
                                          handle->attr_userinfo_list,
                                          handle->presentations);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Userinfo: %s\n", result_str);
@@ -2538,11 +2553,12 @@ consume_fail (void *cls)
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
   struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
+  struct GNUNET_CRYPTO_PublicKey cid;
   struct MHD_Response *resp;
   char *nonce;
   char *cached_code;
   char *result_str;
-
+  char *received_cid;
 
   handle->consume_timeout_op = NULL;
   if (NULL != handle->idp_op)
@@ -2571,15 +2587,21 @@ consume_fail (void *cls)
                  GNUNET_CONTAINER_multihashmap_remove (oidc_code_cache,
                                                        &cache_key,
                                                        cached_code));
+  received_cid = get_url_parameter_copy (handle, OIDC_CLIENT_ID_KEY);
+  GNUNET_STRINGS_string_to_data (received_cid,
+                                 strlen (received_cid),
+                                 &cid,
+                                 sizeof(struct GNUNET_CRYPTO_PublicKey));
 
   // decode code
-  if (GNUNET_OK != OIDC_parse_authz_code (&handle->ticket.audience,
+  char *emsg;
+  if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid,
                                           cached_code, NULL, &ticket,
                                           &cl, &pl, &nonce,
-                                          OIDC_VERIFICATION_NO_CODE_VERIFIER))
+                                          OIDC_VERIFICATION_NO_CODE_VERIFIER, &emsg))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
-    handle->edesc = GNUNET_strdup ("invalid code");
+    handle->edesc = emsg;
     handle->response_code = MHD_HTTP_BAD_REQUEST;
     GNUNET_free (cached_code);
     if (NULL != nonce)
@@ -2590,7 +2612,15 @@ consume_fail (void *cls)
 
   GNUNET_free (cached_code);
 
-  result_str = OIDC_generate_userinfo (&handle->ticket.identity,
+  char *tmp = GNUNET_strdup (handle->ticket.gns_name);
+  GNUNET_assert (NULL != strtok (tmp, "."));
+  char *key = strtok (NULL, ".");
+  struct GNUNET_CRYPTO_PublicKey issuer;
+  GNUNET_assert (NULL != key);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CRYPTO_public_key_from_string (key, &issuer));
+  GNUNET_free (tmp);
+  result_str = OIDC_generate_userinfo (&issuer,
                                        cl,
                                        pl);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Userinfo: %s\n", result_str);
@@ -2624,8 +2654,6 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *authorization;
   char *authorization_type;
   char *authorization_access_token;
-  const struct EgoEntry *aud_ego;
-  const struct GNUNET_CRYPTO_PrivateKey *privkey;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Getting userinfo\n");
   GNUNET_CRYPTO_hash (OIDC_AUTHORIZATION_HEADER_KEY,
@@ -2669,8 +2697,9 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  char *rp_uri;
   if (GNUNET_OK != OIDC_access_token_parse (authorization_access_token,
-                                            &ticket))
+                                            &ticket, &rp_uri))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
     handle->edesc = GNUNET_strdup ("The access token is invalid");
@@ -2683,18 +2712,7 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   GNUNET_assert (NULL != ticket);
   handle->ticket = *ticket;
   GNUNET_free (ticket);
-  aud_ego = find_ego (handle, &handle->ticket.audience);
-  if (NULL == aud_ego)
-  {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
-    handle->edesc = GNUNET_strdup ("The access token expired");
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
-    GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
-    GNUNET_free (authorization);
-    return;
-  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Consuming ticket\n");
-  privkey = GNUNET_IDENTITY_ego_get_private_key (aud_ego->ego);
   handle->attr_userinfo_list =
     GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
   handle->presentations =
@@ -2706,11 +2724,12 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                                              &consume_fail,
                                                              handle);
   handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
-                                                  privkey,
                                                   &handle->ticket,
+                                                  rp_uri,
                                                   &consume_ticket,
                                                   handle);
   GNUNET_free (authorization);
+  GNUNET_free (rp_uri);
 }
 
 

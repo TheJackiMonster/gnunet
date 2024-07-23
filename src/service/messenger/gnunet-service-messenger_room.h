@@ -376,6 +376,17 @@ uint32_t
 get_srv_room_connection_flags (const struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
+ * Cleanup discourse messages outside of current subscriptions from a specific <i>discourse</i> of all the 
+ * members in a given <i>room</i>.
+ *
+ * @param[in,out] room Room
+ * @param[in] discourse Hash of discourse
+ */
+void
+cleanup_srv_room_discourse_messages (struct GNUNET_MESSENGER_SrvRoom *room,
+                                     const struct GNUNET_ShortHashCode *discourse);
+
+/**
  * Loads the local configuration for a given <i>room</i> of a service which contains the last messages hash
  * and the ruleset for general access of new members.
  *

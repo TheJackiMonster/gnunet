@@ -74,6 +74,7 @@ end (void *cls)
     messenger = NULL;
   }
 
+  GNUNET_CRYPTO_private_key_clear (&identity);
   status = 0;
 }
 

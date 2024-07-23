@@ -168,10 +168,10 @@ create_keys (const char *fn, const char *prefix)
         }
       }
     }
-    if (GNUNET_TESTING_HOSTKEYFILESIZE !=
+    if (sizeof (struct GNUNET_PeerIdentity) !=
         fwrite (&pk,
                 1,
-                GNUNET_TESTING_HOSTKEYFILESIZE,
+                sizeof (struct GNUNET_PeerIdentity),
                 f))
     {
       fprintf (stderr,
@@ -307,16 +307,22 @@ print_key (const char *filename)
 
   /* Check hostkey file size, read entire thing into memory */
   if (GNUNET_OK !=
-      GNUNET_DISK_file_size (filename, &fs, GNUNET_YES, GNUNET_YES))
+      GNUNET_DISK_file_size (filename,
+                             &fs,
+                             GNUNET_YES,
+                             GNUNET_YES))
     fs = 0;
   if (0 == fs)
   {
-    fprintf (stderr, _ ("Hostkeys file `%s' is empty\n"), filename);
+    fprintf (stderr,
+             _ ("Hostkeys file `%s' is empty\n"), filename);
     return;   /* File is empty */
   }
-  if (0 != (fs % GNUNET_TESTING_HOSTKEYFILESIZE))
+  if (0 != (fs % sizeof (struct GNUNET_PeerIdentity)))
   {
-    fprintf (stderr, _ ("Incorrect hostkey file format: %s\n"), filename);
+    fprintf (stderr,
+             _ ("Incorrect hostkey file format: %s\n"),
+             filename);
     return;
   }
   fd = GNUNET_DISK_file_open (filename,
@@ -340,12 +346,12 @@ print_key (const char *filename)
 
   if (NULL == hostkeys_data)
     return;
-  total_hostkeys = fs / GNUNET_TESTING_HOSTKEYFILESIZE;
+  total_hostkeys = fs / sizeof (struct GNUNET_PeerIdentity);
   for (c = 0; (c < total_hostkeys) && (c < list_keys_count); c++)
   {
     GNUNET_memcpy (&private_key,
-                   hostkeys_data + (c * GNUNET_TESTING_HOSTKEYFILESIZE),
-                   GNUNET_TESTING_HOSTKEYFILESIZE);
+                   hostkeys_data + (c * sizeof (struct GNUNET_PeerIdentity)),
+                   sizeof (struct GNUNET_PeerIdentity));
     GNUNET_CRYPTO_eddsa_key_get_public (&private_key, &public_key);
     hostkey_str = GNUNET_CRYPTO_eddsa_public_key_to_string (&public_key);
     if (NULL != hostkey_str)

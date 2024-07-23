@@ -148,4 +148,19 @@ handle_message_connection (struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_MESSENGER_Message *message,
                            const struct GNUNET_HashCode *hash);
 
+/**
+ * Handles a received or sent subscribe message to subscribe a member to a discourse.
+ * (subscribe a member to a discourse)
+ *
+ * @param[in,out] room Room of the message
+ * @param[in,out] session Sender session
+ * @param[in] message SUBSCRIBE-Message
+ * @param[in] hash Hash of the message
+ */
+void
+handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
+                          struct GNUNET_MESSENGER_SenderSession *session,
+                          const struct GNUNET_MESSENGER_Message *message,
+                          const struct GNUNET_HashCode *hash);
+
 #endif //GNUNET_SERVICE_MESSENGER_MESSAGE_HANDLE_H

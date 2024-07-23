@@ -43,6 +43,23 @@ check_key_type (uint32_t type)
 }
 
 
+void
+GNUNET_CRYPTO_private_key_clear (struct GNUNET_CRYPTO_PrivateKey *key)
+{
+  switch (ntohl (key->type))
+  {
+  case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
+    GNUNET_CRYPTO_ecdsa_key_clear (&key->ecdsa_key);
+    break;
+  case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
+    GNUNET_CRYPTO_eddsa_key_clear (&key->eddsa_key);
+    break;
+  default:
+    GNUNET_break (0);
+  }
+}
+
+
 ssize_t
 GNUNET_CRYPTO_private_key_get_length (const struct
                                       GNUNET_CRYPTO_PrivateKey *key)

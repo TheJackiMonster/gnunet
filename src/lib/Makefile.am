@@ -4,10 +4,11 @@ endif
 
 SUBDIRS = \
 	util \
-	hello \
-	block \
-	gnsrecord \
 	curl \
 	json \
 	sq \
-	$(POSTGRES_DIR)
+	$(POSTGRES_DIR) \
+	hello \
+	block \
+	gnsrecord \
+	testing

@@ -24,6 +24,9 @@
  */
 
 #include "gnunet-service-messenger_message_store.h"
+
+#include "gnunet-service-messenger_list_messages.h"
+
 #include "messenger_api_message.h"
 
 void
@@ -36,6 +39,7 @@ init_message_store (struct GNUNET_MESSENGER_MessageStore *store)
   store->entries = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   store->messages = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   store->links = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+  store->discourses = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
   store->rewrite_entries = GNUNET_NO;
   store->write_links = GNUNET_NO;
@@ -99,10 +103,13 @@ clear_message_store (struct GNUNET_MESSENGER_MessageStore *store)
                                          iterate_destroy_messages, NULL);
   GNUNET_CONTAINER_multihashmap_iterate (store->links, iterate_destroy_links,
                                          NULL);
+  GNUNET_CONTAINER_multihashmap_iterate (store->discourses,
+                                         iterate_destroy_messages, NULL);
 
   GNUNET_CONTAINER_multihashmap_destroy (store->entries);
   GNUNET_CONTAINER_multihashmap_destroy (store->messages);
   GNUNET_CONTAINER_multihashmap_destroy (store->links);
+  GNUNET_CONTAINER_multihashmap_destroy (store->discourses);
 }
 
 
@@ -217,6 +224,7 @@ load_message_store_links (struct GNUNET_MESSENGER_MessageStore *store,
         (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->links,
                                                          &(storage.hash), link,
                                                          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+
       break;
   }
   while (link);
@@ -235,7 +243,8 @@ load_message_store (struct GNUNET_MESSENGER_MessageStore *store,
   GNUNET_assert ((store) && (directory));
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   if (store->storage_messages)
     GNUNET_DISK_file_close (store->storage_messages);
@@ -279,6 +288,27 @@ struct GNUNET_MESSENGER_ClosureMessageSave
 };
 
 static enum GNUNET_GenericReturnValue
+iterate_save_links (void *cls,
+                    const struct GNUNET_HashCode *key,
+                    void *value)
+{
+  struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
+  struct GNUNET_MESSENGER_MessageLink *link = value;
+
+  if ((save_message_store_attribute_failed (save->storage, (*key))) ||
+      (save_message_store_attribute_failed (save->storage, link->multiple)) ||
+      (save_message_store_attribute_failed (save->storage, link->first)))
+    return GNUNET_NO;
+
+  if ((GNUNET_YES == link->multiple) &&
+      (save_message_store_attribute_failed (save->storage, link->second)))
+    return GNUNET_NO;
+
+  return GNUNET_YES;
+}
+
+
+static enum GNUNET_GenericReturnValue
 iterate_save_entries (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)
@@ -286,11 +316,10 @@ iterate_save_entries (void *cls,
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
   struct GNUNET_MESSENGER_MessageEntry *entry = value;
 
-  GNUNET_DISK_file_write (save->storage, key, sizeof(*key));
-  GNUNET_DISK_file_write (save->storage, &(entry->offset),
-                          sizeof(entry->offset));
-  GNUNET_DISK_file_write (save->storage, &(entry->length),
-                          sizeof(entry->length));
+  if ((save_message_store_attribute_failed (save->storage, (*key))) ||
+      (save_message_store_attribute_failed (save->storage, entry->offset)) ||
+      (save_message_store_attribute_failed (save->storage, entry->length)))
+    return GNUNET_NO;
 
   return GNUNET_YES;
 }
@@ -303,8 +332,8 @@ iterate_save_messages (void *cls,
 {
   struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
 
-  if (GNUNET_NO != GNUNET_CONTAINER_multihashmap_contains (save->store->entries,
-                                                           key))
+  if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (save->store->entries,
+                                                            key))
     return GNUNET_YES;
 
   struct GNUNET_MESSENGER_Message *message = value;
@@ -322,7 +351,7 @@ iterate_save_messages (void *cls,
                                             storage.entry.offset)) ||
       (save_message_store_attribute_failed (save->storage,
                                             storage.entry.length)))
-    return GNUNET_YES;
+    return GNUNET_NO;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Storing message with hash: %s\n",
               GNUNET_h2s (&(storage.hash)));
@@ -339,27 +368,6 @@ iterate_save_messages (void *cls,
 }
 
 
-static enum GNUNET_GenericReturnValue
-iterate_save_links (void *cls,
-                    const struct GNUNET_HashCode *key,
-                    void *value)
-{
-  struct GNUNET_MESSENGER_ClosureMessageSave *save = cls;
-  struct GNUNET_MESSENGER_MessageLink *link = value;
-
-  GNUNET_DISK_file_write (save->storage, key, sizeof(*key));
-  GNUNET_DISK_file_write (save->storage, &(link->multiple),
-                          sizeof(link->multiple));
-  GNUNET_DISK_file_write (save->storage, &(link->first), sizeof(link->first));
-
-  if (GNUNET_YES == link->multiple)
-    GNUNET_DISK_file_write (save->storage, &(link->second),
-                            sizeof(link->second));
-
-  return GNUNET_YES;
-}
-
-
 void
 save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
                     const char *directory)
@@ -369,7 +377,8 @@ save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
   struct GNUNET_MESSENGER_ClosureMessageSave save;
 
   enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE);
+                                                   | GNUNET_DISK_PERM_USER_WRITE
+                                                   );
 
   char *filename;
 
@@ -460,6 +469,10 @@ contains_store_message (const struct GNUNET_MESSENGER_MessageStore *store,
                                                             hash))
     return GNUNET_YES;
 
+  if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (store->discourses,
+                                                            hash))
+    return GNUNET_YES;
+
   return GNUNET_CONTAINER_multihashmap_contains (store->entries, hash);
 }
 
@@ -472,6 +485,11 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
 
   struct GNUNET_MESSENGER_Message *message = GNUNET_CONTAINER_multihashmap_get (
     store->messages, hash);
+
+  if (message)
+    return message;
+
+  message = GNUNET_CONTAINER_multihashmap_get (store->discourses, hash);
 
   if (message)
     return message;
@@ -526,6 +544,7 @@ get_store_message (struct GNUNET_MESSENGER_MessageStore *store,
   if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (store->messages, hash,
                                                       message,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
     goto free_buffer;
 
   free_message : destroy_message (message);
@@ -574,18 +593,6 @@ get_link:
 }
 
 
-enum GNUNET_GenericReturnValue
-put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
-                   const struct GNUNET_HashCode *hash,
-                   struct GNUNET_MESSENGER_Message *message)
-{
-  GNUNET_assert ((store) && (hash) && (message));
-
-  return GNUNET_CONTAINER_multihashmap_put (store->messages, hash, message,
-                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
-}
-
-
 static void
 add_link (struct GNUNET_MESSENGER_MessageStore *store,
           const struct GNUNET_HashCode *hash,
@@ -609,9 +616,27 @@ add_link (struct GNUNET_MESSENGER_MessageStore *store,
 
   if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (store->links, hash, link,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
     GNUNET_free (link);
   else
     store->write_links = GNUNET_YES;
+}
+
+
+enum GNUNET_GenericReturnValue
+put_store_message (struct GNUNET_MESSENGER_MessageStore *store,
+                   const struct GNUNET_HashCode *hash,
+                   struct GNUNET_MESSENGER_Message *message)
+{
+  GNUNET_assert ((store) && (hash) && (message));
+
+  struct GNUNET_CONTAINER_MultiHashMap *map = store->messages;
+
+  if (get_message_discourse (message))
+    map = store->discourses;
+
+  return GNUNET_CONTAINER_multihashmap_put (map, hash, message,
+                                            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
 }
 
 
@@ -669,4 +694,65 @@ clear_entry:
 clear_memory:
   GNUNET_CONTAINER_multihashmap_remove_all (store->messages, hash);
   return GNUNET_OK;
+}
+
+
+struct GNUNET_MESSENGER_CleanupDiscourseMessages
+{
+  struct GNUNET_MESSENGER_ListMessages *list;
+  struct GNUNET_ShortHashCode discourse;
+  struct GNUNET_TIME_Absolute timestamp;
+};
+
+static enum GNUNET_GenericReturnValue
+iterate_flag_for_cleanup_discourse_message (void *cls,
+                                            const struct GNUNET_HashCode *key,
+                                            void *value)
+{
+  struct GNUNET_MESSENGER_CleanupDiscourseMessages *cleanup = cls;
+  struct GNUNET_MESSENGER_Message *message = value;
+
+  const struct GNUNET_ShortHashCode *discourse = get_message_discourse (message);
+
+  if ((! discourse) || (0 != GNUNET_memcmp (discourse, &(cleanup->discourse))))
+    return GNUNET_YES;
+
+  struct GNUNET_TIME_Absolute timestamp =
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+
+  if (GNUNET_TIME_absolute_cmp(timestamp, >=, cleanup->timestamp))
+    return GNUNET_YES;
+
+  add_to_list_messages (cleanup->list, key);
+  destroy_message(message);
+
+  return GNUNET_YES;
+}
+
+void
+cleanup_store_discourse_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
+                                         const struct GNUNET_ShortHashCode *discourse,
+                                         const struct GNUNET_TIME_Absolute timestamp)
+{
+  GNUNET_assert ((store) && (discourse));
+  
+  struct GNUNET_MESSENGER_ListMessages list;
+  init_list_messages (&list);
+
+  struct GNUNET_MESSENGER_CleanupDiscourseMessages cleanup;
+  cleanup.list = &list;
+  cleanup.timestamp = timestamp;
+
+  GNUNET_memcpy (&(cleanup.discourse), discourse, 
+                 sizeof (struct GNUNET_ShortHashCode));
+
+  GNUNET_CONTAINER_multihashmap_iterate (store->discourses, 
+                                         iterate_flag_for_cleanup_discourse_message,
+                                         &cleanup);
+  
+  struct GNUNET_MESSENGER_ListMessage *element;
+  for (element = list.head; element; element = element->next)
+    GNUNET_CONTAINER_multihashmap_remove_all (store->discourses, &(element->hash));
+  
+  clear_list_messages (&list);
 }

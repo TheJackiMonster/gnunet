@@ -51,6 +51,7 @@ forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &(element->hash),
                                                         NULL,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Forwarding of session message could be duplicated!\n");
 

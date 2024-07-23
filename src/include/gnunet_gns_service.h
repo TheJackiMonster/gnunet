@@ -227,6 +227,16 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
 void *
 GNUNET_GNS_lookup_with_tld_cancel (struct GNUNET_GNS_LookupWithTldRequest *ltr);
 
+/**
+ * Try to parse the zTLD into a public key.
+ *
+ * @param[in] name the name to parse
+ * @param[out] ztld_key the identity key (must be allocated by caller). Only set of #GNUNET_OK is returned.
+ * @return GNUNET_OK on success.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_GNS_parse_ztld (const char *name,
+                       struct GNUNET_CRYPTO_PublicKey *ztld_key);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

@@ -79,11 +79,6 @@ struct GDS_Underlay
    * Name of the underlay (i.e. "gnunet" or "ip").
    */
   char *name;
-
-  /**
-   * Name of the library providing the underlay.
-   */
-  char *libname;
 };
 
 
@@ -383,8 +378,6 @@ shutdown_task (void *cls)
 
   while (NULL != (u = u_head))
   {
-    GNUNET_PLUGIN_unload (u->libname,
-                          u->dhtu);
     GNUNET_CONTAINER_DLL_remove (u_head,
                                  u_tail,
                                  u);

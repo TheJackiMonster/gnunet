@@ -234,7 +234,7 @@ struct GNUNET_TRANSPORT_TESTING_Handle
   /**
    * Testing library system handle
    */
-  struct GNUNET_TESTING_System *tl_system;
+  struct GNUNET_TESTBED_System *tl_system;
 
   /**
    * head DLL of connect contexts

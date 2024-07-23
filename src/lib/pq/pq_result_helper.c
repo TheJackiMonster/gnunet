@@ -1264,22 +1264,35 @@ extract_array_generic (
   *((void **) dst) = NULL;
 
   #define FAIL_IF(cond) \
-  do { \
-    if ((cond)) \
-    { \
-      GNUNET_break (! (cond)); \
-      goto FAIL; \
-    } \
-  } while (0)
+          do { \
+            if ((cond)) \
+            { \
+              GNUNET_break (! (cond)); \
+              goto FAIL; \
+            } \
+          } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);
 
   data_sz = PQgetlength (result, row, col_num);
   FAIL_IF (0 > data_sz);
-  FAIL_IF (sizeof(header) > (size_t) data_sz);
-
   data = PQgetvalue (result, row, col_num);
+  if (sizeof(header) > (size_t) data_sz)
+  {
+    uint32_t ndim;
+
+    /* data_sz is shorter than header if the
+       array length is 0, in which case ndim is 0! */
+    FAIL_IF (sizeof(uint32_t) > (size_t) data_sz);
+    memcpy (&ndim,
+            data,
+            sizeof (ndim));
+    FAIL_IF (0 != ndim);
+    *info->num = 0;
+    return GNUNET_OK;
+  }
+  FAIL_IF (sizeof(header) > (size_t) data_sz);
   FAIL_IF (NULL == data);
 
   {
@@ -1391,7 +1404,8 @@ extract_array_generic (
     case array_of_rel_time:
       if (NULL != dst_size)
         *dst_size = sizeof(struct GNUNET_TIME_Relative) * (header.dim);
-      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Relative);
+      out = GNUNET_new_array (header.dim,
+                              struct GNUNET_TIME_Relative);
       *((void **) dst) = out;
       for (uint32_t i = 0; i < header.dim; i++)
       {
@@ -1408,7 +1422,8 @@ extract_array_generic (
     case array_of_timestamp:
       if (NULL != dst_size)
         *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (header.dim);
-      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Timestamp);
+      out = GNUNET_new_array (header.dim,
+                              struct GNUNET_TIME_Timestamp);
       *((void **) dst) = out;
       for (uint32_t i = 0; i < header.dim; i++)
       {
@@ -1816,7 +1831,8 @@ extract_blind_sign_pub (void *cls,
                         size_t *dst_size,
                         void *dst)
 {
-  struct GNUNET_CRYPTO_BlindSignPublicKey *bpk = dst;
+  struct GNUNET_CRYPTO_BlindSignPublicKey **bpk = dst;
+  struct GNUNET_CRYPTO_BlindSignPublicKey *tmp;
   size_t len;
   const char *res;
   int fnum;
@@ -1854,44 +1870,46 @@ extract_blind_sign_pub (void *cls,
                  sizeof (be));
   res += sizeof (be);
   len -= sizeof (be);
-  bpk = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPublicKey);
-  bpk->cipher = ntohl (be);
-  bpk->rc = 1;
-  switch (bpk->cipher)
+  tmp = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPublicKey);
+  tmp->cipher = ntohl (be);
+  tmp->rc = 1;
+  switch (tmp->cipher)
   {
   case GNUNET_CRYPTO_BSA_INVALID:
     break;
   case GNUNET_CRYPTO_BSA_RSA:
-    bpk->details.rsa_public_key
+    tmp->details.rsa_public_key
       = GNUNET_CRYPTO_rsa_public_key_decode (res,
                                              len);
-    if (NULL == bpk->details.rsa_public_key)
+    if (NULL == tmp->details.rsa_public_key)
     {
       GNUNET_break (0);
-      GNUNET_free (bpk);
+      GNUNET_free (tmp);
       return GNUNET_SYSERR;
     }
     GNUNET_CRYPTO_hash (res,
                         len,
-                        &bpk->pub_key_hash);
+                        &tmp->pub_key_hash);
+    *bpk = tmp;
     return GNUNET_OK;
   case GNUNET_CRYPTO_BSA_CS:
-    if (sizeof (bpk->details.cs_public_key) != len)
+    if (sizeof (tmp->details.cs_public_key) != len)
     {
       GNUNET_break (0);
-      GNUNET_free (bpk);
+      GNUNET_free (tmp);
       return GNUNET_SYSERR;
     }
-    GNUNET_memcpy (&bpk->details.cs_public_key,
+    GNUNET_memcpy (&tmp->details.cs_public_key,
                    res,
                    len);
     GNUNET_CRYPTO_hash (res,
                         len,
-                        &bpk->pub_key_hash);
+                        &tmp->pub_key_hash);
+    *bpk = tmp;
     return GNUNET_OK;
   }
   GNUNET_break (0);
-  GNUNET_free (bpk);
+  GNUNET_free (tmp);
   return GNUNET_SYSERR;
 }
 
@@ -1907,17 +1925,18 @@ static void
 clean_blind_sign_pub (void *cls,
                       void *rd)
 {
-  struct GNUNET_CRYPTO_BlindSignPublicKey *pub = rd;
+  struct GNUNET_CRYPTO_BlindSignPublicKey **pub = rd;
 
   (void) cls;
-  GNUNET_CRYPTO_blind_sign_pub_decref (pub);
-  pub = NULL;
+  GNUNET_CRYPTO_blind_sign_pub_decref (*pub);
+  *pub = NULL;
 }
 
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_pub (const char *name,
-                                     struct GNUNET_CRYPTO_BlindSignPublicKey *pub)
+                                      struct GNUNET_CRYPTO_BlindSignPublicKey **
+                                      pub)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_pub,
@@ -1951,7 +1970,8 @@ extract_blind_sign_priv (void *cls,
                          size_t *dst_size,
                          void *dst)
 {
-  struct GNUNET_CRYPTO_BlindSignPrivateKey *bpk = dst;
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **bpk = dst;
+  struct GNUNET_CRYPTO_BlindSignPrivateKey *tmp;
   size_t len;
   const char *res;
   int fnum;
@@ -1989,38 +2009,40 @@ extract_blind_sign_priv (void *cls,
                  sizeof (be));
   res += sizeof (be);
   len -= sizeof (be);
-  bpk = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPrivateKey);
-  bpk->cipher = ntohl (be);
-  bpk->rc = 1;
-  switch (bpk->cipher)
+  tmp = GNUNET_new (struct GNUNET_CRYPTO_BlindSignPrivateKey);
+  tmp->cipher = ntohl (be);
+  tmp->rc = 1;
+  switch (tmp->cipher)
   {
   case GNUNET_CRYPTO_BSA_INVALID:
     break;
   case GNUNET_CRYPTO_BSA_RSA:
-    bpk->details.rsa_private_key
+    tmp->details.rsa_private_key
       = GNUNET_CRYPTO_rsa_private_key_decode (res,
                                               len);
-    if (NULL == bpk->details.rsa_private_key)
+    if (NULL == tmp->details.rsa_private_key)
     {
       GNUNET_break (0);
       GNUNET_free (bpk);
       return GNUNET_SYSERR;
     }
+    *bpk = tmp;
     return GNUNET_OK;
   case GNUNET_CRYPTO_BSA_CS:
-    if (sizeof (bpk->details.cs_private_key) != len)
+    if (sizeof (tmp->details.cs_private_key) != len)
     {
       GNUNET_break (0);
-      GNUNET_free (bpk);
+      GNUNET_free (tmp);
       return GNUNET_SYSERR;
     }
-    GNUNET_memcpy (&bpk->details.cs_private_key,
+    GNUNET_memcpy (&tmp->details.cs_private_key,
                    res,
                    len);
+    *bpk = tmp;
     return GNUNET_OK;
   }
   GNUNET_break (0);
-  GNUNET_free (bpk);
+  GNUNET_free (tmp);
   return GNUNET_SYSERR;
 }
 
@@ -2034,19 +2056,20 @@ extract_blind_sign_priv (void *cls,
  */
 static void
 clean_blind_sign_priv (void *cls,
-                      void *rd)
+                       void *rd)
 {
-  struct GNUNET_CRYPTO_BlindSignPublicKey *pub = rd;
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **priv = rd;
 
   (void) cls;
-  GNUNET_CRYPTO_blind_sign_pub_decref (pub);
-  pub = NULL;
+  GNUNET_CRYPTO_blind_sign_priv_decref (*priv);
+  *priv = NULL;
 }
 
 
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
-                                       struct GNUNET_CRYPTO_BlindSignPrivateKey *priv)
+                                       struct GNUNET_CRYPTO_BlindSignPrivateKey
+                                       **priv)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_priv,
@@ -2057,5 +2080,6 @@ GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
 
   return res;
 }
+
 
 /* end of pq_result_helper.c */

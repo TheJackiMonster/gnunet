@@ -1736,6 +1736,15 @@ GNUNET_CRYPTO_edx25519_key_clear (struct GNUNET_CRYPTO_Edx25519PrivateKey *pk);
 void
 GNUNET_CRYPTO_ecdhe_key_clear (struct GNUNET_CRYPTO_EcdhePrivateKey *pk);
 
+/**
+ * @ingroup crypto
+ * Clear memory that was used to store a private key.
+ *
+ * @param pk location of the key
+ */
+void
+GNUNET_CRYPTO_private_key_clear (struct GNUNET_CRYPTO_PrivateKey *pk);
+
 
 /**
  * @ingroup crypto

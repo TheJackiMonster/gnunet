@@ -39,21 +39,14 @@ extern "C" {
 #endif
 #endif
 
-#include "gnunet_common.h"
-#include "gnunet_configuration_lib.h"
-#include "gnunet_identity_service.h"
-#include "gnunet_reclaim_lib.h"
-#include "gnunet_reclaim_service.h"
-#include "gnunet_scheduler_lib.h"
-#include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.3
+ * Current version of the Messenger: 0.5
  */
-#define GNUNET_MESSENGER_VERSION 0x00000003
+#define GNUNET_MESSENGER_VERSION 0x00000005
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -91,7 +84,7 @@ struct GNUNET_MESSENGER_RoomEntryRecord
   /**
    * The hash identifying the port of the room.
    */
-  struct GNUNET_HashCode key;
+  struct GNUNET_HashCode key GNUNET_PACKED;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -216,6 +209,16 @@ enum GNUNET_MESSENGER_MessageKind
    * The tag kind. The message contains a #GNUNET_MESSENGER_MessageTag body.
    */
   GNUNET_MESSENGER_KIND_TAG = 19,
+
+  /**
+   * The subscribe kind. The message contains a #GNUNET_MESSENGER_MessageSubscribe body.
+   */
+  GNUNET_MESSENGER_KIND_SUBSCRIBE = 20,
+
+  /**
+   * The talk kind. The message contains a #GNUNET_MESSENGER_MessageTalk body.
+   */
+  GNUNET_MESSENGER_KIND_TALK = 21,
 
   /**
    * The unknown kind. The message contains an unknown body.
@@ -536,14 +539,14 @@ struct GNUNET_MESSENGER_MessageConnection
  * A ticket message body
  * This allows to exchange ticket identifiers with an audience.
  *
- * Message-body-size: 32 bytes
+ * Message-body-size: 0+ bytes
  */
 struct GNUNET_MESSENGER_MessageTicket
 {
   /**
-   * The identifier of a RECLAIM ticket.
+   * The identifier of a ticket.
    */
-  struct GNUNET_RECLAIM_Identifier identifier;
+  char *identifier;
 };
 
 /**
@@ -595,6 +598,54 @@ struct GNUNET_MESSENGER_MessageTag
 };
 
 /**
+ * A subscribe message body
+ * This allows subscribing to a discourse.
+ *
+ * Message-body-size: 44
+ */
+struct GNUNET_MESSENGER_MessageSubscribe
+{
+  /**
+   * The hash of the discourse to subscribe.
+   */
+  struct GNUNET_ShortHashCode discourse;
+
+  /**
+   * The time window of the subscription.
+   */
+  struct GNUNET_TIME_RelativeNBO time;
+
+  /**
+   * The flags about the subscription to a discourse.
+   */
+  uint32_t flags;
+};
+
+/**
+ * A talk message body
+ * This allows talking in a discourse.
+ *
+ * Message-body-size: 34+
+ */
+struct GNUNET_MESSENGER_MessageTalk
+{
+  /**
+   * The hash of the discourse to talk.
+   */
+  struct GNUNET_ShortHashCode discourse;
+
+  /**
+   * The length of the talk message data.
+   */
+  uint16_t length;
+
+  /**
+   * The data of the talk message.
+   */
+  char *data;
+};
+
+/**
  * The unified body of a #GNUNET_MESSENGER_Message.
  */
 struct GNUNET_MESSENGER_MessageBody
@@ -620,6 +671,8 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageTicket ticket;
     struct GNUNET_MESSENGER_MessageTranscript transcript;
     struct GNUNET_MESSENGER_MessageTag tag;
+    struct GNUNET_MESSENGER_MessageSubscribe subscribe;
+    struct GNUNET_MESSENGER_MessageTalk talk;
   };
 };
 
@@ -696,6 +749,28 @@ enum GNUNET_MESSENGER_ConnectionFlags
    * The auto flag. The flag indicates that a peer will automatically handle routing.
    */
   GNUNET_MESSENGER_FLAG_CONNECTION_AUTO = 1,/**< GNUNET_MESSENGER_FLAG_CONNECTION_AUTO */
+};
+
+/**
+ * Enum for the different supported flags used to specify subscribtion handling.
+ * Compatible flags can be OR'ed together.
+ */
+enum GNUNET_MESSENGER_SubscriptionFlags
+{
+  /**
+   * The none flag. The flag indicates that the subscribtion is not affected by any modifications.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_NONE = 0,
+
+  /**
+   * The unsubscribe flag. The flag indicates that a member will unsubscribe a discourse.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_UNSUBSCRIBE = 1,
+
+  /**
+   * The keep alive flag. The flag indicates that a member keeps a subscription alive implicitly.
+   */
+  GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE = 2,
 };
 
 /**
@@ -1009,22 +1084,6 @@ int
 GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
                                   GNUNET_MESSENGER_MemberCallback callback,
                                   void *cls);
-
-/**
- * Send a <i>ticket</i> into a <i>room</i>. The ticket will automatically be converted
- * into a message to be sent only to its audience as a private message.
- *
- * A ticket can only be sent with this function if its issuer's public key is the one
- * being used by the messenger. The audience's public key is not allowed to be the
- * anonymous public key. The room needs to contain a member using the audience's public
- * key.
- *
- * @param[in,out] room Room handle
- * @param[in] ticket Ticket to send
- */
-void
-GNUNET_MESSENGER_send_ticket (struct GNUNET_MESSENGER_Room *room,
-                              const struct GNUNET_RECLAIM_Ticket *ticket);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

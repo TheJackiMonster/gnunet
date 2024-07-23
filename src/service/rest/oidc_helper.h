@@ -27,6 +27,8 @@
 #ifndef JWT_H
 #define JWT_H
 
+#include "gnunet_util_lib.h"
+#include "gnunet_reclaim_service.h"
 #define JWT_ALG "alg"
 #define JWT_TYP "typ"
 #define JWT_TYP_VALUE "jwt"
@@ -52,7 +54,7 @@ enum OIDC_VerificationOptions
 /**
  * Create a JWT using RSA256 algorithm from attributes
  *
- * @param aud_key the public of the audience
+ * @param rp_uri the RP URI
  * @param sub_key the public key of the subject
  * @param attrs the attribute list
  * @param presentations credential presentation list (may be empty)
@@ -61,7 +63,7 @@ enum OIDC_VerificationOptions
  * @return a new base64-encoded JWT string.
  */
 char *
-OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+OIDC_generate_id_token_rsa (const char *rp_uri,
                             const struct GNUNET_CRYPTO_PublicKey *sub_key,
                             const struct GNUNET_RECLAIM_AttributeList *attrs,
                             const struct
@@ -73,7 +75,7 @@ OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
 /**
  * Create a JWT using HMAC (HS256) from attributes
  *
- * @param aud_key the public of the audience
+ * @param rp_uri the RP URI
  * @param sub_key the public key of the subject
  * @param attrs the attribute list
  * @param presentations credential presentation list (may be empty)
@@ -82,7 +84,7 @@ OIDC_generate_id_token_rsa (const struct GNUNET_CRYPTO_PublicKey *aud_key,
  * @return a new base64-encoded JWT string.
  */
 char*
-OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
+OIDC_generate_id_token_hmac (const char *rp_uri,
                              const struct GNUNET_CRYPTO_PublicKey *sub_key,
                              const struct GNUNET_RECLAIM_AttributeList *attrs,
                              const struct
@@ -95,7 +97,7 @@ OIDC_generate_id_token_hmac (const struct GNUNET_CRYPTO_PublicKey *aud_key,
  * Builds an OIDC authorization code including
  * a reclaim ticket and nonce
  *
- * @param issuer the issuer of the ticket, used to sign the ticket and nonce
+ * @param issuer the issuer
  * @param ticket the ticket to include in the code
  * @param attrs list of attributes to share
  * @param presentations credential presentation list
@@ -118,7 +120,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
  * authorization code.
  * This also verifies the signature in the code.
  *
- * @param ecdsa_priv the audience of the ticket
+ * @param rp_uri the RP URI
  * @param code the string representation of the code
  * @param code_verfier PKCE code verifier
  * @param ticket where to store the ticket
@@ -128,14 +130,15 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
  * @return GNUNET_OK if successful, else GNUNET_SYSERR
  */
 int
-OIDC_parse_authz_code (const struct GNUNET_CRYPTO_PublicKey *ecdsa_pub,
+OIDC_parse_authz_code (const char *rp_uri,
+                       const struct GNUNET_CRYPTO_PublicKey *cid,
                        const char *code,
                        const char *code_verifier,
                        struct GNUNET_RECLAIM_Ticket *ticket,
                        struct GNUNET_RECLAIM_AttributeList **attrs,
                        struct GNUNET_RECLAIM_PresentationList **presentations,
                        char **nonce,
-                       enum OIDC_VerificationOptions opts);
+                       enum OIDC_VerificationOptions opts, char **emsg);
 
 /**
  * Build a token response for a token request
@@ -156,14 +159,16 @@ OIDC_build_token_response (const char *access_token,
  * Generate a new access token
  */
 char*
-OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket);
+OIDC_access_token_new (const struct GNUNET_RECLAIM_Ticket *ticket,
+                       const char *rp_uri);
 
 /**
  * Parse an access token
  */
 int
 OIDC_access_token_parse (const char *token,
-                         struct GNUNET_RECLAIM_Ticket **ticket);
+                         struct GNUNET_RECLAIM_Ticket **ticket,
+                         char **rp_uri);
 
 
 /**

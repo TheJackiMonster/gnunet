@@ -23,14 +23,17 @@
  * @brief Print information about messenger groups.
  */
 
-#include "platform.h"
 #include <stdio.h>
+#include <unistd.h>
 
-#include "gnunet_util_lib.h"
+#include "gnunet_identity_service.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_util_lib.h"
 
 const struct GNUNET_CONFIGURATION_Handle *config;
 struct GNUNET_MESSENGER_Handle *messenger;
+
+int talk_mode;
 
 /**
  * Function called whenever a message is received or sent.
@@ -51,6 +54,16 @@ on_message (void *cls,
             const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  if (GNUNET_YES == talk_mode)
+  {
+    if (GNUNET_MESSENGER_KIND_TALK == message->header.kind)
+    {
+      write(1, message->body.talk.data, message->body.talk.length);
+    }
+
+    goto skip_printing;
+  }
+
   const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
   const char *recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
 
@@ -98,7 +111,19 @@ on_message (void *cls,
       else
         printf ("<");
 
-      printf (" '%s' says: \"%s\"\n", sender_name, message->body.text.text);
+      printf (" '%s' says: \"%s\"\n", sender_name, 
+              message->body.text.text);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_FILE:
+    {
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+        printf (">");
+      else
+        printf ("<");
+
+      printf(" '%s' shares: \"%s\"\n%s\n", sender_name, 
+             message->body.file.name, message->body.file.uri);
       break;
     }
   default:
@@ -109,6 +134,7 @@ on_message (void *cls,
     }
   }
 
+skip_printing:
   if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) &&
       (flags & GNUNET_MESSENGER_FLAG_SENT))
   {
@@ -124,6 +150,19 @@ on_message (void *cls,
     GNUNET_MESSENGER_send_message (room, &response, NULL);
 
     GNUNET_free (response.body.name.name);
+
+    if (GNUNET_YES != talk_mode)
+      return;
+
+    response.header.kind = GNUNET_MESSENGER_KIND_SUBSCRIBE;
+    response.body.subscribe.flags = GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE;
+    response.body.subscribe.time =
+      GNUNET_TIME_relative_hton (GNUNET_TIME_relative_get_second_());
+
+    memset(&(response.body.subscribe.discourse), 0,
+           sizeof(response.body.subscribe.discourse));
+    
+    GNUNET_MESSENGER_send_message (room, &response, NULL);
   }
 }
 
@@ -184,6 +223,9 @@ int private_mode;
 static void
 read_stdio (void *cls)
 {
+  struct GNUNET_MESSENGER_Room *room = cls;
+  struct GNUNET_MESSENGER_Message message;
+
   read_task = NULL;
 
   char buffer[MAX_BUFFER_SIZE];
@@ -197,16 +239,25 @@ read_stdio (void *cls)
     return;
   }
 
-  if (buffer[length - 1] == '\n')
-    buffer[length - 1] = '\0';
+  if (GNUNET_YES == talk_mode)
+  {
+    message.header.kind = GNUNET_MESSENGER_KIND_TALK;
+    message.body.talk.length = length;
+    message.body.talk.data = buffer;
+
+    memset(&(message.body.talk.discourse), 0,
+           sizeof(message.body.talk.discourse));
+  }
   else
-    buffer[length] = '\0';
+  {
+    if (buffer[length - 1] == '\n')
+      buffer[length - 1] = '\0';
+    else
+      buffer[length] = '\0';
 
-  struct GNUNET_MESSENGER_Room *room = cls;
-
-  struct GNUNET_MESSENGER_Message message;
-  message.header.kind = GNUNET_MESSENGER_KIND_TEXT;
-  message.body.text.text = buffer;
+    message.header.kind = GNUNET_MESSENGER_KIND_TEXT;
+    message.body.text.text = buffer;
+  }
 
   if (GNUNET_YES == private_mode)
     GNUNET_MESSENGER_iterate_members (room, iterate_send_private_message,
@@ -250,7 +301,8 @@ idle (void *cls)
 {
   struct GNUNET_MESSENGER_Room *room = cls;
 
-  printf ("* You joined the room.\n");
+  if (GNUNET_YES != talk_mode)
+    printf ("* You joined the room.\n");
 
   read_task = GNUNET_SCHEDULER_add_now (listen_stdio, room);
 }
@@ -289,6 +341,11 @@ on_identity (void *cls,
                                                                   public_key))))
     door = &door_peer;
 
+  struct GNUNET_MESSENGER_Room *room;
+  
+  if (GNUNET_YES == talk_mode)
+    goto skip_welcome;
+
   const char *name = GNUNET_MESSENGER_get_name (handle);
 
   if (! name)
@@ -296,17 +353,18 @@ on_identity (void *cls,
 
   printf ("* Welcome to the messenger, '%s'!\n", name);
 
-  struct GNUNET_MESSENGER_Room *room;
-
+skip_welcome:
   if (door)
   {
-    printf ("* You try to entry a room...\n");
+    if (GNUNET_YES != talk_mode)
+      printf ("* You try to entry a room...\n");
 
     room = GNUNET_MESSENGER_enter_room (messenger, door, &key);
   }
   else
   {
-    printf ("* You try to open a room...\n");
+    if (GNUNET_YES != talk_mode)
+      printf ("* You try to open a room...\n");
 
     room = GNUNET_MESSENGER_open_room (messenger, &key);
   }
@@ -404,6 +462,8 @@ main (int argc,
                                  &room_key),
     GNUNET_GETOPT_option_flag ('p', "private", "flag to enable private mode",
                                &private_mode),
+    GNUNET_GETOPT_option_flag ('t', "talk", "flag to enable talk mode",
+                               &talk_mode),
     GNUNET_GETOPT_OPTION_END
   };
 

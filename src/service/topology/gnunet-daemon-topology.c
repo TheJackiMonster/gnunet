@@ -699,6 +699,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
     GNUNET_HELLO_builder_iterate (builder_old,
                                   &address_iterator,
                                   &num_addresses_old);
+    GNUNET_HELLO_builder_free (builder_old);
     if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
         (GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp) ||
          num_addresses_old < num_addresses_new))

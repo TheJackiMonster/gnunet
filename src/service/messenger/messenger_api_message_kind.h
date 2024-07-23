@@ -27,9 +27,7 @@
 #define GNUNET_MESSENGER_API_MESSAGE_KIND_H
 
 #include "gnunet_messenger_service.h"
-#include "gnunet_reclaim_lib.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_time_lib.h"
 
 /**
  * Creates and allocates a new join message containing the clients public <i>key</i>.
@@ -90,29 +88,6 @@ struct GNUNET_MESSENGER_Message*
 create_message_request (const struct GNUNET_HashCode *hash);
 
 /**
- * Creates and allocates a new invite message containing the peer identity of an entrance peer
- * to a room using a given <i>key</i> as shared secret for communication.
- * (all values are stored as copy)
- *
- * @param[in] door Peer identity
- * @param[in] key Shared secret of a room
- * @return New message
- */
-struct GNUNET_MESSENGER_Message*
-create_message_invite (const struct GNUNET_PeerIdentity *door,
-                       const struct GNUNET_HashCode *key);
-
-/**
- * Creates and allocates a new <i>text</i> message containing a string representing text.
- * (all values are stored as copy)
- *
- * @param[in] text Text
- * @return New message
- */
-struct GNUNET_MESSENGER_Message*
-create_message_text (const char *text);
-
-/**
  * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete
  * after a specific <i>delay</i>.
  * (all values are stored as copy)
@@ -126,14 +101,18 @@ create_message_delete (const struct GNUNET_HashCode *hash,
                        const struct GNUNET_TIME_Relative delay);
 
 /**
- * Creates and allocates a new ticket message containing the <i>identifier</i> of a ticket to
- * exchange it with a given audience.
+ * Creates and allocates a new subscribe message for a subscription of a given <i>discourse</i>
+ * with a specific <i>time</i> window and <i>flags</i>.
  * (all values are stored as copy)
  *
- * @param[in] identifier Identifier of ticket
+ * @param[in] discourse Discourse
+ * @param[in] time Time of subscription
+ * @param[in] flags Subscription flags
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_ticket (const struct GNUNET_RECLAIM_Identifier *identifier);
+create_message_subscribe (const struct GNUNET_ShortHashCode *discourse,
+                          const struct GNUNET_TIME_Relative time,
+                          uint32_t flags);
 
 #endif //GNUNET_MESSENGER_API_MESSAGE_KIND_H

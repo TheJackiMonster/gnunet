@@ -8,7 +8,7 @@ set -x
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 filename=$1
-PREFIX=$2
+PREFIX=$PPID
 readfile=$3
 
 if [ $readfile -eq 0 ]
