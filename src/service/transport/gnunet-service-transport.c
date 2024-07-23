@@ -2037,7 +2037,7 @@ struct Queue
   int idle;
 
   /**
-   * Set to GNUNET_yes, if this queues address is not a global natted one.
+   * Set to GNUNET_YES, if this queues address is a global natted one.
    */
   enum GNUNET_GenericReturnValue is_global_natted;
 };
@@ -2650,6 +2650,12 @@ struct TransportClient
        * Characteristics of this communicator.
        */
       enum GNUNET_TRANSPORT_CommunicatorCharacteristics cc;
+
+      /**
+       * Can be used for burst messages.
+       */
+      enum GNUNET_GenericReturnValue can_burst;
+
     } communicator;
 
     /**
@@ -3036,6 +3042,23 @@ static struct GNUNET_TIME_Absolute hello_mono_time;
  * and are in the process of cleaning up.
  */
 static int in_shutdown;
+
+/**
+ * Head of a DLL with all GNUNET_StartBurstCls. We can only have one active
+ * burst. Therefore all other peers ready to burst must be stored here.
+ */
+static struct GNUNET_StartBurstCls *bursts_head;
+
+/**
+ * Tail of a DLL with all GNUNET_StartBurstCls. We can only have one active
+ * burst. Therefore all other peers ready to burst must be stored here.
+ */
+static struct GNUNET_StartBurstCls *bursts_tail;
+
+/**
+ * The GNUNET_StartBurstCls for the active burst, if there is one.
+ */
+static struct GNUNET_StartBurstCls *actual_burst;
 
 /**
  * Get an offset into the transmission history buffer for `struct
@@ -3688,6 +3711,8 @@ remove_global_addresses (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
 
   GNUNET_free (tgna);
+
+  return GNUNET_OK;
 }
 
 
@@ -4600,6 +4625,8 @@ handle_communicator_available (
     GNUNET_strdup ((const char *) &cam[1]);
   tc->details.communicator.cc =
     (enum GNUNET_TRANSPORT_CommunicatorCharacteristics) ntohl (cam->cc);
+  tc->details.communicator.can_burst
+    = (enum GNUNET_GenericReturnValue) ntohl (cam->can_burst);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Communicator for peer %s with prefix '%s' connected\n",
               GNUNET_i2s (&GST_my_identity),
@@ -5388,7 +5415,7 @@ add_global_addresses (void *cls,
   unsigned int off = 0;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "sending address %s length %u\n",
+              "sending address %s length %lu\n",
               addr,
               address_len);
   tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len);
@@ -5397,6 +5424,8 @@ add_global_addresses (void *cls,
   GNUNET_memcpy (&tgnas[off], tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
   GNUNET_free (tgna);
   off += sizeof(struct TransportGlobalNattedAddress) + address_len;
+
+  return GNUNET_OK;
 }
 
 
@@ -5459,7 +5488,7 @@ consider_sending_fc (void *cls)
     rtt_avarage = GNUNET_TIME_UNIT_FOREVER_REL;
   fc->rtt = GNUNET_TIME_relative_hton (rtt_avarage);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending FC seq %u to %s with new window %llu %llu %u\n",
+              "Sending FC seq %u to %s with new window %llu %lu %u\n",
               (unsigned int) vl->fc_seq_gen,
               GNUNET_i2s (&vl->target),
               (unsigned long long) vl->incoming_fc_window_size,
@@ -9688,11 +9717,10 @@ static int
 check_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 {
   (void) cls;
-  struct TransportGlobalNattedAddress *addresses = (struct TransportGlobalNattedAddress *) &fc[1];
   unsigned int number_of_addresses = ntohl (fc->number_of_addresses);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Flow control header size %u size of addresses %u number of addresses %u size of message struct %u second struct %u\n",
+              "Flow control header size %u size of addresses %u number of addresses %u size of message struct %lu second struct %lu\n",
               ntohs (fc->header.size),
               ntohl (fc->size_of_addresses),
               ntohl (fc->number_of_addresses),
@@ -9720,7 +9748,7 @@ calculate_rtt (struct DistanceVector *dv)
          pos = pos->next_dv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "calculate_rtt %llu\n",
+                "calculate_rtt %lu\n",
                 pos->pd.aged_rtt.rel_value_us);
     n_hops++;
     ret = GNUNET_TIME_relative_add (GNUNET_TIME_relative_multiply (pos->pd.aged_rtt, pos->distance + 2), ret);
@@ -9732,10 +9760,147 @@ calculate_rtt (struct DistanceVector *dv)
 }
 
 static void
+iterate_address_start_burst (void *cls,
+                             const struct GNUNET_PeerIdentity *pid,
+                             const char *uri)
+{
+  struct GNUNET_StartBurstCls *sb_cls = cls;
+  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_TRANSPORT_StartBurst *sb;
+  const char *slash;
+  char *address_uri;
+  char *prefix;
+  char *uri_without_port;
+
+  slash = strrchr (uri, '/');
+  prefix = GNUNET_strndup (uri, (slash - uri) - 2);
+  GNUNET_assert (NULL != slash);
+  slash++;
+  GNUNET_asprintf (&address_uri,
+                   "%s-%s",
+                   prefix,
+                   slash);
+
+  uri_without_port = get_address_without_port (address_uri);
+  if (0 == strcmp (uri_without_port, uri))
+  {
+    char buf[sizeof (uri_without_port) + 1];
+
+    GNUNET_memcpy (buf, uri_without_port,  strlen (uri_without_port));
+    buf[strlen (uri_without_port) + 1] = '\0';
+    env =
+      GNUNET_MQ_msg_extra (sb ,
+                           strlen (uri_without_port) + 1,
+                           GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST);
+    sb->rtt = GNUNET_TIME_relative_hton (sb_cls->rtt);
+    sb->pid = (struct GNUNET_PeerIdentity *) pid;
+    memcpy (&sb[1], buf, strlen (uri_without_port) + 1);
+    for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
+    {
+      if (CT_COMMUNICATOR != tc->type)
+        continue;
+      if (GNUNET_YES == tc->details.communicator.can_burst)
+        GNUNET_MQ_send (tc->mq, env);
+    }
+    GNUNET_free (sb);
+  }
+
+  GNUNET_free (prefix);
+  GNUNET_free (address_uri);
+  GNUNET_free (uri_without_port);
+}
+
+static void
+start_burst_for_address_error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring starting burst for a specific address\n");
+}
+
+
+static void
+start_burst_for_address_sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring starting burst for a specific address\n");
+}
+
+
+static void
+start_burst_for_address (void *cls,
+                         const struct GNUNET_PEERSTORE_Record *record,
+                         const char *emsg)
+{
+  struct GNUNET_StartBurstCls *sb_cls = cls;
+  struct GNUNET_MessageHeader *hello;
+  struct GNUNET_HELLO_Builder *builder;
+
+  if (NULL != emsg)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+         "Got failure from PEERSTORE: %s\n",
+         emsg);
+    return;
+  }
+  if (NULL == record)
+  {
+    sb_cls->mo = NULL;
+    return;
+  }
+
+  hello = record->value;
+  builder = GNUNET_HELLO_builder_from_msg (hello);
+  GNUNET_HELLO_builder_iterate (builder,
+                                &iterate_address_start_burst,
+                                sb_cls);
+  GNUNET_HELLO_builder_free (builder);
+
+  GNUNET_PEERSTORE_monitor_stop (sb_cls->mo);
+}
+
+
+static void
 start_burst (void *cls)
 {
   struct GNUNET_StartBurstCls *sb_cls = cls;
 
+  sb_cls->mo = GNUNET_PEERSTORE_monitor_start (GST_cfg,
+                                    GNUNET_YES,
+                                    "peerstore",
+                                    &sb_cls->vl->target,
+                                    GNUNET_PEERSTORE_HELLO_KEY,
+                                    &start_burst_for_address_error_cb,
+                                    NULL,
+                                    &start_burst_for_address_sync_cb,
+                                    NULL,
+                                    &start_burst_for_address,
+                                    sb_cls);
+}
+
+
+static void
+queue_burst (void *cls)
+{
+  struct GNUNET_StartBurstCls *sb_cls = cls;
+
+  if (NULL == bursts_head && NULL == actual_burst)
+  {
+    sb_cls->vl->burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
+                                  &start_burst,
+                                  sb_cls);
+    actual_burst = sb_cls;
+  }
+  else
+    GNUNET_CONTAINER_DLL_insert_tail (bursts_head, bursts_tail, sb_cls);
+
+  if (NULL == actual_burst)
+  {
+    bursts_head->vl->burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
+                                  &start_burst,
+                                  bursts_head);
+    actual_burst = bursts_head;
+    GNUNET_CONTAINER_DLL_remove (bursts_head, bursts_tail, actual_burst);
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Burst started \n");
   GNUNET_free (sb_cls);
@@ -9803,6 +9968,8 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
     struct GNUNET_StartBurstCls *cls;
 
     cls = GNUNET_new (struct GNUNET_StartBurstCls);
+    cls->vl = vl;
+    cls->rtt = GNUNET_TIME_relative_ntoh (burst_sync.rtt_avarage);
     if (NULL != vl->dv)
       rtt = calculate_rtt (vl->dv);
     else
@@ -9812,11 +9979,16 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 
     vl->sync_ready = GNUNET_is_burst_ready (rtt,
                            &burst_sync,
-                           &start_burst,
+                           &queue_burst,
                            cls);
+    GNUNET_free (cls);
     if (NULL != vl->burst_task &&
-        GNUNET_NO == vl->sync_ready);
+        GNUNET_NO == vl->sync_ready)
+    {
+      GNUNET_SCHEDULER_cancel (vl->burst_task);
       vl->burst_task = NULL;
+      actual_burst = NULL;
+    }
   }
   if (0 != ntohl (fc->number_of_addresses))
   {
@@ -11026,7 +11198,7 @@ handle_del_queue_message (void *cls,
 
 
 static void
-free_queue_entry (struct QueueEntry *qe,
+  free_queue_entry (struct QueueEntry *qe,
                   struct TransportClient *tc)
 {
   struct PendingMessage *pm;
@@ -11740,8 +11912,6 @@ iterate_address_and_compare_cb (void *cls,
                                 const char *uri)
 {
   struct Queue *queue = cls;
-  struct Neighbour *neighbour = queue->neighbour;
-  const char *dash;
   const char *slash;
   char *address_uri;
   char *prefix;
@@ -11879,7 +12049,7 @@ check_for_global_natted (void *cls,
                                               &contains_address,
                                               &tgna_cls);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              " tgna_cls.tgna tgna %p %u %u %u\n",
+              " tgna_cls.tgna tgna %p %lu %u %u\n",
               tgna_cls.tgna,
               neighbour->size_of_global_addresses,
               tgna_cls.tgna->address_length,

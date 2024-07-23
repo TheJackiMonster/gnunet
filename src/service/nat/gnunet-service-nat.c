@@ -1880,7 +1880,7 @@ check_add_global_address(void *cls,
 
   GNUNET_memcpy (addr, (const char *) &message[1], ntohs (message->address_length));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "message size %u natting address %s length %u left %u\n",
+              "message size %u natting address %s length %u left %lu\n",
               ntohs (message->header.size),
               addr,
               ntohs (message->address_length),
@@ -1927,9 +1927,7 @@ handle_add_global_address(void *cls,
   char *buf = GNUNET_malloc (ntohs (message->address_length));
   //= (const char *) &message[1];
   struct sockaddr *sockaddr = NULL;
-  socklen_t addr_len;
   struct sockaddr_in *sockaddr_ipv4 = GNUNET_malloc(sizeof(struct sockaddr_in));
-  enum GNUNET_NAT_AddressClass ac;
 
   GNUNET_memcpy (buf, (const char *) &message[1], ntohs (message->address_length));
   memset(sockaddr_ipv4, 0, sizeof(struct sockaddr_in));
@@ -1938,10 +1936,6 @@ handle_add_global_address(void *cls,
   if (1 == inet_pton(AF_INET, buf, &(sockaddr_ipv4->sin_addr)))
   {
     sockaddr = (struct sockaddr *)sockaddr_ipv4;
-    addr_len = sizeof(struct sockaddr_in);
-    ac = is_nat_v4 (&((const struct sockaddr_in *)sockaddr_ipv4)->sin_addr)
-         ? GNUNET_NAT_AC_LAN
-          : GNUNET_NAT_AC_EXTERN;
   }
   else
   {

@@ -135,6 +135,15 @@ typedef void (*GNUNET_TRANSPORT_CommunicatorNotify) (
 
 
 /**
+ * Function to start burst, if request by transport service.
+ *
+ * @param address The address to start the burst against.
+ */
+typedef void (*GNUNET_TRANSPORT_StartBurstNotify) (const char *address,
+                                                   struct GNUNET_TIME_Relative rtt,
+                                                   struct GNUNET_PeerIdentity *peer);
+
+/**
  * Connect to the transport service.
  *
  * @param cfg configuration to use
@@ -149,6 +158,7 @@ typedef void (*GNUNET_TRANSPORT_CommunicatorNotify) (
  * @param mq_init_cls closure for @a mq_init
  * @param notify_cb function to pass backchannel messages to communicator
  * @param notify_cb_cls closure for @a notify_cb
+ * @param sb Function to start burst, if request by transport service.
  * @return NULL on error
  */
 struct GNUNET_TRANSPORT_CommunicatorHandle *
@@ -160,7 +170,8 @@ GNUNET_TRANSPORT_communicator_connect (
   GNUNET_TRANSPORT_CommunicatorMqInit mq_init,
   void *mq_init_cls,
   GNUNET_TRANSPORT_CommunicatorNotify notify_cb,
-  void *notify_cb_cls);
+  void *notify_cb_cls,
+  GNUNET_TRANSPORT_StartBurstNotify sb);
 
 
 /**

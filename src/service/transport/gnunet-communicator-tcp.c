@@ -3862,6 +3862,7 @@ init_socket (struct sockaddr *addr,
                                                 &mq_init,
                                                 NULL,
                                                 &enc_notify_cb,
+                                                NULL,
                                                 NULL);
 
   if (NULL == ch)

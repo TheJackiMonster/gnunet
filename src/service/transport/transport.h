@@ -271,6 +271,11 @@ struct GNUNET_TRANSPORT_CommunicatorAvailableMessage
    */
   uint32_t cc;
 
+  /**
+   * The communicator can do burst msgs.
+   */
+  uint32_t can_burst;
+
   /* Followed by the address prefix of the communicator */
 };
 
@@ -668,6 +673,22 @@ struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming
      message to the communicator */
 };
 
+struct GNUNET_TRANSPORT_StartBurst
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_START.
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Target peer.
+   */
+  struct GNUNET_PeerIdentity *pid;
+
+  struct GNUNET_TIME_RelativeNBO rtt;
+
+  /* followed by UTF-8 encoded, 0-terminated human-readable address */
+};
 
 /**
  * Request to start monitoring.

@@ -164,6 +164,11 @@ struct GNUNET_TRANSPORT_CommunicatorHandle
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 
   /**
+   * Function to start a burst, requested by the transport service.
+   */
+  GNUNET_TRANSPORT_StartBurstNotify sb;
+
+  /**
    * Config section to use.
    */
   const char *config_section;
@@ -774,6 +779,27 @@ handle_backchannel_incoming (
 }
 
 
+static int
+check_start_burst (void *cls,
+                                const struct GNUNET_TRANSPORT_StartBurst *sb)
+{
+  (void) cls;
+  GNUNET_MQ_check_zero_termination (sb);
+  return GNUNET_OK;
+}
+
+
+static void
+handle_start_burst (void *cls,
+                                const struct GNUNET_TRANSPORT_StartBurst *sb)
+{
+  struct GNUNET_TRANSPORT_CommunicatorHandle *ch = cls;
+  const char *addr = (const char *) &sb[1];
+
+  ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), sb->pid);
+}
+
+
 /**
  * (re)connect our communicator to the transport service
  *
@@ -800,6 +826,11 @@ reconnect (struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
       GNUNET_MESSAGE_TYPE_TRANSPORT_COMMUNICATOR_BACKCHANNEL_INCOMING,
       struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming,
       ch),
+    GNUNET_MQ_hd_var_size (
+      start_burst,
+      GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST,
+      struct GNUNET_TRANSPORT_StartBurst,
+      ch),
     GNUNET_MQ_handler_end () };
   struct GNUNET_TRANSPORT_CommunicatorAvailableMessage *cam;
   struct GNUNET_MQ_Envelope *env;
@@ -811,6 +842,10 @@ reconnect (struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
   env = GNUNET_MQ_msg_extra (cam,
                              strlen (ch->addr_prefix) + 1,
                              GNUNET_MESSAGE_TYPE_TRANSPORT_NEW_COMMUNICATOR);
+  if  (NULL != ch->sb)
+  {
+    cam->can_burst = htonl (GNUNET_YES);
+  }
   cam->cc = htonl ((uint32_t) ch->cc);
   memcpy (&cam[1], ch->addr_prefix, strlen (ch->addr_prefix) + 1);
   GNUNET_MQ_send (ch->mq, env);
@@ -832,7 +867,8 @@ GNUNET_TRANSPORT_communicator_connect (
   GNUNET_TRANSPORT_CommunicatorMqInit mq_init,
   void *mq_init_cls,
   GNUNET_TRANSPORT_CommunicatorNotify notify_cb,
-  void *notify_cb_cls)
+  void *notify_cb_cls,
+  GNUNET_TRANSPORT_StartBurstNotify sb)
 {
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 
@@ -845,6 +881,7 @@ GNUNET_TRANSPORT_communicator_connect (
   ch->notify_cb = notify_cb;
   ch->notify_cb_cls = notify_cb_cls;
   ch->cc = cc;
+  ch->sb = sb;
   reconnect (ch);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg,
