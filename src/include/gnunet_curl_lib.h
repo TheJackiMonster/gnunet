@@ -299,9 +299,6 @@ GNUNET_CURL_set_tlscert (struct GNUNET_CURL_Context *ctx,
  * completion.  Note that the context will make use of the CURLOPT_PRIVATE
  * facility of the CURL @a eh.
  *
- * This function modifies the CURL handle to add the
- * "Content-Type: application/json" header if @a add_json is set.
- *
  * @param ctx context to execute the job in
  * @param eh curl easy handle for the request, will
  *           be executed AND cleaned up

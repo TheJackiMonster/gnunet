@@ -181,6 +181,7 @@ src/lib/util/crypto_elligator.c
 src/lib/util/crypto_hash.c
 src/lib/util/crypto_hash_file.c
 src/lib/util/crypto_hkdf.c
+src/lib/util/crypto_hpke.c
 src/lib/util/crypto_kdf.c
 src/lib/util/crypto_mpi.c
 src/lib/util/crypto_paillier.c
