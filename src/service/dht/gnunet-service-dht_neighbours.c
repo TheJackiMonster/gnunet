@@ -1392,6 +1392,11 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                 GNUNET_h2s (key),
                 (unsigned int) hop_count,
                 GNUNET_i2s (&target->id));
+    GNUNET_break (GNUNET_NO ==
+                  GNUNET_CONTAINER_bloomfilter_test (peer_bf,
+                                                     &target->phash));
+    GNUNET_CONTAINER_bloomfilter_add (peer_bf,
+                                      &target->phash);
     pgm = (struct PeerGetMessage *) buf;
     pgm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_GET);
     pgm->header.size = htons (sizeof (buf));
