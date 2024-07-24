@@ -1286,14 +1286,14 @@ setup_httpconn (struct Connection *connection)
   {
     const ngtcp2_transport_params *params =
       ngtcp2_conn_get_local_transport_params (connection->conn);
-    nghttp3_conn_set_max_client_streams_bidi (connection->h3_conn,
-                                              params->initial_max_streams_bidi);
 
     rv = nghttp3_conn_server_new (&connection->h3_conn,
                                   &callbacks,
                                   &settings,
                                   mem,
                                   connection);
+    nghttp3_conn_set_max_client_streams_bidi (connection->h3_conn,
+                                              params->initial_max_streams_bidi);
     if (0 != rv)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
