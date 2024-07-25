@@ -92,3 +92,4 @@ test_communicator_rekey-*
 test_transport_start_with_config
 test_transport_api2_tcp
 gnunet-communicator-quic
+/src/service/transport/test_communicator_bidirect-tcp
