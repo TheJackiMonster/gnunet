@@ -1225,7 +1225,6 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
-  unsigned int skip_count;
   enum GNUNET_DHT_RouteOption ro;
   unsigned int put_path_length = bd->put_path_length;
   const struct GNUNET_DHT_PathElement *put_path = bd->put_path;
@@ -1279,7 +1278,6 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                 GNUNET_i2s (&GDS_my_identity));
     return GNUNET_NO;
   }
-  skip_count = 0;
   for (unsigned int i = 0; i < target_count; i++)
   {
     struct PeerInfo *target = targets[i];
@@ -1310,9 +1308,9 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   GNUNET_free (targets);
   GNUNET_STATISTICS_update (GDS_stats,
                             "# PUT messages queued for transmission",
-                            target_count - skip_count,
+                            target_count,
                             GNUNET_NO);
-  return (skip_count < target_count) ? GNUNET_OK : GNUNET_NO;
+  return (0 < target_count) ? GNUNET_OK : GNUNET_NO;
 }
 
 
@@ -1332,7 +1330,6 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   size_t msize;
   size_t result_filter_size;
   void *result_filter;
-  unsigned int skip_count;
 
   GNUNET_assert (NULL != peer_bf);
   GNUNET_STATISTICS_update (GDS_stats,
@@ -1379,7 +1376,6 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     return GNUNET_NO;
   }
   /* forward request */
-  skip_count = 0;
   for (unsigned int i = 0; i < target_count; i++)
   {
     struct PeerInfo *target = targets[i];
@@ -1425,11 +1421,11 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   }
   GNUNET_STATISTICS_update (GDS_stats,
                             "# GET messages queued for transmission",
-                            target_count - skip_count,
+                            target_count,
                             GNUNET_NO);
   GNUNET_free (targets);
   GNUNET_free (result_filter);
-  return (skip_count < target_count) ? GNUNET_OK : GNUNET_NO;
+  return (0 < target_count) ? GNUNET_OK : GNUNET_NO;
 }
 
 

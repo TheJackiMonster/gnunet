@@ -1,3 +1,12 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
 *~
 \#*\#
 gnunet-*.tar.gz
@@ -17,6 +26,7 @@ gnunet-*.tar.gz
 .deps/
 .libs/
 .svn/
+build
 Makefile
 Makefile.in
 compile_commands.json
@@ -37,7 +47,6 @@ gnunet_private_config.h.in
 install-sh
 libtool
 ltmain.sh
-lynXified.*
 missing
 po/*.gmo
 pkgconfig/*.pc
@@ -48,37 +57,18 @@ INSTALL
 confdefs.h
 confdefs.c
 confdefs.err
-src/namestore/test_namestore_api_zone_to_name
-src/credential/gnunet-credential
-src/credential/gnunet-service-credential
-src/identity-provider/gnunet-idp
 *.patch
-src/namestore/perf_namestore_api_zone_iteration_flat
-src/namestore/perf_namestore_api_zone_iteration_postgres
-src/namestore/perf_namestore_api_zone_iteration_sqlite
 python-lint.log
 flake8.log
 # for pytest created data:
 .cache/
 __pycache__/
 build-aux/
-src/ats/test_ats2_lib
-doc/handbook/gversion.texi
-doc/tutorial/gversion.texi
 
 # top-level symlink can exist
 .clang-format
 uncrustify.cfg
 .style.yapf
-
-diffoscope_reports/
-
-# this exists outside of the main repository
-cmake/
-build
-!contrib/ci/common/build
-CMakeLists.txt
-CMakeFiles.txt
 
 # Prevent cache files from IDEA from being commited
 .cproject
@@ -87,6 +77,5 @@ CMakeFiles.txt
 .idea/
 .vscode/
 .vimrc
-src/util/test_child_management
 gnunet_config.h
 gnunet_config.h.in
