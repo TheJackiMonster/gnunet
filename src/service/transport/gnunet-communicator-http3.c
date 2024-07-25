@@ -859,6 +859,128 @@ connection_destroy (struct Connection *connection)
 
 
 /**
+ * Make name/value pair for request headers.
+ *
+ * @param name The HTTP filed name.
+ * @param value The HTTP filed value.
+ * @param flag Flags for name/value pair.
+ *
+ * @return A new nghttp3_nv.
+ */
+static nghttp3_nv
+make_nv (const char *name, const char *value, uint8_t flag)
+{
+  nghttp3_nv nv;
+  nv.name = (const uint8_t *) name;
+  nv.namelen = strlen (name);
+  nv.value = (const uint8_t *) value;
+  nv.valuelen = strlen (value);
+  nv.flags = flag;
+
+  return nv;
+}
+
+
+static nghttp3_ssize
+read_data (nghttp3_conn *conn, int64_t stream_id, nghttp3_vec *vec,
+           size_t veccnt, uint32_t *pflags, void *user_data,
+           void *stream_user_data)
+{
+  struct Stream *stream = stream_user_data;
+
+  vec[0].base = stream->data;
+  vec[0].len = stream->datalen;
+  *pflags |= NGHTTP3_DATA_FLAG_EOF;
+
+  return 1;
+}
+
+
+static int
+submit_post_request (struct Connection *connection,
+                     struct Stream *stream,
+                     const uint8_t *data,
+                     size_t datalen)
+{
+  nghttp3_nv nva[6];
+  char contentlen[20];
+  nghttp3_data_reader dr = {};
+  int rv;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "submit_post: stream_id = %ld\n", stream
+              ->stream_id);
+  GNUNET_snprintf (contentlen, sizeof(contentlen), "%zu", datalen);
+  stream->data = (uint8_t *) data;
+  stream->datalen = datalen;
+
+  nva[0] = make_nv (":method", "POST",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[1] = make_nv (":scheme", "https",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[2] = make_nv (":authority",
+                    GNUNET_a2s (connection->address, connection->address_len),
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME);
+  nva[3] = make_nv (":path", "/",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[4] = make_nv ("user-agent", "nghttp3/ngtcp2 client",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[5] = make_nv ("content-length", contentlen,
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME);
+
+  dr.read_data = read_data;
+  rv = nghttp3_conn_submit_request (connection->h3_conn,
+                                    stream->stream_id,
+                                    nva, 6, &dr, stream);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_submit_request: %s\n",
+                nghttp3_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  return GNUNET_NO;
+}
+
+
+/**
+ *
+ */
+static int
+stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
+{
+  nghttp3_nv nva[2];
+  int rv;
+
+  nva[0] = make_nv (":status", "200",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[1] = make_nv ("server", "nghttp3/ngtcp2 server",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+
+  rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+                                     nva, 2, NULL);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_submit_response: %s\n",
+                nghttp3_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  ngtcp2_conn_shutdown_stream_read (stream->connection->conn, 0,
+                                    stream->stream_id,
+                                    NGHTTP3_H3_NO_ERROR);
+  return GNUNET_NO;
+}
+
+
+/**
  * Signature of functions implementing the sending functionality of a
  * message queue.
  *
@@ -874,7 +996,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   struct Connection *connection = impl_state;
   uint16_t msize = ntohs (msg->size);
   struct Stream *stream;
-  int64_t stream_id;
   int rv;
 
   if (NULL == connection->conn)
@@ -902,18 +1023,13 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     return;
   }
   reschedule_peer_timeout (connection);
-  // connection->stream.data = (uint8_t *) msg;
-  // connection->stream.datalen = msize;
-  // connection->stream.nwrite = 0;
+
+  stream = create_stream (connection, -1);
   rv = ngtcp2_conn_open_bidi_stream (connection->conn,
-                                     &stream_id,
+                                     &stream->stream_id,
                                      NULL);
-  stream = create_stream (connection, stream_id);
-  stream->data = (uint8_t *) msg;
-  stream->datalen = msize;
+  submit_post_request (connection, stream, (uint8_t *) msg, msize);
   connection_write (connection);
-  /* currently use this way to shutdown the stream */
-  ngtcp2_conn_shutdown_stream (connection->conn, 0, stream_id, 5678);
   GNUNET_MQ_impl_send_continue (mq);
 }
 
@@ -1080,7 +1196,46 @@ http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "http_recv_data_cb\n");
   struct Connection *connection = user_data;
+  struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_MessageHeader *hdr;
+  int rv;
+
   http_consume (connection, stream_id, datalen);
+
+  if (GNUNET_NO == connection->is_initiator &&
+      GNUNET_NO == connection->id_rcvd)
+  {
+    if (datalen < sizeof (struct GNUNET_PeerIdentity))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "message recv len of %zd less than length of peer identity\n",
+                  datalen);
+      return NGHTTP3_ERR_CALLBACK_FAILURE;
+    }
+    pid = (struct GNUNET_PeerIdentity *) data;
+    connection->target = *pid;
+    connection->id_rcvd = GNUNET_YES;
+
+    return GNUNET_NO;
+  }
+
+  hdr = (struct GNUNET_MessageHeader *) data;
+  rv = GNUNET_TRANSPORT_communicator_receive (ch,
+                                              &connection->target,
+                                              hdr,
+                                              ADDRESS_VALIDITY_PERIOD,
+                                              NULL,
+                                              NULL);
+  if (GNUNET_YES != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
+                rv, ntohs (hdr->size), datalen);
+    return NGHTTP3_ERR_CALLBACK_FAILURE;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
+              rv, ntohs (hdr->size), datalen);
   return 0;
 }
 
@@ -1199,6 +1354,7 @@ http_end_stream_cb (nghttp3_conn *conn, int64_t stream_id, void *user_data,
   int rv;
 
   // Send response
+  rv = stream_start_response (conn, stream);
   if (0 != rv)
   {
     return NGHTTP3_ERR_CALLBACK_FAILURE;
@@ -1409,131 +1565,13 @@ get_new_connection_id_cb (ngtcp2_conn *conn, ngtcp2_cid *cid,
 
 
 /**
- * The callback function for ngtcp2_callbacks.handshake_completed
- *
- * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
- */
-static int
-handshake_completed_cb (ngtcp2_conn *conn, void *user_data)
-{
-  struct Connection *connection = user_data;
-  int64_t stream_id;
-  struct Stream *stream;
-
-  int rv;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "http3: handshake complete!\n");
-  if (GNUNET_YES == connection->is_initiator &&
-      GNUNET_NO == connection->id_sent)
-  {
-    rv = ngtcp2_conn_open_bidi_stream (conn, &stream_id, NULL);
-    stream = create_stream (connection, stream_id);
-    stream->data = (uint8_t *) &my_identity;
-    stream->datalen = sizeof (my_identity);
-    stream->sent_offset = 0;
-    // if (-1 == connection->stream.id)
-    // {
-    //   ngtcp2_conn_open_bidi_stream (connection->conn, &stream_id, NULL);
-    //   connection->stream.id = stream_id;
-    // }
-    // connection->stream.data = (uint8_t*) &my_identity;
-    // connection->stream.datalen = sizeof (my_identity);
-    // connection->stream.nwrite = 0;
-
-    rv = connection_write (connection);
-    ngtcp2_conn_shutdown_stream (connection->conn, 0, stream_id, 5678);
-    if (rv < 0)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "handshake_complete_cb: connection_write error!\n");
-      return NGTCP2_ERR_CALLBACK_FAILURE;
-    }
-    connection->id_sent = GNUNET_YES;
-    setup_connection_mq (connection);
-
-  }
-
-  return GNUNET_NO;
-}
-
-
-/**
  * The callback function for ngtcp2_callbacks.recv_stream_data
- *
- * @return #GNUNET_NO on success, #NGTCP2_ERR_CALLBACK_FAILURE if failed
  */
 static int
 recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                      uint64_t offset, const uint8_t *data, size_t datalen,
                      void *user_data,
                      void *stream_user_data)
-{
-  /**
-   * FIXME: When server side(!is_initiator) receives stream data, it should
-   * call create_stream to create a new stream and reply something.
-   * But currently server has nothing to reply, so we don't call create_stream,
-   * and the callback.stream_close won't find the stream in hashmap.
-   * There will be stream data to be sent after HTTP3 layer is implemented.
-   */
-
-  /* extend connection-level and stream-level flow control window. */
-  ngtcp2_conn_extend_max_offset (conn, datalen);
-  ngtcp2_conn_extend_max_stream_offset (conn, stream_id, datalen);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "recv_stream_data: datalen = %lu\n", datalen);
-  struct Connection *connection = user_data;
-  struct GNUNET_PeerIdentity *pid;
-  struct GNUNET_MessageHeader *hdr;
-  int rv;
-
-  if (GNUNET_NO == connection->is_initiator &&
-      GNUNET_NO == connection->id_rcvd)
-  {
-    if (datalen < sizeof (struct GNUNET_PeerIdentity))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "message recv len of %zd less than length of peer identity\n",
-                  datalen);
-      return NGTCP2_ERR_CALLBACK_FAILURE;
-    }
-    pid = (struct GNUNET_PeerIdentity *) data;
-    connection->target = *pid;
-    connection->id_rcvd = GNUNET_YES;
-
-    return GNUNET_NO;
-  }
-
-  hdr = (struct GNUNET_MessageHeader *) data;
-  rv = GNUNET_TRANSPORT_communicator_receive (ch,
-                                              &connection->target,
-                                              hdr,
-                                              ADDRESS_VALIDITY_PERIOD,
-                                              NULL,
-                                              NULL);
-  if (GNUNET_YES != rv)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
-                rv, ntohs (hdr->size), datalen);
-    return NGTCP2_ERR_CALLBACK_FAILURE;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
-              rv, ntohs (hdr->size), datalen);
-
-
-  return GNUNET_NO;
-}
-
-
-/**
- * The callback function for ngtcp2_callbacks.recv_stream_data
- */
-static int
-recv_stream_data_cb2 (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
-                      uint64_t offset, const uint8_t *data, size_t datalen,
-                      void *user_data,
-                      void *stream_user_data)
 {
   struct Connection *connection = user_data;
   nghttp3_ssize nconsumed;
@@ -1613,12 +1651,12 @@ stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
     case 0:
       break;
     case NGHTTP3_ERR_STREAM_NOT_FOUND:
-      if (GNUNET_YES == connection->is_initiator &&
+      if (GNUNET_NO == connection->is_initiator &&
           ngtcp2_is_bidi_stream (stream_id))
       {
         ngtcp2_conn_extend_max_streams_bidi (connection->conn, 1);
       }
-      else if (GNUNET_NO == connection->is_initiator &&
+      else if (GNUNET_YES == connection->is_initiator &&
                ! ngtcp2_is_bidi_stream (stream_id))
       {
         ngtcp2_conn_extend_max_streams_uni (connection->conn, 1);
@@ -1784,25 +1822,6 @@ recv_tx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
 
 
 /**
- * The callback function for ngtcp2_callbacks.extend_max_local_streams_bidi
- */
-int
-extend_max_local_streams_bidi_cb (ngtcp2_conn *conn, uint64_t max_streams,
-                                  void *user_data)
-{
-  struct Connection *connection = user_data;
-  struct Stream *stream;
-
-  stream = create_stream (connection, -1);
-  ngtcp2_conn_open_bidi_stream (connection->conn,
-                                &stream->stream_id,
-                                NULL);
-  // Submit requests
-  return 0;
-}
-
-
-/**
  * The callback function for ngtcp2_callbacks.recv_rx_key
  */
 int
@@ -1815,12 +1834,28 @@ recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
   }
 
   struct Connection *connection = user_data;
+  struct Stream *stream;
   int rv;
 
   rv = setup_httpconn (connection);
   if (0 != rv)
   {
     return NGTCP2_ERR_CALLBACK_FAILURE;
+  }
+
+  if (GNUNET_YES == connection->is_initiator &&
+      GNUNET_NO == connection->id_sent)
+  {
+    stream = create_stream (connection, -1);
+    rv = ngtcp2_conn_open_bidi_stream (conn, &stream->stream_id, NULL);
+
+    submit_post_request (connection, stream,
+                         (uint8_t *) &my_identity,
+                         sizeof (my_identity));
+
+    connection->id_sent = GNUNET_YES;
+    setup_connection_mq (connection);
+
   }
   return 0;
 }
@@ -1869,14 +1904,12 @@ client_quic_init (struct Connection *connection,
     .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
-    .handshake_completed = handshake_completed_cb,
-    .recv_stream_data = recv_stream_data_cb2,
+    .recv_stream_data = recv_stream_data_cb,
     .stream_close = stream_close_cb,
     .acked_stream_data_offset = acked_stream_data_offset_cb,
     .extend_max_stream_data = extend_max_stream_data_cb,
     .stream_reset = stream_reset_cb,
     .stream_stop_sending = stream_stop_sending_cb,
-    .extend_max_local_streams_bidi = extend_max_local_streams_bidi_cb,
     .recv_rx_key = recv_rx_key_cb,
   };
 
@@ -1893,9 +1926,15 @@ client_quic_init (struct Connection *connection,
   settings.initial_ts = timestamp ();
 
   ngtcp2_transport_params_default (&params);
-  params.initial_max_streams_uni = 3;
-  params.initial_max_stream_data_bidi_local = 128 * 1024;
-  params.initial_max_data = 1024 * 1024;
+  params.initial_max_streams_uni = 100;
+  params.initial_max_stream_data_bidi_local = 6291456;
+  params.initial_max_data = 15728640;
+  params.initial_max_stream_data_bidi_remote = 0;
+  params.initial_max_stream_data_uni = 6291456;
+  params.initial_max_streams_bidi = 0;
+  params.max_idle_timeout = 30 * NGTCP2_SECONDS;
+  params.active_connection_id_limit = 7;
+  params.grease_quic_bit = 1;
   rv = ngtcp2_conn_client_new (&connection->conn,
                                &dcid,
                                &scid,
@@ -1917,127 +1956,6 @@ client_quic_init (struct Connection *connection,
   connection->conn_ref.user_data = connection;
   connection->conn_ref.get_conn = get_conn;
   return GNUNET_NO;
-}
-
-
-/**
- * Write the data in the stream into the packet and send it
- *
- * @param connection the connection of the peer
- *
- * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
- */
-static int
-connection_write_stream (struct Connection *connection, struct Stream *stream)
-{
-  uint8_t buf[1280];
-  int64_t stream_id;
-  uint32_t flags;
-  size_t datavcnt;
-  ngtcp2_tstamp ts = timestamp ();
-  ngtcp2_vec datav;
-  ngtcp2_path_storage ps;
-  ngtcp2_pkt_info pi;
-  ngtcp2_ssize nwrite;
-  ngtcp2_ssize wdatalen;
-  int fin;
-
-  ngtcp2_path_storage_zero (&ps);
-
-  for (;;)
-  {
-    if (NULL != stream &&
-        stream->sent_offset < stream->datalen)
-    {
-      stream_id = stream->stream_id;
-      fin = 1;
-      datav.base = (uint8_t *) stream->data + stream->sent_offset;
-      datav.len = stream->datalen - stream->sent_offset;
-      datavcnt = 1;
-    }
-    else
-    {
-      stream_id = -1;
-      fin = 0;
-      datav.base = NULL;
-      datav.len = 0;
-      datavcnt = 0;
-    }
-
-    flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
-    if (fin)
-      flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
-
-    nwrite = ngtcp2_conn_writev_stream (connection->conn,
-                                        &ps.path,
-                                        &pi,
-                                        buf,
-                                        sizeof (buf),
-                                        &wdatalen,
-                                        flags,
-                                        stream_id,
-                                        &datav,
-                                        datavcnt,
-                                        ts);
-    if (0 > nwrite)
-    {
-      switch (nwrite)
-      {
-      case NGTCP2_ERR_WRITE_MORE:
-        stream->sent_offset += (size_t) wdatalen;
-        continue;
-      default:
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "ngtcp2_conn_writev_stream %s\n",
-                    ngtcp2_strerror ((int) nwrite));
-        ngtcp2_ccerr_set_liberr (&connection->last_error, (int) nwrite,
-                                 NULL, 0);
-        return GNUNET_SYSERR;
-      }
-    }
-    if (0 == nwrite)
-    {
-      return GNUNET_NO;
-    }
-    if (0 < wdatalen)
-    {
-      stream->sent_offset += (size_t) wdatalen;
-    }
-    if (GNUNET_NO != send_packet (connection, buf, (size_t) nwrite))
-    {
-      return GNUNET_SYSERR;
-    }
-  }
-}
-
-
-/**
- * Iterator over all streams to write.
- *
- * @param cls NULL
- * @param key stream_id
- * @param value the stream to write
- * @return #GNUNET_OK to continue to iterate
- */
-static int
-get_connection_write_stream_it (void *cls,
-                                const struct GNUNET_HashCode *key,
-                                void *value)
-{
-  struct Stream *stream = value;
-  (void) cls;
-  (void) key;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "get_connection_write_stream_it, stream_id = %ld\n",
-              stream->stream_id);
-  if (GNUNET_NO != connection_write_stream (stream->connection, stream))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "connection_write_stream failed, stream_id = %ld\n",
-                stream->stream_id);
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
 }
 
 
@@ -2348,6 +2266,141 @@ connection_update_timer (struct Connection *connection)
 
 
 /**
+ * Write HTTP stream data and send the packets.
+ *
+ * @param connection the connection of the peer
+ *
+ * @return #GNUNET_NO on success, #GNUNET_SYSERR if failed
+ */
+static int
+connection_write_streams (struct Connection *connection)
+{
+  uint8_t buf[1280];
+  ngtcp2_tstamp ts = timestamp ();
+  ngtcp2_path_storage ps;
+  int64_t stream_id;
+  uint32_t flags;
+  ngtcp2_ssize nwrite;
+  ngtcp2_ssize wdatalen;
+  nghttp3_vec vec[16];
+  nghttp3_ssize sveccnt;
+  ngtcp2_pkt_info pi;
+  int fin;
+  int rv;
+
+  ngtcp2_path_storage_zero (&ps);
+
+  for (;;)
+  {
+    stream_id = -1;
+    fin = 0;
+    sveccnt = 0;
+
+    if (connection->h3_conn &&
+        ngtcp2_conn_get_max_data_left (connection->conn))
+    {
+      sveccnt = nghttp3_conn_writev_stream (connection->h3_conn,
+                                            &stream_id,
+                                            &fin,
+                                            vec,
+                                            16);
+      if (sveccnt < 0)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "nghttp3_conn_writev_stream: %s\n",
+                    nghttp3_strerror (sveccnt));
+
+        ngtcp2_ccerr_set_application_error (
+          &connection->last_error,
+          nghttp3_err_infer_quic_app_error_code (sveccnt),
+          NULL,
+          0);
+        return handle_error (connection);
+      }
+    }
+
+    printf ("ngtcp2_conn_get_streams_bidi_left = %lu\n",
+            ngtcp2_conn_get_streams_bidi_left (connection->conn));
+    flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
+    if (fin)
+      flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
+
+    nwrite = ngtcp2_conn_writev_stream (connection->conn,
+                                        &ps.path,
+                                        &pi,
+                                        buf,
+                                        sizeof(buf),
+                                        &wdatalen,
+                                        flags,
+                                        stream_id,
+                                        (ngtcp2_vec *) vec,
+                                        (size_t) sveccnt,
+                                        ts);
+    if (nwrite < 0)
+    {
+      switch (nwrite)
+      {
+      case NGTCP2_ERR_STREAM_DATA_BLOCKED:
+        nghttp3_conn_block_stream (connection->h3_conn, stream_id);
+        continue;
+      case NGTCP2_ERR_STREAM_SHUT_WR:
+        nghttp3_conn_shutdown_stream_write (connection->h3_conn, stream_id);
+        continue;
+      case NGTCP2_ERR_WRITE_MORE:
+        rv = nghttp3_conn_add_write_offset (connection->h3_conn, stream_id,
+                                            wdatalen);
+        if (0 != rv)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "nghttp3_conn_add_write_offset: %s\n",
+                      nghttp3_strerror (rv));
+          ngtcp2_ccerr_set_application_error (
+            &connection->last_error,
+            nghttp3_err_infer_quic_app_error_code (rv),
+            NULL, 0);
+          return handle_error (connection);
+        }
+        continue;
+      }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "ngtcp2_conn_writev_stream: %s\n",
+                  ngtcp2_strerror (nwrite));
+      ngtcp2_ccerr_set_liberr (&connection->last_error,
+                               nwrite,
+                               NULL,
+                               0);
+      return handle_error (connection);
+    }
+    if (0 == nwrite)
+    {
+      ngtcp2_conn_update_pkt_tx_time (connection->conn, ts);
+      return 0;
+    }
+    if (wdatalen > 0)
+    {
+      rv = nghttp3_conn_add_write_offset (connection->h3_conn, stream_id,
+                                          wdatalen);
+      if (0 != rv)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                    "nghttp3_conn_add_write_offset: %s\n",
+                    nghttp3_strerror (rv));
+        ngtcp2_ccerr_set_application_error (
+          &connection->last_error,
+          nghttp3_err_infer_quic_app_error_code (rv),
+          NULL, 0);
+        return handle_error (connection);
+      }
+    }
+    if (GNUNET_NO != send_packet (connection, buf, nwrite))
+      break;
+  }
+
+  return GNUNET_NO;
+}
+
+
+/**
  * Write the data in the stream into the packet and handle timer.
  *
  * @param connection the connection of the peer
@@ -2357,47 +2410,20 @@ connection_update_timer (struct Connection *connection)
 static int
 connection_write (struct Connection *connection)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "in connection_write\n");
-  ngtcp2_tstamp expiry;
-  ngtcp2_tstamp now;
+  int rv;
 
-  if (0 == GNUNET_CONTAINER_multihashmap_size (connection->streams))
+  if (GNUNET_NO == connection->is_initiator &&
+      (ngtcp2_conn_in_closing_period (connection->conn) ||
+       ngtcp2_conn_in_draining_period (connection->conn)))
   {
-    if (GNUNET_NO != connection_write_stream (connection, NULL))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "connection_write_stream failed, stream = NULL\n");
-      return GNUNET_SYSERR;
-    }
+    return GNUNET_NO;
   }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "size of streams map = %u\n",
-                GNUNET_CONTAINER_multihashmap_size (connection->streams));
-    if (GNUNET_SYSERR ==
-        GNUNET_CONTAINER_multihashmap_iterate (connection->streams,
-                                               &get_connection_write_stream_it,
-                                               NULL))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "GNUNET_CONTAINER_multihashmap_iterate failed\n");
-      return GNUNET_SYSERR;
-    }
-  }
-  // if (GNUNET_NO != connection_write_stream (connection))
-  // {
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "connection_write_stream failed\n");
-  //   return GNUNET_SYSERR;
-  // }
-  expiry = ngtcp2_conn_get_expiry (connection->conn);
-  now = timestamp ();
 
-  /**
-   * TODO: Set timer here.
-   */
+  rv = connection_write_streams (connection);
+  if (GNUNET_NO != rv)
+  {
+    return rv;
+  }
   connection_update_timer (connection);
 
   return GNUNET_NO;
@@ -2811,7 +2837,7 @@ connection_init (struct sockaddr *local_addr,
     .version_negotiation = ngtcp2_crypto_version_negotiation_cb,
 
     .acked_stream_data_offset = acked_stream_data_offset_cb,
-    .recv_stream_data = recv_stream_data_cb2,
+    .recv_stream_data = recv_stream_data_cb,
     .stream_open = stream_open_cb,
     .rand = rand_cb,
     .get_new_connection_id = get_new_connection_id_cb,
@@ -2845,7 +2871,8 @@ connection_init (struct sockaddr *local_addr,
   params.initial_max_streams_uni = 3;
   params.initial_max_streams_bidi = 128;
   params.initial_max_stream_data_bidi_local = 128 * 1024;
-  params.initial_max_stream_data_bidi_remote = 128 * 1024;
+  params.initial_max_stream_data_bidi_remote = 256 * 1024;
+  params.initial_max_stream_data_uni = 256 * 1024;
   params.initial_max_data = 1024 * 1024;
   params.original_dcid_present = 1;
   params.max_idle_timeout = 30 * NGTCP2_SECONDS;
@@ -3036,7 +3063,6 @@ sock_read (void *cls)
   ssize_t rcvd;
   uint8_t buf[UINT16_MAX];
   ngtcp2_path path;
-  // ngtcp2_version_cid version_cid;
   struct GNUNET_HashCode addr_key;
   struct Connection *connection;
   int rv;
@@ -3094,15 +3120,6 @@ sock_read (void *cls)
       return;
     }
 
-    // rv = ngtcp2_pkt_decode_version_cid (&version_cid, buf, rcvd,
-    //                                     NGTCP2_MAX_CIDLEN);
-    // if (rv < 0)
-    // {
-    //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-    //               "ngtcp2_pkt_decode_version_cid: %s\n", ngtcp2_strerror (rv));
-    //   return;
-    // }
-
     char *addr_string =
       sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa,
                                   salen);
@@ -3110,20 +3127,6 @@ sock_read (void *cls)
                         &addr_key);
     GNUNET_free (addr_string);
     connection = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
-
-    // if (NULL == connection)
-    // {
-    //   ngtcp2_version_cid vc;
-    //   rv = ngtcp2_pkt_decode_version_cid (&vc, buf, rcvd, NGTCP2_MAX_CIDLEN);
-    //   if (rv < 0)
-    //   {
-    //     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-    //                 "ngtcp2_pkt_decode_version_cid error: %s\n",
-    //                 ngtcp2_strerror (rv));
-    //   }
-    //   connection = cid_map_find (vc.scid, vc.scidlen);
-    // }
-
 
     ngtcp2_pkt_info pi = {0};
     if (NULL != connection && GNUNET_YES == connection->is_initiator)
