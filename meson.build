@@ -208,6 +208,18 @@ quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
   quic_dep = cc.find_library('quiche', required : false)
 endif
+ngtcp2_crypto_dep = dependency('libngtcp2_crypto_gnutls', required : false)
+if not ngtcp2_crypto_dep.found()
+  ngtcp2_crypto_dep = cc.find_library('ngtcp2_crypto_gnutls', required : false)
+endif
+ngtcp2_dep = dependency('libngtcp2', required : false)
+if not ngtcp2_dep.found()
+  ngtcp2_dep = cc.find_library('ngtcp2', required : false)
+endif
+nghttp3_dep = dependency('libnghttp3', required : false)
+if not nghttp3_dep.found()
+  nghttp3_dep = cc.find_library('nghttp3', required : false)
+endif
 
 idn_dep = dependency('libidn2', required : false)
 if not idn_dep.found()

@@ -110,11 +110,6 @@ static struct GNUNET_SCHEDULER_Task *read_task;
 static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 
 /**
- *
- */
-static struct GNUNET_TRANSPORT_ApplicationHandle *ah;
-
-/**
  * Connection to NAT service.
  */
 static struct GNUNET_NAT_Handle *nat;
@@ -2660,11 +2655,6 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_communicator_disconnect (ch);
     ch = NULL;
   }
-  if (NULL != ah)
-  {
-    GNUNET_TRANSPORT_application_done (ah);
-    ah = NULL;
-  }
   if (NULL != stats)
   {
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
@@ -3339,13 +3329,6 @@ run (void *cls,
                                               &notify_cb,
                                               NULL);
   if (NULL == ch)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  ah = GNUNET_TRANSPORT_application_init (cfg);
-  if (NULL == ah)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();

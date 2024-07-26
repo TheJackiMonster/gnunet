@@ -6,6 +6,7 @@ libgnunettransportmonitor_src = ['transport_api2_monitor.c']
 gnunetservicetransport_src = ['gnunet-service-transport.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
+gnunetcommunicatorhttp3_src = ['gnunet-communicator-http3.c']
 gnunetcommunicatorunix_src = ['gnunet-communicator-unix.c']
 
 configure_file(input : 'transport.conf.in',
@@ -154,9 +155,25 @@ executable ('gnunet-communicator-quic',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 endif
+if nghttp3_dep.found()
+executable ('gnunet-communicator-http3',
+            gnunetcommunicatorhttp3_src,
+            dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunetpeerstore_dep,
+                           libgnunetstatistics_dep,
+                           gnutls_dep,
+                           gcrypt_dep,
+                           libgnunetnat_dep,
+                           ngtcp2_dep,
+                           ngtcp2_crypto_dep,
+                           nghttp3_dep,
+                           libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('libdir') / 'gnunet' / 'libexec')
+endif
 
 if false
-
 libgnunettesttransport_cmd_simplesend = library('gnunet_test_transport_plugin_cmd_simple_send',
                                                 ['test_transport_plugin_cmd_simple_send.c'],
                                                 dependencies: [
@@ -270,7 +287,7 @@ configure_file(input : 'test_transport_defaults.conf',
                output : 'test_transport_defaults.conf',
                copy: true)
 
-foreach p : ['unix', 'tcp', 'udp', 'quic']
+foreach p : ['unix', 'tcp', 'udp', 'quic', 'http3']
   configure_file(input : 'test_communicator_'+p+'_basic_peer1.conf',
                  output : 'test_communicator_'+p+'_basic_peer1.conf',
                  copy: true)
@@ -358,6 +375,24 @@ if quic_dep.found() and get_option('experimental')
                                              libgnunettransportapplication_dep,
                                              libgnunettestingtransport_dep,
                                              libgnunettransportcore_dep,
+                                             libgnunettesting_dep,
+                                             libgnunetpeerstore_dep,
+                                             libgnunetstatistics_dep,
+                                             libgnunethello_dep,
+                                             libgnunetarm_dep,
+                                             libgnunetutil_dep
+                                           ],
+                                           include_directories: [incdir, configuration_inc],
+                                           install: false)
+endif
+if nghttp3_dep.found()
+  testcommunicator_basic_http3 = executable('test_communicator_basic-http3',
+                                           ['test_communicator_basic.c'],
+                                           dependencies: [
+                                             libgnunetutil_dep,
+                                             libgnunettransportapplication_dep,
+                                             libgnunettransportcore_dep,
+                                             libgnunettestingtransport_dep,
                                              libgnunettesting_dep,
                                              libgnunetpeerstore_dep,
                                              libgnunetstatistics_dep,
@@ -476,6 +511,11 @@ test('test_communicator_basic-udp', testcommunicator_basic_udp,
      suite: ['transport', 'communicator'], is_parallel: false)
 if quic_dep.found() and get_option('experimental')
   test('test_communicator_basic-quic', testcommunicator_basic_quic,
+       workdir: meson.current_build_dir(),
+       suite: ['transport', 'communicator'], is_parallel: false)
+endif
+if nghttp3_dep.found()
+  test('test_communicator_basic-http3', testcommunicator_basic_http3,
        workdir: meson.current_build_dir(),
        suite: ['transport', 'communicator'], is_parallel: false)
 endif
