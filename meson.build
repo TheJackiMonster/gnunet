@@ -220,7 +220,10 @@ nghttp3_dep = dependency('libnghttp3', required : false)
 if not nghttp3_dep.found()
   nghttp3_dep = cc.find_library('nghttp3', required : false)
 endif
-
+http3_dep = declare_dependency (dependencies: [ngtcp2_dep, ngtcp2_crypto_dep, nghttp3_dep])
+if http3_dep.found()
+  message ('HTTP3 enabled')
+endif
 idn_dep = dependency('libidn2', required : false)
 if not idn_dep.found()
   idn_dep = cc.find_library('idn2', required : false)
@@ -236,7 +239,6 @@ else
     add_project_arguments('-DHAVE_IDN_H', language : 'c')
   endif
 endif
-
 pthread_dep = cc.find_library('pthread', required : false)
 if pthread_dep.found()
   add_project_arguments('-DHAVE_PTHREAD', language : 'c')
