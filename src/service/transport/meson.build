@@ -155,7 +155,7 @@ executable ('gnunet-communicator-quic',
             install: true,
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 endif
-if nghttp3_dep.found()
+if http3_dep.found()
 executable ('gnunet-communicator-http3',
             gnunetcommunicatorhttp3_src,
             dependencies: [libgnunettransportcommunicator_dep,
@@ -385,7 +385,7 @@ if quic_dep.found() and get_option('experimental')
                                            include_directories: [incdir, configuration_inc],
                                            install: false)
 endif
-if nghttp3_dep.found()
+if http3_dep.found()
   testcommunicator_basic_http3 = executable('test_communicator_basic-http3',
                                            ['test_communicator_basic.c'],
                                            dependencies: [
@@ -514,7 +514,7 @@ if quic_dep.found() and get_option('experimental')
        workdir: meson.current_build_dir(),
        suite: ['transport', 'communicator'], is_parallel: false)
 endif
-if nghttp3_dep.found()
+if http3_dep.found()
   test('test_communicator_basic-http3', testcommunicator_basic_http3,
        workdir: meson.current_build_dir(),
        suite: ['transport', 'communicator'], is_parallel: false)
