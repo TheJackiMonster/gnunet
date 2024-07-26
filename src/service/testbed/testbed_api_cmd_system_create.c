@@ -29,6 +29,8 @@
 #include "gnunet_testbed_lib.h"
 #include "gnunet_testing_testbed_lib.h"
 
+#define BASE_DIR "testdir"
+
 /**
  * Struct to hold information for callbacks.
  *
@@ -37,7 +39,7 @@ struct TestSystemState
 {
   struct GNUNET_TESTBED_System *test_system;
 
-  const char *testdir;
+  char *testdir;
 };
 
 
@@ -98,21 +100,25 @@ system_create_cleanup (void *cls)
 
 
 /**
- * Create command.
+ * This command is setting up a test environment for a peer to start.
  *
- * @param label name for command.
- * @param label name for the test environment directory.
- * @return command.
+ * @param label Name for command.
+ * @param my_node_id The specific id of the node this command is running on.
+ * A sub string of the id is the process id of the master process. This id is 
+ * used to build the name of the temporary directory of the peer to start.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_system_create (const char *label,
-                                  const char *testdir)
+                                  const char *my_node_id)
 {
   struct TestSystemState *tss;
 
   tss = GNUNET_new (struct TestSystemState);
-  tss->testdir = testdir;
-
+  GNUNET_asprintf (&tss->testdir,
+                   "%s%s",
+                   BASE_DIR,
+                   my_node_id);
+  
   return GNUNET_TESTING_command_new (tss,
                                      label,
                                      &system_create_run,

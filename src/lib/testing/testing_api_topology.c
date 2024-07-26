@@ -851,12 +851,15 @@ create_subnet_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
   struct GNUNET_HashCode hc;
   subnet->peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
-  for (int i = 1; i < subnet->number_peers; i++)
+  for (int i = 0; i < subnet->number_peers; i++)
   {
     struct GNUNET_ShortHashCode hkey;
     struct GNUNET_TESTING_NetjailSubnetPeer *subnet_peer = GNUNET_new (struct GNUNET_TESTING_NetjailSubnetPeer);
 
     topology->total++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Subnet peers -> Number of nodes: %u\n",
+         topology->total);
     GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
       memcpy (&hkey,
               &hc,
@@ -877,13 +880,16 @@ create_subnets (struct GNUNET_CONFIGURATION_Handle *cfg,
   struct GNUNET_HashCode hc;
   carrier->subnets = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
   
-  for (int i = 1; i < carrier->number_subnets; i++)
+  for (int i = 0; i < carrier->number_subnets; i++)
   {
     struct GNUNET_ShortHashCode hkey;
     struct GNUNET_TESTING_NetjailSubnet *subnet = GNUNET_new (struct GNUNET_TESTING_NetjailSubnet);
     char *section;
  
     topology->total++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Subnets -> Number of nodes: %u\n",
+         topology->total);
     subnet->number = topology->total;
     subnet->index = i;
     GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
@@ -918,12 +924,15 @@ create_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
   struct GNUNET_HashCode hc;
   carrier->peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
-  for (int i = 1; i < carrier->number_peers; i++)
+  for (int i = 0; i < carrier->number_peers; i++)
   {
     struct GNUNET_ShortHashCode hkey;
     struct GNUNET_TESTING_NetjailCarrierPeer *peer = GNUNET_new (struct GNUNET_TESTING_NetjailCarrierPeer);
 
     topology->total++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier peers -> Number of nodes: %u\n",
+         topology->total);
     peer->number = topology->total;
     GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
       memcpy (&hkey,
@@ -1021,6 +1030,9 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
     struct GNUNET_ShortHashCode hkey;
 
     topology->total++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Backbone peers -> Number of nodes: %u\n",
+         topology->total);
     peer->number = topology->total;
     GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
       memcpy (&hkey,
@@ -1039,6 +1051,9 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
     char *section;
 
     topology->total++;
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier -> Number of nodes: %u\n",
+         topology->total);
     carrier->number = topology->total;
     GNUNET_CRYPTO_hash (&topology->total, sizeof(topology->total), &hc);
     memcpy (&hkey,
@@ -1056,14 +1071,26 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
                                                           (unsigned long long *) &carrier->number_subnets))
     {
       carrier->number_subnets = topology->default_subnets;
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier -> Default number of subnets: %u\n",
+         carrier->number_subnets);
     }
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier -> number of subnets: %u\n",
+         carrier->number_subnets);
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
                                                           section,
                                                           "CARRIER_PEERS",
                                                           (unsigned long long *) &carrier->number_peers))
     {
       carrier->number_peers = topology->default_carrier_peers;
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier -> Default number of peers: %u\n",
+         carrier->number_peers);
     }
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Carrier -> Default number of peers: %u\n",
+         carrier->number_peers);
     create_peers  (cfg, topology, carrier);
     create_subnets (cfg, topology, carrier);
 

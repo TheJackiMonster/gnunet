@@ -20,12 +20,13 @@ GNUNET_TESTBED_cmd_system_destroy (const char *label,
  * This command is setting up a test environment for a peer to start.
  *
  * @param label Name for command.
- * @param testdir Only the directory name without any path. Temporary
- *                directory used for all service homes.
+ * @param my_node_id The specific id of the node this command is running on.
+ * A sub string of the id is the process id of the master process. This id is 
+ * used to build the name of the temporary directory of the peer to start.
  */
 struct GNUNET_TESTING_Command
 GNUNET_TESTBED_cmd_system_create (const char *label,
-                                  const char *testdir);
+                                  const char *my_node_id);
 
 
 /**

@@ -68,7 +68,7 @@ struct NetJailState
   /**
    * Array with handles of helper processes.
    */
-  struct GNUNET_HELPER_Handle **helpers;
+  struct HelperState **helpers;
 
   /**
    * Time after this cmd has to finish.
@@ -111,6 +111,24 @@ struct NetJailState
   bool failed;
 };
 
+struct HelperState
+{
+  /**
+   * The state of this command.
+   */
+  struct NetJailState *ns;
+
+  /**
+   * The helper handle for this state.
+   */
+  struct GNUNET_HELPER_Handle *helper;
+
+  /**
+   * Did we got a GNUNET_TESTING_CommandLocalFinished message?
+   */
+  enum GNUNET_GenericReturnValue finished;
+};
+
 /**
  * Struct containing the number of the netjail node and the NetJailState which
  * will be handed to callbacks specific to a test environment.
@@ -143,6 +161,12 @@ struct TestingSystemCount
 
 
 /**
+ * The network namespace number of a node.
+ */
+unsigned int node_number;
+
+
+/**
  * Continuation function from GNUNET_HELPER_send()
  *
  * @param cls closure
@@ -167,6 +191,8 @@ clear_msg (void *cls,
        (GNUNET_OK != result) )
   {
     ns->failed = true;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed sending message to helper!\n");
     GNUNET_TESTING_FAIL (ns->is);
   }
 }
@@ -177,7 +203,8 @@ handle_helper_barrier_reached (
   void *cls,
   const struct GNUNET_TESTING_CommandBarrierReached *rm)
 {
-  struct NetJailState *ns = cls;
+  struct HelperState *hs = cls;
+  struct NetJailState *ns = hs->ns;
   struct GNUNET_TESTING_Barrier *barrier;
 
   barrier = GNUNET_TESTING_get_barrier2_ (ns->is,
@@ -187,7 +214,9 @@ handle_helper_barrier_reached (
     if (! ns->failed)
     {
       ns->failed = true;
-      GNUNET_TESTING_async_fail (&ns->ac);
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "We did not found the barrier that was supposedly reached.!\n");
+      GNUNET_TESTING_async_fail (&ns->ac); 
     }
     return;
   }
@@ -232,13 +261,18 @@ handle_helper_local_finished (
   void *cls,
   const struct GNUNET_TESTING_CommandLocalFinished *lf)
 {
-  struct NetJailState *ns = cls;
+  struct HelperState *hs = cls;
+  struct NetJailState *ns = hs->ns;
 
+  GNUNET_HELPER_stop (hs->helper, GNUNET_YES);
+  hs->finished = GNUNET_YES;
   ns->n_finished++;
   if ( (! ns->failed) &&
        (GNUNET_OK != ntohl (lf->rv)) )
   {
     ns->failed = true;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Helper finished with error!\n");
     GNUNET_TESTING_async_fail (&ns->ac);
     return;
   }
@@ -265,18 +299,19 @@ static enum GNUNET_GenericReturnValue
 helper_mst (void *cls,
             const struct GNUNET_MessageHeader *message)
 {
-  struct NetJailState *ns = cls;
+  struct HelperState *hs = cls;
+  struct NetJailState *ns = hs->ns;
   struct GNUNET_MQ_MessageHandler handlers[] = {
     GNUNET_MQ_hd_fixed_size (
       helper_barrier_reached,
       GNUNET_MESSAGE_TYPE_CMDS_HELPER_BARRIER_REACHED,
       struct GNUNET_TESTING_CommandBarrierReached,
-      ns),
+      hs),
     GNUNET_MQ_hd_fixed_size (
       helper_local_finished,
       GNUNET_MESSAGE_TYPE_CMDS_HELPER_LOCAL_FINISHED,
       struct GNUNET_TESTING_CommandLocalFinished,
-      ns),
+      hs),
     GNUNET_MQ_handler_end ()
   };
   enum GNUNET_GenericReturnValue ret;
@@ -289,6 +324,8 @@ helper_mst (void *cls,
     if (! ns->failed)
     {
       ns->failed = true;
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "We got an unknown message from the helper process!\n");
       GNUNET_TESTING_async_fail (&ns->ac);
     }
   }
@@ -302,7 +339,8 @@ helper_mst (void *cls,
 static void
 exp_cb (void *cls)
 {
-  struct NetJailState *ns = cls;
+  struct HelperState *hs = cls;
+  struct NetJailState *ns = hs->ns;
 
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Called exp_cb.\n");
@@ -412,6 +450,7 @@ start_helper (struct NetJailState *ns,
   char *data_dir;
   char *script_name;
   struct GNUNET_HELPER_Handle *helper;
+  struct HelperState *hs = GNUNET_new (struct HelperState);
 
   data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
   GNUNET_asprintf (&script_name,
@@ -431,23 +470,28 @@ start_helper (struct NetJailState *ns,
       node_id,
       NULL
     };
+    hs->ns = ns;
     helper = GNUNET_HELPER_start (
                                   GNUNET_YES,                             /* with control pipe */
                                   script_argv[0],
                                   script_argv,
                                   &helper_mst,
                                   &exp_cb,
-                                  ns);
+                                  hs);
+    hs->helper = helper;
   }
   GNUNET_free (gnunet_cmds_helper);
   if (NULL == helper)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Starting helper failed. Is NULL.\n");
     GNUNET_break (0);
+    GNUNET_free (hs);
     return false;
   }
   GNUNET_array_append (ns->helpers,
                        ns->n_helpers,
-                       helper);
+                       hs);
   GNUNET_TESTING_add_netjail_helper_ (ns->is,
                                       helper);
   GNUNET_free (data_dir);
@@ -471,6 +515,75 @@ do_timeout (void *cls)
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Terminating cmd due to global timeout\n");
   GNUNET_TESTING_async_finish (&ns->ac);
+}
+
+
+static int
+start_peer (void *cls,
+                      const struct GNUNET_ShortHashCode *key,
+                      void *value)
+{
+  struct NetJailState *ns = cls;
+
+  if (! start_helper (ns, node_number))
+  {
+    return GNUNET_SYSERR;
+  }
+  node_number++;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Peer helper %u started.\n",
+              node_number);
+  return GNUNET_OK;
+}
+
+
+static int
+start_subnets (void *cls,
+                      const struct GNUNET_ShortHashCode *key,
+                      void *value)
+{
+  struct NetJailState *ns = cls;
+  struct GNUNET_TESTING_NetjailSubnet *subnet = value;
+
+  node_number++;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Starting subnet %u.\n",
+              node_number);
+  if (GNUNET_SYSERR == GNUNET_CONTAINER_multishortmap_iterate (subnet->peers,
+                                                           &start_peer,
+                                                           ns))
+    return GNUNET_SYSERR;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Subnet started.\n");
+  return GNUNET_OK;
+}
+
+
+static int
+start_carriers (void *cls,
+                const struct GNUNET_ShortHashCode *key,
+                void *value)
+{
+  struct NetJailState *ns = cls;
+  struct GNUNET_TESTING_NetjailCarrier *carrier = value;
+
+  node_number++;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Starting carrier %u.\n",
+              node_number);
+  if (GNUNET_SYSERR == GNUNET_CONTAINER_multishortmap_iterate (carrier->peers,
+                                                           &start_peer,
+                                                           ns))
+    return GNUNET_SYSERR;
+  if (GNUNET_SYSERR == GNUNET_CONTAINER_multishortmap_iterate (carrier->subnets,
+                                                           &start_subnets,
+                                                           ns))
+    return GNUNET_SYSERR;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Carrier started.\n");
+  return GNUNET_OK;
 }
 
 
@@ -501,23 +614,29 @@ netjail_exec_run (void *cls,
     GNUNET_TESTING_FAIL (is);
   topology
     = GNUNET_TESTING_get_topo_from_string_ (ns->topology_data);
-  for (unsigned int i = 1; i <= topology->total; i++)
-  {
-    if (! start_helper (ns,
-                        i))
-    {
-      failed = true;
-      break;
-    }
-  }
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Number of nodes: %u\n",
+       topology->total);
+  if (GNUNET_SYSERR == GNUNET_CONTAINER_multishortmap_iterate (topology->backbone_peers,
+                                                           &start_peer,
+                                                           ns))
+    failed = true;
+  if (true == failed || GNUNET_SYSERR == GNUNET_CONTAINER_multishortmap_iterate (topology->carriers,
+                                                                             &start_carriers,
+                                                                             ns))
+    failed = true;
+  
   GNUNET_TESTING_free_topology (topology);
   if (failed)
   {
     ns->failed = true;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to start helpers!\n");
     GNUNET_TESTING_FAIL (is);
   }
-  ns->timeout_task
-    = GNUNET_SCHEDULER_add_delayed (ns->timeout,
+  else
+    ns->timeout_task
+      = GNUNET_SCHEDULER_add_delayed (ns->timeout,
                                     &do_timeout,
                                     ns);
 }
@@ -539,8 +658,12 @@ netjail_exec_cleanup (void *cls)
     ns->timeout_task = NULL;
   }
   for (unsigned int i = 0; i<ns->n_helpers; i++)
-    GNUNET_HELPER_stop (ns->helpers[i],
-                        GNUNET_YES);
+  {
+    if (GNUNET_NO == ns->helpers[i]->finished)
+      GNUNET_HELPER_stop (ns->helpers[i]->helper,
+                          GNUNET_YES);
+    GNUNET_free (ns->helpers[i]);
+  }
   GNUNET_free (ns);
 }
 

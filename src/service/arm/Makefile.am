@@ -13,6 +13,8 @@ if USE_COVERAGE
   XLIB = -lgcov
 endif
 
+plugindir = $(libdir)/gnunet
+
 lib_LTLIBRARIES = \
   libgnunetarm.la \
   libgnunettestingarm.la
@@ -69,6 +71,9 @@ check_PROGRAMS = \
  test_exponential_backoff \
  test_gnunet_service_arm
 
+check_SCRIPTS = \
+  test_arm_probnat.sh
+
 if ENABLE_TEST_RUN
 AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
 TESTS = $(check_PROGRAMS)  $(check_SCRIPTS)
@@ -94,3 +99,15 @@ test_gnunet_service_arm_SOURCES = \
 
 EXTRA_DIST = \
   test_arm_api_data.conf
+
+plugin_LTLIBRARIES = \
+  libgnunet_test_arm_plugin_probnat.la
+
+libgnunet_test_arm_plugin_probnat_la_SOURCES = \
+ test_arm_plugin_probnat.c
+libgnunet_test_arm_plugin_probnat_la_LIBADD = \
+  libgnunettestingarm.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
+  $(LTLIBINTL)
