@@ -2613,6 +2613,7 @@ get_connection_delete_it (void *cls,
   struct Connection *connection = value;
   (void) cls;
   (void) key;
+  handle_error (connection);
   connection_destroy (connection);
   return GNUNET_OK;
 }
