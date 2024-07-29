@@ -3171,6 +3171,8 @@ run (void *cls,
   socklen_t in_len;
   struct sockaddr_storage in_sto;
   socklen_t sto_len;
+  char *cert_file;
+  char *key_file;
 
   (void) cls;
   cfg = c;
@@ -3185,6 +3187,31 @@ run (void *cls,
                                "BINDTO");
     return;
   }
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               COMMUNICATOR_CONFIG_SECTION,
+                                               "KEY_FILE",
+                                               &key_file))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "KEY_FILE");
+    return;
+  }
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               COMMUNICATOR_CONFIG_SECTION,
+                                               "CERT_FILE",
+                                               &cert_file))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "CERT_FILE");
+    GNUNET_free (key_file);
+    return;
+  }
+
   disable_v6 = GNUNET_NO;
   if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
       (GNUNET_YES ==
@@ -3292,9 +3319,14 @@ run (void *cls,
     return;
   }
   rv = gnutls_certificate_set_x509_key_file (cred,
-                                             "credentials/server.pem",
-                                             "credentials/server-key.pem",
+                                             cert_file,
+                                             key_file,
                                              GNUTLS_X509_FMT_PEM);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "key_file: %s\ncert_file: %s\n",
+              key_file, cert_file);
+  GNUNET_free (cert_file);
+  GNUNET_free (key_file);
   if (rv < 0)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
