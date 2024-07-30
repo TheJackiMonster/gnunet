@@ -246,6 +246,13 @@ struct RequestHandle
    * Error code
    */
   enum GNUNET_ErrorCode ec;
+
+  /**
+   * Sucess http status code
+   * 
+   * Used to communicate happy path status codes to callbacks.
+   */
+  int success_code;
 };
 
 /**
@@ -557,15 +564,17 @@ do_finished (void *cls, enum GNUNET_ErrorCode ec)
 
   handle->op = NULL;
   handle->ec = ec;
-  if (GNUNET_EC_NONE != ec)
+  if (GNUNET_EC_NONE != handle->ec)
   {
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  if (GNUNET_EC_NONE == handle->ec)
-    response_code = MHD_HTTP_NO_CONTENT;
+
+  if (0 != handle->success_code)
+    response_code = handle->success_code;
   else
-    response_code = GNUNET_ErrorCode_get_http_status (ec);
+    response_code = MHD_HTTP_OK;
+
   resp = GNUNET_REST_create_response (NULL);
   handle->proc (handle->proc_cls, resp, response_code);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
@@ -657,6 +666,7 @@ ego_edit (struct RequestHandle *handle, struct EgoEntry *ego_entry)
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_rename (identity_handle,
                                        ego_entry->identifier,
                                        newname,
@@ -840,6 +850,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   else
     pk_ptr = NULL;
   json_decref (data_js);
+  handle->success_code = MHD_HTTP_CREATED;
   handle->op = GNUNET_IDENTITY_create (identity_handle,
                                        handle->name,
                                        pk_ptr,
@@ -883,6 +894,7 @@ ego_delete_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_delete (identity_handle,
                                        ego_entry->identifier,
                                        &do_finished,
@@ -924,6 +936,7 @@ ego_delete_name (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_delete (identity_handle,
                                        ego_entry->identifier,
                                        &do_finished,
