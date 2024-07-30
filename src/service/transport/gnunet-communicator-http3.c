@@ -3188,28 +3188,46 @@ run (void *cls,
     return;
   }
 
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               COMMUNICATOR_CONFIG_SECTION,
-                                               "KEY_FILE",
-                                               &key_file))
+  key_file = NULL;
+  cert_file = NULL;
+  if ((GNUNET_OK !=
+       GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                COMMUNICATOR_CONFIG_SECTION,
+                                                "KEY_FILE",
+                                                &key_file)) ||
+      (GNUNET_OK !=
+       GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                COMMUNICATOR_CONFIG_SECTION,
+                                                "CERT_FILE",
+                                                &cert_file)))
   {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               COMMUNICATOR_CONFIG_SECTION,
-                               "KEY_FILE");
-    return;
-  }
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               COMMUNICATOR_CONFIG_SECTION,
-                                               "CERT_FILE",
-                                               &cert_file))
-  {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               COMMUNICATOR_CONFIG_SECTION,
-                               "CERT_FILE");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Creating new certificate\n");
     GNUNET_free (key_file);
-    return;
+    GNUNET_free (cert_file);
+    key_file = GNUNET_strdup("https.key");
+    cert_file = GNUNET_strdup("https.crt");
+
+    struct GNUNET_OS_Process *cert_creation;
+
+    cert_creation = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+                                             NULL, NULL, NULL,
+                                             "gnunet-transport-certificate-creation",
+                                             "gnunet-transport-certificate-creation",
+                                             key_file,
+                                             cert_file,
+                                             NULL);
+    if (NULL == cert_creation)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Can't create new certificate\n");
+      GNUNET_free (key_file);
+      GNUNET_free (cert_file);
+
+      return;
+    }
+    GNUNET_OS_process_wait (cert_creation);
+    GNUNET_OS_process_destroy (cert_creation);
   }
 
   disable_v6 = GNUNET_NO;
