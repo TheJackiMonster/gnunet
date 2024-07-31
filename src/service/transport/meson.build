@@ -19,6 +19,7 @@ configure_file(input : 'gnunet-transport-certificate-creation.in',
                output : 'gnunet-transport-certificate-creation',
                configuration : cdata,
                install: true,
+               install_mode: 'rwxr-xr-x',
                install_dir: get_option('bindir'))
 
 if get_option('monolith')

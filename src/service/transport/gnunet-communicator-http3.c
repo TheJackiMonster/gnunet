@@ -562,7 +562,7 @@ remove_stream (struct Connection *connection, int64_t stream_id)
                                              stream);
   if (GNUNET_NO == rv)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "can't remove non-exist pair in connection->streams, stream_id = %ld\n",
                 stream_id);
     return;
@@ -827,7 +827,7 @@ connection_destroy (struct Connection *connection)
   rv = GNUNET_CONTAINER_multihashmap_remove (addr_map, &addr_key, connection);
   if (GNUNET_NO == rv)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "tried to remove non-existent connection from addr_map\n");
     return;
   }
@@ -1228,7 +1228,7 @@ http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
                 rv, ntohs (hdr->size), datalen);
     return NGHTTP3_ERR_CALLBACK_FAILURE;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
               rv, ntohs (hdr->size), datalen);
   return 0;
@@ -2314,8 +2314,8 @@ connection_write_streams (struct Connection *connection)
       }
     }
 
-    printf ("ngtcp2_conn_get_streams_bidi_left = %lu\n",
-            ngtcp2_conn_get_streams_bidi_left (connection->conn));
+    // printf ("ngtcp2_conn_get_streams_bidi_left = %lu\n",
+    //        ngtcp2_conn_get_streams_bidi_left (connection->conn));
     flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
     if (fin)
       flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
@@ -3194,19 +3194,19 @@ run (void *cls,
        GNUNET_CONFIGURATION_get_value_filename (cfg,
                                                 COMMUNICATOR_CONFIG_SECTION,
                                                 "KEY_FILE",
-                                                &key_file)) ||
-      (GNUNET_OK !=
-       GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                                COMMUNICATOR_CONFIG_SECTION,
-                                                "CERT_FILE",
-                                                &cert_file)))
+                                                &key_file)))
+    key_file = GNUNET_strdup ("https.key");
+  if   (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                 COMMUNICATOR_CONFIG_SECTION,
+                                                 "CERT_FILE",
+                                                 &cert_file))
+    cert_file = GNUNET_strdup ("https.crt");
+  if ((GNUNET_OK != GNUNET_DISK_file_test(key_file)) ||
+      (GNUNET_OK != GNUNET_DISK_file_test(cert_file)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating new certificate\n");
-    GNUNET_free (key_file);
-    GNUNET_free (cert_file);
-    key_file = GNUNET_strdup("https.key");
-    cert_file = GNUNET_strdup("https.crt");
 
     struct GNUNET_OS_Process *cert_creation;
 
@@ -3220,7 +3220,8 @@ run (void *cls,
     if (NULL == cert_creation)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Can't create new certificate\n");
+                  "Can't create new key pair %s/%s\n",
+                  key_file, cert_file);
       GNUNET_free (key_file);
       GNUNET_free (cert_file);
 
