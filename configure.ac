@@ -925,6 +925,34 @@ AC_DEFINE_UNQUOTED([HAVE_MHD], [$libmhd],
                    [Define to 1 if libmicrohttpd is available])
 AM_CONDITIONAL([HAVE_REST], [true])
 
+# check for ngtcp2
+AC_ARG_WITH([ngtcp2],
+  [AS_HELP_STRING([--with-ngtcp2=PFX],
+                  [base of libngtcp2 installation])],
+  [SAVE_PKG_PATH="$PKG_CONFIG_PATH"
+   PKG_CONFIG_PATH="${withval}/lib/pkgconfig"
+   export PKG_CONFIG_PATH
+   PKG_CHECK_MODULES([NGTCP], [libngtcp2 >= 1.6.0], [libngtcp2=1], [libngtcp2=0])
+   PKG_CHECK_MODULES([NGTCP_CRYPTO], [libngtcp2_crypto_gnutls >= 1.6.0], [libngtcp2_crypto=1], [libngtcp2_crypto=0])
+   PKG_CONFIG_PATH="$SAVE_PKG_PATH"],
+  [PKG_CHECK_MODULES([NGTCP], [libngtcp2 >= 1.6.0], [libngtcp2=1], [libngtcp2=0])
+   PKG_CHECK_MODULES([NGTCP_CRYPTO], [libngtcp2_crypto_gnutls >= 1.6.0], [libngtcp2_crypto=1], [libngtcp2_crypto=0])
+  ])
+AC_ARG_WITH([nghttp3],
+  [AS_HELP_STRING([--with-nghttp3=PFX],
+                  [base of libnghttp3 installation])],
+  [SAVE_PKG_PATH="$PKG_CONFIG_PATH"
+   PKG_CONFIG_PATH="${withval}/lib/pkgconfig"
+   export PKG_CONFIG_PATH
+   PKG_CHECK_MODULES([NGHTTP], [libnghttp3 >= 1.4.0], [libnghttp3=1], [libnghttp3=0])
+   PKG_CONFIG_PATH="$SAVE_PKG_PATH"],
+  [PKG_CHECK_MODULES([NGHTTP], [libnghttp3 >= 1.4.0], [libnghttp3=1], [libnghttp3=0])])
+
+
+
+AM_CONDITIONAL([HAVE_NGHTTP], [test "x$libnghttp3" = "x1" && test "x$libngtcp2" = "x1" && test "x$libngtcp2_crypto" = "x1"])
+AC_DEFINE_UNQUOTED([HAVE_NGHTTP], [$libnghttp3],
+                   [Define to 1 if libnghttp3 is available])
 # check for gnutls
 AC_ARG_WITH([gnutls],
   [AS_HELP_STRING([--with-gnutls=PFX], [base of gnutls installation])],

@@ -97,13 +97,16 @@ libexec_PROGRAMS = \
  gnunet-service-transport \
  gnunet-communicator-unix \
  gnunet-communicator-udp \
- gnunet-communicator-tcp \
- gnunet-communicator-http3
+ gnunet-communicator-tcp
 if HAVE_EXPERIMENTAL
 if HAVE_QUICHE
 libexec_PROGRAMS += \
  gnunet-communicator-quic
 endif
+endif
+if HAVE_NGHTTP
+libexec_PROGRAMS += \
+ gnunet-communicator-http3
 endif
 
 
@@ -167,8 +170,11 @@ gnunet_communicator_quic_LDADD = \
 endif
 endif
 
+if HAVE_NGHTTP
 gnunet_communicator_http3_SOURCES = \
  gnunet-communicator-http3.c
+gnunet_communicator_http3_CFLAGS = \
+  $(NGHTTP_CFLAGS) $(NGTCP_CFLAGS) $(NGTCP_CRYPTO_CFLAGS)
 gnunet_communicator_http3_LDADD = \
   libgnunettransportapplication.la \
   libgnunettransportcommunicator.la \
@@ -176,11 +182,11 @@ gnunet_communicator_http3_LDADD = \
   $(top_builddir)/src/service/nat/libgnunetnatnew.la \
   $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  -lngtcp2 \
-  -lgnutls \
-  -lngtcp2_crypto_gnutls \
-  -lnghttp3 \
+  $(NGTCP_LIBS) \
+  $(NGTCP_CRYPTO_LIBS) \
+  $(NGHTTP_LIBS) \
   $(LIBGCRYPT_LIBS)
+endif
 
 #gnunet_transport_SOURCES = \
 # gnunet-transport.c
@@ -306,13 +312,15 @@ libgnunet_test_transport_plugin_cmd_simple_send_dv_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
 check_PROGRAMS = \
- test_communicator_basic-http3 \
  test_communicator_basic-tcp \
  test_communicator_basic-udp \
  test_communicator_rekey-tcp \
  test_communicator_bidirect-tcp \
  test_communicator_rekey-udp \
  test_communicator_backchannel-udp
+if HAVE_NGHTTP
+ check_PROGRAMS += test_communicator_basic-http3
+endif
 
 if HAVE_EXPERIMENTAL
 check_PROGRAMS += test_communicator_basic-quic \
@@ -371,6 +379,7 @@ test_communicator_basic_quic_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
+if HAVE_NGHTTP
 test_communicator_basic_http3_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_http3_LDADD = \
@@ -378,6 +387,7 @@ test_communicator_basic_http3_LDADD = \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+endif
 
 test_communicator_rekey_tcp_SOURCES = \
  test_communicator_basic.c
