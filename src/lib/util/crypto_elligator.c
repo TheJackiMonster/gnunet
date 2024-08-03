@@ -338,17 +338,18 @@ least_square_root (mp_limb_t *root,
   mpn_cnd_swap (condition, root, a, P_LIMBS);
 }
 
+
 bool
-GNUNET_CRYPTO_ecdhe_elligator_encoding_norand (
+GNUNET_CRYPTO_ecdhe_elligator_encoding (
+  uint8_t random_tweak,
   struct GNUNET_CRYPTO_ElligatorRepresentative *r,
-  uint8_t seed,
   const struct GNUNET_CRYPTO_EcdhePublicKey *pub)
 {
   bool high_y;
   bool msb_set;
   bool smsb_set;
 
-  high_y = seed & 1;
+  high_y = random_tweak & 1;
 
   uint8_t *representative = r->r;
   uint8_t *point = (uint8_t *) pub->q_y;
@@ -398,8 +399,8 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding_norand (
   encode_bytes (representative, b);
 
   // Setting most significant bit and second most significant bit randomly
-  msb_set = (seed >> 1) & 1;
-  smsb_set = (seed >> 2) & 1;
+  msb_set = (random_tweak >> 1) & 1;
+  smsb_set = (random_tweak >> 2) & 1;
   if (msb_set)
   {
     r->r[31] |= 128;
@@ -409,20 +410,6 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding_norand (
     r->r[31] |= 64;
   }
   return result;
-}
-
-bool
-GNUNET_CRYPTO_ecdhe_elligator_encoding (
-  struct GNUNET_CRYPTO_ElligatorRepresentative *r,
-  const struct GNUNET_CRYPTO_EcdhePublicKey *pub)
-{
-  uint8_t random_tweak;
-
-
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
-                              &random_tweak,
-                              sizeof(uint8_t));
-  return GNUNET_CRYPTO_ecdhe_elligator_encoding_norand(r, random_tweak, pub);
 }
 
 
@@ -599,7 +586,7 @@ convert_from_ed_to_curve (uint8_t *point,
 
 static enum GNUNET_GenericReturnValue
 elligator_generate_public_key (
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *pk,
+  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *pk,
   struct GNUNET_CRYPTO_EcdhePublicKey *pub)
 {
   // eHigh
@@ -628,8 +615,9 @@ elligator_generate_public_key (
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdhe_elligator_key_get_public (
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
+GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (
+  uint8_t random_tweak,
+  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *sk,
   struct GNUNET_CRYPTO_EcdhePublicKey *pk,
   struct GNUNET_CRYPTO_ElligatorRepresentative *repr)
 {
@@ -641,16 +629,36 @@ GNUNET_CRYPTO_ecdhe_elligator_key_get_public (
 
   if (NULL == repr)
     return GNUNET_OK;
-  if (! GNUNET_CRYPTO_ecdhe_elligator_encoding (repr,
+  if (! GNUNET_CRYPTO_ecdhe_elligator_encoding (random_tweak,
+                                                repr,
                                                 &pub))
     return GNUNET_SYSERR;
+  memcpy (pk->q_y, pub.q_y, sizeof(pk->q_y));
   return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdhe_elligator_key_get_public (
+  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *sk,
+  struct GNUNET_CRYPTO_EcdhePublicKey *pk,
+  struct GNUNET_CRYPTO_ElligatorRepresentative *repr)
+{
+  uint8_t random_tweak;
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                              &random_tweak,
+                              sizeof(uint8_t));
+
+  return GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (random_tweak,
+                                                              sk,
+                                                              pk,
+                                                              repr);
 }
 
 
 void
 GNUNET_CRYPTO_ecdhe_elligator_key_create (
-  struct GNUNET_CRYPTO_EcdhePrivateKey *sk)
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *sk)
 {
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePublicKey pk;
@@ -659,7 +667,8 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
   {
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                                 sk,
-                                sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
+                                sizeof (struct
+                                        GNUNET_CRYPTO_ElligatorEcdhePrivateKey));
     if (GNUNET_OK == GNUNET_CRYPTO_ecdhe_elligator_key_get_public (sk, &pk,
                                                                    &repr))
       break;

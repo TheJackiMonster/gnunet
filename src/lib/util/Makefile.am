@@ -31,6 +31,13 @@ test_common_logging_dummy_SOURCES = \
 test_common_logging_dummy_LDADD = \
  libgnunetutil.la
 
+gnunet_elligator_tvg_SOURCES = \
+  gnunet-elligator-tvg.c 
+gnunet_elligator_tvg_LDADD = \
+  libgnunetutil.la \
+  -lsodium \
+  $(LIBGCRYPT_LIBS)
+
 libgnunetutil_la_SOURCES = \
   bandwidth.c \
   $(BENCHMARK) \
@@ -242,15 +249,14 @@ check_PROGRAMS = \
  test_uri \
  $(BENCHMARKS) \
  test_os_start_process \
- test_common_logging_runtime_loglevels
+ test_common_logging_runtime_loglevels \
+ gnunet-elligator-tvg
 
 test_child_management_SOURCES = \
   test_child_management.c
 test_child_management_LDADD = \
   libgnunetutil.la \
   $(XLIB)
-
-
 
 # Declare .nc (NO-CONCURRENCY) as a test extension so that we can impart
 # sequential execution order for them

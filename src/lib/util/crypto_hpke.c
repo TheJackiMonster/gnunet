@@ -421,21 +421,27 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
 
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (
+  uint8_t random_tweak,
   const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
   struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *skE,
   struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pkE;
   // skE, pkE = GenerateElligatorKeyPair()
   // enc = SerializePublicKey(pkE) == c is the elligator representative
-  GNUNET_CRYPTO_ecdhe_elligator_key_get_public (
-    skE, &pkE,
-    (struct GNUNET_CRYPTO_ElligatorRepresentative*) c);
+  GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (random_tweak,
+                                                       skE,
+                                                       &pkE,
+                                                       (struct
+                                                        GNUNET_CRYPTO_ElligatorRepresentative
+                                                        *) c);
 
   return kem_encaps_norand (GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
                             sizeof GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
-                            pkR, c, skE, shared_secret);
+                            pkR, c, (const struct
+                                     GNUNET_CRYPTO_EcdhePrivateKey*) skE,
+                            shared_secret);
 }
 
 
@@ -445,12 +451,17 @@ GNUNET_CRYPTO_hpke_elligator_kem_encaps (
   struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *shared_secret)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey skE;
+  uint8_t random_tweak;
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                              &random_tweak,
+                              sizeof(uint8_t));
+
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skE;
 
   // skE, pkE = GenerateElligatorKeyPair()
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&skE);
 
-  return GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (pkR, c,
+  return GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (random_tweak, pkR, c,
                                                          &skE, shared_secret);
 }
 
@@ -496,7 +507,7 @@ GNUNET_CRYPTO_hpke_elligator_authkem_encaps_norand (
   const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
   const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
   struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *skE,
+  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *skE,
   struct GNUNET_ShortHashCode *shared_secret)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pkE;
@@ -509,7 +520,10 @@ GNUNET_CRYPTO_hpke_elligator_authkem_encaps_norand (
   return authkem_encaps_norand (GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID,
                                 sizeof GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID
                                 ,
-                                pkR, skS, c, skE, shared_secret);
+                                pkR, skS, c,
+                                (const struct
+                                 GNUNET_CRYPTO_EcdhePrivateKey*) skE,
+                                shared_secret);
 }
 
 
@@ -520,7 +534,7 @@ GNUNET_CRYPTO_hpke_elligator_authkem_encaps (
   struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *shared_secret)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey skE;
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skE;
   // skE, pkE = GenerateElligatorKeyPair()
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&skE);
 
@@ -681,10 +695,17 @@ GNUNET_CRYPTO_hpke_sender_setup2 (
     else if (kem ==
              GNUNET_CRYPTO_HPKE_KEM_DH_X25519ELLIGATOR_HKDF256)
     {
+      uint8_t random_tweak;
+      GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                                  &random_tweak,
+                                  sizeof(uint8_t));
       if (GNUNET_OK !=
-          GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (pkR,
+          GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (random_tweak,
+                                                          pkR,
                                                           enc,
-                                                          skE,
+                                                          (struct
+                                                           GNUNET_CRYPTO_ElligatorEcdhePrivateKey
+                                                           *) skE,
                                                           &shared_secret))
         return GNUNET_SYSERR;
     }
