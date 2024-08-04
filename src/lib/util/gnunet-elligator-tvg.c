@@ -23,19 +23,11 @@
  * @brief Generate test vectors for Elligator.
  * @author Pedram Fardzadeh
  */
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
 #include <stdio.h>
 #include <sodium.h>
-
-static void
-print_bytes_one_line (void *buf, size_t buf_len)
-{
-  for (int i = 0; i < buf_len; i++)
-    printf ("%02x", ((unsigned char*) buf)[i]);
-  printf ("\n");
-}
-
 
 static uint8_t seed = 6; // only three least significant bits, rest will be ignored.
 
@@ -112,19 +104,19 @@ main (int argc,
                                                   &key);
 
   // print all
-  printf ("coin flip 1:\n%d\n", (seed) & 1); // high_y
-  printf ("coin flip 2:\n%d\n", (seed >> 1) & 1); // most significant bit (msb)
-  printf ("coin flip 3:\n%d\n", (seed >> 2) & 1); // second msb
-  printf ("pkEm:\n");
-  print_bytes_one_line (pkEm.q_y,sizeof(pkEm.q_y));
-  printf ("skEm:\n");
-  print_bytes_one_line (skEm.d,sizeof(skEm.d));
-  printf ("skRm:\n");
-  print_bytes_one_line (skRm.d,sizeof(skRm.d));
-  printf ("pkRm:\n");
-  print_bytes_one_line (pkRm.q_y,sizeof(pkRm.q_y));
-  printf ("enc:\n");
-  print_bytes_one_line (enc.r,sizeof(enc.r));
-  printf ("key:\n");
-  print_bytes_one_line (key.bits,sizeof(key.bits));
+  printf ("coin flip 1: %d\n", (seed) & 1); // high_y
+  printf ("coin flip 2: %d\n", (seed >> 1) & 1); // most significant bit (msb)
+  printf ("coin flip 3: %d\n", (seed >> 2) & 1); // second msb
+  printf ("pkEm: ");
+  GNUNET_print_bytes(pkEm.q_y, sizeof(pkEm.q_y), 0, 0);
+  printf ("skEm: ");
+  GNUNET_print_bytes(skEm.d, sizeof(skEm.d), 0, 0);
+  printf ("skRm: ");
+  GNUNET_print_bytes(skRm.d, sizeof(skRm.d), 0, 0);
+  printf ("pkRm: ");
+  GNUNET_print_bytes(pkEm.q_y, sizeof(pkRm.q_y), 0, 0);
+  printf ("enc: ");
+  GNUNET_print_bytes(enc.r, sizeof(enc.r), 0, 0);
+  printf ("key: ");
+  GNUNET_print_bytes(key.bits, sizeof(key.bits), 0, 0);
 }

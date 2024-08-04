@@ -104,11 +104,11 @@ pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')
 
 
-#executable ('gnunet-elligator-tvg',
-#            ['gnunet-elligator-tvg.c'],
-#            dependencies: [libgnunetutil_dep],
-#            include_directories: [incdir, configuration_inc],
-#            install: false)
+executable ('gnunet-elligator-tvg',
+            ['gnunet-elligator-tvg.c'],
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
 
 
 logging_dummy = executable ('test_common_logging_dummy',
