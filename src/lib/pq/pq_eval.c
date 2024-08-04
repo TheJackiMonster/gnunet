@@ -227,7 +227,10 @@ GNUNET_PQ_eval_prepared_singleton_select (
   }
   if (1 != ntuples)
   {
-    /* more than one result, but there must be at most one */
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Statement %s returned more than one result, but there must be at most one when using %s\n",
+                statement_name,
+                __FUNCTION__);
     GNUNET_break (0);
     PQclear (result);
     return GNUNET_DB_STATUS_HARD_ERROR;
