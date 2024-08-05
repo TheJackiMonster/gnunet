@@ -195,6 +195,7 @@ src/lib/util/dnsparser.c
 src/lib/util/dnsstub.c
 src/lib/util/getopt.c
 src/lib/util/getopt_helpers.c
+src/lib/util/gnunet-elligator-tvg.c
 src/lib/util/gnunet_error_codes.c
 src/lib/util/helper.c
 src/lib/util/load.c
@@ -290,6 +291,8 @@ src/service/datacache/datacache.c
 src/service/datastore/datastore_api.c
 src/service/datastore/gnunet-service-datastore.c
 src/service/dht/dht_api.c
+src/service/dht/dht_helper.c
+src/service/dht/gnunet-dht-tvg.c
 src/service/dht/gnunet-service-dht.c
 src/service/dht/gnunet-service-dht_clients.c
 src/service/dht/gnunet-service-dht_datacache.c
