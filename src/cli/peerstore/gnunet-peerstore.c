@@ -24,6 +24,9 @@
  * @author Omar Tarabai
  */
 #include "gnunet_common.h"
+#include "gnunet_dht_service.h"
+#include "gnunet_scheduler_lib.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_util_lib.h"
@@ -45,6 +48,8 @@ static struct GNUNET_PeerIdentity my_full_id;
 static int export_own_hello_uri;
 
 static int print_hellos;
+
+static char *import_uri;
 
 /**
  * Run on shutdown
@@ -114,6 +119,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
       printf ("%s\n", url);
       GNUNET_free (url);
       GNUNET_PEERSTORE_iteration_stop (iter_ctx);
+      GNUNET_HELLO_builder_free (hb);
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
@@ -123,7 +129,20 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     printf ("`%s':\n", GNUNET_i2s (pid));
     GNUNET_HELLO_builder_iterate (hb, &print_hello_addrs, NULL);
   }
+  GNUNET_HELLO_builder_free (hb);
   GNUNET_PEERSTORE_iteration_next (iter_ctx, 1);
+}
+
+
+static void
+hello_store_success (void *cls, int success)
+{
+  if (GNUNET_OK != success)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Storing hello uri failed\n");
+  }
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -141,18 +160,30 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
+  struct GNUNET_HELLO_Builder *hb;
+  struct GNUNET_MQ_Envelope *env;
 
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
                                  NULL);
-  if (!print_hellos && !export_own_hello_uri)
+  peerstore_handle = GNUNET_PEERSTORE_connect (cfg);
+  GNUNET_assert (NULL != peerstore_handle);
+  if (NULL != import_uri)
+  {
+    hb = GNUNET_HELLO_builder_from_url (import_uri);
+    env = GNUNET_HELLO_builder_to_env (hb, NULL, GNUNET_TIME_UNIT_ZERO);
+    GNUNET_PEERSTORE_hello_add (peerstore_handle,
+                                GNUNET_MQ_env_get_msg (env),
+                                &hello_store_success, NULL);
+    GNUNET_HELLO_builder_free (hb);
+    return;
+  }
+  if (! print_hellos && ! export_own_hello_uri)
   {
     fprintf (stderr, "No arguments provided\n");
-    GNUNET_SCHEDULER_shutdown();
+    GNUNET_SCHEDULER_shutdown ();
     ret = 1;
     return;
   }
-  peerstore_handle = GNUNET_PEERSTORE_connect (cfg);
-  GNUNET_assert (NULL != peerstore_handle);
   my_private_key =
     GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
   GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
@@ -179,12 +210,19 @@ main (int argc, char *const *argv)
 {
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_flag ('H',
-                               "hello-uri",
-                               gettext_noop ("Print a HELLO URI for our peer identity"),
+                               "export-hello-uri",
+                               gettext_noop (
+                                 "Print a HELLO URI for our peer identity"),
                                &export_own_hello_uri),
+    GNUNET_GETOPT_option_string ('I',
+                                 "import-hello",
+                                 gettext_noop ("Import a HELLO URI"),
+                                 "URI",
+                                 &import_uri),
     GNUNET_GETOPT_option_flag ('D',
                                "dump",
-                               gettext_noop ("List all known HELLOs in peerstore"),
+                               gettext_noop (
+                                 "List all known HELLOs in peerstore"),
                                &print_hellos),
     GNUNET_GETOPT_OPTION_END
   };
