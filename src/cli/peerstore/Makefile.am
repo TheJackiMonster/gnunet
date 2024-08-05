@@ -12,12 +12,13 @@ if USE_COVERAGE
 endif
 
 # This program does not do anything.
-noinst_PROGRAMS = \
+bin_PROGRAMS = \
  gnunet-peerstore
 
 gnunet_peerstore_SOURCES = \
  gnunet-peerstore.c
 gnunet_peerstore_LDADD = \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(GN_LIBINTL)
