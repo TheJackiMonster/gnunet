@@ -113,7 +113,7 @@ main (int argc,
   printf ("skRm: ");
   GNUNET_print_bytes (skRm.d, sizeof(skRm.d), 0, 0);
   printf ("pkRm: ");
-  GNUNET_print_bytes (pkEm.q_y, sizeof(pkRm.q_y), 0, 0);
+  GNUNET_print_bytes (pkRm.q_y, sizeof(pkRm.q_y), 0, 0);
   printf ("enc: ");
   GNUNET_print_bytes (enc.r, sizeof(enc.r), 0, 0);
   printf ("key: ");

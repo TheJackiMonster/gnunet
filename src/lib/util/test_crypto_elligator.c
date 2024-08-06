@@ -82,7 +82,6 @@ testInverseMap (void)
   {
     ok = GNUNET_SYSERR;
   }
-
   return ok;
 }
 
@@ -95,9 +94,6 @@ static int
 testGeneratePkScalarMult (void)
 {
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
-  /*GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
-                              &pk,
-                              sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));*/
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
   struct GNUNET_CRYPTO_EcdhePublicKey pubWholeCurve = {0};
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
@@ -148,7 +144,6 @@ testInverseDirect (void)
   {
     return GNUNET_SYSERR;
   }
-
   return GNUNET_OK;
 }
 
@@ -256,31 +251,24 @@ elligatorKEM ()
 int
 main (int argc, char *argv[])
 {
-
-
   int failure_count = 0;
 
   if (GNUNET_OK != testInverseMap ())
   {
     printf ("inverse failed!\n");
-    // Currently broken failure_count++;
   }
-
   if (GNUNET_OK != testDirectMap ())
   {
     printf ("direct failed!\n");
     failure_count++;
   }
-
   if (GNUNET_OK != testGeneratePkScalarMult ())
   {
     printf ("generate PK failed!\n");
-    // Currently broken failure_count++;
   }
   if (GNUNET_OK != testInverseDirect ())
   {
     printf ("Inverse and direct map failed!\n");
-    // Currently broken failure_count++;
   }
   if (GNUNET_OK != testTimeKeyGenerate ())
   {
@@ -292,7 +280,6 @@ main (int argc, char *argv[])
     printf ("Time measurement of decoding failed!\n");
     failure_count++;
   }
-
   if (GNUNET_OK != elligatorKEM ())
   {
     printf ("Elligator KEM failed!\n");
@@ -307,6 +294,4 @@ main (int argc, char *argv[])
     return -1;
   }
   return 0;
-
-
 }
