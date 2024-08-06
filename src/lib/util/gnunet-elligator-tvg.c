@@ -78,13 +78,12 @@ main (int argc,
   struct GNUNET_CRYPTO_EddsaPrivateKey skRm;
   struct GNUNET_CRYPTO_EddsaPublicKey pkRm;
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skEm;
-  memcpy (skRm.d, skEmBytes, sizeof(skRm.d));
+  memcpy (skRm.d, skRmBytes, sizeof(skRm.d));
   memcpy (pkRm.q_y, pkRmBytes, sizeof(pkRm.q_y));
   memcpy (skEm.d, skEmBytes, sizeof(skEm.d));
 
   // compute special elligator public key "pkEm" and representative "enc" deterministically
   struct GNUNET_CRYPTO_EcdhePublicKey pkEm = {0};
-  struct GNUNET_CRYPTO_ElligatorRepresentative encRand = {0}; // value ignored
   struct GNUNET_CRYPTO_ElligatorRepresentative enc = {0}; // randomness through seed
   GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (seed,
                                                        &skEm,
@@ -108,15 +107,15 @@ main (int argc,
   printf ("coin flip 2: %d\n", (seed >> 1) & 1); // most significant bit (msb)
   printf ("coin flip 3: %d\n", (seed >> 2) & 1); // second msb
   printf ("pkEm: ");
-  GNUNET_print_bytes(pkEm.q_y, sizeof(pkEm.q_y), 0, 0);
+  GNUNET_print_bytes (pkEm.q_y, sizeof(pkEm.q_y), 0, 0);
   printf ("skEm: ");
-  GNUNET_print_bytes(skEm.d, sizeof(skEm.d), 0, 0);
+  GNUNET_print_bytes (skEm.d, sizeof(skEm.d), 0, 0);
   printf ("skRm: ");
-  GNUNET_print_bytes(skRm.d, sizeof(skRm.d), 0, 0);
+  GNUNET_print_bytes (skRm.d, sizeof(skRm.d), 0, 0);
   printf ("pkRm: ");
-  GNUNET_print_bytes(pkEm.q_y, sizeof(pkRm.q_y), 0, 0);
+  GNUNET_print_bytes (pkEm.q_y, sizeof(pkRm.q_y), 0, 0);
   printf ("enc: ");
-  GNUNET_print_bytes(enc.r, sizeof(enc.r), 0, 0);
+  GNUNET_print_bytes (enc.r, sizeof(enc.r), 0, 0);
   printf ("key: ");
-  GNUNET_print_bytes(key.bits, sizeof(key.bits), 0, 0);
+  GNUNET_print_bytes (key.bits, sizeof(key.bits), 0, 0);
 }

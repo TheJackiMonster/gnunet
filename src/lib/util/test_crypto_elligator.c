@@ -94,11 +94,11 @@ testInverseMap (void)
 static int
 testGeneratePkScalarMult (void)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
+  /*GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &pk,
-                              sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));
-
+                              sizeof (struct GNUNET_CRYPTO_EcdhePrivateKey));*/
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
   struct GNUNET_CRYPTO_EcdhePublicKey pubWholeCurve = {0};
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   unsigned char pubPrimeCurve[crypto_scalarmult_SCALARBYTES];
@@ -132,7 +132,7 @@ testInverseDirect (void)
 {
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePublicKey point;
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
 
   struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
@@ -163,7 +163,7 @@ testInverseDirect (void)
 static int
 testTimeKeyGenerate (void)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
 
@@ -190,7 +190,7 @@ testTimeDecoding (void)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey point;
   struct GNUNET_CRYPTO_ElligatorRepresentative repr[ITER];
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk;
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
 
@@ -257,7 +257,7 @@ int
 main (int argc, char *argv[])
 {
 
-  /**
+
   int failure_count = 0;
 
   if (GNUNET_OK != testInverseMap ())
@@ -265,11 +265,13 @@ main (int argc, char *argv[])
     printf ("inverse failed!\n");
     // Currently broken failure_count++;
   }
+
   if (GNUNET_OK != testDirectMap ())
   {
     printf ("direct failed!\n");
     failure_count++;
   }
+
   if (GNUNET_OK != testGeneratePkScalarMult ())
   {
     printf ("generate PK failed!\n");
@@ -306,5 +308,5 @@ main (int argc, char *argv[])
   }
   return 0;
 
-  **/
+
 }
