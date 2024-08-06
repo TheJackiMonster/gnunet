@@ -20,7 +20,7 @@ gnunet_core_SOURCES = \
 gnunet_core_LDADD = \
   $(top_builddir)/src/service/core/libgnunetcore.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/lib/hello/libgnunethello.la
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
 gnunet_core_LDFLAGS = \
   $(GN_LIBINTL)
