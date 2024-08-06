@@ -32,6 +32,9 @@
 .Op Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
 .Op Fl h | -help
 .Op Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
+.Op Fl I Ar HELLOURI | Fl -import-hello= Ns Ar HELLOURI
+.Op Fl H | -export-hello
+.Op Fl D | -dump-hellos
 .Op Fl m | -monitor
 .Op Fl v | -version
 .Op Fl V | -verbose
@@ -47,6 +50,13 @@ Print the help page.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
 Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
+.It Fl I Ar HELLOURI | Fl -import-hello= Ns Ar HELLOURI
+Import a HELLO URI (into the peerstore and make it available to core).
+.It Fl H | -export-hello
+Print a freshly signed HELLO URI for our peer.
+.It Fl D | -dump-hellos
+Print all known HELLOs (peer IDs and addresses).
+These are only all known, and not necessarily connected peers.
 .It Fl m | -monitor
 In monitor mode, gnunet-core will continuously print the connection status,
 instead of giving just a snapshot.
