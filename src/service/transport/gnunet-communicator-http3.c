@@ -196,6 +196,27 @@ struct Stream
 };
 
 /**
+ *  Message to send using http
+ */
+struct HTTP_Message
+{
+  /**
+   * next pointer for double linked list
+   */
+  struct HTTP_Message *next;
+
+  /**
+   * buffer containing data to send
+   */
+  char *buf;
+
+  /**
+   * buffer length
+   */
+  size_t size;
+};
+
+/**
  * Information of the connection with peer.
  */
 struct Connection
@@ -309,6 +330,16 @@ struct Connection
    * The length of conn_closebuf;
    */
   ngtcp2_ssize conn_closebuflen;
+
+  /**
+   * head pointer of message queue.
+   */
+  struct HTTP_Message *msg_queue_head;
+
+  /**
+   * rear pointer of message queue.
+   */
+  struct HTTP_Message *msg_queue_rear;
 };
 
 
@@ -852,8 +883,20 @@ static void
 connection_destroy (struct Connection *connection)
 {
   struct GNUNET_HashCode addr_key;
+  struct HTTP_Message *curr;
+  struct HTTP_Message *temp;
   int rv;
   connection->connection_destroy_called = GNUNET_YES;
+
+  curr = connection->msg_queue_head;
+  connection->msg_queue_rear = NULL;
+  while (NULL != curr)
+  {
+    temp = curr;
+    curr = curr->next;
+    GNUNET_free (curr->buf);
+    GNUNET_free (curr);
+  }
 
   if (NULL != connection->d_qh)
   {
@@ -955,8 +998,6 @@ submit_post_request (struct Connection *connection,
   nghttp3_data_reader dr = {};
   int rv;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "submit_post: stream_id = %ld\n",
-              stream->stream_id);
   GNUNET_snprintf (contentlen, sizeof(contentlen), "%zu", datalen);
   stream->data = (uint8_t *) data;
   stream->datalen = datalen;
@@ -998,6 +1039,44 @@ submit_post_request (struct Connection *connection,
 }
 
 
+static int
+submit_get_request (struct Connection *connection,
+                    struct Stream *stream)
+{
+  nghttp3_nv nva[6];
+  int rv;
+
+  nva[0] = make_nv (":method", "GET",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[1] = make_nv (":scheme", "https",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[2] = make_nv (":authority",
+                    GNUNET_a2s (connection->address, connection->address_len),
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME);
+  nva[3] = make_nv (":path", "/",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[4] = make_nv ("user-agent", "nghttp3/ngtcp2 client",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+
+  rv = nghttp3_conn_submit_request (connection->h3_conn,
+                                    stream->stream_id,
+                                    nva, 5, NULL, stream);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_submit_request: %s\n",
+                nghttp3_strerror (rv));
+    return GNUNET_SYSERR;
+  }
+
+  return GNUNET_NO;
+}
+
+
 /**
  * Make response to the request.
  *
@@ -1009,8 +1088,14 @@ submit_post_request (struct Connection *connection,
 static int
 stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
 {
-  nghttp3_nv nva[2];
+  nghttp3_nv nva[4];
+  char content_length_str[20];
+  nghttp3_data_reader dr = {};
+  struct Connection *connection;
+  struct HTTP_Message *msg;
   int rv;
+
+  connection = stream->connection;
 
   nva[0] = make_nv (":status", "200",
                     NGHTTP3_NV_FLAG_NO_COPY_NAME
@@ -1019,19 +1104,68 @@ stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
                     NGHTTP3_NV_FLAG_NO_COPY_NAME
                     | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
 
-  rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
-                                     nva, 2, NULL);
-  if (0 != rv)
+  // method is POST
+  if (4 == stream->methodlen)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "nghttp3_conn_submit_response: %s\n",
-                nghttp3_strerror (rv));
-    return GNUNET_SYSERR;
+    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+                                       nva, 2, NULL);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_submit_response: %s\n",
+                  nghttp3_strerror (rv));
+      return GNUNET_SYSERR;
+    }
   }
+  // method is GET and have data to be sent.
+  else if (NULL != connection->msg_queue_head)
+  {
+    msg = connection->msg_queue_head;
+    connection->msg_queue_head = msg->next;
 
-  ngtcp2_conn_shutdown_stream_read (stream->connection->conn, 0,
-                                    stream->stream_id,
-                                    NGHTTP3_H3_NO_ERROR);
+    GNUNET_snprintf (content_length_str, sizeof(content_length_str),
+                     "%zu", msg->size);
+    nva[2] = make_nv ("content-type", "application/octet-stream",
+                      NGHTTP3_NV_FLAG_NO_COPY_NAME
+                      | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+    nva[3] = make_nv ("content-length", content_length_str,
+                      NGHTTP3_NV_FLAG_NO_COPY_NAME);
+
+    stream->data = (uint8_t *) msg->buf;
+    stream->datalen = msg->size;
+    dr.read_data = read_data;
+    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+                                       nva, 4, &dr);
+    // GNUNET_free (msg->buf);
+    // GNUNET_free (msg);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_submit_response: %s\n",
+                  nghttp3_strerror (rv));
+      return GNUNET_SYSERR;
+    }
+  }
+  // method is GET and no data to be sent.
+  else
+  {
+    nva[0] = make_nv (":status", "404",
+                      NGHTTP3_NV_FLAG_NO_COPY_NAME
+                      | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+
+    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+                                       nva, 2, NULL);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "nghttp3_conn_submit_response: %s\n",
+                  nghttp3_strerror (rv));
+      return GNUNET_SYSERR;
+    }
+    ngtcp2_conn_shutdown_stream_read (stream->connection->conn, 0,
+                                      stream->stream_id,
+                                      NGHTTP3_H3_NO_ERROR);
+  }
   return GNUNET_NO;
 }
 
@@ -1051,9 +1185,13 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 {
   struct Connection *connection = impl_state;
   uint16_t msize = ntohs (msg->size);
-  struct Stream *stream;
+  struct Stream *post_stream;
+  struct Stream *get_stream;
   int rv;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "mq_send_d: init = %d, msg->size = %u\n",
+              connection->is_initiator, msize);
   if (NULL == connection->conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1080,12 +1218,36 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   reschedule_peer_timeout (connection);
 
-  stream = create_stream (connection, -1);
-  rv = ngtcp2_conn_open_bidi_stream (connection->conn,
-                                     &stream->stream_id,
-                                     NULL);
-  submit_post_request (connection, stream, (uint8_t *) msg, msize);
-  connection_write (connection);
+  // If we are client side.
+  if (GNUNET_YES == connection->is_initiator)
+  {
+    get_stream = create_stream (connection, -1);
+    rv = ngtcp2_conn_open_bidi_stream (connection->conn,
+                                       &get_stream->stream_id,
+                                       NULL);
+    submit_get_request (connection, get_stream);
+
+    post_stream = create_stream (connection, -1);
+    rv = ngtcp2_conn_open_bidi_stream (connection->conn,
+                                       &post_stream->stream_id,
+                                       NULL);
+    submit_post_request (connection, post_stream, (uint8_t *) msg, msize);
+    connection_write (connection);
+  }
+  // If we are server side.
+  else
+  {
+    struct HTTP_Message *send_buf =
+      (struct HTTP_Message *) malloc (sizeof (struct HTTP_Message));
+    send_buf->size = msize;
+    send_buf->buf = GNUNET_memdup (msg, msize);
+    send_buf->next = connection->msg_queue_head;
+    connection->msg_queue_head = send_buf;
+    if (NULL == connection->msg_queue_rear)
+    {
+      connection->msg_queue_rear = send_buf;
+    }
+  }
   GNUNET_MQ_impl_send_continue (mq);
 }
 
@@ -1158,6 +1320,9 @@ mq_error (void *cls, enum GNUNET_MQ_Error error)
 static void
 setup_connection_mq (struct Connection *connection)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "setup_connection_mq: init = %u\n",
+              connection->is_initiator);
   size_t base_mtu;
 
   switch (connection->address->sa_family)
@@ -1271,6 +1436,7 @@ http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
     pid = (struct GNUNET_PeerIdentity *) data;
     connection->target = *pid;
     connection->id_rcvd = GNUNET_YES;
+    setup_connection_mq (connection);
 
     return GNUNET_NO;
   }
@@ -1285,13 +1451,13 @@ http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
   if (GNUNET_YES != rv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
-                rv, ntohs (hdr->size), datalen);
+                "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu, init = %d\n",
+                rv, ntohs (hdr->size), datalen, connection->is_initiator);
     return NGHTTP3_ERR_CALLBACK_FAILURE;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu\n",
-              rv, ntohs (hdr->size), datalen);
+              "GNUNET_TRANSPORT_communicator_receive:%d, hdr->len = %u, datalen = %lu, init = %d\n",
+              rv, ntohs (hdr->size), datalen, connection->is_initiator);
   return 0;
 }
 

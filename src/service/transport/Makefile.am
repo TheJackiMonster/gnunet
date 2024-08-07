@@ -320,6 +320,7 @@ check_PROGRAMS = \
  test_communicator_backchannel-udp
 if HAVE_NGHTTP
  check_PROGRAMS += test_communicator_basic-http3
+ check_PROGRAMS += test_communicator_bidirect-http3
 endif
 
 if HAVE_EXPERIMENTAL
@@ -383,6 +384,14 @@ if HAVE_NGHTTP
 test_communicator_basic_http3_SOURCES = \
  test_communicator_basic.c
 test_communicator_basic_http3_LDADD = \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+
+test_communicator_bidirect_http3_SOURCES = \
+ test_communicator_basic.c
+test_communicator_bidirect_http3_LDADD = \
  libgnunettestingtransport.la \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
