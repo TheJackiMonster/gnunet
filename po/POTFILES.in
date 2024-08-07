@@ -14,6 +14,7 @@ src/cli/fs/gnunet-publish.c
 src/cli/fs/gnunet-search.c
 src/cli/fs/gnunet-unindex.c
 src/cli/gns/gnunet-gns.c
+src/cli/hello/gnunet-hello.c
 src/cli/identity/gnunet-identity.c
 src/cli/messenger/gnunet-messenger.c
 src/cli/namecache/gnunet-namecache.c
@@ -25,7 +26,6 @@ src/cli/nat-auto/gnunet-nat-auto.c
 src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
 src/cli/nse/gnunet-nse.c
-src/cli/peerstore/gnunet-peerstore.c
 src/cli/reclaim/gnunet-did.c
 src/cli/reclaim/gnunet-reclaim.c
 src/cli/revocation/gnunet-revocation-tvg.c
@@ -110,7 +110,6 @@ src/lib/gnsrecord/gnsrecord_pow.c
 src/lib/gnsrecord/gnsrecord_serialization.c
 src/lib/gnsrecord/gnunet-gnsrecord-tvg.c
 src/lib/gnsrecord/json_gnsrecord.c
-src/lib/hello/gnunet-hello.c
 src/lib/hello/hello-ng.c
 src/lib/hello/hello-uri.c
 src/lib/json/json.c

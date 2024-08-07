@@ -30,6 +30,7 @@ install_man(
   'gnunet-gns.1',
   'gnunet-gns-proxy.1',
   'gnunet-gns-proxy-setup-ca.1',
+  'gnunet-hello.1',
   'gnunet-identity.1',
   'gnunet-cadet.1',
   'gnunet-messenger.1',

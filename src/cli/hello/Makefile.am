@@ -13,12 +13,13 @@ if USE_COVERAGE
 endif
 
 bin_PROGRAMS = \
- gnunet-core
+ gnunet-hello
 
-gnunet_core_SOURCES = \
- gnunet-core.c
-gnunet_core_LDADD = \
-  $(top_builddir)/src/service/core/libgnunetcore.la \
+gnunet_hello_SOURCES = \
+ gnunet-hello.c
+gnunet_hello_LDADD = \
+  $(top_builddir)/src/lib/hello/libgnunethello.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
-gnunet_core_LDFLAGS = \
+gnunet_hello_LDFLAGS = \
   $(GN_LIBINTL)

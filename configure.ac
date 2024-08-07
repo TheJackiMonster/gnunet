@@ -1322,6 +1322,7 @@ src/cli/datastore/Makefile
 src/cli/dht/Makefile
 src/cli/fs/Makefile
 src/cli/gns/Makefile
+src/cli/hello/Makefile
 src/cli/identity/Makefile
 src/cli/messenger/Makefile
 src/cli/namecache/Makefile

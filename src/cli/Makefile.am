@@ -3,6 +3,7 @@ SUBDIRS = \
 	arm \
 	statistics \
 	core \
+	hello \
 	nat \
 	nat-auto \
 	nse \
