@@ -248,11 +248,11 @@ struct RequestHandle
   enum GNUNET_ErrorCode ec;
 
   /**
-   * Sucess http status code
+   * Success http status code
    * 
    * Used to communicate happy path status codes to callbacks.
    */
-  int success_code;
+  unsigned int success_code;
 };
 
 /**

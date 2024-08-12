@@ -20,7 +20,7 @@
 
 /**
  * @file util/crypto_hpke.c
- * @brief Hybrid Public Key Encryption (HPKE) and Key encapsulation mechnisms (KEMs)
+ * @brief Hybrid Public Key Encryption (HPKE) and Key encapsulation mechanisms (KEMs)
  * @author Martin Schanzenbach
  */
 #include "platform.h"
