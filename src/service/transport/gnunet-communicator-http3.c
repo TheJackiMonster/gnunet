@@ -100,12 +100,12 @@ static int disable_v6;
 static struct GNUNET_NETWORK_Handle *udp_sock;
 
 /**
- *
+ * ID of listen task.
  */
 static struct GNUNET_SCHEDULER_Task *read_task;
 
 /**
- *
+ * Our environment.
  */
 static struct GNUNET_TRANSPORT_CommunicatorHandle *ch;
 
@@ -144,24 +144,55 @@ gnutls_certificate_credentials_t cred;
  */
 struct Stream
 {
-
+  /**
+   * ID of this stream.
+   */
   int64_t stream_id;
 
+  /**
+   * The stream data.
+   */
   uint8_t *data;
+
+  /**
+   * The length of stream data.
+   */
   uint64_t datalen;
 
-  uint32_t sent_offset;
-  uint32_t ack_offset;
+  /**
+   * The connection that stream belongs to.
+   */
   struct Connection *connection;
 
+  /**
+   * The request uri.
+   */
   uint8_t *uri;
+
+  /**
+   * The length of request uri.
+   */
   size_t urilen;
+
+  /**
+   * The request method.
+   */
   uint8_t *method;
+
+  /**
+   * The length of request method.
+   */
   size_t methodlen;
+
+  /**
+   * The request authority.
+   */
   uint8_t *authority;
+
+  /**
+   * The length of request authority.
+   */
   size_t authoritylen;
-  uint8_t *status_resp_body;
-  size_t status_resp_bodylen;
 };
 
 /**
@@ -169,12 +200,29 @@ struct Stream
  */
 struct Connection
 {
+  /**
+   * The QUIC connection.
+   */
   ngtcp2_conn *conn;
+
+  /**
+   * The HTTP/3 connection.
+   */
   nghttp3_conn *h3_conn;
+
+  /**
+   * The connection error.
+   */
   ngtcp2_ccerr last_error;
+
+  /**
+   * The structure to get a pointer to ngtcp2_conn.
+   */
   ngtcp2_crypto_conn_ref conn_ref;
 
-
+  /**
+   * The gnutls session.
+   */
   gnutls_session_t session;
   /**
    * Information of the stream.
@@ -450,6 +498,9 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 }
 
 
+/**
+ * The callback function for ngtcp2_crypto_conn_ref.
+ */
 static ngtcp2_conn*
 get_conn (ngtcp2_crypto_conn_ref *ref)
 {
@@ -514,12 +565,13 @@ send_packet (struct Connection *connection, const uint8_t *data, size_t datalen)
 
 
 /**
+ * Create a new stream of @a connection with @a stream_id.
+ * And return this stream.
  *
+ * @param connection the connection.
+ * @param stream_id the ID of new stream.
  *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @return the pointer to the new stream.
  */
 static struct Stream*
 create_stream (struct Connection *connection, int64_t stream_id)
@@ -541,12 +593,10 @@ create_stream (struct Connection *connection, int64_t stream_id)
 
 
 /**
+ * Remove the stream with the specified @a stream_id in @a connection.
  *
- *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @param connection the connection.
+ * @param stream_id the ID of the stream.
  */
 static void
 remove_stream (struct Connection *connection, int64_t stream_id)
@@ -580,21 +630,19 @@ remove_stream (struct Connection *connection, int64_t stream_id)
   {
     GNUNET_free (stream->authority);
   }
-  if (stream->status_resp_body)
-  {
-    GNUNET_free (stream->status_resp_body);
-  }
   GNUNET_free (stream);
 }
 
 
 /**
+ * Find the stream specified with @a stream_id in @a connection
+ * and return the pointer of the stream, otherwise return NULL if
+ * we can't find this stream.
  *
+ * @param connection the connection.
+ * @param stream_id the ID of the stream.
  *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @return the pointer of stream, or NULL.
  */
 static struct Stream *
 find_stream (struct Connection *connection, int64_t stream_id)
@@ -609,12 +657,12 @@ find_stream (struct Connection *connection, int64_t stream_id)
 
 
 /**
+ * Find @a cid in @a cid_map, and return the Connection.
  *
+ * @param cid the cid.
+ * @param cidlen the length of cid.
  *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @return the connection specified by @a cid.
  */
 static struct Connection *
 cid_map_find (const uint8_t *cid, size_t cidlen)
@@ -630,16 +678,14 @@ cid_map_find (const uint8_t *cid, size_t cidlen)
 
 
 /**
+ * Insert a new @a cid to @a cid_map.
  *
- *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @param cid the cid.
+ * @param cidlen the length of cid.
  */
 static void
-cid_map_insert (const uint8_t *cid, size_t cidlen, struct Connection *connection
-                )
+cid_map_insert (const uint8_t *cid, size_t cidlen,
+                struct Connection *connection)
 {
   struct GNUNET_HashCode cid_key;
 
@@ -652,12 +698,10 @@ cid_map_insert (const uint8_t *cid, size_t cidlen, struct Connection *connection
 
 
 /**
+ * Remove the @a cid in @a cid_map.
  *
- *
- * @param connection
- * @param stream_id
- *
- * @return
+ * @param cid the cid.
+ * @param cidlen the length of cid.
  */
 static void
 cid_map_erase (const uint8_t *cid, size_t cidlen)
@@ -743,8 +787,8 @@ client_gnutls_init (struct Connection *connection)
    * TODO: Handle the situation when the remote host is an IP address.
    * Numeric ip address are not permitted according to the document of GNUtls.
    */
-  gnutls_server_name_set (connection->session, GNUTLS_NAME_DNS, "localhost",
-                          strlen ("localhost"));
+  // gnutls_server_name_set (connection->session, GNUTLS_NAME_DNS, "localhost",
+  //                         strlen ("localhost"));
 
   return GNUNET_NO;
 }
@@ -793,10 +837,6 @@ get_stream_delete_it (void *cls,
   if (stream->authority)
   {
     GNUNET_free (stream->authority);
-  }
-  if (stream->status_resp_body)
-  {
-    GNUNET_free (stream->status_resp_body);
   }
   GNUNET_free (stream);
   return GNUNET_OK;
@@ -876,6 +916,9 @@ make_nv (const char *name, const char *value, uint8_t flag)
 }
 
 
+/**
+ * The callback function to generate body.
+ */
 static nghttp3_ssize
 read_data (nghttp3_conn *conn, int64_t stream_id, nghttp3_vec *vec,
            size_t veccnt, uint32_t *pflags, void *user_data,
@@ -891,6 +934,16 @@ read_data (nghttp3_conn *conn, int64_t stream_id, nghttp3_vec *vec,
 }
 
 
+/**
+ * Submit the post request, send our data.
+ *
+ * @param connection the connection.
+ * @param stream the stream.
+ * @param data the data will be sent.
+ * @param datalen the length of @a data.
+ *
+ * @return #GNUNET_NO if success, #GNUENT_SYSERR if failed.
+ */
 static int
 submit_post_request (struct Connection *connection,
                      struct Stream *stream,
@@ -902,8 +955,8 @@ submit_post_request (struct Connection *connection,
   nghttp3_data_reader dr = {};
   int rv;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "submit_post: stream_id = %ld\n", stream
-              ->stream_id);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "submit_post: stream_id = %ld\n",
+              stream->stream_id);
   GNUNET_snprintf (contentlen, sizeof(contentlen), "%zu", datalen);
   stream->data = (uint8_t *) data;
   stream->datalen = datalen;
@@ -943,7 +996,12 @@ submit_post_request (struct Connection *connection,
 
 
 /**
+ * Make response to the request.
  *
+ * @param h3_conn the HTTP/3 connection.
+ * @param stream the stream.
+ *
+ * @return #GNUNET_NO if success, #GNUENT_SYSERR if failed.
  */
 static int
 stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
@@ -2227,6 +2285,11 @@ timeoutcb (void *cls)
 }
 
 
+/**
+ * Update the timer.
+ *
+ * @param connection the connection.
+ */
 static void
 connection_update_timer (struct Connection *connection)
 {
@@ -2314,8 +2377,6 @@ connection_write_streams (struct Connection *connection)
       }
     }
 
-    // printf ("ngtcp2_conn_get_streams_bidi_left = %lu\n",
-    //        ngtcp2_conn_get_streams_bidi_left (connection->conn));
     flags = NGTCP2_WRITE_STREAM_FLAG_MORE;
     if (fin)
       flags |= NGTCP2_WRITE_STREAM_FLAG_FIN;
@@ -2814,13 +2875,11 @@ connection_init (struct sockaddr *local_addr,
   ngtcp2_conn *conn = NULL;
   ngtcp2_settings settings;
   ngtcp2_callbacks callbacks = {
-    // .client_initial
     .recv_client_initial = ngtcp2_crypto_recv_client_initial_cb,
     .recv_crypto_data = ngtcp2_crypto_recv_crypto_data_cb,
     .encrypt = ngtcp2_crypto_encrypt_cb,
     .decrypt = ngtcp2_crypto_decrypt_cb,
     .hp_mask = ngtcp2_crypto_hp_mask_cb,
-    // .recv_retry = ngtcp2_crypto_recv_retry_cb,
     .update_key = ngtcp2_crypto_update_key_cb,
     .delete_crypto_aead_ctx = ngtcp2_crypto_delete_crypto_aead_ctx_cb,
     .delete_crypto_cipher_ctx = ngtcp2_crypto_delete_crypto_cipher_ctx_cb,
@@ -3202,8 +3261,8 @@ run (void *cls,
                                                  "CERT_FILE",
                                                  &cert_file))
     cert_file = GNUNET_strdup ("https.crt");
-  if ((GNUNET_OK != GNUNET_DISK_file_test(key_file)) ||
-      (GNUNET_OK != GNUNET_DISK_file_test(cert_file)))
+  if ((GNUNET_OK != GNUNET_DISK_file_test (key_file)) ||
+      (GNUNET_OK != GNUNET_DISK_file_test (cert_file)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating new certificate\n");
