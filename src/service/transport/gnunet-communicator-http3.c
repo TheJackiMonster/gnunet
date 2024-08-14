@@ -66,13 +66,13 @@ enum network_error
  * #addr_map can't be discarded yet, because #mq_init parameter is address.
  * So currently use cid_map seems not a perfet way.
  */
-struct GNUNET_CONTAINER_MultiHashMap *addr_map;
+static struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 
 /**
  * Map of connection id (cid) -> struct Connection.
  * Key is scid, which is the scid of the packet we sent.
  */
-struct GNUNET_CONTAINER_MultiHashMap *cid_map;
+static struct GNUNET_CONTAINER_MultiHashMap *cid_map;
 
 /**
  * Our configuration.
@@ -87,7 +87,7 @@ static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 /**
  * Our peer identity
  */
-struct GNUNET_PeerIdentity my_identity;
+static struct GNUNET_PeerIdentity my_identity;
 
 /**
  * IPv6 disabled or not.
@@ -137,7 +137,7 @@ static struct GNUNET_STATISTICS_Handle *stats;
 /**
  *  The credential.
  */
-gnutls_certificate_credentials_t cred;
+static gnutls_certificate_credentials_t cred;
 
 /**
  * Information of a stream.
@@ -1331,7 +1331,7 @@ http_begin_headers_cb (nghttp3_conn *conn, int64_t stream_id,
 /**
  * The callback of nghttp3_callback.recv_header
  */
-int
+static int
 http_recv_header_cb (nghttp3_conn *conn, int64_t stream_id, int32_t token,
                      nghttp3_rcbuf *name, nghttp3_rcbuf *value, uint8_t flags,
                      void *user_data, void *stream_user_data)
@@ -1655,7 +1655,7 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
 /**
  * The callback function for ngtcp2_callbacks.stream_open
  */
-int
+static int
 stream_open_cb (ngtcp2_conn *conn, int64_t stream_id, void *user_data)
 {
   struct Connection *connection = user_data;
@@ -1877,7 +1877,7 @@ recv_tx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
 /**
  * The callback function for ngtcp2_callbacks.recv_rx_key
  */
-int
+static int
 recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
                 void *user_data)
 {
@@ -2860,7 +2860,7 @@ connection_on_read (struct Connection *connection,
  *
  * @return a new connection, NULL if error occurs.
  */
-struct Connection *
+static struct Connection *
 connection_init (struct sockaddr *local_addr,
                  socklen_t local_addrlen,
                  struct sockaddr *remote_addr,
