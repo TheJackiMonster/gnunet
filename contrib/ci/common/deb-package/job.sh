@@ -11,7 +11,7 @@ unset LD_LIBRARY_PATH
 apt-get update
 mk-build-deps --install --tool='apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes' debian/control
 
-export VERSION="$(./contrib/ci/jobs/2-deb-package/version.sh)"
+export VERSION="$(./contrib/ci/common/deb-package/version.sh)"
 echo "Building gnunet packages version ${VERSION}"
 EMAIL=none gbp dch --ignore-branch --debian-tag="%(version)s" --git-author --new-version="${VERSION}"
 ./bootstrap
