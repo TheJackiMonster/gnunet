@@ -165,6 +165,11 @@ struct Stream
   struct Connection *connection;
 
   /**
+   * The long polling request structure.
+   */
+  struct Long_Poll_Request *long_poll_struct;
+
+  /**
    * The request uri.
    */
   uint8_t *uri;
@@ -214,6 +219,21 @@ struct HTTP_Message
    * buffer length
    */
   size_t size;
+};
+
+/**
+ *
+ */
+struct Long_Poll_Request
+{
+
+  struct Stream *stream;
+
+
+  struct GNUNET_SCHEDULER_Task *timer;
+
+  struct Long_Poll_Request *prev;
+  struct Long_Poll_Request *next;
 };
 
 /**
@@ -340,6 +360,8 @@ struct Connection
    * rear pointer of message queue.
    */
   struct HTTP_Message *msg_queue_rear;
+
+  struct Long_Poll_Request *long_poll_head;
 };
 
 
@@ -1043,6 +1065,8 @@ static int
 submit_get_request (struct Connection *connection,
                     struct Stream *stream)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "send get request\n");
   nghttp3_nv nva[6];
   int rv;
 
@@ -1077,6 +1101,56 @@ submit_get_request (struct Connection *connection,
 }
 
 
+static void
+long_poll_timeoutcb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "long_poll_timeoutcb called!\n");
+  struct Long_Poll_Request *long_poll = cls;
+  nghttp3_nv nva[2];
+  struct Stream *stream;
+  struct Connection *connection;
+  int rv;
+
+  long_poll->timer = NULL;
+
+  stream = long_poll->stream;
+  connection = stream->connection;
+  if (NULL != long_poll->prev)
+  {
+    long_poll->prev->next = long_poll->next;
+  }
+  if (NULL != long_poll->next)
+  {
+    long_poll->next->prev = long_poll->prev;
+  }
+  if (connection->long_poll_head == long_poll)
+  {
+    connection->long_poll_head = long_poll->next;
+  }
+  GNUNET_free (long_poll);
+
+  nva[0] = make_nv (":status", "204",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[1] = make_nv ("server", "nghttp3/ngtcp2 server",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  rv = nghttp3_conn_submit_response (connection->h3_conn,
+                                     stream->stream_id, nva, 2, NULL);
+  if (0 != rv)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "nghttp3_conn_submit_response: %s\n",
+                nghttp3_strerror (rv));
+    return;
+  }
+  ngtcp2_conn_shutdown_stream_read (connection->conn, 0,
+                                    stream->stream_id,
+                                    NGHTTP3_H3_NO_ERROR);
+}
+
+
 /**
  * Make response to the request.
  *
@@ -1086,16 +1160,15 @@ submit_get_request (struct Connection *connection,
  * @return #GNUNET_NO if success, #GNUENT_SYSERR if failed.
  */
 static int
-stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
+stream_start_response (struct Connection *connection, struct Stream *stream)
 {
   nghttp3_nv nva[4];
   char content_length_str[20];
   nghttp3_data_reader dr = {};
-  struct Connection *connection;
   struct HTTP_Message *msg;
+  struct Long_Poll_Request *long_poll;
+  struct GNUNET_TIME_Relative delay;
   int rv;
-
-  connection = stream->connection;
 
   nva[0] = make_nv (":status", "200",
                     NGHTTP3_NV_FLAG_NO_COPY_NAME
@@ -1107,7 +1180,7 @@ stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
   // method is POST
   if (4 == stream->methodlen)
   {
-    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+    rv = nghttp3_conn_submit_response (connection->h3_conn, stream->stream_id,
                                        nva, 2, NULL);
     if (0 != rv)
     {
@@ -1134,7 +1207,7 @@ stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
     stream->data = (uint8_t *) msg->buf;
     stream->datalen = msg->size;
     dr.read_data = read_data;
-    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
+    rv = nghttp3_conn_submit_response (connection->h3_conn, stream->stream_id,
                                        nva, 4, &dr);
     // GNUNET_free (msg->buf);
     // GNUNET_free (msg);
@@ -1149,22 +1222,15 @@ stream_start_response (nghttp3_conn *h3_conn, struct Stream *stream)
   // method is GET and no data to be sent.
   else
   {
-    nva[0] = make_nv (":status", "404",
-                      NGHTTP3_NV_FLAG_NO_COPY_NAME
-                      | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
-
-    rv = nghttp3_conn_submit_response (h3_conn, stream->stream_id,
-                                       nva, 2, NULL);
-    if (0 != rv)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "nghttp3_conn_submit_response: %s\n",
-                  nghttp3_strerror (rv));
-      return GNUNET_SYSERR;
-    }
-    ngtcp2_conn_shutdown_stream_read (stream->connection->conn, 0,
-                                      stream->stream_id,
-                                      NGHTTP3_H3_NO_ERROR);
+    long_poll = GNUNET_new (struct Long_Poll_Request);
+    connection->long_poll_head = long_poll;
+    long_poll->next = NULL;
+    long_poll->prev = NULL;
+    long_poll->stream = stream;
+    delay = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 3ULL);
+    long_poll->timer = GNUNET_SCHEDULER_add_delayed (delay,
+                                                     long_poll_timeoutcb,
+                                                     long_poll);
   }
   return GNUNET_NO;
 }
@@ -1186,7 +1252,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   struct Connection *connection = impl_state;
   uint16_t msize = ntohs (msg->size);
   struct Stream *post_stream;
-  struct Stream *get_stream;
   int rv;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1221,12 +1286,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   // If we are client side.
   if (GNUNET_YES == connection->is_initiator)
   {
-    get_stream = create_stream (connection, -1);
-    rv = ngtcp2_conn_open_bidi_stream (connection->conn,
-                                       &get_stream->stream_id,
-                                       NULL);
-    submit_get_request (connection, get_stream);
-
     post_stream = create_stream (connection, -1);
     rv = ngtcp2_conn_open_bidi_stream (connection->conn,
                                        &post_stream->stream_id,
@@ -1237,15 +1296,31 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   // If we are server side.
   else
   {
-    struct HTTP_Message *send_buf =
-      (struct HTTP_Message *) malloc (sizeof (struct HTTP_Message));
-    send_buf->size = msize;
-    send_buf->buf = GNUNET_memdup (msg, msize);
-    send_buf->next = connection->msg_queue_head;
-    connection->msg_queue_head = send_buf;
-    if (NULL == connection->msg_queue_rear)
+    if (NULL == connection->long_poll_head)
     {
-      connection->msg_queue_rear = send_buf;
+      struct HTTP_Message *send_buf =
+        (struct HTTP_Message *) malloc (sizeof (struct HTTP_Message));
+      send_buf->size = msize;
+      send_buf->buf = GNUNET_memdup (msg, msize);
+      send_buf->next = connection->msg_queue_head;
+      connection->msg_queue_head = send_buf;
+      if (NULL == connection->msg_queue_rear)
+      {
+        connection->msg_queue_rear = send_buf;
+      }
+    }
+    else
+    {
+      struct Long_Poll_Request *long_poll = connection->long_poll_head;
+      GNUNET_SCHEDULER_cancel (long_poll->timer);
+      stream_start_response (connection, connection->long_poll_head->stream);
+      if (NULL != long_poll->next)
+      {
+        long_poll->next->prev = NULL;
+      }
+      connection->long_poll_head = long_poll->next;
+
+      GNUNET_free (long_poll);
     }
   }
   GNUNET_MQ_impl_send_continue (mq);
@@ -1572,14 +1647,34 @@ static int
 http_end_stream_cb (nghttp3_conn *conn, int64_t stream_id, void *user_data,
                     void *stream_user_data)
 {
+  struct Connection *connection = user_data;
   struct Stream *stream = stream_user_data;
   int rv;
 
-  // Send response
-  rv = stream_start_response (conn, stream);
-  if (0 != rv)
+  if (GNUNET_NO == connection->is_initiator)
   {
-    return NGHTTP3_ERR_CALLBACK_FAILURE;
+    // Send response
+    rv = stream_start_response (connection, stream);
+    if (0 != rv)
+    {
+      return NGHTTP3_ERR_CALLBACK_FAILURE;
+    }
+  }
+  else if (stream_id == connection->long_poll_head->stream->stream_id)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "recv get response\n");
+    stream = create_stream (connection, -1);
+    rv = ngtcp2_conn_open_bidi_stream (connection->conn,
+                                       &stream->stream_id, stream);
+    if (0 != rv)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "ngtcp2_conn_open_bidi_stream: %s\n",
+                  ngtcp2_strerror (rv));
+    }
+    submit_get_request (connection, stream);
+    connection->long_poll_head->stream = stream;
   }
   return 0;
 }
@@ -1653,7 +1748,7 @@ setup_httpconn (struct Connection *connection)
   if (GNUNET_YES == connection->is_initiator)
   {
     callbacks.begin_headers = NULL;
-    callbacks.end_stream = NULL;
+    // callbacks.end_stream = NULL;
   }
 
   nghttp3_settings_default (&settings);
@@ -1808,8 +1903,8 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
   if (nconsumed < 0)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "nghttp3_conn_read_stream: %s\n",
-                nghttp3_strerror (nconsumed));
+                "nghttp3_conn_read_stream: %s, init = %d\n",
+                nghttp3_strerror (nconsumed), connection->is_initiator);
     ngtcp2_ccerr_set_application_error (
       &connection->last_error,
       nghttp3_err_infer_quic_app_error_code (nconsumed),
@@ -2057,6 +2152,7 @@ recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
 
   struct Connection *connection = user_data;
   struct Stream *stream;
+  int i;
   int rv;
 
   rv = setup_httpconn (connection);
@@ -2078,6 +2174,17 @@ recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
     connection->id_sent = GNUNET_YES;
     setup_connection_mq (connection);
 
+    for (i = 0; i < 1; i++)
+    {
+      stream = create_stream (connection, -1);
+      rv = ngtcp2_conn_open_bidi_stream (conn, &stream->stream_id, NULL);
+      submit_get_request (connection, stream);
+      connection->long_poll_head = GNUNET_new (struct Long_Poll_Request);
+      connection->long_poll_head->stream = stream;
+      connection->long_poll_head->prev = NULL;
+      connection->long_poll_head->next = NULL;
+      connection->long_poll_head->timer = NULL;
+    }
   }
   return 0;
 }
