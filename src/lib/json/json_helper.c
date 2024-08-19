@@ -1304,6 +1304,7 @@ parse_blinded_message (void *cls,
   return GNUNET_SYSERR;
 }
 
+
 /**
  * Cleanup data left from parsing blinded message.
  *
@@ -1462,7 +1463,8 @@ clean_blinded_sig (void *cls,
 
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_blinded_signature (const char *field,
-                                    struct GNUNET_CRYPTO_BlindedSignature **b_sig)
+                                    struct GNUNET_CRYPTO_BlindedSignature **
+                                    b_sig)
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_blinded_sig,
@@ -1474,6 +1476,7 @@ GNUNET_JSON_spec_blinded_signature (const char *field,
   *b_sig = NULL;
   return ret;
 }
+
 
 /**
  * Parse given JSON object to unblinded signature.
@@ -1593,7 +1596,8 @@ clean_unblinded_sig (void *cls,
 
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_unblinded_signature (const char *field,
-                                      struct GNUNET_CRYPTO_UnblindedSignature **ub_sig)
+                                      struct GNUNET_CRYPTO_UnblindedSignature **
+                                      ub_sig)
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_unblinded_sig,
@@ -1605,7 +1609,6 @@ GNUNET_JSON_spec_unblinded_signature (const char *field,
   *ub_sig = NULL;
   return ret;
 }
-
 
 
 /* end of json_helper.c */
