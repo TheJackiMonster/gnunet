@@ -483,8 +483,10 @@ size_test (void *cls)
 
   peer_nr = get_peer_nr_from_tc (tc_h);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "size_test_cb %u\n",
-       (unsigned int) num_sent_size[peer_nr]);
+       "size_test_cb %u/%u, Peer: %u\n",
+       (unsigned int) num_sent_size[peer_nr],
+       (unsigned int) num_received_size[peer_nr],
+       peer_nr);
   GNUNET_assert (TP_SIZE_CHECK == phase[peer_nr]);
   if (LONG_MESSAGE_SIZE != long_message_size)
     max_size = long_message_size;
@@ -524,9 +526,11 @@ long_test_cb (void *cls)
   peer_nr = get_peer_nr_from_tc (tc_h);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "long_test_cb %u/%u\n",
+       "long_test_cb %u/%u for peer %u and handle %p\n",
        (unsigned int) num_sent_long[peer_nr],
-       (unsigned int) num_received_long[peer_nr]);
+       (unsigned int) num_received_long[peer_nr],
+       peer_nr,
+       tc_h);
   payload = make_payload (long_message_size);
   num_sent_long[peer_nr]++;
   if (burst_packets_long == num_sent_long[peer_nr])
@@ -648,6 +652,14 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
         LOG (GNUNET_ERROR_TYPE_DEBUG,
              "Finished\n");
         GNUNET_SCHEDULER_shutdown ();
+      }
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Finished, Peer: %u\n",
+           peer_nr);
+      if (NULL != to_task[peer_nr])
+      {
+        GNUNET_SCHEDULER_cancel (to_task[peer_nr]);
+        to_task[peer_nr] = NULL;
       }
       finished[peer_nr] = GNUNET_YES;
     }
@@ -783,8 +795,8 @@ latency_timeout (void *cls)
     return;
   }
   LOG (GNUNET_ERROR_TYPE_ERROR,
-       "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu)\n",
-       phase[peer_nr], num_sent, num_received);
+       "Latency too high. Test failed. (Phase: %d. Sent: %lu, Received: %lu, Peer: %u)\n",
+       phase[peer_nr], num_sent, num_received, peer_nr);
   ret = 2;
   GNUNET_SCHEDULER_shutdown ();
 }
