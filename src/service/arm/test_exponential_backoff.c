@@ -277,7 +277,9 @@ task (void *cls,
       const struct GNUNET_CONFIGURATION_Handle *c)
 {
   cfg = c;
-  arm = GNUNET_ARM_connect (cfg, NULL, NULL);
+  arm = GNUNET_ARM_connect (cfg,
+                            NULL,
+                            NULL);
   if (NULL == arm)
   {
     GNUNET_break (0);
@@ -344,9 +346,10 @@ init ()
   char *binary;
 
   cfg = GNUNET_CONFIGURATION_create ();
-  if (GNUNET_OK != GNUNET_CONFIGURATION_parse (cfg,
-                                               "test_arm_api_data.conf"))
-  {
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_parse (cfg,
+                                  "test_arm_api_data.conf"))
+    {
     GNUNET_CONFIGURATION_destroy (cfg);
     return GNUNET_SYSERR;
   }
@@ -361,8 +364,9 @@ init ()
                                          "BINARY",
                                          binary);
   GNUNET_free (binary);
-  if (GNUNET_OK != GNUNET_CONFIGURATION_write (cfg,
-                                               CFGFILENAME))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_write (cfg,
+                                  CFGFILENAME))
   {
     GNUNET_CONFIGURATION_destroy (cfg);
     return GNUNET_SYSERR;

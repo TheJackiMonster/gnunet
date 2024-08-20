@@ -70,7 +70,7 @@ extern "C"
  *          the necessary information about the service, or if
  *          we could not check (e.g. socket() failed)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
                     const char *service_name);
 
