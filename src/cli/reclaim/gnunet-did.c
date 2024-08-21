@@ -309,7 +309,8 @@ remove_did_document (remove_did_document_callback cont, void *cls)
 
 // Needed because create_did_ego_lookup_cb() and
 // create_did_ego_create_cb() can call each other
-static void create_did_ego_lockup_cb ();
+static void
+create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego);
 
 /**
  * @brief Create a DID(-Document). Called after DID has been created

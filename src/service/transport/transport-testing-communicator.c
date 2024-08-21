@@ -679,8 +679,6 @@ handle_send_message_ack (void *cls,
   struct MyClient *client = cls;
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h =
     client->tc;
-  static int mtr = 0;
-  mtr++;
   if (tc_h->cont != NULL)
     tc_h->cont (tc_h->cont_cls);
   GNUNET_SERVICE_client_continue (client->client);
