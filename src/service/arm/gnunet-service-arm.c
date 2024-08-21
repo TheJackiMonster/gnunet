@@ -32,7 +32,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util", syscall)
+        GNUNET_log_from_strerror (kind, "util", syscall)
 
 
 #if HAVE_WAIT4
@@ -1875,7 +1875,8 @@ sighandler_child_death ()
   GNUNET_break (
     1 ==
     GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (sigpipe,
-                                                     GNUNET_DISK_PIPE_END_WRITE),
+                                                     GNUNET_DISK_PIPE_END_WRITE)
+                            ,
                             &c,
                             sizeof(c)));
   errno = old_errno; /* restore errno */
@@ -2088,6 +2089,8 @@ run (void *cls,
      struct GNUNET_SERVICE_Handle *serv)
 {
   struct ServiceList *sl;
+  enum GNUNET_GenericReturnValue ret1;
+  enum GNUNET_GenericReturnValue ret2;
 
   (void) cls;
   cfg = c;
@@ -2095,7 +2098,8 @@ run (void *cls,
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   child_death_task = GNUNET_SCHEDULER_add_read_file (
     GNUNET_TIME_UNIT_FOREVER_REL,
-    GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
+    GNUNET_DISK_pipe_handle (sigpipe,
+                             GNUNET_DISK_PIPE_END_READ),
     &maint_child_death,
     NULL);
 #if HAVE_WAIT4
@@ -2130,22 +2134,39 @@ run (void *cls,
     final_option = GNUNET_strdup ("");
   else
     final_option = GNUNET_CONFIGURATION_expand_dollar (cfg, final_option);
-  start_user =
-    (GNUNET_YES ==
-     GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                           "ARM",
-                                           "START_USER_SERVICES"));
-  start_system =
-    (GNUNET_YES ==
-     GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                           "ARM",
-                                           "START_SYSTEM_SERVICES"));
+  ret1 = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                               "ARM",
+                                               "START_SYSTEM_SERVICES");
+  ret2 = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                               "ARM",
+                                               "START_USER_SERVICES");
+  if ( (GNUNET_SYSERR == ret1) ||
+       (GNUNET_SYSERR == ret2) )
+  {
+    /* invalid option */
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    global_ret = 1;
+    return;
+  }
+  if (! GNUNET_CONFIGURATION_have_value (cfg,
+                                         "ARM",
+                                         "START_SYSTEM_SERVICES"))
+    ret1 = GNUNET_SYSERR;
+  if (! GNUNET_CONFIGURATION_have_value (cfg,
+                                         "ARM",
+                                         "START_USER_SERVICES"))
+    ret2 = GNUNET_SYSERR;
+  start_system = (GNUNET_YES == ret1) ||
+                 ( (GNUNET_SYSERR == ret1) && (GNUNET_SYSERR == ret2) );
+  start_user = (GNUNET_YES == ret2) ||
+               ( (GNUNET_SYSERR == ret1) && (GNUNET_SYSERR == ret2) );
   if ( (GNUNET_NO == start_user) &&
        (GNUNET_NO == start_system) )
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,
-      "Please configure either START_USER_SERVICES or START_SYSTEM_SERVICES or both.\n");
+      "Please enable either START_USER_SERVICES or START_SYSTEM_SERVICES\n");
     GNUNET_SCHEDULER_shutdown ();
     global_ret = 1;
     return;
