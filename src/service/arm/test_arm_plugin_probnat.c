@@ -41,9 +41,20 @@ get_conf_name (const char *my_node_id)
 
   if (0 == strcmp ("000000", dash))
     conf_name = "test_arm_probnat_host.conf";
+  else if (0 == strcmp ("000003", dash))
+    conf_name = "test_arm_probnat_peer1.conf";
+  else if (0 == strcmp ("000006", dash))
+    conf_name = "test_arm_probnat_peer1.conf";
   else
-    conf_name = "test_arm_probnat.conf";
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Getting conf for id %s failed \n",
+              my_node_id);
+  }
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Using conf %s",
+              conf_name);
   return conf_name;
 }
 
@@ -59,7 +70,7 @@ GNUNET_TESTING_MAKE_PLUGIN (
                                 GNUNET_OS_PROCESS_EXITED,
                                 0,
                                 "sleep",
-                                "300",
+                                "3000",
                                 NULL),
   GNUNET_TESTING_cmd_stop_peer ("stop",
                                 "start")

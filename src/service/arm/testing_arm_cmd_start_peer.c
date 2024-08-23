@@ -87,14 +87,19 @@ conn_status (
   enum GNUNET_GenericReturnValue connected)
 {
   struct GNUNET_TESTING_StartPeerState *sps = cls;
+  struct GNUNET_TESTING_AsyncContext ac = sps->ac;
 
-  if (GNUNET_OK != connected)
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "We %s arm\n",
+              GNUNET_OK != connected ? "disconnected from" : "connected to");
+  if (GNUNET_NO == ac.finished && GNUNET_OK != connected)
   {
     GNUNET_break (0);
     GNUNET_TESTING_async_fail (&sps->ac);
     return;
   }
-  GNUNET_TESTING_async_finish (&sps->ac);
+  else if (GNUNET_NO == ac.finished)
+    GNUNET_TESTING_async_finish (&sps->ac);
 }
 
 
