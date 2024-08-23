@@ -1875,8 +1875,8 @@ check_add_global_address (
   void *cls,
   const struct GNUNET_NAT_AddGlobalAddressMessage *message)
 {
-  const char *buf = (const char *) &message[1];
-  uint16_t blen = ntohs (message->address_length);
+  //const char *buf = (const char *) &message[1];
+  //uint16_t blen = ntohs (message->address_length);
   size_t left = ntohs (message->header.size) - sizeof(*message);
 
   if (left != ntohs (message->address_length))
@@ -1884,11 +1884,11 @@ check_add_global_address (
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  if ('\0' != buf[blen - 1])
-  {
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
-  }
+  /* if ('\0' != buf[blen - 1]) */
+  /* { */
+  /*   GNUNET_break_op (0); */
+  /*   return GNUNET_SYSERR; */
+  /* } */
   return GNUNET_OK;
 }
 
@@ -1907,16 +1907,20 @@ handle_add_global_address (
 {
   struct ClientHandle *ch = cls;
   const char *buf = (const char *) &message[1];
-  uint16_t blen = ntohs (message->address_length);
+  //uint16_t blen = ntohs (message->address_length);
   struct sockaddr_in sockaddr_ipv4 = {
     .sin_family = AF_INET
   };
 
-  GNUNET_assert ('\0' == buf[blen - 1]);
+  //GNUNET_assert ('\0' == buf[blen - 1]);
   if (1 != inet_pton (AF_INET,
                       buf,
                       &sockaddr_ipv4.sin_addr))
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "natting address %s length %u no ipv4\n",
+                buf,
+                message->address_length);
     GNUNET_break (0);
     GNUNET_SERVICE_client_continue (ch->client);
     return;
