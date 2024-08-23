@@ -950,7 +950,7 @@ submit_post_request (struct Connection *connection,
                      const uint8_t *data,
                      size_t datalen)
 {
-  nghttp3_nv nva[6];
+  nghttp3_nv nva[7];
   char contentlen[20];
   nghttp3_data_reader dr = {};
   int rv;
@@ -976,13 +976,16 @@ submit_post_request (struct Connection *connection,
   nva[4] = make_nv ("user-agent", "nghttp3/ngtcp2 client",
                     NGHTTP3_NV_FLAG_NO_COPY_NAME
                     | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
-  nva[5] = make_nv ("content-length", contentlen,
+  nva[5] = make_nv ("content-type", "application/octet-stream",
+                    NGHTTP3_NV_FLAG_NO_COPY_NAME
+                    | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
+  nva[6] = make_nv ("content-length", contentlen,
                     NGHTTP3_NV_FLAG_NO_COPY_NAME);
 
   dr.read_data = read_data;
   rv = nghttp3_conn_submit_request (connection->h3_conn,
                                     stream->stream_id,
-                                    nva, 6, &dr, stream);
+                                    nva, 7, &dr, stream);
   if (0 != rv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
