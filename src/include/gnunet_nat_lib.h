@@ -75,16 +75,6 @@ struct GNUNET_BurstMessage
 struct GNUNET_StartBurstCls
 {
   /**
-   * Kept in a DLL.
-   */
-  struct GNUNET_StartBurstCls *next;
-
-  /**
-   * Kept in a DLL.
-   */
-  struct GNUNET_StartBurstCls *prev;
-  
-  /**
    * A Context which can be inserted into this struct, which is specific for the caller.
    */
   void *context;
@@ -109,6 +99,11 @@ struct GNUNET_StartBurstCls
    * The VirtualLink of the peer to which we like to burst with.
    */
   struct VirtualLink *vl;
+
+  /**
+   * We are ready to start the burst.
+   */
+  unsigned int sync_ready;
 };
 
 struct GNUNET_UdpSocketInfo;
@@ -154,12 +149,27 @@ struct GNUNET_UdpSocketInfo
   /**
    * The read task for retrieving a burst message for this socket.
    */
-  struct GNUNET_SCHEDULER_Task *task;
+  struct GNUNET_SCHEDULER_Task *read_task;
 
+  /**
+   * Timeout task for this socket.
+   */
+  struct GNUNET_SCHEDULER_Task *timeout_task;
+  
   /**
    * The address of the other peer without port.
    */
   const char *address;
+
+  /**
+   * Our address without port.
+   */
+  const char *bind_address;
+
+  /**
+   * The port we are bound to.
+   */
+  unsigned int port;
 
   /**
    * The address of the other peer we received a burst message from.
@@ -202,7 +212,7 @@ GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
  *
  * @return Are we burst ready. This is independent from the other peer being ready.
  */
-enum GNUNET_GenericReturnValue
+void
 GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
                        struct GNUNET_BurstSync *burst_sync,
                        GNUNET_SCHEDULER_TaskCallback task,

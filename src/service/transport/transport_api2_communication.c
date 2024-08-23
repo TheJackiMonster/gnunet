@@ -784,6 +784,12 @@ check_start_burst (void *cls,
                                 const struct GNUNET_TRANSPORT_StartBurst *sb)
 {
   (void) cls;
+  const char *str = (const char *) &sb[1];
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "check_start_burst %s %lu\n",
+              str,
+              strlen (str));
   GNUNET_MQ_check_zero_termination (sb);
   return GNUNET_OK;
 }
@@ -795,8 +801,16 @@ handle_start_burst (void *cls,
 {
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch = cls;
   const char *addr = (const char *) &sb[1];
+  struct GNUNET_TIME_Relative rtt = GNUNET_TIME_relative_ntoh (sb->rtt);
 
-  ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), sb->pid);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Calling communicator to start burst to %s is %s rtt %lu\n",
+              addr,
+              NULL == sb ? "not possible" : "possible",
+              rtt.rel_value_us);
+ 
+  if (NULL != ch->sb)
+    ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), sb->pid);
 }
 
 
@@ -1159,5 +1173,16 @@ GNUNET_TRANSPORT_communicator_notify (
   GNUNET_MQ_send (ch->mq, env);
 }
 
+/* ************************* Burst *************************** */
+
+void
+GNUNET_TRANSPORT_communicator_burst_finished (struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
+{
+  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_TRANSPORT_BurstFinished *bf;
+
+  env = GNUNET_MQ_msg (bf, GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_FINISHED);
+  GNUNET_MQ_send (ch->mq, env);
+}
 
 /* end of transport_api2_communication.c */

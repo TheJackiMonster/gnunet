@@ -857,6 +857,11 @@ static struct GNUNET_NAT_Handle *nat;
 static uint16_t my_port;
 
 /**
+ * Our ipv4 address.
+ */
+char *my_ipv4;
+
+/**
  * IPv6 disabled or not.
  */
 static int disable_v6;
@@ -2314,10 +2319,13 @@ sock_read (void *cls)
       char *address = sockaddr_to_udpaddr_string (addr, sizeof (*addr));
 
       GNUNET_assert (0 == bm->local_port);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Received a burst message for default port\n");
       create_receiver (&bm->peer,
                        address,
                        NULL);
       GNUNET_stop_burst(default_udp_sock);
+      GNUNET_TRANSPORT_communicator_burst_finished (ch);
       GNUNET_free (address);
       return;
     }
@@ -3489,6 +3497,7 @@ static void udp_socket_notify (struct GNUNET_UdpSocketInfo *sock_info)
                    address,
                    default_udp_sock == sock_info->udp_sock ?
                    NULL : sock_info->udp_sock);
+  GNUNET_TRANSPORT_communicator_burst_finished (ch);
   GNUNET_free (sock_info);
 }
 
@@ -3500,13 +3509,24 @@ start_burst (const char *addr,
 {
   struct GNUNET_UdpSocketInfo *sock_info;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Communicator was called to start burst to address %s from %s\n",
+              addr,
+              my_ipv4);
+
   sock_info = GNUNET_new (struct GNUNET_UdpSocketInfo);
-  sock_info->address = addr;
+  sock_info->address = GNUNET_strdup (addr);
+  sock_info->bind_address = my_ipv4;
   sock_info->has_port = GNUNET_YES;
   sock_info->udp_sock = default_udp_sock;
   sock_info->rtt = rtt;
   sock_info->pid = pid;;
   sock_info->std_port = my_port;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "1 sock addr %s addr %s rtt %lu\n",
+              sock_info->address,
+              addr,
+              sock_info->rtt);
   burst_task = GNUNET_get_udp_socket (sock_info,
                                       &udp_socket_notify);
   GNUNET_free (sock_info);
@@ -3643,7 +3663,10 @@ run (void *cls,
   switch (in->sa_family)
   {
   case AF_INET:
+    const struct sockaddr_in *v4 = (const struct sockaddr_in *)in;
+    my_ipv4 = GNUNET_malloc (INET_ADDRSTRLEN);
     my_port = ntohs (((struct sockaddr_in *) in)->sin_port);
+    inet_ntop(AF_INET, &v4->sin_addr, my_ipv4, in_len);
     break;
 
   case AF_INET6:

@@ -673,10 +673,13 @@ struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming
      message to the communicator */
 };
 
+/**
+ * Message from transport to communicator to start a burst.
+ */
 struct GNUNET_TRANSPORT_StartBurst
 {
   /**
-   * Type will be #GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_START.
+   * Type will be #GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST.
    */
   struct GNUNET_MessageHeader header;
 
@@ -688,6 +691,14 @@ struct GNUNET_TRANSPORT_StartBurst
   struct GNUNET_TIME_RelativeNBO rtt;
 
   /* followed by UTF-8 encoded, 0-terminated human-readable address */
+};
+
+struct GNUNET_TRANSPORT_BurstFinished
+{
+  /**
+   * Type will be #GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_FINISHED.
+   */
+  struct GNUNET_MessageHeader header;
 };
 
 /**

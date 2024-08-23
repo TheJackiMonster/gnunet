@@ -3426,6 +3426,11 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST 1253
 
 /**
+ * Burst message we send to another peer for hole punching.
+ */
+#define GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_FINISHED 1254
+
+/**
  * Message exchanged between communicators to confirm
  * successful KX (and address validation).
  */

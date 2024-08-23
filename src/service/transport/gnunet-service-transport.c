@@ -1435,6 +1435,16 @@ struct VirtualLink
   struct GNUNET_SCHEDULER_Task *fc_retransmit_task;
 
   /**
+   * The actual GNUNET_StartBurstCls of this VirtualLink.
+   */
+  struct GNUNET_StartBurstCls *sb_cls;
+
+  /**
+   * global addresses for the peer.
+   */
+  char *burst_addr;
+
+  /**
    * Number of FC retransmissions for this running task.
    */
   unsigned int fc_retransmit_count;
@@ -1491,9 +1501,9 @@ struct VirtualLink
   struct GNUNET_TIME_Relative other_rtt;
 
   /**
-   * The task to start the burst.
+   * IterationContext for searching a burst address.
    */
-  struct GNUNET_SCHEDULER_Task *burst_task;
+  struct GNUNET_PEERSTORE_IterateContext *ic;
 
   /**
    * Used to generate unique UUIDs for messages that are being
@@ -3028,6 +3038,11 @@ static unsigned int ir_total;
 static unsigned long long logging_uuid_gen;
 
 /**
+ * Is there a burst running?
+ */
+static enum GNUNET_GenericReturnValue burst_running;
+
+/**
  * Monotonic time we use for HELLOs generated at this time.  TODO: we
  * should increase this value from time to time (i.e. whenever a
  * `struct AddressListEntry` actually expires), but IF we do this, we
@@ -3044,21 +3059,11 @@ static struct GNUNET_TIME_Absolute hello_mono_time;
 static int in_shutdown;
 
 /**
- * Head of a DLL with all GNUNET_StartBurstCls. We can only have one active
- * burst. Therefore all other peers ready to burst must be stored here.
- */
-static struct GNUNET_StartBurstCls *bursts_head;
+  * The task to start the burst.
+  */
+static struct GNUNET_SCHEDULER_Task *burst_task;
 
-/**
- * Tail of a DLL with all GNUNET_StartBurstCls. We can only have one active
- * burst. Therefore all other peers ready to burst must be stored here.
- */
-static struct GNUNET_StartBurstCls *bursts_tail;
-
-/**
- * The GNUNET_StartBurstCls for the active burst, if there is one.
- */
-static struct GNUNET_StartBurstCls *actual_burst;
+struct GNUNET_SCHEDULER_Task *burst_timeout_task;
 
 /**
  * Get an offset into the transmission history buffer for `struct
@@ -5419,18 +5424,13 @@ add_global_addresses (void *cls,
   struct AddGlobalAddressesContext *ctx = cls;
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
-  size_t address_len = strlen (addr);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "sending address %s length %lu\n",
+              "sending address %s length %u\n",
               addr,
-              address_len);
-  tgna = GNUNET_malloc (sizeof (struct TransportGlobalNattedAddress) + address_len);
-  tgna->address_length = htonl (address_len);
-  GNUNET_memcpy (&tgna[1], addr, address_len);
-  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + address_len);
-  GNUNET_free (tgna);
-  ctx->off += sizeof(struct TransportGlobalNattedAddress) + address_len;
+              ntohl (tgna->address_length));
+  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + ntohl (tgna->address_length));
+  ctx->off += sizeof(struct TransportGlobalNattedAddress) + ntohl (tgna->address_length);
 
   return GNUNET_OK;
 }
@@ -5996,6 +5996,7 @@ create_address_entry (struct TransportClient *tc,
                       size_t slen)
 {
   struct AddressListEntry *ale;
+  char *address_without_port;
 
   ale = GNUNET_malloc (sizeof(struct AddressListEntry) + slen);
   ale->tc = tc;
@@ -6004,7 +6005,14 @@ create_address_entry (struct TransportClient *tc,
   ale->aid = aid;
   ale->nt = nt;
   memcpy (&ale[1], address, slen);
-  ale->st = GNUNET_SCHEDULER_add_now (&store_pi, ale);
+  address_without_port = get_address_without_port (ale->address);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Is this %s a local address (%s)\n",
+              address_without_port,
+              ale->address);
+  if (0 != strcmp ("127.0.0.1", address_without_port))
+    ale->st = GNUNET_SCHEDULER_add_now (&store_pi, ale);
+  GNUNET_free (address_without_port);
 
   return ale;
 }
@@ -7348,6 +7356,7 @@ activate_core_visible_dv_path (struct DistanceVectorHop *hop)
                 "Creating new virtual link %p to %s using DV!\n",
                 vl,
                 GNUNET_i2s (&dv->target));
+    vl->burst_addr = NULL;
     vl->confirmed = GNUNET_YES;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -9633,6 +9642,7 @@ handle_validation_response (
                 "Creating new virtual link %p to %s using direct neighbour!\n",
                 vl,
                 GNUNET_i2s (&vs->pid));
+    vl->burst_addr = NULL;
     vl->confirmed = GNUNET_YES;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -9774,9 +9784,7 @@ iterate_address_start_burst (void *cls,
                              const struct GNUNET_PeerIdentity *pid,
                              const char *uri)
 {
-  struct GNUNET_StartBurstCls *sb_cls = cls;
-  struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_TRANSPORT_StartBurst *sb;
+  struct VirtualLink *vl = cls;
   const char *slash;
   char *address_uri;
   char *prefix;
@@ -9792,56 +9800,31 @@ iterate_address_start_burst (void *cls,
                    slash);
 
   uri_without_port = get_address_without_port (address_uri);
-  if (0 == strcmp (uri_without_port, uri))
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "iterate_address_start_burst %s %s %s %s\n",
+              uri_without_port,
+              uri,
+              address_uri,
+              slash);
+  if (0 == strcmp (uri_without_port, slash))
   {
-    char buf[sizeof (uri_without_port) + 1];
-
-    GNUNET_memcpy (buf, uri_without_port,  strlen (uri_without_port));
-    buf[strlen (uri_without_port) + 1] = '\0';
-    env =
-      GNUNET_MQ_msg_extra (sb ,
-                           strlen (uri_without_port) + 1,
-                           GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST);
-    sb->rtt = GNUNET_TIME_relative_hton (sb_cls->rtt);
-    sb->pid = (struct GNUNET_PeerIdentity *) pid;
-    memcpy (&sb[1], buf, strlen (uri_without_port) + 1);
-    for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
-    {
-      if (CT_COMMUNICATOR != tc->type)
-        continue;
-      if (GNUNET_YES == tc->details.communicator.can_burst)
-        GNUNET_MQ_send (tc->mq, env);
-    }
-    GNUNET_free (sb);
+    vl->burst_addr = GNUNET_strndup (uri_without_port, strlen (uri_without_port));
   }
+  else
+    vl->burst_addr = NULL;
 
   GNUNET_free (prefix);
-  GNUNET_free (address_uri);
   GNUNET_free (uri_without_port);
 }
 
-static void
-start_burst_for_address_error_cb (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Error in PEERSTORE monitoring starting burst for a specific address\n");
-}
-
 
 static void
-start_burst_for_address_sync_cb (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Done with initial PEERSTORE iteration during monitoring starting burst for a specific address\n");
-}
-
-
-static void
-start_burst_for_address (void *cls,
-                         const struct GNUNET_PEERSTORE_Record *record,
-                         const char *emsg)
+check_for_burst_address (void *cls,
+                        const struct GNUNET_PEERSTORE_Record *record,
+                        const char *emsg)
 {
   struct GNUNET_StartBurstCls *sb_cls = cls;
+  struct VirtualLink *vl = sb_cls->vl;
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *builder;
 
@@ -9854,18 +9837,32 @@ start_burst_for_address (void *cls,
   }
   if (NULL == record)
   {
-    sb_cls->mo = NULL;
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Hello iteration end for %s\n",
+                GNUNET_i2s (&vl->target));
+    vl->ic = NULL;
+    GNUNET_free (sb_cls);
     return;
   }
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "check_for_burst_address\n");
   hello = record->value;
   builder = GNUNET_HELLO_builder_from_msg (hello);
   GNUNET_HELLO_builder_iterate (builder,
                                 &iterate_address_start_burst,
-                                sb_cls);
+                                vl);
   GNUNET_HELLO_builder_free (builder);
 
-  GNUNET_PEERSTORE_monitor_stop (sb_cls->mo);
+  GNUNET_PEERSTORE_iteration_stop (vl->ic);
+  GNUNET_free (sb_cls);
+}
+
+
+static void
+burst_timeout (void *cls)
+{
+  burst_running = GNUNET_NO;
 }
 
 
@@ -9873,18 +9870,48 @@ static void
 start_burst (void *cls)
 {
   struct GNUNET_StartBurstCls *sb_cls = cls;
+  struct VirtualLink *vl = sb_cls->vl;
+  struct GNUNET_TRANSPORT_StartBurst *sb;
+  struct GNUNET_MQ_Envelope *env;
+  char *uri_without_port = vl->burst_addr;
 
-  sb_cls->mo = GNUNET_PEERSTORE_monitor_start (GST_cfg,
-                                    GNUNET_YES,
-                                    "peerstore",
-                                    &sb_cls->vl->target,
-                                    GNUNET_PEERSTORE_HELLO_KEY,
-                                    &start_burst_for_address_error_cb,
-                                    NULL,
-                                    &start_burst_for_address_sync_cb,
-                                    NULL,
-                                    &start_burst_for_address,
-                                    sb_cls);
+  burst_task = NULL;
+  /*char buf[strlen (uri_without_port) + 1];
+
+  GNUNET_memcpy (buf, uri_without_port,  strlen (uri_without_port));
+  buf[strlen (uri_without_port)] = '\0';*/
+  env =
+    GNUNET_MQ_msg_extra (sb ,
+                         strlen (uri_without_port) + 1,
+                         GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST);
+  sb->rtt = GNUNET_TIME_relative_hton (sb_cls->rtt);
+  sb->pid = &vl->target;
+  memcpy (&sb[1], uri_without_port, strlen (uri_without_port) + 1);
+  for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "iterate_address_start_burst client tc prefix %s\n",
+                tc->details.communicator.address_prefix);
+    if (CT_COMMUNICATOR != tc->type)
+      continue;
+    if (GNUNET_YES == tc->details.communicator.can_burst){
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "iterate_address_start_burst %s call %lu %u rtt %lu\n",
+                  uri_without_port,
+                  strlen (uri_without_port),
+                  ntohs (sb->header.size),
+                  sb_cls->rtt.rel_value_us);
+      GNUNET_MQ_send (tc->mq, env);
+      burst_running = GNUNET_YES;
+      burst_timeout_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
+                                                                                        60),
+                                                         &burst_timeout,
+                                                         NULL);
+      //TODO We need some algo to choose from available communicators. Can we run two bursts at once? Atm we only implemented udp burst.
+      break;
+    }
+  }
+  GNUNET_free (sb_cls);
 }
 
 
@@ -9892,28 +9919,36 @@ static void
 queue_burst (void *cls)
 {
   struct GNUNET_StartBurstCls *sb_cls = cls;
+  struct VirtualLink *vl = sb_cls->vl;
 
-  if (NULL == bursts_head && NULL == actual_burst)
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "burst_task %p ready %s burst addr %s (%p)\n",
+              burst_task,
+              sb_cls->sync_ready ? "yes" : "no",
+              vl->burst_addr,
+              vl->burst_addr);
+  if (NULL != burst_task && GNUNET_NO == sb_cls->sync_ready)
   {
-    sb_cls->vl->burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
+    GNUNET_SCHEDULER_cancel (burst_task);
+    burst_task = NULL;
+    GNUNET_free (sb_cls);
+    return;
+  }
+  if (GNUNET_NO == burst_running && NULL != vl->burst_addr && NULL == burst_task)
+  {
+    burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
                                   &start_burst,
                                   sb_cls);
-    actual_burst = sb_cls;
   }
-  else
-    GNUNET_CONTAINER_DLL_insert_tail (bursts_head, bursts_tail, sb_cls);
-
-  if (NULL == actual_burst)
+  else if (NULL == vl->burst_addr)
   {
-    bursts_head->vl->burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
-                                  &start_burst,
-                                  bursts_head);
-    actual_burst = bursts_head;
-    GNUNET_CONTAINER_DLL_remove (bursts_head, bursts_tail, actual_burst);
+    vl->ic = GNUNET_PEERSTORE_iteration_start (peerstore,
+                                               "peerstore",
+                                               &vl->target,
+                                               GNUNET_PEERSTORE_HELLO_KEY,
+                                               check_for_burst_address,
+                                               sb_cls);
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Burst started \n");
-  GNUNET_free (sb_cls);
 }
 
 /**
@@ -9946,6 +9981,7 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
                 "No virtual link for %p FC creating new unconfirmed virtual link to %s!\n",
                 vl,
                 GNUNET_i2s (&cmc->im.sender));
+    vl->burst_addr = NULL;
     vl->confirmed = GNUNET_NO;
     vl->message_uuid_ctr =
       GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -9975,30 +10011,23 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
   {
     struct GNUNET_TIME_Relative rtt;
     struct GNUNET_BurstSync burst_sync;
-    struct GNUNET_StartBurstCls *cls;
+    struct GNUNET_StartBurstCls *bcls;
 
-    cls = GNUNET_new (struct GNUNET_StartBurstCls);
-    cls->vl = vl;
-    cls->rtt = GNUNET_TIME_relative_ntoh (burst_sync.rtt_avarage);
+    bcls = GNUNET_new (struct GNUNET_StartBurstCls);
+    bcls->vl = vl;
+    vl->sb_cls = bcls;
     if (NULL != vl->dv)
       rtt = calculate_rtt (vl->dv);
     else
       rtt = GNUNET_TIME_UNIT_FOREVER_REL;
     burst_sync.rtt_avarage = fc->rtt;
+    bcls->rtt = GNUNET_TIME_relative_ntoh (burst_sync.rtt_avarage);
     burst_sync.sync_ready = fc->sync_ready;
 
-    vl->sync_ready = GNUNET_is_burst_ready (rtt,
+    GNUNET_is_burst_ready (rtt,
                            &burst_sync,
                            &queue_burst,
-                           cls);
-    GNUNET_free (cls);
-    if (NULL != vl->burst_task &&
-        GNUNET_NO == vl->sync_ready)
-    {
-      GNUNET_SCHEDULER_cancel (vl->burst_task);
-      vl->burst_task = NULL;
-      actual_burst = NULL;
-    }
+                           bcls);
   }
   if (0 != ntohl (fc->number_of_addresses))
   {
@@ -11374,6 +11403,18 @@ handle_send_message_ack (void *cls,
 
 
 /**
+ * The burst finished.
+ *
+ * @param cls the client
+ */
+static void
+handle_burst_finished ()
+{
+  burst_running = GNUNET_NO;
+}
+
+
+/**
  * Iterator telling new MONITOR client about all existing
  * queues to peers.
  *
@@ -11922,6 +11963,7 @@ iterate_address_and_compare_cb (void *cls,
                                 const char *uri)
 {
   struct Queue *queue = cls;
+  struct sockaddr_in v4;
   const char *slash;
   char *address_uri;
   char *prefix;
@@ -11937,15 +11979,51 @@ iterate_address_and_compare_cb (void *cls,
                    prefix,
                    slash);
 
-  address_uri_without_port = get_address_without_port (queue->address);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "1 not global natted_address %u %s %s %s\n",
+              queue->is_global_natted,
+              uri,
+              queue->address,
+              slash);
+
   uri_without_port = get_address_without_port (address_uri);
+  if (1 != inet_pton (AF_INET, uri_without_port, &v4.sin_addr))
+    return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "2 not global natted_address %u %s %s\n",
+              queue->is_global_natted,
+              uri,
+              queue->address);
+
+  if (GNUNET_NO == queue->is_global_natted)
+    return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "3 not global natted_address %u %s %s\n",
+              queue->is_global_natted,
+              uri,
+              queue->address);
+  
+  uri_without_port = get_address_without_port (address_uri);
+
+  if (0 == strcmp (uri_without_port, address_uri))
+    return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "4 not global natted_address %u %s %s\n",
+              queue->is_global_natted,
+              uri,
+              queue->address);
+
+  address_uri_without_port = get_address_without_port (queue->address);
   if (0 == strcmp (uri_without_port, address_uri_without_port))
   {
     queue->is_global_natted = GNUNET_NO;
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "not global natted %u %s %s %s %s %s %u\n",
+              "not global natted_address %u %s %s %s %s %s %u\n",
               queue->is_global_natted,
               uri,
               queue->address,
@@ -11957,22 +12035,6 @@ iterate_address_and_compare_cb (void *cls,
   GNUNET_free (address_uri);
   GNUNET_free (address_uri_without_port);
   GNUNET_free (uri_without_port);
-}
-
-
-static void
-check_for_global_natted_error_cb (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Error in PEERSTORE monitoring for checking global natted\n");
-}
-
-
-static void
-check_for_global_natted_sync_cb (void *cls)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Done with initial PEERSTORE iteration during monitoring  for checking global natted\n");
 }
 
 
@@ -12010,6 +12072,22 @@ contains_address (void *cls,
 
 
 static void
+check_for_global_natted_error_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Error in PEERSTORE monitoring for checking global natted\n");
+}
+
+
+static void
+check_for_global_natted_sync_cb (void *cls)
+{
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Done with initial PEERSTORE iteration during monitoring  for checking global natted\n");
+}
+
+
+static void
 check_for_global_natted (void *cls,
                          const struct GNUNET_PEERSTORE_Record *record,
                          const char *emsg)
@@ -12026,11 +12104,6 @@ check_for_global_natted (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
          "Got failure from PEERSTORE: %s\n",
          emsg);
-    return;
-  }
-  if (NULL == record)
-  {
-    queue->mo = NULL;
     return;
   }
   if (0 == record->value_size)
@@ -12054,8 +12127,16 @@ check_for_global_natted (void *cls,
   GNUNET_HELLO_builder_free (builder);
 
   tgna_cls.addr = get_address_without_port (queue->address);
-  tgna_cls.tgna = NULL;
   address_len_without_port = strlen (tgna_cls.addr);
+  /*{
+    char buf[address_len_without_port + 1];
+      
+      GNUNET_memcpy (&buf, addr, address_len_without_port);
+      buf[address_len_without_port] = '\0';
+      GNUNET_free (addr);
+      GNUNET_memcpy (tgna_cls.addr, buf, address_len_without_port + 1);
+      }*/
+  tgna_cls.tgna = NULL;
   GNUNET_CONTAINER_multipeermap_get_multiple (neighbour->natted_addresses,
                                               &neighbour->pid,
                                               &contains_address,
@@ -12079,10 +12160,12 @@ check_for_global_natted (void *cls,
                                        tgna,
                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
     neighbour->number_of_addresses++;
-    neighbour->size_of_global_addresses += address_len_without_port;
+    neighbour->size_of_global_addresses += address_len_without_port + 1;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Created tgna %p\n",
-                tgna);
+                "Created tgna %p with address %s and length %lu\n",
+                tgna,
+                tgna_cls.addr,
+                address_len_without_port + 1);
   }
   else if (NULL != tgna_cls.tgna && GNUNET_NO == queue->is_global_natted)
   {
@@ -12098,8 +12181,8 @@ check_for_global_natted (void *cls,
                 tgna_cls.tgna);
     GNUNET_free (tgna_cls.tgna);
   }
-  GNUNET_free (tgna_cls.addr);
   GNUNET_PEERSTORE_monitor_next (queue->mo, 1);
+  GNUNET_free (tgna_cls.addr);
 }
 
 
@@ -12214,17 +12297,27 @@ handle_add_queue_message (void *cls,
   queue->nt = (enum GNUNET_NetworkType) ntohl (aqm->nt);
   queue->cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (aqm->cs);
   queue->idle = GNUNET_YES;
-  queue->mo = GNUNET_PEERSTORE_monitor_start (GST_cfg,
-                                    GNUNET_YES,
-                                    "peerstore",
-                                    &neighbour->pid,
-                                    GNUNET_PEERSTORE_HELLO_KEY,
-                                    &check_for_global_natted_error_cb,
-                                    NULL,
-                                    &check_for_global_natted_sync_cb,
-                                    NULL,
-                                    &check_for_global_natted,
-                                    queue);
+
+  {
+    struct sockaddr_in v4;
+    char *addr_without = get_address_without_port (queue->address);
+    if (1 == inet_pton (AF_INET, addr_without, &v4.sin_addr))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "start not global natted\n");
+      queue->mo = GNUNET_PEERSTORE_monitor_start (GST_cfg,
+                                                  GNUNET_YES,
+                                                  "peerstore",
+                                                  &neighbour->pid,
+                                                  GNUNET_PEERSTORE_HELLO_KEY,
+                                                  &check_for_global_natted_error_cb,
+                                                  NULL,
+                                                  &check_for_global_natted_sync_cb,
+                                                  NULL,
+                                                  &check_for_global_natted,
+                                                  queue);
+    }
+  }
   /* check if valdiations are waiting for the queue */
   if (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (validation_map,
                                                             &aqm->receiver))
@@ -12970,6 +13063,10 @@ GNUNET_SERVICE_MAIN (
   GNUNET_MQ_hd_fixed_size (send_message_ack,
                            GNUNET_MESSAGE_TYPE_TRANSPORT_SEND_MSG_ACK,
                            struct GNUNET_TRANSPORT_SendMessageToAck,
+                           NULL),
+  GNUNET_MQ_hd_fixed_size (burst_finished,
+                           GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_FINISHED,
+                           struct GNUNET_TRANSPORT_BurstFinished,
                            NULL),
   /* communication with monitors */
   GNUNET_MQ_hd_fixed_size (monitor_start,

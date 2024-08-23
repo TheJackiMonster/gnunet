@@ -230,6 +230,13 @@ GNUNET_TRANSPORT_communicator_receive (
   void *cb_cls);
 
 
+/**
+ * The communicator tells the transport service that it finished the burst.*
+ * @param handle connection to transport service.
+ */
+void
+GNUNET_TRANSPORT_communicator_burst_finished (struct GNUNET_TRANSPORT_CommunicatorHandle *ch);
+
 /* ************************* Discovery *************************** */
 
 /**
