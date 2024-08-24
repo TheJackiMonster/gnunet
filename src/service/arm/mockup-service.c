@@ -24,7 +24,7 @@
 #include "gnunet_protocols.h"
 
 
-static int special_ret = 0;
+static int special_ret;
 
 /**
  * Handler for STOP message.
@@ -33,13 +33,14 @@ static int special_ret = 0;
  * @param message the actual message
  */
 static void
-handle_stop (void *cls, const struct GNUNET_MessageHeader *message)
+handle_stop (void *cls,
+             const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_SERVICE_Client *client = cls;
 
   (void) message;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              _ ("Initiating shutdown as requested by client.\n"));
+              "Initiating shutdown as requested by client.\n");
   GNUNET_SERVICE_client_persist (client);
   GNUNET_SCHEDULER_shutdown ();
   /* ARM won't exponentially increase restart delay if we
@@ -113,9 +114,6 @@ GNUNET_SERVICE_MAIN ("do-nothing",
                      GNUNET_MQ_handler_end ());
 
 
-/**
- * MINIMIZE heap size (way below 128k) since this process doesn't need much.
- */
 void __attribute__ ((destructor))
 GNUNET_mockup_done ()
 {

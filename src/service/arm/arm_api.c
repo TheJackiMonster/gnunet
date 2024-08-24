@@ -604,7 +604,8 @@ GNUNET_ARM_disconnect (struct GNUNET_ARM_Handle *h)
 {
   struct GNUNET_ARM_Operation *op;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Disconnecting from ARM service\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Disconnecting from ARM service\n");
   while (NULL != (op = h->operation_pending_head))
   {
     GNUNET_CONTAINER_DLL_remove (h->operation_pending_head,
@@ -972,7 +973,8 @@ GNUNET_ARM_request_service_start (
     GNUNET_CONTAINER_DLL_insert_tail (h->operation_pending_head,
                                       h->operation_pending_tail,
                                       op);
-    op->async = GNUNET_SCHEDULER_add_now (&notify_running, op);
+    op->async = GNUNET_SCHEDULER_add_now (&notify_running,
+                                          op);
     return op;
   }
   /* This is an inherently uncertain choice, as it is of course

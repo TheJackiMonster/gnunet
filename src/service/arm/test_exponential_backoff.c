@@ -61,6 +61,8 @@ static int phase = 0;
 
 static int trialCount;
 
+static bool arm_stopped;
+
 static struct GNUNET_TIME_Absolute startedWaitingAt;
 
 struct GNUNET_TIME_Relative waitedFor;
@@ -73,22 +75,15 @@ static FILE *killLogFilePtr;
 static char *killLogFileName;
 #endif
 
+/**
+ * Connection to the service that is being shutdown.
+ */
+static struct GNUNET_MQ_Handle *mq;
 
 /**
- * Context for handling the shutdown of a service.
+ * Task set up to cancel the shutdown request on timeout.
  */
-struct ShutdownContext
-{
-  /**
-   * Connection to the service that is being shutdown.
-   */
-  struct GNUNET_MQ_Handle *mq;
-
-  /**
-   * Task set up to cancel the shutdown request on timeout.
-   */
-  struct GNUNET_SCHEDULER_Task *cancel_task;
-};
+static struct GNUNET_SCHEDULER_Task *cancel_task;
 
 
 static void
@@ -103,6 +98,9 @@ kill_task (void *cbData);
 static void
 service_shutdown_timeout (void *cls)
 {
+  cancel_task = NULL;
+  GNUNET_MQ_destroy (mq);
+  mq = NULL;
   GNUNET_break (0);
   ok = 32;
   GNUNET_SCHEDULER_shutdown ();
@@ -121,21 +119,18 @@ static void
 mq_error_handler (void *cls,
                   enum GNUNET_MQ_Error error)
 {
-  struct ShutdownContext *shutdown_ctx = cls;
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Service shutdown complete (MQ error).\n");
-  GNUNET_SCHEDULER_cancel (shutdown_ctx->cancel_task);
-  GNUNET_MQ_destroy (shutdown_ctx->mq);
-  GNUNET_free (shutdown_ctx);
+  GNUNET_SCHEDULER_cancel (cancel_task);
+  cancel_task = NULL;
+  GNUNET_MQ_destroy (mq);
+  mq = NULL;
 }
 
 
 static void
 kill_task (void *cbData)
 {
-  struct ShutdownContext *shutdown_ctx
-    = GNUNET_new (struct ShutdownContext);
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *msg;
   struct GNUNET_MQ_MessageHandler handlers[] = {
@@ -152,36 +147,33 @@ kill_task (void *cbData)
                                      NULL);
     ok = 0;
     trialCount++;
-    GNUNET_free (shutdown_ctx);
     return;
   }
-  shutdown_ctx->mq = GNUNET_CLIENT_connect (cfg,
-                                            SERVICE,
-                                            handlers,
-                                            &mq_error_handler,
-                                            shutdown_ctx);
-  GNUNET_assert (NULL != shutdown_ctx->mq);
+  mq = GNUNET_CLIENT_connect (cfg,
+                              SERVICE,
+                              handlers,
+                              &mq_error_handler,
+                              NULL);
+  GNUNET_assert (NULL != mq);
   trialCount++;
   LOG ("Sending a shutdown request to the mock service\n");
   env = GNUNET_MQ_msg (msg,
                        GNUNET_MESSAGE_TYPE_ARM_STOP); /* FIXME: abuse of message type */
-  GNUNET_MQ_send (shutdown_ctx->mq,
+  GNUNET_MQ_send (mq,
                   env);
-  shutdown_ctx->cancel_task
+  GNUNET_assert (NULL == cancel_task);
+  cancel_task
     = GNUNET_SCHEDULER_add_delayed (TIMEOUT,
                                     &service_shutdown_timeout,
-                                    shutdown_ctx);
+                                    NULL);
 }
 
 
 static void
-trigger_disconnect (void *cls)
+disconnect_all (void *cls)
 {
-  if (NULL != op)
-  {
-    GNUNET_ARM_operation_cancel (op);
-    op = NULL;
-  }
+  (void) cls;
+  cancel_task = NULL;
   GNUNET_ARM_disconnect (arm);
   GNUNET_ARM_monitor_stop (mon);
   if (NULL != kt)
@@ -193,11 +185,60 @@ trigger_disconnect (void *cls)
 
 
 static void
+finish_shutdown (void *cls,
+                 enum GNUNET_ARM_RequestStatus status,
+                 enum GNUNET_ARM_Result result)
+{
+  (void) cls;
+  (void) status;
+  (void) result;
+  op = NULL;
+  GNUNET_assert (NULL == cancel_task);
+  cancel_task
+    = GNUNET_SCHEDULER_add_now (&disconnect_all,
+                                NULL);
+}
+
+
+static void
+trigger_disconnect (void *cls)
+{
+  if (NULL != op)
+  {
+    GNUNET_ARM_operation_cancel (op);
+    op = NULL;
+  }
+  if (NULL != mq)
+  {
+    GNUNET_MQ_destroy (mq);
+    mq = NULL;
+  }
+  if (NULL != cancel_task)
+  {
+    GNUNET_SCHEDULER_cancel (cancel_task);
+    cancel_task = NULL;
+  }
+  if (! arm_stopped)
+  {
+    op = GNUNET_ARM_request_service_stop (arm,
+                                          "arm",
+                                          &finish_shutdown,
+                                          NULL);
+    return;
+  }
+  finish_shutdown (NULL,
+                   GNUNET_ARM_REQUEST_SENT_OK,
+                   GNUNET_ARM_RESULT_STOPPED);
+}
+
+
+static void
 arm_stop_cb (void *cls,
              enum GNUNET_ARM_RequestStatus status,
              enum GNUNET_ARM_Result result)
 {
   op = NULL;
+  arm_stopped = true;
   GNUNET_break (status == GNUNET_ARM_REQUEST_SENT_OK);
   GNUNET_break (result == GNUNET_ARM_RESULT_STOPPED);
   LOG ("ARM service stopped\n");
@@ -210,6 +251,7 @@ clear_op_cb (void *cls,
              enum GNUNET_ARM_RequestStatus status,
              enum GNUNET_ARM_Result result)
 {
+  LOG ("ARM operation complete\n");
   op = NULL;
 }
 
@@ -241,8 +283,8 @@ srv_status (void *cls,
     LOG ("do-nothing is starting\n");
     phase++;
     ok = 1;
-    GNUNET_assert (NULL == kt);
     startedWaitingAt = GNUNET_TIME_absolute_get ();
+    GNUNET_assert (NULL == kt);
     kt = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                        &kill_task,
                                        NULL);
@@ -257,7 +299,7 @@ srv_status (void *cls,
       waitedFor = GNUNET_TIME_absolute_get_duration (startedWaitingAt);
       LOG ("Waited for: %s\n",
            GNUNET_STRINGS_relative_time_to_string (waitedFor,
-                                                   GNUNET_YES));
+                                                   true));
 
       LOG ("do-nothing is starting, killing it...\n");
       GNUNET_assert (NULL == kt);
@@ -338,6 +380,7 @@ check ()
   char *const argv[] = {
     "test-exponential-backoff",
     "-c", CFGFILENAME,
+    "-L", "INFO",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {
@@ -345,14 +388,15 @@ check ()
   };
 
   /* Running ARM  and running the do_nothing task */
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
-                                     argv,
-                                     "test-exponential-backoff",
-                                     "nohelp",
-                                     options,
-                                     &task,
-                                     NULL));
+  if (GNUNET_OK !=
+      GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
+                          argv,
+                          "test-exponential-backoff",
+                          "nohelp",
+                          options,
+                          &task,
+                          NULL))
+    return 31;
   return ok;
 }
 
@@ -366,7 +410,7 @@ check ()
 
 
 static int
-init ()
+init (void)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
   char pwd[PATH_MAX];
@@ -380,7 +424,8 @@ init ()
     GNUNET_CONFIGURATION_destroy (cfg);
     return GNUNET_SYSERR;
   }
-  if (NULL == getcwd (pwd, PATH_MAX))
+  if (NULL == getcwd (pwd,
+                      PATH_MAX))
     return GNUNET_SYSERR;
   GNUNET_assert (0 < GNUNET_asprintf (&binary,
                                       "%s/%s",
@@ -417,7 +462,7 @@ init ()
 
 
 static void
-houseKeep ()
+houseKeep (void)
 {
 #if LOG_BACKOFF
   GNUNET_assert (0 == fclose (killLogFilePtr));

@@ -711,9 +711,13 @@ broadcast_status (const char *name,
               (unsigned int) status,
               name);
   namelen = strlen (name) + 1;
-  env = GNUNET_MQ_msg_extra (msg, namelen, GNUNET_MESSAGE_TYPE_ARM_STATUS);
+  env = GNUNET_MQ_msg_extra (msg,
+                             namelen,
+                             GNUNET_MESSAGE_TYPE_ARM_STATUS);
   msg->status = htonl ((uint32_t) (status));
-  GNUNET_memcpy ((char *) &msg[1], name, namelen);
+  GNUNET_memcpy ((char *) &msg[1],
+                 name,
+                 namelen);
   if (NULL == unicast)
   {
     if (NULL != notifier)
@@ -724,7 +728,8 @@ broadcast_status (const char *name,
   }
   else
   {
-    GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (unicast), env);
+    GNUNET_MQ_send (GNUNET_SERVICE_client_get_mq (unicast),
+                    env);
   }
 }
 
@@ -744,9 +749,8 @@ start_process (struct ServiceList *sl,
 {
   char *loprefix;
   char *options;
-  int use_debug;
-  int is_simple_service;
-  struct ServiceListeningInfo *sli;
+  enum GNUNET_GenericReturnValue use_debug;
+  bool is_simple_service;
   int *lsocks;
   unsigned int ls;
   char *binary;
@@ -755,7 +759,9 @@ start_process (struct ServiceList *sl,
   /* calculate listen socket list */
   lsocks = NULL;
   ls = 0;
-  for (sli = sl->listen_head; NULL != sli; sli = sli->next)
+  for (struct ServiceListeningInfo *sli = sl->listen_head;
+       NULL != sli;
+       sli = sli->next)
   {
     GNUNET_array_append (lsocks,
                          ls,
@@ -767,7 +773,9 @@ start_process (struct ServiceList *sl,
     }
   }
 
-  GNUNET_array_append (lsocks, ls, -1);
+  GNUNET_array_append (lsocks,
+                       ls,
+                       -1);
 
   /* obtain configuration */
   if (GNUNET_OK !=
@@ -820,30 +828,42 @@ start_process (struct ServiceList *sl,
       options = fin_options;
     }
   }
-  options = GNUNET_CONFIGURATION_expand_dollar (cfg, options);
-  use_debug = GNUNET_CONFIGURATION_get_value_yesno (cfg, sl->name, "DEBUG");
+  options = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                                options);
+  use_debug = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                                    sl->name,
+                                                    "DEBUG");
   {
     const char *service_type = NULL;
-    const char *choices[] = { "GNUNET", "SIMPLE", NULL };
+    const char *choices[] = {
+      "GNUNET",
+      "SIMPLE",
+      NULL
+    };
 
-    is_simple_service = GNUNET_NO;
-    if ((GNUNET_OK == GNUNET_CONFIGURATION_get_value_choice (cfg,
-                                                             sl->name,
-                                                             "TYPE",
-                                                             choices,
-                                                             &service_type)) &&
-        (0 == strcasecmp (service_type, "SIMPLE")))
-      is_simple_service = GNUNET_YES;
+    is_simple_service = false;
+    if ( (GNUNET_OK ==
+          GNUNET_CONFIGURATION_get_value_choice (cfg,
+                                                 sl->name,
+                                                 "TYPE",
+                                                 choices,
+                                                 &service_type)) &&
+         (0 == strcasecmp (service_type,
+                           "SIMPLE")))
+      is_simple_service = true;
   }
 
   GNUNET_assert (NULL == sl->proc);
-  if (GNUNET_YES == is_simple_service)
+  if (is_simple_service)
   {
     /* A simple service will receive no GNUnet specific
        command line options. */
     binary = GNUNET_strdup (sl->binary);
-    binary = GNUNET_CONFIGURATION_expand_dollar (cfg, binary);
-    GNUNET_asprintf (&quotedbinary, "\"%s\"", sl->binary);
+    binary = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                                 binary);
+    GNUNET_asprintf (&quotedbinary,
+                     "\"%s\"",
+                     sl->binary);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Starting simple service `%s' using binary `%s'\n",
                 sl->name,
@@ -851,7 +871,8 @@ start_process (struct ServiceList *sl,
     /* FIXME: dollar expansion should only be done outside
      * of ''-quoted strings, escaping should be considered. */
     if (NULL != options)
-      options = GNUNET_CONFIGURATION_expand_dollar (cfg, options);
+      options = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                                    options);
     sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
                                           ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                                           | GNUNET_OS_USE_PIPE_CONTROL
@@ -871,69 +892,67 @@ start_process (struct ServiceList *sl,
                 sl->binary,
                 sl->config);
     binary = GNUNET_OS_get_libexec_binary_path (sl->binary);
-    GNUNET_asprintf (&quotedbinary, "\"%s\"", binary);
+    GNUNET_asprintf (&quotedbinary,
+                     "\"%s\"",
+                     binary);
 
     if (GNUNET_YES == use_debug)
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
-                                              ?
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                              | GNUNET_OS_USE_PIPE_CONTROL
-                                              :
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                              lsocks,
-                                              loprefix,
-                                              quotedbinary,
-                                              "-L",
-                                              "DEBUG",
-                                              options,
-                                              NULL);
+        sl->proc = GNUNET_OS_start_process_s (
+          sl->pipe_control
+          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+          | GNUNET_OS_USE_PIPE_CONTROL
+          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+          lsocks,
+          loprefix,
+          quotedbinary,
+          "-L",
+          "DEBUG",
+          options,
+          NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
-                                              ?
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                              | GNUNET_OS_USE_PIPE_CONTROL
-                                              :
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                              lsocks,
-                                              loprefix,
-                                              quotedbinary,
-                                              "-c",
-                                              sl->config,
-                                              "-L",
-                                              "DEBUG",
-                                              options,
-                                              NULL);
+        sl->proc = GNUNET_OS_start_process_s (
+          sl->pipe_control
+          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+          | GNUNET_OS_USE_PIPE_CONTROL
+          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+          lsocks,
+          loprefix,
+          quotedbinary,
+          "-c",
+          sl->config,
+          "-L",
+          "DEBUG",
+          options,
+          NULL);
     }
     else
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
-                                              ?
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                              | GNUNET_OS_USE_PIPE_CONTROL
-                                              :
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                              lsocks,
-                                              loprefix,
-                                              quotedbinary,
-                                              options,
-                                              NULL);
+        sl->proc = GNUNET_OS_start_process_s (
+          sl->pipe_control
+          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+          | GNUNET_OS_USE_PIPE_CONTROL
+          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+          lsocks,
+          loprefix,
+          quotedbinary,
+          options,
+          NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
-                                              ?
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                              | GNUNET_OS_USE_PIPE_CONTROL
-                                              :
-                                              GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                              lsocks,
-                                              loprefix,
-                                              quotedbinary,
-                                              "-c",
-                                              sl->config,
-                                              options,
-                                              NULL);
+        sl->proc = GNUNET_OS_start_process_s (
+          sl->pipe_control
+          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+          | GNUNET_OS_USE_PIPE_CONTROL
+          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
+          lsocks,
+          loprefix,
+          quotedbinary,
+          "-c",
+          sl->config,
+          options,
+          NULL);
     }
   }
   GNUNET_free (binary);
@@ -942,7 +961,7 @@ start_process (struct ServiceList *sl,
   if (NULL == sl->proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Failed to start service `%s'\n"),
+                "Failed to start service `%s'\n",
                 sl->name);
     if (client)
       signal_result (client,
@@ -953,16 +972,23 @@ start_process (struct ServiceList *sl,
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                _ ("Starting service `%s'\n"),
+                "Starting service `%s'\n",
                 sl->name);
-    broadcast_status (sl->name, GNUNET_ARM_SERVICE_STARTING, NULL);
+    broadcast_status (sl->name,
+                      GNUNET_ARM_SERVICE_STARTING,
+                      NULL);
     if (client)
-      signal_result (client, sl->name, request_id, GNUNET_ARM_RESULT_STARTING);
+      signal_result (client,
+                     sl->name,
+                     request_id,
+                     GNUNET_ARM_RESULT_STARTING);
   }
   /* clean up */
   GNUNET_free (loprefix);
   GNUNET_free (options);
-  GNUNET_array_grow (lsocks, ls, 0);
+  GNUNET_array_grow (lsocks,
+                     ls,
+                     0);
 }
 
 
@@ -1939,7 +1965,7 @@ setup_service (void *cls, const char *section)
     return;
   }
   config = NULL;
-  if (((GNUNET_SYSERR ==
+  if (((GNUNET_OK !=
         GNUNET_CONFIGURATION_get_value_filename (cfg,
                                                  section,
                                                  "CONFIG",
