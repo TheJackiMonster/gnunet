@@ -26,16 +26,13 @@
  * @todo: test for out_len < hash_len
  * @author Nils Durner
  */
-
-#include "gnunet_common.h"
 #include "platform.h"
 #include <gcrypt.h>
-
-
 #include "gnunet_util_lib.h"
 
+
 void
-tc1 ()
+tc1 (void)
 {
   unsigned char ikm[22] =
   { 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
@@ -55,9 +52,9 @@ tc1 ()
   struct GNUNET_ShortHashCode prk;
 
   memset (result, 0, sizeof(result));
-  GNUNET_CRYPTO_hkdf_extract(&prk, salt, sizeof(salt), ikm, sizeof(ikm));
+  GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
   GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
-                 (result, l, &prk, info, sizeof(info),
+                   (result, l, &prk, info, sizeof(info),
                    NULL) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
@@ -104,7 +101,7 @@ tc2 ()
   struct GNUNET_ShortHashCode prk;
 
   memset (result, 0, sizeof(result));
-  GNUNET_CRYPTO_hkdf_extract(&prk, salt, sizeof(salt), ikm, sizeof(ikm));
+  GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
   GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
                    (result, l, &prk, info, sizeof(info),
                    NULL) == GNUNET_YES);
@@ -129,7 +126,7 @@ tc3 ()
   struct GNUNET_ShortHashCode prk;
 
   memset (result, 0, sizeof(result));
-  GNUNET_CRYPTO_hkdf_extract(&prk, NULL, 0, ikm, sizeof(ikm));
+  GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof(ikm));
   GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
                    (result, l, &prk, NULL, 0, NULL) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
@@ -163,7 +160,7 @@ tc8 ()
   memset (result, 0, sizeof(result));
   GNUNET_assert (GNUNET_CRYPTO_hkdf_gnunet
                    (result, l, salt, sizeof(salt),
-                    ikm, sizeof(ikm), info, sizeof(info),
+                   ikm, sizeof(ikm), info, sizeof(info),
                    NULL) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
@@ -184,7 +181,7 @@ main ()
   tc6 ();*/
 
   /* Additional tests */
-  //tc7 ();
+  // tc7 ();
   tc8 ();
 
   return 0;

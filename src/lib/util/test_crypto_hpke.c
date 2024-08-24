@@ -23,8 +23,6 @@
  * @brief testcase for KEMs including RFC9180 DHKEM
  * @author Martin Schanzenbach
  */
-
-#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -515,7 +513,7 @@ test_mode_auth_psk ()
                                           test_ct,
                                           sizeof test_ct,
                                           test_pt, NULL));
-                                          GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
+  GNUNET_assert (0 == memcmp (rfc9180_a2_pt, test_pt, sizeof test_pt));
   return 0;
 }
 
