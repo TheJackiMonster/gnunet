@@ -1150,6 +1150,8 @@ enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PublicKey *key)
 {
+  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
+
   struct GNUNET_CRYPTO_EcdhePublicKey hpke_key;
   GNUNET_assert ((message) && (key));
 
@@ -1161,18 +1163,18 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
   fold_short_message (message, &shortened);
 
   const uint16_t length = get_short_message_size (&shortened, GNUNET_YES);
-  const uint16_t padded_length = calc_padded_length (
-    length + GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES
-    );
+  const uint16_t padded_length = calc_padded_length (length + overhead);
+  
+  GNUNET_assert (padded_length >= length + overhead);
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
   message->body.privacy.data = GNUNET_malloc (padded_length);
   message->body.privacy.length = padded_length;
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (key, &hpke_key));
-  const uint16_t encoded_length = (
-    padded_length - GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES
-    );
+  const uint16_t encoded_length = (padded_length - overhead);
+  
+  GNUNET_assert (padded_length == encoded_length + overhead);
 
   encode_short_message (&shortened, encoded_length, message->body.privacy.data);
 
@@ -1202,12 +1204,14 @@ enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key)
 {
+  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
+
   struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
   GNUNET_assert ((message) && (key));
 
   const uint16_t padded_length = message->body.privacy.length;
 
-  if (padded_length < GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES)
+  if (padded_length < overhead)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Message length too short to decrypt!\n");
@@ -1216,9 +1220,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   }
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (key, &hpke_key));
-  const uint16_t encoded_length = (
-    padded_length - GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES
-    );
+  const uint16_t encoded_length = (padded_length - overhead);
 
   if (GNUNET_OK !=
       GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
@@ -1236,6 +1238,8 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   }
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
+
+  GNUNET_assert (padded_length == encoded_length + overhead);
 
   if (GNUNET_YES != decode_short_message (&shortened,
                                           encoded_length,
