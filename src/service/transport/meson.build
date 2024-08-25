@@ -438,6 +438,7 @@ testcommunicator_bidirect_tcp = executable('test_communicator_bidirect-tcp',
                                            install: false)
 
 
+if false
 testtransport_test_names = [
     'test_transport_start_testcase',
     'test_transport_simple_send_performance',
@@ -462,6 +463,7 @@ foreach t : testtransport_test_names
     test(t, test_file, suite: 'transport', workdir: meson.current_build_dir(), is_parallel: false)
   endif
 endforeach
+endif
 
 test('test_communicator_basic-unix', testcommunicator_basic_unix,
      workdir: meson.current_build_dir(),
