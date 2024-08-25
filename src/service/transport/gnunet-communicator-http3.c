@@ -74,12 +74,6 @@ enum network_error
 static struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 
 /**
- * Map of connection id (cid) -> struct Connection.
- * Key is scid, which is the scid of the packet we sent.
- */
-static struct GNUNET_CONTAINER_MultiHashMap *cid_map;
-
-/**
  * Our configuration.
  */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -754,72 +748,6 @@ find_stream (struct Connection *connection, int64_t stream_id)
 
 
 /**
- * Find @a cid in @a cid_map, and return the Connection.
- *
- * @param cid the cid.
- * @param cidlen the length of cid.
- *
- * @return the connection specified by @a cid.
- */
-static struct Connection *
-cid_map_find (const uint8_t *cid, size_t cidlen)
-{
-  struct GNUNET_HashCode cid_key;
-  struct Connection *connection;
-
-  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
-  connection = GNUNET_CONTAINER_multihashmap_get (cid_map, &cid_key);
-
-  return connection;
-}
-
-
-/**
- * Insert a new @a cid to @a cid_map.
- *
- * @param cid the cid.
- * @param cidlen the length of cid.
- */
-static void
-cid_map_insert (const uint8_t *cid, size_t cidlen,
-                struct Connection *connection)
-{
-  struct GNUNET_HashCode cid_key;
-
-  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
-  GNUNET_CONTAINER_multihashmap_put (cid_map,
-                                     &cid_key,
-                                     connection,
-                                     GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY);
-}
-
-
-/**
- * Remove the @a cid in @a cid_map.
- *
- * @param cid the cid.
- * @param cidlen the length of cid.
- */
-static void
-cid_map_erase (const uint8_t *cid, size_t cidlen)
-{
-  struct GNUNET_HashCode cid_key;
-  struct Connection *connection;
-  int rv;
-
-  GNUNET_CRYPTO_hash (cid, cidlen, &cid_key);
-  connection = GNUNET_CONTAINER_multihashmap_get (cid_map, &cid_key);
-  rv = GNUNET_CONTAINER_multihashmap_remove (cid_map, &cid_key, connection);
-
-  if (GNUNET_NO == rv)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "cid not in cid_map, can't remove it\n");
-  }
-}
-
-
-/**
  * As the client, initialize the corresponding connection.
  *
  * @param connection Corresponding connection
@@ -950,7 +878,6 @@ connection_destroy (struct Connection *connection)
 {
   struct GNUNET_HashCode addr_key;
   struct HTTP_Message *msg_curr;
-  struct HTTP_Message *msg_temp;
   struct Long_Poll_Request *long_poll_curr;
   struct Long_Poll_Request *long_poll_temp;
   int rv;
@@ -960,7 +887,6 @@ connection_destroy (struct Connection *connection)
   connection->msg_queue_rear = NULL;
   while (NULL != msg_curr)
   {
-    msg_temp = msg_curr;
     msg_curr = msg_curr->next;
     GNUNET_free (msg_curr->buf);
     GNUNET_free (msg_curr);
@@ -969,7 +895,6 @@ connection_destroy (struct Connection *connection)
   msg_curr = connection->submitted_msg_queue_head;
   while (NULL != msg_curr)
   {
-    msg_temp = msg_curr;
     msg_curr = msg_curr->next;
     GNUNET_free (msg_curr->buf);
     GNUNET_free (msg_curr);
@@ -1295,8 +1220,6 @@ static int
 stream_start_response (struct Connection *connection, struct Stream *stream)
 {
   nghttp3_nv nva[4];
-  char content_length_str[20];
-  nghttp3_data_reader dr = {};
   struct HTTP_Message *msg;
   struct Long_Poll_Request *long_poll;
   struct GNUNET_TIME_Relative delay;
@@ -1435,7 +1358,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   struct Stream *post_stream;
   struct HTTP_Message *send_buf;
   struct Long_Poll_Request *long_poll;
-  int rv;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "mq_send_d: init = %d, msg->size = %u, time: %lu\n",
@@ -1471,9 +1393,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   if (GNUNET_YES == connection->is_initiator)
   {
     post_stream = create_stream (connection, -1);
-    rv = ngtcp2_conn_open_bidi_stream (connection->conn,
-                                       &post_stream->stream_id,
-                                       NULL);
+    ngtcp2_conn_open_bidi_stream (connection->conn,
+                                  &post_stream->stream_id,
+                                  NULL);
     submit_post_request (connection, post_stream, (uint8_t *) msg, msize);
     connection_write (connection);
   }
@@ -1561,7 +1483,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
 static void
 mq_destroy_d (struct GNUNET_MQ_Handle *mq, void *impl_state)
 {
-  struct Connection *connection;
+  struct Connection *connection = impl_state;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Default MQ destroyed\n");
   if (mq == connection->d_mq)
@@ -1887,7 +1809,7 @@ http_end_stream_cb (nghttp3_conn *conn, int64_t stream_id, void *user_data,
   else
   {
     /**
-     * When the client side receives the response to Long 
+     * When the client side receives the response to Long
      * polling, it sends a new GET request again.
      */
     long_poll = connection->long_poll_head;
@@ -3638,7 +3560,6 @@ sock_read (void *cls)
   socklen_t salen = sizeof (sa);
   ssize_t rcvd;
   uint8_t buf[UINT16_MAX];
-  ngtcp2_path path;
   struct GNUNET_HashCode addr_key;
   struct Connection *connection;
   int rv;
