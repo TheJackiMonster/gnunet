@@ -4,7 +4,7 @@ libgnunetidentity_src = ['identity_api.c',
 
 gnunetserviceidentity_src = ['gnunet-service-identity.c']
 
-configure_file(input : 'identity.conf',
+configure_file(input : 'identity.conf.in',
                output : 'identity.conf',
                configuration : cdata,
                install: true,
