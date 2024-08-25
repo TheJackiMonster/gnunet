@@ -220,8 +220,8 @@ nghttp3_dep = dependency('libnghttp3', required : false)
 if not nghttp3_dep.found()
   nghttp3_dep = cc.find_library('nghttp3', required : false)
 endif
-http3_dep = declare_dependency (dependencies: [ngtcp2_dep, ngtcp2_crypto_dep, nghttp3_dep])
-if http3_dep.found()
+http3_enabled = ngtcp2_dep.found() and ngtcp2_crypto_dep.found() and nghttp3_dep.found()
+if http3_enabled
   message ('HTTP3 enabled')
 endif
 idn_dep = dependency('libidn2', required : false)
