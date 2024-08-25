@@ -898,7 +898,12 @@ GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
 {
   uint8_t comp_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
   if (ctx->role != GNUNET_CRYPTO_HPKE_ROLE_R)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Wrong role; called as sender (%d)!\n",
+                ctx->role);
     return GNUNET_SYSERR;
+  }
   compute_nonce (ctx, comp_nonce);
   if (0 != crypto_aead_chacha20poly1305_ietf_decrypt (pt, pt_len,
                                                       NULL,
