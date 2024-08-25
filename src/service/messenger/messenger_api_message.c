@@ -1176,14 +1176,16 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
   
   GNUNET_assert (padded_length == encoded_length + overhead);
 
-  encode_short_message (&shortened, encoded_length, message->body.privacy.data);
+  enum GNUNET_GenericReturnValue result = GNUNET_NO;
+  uint8_t *data = GNUNET_malloc (encoded_length);
+
+  encode_short_message (&shortened, encoded_length, data);
 
   if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
                                                     (uint8_t*) "messenger",
                                                     strlen ("messenger"),
                                                     NULL, 0,
-                                                    (uint8_t*) message->body.
-                                                    privacy.data,
+                                                    (uint8_t*) data,
                                                     encoded_length,
                                                     (uint8_t*) message->body.
                                                     privacy.data,
@@ -1192,11 +1194,15 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting message failed!\n");
 
     unfold_short_message (&shortened, message);
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   destroy_message_body (shortened.kind, &(shortened.body));
-  return GNUNET_YES;
+  result = GNUNET_YES;
+
+cleanup:
+  GNUNET_free (data);
+  return result;
 }
 
 
@@ -1222,6 +1228,11 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (key, &hpke_key));
   const uint16_t encoded_length = (padded_length - overhead);
 
+  GNUNET_assert (padded_length == encoded_length + overhead);
+
+  enum GNUNET_GenericReturnValue result = GNUNET_NO;
+  uint8_t *data = GNUNET_malloc (encoded_length);
+
   if (GNUNET_OK !=
       GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
                                        (uint8_t*) "messenger",
@@ -1229,30 +1240,32 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
                                        NULL, 0,
                                        (uint8_t*) message->body.privacy.data,
                                        padded_length,
-                                       (uint8_t*) message->body.privacy.data,
+                                       (uint8_t*) data,
                                        NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Decrypting message failed!\n");
 
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
 
-  GNUNET_assert (padded_length == encoded_length + overhead);
-
   if (GNUNET_YES != decode_short_message (&shortened,
                                           encoded_length,
-                                          message->body.privacy.data))
+                                          data))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Decoding decrypted message failed!\n");
 
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   unfold_short_message (&shortened, message);
-  return GNUNET_YES;
+  result = GNUNET_YES;
+
+cleanup:
+  GNUNET_free (data);
+  return result;
 }
 
 
