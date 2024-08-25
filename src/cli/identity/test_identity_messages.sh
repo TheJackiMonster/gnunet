@@ -45,6 +45,6 @@ fi
 if [ "$TEST_MSG" != "$MSG_DEC_ED" ]
 then
   diff  <(echo "$TEST_MSG" ) <(echo "$MSG_DEC_ED")
-  echo "Failed - \"$TEST_MSG\" != \"$MSG_DEC_ED\""
+  echo "Failed (EdDSA) - \"$TEST_MSG\" != \"$MSG_DEC_ED\""
   exit 1
 fi

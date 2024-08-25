@@ -259,15 +259,15 @@ static void
 write_encrypted_message (void)
 {
   struct GNUNET_CRYPTO_PublicKey recipient;
-  struct GNUNET_CRYPTO_EcdhePublicKey hpke_key;
+  struct GNUNET_CRYPTO_EcdhePublicKey hpke_key = {0};
   size_t ct_len = strlen (write_msg) + 1
                   + GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
   unsigned char ct[ct_len];
   if (GNUNET_CRYPTO_public_key_from_string (pubkey_msg, &recipient) !=
       GNUNET_SYSERR)
   {
-    GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient, &
-                                                                 hpke_key));
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient, &hpke_key));
     size_t msg_len = strlen (write_msg) + 1;
     if (GNUNET_OK == GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
                                                       NULL, 0, // FIXME provide?
@@ -309,8 +309,8 @@ read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
   struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
   char *deserialized_msg;
   size_t msg_len;
-  if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (read_msg, strlen (
-                                                          read_msg),
+  if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (read_msg,
+                                                        strlen (read_msg),
                                                         (void **) &
                                                         deserialized_msg,
                                                         &msg_len))

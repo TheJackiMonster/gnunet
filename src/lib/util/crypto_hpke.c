@@ -975,8 +975,9 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
   switch (ntohl (pk->type))
   {
   case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
-    memcpy (x25519->q_y, pk->ecdsa_key.q_y,
-            sizeof pk->ecdsa_key.q_y);
+    if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->q_y,
+                                                   pk->ecdsa_key.q_y))
+    return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->q_y,
                                                    pk->eddsa_key.q_y))
@@ -999,6 +1000,7 @@ GNUNET_CRYPTO_hpke_sk_to_x25519 (const struct GNUNET_CRYPTO_PrivateKey *sk,
   case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
     memcpy (x25519->d, sk->ecdsa_key.d,
             sizeof sk->ecdsa_key.d);
+    return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_sk_to_curve25519 (x25519->d,
                                                    sk->eddsa_key.d))
