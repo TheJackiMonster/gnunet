@@ -916,7 +916,11 @@ GNUNET_CRYPTO_hpke_open (struct GNUNET_CRYPTO_HpkeContext *ctx,
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK != increment_seq (ctx))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Seq increment failed!\n");
     return GNUNET_SYSERR;
+  }
   return GNUNET_OK;
 }
 
@@ -937,7 +941,11 @@ GNUNET_CRYPTO_hpke_seal_oneshot (const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
   if (GNUNET_OK != GNUNET_CRYPTO_hpke_sender_setup (pkR,
                                                     info, info_len,
                                                     enc, &ctx))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Sender setup failed!\n");
     return GNUNET_SYSERR;
+  }
   return GNUNET_CRYPTO_hpke_seal (&ctx,
                                   aad, aad_len,
                                   pt, pt_len,
@@ -963,7 +971,11 @@ GNUNET_CRYPTO_hpke_open_oneshot (
   if (GNUNET_OK != GNUNET_CRYPTO_hpke_receiver_setup (enc, skR,
                                                       info, info_len,
                                                       &ctx))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE: Receiver setup failed!\n");
     return GNUNET_SYSERR;
+  }
   return GNUNET_CRYPTO_hpke_open (&ctx,
                                   aad, aad_len,
                                   ct_off,
