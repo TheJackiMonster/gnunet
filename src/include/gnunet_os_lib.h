@@ -289,13 +289,13 @@ struct GNUNET_OS_ProjectData
    * Gettext domain for localisation, e.g. the PACKAGE macro.
    * Setting this field to NULL disables gettext.
    */
-  char *gettext_domain;
+  const char *gettext_domain;
 
   /**
    * Gettext directory, e.g. the LOCALEDIR macro.
    * If this field is NULL, the path is automatically inferred.
    */
-  char *gettext_path;
+  const char *gettext_path;
 
   /**
    * URL pointing to the source code of the application.  Required for AGPL.
@@ -303,7 +303,7 @@ struct GNUNET_OS_ProjectData
    * provide it in some other way.  If non-NULL, message type 1 and 2 are
    * reserved.
    */
-  char *agpl_url;
+  const char *agpl_url;
 };
 
 
