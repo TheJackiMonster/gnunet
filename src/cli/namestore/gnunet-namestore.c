@@ -2223,7 +2223,7 @@ main (int argc, char *const *argv)
                                "batch-size",
                                "NUMBER",
                                gettext_noop (
-                                 "delete all records in specified zone"),
+                                 "number of records to buffer and send as batch (for use with --from-stdin)"),
                                &max_batch_size),
     GNUNET_GETOPT_option_flag (
       's',

@@ -51,6 +51,7 @@
 .Op Fl v | -version
 .Op Fl V Ar VALUE | Fl -value= Ns Ar VALUE
 .Op Fl X | -purge-zone-records
+.Op Fl B | -batch-size
 .Op Fl z Ar EGO | Fl -zone= Ns Ar EGO
 .Op Fl Z Ar KEY | Fl -zone-to-name= Ns Ar KEY
 .Sh DESCRIPTION
@@ -155,6 +156,9 @@ address, PKEY a public key in GNUnet's printable format, and CNAME and
 NS records should be a domain name.
 .It Fl X | -purge-zone-records
 Delete all records in a zone.
+.It Fl B | -batch-size
+Number of records to buffer and send in a batch to the service.
+For use with --from-stdin.
 .It Fl z Ar EGO | Fl -zone= Ns Ar EGO
 Specifies the name of the ego controlling the private key for the
 zone. If not provided, we will attempt to use the default identity set
