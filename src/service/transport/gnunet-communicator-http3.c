@@ -704,7 +704,7 @@ remove_stream (struct Connection *connection, int64_t stream_id)
   if (GNUNET_NO == rv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "can't remove non-exist pair in connection->streams, stream_id = %ld\n",
+                "can't remove non-exist pair in connection->streams, stream_id = %"PRIi64"\n",
                 stream_id);
     return;
   }
@@ -1360,9 +1360,9 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   struct Long_Poll_Request *long_poll;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "mq_send_d: init = %d, msg->size = %u, time: %lu\n",
+              "mq_send_d: init = %d, msg->size = %u, time: %llu\n",
               connection->is_initiator, msize,
-              timestamp () / NGTCP2_SECONDS);
+              (unsigned long long) timestamp () / NGTCP2_SECONDS);
   if (NULL == connection->conn)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1610,8 +1610,8 @@ http_stream_close_cb (nghttp3_conn *conn, int64_t stream_id,
 
   remove_stream (connection, stream_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "HTTP stream %ld closed\n",
-              stream_id);
+              "HTTP stream %lu closed\n",
+              (unsigned long) stream_id);
   if (GNUNET_NO == connection->is_initiator &&
       ngtcp2_is_bidi_stream (stream_id))
   {
@@ -1997,7 +1997,7 @@ setup_httpconn (struct Connection *connection)
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Bind control stream: %ld, enc stream: %ld, dec stream: %ld\n",
+              "Bind control stream: %"PRIi64", enc stream: %"PRIi64", dec stream: %"PRIi64"\n",
               ctrl_stream_id, enc_stream_id, dec_stream_id);
   return GNUNET_NO;
 }
@@ -2102,7 +2102,7 @@ stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                  void *stream_user_data)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "stream_close id = %ld\n",
+              "stream_close id = %"PRIi64"\n",
               stream_id);
   struct Connection *connection = user_data;
   int rv;
