@@ -88,9 +88,10 @@ on_message (void *cls,
         waiting = waiting > message->body.talk.length?
           waiting - message->body.talk.length : 0;
       }
-      else if (GNUNET_YES != silence_flag)
+      else if ((GNUNET_YES != silence_flag) &&
+               (0 < write (1, message->body.talk.data, 
+                message->body.talk.length)))
       {
-        write (1, message->body.talk.data, message->body.talk.length);
         fflush (stdout);
       }
     }
