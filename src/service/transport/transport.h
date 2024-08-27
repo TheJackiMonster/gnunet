@@ -686,7 +686,7 @@ struct GNUNET_TRANSPORT_StartBurst
   /**
    * Target peer.
    */
-  struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_PeerIdentity pid;
 
   struct GNUNET_TIME_RelativeNBO rtt;
 

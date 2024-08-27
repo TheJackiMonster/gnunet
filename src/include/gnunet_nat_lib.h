@@ -155,11 +155,11 @@ struct GNUNET_UdpSocketInfo
    * Timeout task for this socket.
    */
   struct GNUNET_SCHEDULER_Task *timeout_task;
-  
+
   /**
    * The address of the other peer without port.
    */
-  const char *address;
+  char *address;
 
   /**
    * Our address without port.

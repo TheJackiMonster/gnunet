@@ -199,6 +199,7 @@ src/lib/util/helper.c
 src/lib/util/load.c
 src/lib/util/mq.c
 src/lib/util/mst.c
+src/lib/util/nat.c
 src/lib/util/nc.c
 src/lib/util/network.c
 src/lib/util/nt.c

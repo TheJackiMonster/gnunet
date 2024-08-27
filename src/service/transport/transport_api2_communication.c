@@ -810,7 +810,7 @@ handle_start_burst (void *cls,
               rtt.rel_value_us);
  
   if (NULL != ch->sb)
-    ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), sb->pid);
+    ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), (struct GNUNET_PeerIdentity *) &sb->pid);
 }
 
 

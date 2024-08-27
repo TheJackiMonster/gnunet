@@ -3065,6 +3065,8 @@ static struct GNUNET_SCHEDULER_Task *burst_task;
 
 struct GNUNET_SCHEDULER_Task *burst_timeout_task;
 
+enum GNUNET_GenericReturnValue use_burst;
+
 /**
  * Get an offset into the transmission history buffer for `struct
  * PerformanceData`.  Note that the caller must perform the required
@@ -4634,9 +4636,10 @@ handle_communicator_available (
   tc->details.communicator.can_burst
     = (enum GNUNET_GenericReturnValue) ntohl (cam->can_burst);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Communicator for peer %s with prefix '%s' connected\n",
+              "Communicator for peer %s with prefix '%s' connected %s\n",
               GNUNET_i2s (&GST_my_identity),
-              tc->details.communicator.address_prefix);
+              tc->details.communicator.address_prefix,
+              tc->details.communicator.can_burst ? "can burst" : "can not burst");
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -9885,7 +9888,7 @@ start_burst (void *cls)
                          strlen (uri_without_port) + 1,
                          GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST);
   sb->rtt = GNUNET_TIME_relative_hton (sb_cls->rtt);
-  sb->pid = &vl->target;
+  sb->pid = vl->target;
   memcpy (&sb[1], uri_without_port, strlen (uri_without_port) + 1);
   for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
   {
@@ -9921,6 +9924,8 @@ queue_burst (void *cls)
   struct GNUNET_StartBurstCls *sb_cls = cls;
   struct VirtualLink *vl = sb_cls->vl;
 
+  if (GNUNET_YES != use_burst)
+    return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "burst_task %p ready %s burst addr %s (%p)\n",
               burst_task,
@@ -12061,6 +12066,12 @@ contains_address (void *cls,
   struct TransportGlobalNattedAddress *tgna = value;
   char *addr = (char *) &tgna[1];
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Checking tgna %p with addr %s and length %u compare length %lu\n",
+              tgna,
+              addr,
+              ntohl (tgna->address_length),
+              strlen(tgna_cls->addr));
   if (strlen(tgna_cls->addr) == ntohl (tgna->address_length)
       && 0 == strncmp (addr, tgna_cls->addr, ntohl (tgna->address_length)))
   {
@@ -12962,6 +12973,12 @@ run (void *cls,
               "My identity is `%s'\n",
               GNUNET_i2s_full (&GST_my_identity));
   GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
+  use_burst = GNUNET_CONFIGURATION_get_value_yesno (GST_cfg,
+                                        "transport",
+                                        "USE_BURST_NAT");
+  if (GNUNET_SYSERR == use_burst)
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Could not configure burst nat use. Default to no.\n");
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);

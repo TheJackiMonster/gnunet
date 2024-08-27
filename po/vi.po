@@ -8,7 +8,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
+<<<<<<< Updated upstream
 "POT-Creation-Date: 2024-06-08 11:29+0200\n"
+=======
+"POT-Creation-Date: 2024-07-18 18:14+0200\n"
+>>>>>>> Stashed changes
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -99,6 +103,7 @@ msgid "Unknown result code."
 msgstr "Không rõ người dùng « %s »\n"
 
 #: src/cli/arm/gnunet-arm.c:312
+#: src/service/transport/testing_api_cmd_start_peer.c:62
 msgid "Fatal error initializing ARM API.\n"
 msgstr ""
 
@@ -138,6 +143,7 @@ msgid "Failed to kill the `%s' service: %s\n"
 msgstr "Lỗi chạy %s: %s %d\n"
 
 #: src/cli/arm/gnunet-arm.c:549
+#: src/service/transport/testing_api_cmd_start_peer.c:111
 #, fuzzy, c-format
 msgid "Failed to request a list of services: %s\n"
 msgstr "Lỗi bắt đầu thu thập.\n"
@@ -1736,21 +1742,34 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
+<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:813
+=======
+#: src/cli/reclaim/gnunet-reclaim.c:836
+>>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "Bị từ chối đặt tùy chọn « %s » trong phần « %s » thành « %s ».\n"
 
+<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:820
+=======
+#: src/cli/reclaim/gnunet-reclaim.c:843
+>>>>>>> Stashed changes
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
+<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:827
+=======
+#: src/cli/reclaim/gnunet-reclaim.c:850
+>>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "đặt tên hiệu cần dùng (cần thiết)"
 
+<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:846
 msgid "Add or update an attribute NAME"
 msgstr ""
@@ -1764,10 +1783,26 @@ msgid "The attribute VALUE"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:861
+=======
+#: src/cli/reclaim/gnunet-reclaim.c:868
+msgid "Add or update an attribute NAME"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:873
+msgid "Delete the attribute with ID"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:878
+msgid "The attribute VALUE"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:883
+>>>>>>> Stashed changes
 #, fuzzy
 msgid "The EGO to use"
 msgstr "kích cỡ tin nhắn"
 
+<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:867
 msgid "Specify the relying party for issue"
 msgstr ""
@@ -1821,6 +1856,57 @@ msgid "Expiration interval of the attribute"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:936
+=======
+#: src/cli/reclaim/gnunet-reclaim.c:889
+msgid "Specify the relying party for issue"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:893
+msgid "List attributes for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:897
+msgid "List credentials for EGO"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:903
+msgid "Credential to use for attribute"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:908
+msgid "Credential name"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:914
+msgid "Issue a ticket for a set of attributes separated by comma"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:919
+msgid "Consume a ticket"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:924
+msgid "Revoke a ticket"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:929
+msgid "Type of attribute"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:934
+msgid "Type of credential"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:938
+msgid "List tickets of ego"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:944
+msgid "Expiration interval of the attribute"
+msgstr ""
+
+#: src/cli/reclaim/gnunet-reclaim.c:952
+>>>>>>> Stashed changes
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -3668,100 +3754,100 @@ msgstr "Phải gửi một con số cho tùy chọn « %s ».\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:60
+#: src/lib/util/gnunet_error_codes.c:59
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:66
+#: src/lib/util/gnunet_error_codes.c:65
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "Lỗi không rõ.\n"
 
-#: src/lib/util/gnunet_error_codes.c:72
+#: src/lib/util/gnunet_error_codes.c:71
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Cổng để liên lạc với giao diện người dùng GNUnet"
 
-#: src/lib/util/gnunet_error_codes.c:78
+#: src/lib/util/gnunet_error_codes.c:77
 #, fuzzy
 msgid "Ego not found."
 msgstr "Khoá phiên chạy từ đồng đẳng « %s » không thể được thẩm tra.\n"
 
-#: src/lib/util/gnunet_error_codes.c:84
+#: src/lib/util/gnunet_error_codes.c:83
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:90
+#: src/lib/util/gnunet_error_codes.c:89
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:96
+#: src/lib/util/gnunet_error_codes.c:95
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "Lỗi không rõ.\n"
 
-#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
+#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# các khoá phiên chạy được chấp nhận"
 
-#: src/lib/util/gnunet_error_codes.c:108
+#: src/lib/util/gnunet_error_codes.c:107
 #, fuzzy
 msgid "Zone not found."
 msgstr "Khoá phiên chạy từ đồng đẳng « %s » không thể được thẩm tra.\n"
 
-#: src/lib/util/gnunet_error_codes.c:114
+#: src/lib/util/gnunet_error_codes.c:113
 #, fuzzy
 msgid "Record not found."
 msgstr "Khoá phiên chạy từ đồng đẳng « %s » không thể được thẩm tra.\n"
 
-#: src/lib/util/gnunet_error_codes.c:126
+#: src/lib/util/gnunet_error_codes.c:125
 #, fuzzy
 msgid "Zone does not contain any records."
 msgstr "Tập tin « %s » không chứa biệt hiệu.\n"
 
-#: src/lib/util/gnunet_error_codes.c:132
+#: src/lib/util/gnunet_error_codes.c:131
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Lỗi bắt đầu thu thập.\n"
 
-#: src/lib/util/gnunet_error_codes.c:138
+#: src/lib/util/gnunet_error_codes.c:137
 #, fuzzy
 msgid "No records given."
 msgstr "chưa đưa ra tên"
 
-#: src/lib/util/gnunet_error_codes.c:144
+#: src/lib/util/gnunet_error_codes.c:143
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:150
+#: src/lib/util/gnunet_error_codes.c:149
 #, fuzzy
 msgid "No label given."
 msgstr "chưa đưa ra tên"
 
-#: src/lib/util/gnunet_error_codes.c:156
+#: src/lib/util/gnunet_error_codes.c:155
 #, fuzzy
 msgid "No results given."
 msgstr "chưa đưa ra tên"
 
-#: src/lib/util/gnunet_error_codes.c:162
+#: src/lib/util/gnunet_error_codes.c:161
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:168
+#: src/lib/util/gnunet_error_codes.c:167
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:174
+#: src/lib/util/gnunet_error_codes.c:173
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:180
+#: src/lib/util/gnunet_error_codes.c:179
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Lỗi bắt đầu thu thập.\n"
 
-#: src/lib/util/gnunet_error_codes.c:186
+#: src/lib/util/gnunet_error_codes.c:185
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -5702,7 +5788,11 @@ msgstr "Lưu cấu hình ngay bây giờ không?"
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
+<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:1062
+=======
+#: src/service/topology/gnunet-daemon-topology.c:1061
+>>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Lỗi sơ khởi dịch vụ « %s ».\n"
@@ -6542,7 +6632,11 @@ msgid "# hostlist advertisements send"
 msgstr "# Các quảng cáo ngoại được chuyển tiếp"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
+<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:781
+=======
+#: src/service/topology/gnunet-daemon-topology.c:780
+>>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Cổng để liên lạc với giao diện người dùng GNUnet"
@@ -6811,7 +6905,11 @@ msgstr ""
 msgid "Connection reversal request failed\n"
 msgstr "Thu thập bị dừng.\n"
 
+<<<<<<< Updated upstream
 #: src/service/nat/gnunet-service-nat.c:1999
+=======
+#: src/service/nat/gnunet-service-nat.c:2055
+>>>>>>> Stashed changes
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -7133,11 +7231,16 @@ msgstr "# các yêu cầu máy/trình khách lỗ hổng được phun vào"
 msgid "# HELLO messages gossipped"
 msgstr "# các thông báo gửi đi bị loại bỏ"
 
+<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:747
+=======
+#: src/service/topology/gnunet-daemon-topology.c:746
+>>>>>>> Stashed changes
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Cổng để liên lạc với giao diện người dùng GNUnet"
 
+<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:756
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
@@ -7147,18 +7250,38 @@ msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 
 #: src/service/topology/gnunet-daemon-topology.c:938
+=======
+#: src/service/topology/gnunet-daemon-topology.c:755
+msgid "Finished initial PEERSTORE iteration in monitor.\n"
+msgstr ""
+
+#: src/service/topology/gnunet-daemon-topology.c:863
+msgid "Failed to connect to core service, can not manage topology!\n"
+msgstr ""
+
+#: src/service/topology/gnunet-daemon-topology.c:937
+>>>>>>> Stashed changes
 #, fuzzy
 msgid "# HELLO messages received"
 msgstr "# các thông báo PONG đã mật mã được nhận"
 
+<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:1091
+=======
+#: src/service/topology/gnunet-daemon-topology.c:1090
+>>>>>>> Stashed changes
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3814
+<<<<<<< Updated upstream
 #: src/service/transport/gnunet-communicator-udp.c:3579
 #: src/service/transport/gnunet-service-transport.c:12543
+=======
+#: src/service/transport/gnunet-communicator-udp.c:3653
+#: src/service/transport/gnunet-service-transport.c:12847
+>>>>>>> Stashed changes
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Lưu cấu hình ngay bây giờ không?"
@@ -7167,11 +7290,15 @@ msgstr "Lưu cấu hình ngay bây giờ không?"
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4171
+#: src/service/transport/gnunet-communicator-tcp.c:4172
 msgid "GNUnet TCP communicator"
 msgstr ""
 
+<<<<<<< Updated upstream
 #: src/service/transport/gnunet-communicator-udp.c:3654
+=======
+#: src/service/transport/gnunet-communicator-udp.c:3729
+>>>>>>> Stashed changes
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -7191,7 +7318,7 @@ msgstr "Lưu cấu hình ngay bây giờ không?"
 msgid "Cannot create path to `%s'\n"
 msgstr "Không thể tạo miền tên.\n"
 
-#: src/service/transport/gnunet-communicator-unix.c:1138
+#: src/service/transport/gnunet-communicator-unix.c:1139
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
 
@@ -7353,7 +7480,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:773
+#: src/service/transport/transport_api2_communication.c:778
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -9766,8 +9893,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 
 #, fuzzy
 #~ msgid ""
-#~ "Syntax error in topology specification at offset %llu, skipping bytes "
-#~ "`%s'.\n"
+#~ "Syntax error in topology specification at offset %llu, skipping bytes `"
+#~ "%s'.\n"
 #~ msgstr ""
 #~ "Lỗi cú pháp trong sự xác định địa hình học, đang bỏ qua các byte « %s ».\n"
 

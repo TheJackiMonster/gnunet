@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-06-08 11:29+0200\n"
+"POT-Creation-Date: 2024-07-18 18:14+0200\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -1709,90 +1709,86 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:813
+#: src/cli/reclaim/gnunet-reclaim.c:836
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "Option `%s' macht keinen Sinn ohne die Option `%s'.\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:820
+#: src/cli/reclaim/gnunet-reclaim.c:843
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:827
+#: src/cli/reclaim/gnunet-reclaim.c:850
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "Option `%s' macht keinen Sinn ohne die Option `%s'.\n"
 
-#: src/cli/reclaim/gnunet-reclaim.c:846
+#: src/cli/reclaim/gnunet-reclaim.c:868
 msgid "Add or update an attribute NAME"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:851
+#: src/cli/reclaim/gnunet-reclaim.c:873
 msgid "Delete the attribute with ID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:856
+#: src/cli/reclaim/gnunet-reclaim.c:878
 msgid "The attribute VALUE"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:861
+#: src/cli/reclaim/gnunet-reclaim.c:883
 msgid "The EGO to use"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:867
+#: src/cli/reclaim/gnunet-reclaim.c:889
 msgid "Specify the relying party for issue"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:873
-msgid "Specify the relying party URI for a ticket to consume"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:877
+#: src/cli/reclaim/gnunet-reclaim.c:893
 msgid "List attributes for EGO"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:881
+#: src/cli/reclaim/gnunet-reclaim.c:897
 msgid "List credentials for EGO"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:887
+#: src/cli/reclaim/gnunet-reclaim.c:903
 msgid "Credential to use for attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:892
+#: src/cli/reclaim/gnunet-reclaim.c:908
 msgid "Credential name"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:898
+#: src/cli/reclaim/gnunet-reclaim.c:914
 msgid "Issue a ticket for a set of attributes separated by comma"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:903
+#: src/cli/reclaim/gnunet-reclaim.c:919
 msgid "Consume a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:908
+#: src/cli/reclaim/gnunet-reclaim.c:924
 msgid "Revoke a ticket"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:913
+#: src/cli/reclaim/gnunet-reclaim.c:929
 msgid "Type of attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:918
+#: src/cli/reclaim/gnunet-reclaim.c:934
 msgid "Type of credential"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:922
+#: src/cli/reclaim/gnunet-reclaim.c:938
 msgid "List tickets of ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:928
+#: src/cli/reclaim/gnunet-reclaim.c:944
 msgid "Expiration interval of the attribute"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-reclaim.c:936
+#: src/cli/reclaim/gnunet-reclaim.c:952
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -5644,7 +5640,7 @@ msgstr "GNUnet Konfiguration"
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-#: src/service/topology/gnunet-daemon-topology.c:1062
+#: src/service/topology/gnunet-daemon-topology.c:1061
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "`%s' Dienst konnte nicht initialisiert werden.\n"
@@ -6468,7 +6464,7 @@ msgid "# hostlist advertisements send"
 msgstr "# Bekanntmachungen von anderen übertragen"
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-#: src/service/topology/gnunet-daemon-topology.c:781
+#: src/service/topology/gnunet-daemon-topology.c:780
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Informationen über andere GNUnet Knoten ausgeben."
@@ -6738,7 +6734,7 @@ msgstr ""
 msgid "Connection reversal request failed\n"
 msgstr " Verbindung fehlgeschlagen\n"
 
-#: src/service/nat/gnunet-service-nat.c:1999
+#: src/service/nat/gnunet-service-nat.c:2055
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -7052,31 +7048,31 @@ msgstr "# geschlossener Verbindungen (HANGUP gesendet)"
 msgid "# HELLO messages gossipped"
 msgstr "# ausgehender Nachrichten verworfen"
 
-#: src/service/topology/gnunet-daemon-topology.c:747
+#: src/service/topology/gnunet-daemon-topology.c:746
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Informationen über andere GNUnet Knoten ausgeben."
 
-#: src/service/topology/gnunet-daemon-topology.c:756
+#: src/service/topology/gnunet-daemon-topology.c:755
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:864
+#: src/service/topology/gnunet-daemon-topology.c:863
 msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 
-#: src/service/topology/gnunet-daemon-topology.c:938
+#: src/service/topology/gnunet-daemon-topology.c:937
 msgid "# HELLO messages received"
 msgstr "# HELLO-Meldungen empfangen"
 
-#: src/service/topology/gnunet-daemon-topology.c:1091
+#: src/service/topology/gnunet-daemon-topology.c:1090
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3814
-#: src/service/transport/gnunet-communicator-udp.c:3579
-#: src/service/transport/gnunet-service-transport.c:12543
+#: src/service/transport/gnunet-communicator-udp.c:3653
+#: src/service/transport/gnunet-service-transport.c:12847
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 
@@ -7088,7 +7084,7 @@ msgstr ""
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3654
+#: src/service/transport/gnunet-communicator-udp.c:3729
 msgid "GNUnet UDP communicator"
 msgstr ""
 

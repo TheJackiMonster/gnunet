@@ -658,6 +658,11 @@ struct ReceiverAddress
   struct GNUNET_NETWORK_Handle *udp_sock;
 
   /**
+   * Read task, if this receiver has its own socket.
+   */
+  struct GNUNET_SCHEDULER_Task *read_task;
+  
+  /**
    * MTU we allowed transport for this receiver's KX queue.
    */
   size_t kx_mtu;
@@ -2169,6 +2174,10 @@ udp_address_to_sockaddr (const char *bindto, socklen_t *sock_len)
 }
 
 
+static void
+sock_read (void *cls);
+
+
 static enum GNUNET_GenericReturnValue
 create_receiver (const struct GNUNET_PeerIdentity *peer,
                  const char *address,
@@ -2239,8 +2248,10 @@ create_receiver (const struct GNUNET_PeerIdentity *peer,
     receiver,
     GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Added %s to receivers\n",
-              GNUNET_i2s_full (&receiver->target));
+              "Added %s to receivers with address %s and sock %p\n",
+              GNUNET_i2s_full (&receiver->target),
+              address,
+              udp_sock);
   receiver->timeout =
     GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
   receiver->hn = GNUNET_CONTAINER_heap_insert (receivers_heap,
@@ -2252,6 +2263,11 @@ create_receiver (const struct GNUNET_PeerIdentity *peer,
                          GNUNET_NO);
   receiver->foreign_addr =
     sockaddr_to_udpaddr_string (receiver->address, receiver->address_len);
+  if (NULL != udp_sock)
+    receiver->read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
+                                                         udp_sock,
+                                                         &sock_read,
+                                                         udp_sock);
   setup_receiver_mq (receiver);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -2324,7 +2340,7 @@ sock_read (void *cls)
       create_receiver (&bm->peer,
                        address,
                        NULL);
-      GNUNET_stop_burst(default_udp_sock);
+      GNUNET_stop_burst (default_udp_sock);
       GNUNET_TRANSPORT_communicator_burst_finished (ch);
       GNUNET_free (address);
       return;
@@ -2629,10 +2645,11 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Sending KX with payload size %u to %s\n",
+              "Sending KX with payload size %u to %s with socket %p\n",
               msize,
               GNUNET_a2s (receiver->address,
-                          receiver->address_len));
+                          receiver->address_len),
+              get_socket (receiver));
   GNUNET_MQ_impl_send_continue (mq);
 }
 
@@ -2817,10 +2834,11 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
       return;
     }
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent\n",
+                "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent with socket %p\n",
                 msize,
                 receiver->acks_available,
-                (unsigned long) ss->bytes_sent);
+                (unsigned long) ss->bytes_sent,
+                get_socket (receiver));
     ss->bytes_sent += sizeof (dgram);
     receiver->acks_available--;
     GNUNET_MQ_impl_send_continue (mq);
@@ -3006,6 +3024,8 @@ static int
 mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 {
   (void) cls;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "create receiver for mq_init\n");
   return create_receiver (peer,
                           address,
                           NULL);
@@ -3068,6 +3088,7 @@ do_shutdown (void *cls)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown\n");
+  GNUNET_stop_burst (NULL);
   if (NULL != nat)
   {
     GNUNET_NAT_unregister (nat);
@@ -3137,7 +3158,6 @@ do_shutdown (void *cls)
     GNUNET_NT_scanner_done (is);
     is = NULL;
   }
-  GNUNET_stop_burst (NULL);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown finished\n");
 }
@@ -3485,7 +3505,7 @@ try_connection_reversal (void *cls,
 {
   /* FIXME: support reversal: #5529 */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "No connection reversal implemented!");
+              "No connection reversal implemented!\n");
 }
 
 
@@ -3514,19 +3534,23 @@ start_burst (const char *addr,
               addr,
               my_ipv4);
 
+  GNUNET_stop_burst (NULL);
+
   sock_info = GNUNET_new (struct GNUNET_UdpSocketInfo);
+  sock_info->pid = GNUNET_new (struct GNUNET_PeerIdentity);
   sock_info->address = GNUNET_strdup (addr);
   sock_info->bind_address = my_ipv4;
   sock_info->has_port = GNUNET_YES;
   sock_info->udp_sock = default_udp_sock;
   sock_info->rtt = rtt;
-  sock_info->pid = pid;;
+  GNUNET_memcpy (sock_info->pid, pid, sizeof (struct GNUNET_PeerIdentity));
   sock_info->std_port = my_port;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "1 sock addr %s addr %s rtt %lu\n",
+              "1 sock addr %s addr %s rtt %lu %u\n",
               sock_info->address,
               addr,
-              sock_info->rtt);
+              sock_info->rtt.rel_value_us,
+              my_port);
   burst_task = GNUNET_get_udp_socket (sock_info,
                                       &udp_socket_notify);
   GNUNET_free (sock_info);
