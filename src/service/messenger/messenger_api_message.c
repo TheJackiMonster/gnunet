@@ -1164,7 +1164,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
 
   const uint16_t length = get_short_message_size (&shortened, GNUNET_YES);
   const uint16_t padded_length = calc_padded_length (length + overhead);
-  
+
   GNUNET_assert (padded_length >= length + overhead);
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
@@ -1173,13 +1173,13 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (key, &hpke_key));
   const uint16_t encoded_length = (padded_length - overhead);
-  
+
   GNUNET_assert (padded_length == encoded_length + overhead);
 
   enum GNUNET_GenericReturnValue result = GNUNET_NO;
   uint8_t *data = GNUNET_malloc (encoded_length);
 
-  encode_short_message (&shortened, encoded_length, data);
+  encode_short_message (&shortened, encoded_length, (char *) data);
 
   if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
                                                     (uint8_t*) "messenger",
@@ -1252,7 +1252,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
 
   if (GNUNET_YES != decode_short_message (&shortened,
                                           encoded_length,
-                                          data))
+                                          (char*) data))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Decoding decrypted message failed!\n");
