@@ -659,8 +659,9 @@ handle_iterate_stop (void *cls,
       break;
   if (NULL == ic)
   {
-    GNUNET_break (0);
-    GNUNET_SERVICE_client_drop (pc->client);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Iteration already finished.\n");
+    GNUNET_SERVICE_client_continue (pc->client);
     return;
   }
   GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, ic);
