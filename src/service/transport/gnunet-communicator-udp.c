@@ -2271,6 +2271,8 @@ create_receiver (const struct GNUNET_PeerIdentity *peer,
   receiver->address = in;
   receiver->address_len = in_len;
   receiver->target = *peer;
+  eddsa_pub_to_hpke_key (&receiver->target.public_key,
+                         &receiver->target_hpke_key);
   receiver->nt = GNUNET_NT_scanner_get_type (is, in, in_len);
   (void) GNUNET_CONTAINER_multihashmap_put (
     receivers,
@@ -3590,7 +3592,7 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
   struct sockaddr_storage in_sto;
   socklen_t sto_len;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
        "Entering the run method of udp communicator.\n");
 
   cfg = c;
@@ -3605,7 +3607,9 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
                                "BINDTO");
     return;
   }
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+       "The udp communicator will bind to %s\n",
+       bindto);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_time (cfg,
                                            COMMUNICATOR_CONFIG_SECTION,
@@ -3807,7 +3811,7 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
   run_ (c);
-  }
+}
 
 
 GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run, &run_monolith)
