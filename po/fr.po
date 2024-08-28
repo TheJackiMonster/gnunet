@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-06-08 11:29+0200\n"
+"POT-Creation-Date: 2024-08-28 13:58+0200\n"
 "PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -277,82 +277,83 @@ msgstr ""
 msgid "Provide information about all tunnels"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:101
+#: src/cli/core/gnunet-core.c:116
 msgid "fresh connection"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:105
+#: src/cli/core/gnunet-core.c:120
 msgid "key sent"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:109
+#: src/cli/core/gnunet-core.c:124
 msgid "key received"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:113
+#: src/cli/core/gnunet-core.c:128
 msgid "connection established"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:117
+#: src/cli/core/gnunet-core.c:132
 msgid "rekeying"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:121
+#: src/cli/core/gnunet-core.c:136
 #, fuzzy
 msgid "disconnected"
 msgstr "Déconnecté de"
 
-#: src/cli/core/gnunet-core.c:130
+#: src/cli/core/gnunet-core.c:145
 msgid "Connection to CORE service lost (reconnecting)"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:134
+#: src/cli/core/gnunet-core.c:149
 #, fuzzy
 msgid "unknown state"
 msgstr "adresse inconnue"
 
-#: src/cli/core/gnunet-core.c:139
+#: src/cli/core/gnunet-core.c:154
 #, c-format
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:170
+#: src/cli/core/gnunet-core.c:184 src/cli/hello/gnunet-hello.c:212
 #, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:181 src/service/core/gnunet-service-core.c:926
-msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
-msgstr ""
-
-#: src/cli/core/gnunet-core.c:199
-#, c-format
-msgid "Current local peer identity: %s\n"
-msgstr ""
-
-#: src/cli/core/gnunet-core.c:206
-msgid "Failed to connect to CORE service!\n"
-msgstr ""
-
-#: src/cli/core/gnunet-core.c:213
+#: src/cli/core/gnunet-core.c:189 src/cli/hello/gnunet-hello.c:219
 #, fuzzy
 msgid "No argument given.\n"
 msgstr "# résultats introuvables"
 
-#: src/cli/core/gnunet-core.c:238 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:203 src/cli/hello/gnunet-hello.c:233
+#: src/service/core/gnunet-service-core.c:926
+msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
+msgstr ""
+
+#: src/cli/core/gnunet-core.c:224
+#, c-format
+msgid "Current local peer identity: %s\n"
+msgstr ""
+
+#: src/cli/core/gnunet-core.c:231
+msgid "Failed to connect to CORE service!\n"
+msgstr ""
+
+#: src/cli/core/gnunet-core.c:256 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:244
+#: src/cli/core/gnunet-core.c:262
 msgid "Show our current peer identity"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:251
+#: src/cli/core/gnunet-core.c:269
 #, fuzzy
 msgid "Show current connections"
 msgstr "# Session TCP active"
 
-#: src/cli/core/gnunet-core.c:262
+#: src/cli/core/gnunet-core.c:280
 msgid "Print information about connected peers."
 msgstr ""
 
@@ -1094,68 +1095,84 @@ msgstr ""
 msgid "GNUnet GNS resolver tool"
 msgstr ""
 
+#: src/cli/hello/gnunet-hello.c:291
+msgid "Print a HELLO URI for our peer identity"
+msgstr ""
+
+#: src/cli/hello/gnunet-hello.c:295
+msgid "Import a HELLO URI"
+msgstr ""
+
+#: src/cli/hello/gnunet-hello.c:301
+msgid "List all known HELLOs in peerstore"
+msgstr ""
+
+#: src/cli/hello/gnunet-hello.c:310
+msgid "Import/export/print HELLOs."
+msgstr ""
+
 #: src/cli/identity/gnunet-identity.c:225
 #, c-format
 msgid "Failed to create ego: %s\n"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:540
+#: src/cli/identity/gnunet-identity.c:554
 msgid "create ego NAME"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:545
+#: src/cli/identity/gnunet-identity.c:559
 msgid "delete ego NAME "
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:551
+#: src/cli/identity/gnunet-identity.c:565
 msgid ""
 "set the private key for the identity to PRIVATE_KEY (use together with -C)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:557
+#: src/cli/identity/gnunet-identity.c:571
 msgid ""
 "Read and decrypt message encrypted for the given ego (use together with -e "
 "EGO)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:563
+#: src/cli/identity/gnunet-identity.c:577
 msgid ""
 "Encrypt and write message for recipient identity PULBIC_KEY, (use together "
 "with -k RECIPIENT_PUBLIC_KEY)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:568
+#: src/cli/identity/gnunet-identity.c:582
 msgid "generate an EdDSA identity. (use together with -C) EXPERIMENTAL"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:572
+#: src/cli/identity/gnunet-identity.c:586
 msgid "display all egos"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:576
+#: src/cli/identity/gnunet-identity.c:590
 #, fuzzy
 msgid "reduce output"
 msgstr "sortie verbeuse"
 
-#: src/cli/identity/gnunet-identity.c:583
+#: src/cli/identity/gnunet-identity.c:597
 msgid ""
 "restrict results to NAME (use together with -d) or read and decrypt a "
 "message for NAME (use together with -R)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:589
+#: src/cli/identity/gnunet-identity.c:603
 msgid "The public key of the recipient (with -W)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:593
+#: src/cli/identity/gnunet-identity.c:607
 msgid "run in monitor mode egos"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:597
+#: src/cli/identity/gnunet-identity.c:611
 msgid "display private keys as well"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:612
+#: src/cli/identity/gnunet-identity.c:626
 msgid "Maintain egos"
 msgstr ""
 
@@ -1165,7 +1182,7 @@ msgid "No records found for `%s'"
 msgstr ""
 
 #: src/cli/namecache/gnunet-namecache.c:118
-#: src/cli/namestore/gnunet-namestore.c:887
+#: src/cli/namestore/gnunet-namestore.c:926
 #, c-format
 msgid "\tCorrupt or unsupported record of type %u\n"
 msgstr ""
@@ -1186,7 +1203,7 @@ msgid "You must specify a name\n"
 msgstr ""
 
 #: src/cli/namecache/gnunet-namecache.c:213
-#: src/cli/namestore/gnunet-namestore.c:2012
+#: src/cli/namestore/gnunet-namestore.c:2165
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -1195,12 +1212,12 @@ msgid "specifies the public key of the zone to look in"
 msgstr ""
 
 #: src/cli/namecache/gnunet-namecache.c:232
-#: src/cli/namestore/gnunet-namestore.c:2101
+#: src/cli/namestore/gnunet-namestore.c:2260
 msgid "GNUnet zone manipulation tool"
 msgstr ""
 
 #: src/cli/namestore/gnunet-namestore-dbtool.c:87
-#: src/cli/namestore/gnunet-namestore.c:1944
+#: src/cli/namestore/gnunet-namestore.c:2097
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
@@ -1275,261 +1292,266 @@ msgid "Failed to connect to IDENTITY\n"
 msgstr "Échec du démarrage de %s\n"
 
 #: src/cli/namestore/gnunet-namestore-zonefile.c:704
-#: src/cli/namestore/gnunet-namestore.c:2085
+#: src/cli/namestore/gnunet-namestore.c:2244
 msgid "name of the ego controlling the zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:416
+#: src/cli/namestore/gnunet-namestore.c:429
 #, c-format
 msgid "Missing entries in record line `%s'.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:424
+#: src/cli/namestore/gnunet-namestore.c:437
 #, fuzzy, c-format
 msgid "Unknown record type `%s'\n"
 msgstr "Commande « %s » inconnue\n"
 
-#: src/cli/namestore/gnunet-namestore.c:432
-#: src/cli/namestore/gnunet-namestore.c:447
+#: src/cli/namestore/gnunet-namestore.c:445
+#: src/cli/namestore/gnunet-namestore.c:460
 msgid "Empty record line argument is not allowed.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:439
+#: src/cli/namestore/gnunet-namestore.c:452
 #, c-format
 msgid "Error parsing expiration time %s.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:469
+#: src/cli/namestore/gnunet-namestore.c:482
 #, fuzzy, c-format
 msgid "Invalid record data for type %s: `%s'.\n"
 msgstr "fornat invalide : « %s »\n"
 
-#: src/cli/namestore/gnunet-namestore.c:662
+#: src/cli/namestore/gnunet-namestore.c:699
 #, c-format
 msgid "Adding record failed: %s\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:680
-#: src/cli/namestore/gnunet-namestore.c:697
+#: src/cli/namestore/gnunet-namestore.c:719
+#: src/cli/namestore/gnunet-namestore.c:736
 #, fuzzy, c-format
 msgid "Deleting record failed: %s\n"
 msgstr "Résolution de « %s » échouée\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1140
+#: src/cli/namestore/gnunet-namestore.c:1179
 #, c-format
 msgid ""
 "A SOA record exists already under `%s', cannot add a second SOA to the same "
 "zone.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1263
+#: src/cli/namestore/gnunet-namestore.c:1302
 #, c-format
 msgid "There are no records under label `%s' that could be deleted.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1306
+#: src/cli/namestore/gnunet-namestore.c:1346
 #, c-format
 msgid ""
 "There are no records under label `%s' that match the request for deletion.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1331
+#: src/cli/namestore/gnunet-namestore.c:1377
 #, c-format
 msgid "%s\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1360
+#: src/cli/namestore/gnunet-namestore.c:1441
 #, c-format
 msgid "No options given\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1374
+#: src/cli/namestore/gnunet-namestore.c:1455
 #, c-format
 msgid "Recordlines only work with option `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1383
-#: src/cli/namestore/gnunet-namestore.c:1435
-#: src/cli/namestore/gnunet-namestore.c:1445
-#: src/cli/namestore/gnunet-namestore.c:1455
-#: src/cli/namestore/gnunet-namestore.c:1486
-#: src/cli/namestore/gnunet-namestore.c:1507
-#: src/cli/namestore/gnunet-namestore.c:1534
-#: src/cli/namestore/gnunet-namestore.c:1544
-#: src/cli/namestore/gnunet-namestore.c:1578
-#: src/cli/namestore/gnunet-namestore.c:1603
-#: src/cli/namestore/gnunet-namestore.c:1637
-#: src/cli/namestore/gnunet-namestore.c:1671
-#: src/cli/namestore/gnunet-namestore.c:1694
+#: src/cli/namestore/gnunet-namestore.c:1464
+#: src/cli/namestore/gnunet-namestore.c:1516
+#: src/cli/namestore/gnunet-namestore.c:1526
+#: src/cli/namestore/gnunet-namestore.c:1536
+#: src/cli/namestore/gnunet-namestore.c:1567
+#: src/cli/namestore/gnunet-namestore.c:1588
+#: src/cli/namestore/gnunet-namestore.c:1615
+#: src/cli/namestore/gnunet-namestore.c:1625
+#: src/cli/namestore/gnunet-namestore.c:1659
+#: src/cli/namestore/gnunet-namestore.c:1684
+#: src/cli/namestore/gnunet-namestore.c:1721
+#: src/cli/namestore/gnunet-namestore.c:1755
+#: src/cli/namestore/gnunet-namestore.c:1778
 #, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1385
+#: src/cli/namestore/gnunet-namestore.c:1466
 msgid "name"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1414
+#: src/cli/namestore/gnunet-namestore.c:1495
 #, c-format
 msgid "Invalid nick `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1437
-#: src/cli/namestore/gnunet-namestore.c:1447
-#: src/cli/namestore/gnunet-namestore.c:1457
-#: src/cli/namestore/gnunet-namestore.c:1488
-#: src/cli/namestore/gnunet-namestore.c:1509
-#: src/cli/namestore/gnunet-namestore.c:1696
+#: src/cli/namestore/gnunet-namestore.c:1518
+#: src/cli/namestore/gnunet-namestore.c:1528
+#: src/cli/namestore/gnunet-namestore.c:1538
+#: src/cli/namestore/gnunet-namestore.c:1569
+#: src/cli/namestore/gnunet-namestore.c:1590
+#: src/cli/namestore/gnunet-namestore.c:1780
 msgid "add"
 msgstr "ajouter"
 
-#: src/cli/namestore/gnunet-namestore.c:1465
+#: src/cli/namestore/gnunet-namestore.c:1546
 #, c-format
 msgid "Unsupported type `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1477
+#: src/cli/namestore/gnunet-namestore.c:1558
 #, c-format
 msgid "For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1497
+#: src/cli/namestore/gnunet-namestore.c:1578
 #, c-format
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1516
-#: src/cli/namestore/gnunet-namestore.c:1703
+#: src/cli/namestore/gnunet-namestore.c:1597
+#: src/cli/namestore/gnunet-namestore.c:1787
 #, c-format
 msgid "Invalid time format `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1536
-#: src/cli/namestore/gnunet-namestore.c:1546
+#: src/cli/namestore/gnunet-namestore.c:1617
+#: src/cli/namestore/gnunet-namestore.c:1627
 msgid "del"
 msgstr "supprimer"
 
-#: src/cli/namestore/gnunet-namestore.c:1580
+#: src/cli/namestore/gnunet-namestore.c:1661
 msgid "purge-zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1605
+#: src/cli/namestore/gnunet-namestore.c:1686
 msgid "list"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1639
+#: src/cli/namestore/gnunet-namestore.c:1723
 msgid "reverse-pkey"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1649
+#: src/cli/namestore/gnunet-namestore.c:1733
 #, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1673
+#: src/cli/namestore/gnunet-namestore.c:1757
 msgid "uri"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1686
+#: src/cli/namestore/gnunet-namestore.c:1770
 #, c-format
 msgid "Invalid URI `%s'\n"
 msgstr "URI invalide « %s »\n"
 
-#: src/cli/namestore/gnunet-namestore.c:1951
+#: src/cli/namestore/gnunet-namestore.c:2104
 #: src/contrib/service/abd/gnunet-abd.c:559
 #: src/contrib/service/abd/gnunet-service-abd.c:1750
 #, c-format
 msgid "Failed to connect to namestore\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1959
+#: src/cli/namestore/gnunet-namestore.c:2112
 #, c-format
 msgid "Cannot connect to identity service\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1977
+#: src/cli/namestore/gnunet-namestore.c:2130
 msgid "add record"
 msgstr "ajouter un enregistrement"
 
-#: src/cli/namestore/gnunet-namestore.c:1980
+#: src/cli/namestore/gnunet-namestore.c:2133
 msgid "delete record"
 msgstr "suprimer un enregistrement"
 
-#: src/cli/namestore/gnunet-namestore.c:1984
+#: src/cli/namestore/gnunet-namestore.c:2137
 msgid "display records"
 msgstr "afficher les enregistrements"
 
-#: src/cli/namestore/gnunet-namestore.c:1988
+#: src/cli/namestore/gnunet-namestore.c:2141
 msgid "read commands from stdin"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1995
+#: src/cli/namestore/gnunet-namestore.c:2148
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2001
+#: src/cli/namestore/gnunet-namestore.c:2154
 msgid "set the desired nick name for the zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2006
+#: src/cli/namestore/gnunet-namestore.c:2159
 msgid "monitor changes in the namestore"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2016
+#: src/cli/namestore/gnunet-namestore.c:2169
 msgid "Output in recordline format"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2022
+#: src/cli/namestore/gnunet-namestore.c:2175
 msgid "determine our name for the given KEY"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2028
+#: src/cli/namestore/gnunet-namestore.c:2181
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2033
+#: src/cli/namestore/gnunet-namestore.c:2186
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2039
+#: src/cli/namestore/gnunet-namestore.c:2192
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2043
+#: src/cli/namestore/gnunet-namestore.c:2196
 msgid "create or list public record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2047
+#: src/cli/namestore/gnunet-namestore.c:2200
 #, fuzzy
 msgid "omit private records"
 msgstr "afficher les enregistrements"
 
-#: src/cli/namestore/gnunet-namestore.c:2052
+#: src/cli/namestore/gnunet-namestore.c:2205
 msgid "do not filter maintenance records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2057
+#: src/cli/namestore/gnunet-namestore.c:2210
 msgid "purge namestore of all orphans"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2062
+#: src/cli/namestore/gnunet-namestore.c:2215
 msgid ""
 "show private key for orphaned records for recovery using `gnunet-identity -C "
 "-P <key>'. Use in combination with --display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2067
+#: src/cli/namestore/gnunet-namestore.c:2220
 msgid "delete all records in specified zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2073
+#: src/cli/namestore/gnunet-namestore.c:2226
+msgid ""
+"number of records to buffer and send as batch (for use with --from-stdin)"
+msgstr ""
+
+#: src/cli/namestore/gnunet-namestore.c:2232
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired)"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2079
+#: src/cli/namestore/gnunet-namestore.c:2238
 msgid "create maintenance record (e.g TOMBSTONEs)"
 msgstr ""
 
@@ -1613,47 +1635,43 @@ msgstr ""
 msgid "Show network size estimates from NSE service."
 msgstr ""
 
-#: src/cli/peerstore/gnunet-peerstore.c:92
-msgid "peerstore"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-did.c:601
+#: src/cli/reclaim/gnunet-did.c:602
 msgid "Create a DID Document and display its DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:606
+#: src/cli/reclaim/gnunet-did.c:607
 msgid "Get the DID Document associated with the given DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:611
+#: src/cli/reclaim/gnunet-did.c:612
 msgid "Remove the DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:615
+#: src/cli/reclaim/gnunet-did.c:616
 msgid "Replace the DID Document."
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:619
+#: src/cli/reclaim/gnunet-did.c:620
 msgid "Show the DID for a given ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:623
+#: src/cli/reclaim/gnunet-did.c:624
 msgid "Show egos with DIDs"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:629
+#: src/cli/reclaim/gnunet-did.c:630
 msgid "The Decentralized Identity (DID)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:635
+#: src/cli/reclaim/gnunet-did.c:636
 msgid "The DID Document to store in GNUNET"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:640
+#: src/cli/reclaim/gnunet-did.c:641
 msgid "The name of the EGO"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:646
+#: src/cli/reclaim/gnunet-did.c:647
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
@@ -2006,27 +2024,27 @@ msgid ""
 "Parse main configuration from this command-line argument and not from disk"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:225
+#: src/cli/util/gnunet-config.c:236
 #, fuzzy
 msgid "Failed to load default configuration, exiting ...\n"
 msgstr "Résolution de « %s » échouée\n"
 
-#: src/cli/util/gnunet-config.c:237
+#: src/cli/util/gnunet-config.c:249
 #, fuzzy
 msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Résolution de « %s » échouée\n"
 
-#: src/cli/util/gnunet-config.c:249 src/lib/util/program.c:287
+#: src/cli/util/gnunet-config.c:262 src/lib/util/program.c:287
 #, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:263 src/lib/util/program.c:299
+#: src/cli/util/gnunet-config.c:277 src/lib/util/program.c:299
 #, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr ""
 
-#: src/cli/util/gnunet-crypto-tvg.c:1588
+#: src/cli/util/gnunet-crypto-tvg.c:1587
 msgid "verify a test vector from stdin"
 msgstr ""
 
@@ -3064,49 +3082,6 @@ msgstr ""
 msgid "Mutually exclusive records."
 msgstr ""
 
-#: src/lib/hello/gnunet-hello.c:302
-#, c-format
-msgid "Error accessing file `%s': %s\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:309
-#, c-format
-msgid "File `%s' is too big to be a HELLO\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:314
-#, c-format
-msgid "File `%s' is too small to be a HELLO\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:323 src/lib/hello/gnunet-hello.c:374
-#, c-format
-msgid "Error opening file `%s': %s\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:338
-#, c-format
-msgid "Did not find well-formed HELLO in file `%s'\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:385
-#, c-format
-msgid "Error writing HELLO to file `%s': %s expected size %u size written %u\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:394
-#, c-format
-msgid "Modified %u addresses, wrote %u bytes\n"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:408
-msgid "Hello file to read"
-msgstr ""
-
-#: src/lib/hello/gnunet-hello.c:417
-msgid "Print information about peers."
-msgstr ""
-
 #: src/lib/json/json.c:130
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
@@ -3126,7 +3101,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr ""
 
-#: src/lib/testing/testing_api_topology.c:960
+#: src/lib/testing/testing_api_topology.c:667
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Résolution de « %s » échouée\n"
@@ -3187,14 +3162,13 @@ msgstr ""
 msgid "Invalid handle type while writing `%s'"
 msgstr ""
 
-#: src/lib/util/client.c:531 src/lib/util/service.c:1139
-#: src/service/arm/gnunet-service-arm.c:452
+#: src/lib/util/client.c:531 src/service/arm/gnunet-service-arm.c:442
 #, c-format
 msgid "UNIXPATH `%s' too long, maximum length is %llu\n"
 msgstr ""
 
-#: src/lib/util/client.c:536 src/lib/util/service.c:1143
-#: src/service/arm/gnunet-service-arm.c:456
+#: src/lib/util/client.c:536 src/lib/util/service.c:1140
+#: src/service/arm/gnunet-service-arm.c:446
 #, c-format
 msgid "Using `%s' instead\n"
 msgstr ""
@@ -3203,7 +3177,7 @@ msgstr ""
 msgid "not a valid filename"
 msgstr ""
 
-#: src/lib/util/client.c:1097
+#: src/lib/util/client.c:1100
 #, c-format
 msgid "Need a non-empty hostname for service `%s'.\n"
 msgstr ""
@@ -3259,22 +3233,22 @@ msgstr "adresse invalide"
 msgid "Configuration fails to specify option `%s' in section `%s'!\n"
 msgstr ""
 
-#: src/lib/util/common_logging.c:1463
+#: src/lib/util/common_logging.c:1464
 #, c-format
 msgid ""
 "Configuration specifies invalid value for option `%s' in section `%s': %s\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:1073
+#: src/lib/util/configuration.c:1078
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Résolution de « %s » échouée\n"
 
-#: src/lib/util/configuration.c:1718
+#: src/lib/util/configuration.c:1742
 msgid "Not a valid relative time specification"
 msgstr ""
 
-#: src/lib/util/configuration.c:1788
+#: src/lib/util/configuration.c:1820
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3308,7 +3282,7 @@ msgid ""
 "%llu)\n"
 msgstr ""
 
-#: src/lib/util/crypto_ecc.c:79 src/lib/util/crypto_ecc_setup.c:48
+#: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
 #: src/plugin/datacache/plugin_datacache_sqlite.c:150
@@ -3321,12 +3295,12 @@ msgstr ""
 msgid "`%s' failed at %s:%d with error: %s\n"
 msgstr ""
 
-#: src/lib/util/crypto_ecc.c:569
+#: src/lib/util/crypto_ecc.c:572
 #, c-format
 msgid "ECC signing failed at %s:%d: %s\n"
 msgstr ""
 
-#: src/lib/util/crypto_ecc.c:692
+#: src/lib/util/crypto_ecc.c:695
 #, c-format
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr ""
@@ -3355,7 +3329,7 @@ msgstr ""
 msgid "Expected `%s' to be a directory!\n"
 msgstr ""
 
-#: src/lib/util/disk.c:1222 src/lib/util/service.c:1651
+#: src/lib/util/disk.c:1222 src/lib/util/service.c:1657
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr ""
@@ -3545,96 +3519,96 @@ msgstr ""
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:60
+#: src/lib/util/gnunet_error_codes.c:59
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:66
+#: src/lib/util/gnunet_error_codes.c:65
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "%.s Code d'erreur inconnu"
 
-#: src/lib/util/gnunet_error_codes.c:72
+#: src/lib/util/gnunet_error_codes.c:71
 msgid "Communication with service failed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:78
+#: src/lib/util/gnunet_error_codes.c:77
 #, fuzzy
 msgid "Ego not found."
 msgstr "upnpc introuvable\n"
 
-#: src/lib/util/gnunet_error_codes.c:84
+#: src/lib/util/gnunet_error_codes.c:83
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:90
+#: src/lib/util/gnunet_error_codes.c:89
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:96
+#: src/lib/util/gnunet_error_codes.c:95
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "%.s Code d'erreur inconnu"
 
-#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
+#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# Session TCP active"
 
-#: src/lib/util/gnunet_error_codes.c:108
+#: src/lib/util/gnunet_error_codes.c:107
 #, fuzzy
 msgid "Zone not found."
 msgstr "upnpc introuvable\n"
 
-#: src/lib/util/gnunet_error_codes.c:114
+#: src/lib/util/gnunet_error_codes.c:113
 #, fuzzy
 msgid "Record not found."
 msgstr "upnpc introuvable\n"
 
-#: src/lib/util/gnunet_error_codes.c:126
+#: src/lib/util/gnunet_error_codes.c:125
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:132
+#: src/lib/util/gnunet_error_codes.c:131
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Échec du démarrage de %s\n"
 
-#: src/lib/util/gnunet_error_codes.c:138
+#: src/lib/util/gnunet_error_codes.c:137
 msgid "No records given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:144
+#: src/lib/util/gnunet_error_codes.c:143
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:150
+#: src/lib/util/gnunet_error_codes.c:149
 msgid "No label given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:156
+#: src/lib/util/gnunet_error_codes.c:155
 #, fuzzy
 msgid "No results given."
 msgstr "# résultats introuvables"
 
-#: src/lib/util/gnunet_error_codes.c:162
+#: src/lib/util/gnunet_error_codes.c:161
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:168
+#: src/lib/util/gnunet_error_codes.c:167
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:174
+#: src/lib/util/gnunet_error_codes.c:173
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:180
+#: src/lib/util/gnunet_error_codes.c:179
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Échec du démarrage de %s\n"
 
-#: src/lib/util/gnunet_error_codes.c:186
+#: src/lib/util/gnunet_error_codes.c:185
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -3709,6 +3683,21 @@ msgstr ""
 msgid "Malformed configuration. Exiting ...\n"
 msgstr ""
 
+#: src/lib/util/program.c:436 src/lib/util/service.c:1996
+msgid "do daemonize (detach from terminal)"
+msgstr ""
+
+#: src/lib/util/program.c:491 src/lib/util/program.c:506
+#: src/lib/util/service.c:2071 src/lib/util/service.c:2086
+#: src/service/transport/transport-testing-communicator.c:1057
+#, c-format
+msgid "Malformed configuration file `%s', exit ...\n"
+msgstr ""
+
+#: src/lib/util/program.c:519 src/lib/util/service.c:2098
+msgid "Malformed configuration, exit ...\n"
+msgstr ""
+
 #: src/lib/util/regex.c:123
 #, c-format
 msgid "Bad mask: %d\n"
@@ -3769,99 +3758,72 @@ msgstr ""
 msgid "Could not parse IPv6 network specification `%s' for `%s:%s'\n"
 msgstr ""
 
-#: src/lib/util/service.c:1100 src/lib/util/service.c:1106
-#: src/service/arm/gnunet-service-arm.c:412
-#: src/service/arm/gnunet-service-arm.c:418
+#: src/lib/util/service.c:1102 src/lib/util/service.c:1108
+#: src/service/arm/gnunet-service-arm.c:408
+#: src/service/arm/gnunet-service-arm.c:414
 #, c-format
 msgid "Require valid port number for service `%s' in configuration!\n"
 msgstr ""
 
-#: src/lib/util/service.c:1163 src/service/arm/gnunet-service-arm.c:484
-#, c-format
-msgid ""
-"Disabling UNIX domain socket support for service `%s', failed to create UNIX "
-"domain socket: %s\n"
-msgstr ""
-
-#: src/lib/util/service.c:1181 src/service/arm/gnunet-service-arm.c:505
-#, c-format
-msgid "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"
-msgstr ""
-
-#: src/lib/util/service.c:1212 src/service/arm/gnunet-service-arm.c:536
+#: src/lib/util/service.c:1218 src/service/arm/gnunet-service-arm.c:527
 #, c-format
 msgid "Failed to resolve `%s': %s\n"
 msgstr "Résolution de « %s » échouée : %s\n"
 
-#: src/lib/util/service.c:1231 src/service/arm/gnunet-service-arm.c:555
+#: src/lib/util/service.c:1237 src/service/arm/gnunet-service-arm.c:546
 #, c-format
 msgid "Failed to find %saddress for `%s'.\n"
 msgstr ""
 
-#: src/lib/util/service.c:1406
+#: src/lib/util/service.c:1412
 #, c-format
 msgid "`%s' failed for port %d (%s).\n"
 msgstr ""
 
-#: src/lib/util/service.c:1418
+#: src/lib/util/service.c:1424
 #, c-format
 msgid "`%s' failed for port %d (%s): address already in use\n"
 msgstr ""
 
-#: src/lib/util/service.c:1425
+#: src/lib/util/service.c:1431
 #, c-format
 msgid "`%s' failed for `%s': address already in use\n"
 msgstr ""
 
-#: src/lib/util/service.c:1486
+#: src/lib/util/service.c:1492
 #, c-format
 msgid "Specified value for `%s' of service `%s' is invalid\n"
 msgstr ""
 
-#: src/lib/util/service.c:1510
+#: src/lib/util/service.c:1516
 #, c-format
 msgid "Could not access pre-bound socket %u, will try to bind myself\n"
 msgstr ""
 
-#: src/lib/util/service.c:1583
+#: src/lib/util/service.c:1589
 msgid ""
 "Could not bind to any of the ports I was supposed to, refusing to run!\n"
 msgstr ""
 
-#: src/lib/util/service.c:1653
+#: src/lib/util/service.c:1659
 msgid "No such user"
 msgstr "Aucun utilisateur trouvé"
 
-#: src/lib/util/service.c:1668
+#: src/lib/util/service.c:1674
 #, c-format
 msgid "Cannot change user/group to `%s': %s\n"
 msgstr ""
 
-#: src/lib/util/service.c:1767
+#: src/lib/util/service.c:1773
 msgid "Service process failed to initialize\n"
 msgstr ""
 
-#: src/lib/util/service.c:1772
+#: src/lib/util/service.c:1778
 msgid "Service process could not initialize server function\n"
 msgstr ""
 
-#: src/lib/util/service.c:1777
+#: src/lib/util/service.c:1783
 msgid "Service process failed to report status\n"
-msgstr ""
-
-#: src/lib/util/service.c:1990 src/lib/util/service.c:2304
-msgid "do daemonize (detach from terminal)"
-msgstr ""
-
-#: src/lib/util/service.c:2065 src/lib/util/service.c:2080
-#: src/lib/util/service.c:2353 src/lib/util/service.c:2368
-#: src/service/transport/transport-testing-communicator.c:1059
-#, c-format
-msgid "Malformed configuration file `%s', exit ...\n"
-msgstr ""
-
-#: src/lib/util/service.c:2092 src/lib/util/service.c:2381
-msgid "Malformed configuration, exit ...\n"
 msgstr ""
 
 #: src/lib/util/socks.c:636
@@ -3986,7 +3948,7 @@ msgstr ""
 
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:179
-#: src/plugin/namestore/plugin_namestore_sqlite.c:948
+#: src/plugin/namestore/plugin_namestore_sqlite.c:1014
 #: src/plugin/peerstore/plugin_peerstore_sqlite.c:567
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -4218,7 +4180,7 @@ msgstr ""
 msgid "Failed to setup database with: `%s'\n"
 msgstr "Échec du démarrage de %s\n"
 
-#: src/plugin/namestore/plugin_namestore_sqlite.c:1003
+#: src/plugin/namestore/plugin_namestore_sqlite.c:1072
 msgid "SQlite database running\n"
 msgstr ""
 
@@ -4241,79 +4203,77 @@ msgstr ""
 msgid "Unable to create indices: %s.\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:391
+#: src/service/arm/gnunet-service-arm.c:386
 #, c-format
 msgid ""
 "Disabling IPv6 support for service `%s', failed to create IPv6 socket: %s\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:951
+#: src/service/arm/gnunet-service-arm.c:474
 #, c-format
-msgid "Failed to start service `%s'\n"
+msgid ""
+"Disabling UNIX domain socket support for service `%s', failed to create UNIX "
+"domain socket: %s\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:962
+#: src/service/arm/gnunet-service-arm.c:496
 #, c-format
-msgid "Starting service `%s'\n"
+msgid "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1062
+#: src/service/arm/gnunet-service-arm.c:1082
 #, c-format
 msgid "Unable to create socket for service `%s': %s\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1093
+#: src/service/arm/gnunet-service-arm.c:1113
 #, c-format
 msgid "Unable to bind listening socket for service `%s' to address `%s': %s\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1124
+#: src/service/arm/gnunet-service-arm.c:1150
 #, c-format
 msgid "ARM now monitors connections to service `%s' at `%s'\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1272
+#: src/service/arm/gnunet-service-arm.c:1298
 #, c-format
 msgid "Preparing to stop `%s'\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1604
+#: src/service/arm/gnunet-service-arm.c:1630
 #, c-format
 msgid "Restarting service `%s'.\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1755
+#: src/service/arm/gnunet-service-arm.c:1781
 msgid "exit"
 msgstr "exit"
 
-#: src/service/arm/gnunet-service-arm.c:1760
+#: src/service/arm/gnunet-service-arm.c:1786
 msgid "signal"
 msgstr "signal"
 
-#: src/service/arm/gnunet-service-arm.c:1765
+#: src/service/arm/gnunet-service-arm.c:1791
 msgid "unknown"
 msgstr "inconnu"
 
-#: src/service/arm/gnunet-service-arm.c:1771
+#: src/service/arm/gnunet-service-arm.c:1797
 #, c-format
 msgid "Service `%s' took %s to terminate\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1798
+#: src/service/arm/gnunet-service-arm.c:1824
 #, c-format
 msgid "Service `%s' terminated normally, will restart at any time\n"
 msgstr ""
 
-#: src/service/arm/gnunet-service-arm.c:1815
+#: src/service/arm/gnunet-service-arm.c:1841
 #, c-format
 msgid "Service `%s' terminated with status %s/%d, will restart in %s\n"
 msgstr ""
 
-#: src/service/arm/mockup-service.c:42
-msgid "Initiating shutdown as requested by client.\n"
-msgstr ""
-
-#: src/service/arm/testing_arm_cmd_start_peer.c:197
+#: src/service/arm/testing_arm_cmd_start_peer.c:202
 #, c-format
 msgid "Failed to start `%s': %s\n"
 msgstr ""
@@ -4345,133 +4305,133 @@ msgstr ""
 msgid "Core service of `%s' ready.\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:511
+#: src/service/core/gnunet-service-core_kx.c:626
 msgid "# bytes encrypted"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:569
+#: src/service/core/gnunet-service-core_kx.c:687
 msgid "# bytes decrypted"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:666
+#: src/service/core/gnunet-service-core_kx.c:801
 msgid "# PAYLOAD dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:718
+#: src/service/core/gnunet-service-core_kx.c:853
 msgid "# key exchanges initiated"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:775
+#: src/service/core/gnunet-service-core_kx.c:910
 msgid "# key exchanges stopped"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:807
+#: src/service/core/gnunet-service-core_kx.c:942
 msgid "# PING messages transmitted"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:867
+#: src/service/core/gnunet-service-core_kx.c:1011
 msgid "# old ephemeral keys ignored"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:882
+#: src/service/core/gnunet-service-core_kx.c:1026
 msgid "# duplicate ephemeral keys. Not verifying."
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:918
+#: src/service/core/gnunet-service-core_kx.c:1064
 msgid "# EPHEMERAL_KEYs rejected (bad signature)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:937
+#: src/service/core/gnunet-service-core_kx.c:1083
 #, c-format
 msgid ""
 "EPHEMERAL_KEY from peer `%s' rejected as its validity range does not match "
 "our system time (%llu not in [%llu,%llu]).\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:944
+#: src/service/core/gnunet-service-core_kx.c:1090
 msgid "# EPHEMERAL_KEY messages rejected due to time"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:963
+#: src/service/core/gnunet-service-core_kx.c:1110
 msgid "# valid ephemeral keys received"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1077
+#: src/service/core/gnunet-service-core_kx.c:1223
 msgid "# PING messages received"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1087
+#: src/service/core/gnunet-service-core_kx.c:1233
 msgid "# PING messages dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1139
+#: src/service/core/gnunet-service-core_kx.c:1319
 msgid "# PONG messages created"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1170
+#: src/service/core/gnunet-service-core_kx.c:1351
 msgid "# sessions terminated by timeout"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1183
+#: src/service/core/gnunet-service-core_kx.c:1364
 msgid "# keepalive messages sent"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1240
+#: src/service/core/gnunet-service-core_kx.c:1420
 msgid "# PONG messages received"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1248
+#: src/service/core/gnunet-service-core_kx.c:1428
 msgid "# PONG messages dropped (connection down)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1257
+#: src/service/core/gnunet-service-core_kx.c:1437
 msgid "# PONG messages dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1299
+#: src/service/core/gnunet-service-core_kx.c:1498
 msgid "# PONG messages decrypted"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1342
+#: src/service/core/gnunet-service-core_kx.c:1541
 msgid "# session keys confirmed via PONG"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1354
+#: src/service/core/gnunet-service-core_kx.c:1553
 msgid "# timeouts prevented via PONG"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1363
+#: src/service/core/gnunet-service-core_kx.c:1562
 msgid "# rekey operations confirmed via PONG"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1533
+#: src/service/core/gnunet-service-core_kx.c:1744
 msgid "# DATA message dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1545
+#: src/service/core/gnunet-service-core_kx.c:1756
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1549
+#: src/service/core/gnunet-service-core_kx.c:1760
 msgid "# sessions terminated by key expiration"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1630
-#: src/service/core/gnunet-service-core_kx.c:1659
+#: src/service/core/gnunet-service-core_kx.c:1862
+#: src/service/core/gnunet-service-core_kx.c:1891
 msgid "# bytes dropped (duplicates)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1644
+#: src/service/core/gnunet-service-core_kx.c:1876
 msgid "# bytes dropped (out of sequence)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1691
+#: src/service/core/gnunet-service-core_kx.c:1923
 msgid "# bytes dropped (ancient message)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1701
+#: src/service/core/gnunet-service-core_kx.c:1933
 msgid "# bytes of payload decrypted"
 msgstr ""
 
@@ -6513,7 +6473,7 @@ msgstr ""
 msgid "Connection reversal request failed\n"
 msgstr ""
 
-#: src/service/nat/gnunet-service-nat.c:1999
+#: src/service/nat/gnunet-service-nat.c:2003
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -6537,22 +6497,22 @@ msgstr ""
 msgid "`upnpc' command not found\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1150
+#: src/service/peerstore/gnunet-service-peerstore.c:1151
 #, c-format
 msgid "Failed to parse HELLO in file `%s': %s\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1223
+#: src/service/peerstore/gnunet-service-peerstore.c:1224
 #, fuzzy, c-format
 msgid "Could not load database backend `%s'\n"
 msgstr "Impossible d’ouvrir « %s ».\n"
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1242
+#: src/service/peerstore/gnunet-service-peerstore.c:1243
 #, c-format
 msgid "Importing HELLOs from `%s'\n"
 msgstr ""
 
-#: src/service/peerstore/gnunet-service-peerstore.c:1253
+#: src/service/peerstore/gnunet-service-peerstore.c:1254
 msgid "Skipping import of included HELLOs\n"
 msgstr ""
 
@@ -6717,11 +6677,11 @@ msgstr ""
 msgid "Gns REST API initialized\n"
 msgstr ""
 
-#: src/service/rest/gnunet-rest-server.c:1436
+#: src/service/rest/gnunet-rest-server.c:1451
 msgid "GNUnet REST service"
 msgstr ""
 
-#: src/service/rest/identity_plugin.c:1248
+#: src/service/rest/identity_plugin.c:1270
 msgid "Identity REST API initialized\n"
 msgstr ""
 
@@ -6820,22 +6780,27 @@ msgstr ""
 msgid "GNUnet topology control"
 msgstr ""
 
+#: src/service/transport/gnunet-communicator-http3.c:3871
 #: src/service/transport/gnunet-communicator-quic.c:1717
-#: src/service/transport/gnunet-communicator-tcp.c:3814
-#: src/service/transport/gnunet-communicator-udp.c:3579
-#: src/service/transport/gnunet-service-transport.c:12543
+#: src/service/transport/gnunet-communicator-tcp.c:3865
+#: src/service/transport/gnunet-communicator-udp.c:3738
+#: src/service/transport/gnunet-service-transport.c:12982
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
+msgstr ""
+
+#: src/service/transport/gnunet-communicator-http3.c:3933
+msgid "GNUnet HTTP3 communicator"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1787
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4171
+#: src/service/transport/gnunet-communicator-tcp.c:4225
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3654
+#: src/service/transport/gnunet-communicator-udp.c:3817
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -6853,7 +6818,7 @@ msgstr ""
 msgid "Cannot create path to `%s'\n"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-unix.c:1138
+#: src/service/transport/gnunet-communicator-unix.c:1139
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
 
@@ -7004,7 +6969,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr ""
 
-#: src/service/transport/transport_api2_communication.c:773
+#: src/service/transport/transport_api2_communication.c:778
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 

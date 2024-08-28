@@ -1430,15 +1430,7 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
 }
 
 
-static void
-run_monolith (void *cls)
-{
-  const struct GNUNET_CONFIGURATION_Handle *c = cls;
-
-  run_ (c);
-}
-
-
+#ifndef HAVE_GNUNET_MONOLITH
 static void
 run (void *cls,
      char *const *args,
@@ -1447,7 +1439,16 @@ run (void *cls,
 {
   run_ (c);
 }
+GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run)
+#else
+static void
+run_monolith (void *cls)
+{
+  const struct GNUNET_CONFIGURATION_Handle *c = cls;
 
-GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run, &run_monolith)
+  run_ (c);
+}
+GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run_monolith)
+#endif
 
 /* end of gnunet-rest-server.c */

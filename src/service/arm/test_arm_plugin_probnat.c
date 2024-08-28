@@ -50,6 +50,7 @@ get_conf_name (const char *my_node_id)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Getting conf for id %s failed \n",
               my_node_id);
+    GNUNET_assert (0);
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

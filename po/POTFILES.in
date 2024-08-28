@@ -14,6 +14,7 @@ src/cli/fs/gnunet-publish.c
 src/cli/fs/gnunet-search.c
 src/cli/fs/gnunet-unindex.c
 src/cli/gns/gnunet-gns.c
+src/cli/hello/gnunet-hello.c
 src/cli/identity/gnunet-identity.c
 src/cli/messenger/gnunet-messenger.c
 src/cli/namecache/gnunet-namecache.c
@@ -25,7 +26,6 @@ src/cli/nat-auto/gnunet-nat-auto.c
 src/cli/nat-auto/gnunet-nat-server.c
 src/cli/nat/gnunet-nat.c
 src/cli/nse/gnunet-nse.c
-src/cli/peerstore/gnunet-peerstore.c
 src/cli/reclaim/gnunet-did.c
 src/cli/reclaim/gnunet-reclaim.c
 src/cli/revocation/gnunet-revocation-tvg.c
@@ -110,7 +110,6 @@ src/lib/gnsrecord/gnsrecord_pow.c
 src/lib/gnsrecord/gnsrecord_serialization.c
 src/lib/gnsrecord/gnunet-gnsrecord-tvg.c
 src/lib/gnsrecord/json_gnsrecord.c
-src/lib/hello/gnunet-hello.c
 src/lib/hello/hello-ng.c
 src/lib/hello/hello-uri.c
 src/lib/json/json.c
@@ -181,6 +180,7 @@ src/lib/util/crypto_elligator.c
 src/lib/util/crypto_hash.c
 src/lib/util/crypto_hash_file.c
 src/lib/util/crypto_hkdf.c
+src/lib/util/crypto_hpke.c
 src/lib/util/crypto_kdf.c
 src/lib/util/crypto_mpi.c
 src/lib/util/crypto_paillier.c
@@ -194,11 +194,13 @@ src/lib/util/dnsparser.c
 src/lib/util/dnsstub.c
 src/lib/util/getopt.c
 src/lib/util/getopt_helpers.c
+src/lib/util/gnunet-elligator-tvg.c
 src/lib/util/gnunet_error_codes.c
 src/lib/util/helper.c
 src/lib/util/load.c
 src/lib/util/mq.c
 src/lib/util/mst.c
+src/lib/util/nat.c
 src/lib/util/nc.c
 src/lib/util/network.c
 src/lib/util/nt.c
@@ -289,6 +291,8 @@ src/service/datacache/datacache.c
 src/service/datastore/datastore_api.c
 src/service/datastore/gnunet-service-datastore.c
 src/service/dht/dht_api.c
+src/service/dht/dht_helper.c
+src/service/dht/gnunet-dht-tvg.c
 src/service/dht/gnunet-service-dht.c
 src/service/dht/gnunet-service-dht_clients.c
 src/service/dht/gnunet-service-dht_datacache.c
@@ -466,6 +470,7 @@ src/service/testbed/testbed.c
 src/service/testbed/testbed_api_cmd_system_create.c
 src/service/testbed/testing_testbed_traits.c
 src/service/topology/gnunet-daemon-topology.c
+src/service/transport/gnunet-communicator-http3.c
 src/service/transport/gnunet-communicator-quic.c
 src/service/transport/gnunet-communicator-tcp.c
 src/service/transport/gnunet-communicator-udp.c

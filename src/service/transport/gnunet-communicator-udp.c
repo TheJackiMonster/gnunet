@@ -3586,6 +3586,7 @@ start_burst (const char *addr,
 static void
 run_ (const struct GNUNET_CONFIGURATION_Handle *c)
 {
+  const struct sockaddr_in *v4;
   char *bindto;
   struct sockaddr *in;
   socklen_t in_len;
@@ -3706,7 +3707,8 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
   switch (in->sa_family)
   {
   case AF_INET:
-    const struct sockaddr_in *v4 = (const struct sockaddr_in *)in;
+    v4 = (const struct sockaddr_in *)in;
+
     my_ipv4 = GNUNET_malloc (INET_ADDRSTRLEN);
     my_port = ntohs (((struct sockaddr_in *) in)->sin_port);
     inet_ntop(AF_INET, &v4->sin_addr, my_ipv4, in_len);
@@ -3787,14 +3789,6 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
                              NULL /* closure */);
 }
 
-static void
-run_monolith (void *cls)
-{
-  const struct GNUNET_CONFIGURATION_Handle *c = cls;
-
-  run_ (c);
-}
-
 
 /**
  * Setup communicator and launch network interactions.
@@ -3804,6 +3798,7 @@ run_monolith (void *cls)
  * @param cfgfile name of the configuration file used (for saving, can be NULL!)
  * @param c configuration
  */
+#ifndef HAVE_GNUNET_MONOLITH
 static void
 run (void *cls,
      char *const *args,
@@ -3812,7 +3807,15 @@ run (void *cls,
 {
   run_ (c);
 }
+GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run)
+#else
+static void
+run_monolith (void *cls)
+{
+  const struct GNUNET_CONFIGURATION_Handle *c = cls;
 
-
-GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run, &run_monolith)
+  run_ (c);
+}
+GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run_monolith)
+#endif
 /* end of gnunet-communicator-udp.c */
