@@ -110,6 +110,6 @@ libgnunet_test_arm_plugin_probnat_la_LIBADD = \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
-  $(top_builddir)/src/service/arm/libgnunetarm.la \
+  libgnunetarm.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
