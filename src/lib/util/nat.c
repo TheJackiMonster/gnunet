@@ -106,9 +106,9 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
               rel1.rel_value_us,
               rel2.rel_value_us);
   if ((other_rtt.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us &&
-     rtt_avarage.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
-    rel1.rel_value_us  < RTT_DIFF.rel_value_us &&
-    rel2.rel_value_us < RTT_DIFF.rel_value_us)
+       rtt_avarage.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
+      rel1.rel_value_us  < RTT_DIFF.rel_value_us &&
+      rel2.rel_value_us < RTT_DIFF.rel_value_us)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "other sync ready 1\n");
@@ -124,7 +124,7 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "other sync ready 3\n");
       task_cls->delay  = GNUNET_TIME_relative_saturating_multiply (rtt_avarage,
-                                                                  4);
+                                                                   4);
     }
     task_cls->sync_ready = GNUNET_YES;
     task (task_cls);
@@ -136,6 +136,7 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
     task_cls->sync_ready = GNUNET_NO;
   }
 }
+
 
 void
 GNUNET_stop_burst (struct GNUNET_NETWORK_Handle *do_not_touch);
@@ -202,7 +203,7 @@ sock_read (void *cls)
                   sock_info->port);
       sock_info->actual_address = (struct sockaddr *) &sa;
       sock_info->nus (sock_info);
-      GNUNET_stop_burst(sock_info->udp_sock);
+      GNUNET_stop_burst (sock_info->udp_sock);
       return;
     }
     else
@@ -343,7 +344,7 @@ read_send (void *cls)
 {
   struct GNUNET_UdpSocketInfo *sock_info = cls;
   struct GNUNET_UdpSocketInfo *si = GNUNET_new (struct GNUNET_UdpSocketInfo);
-  struct GNUNET_NETWORK_Handle *udp_sock;;
+  struct GNUNET_NETWORK_Handle *udp_sock;
   struct GNUNET_BurstMessage bm;
   struct sockaddr *in;
   socklen_t in_len;
@@ -352,14 +353,16 @@ read_send (void *cls)
   struct sockaddr *bind_in;
   socklen_t bind_in_len;
   char *bind_address;
-  struct GNUNET_TIME_Relative again = GNUNET_TIME_relative_multiply (sock_info->rtt,
-                                   4);
+  struct GNUNET_TIME_Relative again = GNUNET_TIME_relative_multiply (sock_info->
+                                                                     rtt,
+                                                                     4);
 
   read_send_task = NULL;
   GNUNET_memcpy (si, sock_info, sizeof (struct GNUNET_UdpSocketInfo));
   if (sock_info->std_port == udp_port)
     udp_port++;
-  if (512 < nr_open_sockets){
+  if (512 < nr_open_sockets)
+  {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Trying again in %s",
                 GNUNET_STRINGS_relative_time_to_string (again, GNUNET_NO));
@@ -417,8 +420,8 @@ read_send (void *cls)
     if (EMFILE == errno)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Trying again in %s, because of EMFILE\n",
-                GNUNET_STRINGS_relative_time_to_string (again, GNUNET_NO));
+                  "Trying again in %s, because of EMFILE\n",
+                  GNUNET_STRINGS_relative_time_to_string (again, GNUNET_NO));
       read_send_task = GNUNET_SCHEDULER_add_delayed (again,
                                                      &read_send,
                                                      sock_info);
@@ -448,13 +451,15 @@ read_send (void *cls)
   bm.local_port = udp_port;
   sock_info->udp_sock = udp_sock;
   sock_info->port = udp_port;
-  sock_info->read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                             udp_sock,
-                                             &sock_read,
-                                             sock_info);
+  sock_info->read_task = GNUNET_SCHEDULER_add_read_net (
+    GNUNET_TIME_UNIT_FOREVER_REL,
+    udp_sock,
+    &sock_read,
+    sock_info);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Timeout in %s\n",
-                GNUNET_STRINGS_relative_time_to_string (TIMEOUT_DELAY, GNUNET_NO));
+              "Timeout in %s\n",
+              GNUNET_STRINGS_relative_time_to_string (TIMEOUT_DELAY, GNUNET_NO))
+  ;
   sock_info->timeout_task = GNUNET_SCHEDULER_add_delayed (TIMEOUT_DELAY,
                                                           &timeout_task_cb,
                                                           sock_info);
@@ -477,7 +482,7 @@ read_send (void *cls)
     timeout_task_cb (sock_info);
   }
 
- next_port:
+next_port:
   GNUNET_free (in);
   GNUNET_free (bind_in);
   GNUNET_free (address);
@@ -509,10 +514,11 @@ GNUNET_get_udp_socket (struct GNUNET_UdpSocketInfo *sock_info,
                    sock_info->address,
                    sock_info->std_port);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "2 sock addr %s addr %s rtt %lu %u\n",
+              "2 sock addr %s addr %s rtt %s %u\n",
               sock_info->address,
               address,
-              sock_info->rtt.rel_value_us,
+              GNUNET_TIME_relative2s (sock_info->rtt,
+                                      false),
               sock_info->std_port);
   bm.local_port = sock_info->std_port;
   in = udp_address_to_sockaddr (address, &in_len);
