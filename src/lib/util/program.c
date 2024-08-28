@@ -415,6 +415,164 @@ GNUNET_PROGRAM_run (int argc,
                               GNUNET_NO);
 }
 
+enum GNUNET_GenericReturnValue
+GNUNET_PROGRAM_conf_and_options (int argc,
+                    char *const *argv,
+                    struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  char *cfg_filename;
+  char *opt_cfg_filename;
+  char *logfile;
+  char *loglev;
+  const char *xdg;
+  int do_daemonize;
+  int ret;
+  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  struct GNUNET_GETOPT_CommandLineOption service_options[] = {
+    GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
+    GNUNET_GETOPT_option_flag ('d',
+                               "daemonize",
+                               gettext_noop (
+                                 "do daemonize (detach from terminal)"),
+                               &do_daemonize),
+    GNUNET_GETOPT_option_help (NULL),
+    GNUNET_GETOPT_option_loglevel (&loglev),
+    GNUNET_GETOPT_option_logfile (&logfile),
+    GNUNET_GETOPT_option_version (pd->version),
+    GNUNET_GETOPT_OPTION_END
+  };
+
+  xdg = getenv ("XDG_CONFIG_HOME");
+  if (NULL != xdg)
+    GNUNET_asprintf (&cfg_filename,
+                     "%s%s%s",
+                     xdg,
+                     DIR_SEPARATOR_STR,
+                     pd->config_file);
+  else
+    cfg_filename = GNUNET_strdup (pd->user_config_file);
+
+  loglev = NULL;
+  logfile = NULL;
+  opt_cfg_filename = NULL;
+  // FIXME we need to set this up for each service!
+  ret = GNUNET_GETOPT_run ("libgnunet",
+                           service_options,
+                           argc,
+                           argv);
+  if (GNUNET_SYSERR == ret)
+    goto error;
+  if (GNUNET_NO == ret)
+  {
+    goto error;
+  }
+  // FIXME we need to set this up for each service!
+  // NOTE: that was not the idea. What are you proposing? -CG
+  if (GNUNET_OK !=
+      GNUNET_log_setup ("libgnunet",
+                        "DEBUG",//loglev,
+                        logfile))
+  {
+    GNUNET_break (0);
+    goto error;
+  }
+  if (NULL == cfg)
+  {
+    cfg = GNUNET_CONFIGURATION_create ();
+    if (NULL != opt_cfg_filename)
+    {
+      if ( (GNUNET_YES !=
+            GNUNET_DISK_file_test (opt_cfg_filename)) ||
+           (GNUNET_SYSERR ==
+            GNUNET_CONFIGURATION_load (cfg,
+                                       opt_cfg_filename)) )
+      {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      _ ("Malformed configuration file `%s', exit ...\n"),
+                      opt_cfg_filename);
+          goto error;
+      }
+    }
+    else
+    {
+      if (GNUNET_YES ==
+          GNUNET_DISK_file_test (cfg_filename))
+      {
+          if (GNUNET_SYSERR ==
+              GNUNET_CONFIGURATION_load (cfg,
+                                         cfg_filename))
+          {
+              GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                          _ ("Malformed configuration file `%s', exit ...\n"),
+                          cfg_filename);
+              GNUNET_free (cfg_filename);
+              goto error;;
+          }
+      }
+      else
+      {
+          if (GNUNET_SYSERR ==
+              GNUNET_CONFIGURATION_load (cfg,
+                                         NULL))
+          {
+              GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                          _ ("Malformed configuration, exit ...\n"));
+              GNUNET_free (cfg_filename);
+              goto error;
+          }
+      }
+    }
+  }
+
+  GNUNET_free (logfile);
+  GNUNET_free (loglev);
+  GNUNET_free (cfg_filename);
+  GNUNET_free (opt_cfg_filename);
+
+  return GNUNET_OK;
+
+  error:
+    GNUNET_SPEEDUP_stop_ ();
+    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_free (logfile);
+    GNUNET_free (loglev);
+    GNUNET_free (cfg_filename);
+    GNUNET_free (opt_cfg_filename);
+
+    return GNUNET_SYSERR;
+}
+
+
+static void
+monolith_main (void *cls)
+{
+  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+
+  GNUNET_SERVICE_main (0,
+                       NULL,
+                       cfg,
+                       GNUNET_NO);
+  GNUNET_DAEMON_main (0,
+                      NULL,
+                      cfg,
+                      GNUNET_NO);
+}
+
+
+void
+GNUNET_PROGRAM_monolith_main (int argc,
+                              char *const *argv,
+                              struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+
+  if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
+                                            argv,
+                                            cfg))
+    return;
+  GNUNET_SCHEDULER_run (&monolith_main,
+                        cfg);
+}
+
 
 /* A list of daemons to be launched when GNUNET_main()
  * is called
@@ -428,7 +586,9 @@ struct DaemonHandleList
   struct DaemonHandleList *next;
 
   /* Program to launch */
-  GNUNET_PROGRAM_Main d;
+  GNUNET_SCHEDULER_TaskCallback d;
+
+  const char *daemon_name;
 };
 
 /* The daemon list */
@@ -437,15 +597,60 @@ static struct DaemonHandleList *hll_head = NULL;
 /* The daemon list */
 static struct DaemonHandleList *hll_tail = NULL;
 
+
+static void
+launch_daemons (void *cls)
+{
+  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+
+  for (struct DaemonHandleList *hll = hll_head;
+       NULL != hll;
+       hll = hll->next)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Launching daemon %s\n",
+         hll->daemon_name);
+    GNUNET_SCHEDULER_add_now (hll->d,
+                              cfg);
+  }
+}
+
+
+void
+GNUNET_DAEMON_main (int argc,
+                    char *const *argv,
+                    struct GNUNET_CONFIGURATION_Handle *cfg,
+                    enum GNUNET_GenericReturnValue with_scheduler)
+{
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Entering GNUNET_DAEMON_main\n");
+  if (GNUNET_YES == with_scheduler)
+  {
+    if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
+                                                       argv,
+                                                       cfg))
+      return;
+    GNUNET_SCHEDULER_run (&launch_daemons,
+                          cfg);
+  }
+  else
+    launch_daemons (cfg);
+}
+
+
 enum GNUNET_GenericReturnValue
 GNUNET_DAEMON_register (const char *daemon_name,
                         const char *daemon_help,
-                        GNUNET_PROGRAM_Main task)
+                        GNUNET_SCHEDULER_TaskCallback task)
 {
   struct DaemonHandleList *hle;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "registering daemon %s\n",
+         daemon_name);
   hle = GNUNET_new (struct DaemonHandleList);
   hle->d = task;
+  hle->daemon_name = daemon_name;
   GNUNET_CONTAINER_DLL_insert (hll_head, hll_tail, hle);
   return GNUNET_OK;
 }

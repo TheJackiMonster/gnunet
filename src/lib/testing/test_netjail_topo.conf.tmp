@@ -1,0 +1,39 @@
+[DEFAULTS]
+SUBNETS = 3
+CARRIER_SETUP_PROGRAMMS = iptables -A INPUT -p icmp -j DROP;tc qdisc add dev $UPLINK root netm delay 100ms 10ms;
+SUBNET_SETUP_PROGRAMMS = iptables -A INPUT -p icmp -j DROP;tc qdisc add dev $UPLINK root netm delay 100ms 10ms;
+PEER_SETUP_PROGRAMMS = iptables -A INPUT -p icmp -j DROP;tc qdisc add dev $UPLINK root netm delay 100ms 10ms;
+TESTBED_PLUGIN = normal
+PLUGIN_ENV = key=value;key=value;
+CARRIER_PEERS = 1
+SUBNET_PEERS = 4
+
+[BACKBONE]
+CARRIERS = 2
+BACKBONE_PEERS = 2
+
+[BACKBONE-PEER-1]
+TESTBED_PLUGIN = server
+
+[CARRIER-1]
+CARRIER_PEERS = 2
+SUBNETS = 2
+
+[CARRIER-2]
+SETUP_PROGRAMMS = -A ... $UPLINK; -A ... $DOWNLINK;
+TESTBED_PLUGIN = mobile_network
+
+[CARRIER-2-PEER-1]
+TESTBED_PLUGIN = mobile_network
+
+[CARRIER-1-SUBNET-1]
+SUBNET = 8.8.0.0/16
+SUBNET_PEERS = 2
+TESTBED_PLUGIN = pc
+
+[CARRIER-1-SUBNET-2]
+SETUP_PROGRAMMS = -A ... $UPLINK; -A ... $DOWNLINK;
+
+[CARRIER-1-SUBNET-1-PEER-1]
+TESTBED_PLUGIN = evil
+SETUP_PROGRAMS = -A ... $DOWNLINK;

@@ -3581,19 +3581,8 @@ start_burst (const char *addr,
 }
 
 
-/**
- * Setup communicator and launch network interactions.
- *
- * @param cls NULL (always)
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param c configuration
- */
 static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *c)
+run_ (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   char *bindto;
   struct sockaddr *in;
@@ -3601,7 +3590,9 @@ run (void *cls,
   struct sockaddr_storage in_sto;
   socklen_t sto_len;
 
-  (void) cls;
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Entering the run method of udp communicator.\n");
+
   cfg = c;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
@@ -3792,40 +3783,32 @@ run (void *cls,
                              NULL /* closure */);
 }
 
-
-/**
- * The main function for the UNIX communicator.
- *
- * @param argc number of arguments from the command line
- * @param argv command line arguments
- * @return 0 ok, 1 on error
- */
-int
-main (int argc, char *const *argv)
+static void
+run_monolith (void *cls)
 {
-  static const struct GNUNET_GETOPT_CommandLineOption options[] = {
-    GNUNET_GETOPT_OPTION_END
-  };
-  int ret;
+  const struct GNUNET_CONFIGURATION_Handle *c = cls;
 
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "transport",
-                           "Starting udp communicator\n");
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
-  ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
-                                          argv,
-                                          "gnunet-communicator-udp",
-                                          _ ("GNUnet UDP communicator"),
-                                          options,
-                                          &run,
-                                          NULL))
-        ? 0
-        : 1;
-  GNUNET_free_nz ((void *) argv);
-  return ret;
+  run_ (c);
 }
 
 
+/**
+ * Setup communicator and launch network interactions.
+ *
+ * @param cls NULL (always)
+ * @param args remaining command-line arguments
+ * @param cfgfile name of the configuration file used (for saving, can be NULL!)
+ * @param c configuration
+ */
+static void
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *c)
+{
+  run_ (c);
+  }
+
+
+GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run, &run_monolith)
 /* end of gnunet-communicator-udp.c */

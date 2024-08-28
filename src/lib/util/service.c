@@ -2291,116 +2291,26 @@ launch_registered_services (void *cls)
 
 void
 GNUNET_SERVICE_main (int argc,
-                     char *const *argv)
+                     char *const *argv,
+                     struct GNUNET_CONFIGURATION_Handle *cfg,
+                     enum GNUNET_GenericReturnValue with_scheduler)
 {
-  char *cfg_filename;
-  char *opt_cfg_filename;
-  char *logfile;
-  char *loglev;
-  const char *xdg;
-  int do_daemonize;
-  int ret;
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  struct GNUNET_GETOPT_CommandLineOption service_options[] = {
-    GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
-    GNUNET_GETOPT_option_flag ('d',
-                               "daemonize",
-                               gettext_noop (
-                                 "do daemonize (detach from terminal)"),
-                               &do_daemonize),
-    GNUNET_GETOPT_option_help (NULL),
-    GNUNET_GETOPT_option_loglevel (&loglev),
-    GNUNET_GETOPT_option_logfile (&logfile),
-    GNUNET_GETOPT_option_version (pd->version),
-    GNUNET_GETOPT_OPTION_END
-  };
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Entering GNUNET_SERVICE_main\n");
+  if (GNUNET_YES == with_scheduler)
+  {
+    if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
+                                                       argv,
+                                                       cfg))
+      return;
+    GNUNET_SCHEDULER_run (&launch_registered_services,
+                          cfg);
+  }
+  else
+    launch_registered_services (cfg);
 
-  xdg = getenv ("XDG_CONFIG_HOME");
-  if (NULL != xdg)
-    GNUNET_asprintf (&cfg_filename,
-                     "%s%s%s",
-                     xdg,
-                     DIR_SEPARATOR_STR,
-                     pd->config_file);
-  else
-    cfg_filename = GNUNET_strdup (pd->user_config_file);
-  cfg = GNUNET_CONFIGURATION_create ();
-  // FIXME we need to set this up for each service!
-  ret = GNUNET_GETOPT_run ("libgnunet",
-                           service_options,
-                           argc,
-                           argv);
-  if (GNUNET_SYSERR == ret)
-    goto shutdown;
-  if (GNUNET_NO == ret)
-  {
-    goto shutdown;
-  }
-  // FIXME we need to set this up for each service!
-  // NOTE: that was not the idea. What are you proposing? -CG
-  if (GNUNET_OK !=
-      GNUNET_log_setup ("libgnunet",
-                        loglev,
-                        logfile))
-  {
-    GNUNET_break (0);
-    goto shutdown;
-  }
-  if (NULL != opt_cfg_filename)
-  {
-    if ( (GNUNET_YES !=
-          GNUNET_DISK_file_test (opt_cfg_filename)) ||
-         (GNUNET_SYSERR ==
-          GNUNET_CONFIGURATION_load (cfg,
-                                     opt_cfg_filename)) )
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Malformed configuration file `%s', exit ...\n"),
-                  opt_cfg_filename);
-      goto shutdown;
-    }
-  }
-  else
-  {
-    if (GNUNET_YES ==
-        GNUNET_DISK_file_test (cfg_filename))
-    {
-      if (GNUNET_SYSERR ==
-          GNUNET_CONFIGURATION_load (cfg,
-                                     cfg_filename))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Malformed configuration file `%s', exit ...\n"),
-                    cfg_filename);
-        GNUNET_free (cfg_filename);
-        return;
-      }
-    }
-    else
-    {
-      if (GNUNET_SYSERR ==
-          GNUNET_CONFIGURATION_load (cfg,
-                                     NULL))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Malformed configuration, exit ...\n"));
-        GNUNET_free (cfg_filename);
-        return;
-      }
-    }
-  }
   GNUNET_RESOLVER_connect (cfg);
 
-  GNUNET_SCHEDULER_run (&launch_registered_services,
-                        cfg);
-shutdown:
-  GNUNET_SPEEDUP_stop_ ();
-  GNUNET_CONFIGURATION_destroy (cfg);
-  GNUNET_free (logfile);
-  GNUNET_free (loglev);
-  GNUNET_free (cfg_filename);
-  GNUNET_free (opt_cfg_filename);
 }
 
 

@@ -1,0 +1,3 @@
+subdir('util')
+subdir('hello')
+subdir('sq', if_found : [sqlite_dep])
