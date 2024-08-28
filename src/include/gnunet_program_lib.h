@@ -165,7 +165,7 @@ GNUNET_PROGRAM_monolith_main (int argc,
         { \
           return GNUNET_DAEMON_register (daemon_name, \
                                          daemon_help, \
-                                         init_cb_monolith); \
+                                         init_cb); \
         }
 #endif
 
