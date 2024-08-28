@@ -108,6 +108,8 @@ libgnunet_test_arm_plugin_probnat_la_SOURCES = \
 libgnunet_test_arm_plugin_probnat_la_LIBADD = \
   libgnunettestingarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
