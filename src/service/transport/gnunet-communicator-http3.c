@@ -3885,6 +3885,7 @@ run (void *cls,
                                               &mq_init,
                                               NULL,
                                               &notify_cb,
+                                              NULL,
                                               NULL);
   if (NULL == ch)
   {

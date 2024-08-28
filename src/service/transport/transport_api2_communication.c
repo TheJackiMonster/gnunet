@@ -781,7 +781,7 @@ handle_backchannel_incoming (
 
 static int
 check_start_burst (void *cls,
-                                const struct GNUNET_TRANSPORT_StartBurst *sb)
+                   const struct GNUNET_TRANSPORT_StartBurst *sb)
 {
   (void) cls;
   const char *str = (const char *) &sb[1];
@@ -797,7 +797,7 @@ check_start_burst (void *cls,
 
 static void
 handle_start_burst (void *cls,
-                                const struct GNUNET_TRANSPORT_StartBurst *sb)
+                    const struct GNUNET_TRANSPORT_StartBurst *sb)
 {
   struct GNUNET_TRANSPORT_CommunicatorHandle *ch = cls;
   const char *addr = (const char *) &sb[1];
@@ -807,10 +807,12 @@ handle_start_burst (void *cls,
               "Calling communicator to start burst to %s is %s rtt %lu\n",
               addr,
               NULL == sb ? "not possible" : "possible",
-              rtt.rel_value_us);
- 
+              (unsigned long) rtt.rel_value_us);
+
   if (NULL != ch->sb)
-    ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), (struct GNUNET_PeerIdentity *) &sb->pid);
+    ch->sb (addr, GNUNET_TIME_relative_ntoh (sb->rtt), (struct
+                                                        GNUNET_PeerIdentity *) &
+            sb->pid);
 }
 
 
@@ -1166,17 +1168,21 @@ GNUNET_TRANSPORT_communicator_notify (
   env =
     GNUNET_MQ_msg_extra (cb,
                          slen + mlen,
-                         GNUNET_MESSAGE_TYPE_TRANSPORT_COMMUNICATOR_BACKCHANNEL);
+                         GNUNET_MESSAGE_TYPE_TRANSPORT_COMMUNICATOR_BACKCHANNEL)
+  ;
   cb->pid = *pid;
   memcpy (&cb[1], header, mlen);
   memcpy (((char *) &cb[1]) + mlen, comm, slen);
   GNUNET_MQ_send (ch->mq, env);
 }
 
+
 /* ************************* Burst *************************** */
 
 void
-GNUNET_TRANSPORT_communicator_burst_finished (struct GNUNET_TRANSPORT_CommunicatorHandle *ch)
+GNUNET_TRANSPORT_communicator_burst_finished (struct
+                                              GNUNET_TRANSPORT_CommunicatorHandle
+                                              *ch)
 {
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_TRANSPORT_BurstFinished *bf;
@@ -1184,5 +1190,6 @@ GNUNET_TRANSPORT_communicator_burst_finished (struct GNUNET_TRANSPORT_Communicat
   env = GNUNET_MQ_msg (bf, GNUNET_MESSAGE_TYPE_TRANSPORT_BURST_FINISHED);
   GNUNET_MQ_send (ch->mq, env);
 }
+
 
 /* end of transport_api2_communication.c */

@@ -5508,7 +5508,7 @@ consider_sending_fc (void *cls)
               (unsigned int) vl->fc_seq_gen,
               GNUNET_i2s (&vl->target),
               (unsigned long long) vl->incoming_fc_window_size,
-              rtt_avarage.rel_value_us,
+              (unsigned long) rtt_avarage.rel_value_us,
               vl->sync_ready);
   monotime = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   vl->last_fc_transmission = monotime;
@@ -7472,7 +7472,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
         q_timeout = GNUNET_TIME_absolute_max (q_timeout, q->validated_until);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "remainig %lu to %s\n",
-                  GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+                  (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
                   GNUNET_i2s (&n->pid));
       if (0 != GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
       {
@@ -9781,7 +9781,7 @@ calculate_rtt (struct DistanceVector *dv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "calculate_rtt %lu\n",
-                pos->pd.aged_rtt.rel_value_us);
+                (unsigned long) pos->pd.aged_rtt.rel_value_us);
     n_hops++;
     ret = GNUNET_TIME_relative_add (GNUNET_TIME_relative_multiply (pos->pd.aged_rtt, pos->distance + 2), ret);
   }
@@ -9912,7 +9912,7 @@ start_burst (void *cls)
                   uri_without_port,
                   strlen (uri_without_port),
                   ntohs (sb->header.size),
-                  sb_cls->rtt.rel_value_us);
+                  (unsigned long) sb_cls->rtt.rel_value_us);
       GNUNET_MQ_send (tc->mq, env);
       burst_running = GNUNET_YES;
       burst_timeout_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
@@ -10018,7 +10018,7 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "remaining %lu timeout for neighbour %p\n",
-              GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+              (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
               vl->n);
   if (NULL == vl->n ||
        0 == GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)

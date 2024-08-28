@@ -101,10 +101,10 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "other sync ready %u, other rtt %lu and rtt %lu rel1 %lu rel2 %lu\n",
               burst_sync->sync_ready,
-              other_rtt.rel_value_us,
-              rtt_avarage.rel_value_us,
-              rel1.rel_value_us,
-              rel2.rel_value_us);
+              (unsigned long) other_rtt.rel_value_us,
+              (unsigned long) rtt_avarage.rel_value_us,
+              (unsigned long) rel1.rel_value_us,
+              (unsigned long) rel2.rel_value_us);
   if ((other_rtt.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us &&
        rtt_avarage.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
       rel1.rel_value_us  < RTT_DIFF.rel_value_us &&
