@@ -26,7 +26,7 @@ fi
 rm -rf `gnunet-config -c test_gns_lookup.conf -f -s paths -o GNUNET_TEST_HOME`
 
 TEST_IP_PLUS="127.0.0.1"
-TEST_IP_DNS="147.87.255.218"
+TEST_IP_DNS="193.5.87.218"
 TEST_RECORD_REDIRECT_SERVER="server"
 TEST_RECORD_REDIRECT_PLUS="server.+"
 TEST_RECORD_REDIRECT_DNS="gnunet.org"

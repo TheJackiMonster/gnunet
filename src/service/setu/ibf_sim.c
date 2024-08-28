@@ -93,7 +93,7 @@ main (int argc, char **argv)
       /* improved algorithm, for 1000 elements with IBF-DECODE 8, I
          get 990/1000 elements on average over 1 million runs; key
          idea being to stop short of the 'last' possible IBF as
-         otherwise a "lowball" per-chance would unduely influence the
+         otherwise a "lowball" per-chance would unduly influence the
          result */if ((j > 0) &&
           (buckets[j - 1] > MAX_IBF_DECODE))
       {

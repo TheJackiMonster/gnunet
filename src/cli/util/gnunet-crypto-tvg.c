@@ -666,7 +666,8 @@ checkvec (const char *operation,
     public_enc_len = GNUNET_CRYPTO_rsa_public_key_encode (pkey,
                                                           &public_enc_data);
     sig_enc_length_comp = GNUNET_CRYPTO_rsa_signature_encode (sig,
-                                                              &sig_enc_data_comp);
+                                                              &sig_enc_data_comp
+                                                              );
 
     if ( (sig_enc_length != sig_enc_length_comp) ||
          (0 != memcmp (sig_enc_data, sig_enc_data_comp, sig_enc_length) ))
@@ -1400,16 +1401,14 @@ output_vectors ()
     GNUNET_CRYPTO_cs_private_key_get_public (&priv,
                                              &pub);
     GNUNET_assert (GNUNET_YES ==
-                   GNUNET_CRYPTO_hkdf (&snonce,
-                                       sizeof(snonce),
-                                       GCRY_MD_SHA512,
-                                       GCRY_MD_SHA256,
-                                       "nonce",
-                                       strlen ("nonce"),
-                                       "nonce_secret",
-                                       strlen ("nonce_secret"),
-                                       NULL,
-                                       0));
+                   GNUNET_CRYPTO_hkdf_gnunet (&snonce,
+                                              sizeof(snonce),
+                                              "nonce",
+                                              strlen ("nonce"),
+                                              "nonce_secret",
+                                              strlen ("nonce_secret"),
+                                              NULL,
+                                              0));
     /* NOTE: historically, we made the bad choice of
        making both nonces the same. Maybe barely OK
        for the TGV, not good for production! */

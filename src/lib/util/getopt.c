@@ -33,7 +33,7 @@
  * @file util/getopt.c
  * @brief GNU style option parsing
  *
- * TODO: get rid of statics (make reentrant) and
+ * TODO: get rid of statistics (make reentrant) and
  * replace main GNU getopt parser with one that
  * actually fits our API.
  */
@@ -51,7 +51,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-getopt", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-getopt", syscall)
+        GNUNET_log_from_strerror (kind, "util-getopt", syscall)
 
 #ifndef _
 /* This is for other GNU distributions with internationalized messages.
@@ -177,7 +177,7 @@ static enum { REQUIRE_ORDER, PERMUTE, RETURN_IN_ORDER } ordering;
 /* Value of POSIXLY_CORRECT environment variable.  */
 static char *posixly_correct;
 
-#ifdef __GNU_LIBRARY__
+#if defined(__GNU_LIBRARY__) || defined(__GLIBC__) || defined(DARWIN)
 /* We want to avoid inclusion of string.h with non-GNU libraries
    because there are many ways it can cause trouble.
    On some systems, it contains special magic macros that don't work

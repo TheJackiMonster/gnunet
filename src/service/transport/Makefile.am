@@ -104,6 +104,10 @@ libexec_PROGRAMS += \
  gnunet-communicator-quic
 endif
 endif
+if HAVE_NGHTTP
+libexec_PROGRAMS += \
+ gnunet-communicator-http3
+endif
 
 
 #bin_PROGRAMS = \
@@ -164,6 +168,24 @@ gnunet_communicator_quic_LDADD = \
   -lquiche \
   $(LIBGCRYPT_LIBS)
 endif
+endif
+
+if HAVE_NGHTTP
+gnunet_communicator_http3_SOURCES = \
+ gnunet-communicator-http3.c
+gnunet_communicator_http3_CFLAGS = \
+  $(NGHTTP_CFLAGS) $(NGTCP_CFLAGS) $(NGTCP_CRYPTO_CFLAGS)
+gnunet_communicator_http3_LDADD = \
+  libgnunettransportapplication.la \
+  libgnunettransportcommunicator.la \
+  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
+  $(top_builddir)/src/service/nat/libgnunetnatnew.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(NGTCP_LIBS) \
+  $(NGTCP_CRYPTO_LIBS) \
+  $(NGHTTP_LIBS) \
+  $(LIBGCRYPT_LIBS)
 endif
 
 #gnunet_transport_SOURCES = \
@@ -313,6 +335,10 @@ check_PROGRAMS = \
  test_communicator_bidirect-tcp \
  test_communicator_rekey-udp \
  test_communicator_backchannel-udp
+if HAVE_NGHTTP
+ check_PROGRAMS += test_communicator_basic-http3
+ check_PROGRAMS += test_communicator_bidirect-http3
+endif
 
 if HAVE_EXPERIMENTAL
 check_PROGRAMS += test_communicator_basic-quic \
@@ -370,6 +396,24 @@ test_communicator_basic_quic_LDADD = \
  $(top_builddir)/src/lib/testing/libgnunettesting.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+
+if HAVE_NGHTTP
+test_communicator_basic_http3_SOURCES = \
+ test_communicator_basic.c
+test_communicator_basic_http3_LDADD = \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+
+test_communicator_bidirect_http3_SOURCES = \
+ test_communicator_basic.c
+test_communicator_bidirect_http3_LDADD = \
+ libgnunettestingtransport.la \
+ $(top_builddir)/src/lib/testing/libgnunettesting.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la \
+ $(top_builddir)/src/service/statistics/libgnunetstatistics.la
+endif
 
 test_communicator_rekey_tcp_SOURCES = \
  test_communicator_basic.c
@@ -452,6 +496,8 @@ test_communicator_unix_basic_peer2.conf \
 test_communicator_tcp_basic_peer1.conf \
 test_communicator_tcp_basic_peer2.conf \
 test_communicator_udp_basic_peer1.conf \
+test_communicator_http3_basic_peer1.conf \
+test_communicator_http3_basic_peer2.conf \
 test_communicator_udp_basic_peer2.conf \
 test_communicator_tcp_rekey_peer1.conf \
 test_communicator_tcp_rekey_peer2.conf \

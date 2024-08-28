@@ -17,6 +17,12 @@ libgnunetpq = library('gnunetpq',
         install_dir: get_option('libdir'))
 libgnunetpq_dep = declare_dependency(link_with : libgnunetpq)
 
+configure_file(input : 'versioning.sql',
+               output : 'versioning.sql',
+               configuration : cdata,
+               install: true,
+               install_dir: get_option('datadir')/'gnunet'/'sql')
+
 testpq = executable ('test_pq',
           ['test_pq.c'],
           dependencies: [libgnunetutil_dep,

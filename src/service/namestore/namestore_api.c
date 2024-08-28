@@ -1216,6 +1216,7 @@ GNUNET_NAMESTORE_records_store (
   GNUNET_assert (NULL != env);
   msg->gns_header.r_id = htonl (rid);
   msg->key_len = htons (key_len);
+  msg->single_tx = htons (GNUNET_YES);
   msg->rd_set_count = htons ((uint16_t) (*rds_sent));
   GNUNET_CRYPTO_write_private_key_to_buffer (pkey,
                                              &msg[1],

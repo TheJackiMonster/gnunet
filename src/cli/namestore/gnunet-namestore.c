@@ -26,6 +26,7 @@
  * - test
  */
 #include "platform.h"
+#include "gnunet_common.h"
 #include <gnunet_util_lib.h>
 #include <gnunet_identity_service.h>
 #include <gnunet_gnsrecord_lib.h>
@@ -344,6 +345,19 @@ static struct RecordSetEntry *recordset;
  */
 static struct GNUNET_SCHEDULER_Task *purge_task;
 
+/* FIXME: Make array and grow as needed */
+#define INITIAL_RI_BUFFER_SIZE 5000
+
+static unsigned int ri_count = 0;
+
+static struct GNUNET_NAMESTORE_RecordInfo *record_info;
+
+/** Maximum capacity of record_info array **/
+static unsigned int record_info_capacity = 0;
+
+/* How many records to put simulatneously */
+static unsigned int max_batch_size = 1000;
+
 /**
  * Parse expiration time.
  *
@@ -400,7 +414,6 @@ parse_expiration (const char *expirationstring,
 static int
 parse_recordline (const char *line)
 {
-  struct RecordSetEntry **head = &recordset;
   struct RecordSetEntry *r;
   struct GNUNET_GNSRECORD_Data record;
   char *cp;
@@ -475,13 +488,27 @@ parse_recordline (const char *line)
   GNUNET_free (cp);
 
   r = GNUNET_malloc (sizeof(struct RecordSetEntry) + record.data_size);
-  r->next = *head;
+  r->next = recordset;
   record.data = &r[1];
   memcpy (&r[1], raw_data, record.data_size);
   GNUNET_free (raw_data);
   r->record = record;
-  *head = r;
+  recordset = r;
   return GNUNET_OK;
+}
+
+
+static void
+clear_recordset ()
+{
+  struct RecordSetEntry *rs_entry;
+
+  while (NULL != (rs_entry = recordset))
+  {
+    recordset = recordset->next;
+    GNUNET_free (rs_entry);
+  }
+  recordset = NULL;
 }
 
 
@@ -490,15 +517,7 @@ reset_handles (void)
 {
   struct MarkedRecord *mrec;
   struct MarkedRecord *mrec_tmp;
-  struct RecordSetEntry *rs_entry;
-
-  rs_entry = recordset;
-  while (NULL != (rs_entry = recordset))
-  {
-    recordset = recordset->next;
-    GNUNET_free (rs_entry);
-  }
-  recordset = NULL;
+  clear_recordset ();
   if (NULL != ego_name)
   {
     GNUNET_free (ego_name);
@@ -608,6 +627,9 @@ do_shutdown (void *cls)
   (void) cls;
 
   reset_handles ();
+  if (NULL != record_info)
+    GNUNET_free (record_info);
+  record_info = NULL;
   if (NULL != ns_qe)
   {
     GNUNET_NAMESTORE_cancel (ns_qe);
@@ -636,11 +658,26 @@ do_shutdown (void *cls)
 static void
 process_command_stdin ();
 
+static unsigned int ri_sent = 0;
+
+/**
+ * We have obtained the zone's private key, so now process
+ * the main commands using it.
+ *
+ * @param cfg configuration to use
+ */
+static void
+batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 static void
 finish_command (void)
 {
-  reset_handles ();
+  //if (ri_sent < ri_count)
+  //{
+  //  batch_insert_recordinfo (cfg);
+  //  return;
+  //}
+  //reset_handles ();
   if (read_from_stdin)
   {
     process_command_stdin ();
@@ -663,6 +700,8 @@ add_continuation (void *cls, enum GNUNET_ErrorCode ec)
              GNUNET_ErrorCode_get_hint (ec));
     if (GNUNET_EC_NAMESTORE_RECORD_EXISTS != ec)
       ret = 1;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
   }
   ret = 0;
   finish_command ();
@@ -1260,7 +1299,8 @@ del_monitor (void *cls,
   {
     fprintf (stderr,
              _ (
-               "There are no records under label `%s' that could be deleted.\n"),
+               "There are no records under label `%s' that could be deleted.\n")
+             ,
              label);
     ret = 1;
     finish_command ();
@@ -1320,6 +1360,12 @@ del_monitor (void *cls,
 
 
 static void
+schedule_finish (void* cls)
+{
+  finish_command();
+}
+
+static void
 replace_cont (void *cls, enum GNUNET_ErrorCode ec)
 {
   (void) cls;
@@ -1332,7 +1378,42 @@ replace_cont (void *cls, enum GNUNET_ErrorCode ec)
                 GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
-  finish_command ();
+  GNUNET_SCHEDULER_add_now(&schedule_finish, NULL);
+}
+
+
+/**
+ * We have obtained the zone's private key, so now process
+ * the main commands using it.
+ *
+ * @param cfg configuration to use
+ */
+static void
+batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  unsigned int sent_here;
+
+  GNUNET_assert (0 != ri_count);
+  set_qe = GNUNET_NAMESTORE_records_store (ns,
+                                           &zone_pkey,
+                                           ri_count - ri_sent,
+                                           record_info + ri_sent,
+                                           &sent_here,
+                                           &replace_cont,
+                                           NULL);
+  ri_sent += sent_here;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent %d/%d record infos\n", ri_sent, ri_count);
+  if (ri_sent == ri_count)
+  {
+    for (int i = 0; i < ri_count; i++)
+    {
+      GNUNET_free (record_info[i].a_rd);
+      record_info[i].a_rd = NULL;
+    }
+    ri_count = 0;
+    ri_sent = 0;
+  }
+  return;
 }
 
 
@@ -1619,11 +1700,14 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
       list_it = GNUNET_NAMESTORE_zone_iteration_start2 (ns,
                                                         (NULL == ego_name) ?
                                                         NULL : &zone_pkey,
-                                                        &zone_iteration_error_cb,
+                                                        &zone_iteration_error_cb
+                                                        ,
                                                         NULL,
-                                                        &display_record_iterator,
+                                                        &display_record_iterator
+                                                        ,
                                                         NULL,
-                                                        &zone_iteration_finished,
+                                                        &zone_iteration_finished
+                                                        ,
                                                         NULL,
                                                         filter_flags);
   }
@@ -1791,17 +1875,18 @@ process_command_stdin ()
   static struct GNUNET_CRYPTO_PrivateKey next_zone_key;
   static char next_name[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
   static int finished = GNUNET_NO;
-  static int have_next_zonekey = GNUNET_NO;
+  static int have_next_recordline = GNUNET_NO;
   int zonekey_set = GNUNET_NO;
   char *tmp;
+  char *current_name = NULL;
 
 
-  if (GNUNET_YES == have_next_zonekey)
+  if (GNUNET_YES == have_next_recordline)
   {
     zone_pkey = next_zone_key;
-    if (NULL != name)
-      GNUNET_free (name);
-    name = GNUNET_strdup (next_name);
+    if (NULL != current_name)
+      GNUNET_free (current_name);
+    current_name = GNUNET_strdup (next_name);
     zonekey_set = GNUNET_YES;
   }
   while (NULL != fgets (buf, sizeof (buf), stdin))
@@ -1815,6 +1900,7 @@ process_command_stdin ()
      */
     if (buf[strlen (buf) - 1] == ':')
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching to %s\n", buf);
       memset (next_name, 0, sizeof (next_name));
       strncpy (next_name, buf, strlen (buf) - 1);
       tmp = strchr (next_name, '.');
@@ -1833,17 +1919,57 @@ process_command_stdin ()
         return;
       }
       *tmp = '\0';
-      have_next_zonekey = GNUNET_YES;
+      have_next_recordline = GNUNET_YES;
       /* Run a command for the previous record set */
       if (NULL != recordset)
       {
-        run_with_zone_pkey (cfg);
-        return;
+        if (ri_count >= record_info_capacity)
+        {
+          GNUNET_array_grow (record_info,
+                             record_info_capacity,
+                             record_info_capacity + max_batch_size);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Recordinfo array grown to %u bytes!\n", record_info_capacity);
+        }
+        record_info[ri_count].a_label = GNUNET_strdup (current_name);
+        int rd_count = 0;
+        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+          rd_count++;
+        record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
+                                                       struct
+                                                       GNUNET_GNSRECORD_Data);
+        rd_count = 0;
+        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+        {
+          record_info[ri_count].a_rd[rd_count] = e->record;
+          record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->
+                                                                     record.
+                                                                     data_size);
+          record_info[ri_count].a_rd[rd_count].data_size = e->record.
+                                                           data_size;
+          memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
+                  e->record.data, e->record.data_size);
+          rd_count++;
+        }
+        record_info[ri_count].a_rd_count = rd_count;
+        ri_count++;
+        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added %d records to record info\n", rd_count);
+        clear_recordset ();
+        /* If the zone has changed, insert */
+        /* If we have reached batch size, insert */
+        if (0 != GNUNET_memcmp (&next_zone_key, &zone_pkey) ||
+           (ri_count >= max_batch_size))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Batch inserting %d RI\n", ri_count);
+          batch_insert_recordinfo (cfg);
+          return;
+        }
       }
       zone_pkey = next_zone_key;
-      if (NULL != name)
-        GNUNET_free (name);
-      name = GNUNET_strdup (next_name);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching from %s to %s\n", current_name, next_name);
+      if (NULL != current_name)
+        GNUNET_free (current_name);
+      current_name = GNUNET_strdup (next_name);
       zonekey_set = GNUNET_YES;
       continue;
     }
@@ -1860,12 +1986,39 @@ process_command_stdin ()
     {
       if (GNUNET_YES == zonekey_set)
       {
-        run_with_zone_pkey (cfg); /** one last time **/
+        record_info[ri_count].a_label = GNUNET_strdup (current_name);
+        int rd_count = 0;
+        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+          rd_count++;
+        record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
+                                                       struct
+                                                       GNUNET_GNSRECORD_Data);
+        rd_count = 0;
+        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+        {
+          record_info[ri_count].a_rd[rd_count] = e->record;
+          record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->record
+                                                                     .
+                                                                     data_size);
+          record_info[ri_count].a_rd[rd_count].data_size = e->record.data_size
+          ;
+          memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
+                  e->record.data, e->record.data_size);
+          rd_count++;
+        }
+        record_info[ri_count].a_rd_count = rd_count;
+        ri_count++;
+        batch_insert_recordinfo (cfg); /** One last time **/
         finished = GNUNET_YES;
         return;
       }
       fprintf (stderr, "Warning, encountered recordline without zone\n");
     }
+  }
+  if (ri_sent < ri_count)
+  {
+    batch_insert_recordinfo(cfg);
+    return;
   }
   GNUNET_SCHEDULER_shutdown ();
   return;
@@ -2066,6 +2219,12 @@ main (int argc, char *const *argv)
                                gettext_noop (
                                  "delete all records in specified zone"),
                                &purge_zone),
+    GNUNET_GETOPT_option_uint ('B',
+                               "batch-size",
+                               "NUMBER",
+                               gettext_noop (
+                                 "number of records to buffer and send as batch (for use with --from-stdin)"),
+                               &max_batch_size),
     GNUNET_GETOPT_option_flag (
       's',
       "shadow",

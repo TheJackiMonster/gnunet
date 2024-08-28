@@ -137,9 +137,9 @@ struct TcpHandshakeSignature
   struct GNUNET_PeerIdentity receiver;
 
   /**
-   * Ephemeral key used by the @e sender.
+   * Ephemeral key used by the @e sender (as Elligator representative).
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -301,7 +301,7 @@ struct TCPRekey
   /**
    * New ephemeral key.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Sender's signature of type #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY
@@ -339,7 +339,7 @@ struct TcpRekeySignature
   /**
    * Ephemeral key used by the @e sender.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral;
+  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral;
 
   /**
    * Monotonic time of @e sender, to possibly help detect replay attacks
@@ -436,6 +436,11 @@ struct Queue
    * To whom are we talking to.
    */
   struct GNUNET_PeerIdentity target;
+
+  /**
+   * To whom are we talking to.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey target_hpke_key;
 
   /**
    * Listen socket.
@@ -571,7 +576,7 @@ struct Queue
 
   /**
    * How may messages did we pass from this queue to CORE for which we
-   * have yet to receive an acknoweldgement that CORE is done with
+   * have yet to receive an acknowledgement that CORE is done with
    * them? If "large" (or even just non-zero), we should throttle
    * reading to provide flow control.  See also #DEFAULT_MAX_QUEUE_LENGTH
    * and #max_queue_length.
@@ -854,6 +859,11 @@ static struct GNUNET_TIME_Relative rekey_interval;
 static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
 /**
+ * Our private key.
+ */
+static struct GNUNET_CRYPTO_EcdhePrivateKey my_x25519_private_key;
+
+/**
  * Our configuration.
  */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -884,12 +894,12 @@ static struct ProtoQueue *proto_tail;
 struct GNUNET_RESOLVER_RequestHandle *resolve_request_handle;
 
 /**
- * Head of DLL with addresses we like to register at NAT servcie.
+ * Head of DLL with addresses we like to register at NAT service.
  */
 static struct Addresses *addrs_head;
 
 /**
- * Head of DLL with addresses we like to register at NAT servcie.
+ * Head of DLL with addresses we like to register at NAT service.
  */
 static struct Addresses *addrs_tail;
 
@@ -932,6 +942,26 @@ static struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
  */
 static void
 listen_cb (void *cls);
+
+static void
+eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
+                     struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+{
+  struct GNUNET_CRYPTO_PrivateKey key;
+  key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
+  key.eddsa_key = *edpk;
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
+}
+
+static void
+eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
+                     struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+{
+  struct GNUNET_CRYPTO_PublicKey key;
+  key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
+  key.eddsa_key = *edpk;
+  GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
+}
 
 /**
  * Functions with this signature are called whenever we need
@@ -1214,7 +1244,7 @@ pass_plaintext_to_core (struct Queue *queue,
  * @param[out] hmac_key HMAC key to initialize
  */
 static void
-setup_cipher (const struct GNUNET_HashCode *dh,
+setup_cipher (const struct GNUNET_ShortHashCode *prk,
               const struct GNUNET_PeerIdentity *pid,
               gcry_cipher_hd_t *cipher,
               struct GNUNET_HashCode *hmac_key)
@@ -1227,39 +1257,34 @@ setup_cipher (const struct GNUNET_HashCode *dh,
                                         ,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (key,
-                                                  sizeof(key),
-                                                  "TCP-key",
-                                                  strlen ("TCP-key"),
-                                                  dh,
-                                                  sizeof(*dh),
-                                                  pid,
-                                                  sizeof(*pid),
-                                                  NULL,
-                                                  0));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CRYPTO_hkdf_expand (key,
+                                            sizeof(key),
+                                            prk,
+                                            "gnunet-communicator-tcp-key",
+                                            strlen (
+                                              "gnunet-communicator-tcp-key"),
+                                            NULL,
+                                            0));
   GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
-  GNUNET_assert (GNUNET_YES == GNUNET_CRYPTO_kdf (ctr,
-                                                  sizeof(ctr),
-                                                  "TCP-ctr",
-                                                  strlen ("TCP-ctr"),
-                                                  dh,
-                                                  sizeof(*dh),
-                                                  pid,
-                                                  sizeof(*pid),
-                                                  NULL,
-                                                  0));
+  GNUNET_assert (GNUNET_YES ==
+                 GNUNET_CRYPTO_hkdf_expand (ctr,
+                                            sizeof(ctr),
+                                            prk,
+                                            "gnunet-communicator-tcp-ctr",
+                                            strlen (
+                                              "gnunet-communicator-tcp-ctr"),
+                                            NULL,
+                                            0));
   gcry_cipher_setctr (*cipher, ctr, sizeof(ctr));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (hmac_key,
-                                    sizeof(struct GNUNET_HashCode),
-                                    "TCP-hmac",
-                                    strlen ("TCP-hmac"),
-                                    dh,
-                                    sizeof(*dh),
-                                    pid,
-                                    sizeof(*pid),
-                                    NULL,
-                                    0));
+                 GNUNET_CRYPTO_hkdf_expand (hmac_key,
+                                            sizeof(struct GNUNET_HashCode),
+                                            prk,
+                                            "gnunet-communicator-hmac",
+                                            strlen ("gnunet-communicator-hmac"),
+                                            NULL,
+                                            0));
 }
 
 
@@ -1345,16 +1370,34 @@ rekey_monotime_cb (void *cls,
 
 
 /**
+ * Setup cipher of @a queue for decryption from an elligator representative.
+ *
+ * @param ephemeral ephemeral key we received from the other peer (elligator representative)
+ * @param[in,out] queue queue to initialize decryption cipher for
+ */
+static void
+setup_in_cipher_elligator (
+  const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
+  struct Queue *queue)
+{
+  struct GNUNET_ShortHashCode k;
+
+  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key, c, &k);
+  setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
+}
+
+
+/**
  * Setup cipher of @a queue for decryption.
  *
  * @param ephemeral ephemeral key we received from the other peer
  * @param[in,out] queue queue to initialize decryption cipher for
  */
 static void
-setup_in_cipher (const struct GNUNET_CRYPTO_EcdhePublicKey *ephemeral,
+setup_in_cipher (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
                  struct Queue *queue)
 {
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &k);
   setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
@@ -1393,7 +1436,8 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   thp.ephemeral = rekey->ephemeral;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "ephemeral %s\n",
-              GNUNET_e2s (&thp.ephemeral));
+              GNUNET_e2s ((struct GNUNET_CRYPTO_EcdhePublicKey*) &thp.ephemeral)
+              );
   thp.monotonic_time = rekey->monotonic_time;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "time %s\n",
@@ -1560,7 +1604,7 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
  * @param queue queue to setup outgoing (encryption) cipher for
  */
 static void
-setup_out_cipher (struct Queue *queue, struct GNUNET_HashCode *dh)
+setup_out_cipher (struct Queue *queue, struct GNUNET_ShortHashCode *dh)
 {
   setup_cipher (dh, &queue->target, &queue->out_cipher, &queue->out_hmac);
   queue->rekey_time = GNUNET_TIME_relative_to_absolute (rekey_interval);
@@ -1580,7 +1624,7 @@ inject_rekey (struct Queue *queue)
 {
   struct TCPRekey rekey;
   struct TcpRekeySignature thp;
-  struct GNUNET_HashCode k;
+  struct GNUNET_ShortHashCode k;
 
   GNUNET_assert (0 == queue->pwrite_off);
   memset (&rekey, 0, sizeof(rekey));
@@ -1606,7 +1650,8 @@ inject_rekey (struct Queue *queue)
   thp.ephemeral = rekey.ephemeral;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "ephemeral %s\n",
-              GNUNET_e2s (&thp.ephemeral));
+              GNUNET_e2s ((struct GNUNET_CRYPTO_EcdhePublicKey*) &thp.ephemeral)
+              );
   thp.monotonic_time = rekey.monotonic_time;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "time %s\n",
@@ -2695,13 +2740,13 @@ boot_queue (struct Queue *queue)
  */
 static void
 transmit_kx (struct Queue *queue,
-             const struct GNUNET_CRYPTO_EcdhePublicKey *epub)
+             const struct GNUNET_CRYPTO_HpkeEncapsulation *c)
 {
   struct TcpHandshakeSignature ths;
   struct TCPConfirmation tc;
 
-  memcpy (queue->cwrite_buf, epub, sizeof(*epub));
-  queue->cwrite_off = sizeof(*epub);
+  memcpy (queue->cwrite_buf, c, sizeof(*c));
+  queue->cwrite_off = sizeof(*c);
   /* compute 'tc' and append in encrypted format to cwrite_buf */
   tc.sender = my_identity;
   tc.monotonic_time =
@@ -2714,7 +2759,7 @@ transmit_kx (struct Queue *queue,
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = my_identity;
   ths.receiver = queue->target;
-  ths.ephemeral = *epub;
+  ths.ephemeral = *c;
   ths.monotonic_time = tc.monotonic_time;
   ths.challenge = tc.challenge;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
@@ -2744,13 +2789,13 @@ transmit_kx (struct Queue *queue,
 static void
 start_initial_kx_out (struct Queue *queue)
 {
-  struct GNUNET_CRYPTO_EcdhePublicKey epub;
-  struct GNUNET_HashCode k;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c;
+  struct GNUNET_ShortHashCode k;
 
-  // TODO: We could use the Elligator KEM here! https://bugs.gnunet.org/view.php?id=8065
-  GNUNET_CRYPTO_eddsa_kem_encaps (&queue->target.public_key, &epub, &k);
+  GNUNET_CRYPTO_hpke_elligator_kem_encaps (&queue->target_hpke_key,
+                                           &c, &k);
   setup_out_cipher (queue, &k);
-  transmit_kx (queue, &epub);
+  transmit_kx (queue, &c);
 }
 
 
@@ -2953,9 +2998,10 @@ queue_read_kx (void *cls)
     return;
   }
   /* we got all the data, let's find out who we are talking to! */
-  setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *)
-                   queue->cread_buf,
-                   queue);
+  setup_in_cipher_elligator (
+    (const struct GNUNET_CRYPTO_HpkeEncapsulation*)
+    queue->cread_buf,
+    queue);
   if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, queue->cread_buf))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -3057,6 +3103,7 @@ proto_read_kx (void *cls)
 
     queue = GNUNET_new (struct Queue);
     queue->target = pm->clientIdentity;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
     read_task = &queue_read_kx;
   }
@@ -3071,8 +3118,10 @@ proto_read_kx (void *cls)
   {
     /* we got all the data, let's find out who we are talking to! */
     queue = GNUNET_new (struct Queue);
-    setup_in_cipher ((const struct GNUNET_CRYPTO_EcdhePublicKey *) pq->ibuf,
-                     queue);
+    setup_in_cipher_elligator (
+      (const struct GNUNET_CRYPTO_HpkeEncapsulation *) pq->
+      ibuf,
+      queue);
     if (GNUNET_OK != decrypt_and_check_tc (queue, &tc, pq->ibuf))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -3084,6 +3133,7 @@ proto_read_kx (void *cls)
       return;
     }
     queue->target = tc.sender;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
     read_task = &queue_read;
   }
@@ -3464,6 +3514,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 
     queue = GNUNET_new (struct Queue);
     queue->target = *peer;
+    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
     queue->key = queue_map_key;
     queue->address = in;
     queue->address_len = in_len;
@@ -3818,6 +3869,8 @@ init_socket (struct sockaddr *addr,
     return GNUNET_SYSERR;
   }
   GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
+  eddsa_priv_to_hpke_key (my_private_key,
+                          &my_x25519_private_key);
   /* start listening */
 
   lt = GNUNET_new (struct ListenTask);

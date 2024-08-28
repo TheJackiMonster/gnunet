@@ -42,20 +42,20 @@
  * did_document contains an Error message if DID can not be resolved.
  * Calls the given callback function with the resolved DID Document and the given closure.
  * If the did can not be resolved did_document is NULL.
- * @param status Equals GNUNET_OK if DID Docuemnt has been resolved
+ * @param status Equals GNUNET_OK if DID Document has been resolved
  * @param did_document resolved DID Document
- * @param cls previsouly given closure
+ * @param cls previously given closure
  */
 typedef void
   DID_resolve_callback (enum GNUNET_GenericReturnValue status, char *did_document, void *cls);
 
 /**
  * @brief Signature of a callback function that is called after a did has been removed
- * status = 0 if action was sucessfull
+ * status = 0 if action was successful
  * status = 1 if action failed
  *
  * @param status status of the perfermormed action.
- * @param cls previsouly given closure
+ * @param cls previously given closure
  */
 typedef void
   DID_action_callback (enum GNUNET_GenericReturnValue status, void *cls);
@@ -83,7 +83,7 @@ DID_resolve (const char *did,
  * Ego is not removed.
  * Calls the callback function with status and the given closure.
  *
- * @param ego ego which controlls the DID
+ * @param ego ego which controls the DID
  * @param cfg_handle pointer to configuration handle
  * @param namestore_handle pointer to namestore handle
  * @param cont callback function

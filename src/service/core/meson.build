@@ -91,6 +91,15 @@ configure_file(input : 'test_core_api_peer1.conf',
                output : 'test_core_api_peer1.conf',
                copy: true)
 
+configure_file(input : 'test_core_api_peer2.conf',
+               output : 'test_core_api_peer2.conf',
+               copy: true)
+
+configure_file(input : 'test_core_api_data.conf',
+               output : 'test_core_api_data.conf',
+               copy: true)
+
+
 if false
 
 testcore_api_send_self = executable ('test_core_api_send_to_self',
@@ -103,8 +112,12 @@ testcore_api_send_self = executable ('test_core_api_send_to_self',
             include_directories: [incdir, configuration_inc],
             install: false)
 
+test('test_core_api_send_to_self', testcore_api_send_self,
+  suite: 'core', workdir: meson.current_build_dir())
+endif
+
 testcore_api_start = executable ('test_core_api_start_only',
-            ['test_core_api_send_to_self.c'],
+            ['test_core_api_start_only.c'],
             dependencies: [
               libgnunetcore_dep,
               libgnunetutil_dep,
@@ -113,9 +126,6 @@ testcore_api_start = executable ('test_core_api_start_only',
             include_directories: [incdir, configuration_inc],
             install: false)
 
-test('test_core_api_send_to_self', testcore_api_send_self,
-  suite: 'core', workdir: meson.current_build_dir())
 test('test_core_api_start_only', testcore_api_start,
   suite: 'core', workdir: meson.current_build_dir())
 
-endif

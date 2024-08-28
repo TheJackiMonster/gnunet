@@ -31,6 +31,13 @@ test_common_logging_dummy_SOURCES = \
 test_common_logging_dummy_LDADD = \
  libgnunetutil.la
 
+gnunet_elligator_tvg_SOURCES = \
+  gnunet-elligator-tvg.c 
+gnunet_elligator_tvg_LDADD = \
+  libgnunetutil.la \
+  -lsodium \
+  $(LIBGCRYPT_LIBS)
+
 libgnunetutil_la_SOURCES = \
   bandwidth.c \
   $(BENCHMARK) \
@@ -64,6 +71,7 @@ libgnunetutil_la_SOURCES = \
   crypto_hash.c \
   crypto_hash_file.c \
   crypto_hkdf.c \
+  crypto_hpke.c \
   crypto_kdf.c \
   crypto_mpi.c \
   crypto_paillier.c \
@@ -147,7 +155,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 16:1:0
+  -version-info 17:0:0
 
 lib_LTLIBRARIES = libgnunetutil.la
 
@@ -214,6 +222,7 @@ check_PROGRAMS = \
  test_crypto_hash \
  test_crypto_hash_context \
  test_crypto_hkdf \
+ test_crypto_hpke \
  test_crypto_kdf \
  test_crypto_paillier \
  test_crypto_random \
@@ -241,15 +250,14 @@ check_PROGRAMS = \
  test_uri \
  $(BENCHMARKS) \
  test_os_start_process \
- test_common_logging_runtime_loglevels
+ test_common_logging_runtime_loglevels \
+ gnunet-elligator-tvg
 
 test_child_management_SOURCES = \
   test_child_management.c
 test_child_management_LDADD = \
   libgnunetutil.la \
   $(XLIB)
-
-
 
 # Declare .nc (NO-CONCURRENCY) as a test extension so that we can impart
 # sequential execution order for them
@@ -437,6 +445,11 @@ test_crypto_hkdf_SOURCES = \
  test_crypto_hkdf.c
 test_crypto_hkdf_LDADD = \
  libgnunetutil.la
+
+test_crypto_hpke_SOURCES = \
+ test_crypto_hpke.c
+test_crypto_hpke_LDADD = \
+ libgnunetutil.la -lgcrypt
 
 test_crypto_kdf_SOURCES = \
  test_crypto_kdf.c

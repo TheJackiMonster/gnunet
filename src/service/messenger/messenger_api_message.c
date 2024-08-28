@@ -144,7 +144,7 @@ copy_message (const struct GNUNET_MESSENGER_Message *message)
     if (copy->body.talk.data)
       GNUNET_memcpy (copy->body.talk.data, message->body.talk.data,
                      copy->body.talk.length);
-    
+
     break;
   default:
     break;
@@ -600,9 +600,11 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_PRIVATE:
     encode_step (buffer, offset, &(body->privacy.key));
-    encode_step_ext (buffer, offset, body->privacy.data, min (length - offset,
-                                                              body->privacy.
-                                                              length));
+
+    if (body->privacy.data)
+      encode_step_ext (buffer, offset, body->privacy.data, min (length - offset,
+                                                                body->privacy.
+                                                                length));
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     encode_step (buffer, offset, &(body->deletion.hash));
@@ -622,14 +624,17 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
     encode_step (buffer, offset, &(body->transcript.hash));
     encode_step_key (buffer, offset, &(body->transcript.key), length);
-    encode_step_ext (buffer, offset, body->transcript.data, min (length
-                                                                 - offset,
-                                                                 body->
-                                                                 transcript.
-                                                                 length));
+
+    if (body->transcript.data)
+      encode_step_ext (buffer, offset, body->transcript.data, min (length
+                                                                   - offset,
+                                                                   body->
+                                                                   transcript.
+                                                                   length));
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     encode_step (buffer, offset, &(body->tag.hash));
+
     if (body->tag.tag)
       encode_step_ext (buffer, offset, body->tag.tag, min (length - offset,
                                                            strlen (
@@ -644,9 +649,11 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_TALK:
     encode_step (buffer, offset, &(body->talk.discourse));
-    encode_step_ext (buffer, offset, body->talk.data, min (length - offset,
-                                                           body->talk.
-                                                           length));
+
+    if (body->talk.data)
+      encode_step_ext (buffer, offset, body->talk.data, min (length - offset,
+                                                             body->talk.
+                                                             length));
     break;
   default:
     break;
@@ -830,8 +837,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_PRIVATE:
     decode_step (buffer, offset, &(body->privacy.key));
 
-    body->privacy.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->privacy.data, length - offset, 0);
+    if (length > offset)
+    {
+      body->privacy.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->privacy.data, length - offset,
+                          0);
+    }
+    else
+    {
+      body->privacy.length = 0;
+      body->privacy.data = NULL;
+    }
+
     break;
   case GNUNET_MESSENGER_KIND_DELETE:
     decode_step (buffer, offset, &(body->deletion.hash));
@@ -855,9 +872,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     decode_step (buffer, offset, &(body->transcript.hash));
     decode_step_key (buffer, offset, &(body->transcript.key), length);
 
-    body->transcript.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->transcript.data, length - offset,
-                        0);
+    if (length > offset)
+    {
+      body->transcript.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->transcript.data,
+                          length - offset, 0);
+    }
+    else
+    {
+      body->transcript.length = 0;
+      body->transcript.data = NULL;
+    }
+
     break;
   case GNUNET_MESSENGER_KIND_TAG:
     decode_step (buffer, offset, &(body->tag.hash));
@@ -876,8 +902,18 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_TALK:
     decode_step (buffer, offset, &(body->talk.discourse));
 
-    body->talk.length = (length - offset);
-    decode_step_malloc (buffer, offset, body->talk.data, length - offset, 0);
+    if (length > offset)
+    {
+      body->talk.length = (length - offset);
+      decode_step_malloc (buffer, offset, body->talk.data, length - offset,
+                          0);
+    }
+    else
+    {
+      body->talk.length = 0;
+      body->talk.data = NULL;
+    }
+
     break;
   default:
     *kind = GNUNET_MESSENGER_KIND_UNKNOWN;
@@ -1114,6 +1150,9 @@ enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PublicKey *key)
 {
+  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
+
+  struct GNUNET_CRYPTO_EcdhePublicKey hpke_key;
   GNUNET_assert ((message) && (key));
 
   if (GNUNET_YES == is_service_message (message))
@@ -1124,34 +1163,46 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
   fold_short_message (message, &shortened);
 
   const uint16_t length = get_short_message_size (&shortened, GNUNET_YES);
-  const uint16_t padded_length = calc_padded_length (
-    length + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES
-    );
+  const uint16_t padded_length = calc_padded_length (length + overhead);
+
+  GNUNET_assert (padded_length >= length + overhead);
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
   message->body.privacy.data = GNUNET_malloc (padded_length);
   message->body.privacy.length = padded_length;
 
-  const uint16_t encoded_length = (
-    padded_length - GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES
-    );
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (key, &hpke_key));
+  const uint16_t encoded_length = (padded_length - overhead);
 
-  encode_short_message (&shortened, encoded_length, message->body.privacy.data);
+  GNUNET_assert (padded_length == encoded_length + overhead);
 
-  if (GNUNET_OK != GNUNET_CRYPTO_encrypt (message->body.privacy.data,
-                                          encoded_length,
-                                          key,
-                                          message->body.privacy.data,
-                                          padded_length))
+  enum GNUNET_GenericReturnValue result = GNUNET_NO;
+  uint8_t *data = GNUNET_malloc (encoded_length);
+
+  encode_short_message (&shortened, encoded_length, (char *) data);
+
+  if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
+                                                    (uint8_t*) "messenger",
+                                                    strlen ("messenger"),
+                                                    NULL, 0,
+                                                    (uint8_t*) data,
+                                                    encoded_length,
+                                                    (uint8_t*) message->body.
+                                                    privacy.data,
+                                                    NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting message failed!\n");
 
     unfold_short_message (&shortened, message);
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   destroy_message_body (shortened.kind, &(shortened.body));
-  return GNUNET_YES;
+  result = GNUNET_YES;
+
+cleanup:
+  GNUNET_free (data);
+  return result;
 }
 
 
@@ -1159,11 +1210,14 @@ enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key)
 {
+  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
+
+  struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
   GNUNET_assert ((message) && (key));
 
   const uint16_t padded_length = message->body.privacy.length;
 
-  if (padded_length < GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES)
+  if (padded_length < overhead)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Message length too short to decrypt!\n");
@@ -1171,35 +1225,47 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
     return GNUNET_NO;
   }
 
-  const uint16_t encoded_length = (
-    padded_length - GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES
-    );
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (key, &hpke_key));
+  const uint16_t encoded_length = (padded_length - overhead);
 
-  if (GNUNET_OK != GNUNET_CRYPTO_decrypt (message->body.privacy.data,
-                                          padded_length,
-                                          key,
-                                          message->body.privacy.data,
-                                          encoded_length))
+  GNUNET_assert (padded_length == encoded_length + overhead);
+
+  enum GNUNET_GenericReturnValue result = GNUNET_NO;
+  uint8_t *data = GNUNET_malloc (encoded_length);
+
+  if (GNUNET_OK !=
+      GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
+                                       (uint8_t*) "messenger",
+                                       strlen ("messenger"),
+                                       NULL, 0,
+                                       (uint8_t*) message->body.privacy.data,
+                                       padded_length,
+                                       (uint8_t*) data,
+                                       NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Decrypting message failed!\n");
 
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   struct GNUNET_MESSENGER_ShortMessage shortened;
 
   if (GNUNET_YES != decode_short_message (&shortened,
                                           encoded_length,
-                                          message->body.privacy.data))
+                                          (char*) data))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Decoding decrypted message failed!\n");
 
-    return GNUNET_NO;
+    goto cleanup;
   }
 
   unfold_short_message (&shortened, message);
-  return GNUNET_YES;
+  result = GNUNET_YES;
+
+cleanup:
+  GNUNET_free (data);
+  return result;
 }
 
 
@@ -1367,7 +1433,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_MERGE:
     return GNUNET_YES; // Reserved for peers only!
   case GNUNET_MESSENGER_KIND_REQUEST:
-    return GNUNET_YES; // Requests should not apply individually! (inefficieny)
+    return GNUNET_YES; // Requests should not apply individually! (inefficiently)
   case GNUNET_MESSENGER_KIND_INVITE:
     return GNUNET_NO;
   case GNUNET_MESSENGER_KIND_TEXT:
@@ -1377,7 +1443,7 @@ is_service_message (const struct GNUNET_MESSENGER_Message *message)
   case GNUNET_MESSENGER_KIND_PRIVATE:
     return GNUNET_YES; // Prevent duplicate encryption breaking all access!
   case GNUNET_MESSENGER_KIND_DELETE:
-    return GNUNET_YES; // Deletion should not apply individually! (inefficieny)
+    return GNUNET_YES; // Deletion should not apply individually! (inefficiently)
   case GNUNET_MESSENGER_KIND_CONNECTION:
     return GNUNET_YES; // Reserved for connection handling only!
   case GNUNET_MESSENGER_KIND_TICKET:
@@ -1461,11 +1527,11 @@ get_message_discourse (const struct GNUNET_MESSENGER_Message *message)
 
   switch (message->header.kind)
   {
-    case GNUNET_MESSENGER_KIND_SUBSCRIBE:
-      return &(message->body.subscribe.discourse);
-    case GNUNET_MESSENGER_KIND_TALK:
-      return &(message->body.talk.discourse);
-    default:
-      return NULL;
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    return &(message->body.subscribe.discourse);
+  case GNUNET_MESSENGER_KIND_TALK:
+    return &(message->body.talk.discourse);
+  default:
+    return NULL;
   }
 }

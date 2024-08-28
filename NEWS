@@ -15,7 +15,7 @@ v0.21.0:
   - libgnunettesting first major testing NG refactor towards getting dependency structure streamlined
   - Remove single-use API macro GNUNET_VA_ARG_ENUM
   - major revision of blind signature API
-  - Introduced closure to hold store context when caling function to add hello in peerstore.
+  - Introduced closure to hold store context when calling function to add hello in peerstore.
   - Added DDLs for handling GNUNET_PEERSTORE_StoreHelloContext
   - Removed old hello functionality.
   - Refactoring components under src/ into lib/, plugin/, cli/ and service/
@@ -48,7 +48,7 @@ v0.20.0:
   - API extended for array query types
   - relevant array-types in queries (not results) in postgresql added
   - just style fixes, int to enum
-  - initial steps towards support of array-types in posgresql
+  - initial steps towards support of array-types in postgresql
   - adds GNUNET_JSON_spec_object_const() and GNUNET_JSON_spec_array_const()
 
 v0.19.4:

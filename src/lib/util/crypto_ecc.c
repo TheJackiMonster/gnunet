@@ -24,12 +24,15 @@
  * @author Christian Grothoff
  * @author Florian Dold
  */
-
 #include "platform.h"
+#include "gnunet_common.h"
 #include <gcrypt.h>
 #include <sodium.h>
 #include "gnunet_util_lib.h"
 #include "benchmark.h"
+#include "sodium/crypto_scalarmult.h"
+#include "sodium/crypto_scalarmult_curve25519.h"
+#include "sodium/utils.h"
 
 #define EXTRA_CHECKS 0
 
@@ -40,7 +43,7 @@
  * For performance reasons, we use cryptographic operations from
  * libsodium wherever we can get away with it, even though libsodium
  * itself does not support ECDSA.
- * This is why the sign and verifiy functionality from libgcrypt is
+ * This is why the sign and verify functionality from libgcrypt is
  * required and used.
  *
  * EdDSA: We use a standard EdDSA construction.
@@ -761,12 +764,40 @@ GNUNET_CRYPTO_eddsa_ecdh (const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_kem_decaps (const struct
-                                GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                const struct GNUNET_CRYPTO_EcdhePublicKey *c,
-                                struct GNUNET_HashCode *key_material)
+GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
+                           const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                           struct GNUNET_CRYPTO_EcdhePublicKey *dh)
 {
-  return GNUNET_CRYPTO_eddsa_ecdh (priv, c, key_material);
+  uint64_t checkbyte = 0;
+  size_t num_words = sizeof *dh / sizeof (uint64_t);
+  if (0 != crypto_scalarmult_curve25519 (dh->q_y, sk->d, pub->q_y))
+    return GNUNET_SYSERR;
+  // We need to check if this is the all-zero value
+  for (int i = 0; i < num_words; i++)
+    checkbyte |= ((uint64_t*)dh)[i];
+  return (0 == checkbyte) ? GNUNET_SYSERR : GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_ecdh_x25519 (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
+                           const struct GNUNET_CRYPTO_EcdhePublicKey *pk,
+                           struct GNUNET_CRYPTO_EcdhePublicKey *dh)
+{
+  uint64_t checkbyte = 0;
+  size_t num_words = sizeof *dh / sizeof (uint64_t);
+  if (0 != crypto_scalarmult_curve25519 (dh->q_y, sk->d, pk->q_y))
+    return GNUNET_SYSERR;
+  // We need to check if this is the all-zero value
+  for (int i = 0; i < num_words; i++)
+    checkbyte |= ((uint64_t*)dh)[i];
+  if (0 == checkbyte)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "HPKE ECDH: X25519 all zero value!\n");
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -804,151 +835,6 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
   return GNUNET_OK;
 }
 
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_kem_encaps (const struct GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                struct GNUNET_CRYPTO_EcdhePublicKey *c,
-                                struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-
-  GNUNET_CRYPTO_ecdhe_key_create (&sk);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, c);
-  return GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, key_material);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdsa_fo_kem_encaps (const struct
-                                   GNUNET_CRYPTO_EcdsaPublicKey *pub,
-                                   struct GNUNET_CRYPTO_FoKemC *c,
-                                   struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_HashCode x;
-  struct GNUNET_HashCode ux;
-  struct GNUNET_HashCode w;
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-
-  // This is the input to the FO OWTF
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, &x, sizeof(x));
-
-  // We build our OWTF using a FO-transformation of ElGamal:
-  // U(x)
-  GNUNET_CRYPTO_hash (&x, sizeof (x), &ux);
-  GNUNET_memcpy (&sk, &ux, sizeof (sk));
-
-  // B := g^U(x)
-  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, &c->pub);
-
-  if (GNUNET_SYSERR == GNUNET_CRYPTO_ecdh_ecdsa (&sk, pub, &w))
-    return -1;
-  // w xor x (one-time pad)
-  GNUNET_CRYPTO_hash_xor (&w, &x, &c->y);
-
-  // k := H(x) FIXME: U and H must be different?
-  GNUNET_memcpy (key_material, &ux, sizeof (ux));
-  return GNUNET_OK;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_fo_kem_encaps (const struct
-                                   GNUNET_CRYPTO_EddsaPublicKey *pub,
-                                   struct GNUNET_CRYPTO_FoKemC *c,
-                                   struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_HashCode x;
-  struct GNUNET_HashCode ux;
-  struct GNUNET_HashCode w;
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  enum GNUNET_GenericReturnValue ret;
-
-  // This is the input to the FO OWTF
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, &x, sizeof(x));
-
-  // We build our OWTF using a FO-transformation of ElGamal:
-  // U(x)
-  GNUNET_CRYPTO_hash (&x, sizeof (x), &ux);
-  GNUNET_memcpy (&sk, &ux, sizeof (sk));
-
-  // B := g^U(x)
-  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, &c->pub);
-
-  ret = GNUNET_CRYPTO_ecdh_eddsa (&sk, pub, &w);
-  if (GNUNET_OK != ret)
-    return ret;
-  // w xor x (one-time pad)
-  GNUNET_CRYPTO_hash_xor (&w, &x, &c->y);
-
-  // k := H(x) FIXME: U and H must be different?
-  GNUNET_memcpy (key_material, &ux, sizeof (ux));
-  return GNUNET_OK;
-}
-
-
-static enum GNUNET_GenericReturnValue
-fo_kem_decaps (const struct GNUNET_HashCode *w,
-               const struct GNUNET_CRYPTO_FoKemC *c,
-               struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_HashCode x;
-  struct GNUNET_HashCode ux;
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk;
-  struct GNUNET_CRYPTO_EcdhePublicKey pub_test;
-
-  // w xor x (one-time pad)
-  GNUNET_CRYPTO_hash_xor (w, &c->y, &x);
-
-  // We build our OWTF using a FO-transformation of ElGamal:
-  // U(x)
-  GNUNET_CRYPTO_hash (&x, sizeof (x), &ux);
-  GNUNET_memcpy (&sk, &ux, sizeof (sk));
-
-  // B := g^U(x)
-  GNUNET_CRYPTO_ecdhe_key_get_public (&sk, &pub_test);
-
-  if (0 != memcmp (&pub_test, &c->pub, sizeof (c->pub)))
-    return GNUNET_SYSERR; // Reject
-
-  // k := H(x) FIXME: U and H must be different?
-  GNUNET_memcpy (key_material, &ux, sizeof (ux));
-  return GNUNET_OK;
-}
-
-
-/**
- * This implementation is not testes/publicly exposed yet
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_eddsa_fo_kem_decaps (const struct
-                                   GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                                   const struct GNUNET_CRYPTO_FoKemC *c,
-                                   struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_HashCode w;
-  enum GNUNET_GenericReturnValue ret;
-
-  ret = GNUNET_CRYPTO_eddsa_ecdh (priv, &c->pub, &w);
-  if (GNUNET_OK != ret)
-    return ret;
-  return fo_kem_decaps (&w, c, key_material);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_ecdsa_fo_kem_decaps (const struct
-                                   GNUNET_CRYPTO_EcdsaPrivateKey *priv,
-                                   struct GNUNET_CRYPTO_FoKemC *c,
-                                   struct GNUNET_HashCode *key_material)
-{
-  struct GNUNET_HashCode w;
-  enum GNUNET_GenericReturnValue ret;
-
-  ret = GNUNET_CRYPTO_ecdsa_ecdh (priv, &c->pub, &w);
-  if (GNUNET_OK != ret)
-    return ret;
-  return fo_kem_decaps (&w, c, key_material);
-}
 
 
 enum GNUNET_GenericReturnValue

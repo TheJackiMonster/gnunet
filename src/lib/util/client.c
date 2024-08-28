@@ -899,7 +899,7 @@ connection_client_cancel_impl (struct GNUNET_MQ_Handle *mq,
  *          the necessary information about the service, or if
  *          we could not check (e.g. socket() failed)
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
                     const char *service_name)
 {
@@ -953,6 +953,9 @@ GNUNET_CLIENT_test (const struct GNUNET_CONFIGURATION_Handle *cfg,
        (port > 65535) ||
        (0 == port) )
   {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_WARNING,
+                               service_name,
+                               "PORT");
     return GNUNET_SYSERR;
   }
   if (GNUNET_OK ==
@@ -1084,7 +1087,7 @@ GNUNET_CLIENT_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                                                    "PORT",
                                                    &cstate->port)) ||
            (cstate->port > 65535) ||
-           (GNUNET_OK !=
+           (GNUNET_SYSERR ==
             GNUNET_CONFIGURATION_get_value_string (cfg,
                                                    service_name,
                                                    "HOSTNAME",

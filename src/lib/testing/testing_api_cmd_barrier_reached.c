@@ -85,6 +85,9 @@ barrier_reached_run (void *cls,
     GNUNET_TESTING_async_finish (&brs->ac);
     return;
   }
+  GNUNET_array_append (barrier->waiting,
+                       barrier->cnt_waiting,
+                       &brs->ac);
   if (barrier->inherited)
   {
     struct GNUNET_TESTING_CommandBarrierReached cbr = {
@@ -122,9 +125,6 @@ barrier_reached_run (void *cls,
                        0);
     return;
   }
-  GNUNET_array_append (barrier->waiting,
-                       barrier->cnt_waiting,
-                       &brs->ac);
 }
 
 

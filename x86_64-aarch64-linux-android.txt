@@ -1,0 +1,15 @@
+[binaries]
+c = 'aarch64-linux-android25-clang'
+cpp = 'aarch64-linux-android25-clang++'
+ar = 'llvm-ar'
+strip = 'llvm-strip'
+pkgconfig = '/usr/bin/pkg-config'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'x86_64'
+cpu = 'x86_64'
+endian = 'little'
+
+[properties]
+pkg_config_libdir = '/home/user/AndroidStudioProjects/GNUnet/distribution/pkgconfig'

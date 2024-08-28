@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2008, 2009, 2018 GNUnet e.V.
+     Copyright (C) 2006, 2008, 2009, 2018, 2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -360,7 +360,9 @@ GNUNET_CONFIGURATION_remove_section (
  * @param section section of interest
  * @param option option of interest
  * @param number where to store the numeric value of the option
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_number (
@@ -377,7 +379,9 @@ GNUNET_CONFIGURATION_get_value_number (
  * @param section section of interest
  * @param option option of interest
  * @param number where to store the floating value of the option
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_float (
@@ -394,7 +398,9 @@ GNUNET_CONFIGURATION_get_value_float (
  * @param section section of interest
  * @param option option of interest
  * @param time set to the time value stored in the configuration
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_time (
@@ -411,7 +417,9 @@ GNUNET_CONFIGURATION_get_value_time (
  * @param section section of interest
  * @param option option of interest
  * @param size set to the size in bytes as stored in the configuration
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_size (
@@ -443,7 +451,9 @@ GNUNET_CONFIGURATION_have_value (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param option option of interest
  * @param value will be set to a freshly allocated configuration
  *        value, or NULL if option is not specified
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_string (
@@ -462,7 +472,9 @@ GNUNET_CONFIGURATION_get_value_string (
  * @param option option of interest
  * @param value will be set to a freshly allocated configuration
  *        value, or NULL if option is not specified
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value is malformed)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_filename (
@@ -517,7 +529,9 @@ GNUNET_CONFIGURATION_iterate_section_values (
  * @param choices NULL-terminated list of legal values
  * @param value will be set to an entry in the legal list,
  *        or NULL if option is not specified and no default given
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if option is not set
+ *         #GNUNET_SYSERR on error (value not in @a choices)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_choice (
@@ -535,7 +549,9 @@ GNUNET_CONFIGURATION_get_value_choice (
  * @param cfg configuration to inspect
  * @param section section of interest
  * @param option option of interest
- * @return #GNUNET_YES, #GNUNET_NO or if option has no valid value, #GNUNET_SYSERR
+ * @return #GNUNET_OK if option is set to "YES"
+ *         #GNUNET_NO if option is not set or "NO"
+ *         #GNUNET_SYSERR on error (neither YES nor NO)
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_yesno (
@@ -595,10 +611,11 @@ GNUNET_CONFIGURATION_expand_dollar (
  * @param number value to set
  */
 void
-GNUNET_CONFIGURATION_set_value_number (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       unsigned long long number);
+GNUNET_CONFIGURATION_set_value_number (
+  struct GNUNET_CONFIGURATION_Handle *cfg,
+  const char *section,
+  const char *option,
+  unsigned long long number);
 
 
 /**

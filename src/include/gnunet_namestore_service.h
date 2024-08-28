@@ -167,12 +167,12 @@ GNUNET_NAMESTORE_record_set_store (struct GNUNET_NAMESTORE_Handle *h,
  * remove all records under the given name.
  *
  * The continuation is called after the records have been stored in the
- * database. They may not yet have been commited. Monitors may be notified
- * asynchronously (basically with a buffer when commited).
+ * database. They may not yet have been committed. Monitors may be notified
+ * asynchronously (basically with a buffer when committed).
  * However, if any monitor is consistently too slow to
  * keep up with the changes, calling @a cont will be delayed until the
  * monitors do keep up.
- * Uncommited store requests within a transaction (GNUNET_NAMESTORE_transaction_begin)
+ * Uncommitted store requests within a transaction (GNUNET_NAMESTORE_transaction_begin)
  * cause @a cont to be called immediately before the commit and before
  * notification of monitors.
  *

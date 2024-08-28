@@ -197,7 +197,7 @@ trim (char *line)
   while (*ltrimmed == ' ')
     ltrimmed++;
   ltrimmed_len = strlen (ltrimmed);
-  // Find the first occurence of an unqoted ';', which is our comment
+  // Find the first occurrence of an unqoted ';', which is our comment
   for (int i = 0; i < ltrimmed_len; i++)
   {
     if (ltrimmed[i] == '"')

@@ -99,7 +99,7 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
   unpack_state = json_unpack_ex (data,
                                  &err,
                                  0,
-                                 "{s:s, s:s, s:I, s:b, s:b, s:b, s:b}",
+                                 "{s:s, s:s, s:I, s:b, s:b, s:b, s:b, s:b}",
                                  GNUNET_JSON_GNSRECORD_VALUE,
                                  &value,
                                  GNUNET_JSON_GNSRECORD_TYPE,
@@ -124,7 +124,7 @@ parse_record (json_t *data, struct GNUNET_GNSRECORD_Data *rd)
     unpack_state = json_unpack_ex (data,
                                    &err,
                                    0,
-                                   "{s:s, s:s, s:I, s:b, s:b, s:b, s:b}",
+                                   "{s:s, s:s, s:I, s:b, s:b, s:b, s:b, s:b}",
                                    GNUNET_JSON_GNSRECORD_VALUE,
                                    &value,
                                    GNUNET_JSON_GNSRECORD_TYPE,
@@ -349,7 +349,7 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
                 "Packing %s %s %" PRIu64 " %d\n",
                 value_str, record_type_str, rd[i].expiration_time, rd[i].flags);
     record = json_pack (
-      "{s:s,s:s,s:I,s:b,s:b,s:b,s:b, s:b}",
+      "{s:s, s:s, s:I, s:b, s:b, s:b, s:b, s:b}",
       GNUNET_JSON_GNSRECORD_VALUE, value_str,
       GNUNET_JSON_GNSRECORD_TYPE, record_type_str,
       (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION)
@@ -364,7 +364,7 @@ GNUNET_GNSRECORD_JSON_from_gnsrecord (const char*rname,
       rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION,
       GNUNET_JSON_GNSRECORD_FLAG_SUPPLEMENTAL,
       rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL,
-      GNUNET_JSON_GNSRECORD_FLAG_SUPPLEMENTAL,
+      GNUNET_JSON_GNSRECORD_FLAG_SHADOW,
       rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW);
     GNUNET_free (value_str);
     if (NULL == record)

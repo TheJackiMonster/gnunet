@@ -9,10 +9,13 @@ PREFIX=${PPID:?must run from a parent process}
 # able running the actual commands as the
 # original user.
 
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+if [ -z ${PATH+x} ];
+then
+  export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+fi
 
 export RESULT=
-export NAMESPACE_NUM=0
+export NAMESPACE_NUM=1
 export INTERFACE_NUM=0
 
 IPT=iptables-nft

@@ -35,6 +35,7 @@
  *   the TGZ.
  */
 #include "platform.h"
+#include "gnunet_time_lib.h"
 #include "gnunet_signatures.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_protocols.h"
@@ -223,6 +224,20 @@ struct GNUNET_HELLO_Builder
    */
   unsigned int a_length;
 
+  /**
+   * The signature (may have been provided)
+   */
+  struct GNUNET_CRYPTO_EddsaSignature sig;
+
+  /**
+   * GNUNET_YES if signature is set
+   */
+  int signature_set;
+
+  /**
+   * Expiration time parsed
+   */
+  struct GNUNET_TIME_Absolute et;
 };
 
 /**
@@ -236,7 +251,7 @@ struct AddressUriMergeResult
   struct GNUNET_HELLO_Builder *builder;
 
   /**
-   * The actual address to check, if it is allready in the hello uri we merge with.
+   * The actual address to check, if it is already in the hello uri we merge with.
    */
   const char *address_uri;
 
@@ -496,10 +511,10 @@ GNUNET_HELLO_builder_from_url (const char *url)
   const char *s1;
   const char *s2;
   struct GNUNET_PeerIdentity pid;
-  struct GNUNET_CRYPTO_EddsaSignature sig;
   struct GNUNET_TIME_Absolute et;
   size_t len;
   struct GNUNET_HELLO_Builder *b;
+  struct GNUNET_CRYPTO_EddsaSignature sig;
 
   if (0 != strncasecmp (url,
                         "gnunet://hello/",
@@ -556,6 +571,9 @@ GNUNET_HELLO_builder_from_url (const char *url)
   }
 
   b = GNUNET_HELLO_builder_new (&pid);
+  b->et = et;
+  b->sig = sig;
+  b->signature_set = GNUNET_YES;
   len = strlen (q);
   while (len > 0)
   {
@@ -615,7 +633,7 @@ GNUNET_HELLO_builder_from_url (const char *url)
 
     ret = verify_hello (b,
                         et,
-                        &sig);
+                        &b->sig);
     GNUNET_break (GNUNET_SYSERR != ret);
     if (GNUNET_OK != ret)
     {
@@ -624,41 +642,6 @@ GNUNET_HELLO_builder_from_url (const char *url)
     }
   }
   return b;
-}
-
-
-struct GNUNET_MQ_Envelope *
-GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-                             struct GNUNET_TIME_Relative expiration_time)
-{
-  struct GNUNET_MQ_Envelope *env;
-  struct HelloUriMessage *msg;
-  size_t blen;
-
-  if (builder->a_length > UINT16_MAX)
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  blen = 0;
-  GNUNET_assert (GNUNET_NO ==
-                 GNUNET_HELLO_builder_to_block (builder,
-                                                priv,
-                                                NULL,
-                                                &blen,
-                                                expiration_time));
-  env = GNUNET_MQ_msg_extra (msg,
-                             blen,
-                             GNUNET_MESSAGE_TYPE_HELLO_URI);
-  msg->url_counter = htons ((uint16_t) builder->a_length);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_HELLO_builder_to_block (builder,
-                                                priv,
-                                                &msg[1],
-                                                &blen,
-                                                expiration_time));
-  return env;
 }
 
 
@@ -809,10 +792,19 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
   else
     et = GNUNET_TIME_relative_to_timestamp (expiration_time);
   bh.expiration_time = GNUNET_TIME_absolute_hton (et.abs_time);
-  sign_hello (builder,
-              et,
-              priv,
-              &bh.sig);
+  if (NULL != priv)
+  {
+    sign_hello (builder,
+                et,
+                priv,
+                &bh.sig);
+  }
+  else
+  {
+    GNUNET_assert (GNUNET_YES == builder->signature_set);
+    bh.expiration_time = GNUNET_TIME_absolute_hton (builder->et);
+    bh.sig = builder->sig;
+  }
   memcpy (block,
           &bh,
           sizeof (bh));
@@ -828,6 +820,51 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
   }
   *block_size = needed;
   return GNUNET_OK;
+}
+
+
+struct GNUNET_MQ_Envelope *
+GNUNET_HELLO_builder_to_env_ (const struct GNUNET_HELLO_Builder *builder,
+                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                              struct GNUNET_TIME_Relative expiration_time,
+                              const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GNUNET_MQ_Envelope *env;
+  struct HelloUriMessage *msg;
+  size_t blen;
+
+  if (builder->a_length > UINT16_MAX)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
+  blen = 0;
+  GNUNET_assert (GNUNET_NO ==
+                 GNUNET_HELLO_builder_to_block (builder,
+                                                priv,
+                                                NULL,
+                                                &blen,
+                                                expiration_time));
+  env = GNUNET_MQ_msg_extra (msg,
+                             blen,
+                             GNUNET_MESSAGE_TYPE_HELLO_URI);
+  msg->url_counter = htons ((uint16_t) builder->a_length);
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_HELLO_builder_to_block (builder,
+                                                priv,
+                                                &msg[1],
+                                                &blen,
+                                                expiration_time));
+  return env;
+}
+
+
+struct GNUNET_MQ_Envelope *
+GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                             struct GNUNET_TIME_Relative expiration_time)
+{
+  return GNUNET_HELLO_builder_to_env_ (builder, priv, expiration_time, NULL);
 }
 
 

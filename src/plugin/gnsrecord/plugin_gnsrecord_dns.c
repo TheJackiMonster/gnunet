@@ -657,7 +657,7 @@ dns_string_to_value (void *cls,
       unsigned int weight;
       size_t off;
 
-      if (3 != sscanf (s, "%u %u \"%s", &priority, &weight, &target[0])) // only \" befor %s because %s will consume the ending " of the presentation of the URI record
+      if (3 != sscanf (s, "%u %u \"%s", &priority, &weight, &target[0])) // only \" before %s because %s will consume the ending " of the presentation of the URI record
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse URI record `%s'\n"),

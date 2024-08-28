@@ -1715,7 +1715,7 @@ enum GNUNET_FS_OPTIONS
 
   /**
    * Maximum number of requests that should be pending at a given
-   * point in time (invidivual downloads may go above this, but
+   * point in time (individual downloads may go above this, but
    * if we are above this threshold, we should not activate any
    * additional downloads.
    */

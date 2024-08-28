@@ -45,23 +45,23 @@
  * @param code what was the curl error code
  */
 #define CURL_STRERROR(type, function, code)                                \
-  GNUNET_log (type,                                                        \
-              "Curl function `%s' has failed at `%s:%d' with error: %s\n", \
-              function,                                                    \
-              __FILE__,                                                    \
-              __LINE__,                                                    \
-              curl_easy_strerror (code));
+        GNUNET_log (type,                                                        \
+                    "Curl function `%s' has failed at `%s:%d' with error: %s\n", \
+                    function,                                                    \
+                    __FILE__,                                                    \
+                    __LINE__,                                                    \
+                    curl_easy_strerror (code));
 
 /**
  * Print JSON parsing related error information
  */
 #define JSON_WARN(error)                                 \
-  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,                 \
-              "JSON parsing failed at %s:%u: %s (%s)\n", \
-              __FILE__,                                  \
-              __LINE__,                                  \
-              error.text,                                \
-              error.source)
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,                 \
+                    "JSON parsing failed at %s:%u: %s (%s)\n", \
+                    __FILE__,                                  \
+                    __LINE__,                                  \
+                    error.text,                                \
+                    error.source)
 
 
 /**
@@ -567,7 +567,8 @@ GNUNET_CURL_job_add_with_ct_json (struct GNUNET_CURL_Context *ctx,
 
   GNUNET_assert (NULL != (job_headers =
                             curl_slist_append (NULL,
-                                               "Content-Type: application/json")));
+                                               "Content-Type: application/json")
+                          ));
   job = GNUNET_CURL_job_add2 (ctx,
                               eh,
                               job_headers,
@@ -651,7 +652,6 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
                                   long *response_code)
 {
   json_t *json;
-  json_error_t error;
   char *ct;
 
 #if DEBUG
@@ -713,6 +713,8 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   json = NULL;
   if (0 == db->eno)
   {
+    json_error_t error;
+
     json = json_loadb (db->buf,
                        db->buf_size,
                        JSON_REJECT_DUPLICATES | JSON_DISABLE_EOF_CHECK,
@@ -721,6 +723,9 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
     {
       JSON_WARN (error);
       *response_code = 0;
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Failed to parse JSON response: %s\n",
+                  error.text);
     }
   }
   GNUNET_free (db->buf);

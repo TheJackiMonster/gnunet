@@ -69,6 +69,11 @@
 #define GNUNET_REST_IDENTITY_PARAM_NAME "name"
 
 /**
+ * Parameter type
+ */
+#define GNUNET_REST_IDENTITY_PARAM_TYPE "type"
+
+/**
  * Parameter new name
  */
 #define GNUNET_REST_IDENTITY_PARAM_NEWNAME "newname"
@@ -241,6 +246,13 @@ struct RequestHandle
    * Error code
    */
   enum GNUNET_ErrorCode ec;
+
+  /**
+   * Success http status code
+   * 
+   * Used to communicate happy path status codes to callbacks.
+   */
+  unsigned int success_code;
 };
 
 /**
@@ -552,15 +564,17 @@ do_finished (void *cls, enum GNUNET_ErrorCode ec)
 
   handle->op = NULL;
   handle->ec = ec;
-  if (GNUNET_EC_NONE != ec)
+  if (GNUNET_EC_NONE != handle->ec)
   {
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  if (GNUNET_EC_NONE == handle->ec)
-    response_code = MHD_HTTP_NO_CONTENT;
+
+  if (0 != handle->success_code)
+    response_code = handle->success_code;
   else
-    response_code = GNUNET_ErrorCode_get_http_status (ec);
+    response_code = MHD_HTTP_OK;
+
   resp = GNUNET_REST_create_response (NULL);
   handle->proc (handle->proc_cls, resp, response_code);
   GNUNET_SCHEDULER_add_now (&cleanup_handle, handle);
@@ -652,6 +666,7 @@ ego_edit (struct RequestHandle *handle, struct EgoEntry *ego_entry)
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_rename (identity_handle,
                                        ego_entry->identifier,
                                        newname,
@@ -761,6 +776,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   json_t *data_js;
   json_error_t err;
   char *egoname;
+  char *egotype;
   char *privkey;
   struct GNUNET_CRYPTO_PrivateKey pk;
   struct GNUNET_CRYPTO_PrivateKey *pk_ptr;
@@ -792,8 +808,9 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   json_unpack_state = 0;
   privkey = NULL;
   json_unpack_state =
-    json_unpack (data_js, "{s:s, s?:s!}",
+    json_unpack (data_js, "{s:s, s?:s, s?:s}",
                  GNUNET_REST_IDENTITY_PARAM_NAME, &egoname,
+                 GNUNET_REST_IDENTITY_PARAM_TYPE, &egotype,
                  GNUNET_REST_IDENTITY_PARAM_PRIVKEY, &privkey);
   if (0 != json_unpack_state)
   {
@@ -802,7 +819,9 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     json_decref (data_js);
     return;
   }
-
+  int type = GNUNET_PUBLIC_KEY_TYPE_ECDSA;
+  if ((NULL != egotype) && (0 == strcasecmp (egotype, "EDDSA")))
+    type = GNUNET_PUBLIC_KEY_TYPE_EDDSA;
   if (NULL == egoname)
   {
     handle->ec = GNUNET_EC_IDENTITY_INVALID;
@@ -831,10 +850,11 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   else
     pk_ptr = NULL;
   json_decref (data_js);
+  handle->success_code = MHD_HTTP_CREATED;
   handle->op = GNUNET_IDENTITY_create (identity_handle,
                                        handle->name,
                                        pk_ptr,
-                                       GNUNET_PUBLIC_KEY_TYPE_ECDSA,
+                                       type,
                                        &do_finished_create,
                                        handle);
 }
@@ -874,6 +894,7 @@ ego_delete_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_delete (identity_handle,
                                        ego_entry->identifier,
                                        &do_finished,
@@ -915,6 +936,7 @@ ego_delete_name (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
+  handle->success_code = MHD_HTTP_NO_CONTENT;
   handle->op = GNUNET_IDENTITY_delete (identity_handle,
                                        ego_entry->identifier,
                                        &do_finished,

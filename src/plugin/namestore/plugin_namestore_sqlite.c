@@ -903,6 +903,72 @@ namestore_sqlite_drop_tables (void *cls)
 }
 
 
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_begin_tx (void *cls)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_SQ_ExecuteStatement es_drop[] = {
+    GNUNET_SQ_make_execute ("BEGIN"),
+    GNUNET_SQ_EXECUTE_STATEMENT_END
+  };
+
+  if (GNUNET_OK !=
+      GNUNET_SQ_exec_statements (plugin->dbh,
+                                 es_drop))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to drop database with: `%s'\n",
+                sqlite3_errmsg (plugin->dbh));
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_commit_tx (void *cls)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_SQ_ExecuteStatement es_drop[] = {
+    GNUNET_SQ_make_execute ("COMMIT"),
+    GNUNET_SQ_EXECUTE_STATEMENT_END
+  };
+
+  if (GNUNET_OK !=
+      GNUNET_SQ_exec_statements (plugin->dbh,
+                                 es_drop))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to drop database with: `%s'\n",
+                sqlite3_errmsg (plugin->dbh));
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
+static enum GNUNET_GenericReturnValue
+namestore_sqlite_rollback_tx (void *cls)
+{
+  struct Plugin *plugin = cls;
+  struct GNUNET_SQ_ExecuteStatement es_drop[] = {
+    GNUNET_SQ_make_execute ("ROLLBACK"),
+    GNUNET_SQ_EXECUTE_STATEMENT_END
+  };
+
+  if (GNUNET_OK !=
+      GNUNET_SQ_exec_statements (plugin->dbh,
+                                 es_drop))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to drop database with: `%s'\n",
+                sqlite3_errmsg (plugin->dbh));
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_OK;
+}
+
+
 /**
  * Initialize the database connections and associated
  * data structures (create tables and indices
@@ -999,6 +1065,9 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   api->drop_tables = &namestore_sqlite_drop_tables;
   api->edit_records = &namestore_sqlite_edit_records;
   api->clear_editor_hint = &namestore_sqlite_editor_hint_clear;
+  api->begin_tx = &namestore_sqlite_begin_tx;
+  api->commit_tx = &namestore_sqlite_commit_tx;
+  api->rollback_tx = &namestore_sqlite_rollback_tx;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        _ ("SQlite database running\n"));
   return api;

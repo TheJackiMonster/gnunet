@@ -111,7 +111,7 @@ struct Request
   struct GNUNET_SCHEDULER_Task *timeout_task;
 
   /**
-   * Vpn resulution context
+   * Vpn resolution context
    */
   struct VpnContext *vpn_ctx;
 

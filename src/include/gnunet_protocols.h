@@ -2121,14 +2121,8 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE 626
 
 /**
- * Client requests to know default identity for a subsystem.
+ * 627 and 628 unused
  */
-#define GNUNET_MESSAGE_TYPE_IDENTITY_GET_DEFAULT 627
-
-/**
- * Client sets default identity; or service informs about default identity.
- */
-#define GNUNET_MESSAGE_TYPE_IDENTITY_SET_DEFAULT 628
 
 /**
  * Create new identity (client->service).

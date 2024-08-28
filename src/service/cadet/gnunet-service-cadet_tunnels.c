@@ -1158,7 +1158,7 @@ t_ax_decrypt_and_validate (struct CadetTunnelAxolotl *ax,
   struct GNUNET_CADET_TunnelEncryptedMessage plaintext_header;
   uint32_t Np;
   uint32_t PNp;
-  size_t esize; /* Size of encryped payload */
+  size_t esize; /* Size of encrypted payload */
 
   esize = size - sizeof(struct GNUNET_CADET_TunnelEncryptedMessage);
 

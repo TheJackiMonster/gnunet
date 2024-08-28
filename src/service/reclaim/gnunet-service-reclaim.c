@@ -68,7 +68,7 @@ struct TicketIteration
   struct TicketIteration *prev;
 
   /**
-   * Client which intiated this zone iteration
+   * Client which initiated this zone iteration
    */
   struct IdpClient *client;
 
@@ -100,7 +100,7 @@ struct Iterator
   struct Iterator *prev;
 
   /**
-   * IDP client which intiated this zone iteration
+   * IDP client which initiated this zone iteration
    */
   struct IdpClient *client;
 
@@ -1565,7 +1565,7 @@ update_tickets (void *cls)
                                                       &ale->attribute->id))
         {
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Found attribute %s, readding...\n",
+                      "Found attribute %s, re-adding...\n",
                       ale->attribute->name);
           rd_new[j] = rd[i];
           j++;
@@ -1584,7 +1584,7 @@ update_tickets (void *cls)
               &cle->credential->id))
         {
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Found presentation for credential %s, readding...\n",
+                      "Found presentation for credential %s, re-adding...\n",
                       cle->credential->name);
           rd_new[j] = rd[i];
           j++;

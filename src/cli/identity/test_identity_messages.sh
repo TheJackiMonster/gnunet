@@ -6,7 +6,7 @@ if [ -z $LOCATION ]
 then
   LOCATION="gnunet-config"
 fi
-$LOCATION --version 1> /dev/null
+$LOCATION --section arm 1> /dev/null
 if test $? != 0
 then
   echo "GNUnet command line tools cannot be found, check environmental variables PATH and GNUNET_PREFIX"
@@ -45,6 +45,6 @@ fi
 if [ "$TEST_MSG" != "$MSG_DEC_ED" ]
 then
   diff  <(echo "$TEST_MSG" ) <(echo "$MSG_DEC_ED")
-  echo "Failed - \"$TEST_MSG\" != \"$MSG_DEC_ED\""
+  echo "Failed (EdDSA) - \"$TEST_MSG\" != \"$MSG_DEC_ED\""
   exit 1
 fi

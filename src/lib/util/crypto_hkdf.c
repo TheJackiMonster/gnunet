@@ -36,173 +36,30 @@
  * - Matthias Wachs (08.10.2010)
  */
 
+#include "sodium/utils.h"
+#include <stdio.h>
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-hkdf", __VA_ARGS__)
 
-/**
- * Set this to 0 if you compile this code outside of GNUnet.
- */
-#define GNUNET_BUILD 1
-
-/**
- * Enable debugging.
- */
-#define DEBUG_HKDF 0
-
-
-#if GNUNET_BUILD
-
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
-#include "benchmark.h"
-#else
-#define GNUNET_NO 0
-#define GNUNET_YES 1
-#define GNUNET_SYSERR -1
-#include <stdlib.h>
-#endif
+#include "sodium/crypto_auth_hmacsha256.h"
 
-#include <gcrypt.h>
-
-
-/**
- * @brief Compute the HMAC
- * @todo use chunked buffers
- * @param mac gcrypt MAC handle
- * @param key HMAC key
- * @param key_len length of key
- * @param buf message to be processed
- * @param buf_len length of buf
- * @return HMAC, freed by caller via gcry_md_close/_reset
- */
-static const void *
-doHMAC (gcry_md_hd_t mac,
-        const void *key,
-        size_t key_len,
-        const void *buf,
-        size_t buf_len)
-{
-  if (GPG_ERR_NO_ERROR !=
-      gcry_md_setkey (mac, key, key_len))
-  {
-    GNUNET_break (0);
-    return NULL;
-  }
-  gcry_md_write (mac,
-                 buf,
-                 buf_len);
-  return (const void *) gcry_md_read (mac, 0);
-}
-
-
-/**
- * @brief Generate pseudo-random key
- * @param mac gcrypt HMAC handle
- * @param xts salt
- * @param xts_len length of the @a xts salt
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param prk result buffer (allocated by caller; at least gcry_md_dlen() bytes)
- * @return #GNUNET_YES on success
- */
 static enum GNUNET_GenericReturnValue
-getPRK (gcry_md_hd_t mac,
-        const void *xts,
-        size_t xts_len,
-        const void *skm,
-        size_t skm_len,
-        void *prk)
+hkdf_expand (void *result,
+             size_t out_len,
+             const unsigned char *prk,
+             size_t prk_len,
+             va_list argp)
 {
-  const void *ret;
-  size_t dlen;
-
-  dlen = gcry_md_get_algo_dlen (gcry_md_get_algo (mac));
-
-  /* sanity check to bound stack allocation */
-  GNUNET_assert (dlen <= 512);
-
-  /* From RFC 5869:
-   * salt - optional salt value (a non-secret random value);
-   * if not provided, it is set to a string of HashLen zeros. */
-
-  if (0 == xts_len)
-  {
-    char zero_salt[dlen];
-
-    memset (zero_salt, 0, dlen);
-    ret = doHMAC (mac, zero_salt, dlen, skm, skm_len);
-  }
-  else
-  {
-    ret = doHMAC (mac, xts, xts_len, skm, skm_len);
-  }
-  if (NULL == ret)
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (prk,
-                 ret,
-                 dlen);
-  return GNUNET_YES;
-}
-
-
-#if DEBUG_HKDF
-static void
-dump (const char *src,
-      const void *p,
-      unsigned int l)
-{
-  printf ("\n%s: ", src);
-  for (unsigned int i = 0; i < l; i++)
-  {
-    printf ("%2x", (int) ((const unsigned char *) p)[i]);
-  }
-  printf ("\n");
-}
-
-
-#endif
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_v (void *result,
-                      size_t out_len,
-                      int xtr_algo,
-                      int prf_algo,
-                      const void *xts,
-                      size_t xts_len,
-                      const void *skm,
-                      size_t skm_len,
-                      va_list argp)
-{
-  gcry_md_hd_t xtr;
-  gcry_md_hd_t prf;
-  const void *hc;
-  unsigned long i;
-  unsigned long t;
-  unsigned long d;
-  unsigned int k = gcry_md_get_algo_dlen (prf_algo);
-  unsigned int xtr_len = gcry_md_get_algo_dlen (xtr_algo);
-  char prk[xtr_len];
-  int ret;
+  unsigned char *outbuf = (unsigned char*) result;
+  size_t i;
   size_t ctx_len;
   va_list args;
 
-  BENCHMARK_START (hkdf);
+  if (out_len > (0xff * crypto_auth_hmacsha256_BYTES))
+    return GNUNET_SYSERR;
 
-  if (0 == k)
-    return GNUNET_SYSERR;
-  if (GPG_ERR_NO_ERROR !=
-      gcry_md_open (&xtr,
-                    xtr_algo,
-                    GCRY_MD_FLAG_HMAC))
-    return GNUNET_SYSERR;
-  if (GPG_ERR_NO_ERROR !=
-      gcry_md_open (&prf,
-                    prf_algo,
-                    GCRY_MD_FLAG_HMAC))
-  {
-    gcry_md_close (xtr);
-    return GNUNET_SYSERR;
-  }
   va_copy (args, argp);
 
   ctx_len = 0;
@@ -214,155 +71,170 @@ GNUNET_CRYPTO_hkdf_v (void *result,
       /* integer overflow */
       GNUNET_break (0);
       va_end (args);
-      goto hkdf_error;
+      return GNUNET_SYSERR;
     }
     ctx_len += nxt;
   }
 
   va_end (args);
 
-  if ( (k + ctx_len < ctx_len) ||
-       (k + ctx_len + 1 < ctx_len) )
+  if ( (crypto_auth_hmacsha256_BYTES + ctx_len < ctx_len) ||
+       (crypto_auth_hmacsha256_BYTES + ctx_len + 1 < ctx_len) )
   {
     /* integer overflow */
     GNUNET_break (0);
-    goto hkdf_error;
+    return GNUNET_SYSERR;
   }
 
   memset (result, 0, out_len);
-  if (GNUNET_YES !=
-      getPRK (xtr, xts, xts_len, skm, skm_len, prk))
-    goto hkdf_error;
-#if DEBUG_HKDF
-  dump ("PRK", prk, xtr_len);
-#endif
 
-  t = out_len / k;
-  d = out_len % k;
-
-  /* K(1) */
   {
-    size_t plain_len = k + ctx_len + 1;
-    char *plain;
-    const void *ctx;
-    char *dst;
+    size_t left = out_len;
+    const void *ctx_arg;
+    unsigned char tmp[crypto_auth_hmacsha256_BYTES];
+    unsigned char ctx[ctx_len];
+    unsigned char *dst = ctx;
+    crypto_auth_hmacsha256_state st;
+    unsigned char counter = 1U;
 
-    plain = GNUNET_malloc (plain_len);
-    dst = plain + k;
+    sodium_memzero (ctx, sizeof ctx);
     va_copy (args, argp);
-    while ((ctx = va_arg (args, void *)))
+    while ((ctx_arg = va_arg (args, void *)))
     {
       size_t len;
 
       len = va_arg (args, size_t);
-      GNUNET_memcpy (dst, ctx, len);
+      GNUNET_memcpy (dst, ctx_arg, len);
       dst += len;
     }
     va_end (args);
 
-    if (t > 0)
+    for (i = 0; left > 0; i += crypto_auth_hmacsha256_BYTES)
     {
-      plain[k + ctx_len] = (char) 1;
-#if DEBUG_HKDF
-      dump ("K(1)", plain, plain_len);
-#endif
-      hc = doHMAC (prf, prk, xtr_len, &plain[k], ctx_len + 1);
-      if (hc == NULL)
+      crypto_auth_hmacsha256_init(&st, prk, prk_len);
+      if (0 != i)
       {
-        GNUNET_free (plain);
-        goto hkdf_error;
+        crypto_auth_hmacsha256_update(&st,
+                                      &outbuf[i - crypto_auth_hmacsha256_BYTES],
+                                      crypto_auth_hmacsha256_BYTES);
       }
-      GNUNET_memcpy (result, hc, k);
-      result += k;
-    }
-
-    /* K(i+1) */
-    for (i = 1; i < t; i++)
-    {
-      GNUNET_memcpy (plain, result - k, k);
-      plain[k + ctx_len] = (char) (i + 1);
-      gcry_md_reset (prf);
-#if DEBUG_HKDF
-      dump ("K(i+1)", plain, plain_len);
-#endif
-      hc = doHMAC (prf, prk, xtr_len, plain, plain_len);
-      if (NULL == hc)
+      crypto_auth_hmacsha256_update(&st, ctx, ctx_len);
+      crypto_auth_hmacsha256_update(&st, &counter, 1);
+      if (left >= crypto_auth_hmacsha256_BYTES)
       {
-        GNUNET_free (plain);
-        goto hkdf_error;
+        crypto_auth_hmacsha256_final(&st, &outbuf[i]);
+        left -= crypto_auth_hmacsha256_BYTES;
       }
-      GNUNET_memcpy (result, hc, k);
-      result += k;
-    }
-
-    /* K(t):d */
-    if (d > 0)
-    {
-      if (t > 0)
-      {
-        GNUNET_memcpy (plain, result - k, k);
-        i++;
-      }
-      plain[k + ctx_len] = (char) i;
-      gcry_md_reset (prf);
-#if DEBUG_HKDF
-      dump ("K(t):d", plain, plain_len);
-#endif
-      if (t > 0)
-        hc = doHMAC (prf, prk, xtr_len, plain, plain_len);
       else
-        hc = doHMAC (prf, prk, xtr_len, plain + k, plain_len - k);
-      if (hc == NULL)
       {
-        GNUNET_free (plain);
-        goto hkdf_error;
+        crypto_auth_hmacsha256_final(&st, tmp);
+        memcpy (&outbuf[i], tmp, left);
+        sodium_memzero(tmp, sizeof tmp);
+        left = 0;
       }
-      GNUNET_memcpy (result, hc, d);
+      counter++;
     }
-#if DEBUG_HKDF
-    dump ("result", result - k, out_len);
-#endif
-
-    ret = GNUNET_YES;
-    GNUNET_free (plain);
-    goto hkdf_ok;
+    sodium_memzero(&st, sizeof st);
   }
-hkdf_error:
-  ret = GNUNET_SYSERR;
-hkdf_ok:
-  gcry_md_close (xtr);
-  gcry_md_close (prf);
-  BENCHMARK_END (hkdf);
+  return GNUNET_YES;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_expand_v (void *result,
+                             size_t out_len,
+                             const struct GNUNET_ShortHashCode *prk,
+                             va_list argp)
+{
+  return hkdf_expand (result, out_len,
+                      (unsigned char*) prk, sizeof *prk,
+                      argp);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_expand (void *result,
+                           size_t out_len,
+                           const struct GNUNET_ShortHashCode *prk,
+                           ...)
+{
+  va_list argp;
+  enum GNUNET_GenericReturnValue ret;
+
+  va_start (argp, prk);
+  ret = GNUNET_CRYPTO_hkdf_expand_v (result, out_len, prk, argp);
+  va_end (argp);
   return ret;
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf (void *result,
-                    size_t out_len,
-                    int xtr_algo,
-                    int prf_algo,
-                    const void *xts,
-                    size_t xts_len,
-                    const void *skm,
-                    size_t skm_len, ...)
+GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
+                             size_t out_len,
+                             const void *xts,
+                             size_t xts_len,
+                             const void *skm,
+                             size_t skm_len,
+                             va_list argp)
+{
+  unsigned char prk[crypto_auth_hmacsha512_BYTES];
+
+  memset (result, 0, out_len);
+  crypto_auth_hmacsha512_state st;
+  if (crypto_auth_hmacsha512_init (&st, xts, xts_len))
+    return GNUNET_SYSERR;
+  if (crypto_auth_hmacsha512_update (&st, skm, skm_len))
+    return GNUNET_SYSERR;
+  crypto_auth_hmacsha512_final (&st, (unsigned char*) prk);
+  sodium_memzero (&st, sizeof st);
+
+  return hkdf_expand (result, out_len,
+                      prk,
+                      sizeof prk,
+                      argp);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_gnunet (void *result,
+                           size_t out_len,
+                           const void *xts,
+                           size_t xts_len,
+                           const void *skm,
+                           size_t skm_len, ...)
 {
   va_list argp;
   enum GNUNET_GenericReturnValue ret;
 
   va_start (argp, skm_len);
   ret =
-    GNUNET_CRYPTO_hkdf_v (result,
-                          out_len,
-                          xtr_algo,
-                          prf_algo,
-                          xts,
-                          xts_len,
-                          skm,
-                          skm_len,
-                          argp);
+    GNUNET_CRYPTO_hkdf_gnunet_v (result,
+                                 out_len,
+                                 xts,
+                                 xts_len,
+                                 skm,
+                                 skm_len,
+                                 argp);
   va_end (argp);
   return ret;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hkdf_extract (struct GNUNET_ShortHashCode *prk,
+                            const void *xts,
+                            size_t xts_len,
+                            const void *skm,
+                            size_t skm_len)
+{
+  crypto_auth_hmacsha256_state st;
+  if (crypto_auth_hmacsha256_init (&st, xts, xts_len))
+    return GNUNET_SYSERR;
+  if (crypto_auth_hmacsha256_update (&st, skm, skm_len))
+    return GNUNET_SYSERR;
+  crypto_auth_hmacsha256_final (&st, (unsigned char*) prk);
+  sodium_memzero (&st, sizeof st);
+  return GNUNET_OK;
 }
 
 

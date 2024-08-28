@@ -7,11 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-<<<<<<< Updated upstream
 "POT-Creation-Date: 2024-06-08 11:29+0200\n"
-=======
-"POT-Creation-Date: 2024-07-18 18:14+0200\n"
->>>>>>> Stashed changes
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -99,7 +95,6 @@ msgid "Unknown result code."
 msgstr "Okänd operation \"%s\"\n"
 
 #: src/cli/arm/gnunet-arm.c:312
-#: src/service/transport/testing_api_cmd_start_peer.c:62
 msgid "Fatal error initializing ARM API.\n"
 msgstr ""
 
@@ -139,7 +134,6 @@ msgid "Failed to kill the `%s' service: %s\n"
 msgstr "Fel vid %s:%d.\n"
 
 #: src/cli/arm/gnunet-arm.c:549
-#: src/service/transport/testing_api_cmd_start_peer.c:111
 #, fuzzy, c-format
 msgid "Failed to request a list of services: %s\n"
 msgstr "Misslyckades att starta samling.\n"
@@ -1718,34 +1712,21 @@ msgstr ""
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
-<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:813
-=======
-#: src/cli/reclaim/gnunet-reclaim.c:836
->>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Ego is required\n"
 msgstr "%s: flagga \"%s\" är tvetydig\n"
 
-<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:820
-=======
-#: src/cli/reclaim/gnunet-reclaim.c:843
->>>>>>> Stashed changes
 #, c-format
 msgid "Attribute value missing!\n"
 msgstr ""
 
-<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:827
-=======
-#: src/cli/reclaim/gnunet-reclaim.c:850
->>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Requesting party key is required!\n"
 msgstr "%s: flagga \"%s\" är tvetydig\n"
 
-<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:846
 msgid "Add or update an attribute NAME"
 msgstr ""
@@ -1759,26 +1740,10 @@ msgid "The attribute VALUE"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:861
-=======
-#: src/cli/reclaim/gnunet-reclaim.c:868
-msgid "Add or update an attribute NAME"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:873
-msgid "Delete the attribute with ID"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:878
-msgid "The attribute VALUE"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:883
->>>>>>> Stashed changes
 #, fuzzy
 msgid "The EGO to use"
 msgstr "meddelandestorlek"
 
-<<<<<<< Updated upstream
 #: src/cli/reclaim/gnunet-reclaim.c:867
 msgid "Specify the relying party for issue"
 msgstr ""
@@ -1832,57 +1797,6 @@ msgid "Expiration interval of the attribute"
 msgstr ""
 
 #: src/cli/reclaim/gnunet-reclaim.c:936
-=======
-#: src/cli/reclaim/gnunet-reclaim.c:889
-msgid "Specify the relying party for issue"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:893
-msgid "List attributes for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:897
-msgid "List credentials for EGO"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:903
-msgid "Credential to use for attribute"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:908
-msgid "Credential name"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:914
-msgid "Issue a ticket for a set of attributes separated by comma"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:919
-msgid "Consume a ticket"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:924
-msgid "Revoke a ticket"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:929
-msgid "Type of attribute"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:934
-msgid "Type of credential"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:938
-msgid "List tickets of ego"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:944
-msgid "Expiration interval of the attribute"
-msgstr ""
-
-#: src/cli/reclaim/gnunet-reclaim.c:952
->>>>>>> Stashed changes
 msgid "re:claimID command line tool"
 msgstr ""
 
@@ -3727,98 +3641,98 @@ msgstr "Du måste skicka med ett nummer till flaggan \"%s\".\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:59
+#: src/lib/util/gnunet_error_codes.c:60
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:65
+#: src/lib/util/gnunet_error_codes.c:66
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "Okänt fel"
 
-#: src/lib/util/gnunet_error_codes.c:71
+#: src/lib/util/gnunet_error_codes.c:72
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/lib/util/gnunet_error_codes.c:77
+#: src/lib/util/gnunet_error_codes.c:78
 #, fuzzy
 msgid "Ego not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:83
+#: src/lib/util/gnunet_error_codes.c:84
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:89
+#: src/lib/util/gnunet_error_codes.c:90
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:95
+#: src/lib/util/gnunet_error_codes.c:96
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "Okänt fel"
 
-#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
+#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# sessionsnycklar accepterade"
 
-#: src/lib/util/gnunet_error_codes.c:107
+#: src/lib/util/gnunet_error_codes.c:108
 #, fuzzy
 msgid "Zone not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:113
+#: src/lib/util/gnunet_error_codes.c:114
 #, fuzzy
 msgid "Record not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:125
+#: src/lib/util/gnunet_error_codes.c:126
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:131
+#: src/lib/util/gnunet_error_codes.c:132
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/lib/util/gnunet_error_codes.c:137
+#: src/lib/util/gnunet_error_codes.c:138
 #, fuzzy
 msgid "No records given."
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/lib/util/gnunet_error_codes.c:143
+#: src/lib/util/gnunet_error_codes.c:144
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:149
+#: src/lib/util/gnunet_error_codes.c:150
 msgid "No label given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:155
+#: src/lib/util/gnunet_error_codes.c:156
 #, fuzzy
 msgid "No results given."
 msgstr "# byte mottogs via TCP"
 
-#: src/lib/util/gnunet_error_codes.c:161
+#: src/lib/util/gnunet_error_codes.c:162
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:167
+#: src/lib/util/gnunet_error_codes.c:168
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:173
+#: src/lib/util/gnunet_error_codes.c:174
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:179
+#: src/lib/util/gnunet_error_codes.c:180
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/lib/util/gnunet_error_codes.c:185
+#: src/lib/util/gnunet_error_codes.c:186
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -3912,8 +3826,8 @@ msgid ""
 "Missing `%s' or numeric IP address for `%s' of `%s' in configuration, DNS "
 "resolution will be unavailable.\n"
 msgstr ""
-"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion \"%s"
-"\".\n"
+"Du måste ange ett positivt nummer för \"%s\" i konfigurationen i sektion "
+"\"%s\".\n"
 
 #: src/lib/util/resolver_api.c:888
 #, fuzzy, c-format
@@ -5749,11 +5663,7 @@ msgstr "GNUnet-konfiguration"
 
 #: src/service/fs/gnunet-service-fs.c:1271
 #: src/service/hostlist/gnunet-daemon-hostlist.c:343
-<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:1062
-=======
-#: src/service/topology/gnunet-daemon-topology.c:1061
->>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Failed to connect to `%s' service.\n"
 msgstr "Misslyckades att initiera tjänsten \"%s\".\n"
@@ -6572,11 +6482,7 @@ msgid "# hostlist advertisements send"
 msgstr ""
 
 #: src/service/hostlist/gnunet-daemon-hostlist_server.c:483
-<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:781
-=======
-#: src/service/topology/gnunet-daemon-topology.c:780
->>>>>>> Stashed changes
 #, fuzzy, c-format
 msgid "Error in communication with PEERSTORE service: %s\n"
 msgstr "Skriv ut information om GNUnets motparter."
@@ -6850,11 +6756,7 @@ msgstr ""
 msgid "Connection reversal request failed\n"
 msgstr "Samling stoppad.\n"
 
-<<<<<<< Updated upstream
 #: src/service/nat/gnunet-service-nat.c:1999
-=======
-#: src/service/nat/gnunet-service-nat.c:2055
->>>>>>> Stashed changes
 msgid ""
 "UPnP enabled in configuration, but UPnP client `upnpc` command not found, "
 "disabling UPnP\n"
@@ -7176,16 +7078,11 @@ msgstr "# byte mottogs via TCP"
 msgid "# HELLO messages gossipped"
 msgstr ""
 
-<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:747
-=======
-#: src/service/topology/gnunet-daemon-topology.c:746
->>>>>>> Stashed changes
 #, fuzzy
 msgid "Error in communication with PEERSTORE service to monitor.\n"
 msgstr "Skriv ut information om GNUnets motparter."
 
-<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:756
 msgid "Finished initial PEERSTORE iteration in monitor.\n"
 msgstr ""
@@ -7195,38 +7092,18 @@ msgid "Failed to connect to core service, can not manage topology!\n"
 msgstr ""
 
 #: src/service/topology/gnunet-daemon-topology.c:938
-=======
-#: src/service/topology/gnunet-daemon-topology.c:755
-msgid "Finished initial PEERSTORE iteration in monitor.\n"
-msgstr ""
-
-#: src/service/topology/gnunet-daemon-topology.c:863
-msgid "Failed to connect to core service, can not manage topology!\n"
-msgstr ""
-
-#: src/service/topology/gnunet-daemon-topology.c:937
->>>>>>> Stashed changes
 #, fuzzy
 msgid "# HELLO messages received"
 msgstr "# krypterade PONG-meddelanden mottagna"
 
-<<<<<<< Updated upstream
 #: src/service/topology/gnunet-daemon-topology.c:1091
-=======
-#: src/service/topology/gnunet-daemon-topology.c:1090
->>>>>>> Stashed changes
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3814
-<<<<<<< Updated upstream
 #: src/service/transport/gnunet-communicator-udp.c:3579
 #: src/service/transport/gnunet-service-transport.c:12543
-=======
-#: src/service/transport/gnunet-communicator-udp.c:3653
-#: src/service/transport/gnunet-service-transport.c:12847
->>>>>>> Stashed changes
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
@@ -7235,15 +7112,11 @@ msgstr "GNUnet-konfiguration"
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4172
+#: src/service/transport/gnunet-communicator-tcp.c:4171
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-<<<<<<< Updated upstream
 #: src/service/transport/gnunet-communicator-udp.c:3654
-=======
-#: src/service/transport/gnunet-communicator-udp.c:3729
->>>>>>> Stashed changes
 msgid "GNUnet UDP communicator"
 msgstr ""
 
@@ -7263,7 +7136,7 @@ msgstr "GNUnet-konfiguration"
 msgid "Cannot create path to `%s'\n"
 msgstr "Kunde inte skapa namnrymd \"%s\" (existerar?).\n"
 
-#: src/service/transport/gnunet-communicator-unix.c:1139
+#: src/service/transport/gnunet-communicator-unix.c:1138
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
 
@@ -7425,7 +7298,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:778
+#: src/service/transport/transport_api2_communication.c:773
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -11363,8 +11236,8 @@ msgstr "Misslyckades att ansluta till gnunetd.\n"
 #~ msgstr "Kunde inte slå upp namnet för SMTP-server \"%s\": %s"
 
 #~ msgid ""
-#~ "You must specify the name of a pipe for the SMTP transport in section `"
-#~ "%s' under `%s'.\n"
+#~ "You must specify the name of a pipe for the SMTP transport in section "
+#~ "`%s' under `%s'.\n"
 #~ msgstr ""
 #~ "Du måste ange ett namn på röret för SMTP-transporten i sektion \"%s\" "
 #~ "under \"%s\".\n"

@@ -54,15 +54,7 @@ GNUNET_CRYPTO_kdf_v (void *result,
    *
    * http://eprint.iacr.org/2010/264
    */
-  return GNUNET_CRYPTO_hkdf_v (result,
-                               out_len,
-                               GCRY_MD_SHA512,
-                               GCRY_MD_SHA256,
-                               xts,
-                               xts_len,
-                               skm,
-                               skm_len,
-                               argp);
+  return GNUNET_CRYPTO_hkdf_gnunet_v (result, out_len, xts, xts_len, skm, skm_len, argp);
 }
 
 

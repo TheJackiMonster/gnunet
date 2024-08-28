@@ -154,6 +154,9 @@ main (int argc,
   if (GNUNET_SYSERR == iret)
   {
     GNUNET_free_nz ((void *) argv);
+    GNUNET_free (cfgfile);
+    GNUNET_free (loglev);
+    GNUNET_free (logfile);
     return EXIT_INVALIDARGUMENT;
   }
   if (GNUNET_OK !=
@@ -162,11 +165,17 @@ main (int argc,
                         logfile))
   {
     GNUNET_free_nz ((void *) argv);
+    GNUNET_free (cfgfile);
+    GNUNET_free (loglev);
+    GNUNET_free (logfile);
     return EXIT_FAILURE;
   }
+  GNUNET_free (loglev);
+  GNUNET_free (logfile);
   if (1 == is_experimental)
   {
     GNUNET_free_nz ((void *) argv);
+    GNUNET_free (cfgfile);
 #ifdef GNUNET_EXPERIMENTAL
     return 0;
 #else
@@ -192,6 +201,7 @@ main (int argc,
     }
     GNUNET_free (prefixdir);
     GNUNET_free (libdir);
+    GNUNET_free (cfgfile);
     GNUNET_free_nz ((void *) argv);
     return 0;
   }
@@ -205,6 +215,7 @@ main (int argc,
     iret = (GNUNET_OK ==
             GNUNET_PLUGIN_test (name)) ? 0 : 77;
     GNUNET_free (name);
+    GNUNET_free (cfgfile);
     GNUNET_free_nz ((void *) argv);
     return iret;
   }
@@ -225,6 +236,7 @@ main (int argc,
                     _ ("Failed to load default configuration, exiting ...\n"));
         GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
+        GNUNET_free (cfgfile);
         return EXIT_FAILURE;
       }
       if (GNUNET_OK !=
@@ -237,6 +249,7 @@ main (int argc,
                     _ ("Failed to parse configuration, exiting ...\n"));
         GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
+        GNUNET_free (cfgfile);
         return EXIT_FAILURE;
       }
     }
@@ -250,6 +263,7 @@ main (int argc,
                     cfgfile);
         GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
+        GNUNET_free (cfgfile);
         return EXIT_FAILURE;
       }
       if (GNUNET_SYSERR ==
@@ -264,6 +278,7 @@ main (int argc,
                     cfgfile);
         GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
+        GNUNET_free (cfgfile);
         return EXIT_FAILURE;
       }
     }
@@ -275,6 +290,7 @@ main (int argc,
     GNUNET_CONFIGURATION_config_settings_free (&cs);
     GNUNET_CONFIGURATION_destroy (cfg);
   }
+  GNUNET_free (cfgfile);
   return cs.global_ret;
 }
 

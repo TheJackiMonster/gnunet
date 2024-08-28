@@ -1636,49 +1636,49 @@ GDS_CLIENTS_stop (void)
  * Define "main" method using service macro.
  *
  * @param name name of the service, like "dht" or "xdht"
- * @param run name of the initializaton method for the service
+ * @param run name of the initialization method for the service
  */
 #define GDS_DHT_SERVICE_INIT(name, run)          \
-  GNUNET_SERVICE_MAIN \
-    (name, \
-    GNUNET_SERVICE_OPTION_NONE, \
-    run, \
-    &client_connect_cb, \
-    &client_disconnect_cb, \
-    NULL, \
-    GNUNET_MQ_hd_var_size (dht_local_put, \
-                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_PUT, \
-                           struct GNUNET_DHT_ClientPutMessage, \
-                           NULL), \
-    GNUNET_MQ_hd_var_size (dht_local_get, \
-                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET, \
-                           struct GNUNET_DHT_ClientGetMessage, \
-                           NULL), \
-    GNUNET_MQ_hd_fixed_size (dht_local_get_stop, \
-                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_STOP, \
-                             struct GNUNET_DHT_ClientGetStopMessage, \
-                             NULL), \
-    GNUNET_MQ_hd_fixed_size (dht_local_monitor, \
-                             GNUNET_MESSAGE_TYPE_DHT_MONITOR_START, \
-                             struct GNUNET_DHT_MonitorStartStopMessage, \
-                             NULL), \
-    GNUNET_MQ_hd_fixed_size (dht_local_monitor_stop, \
-                             GNUNET_MESSAGE_TYPE_DHT_MONITOR_STOP, \
-                             struct GNUNET_DHT_MonitorStartStopMessage, \
-                             NULL), \
-    GNUNET_MQ_hd_var_size (dht_local_get_result_seen, \
-                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN, \
-                           struct GNUNET_DHT_ClientGetResultSeenMessage, \
-                           NULL), \
-    GNUNET_MQ_hd_fixed_size (dht_local_hello_get,              \
-                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET, \
-                             struct GNUNET_MessageHeader, \
-                             NULL), \
-    GNUNET_MQ_hd_var_size (dht_local_hello_offer, \
-                           GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL, \
-                           struct GNUNET_MessageHeader, \
-                           NULL), \
-    GNUNET_MQ_handler_end ())
+        GNUNET_SERVICE_MAIN \
+          (name, \
+          GNUNET_SERVICE_OPTION_NONE, \
+          run, \
+          &client_connect_cb, \
+          &client_disconnect_cb, \
+          NULL, \
+          GNUNET_MQ_hd_var_size (dht_local_put, \
+                                 GNUNET_MESSAGE_TYPE_DHT_CLIENT_PUT, \
+                                 struct GNUNET_DHT_ClientPutMessage, \
+                                 NULL), \
+          GNUNET_MQ_hd_var_size (dht_local_get, \
+                                 GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET, \
+                                 struct GNUNET_DHT_ClientGetMessage, \
+                                 NULL), \
+          GNUNET_MQ_hd_fixed_size (dht_local_get_stop, \
+                                   GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_STOP, \
+                                   struct GNUNET_DHT_ClientGetStopMessage, \
+                                   NULL), \
+          GNUNET_MQ_hd_fixed_size (dht_local_monitor, \
+                                   GNUNET_MESSAGE_TYPE_DHT_MONITOR_START, \
+                                   struct GNUNET_DHT_MonitorStartStopMessage, \
+                                   NULL), \
+          GNUNET_MQ_hd_fixed_size (dht_local_monitor_stop, \
+                                   GNUNET_MESSAGE_TYPE_DHT_MONITOR_STOP, \
+                                   struct GNUNET_DHT_MonitorStartStopMessage, \
+                                   NULL), \
+          GNUNET_MQ_hd_var_size (dht_local_get_result_seen, \
+                                 GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN, \
+                                 struct GNUNET_DHT_ClientGetResultSeenMessage, \
+                                 NULL), \
+          GNUNET_MQ_hd_fixed_size (dht_local_hello_get,              \
+                                   GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_GET, \
+                                   struct GNUNET_MessageHeader, \
+                                   NULL), \
+          GNUNET_MQ_hd_var_size (dht_local_hello_offer, \
+                                 GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL, \
+                                 struct GNUNET_MessageHeader, \
+                                 NULL), \
+          GNUNET_MQ_handler_end ())
 
 
 /**

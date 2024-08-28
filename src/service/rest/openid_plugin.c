@@ -317,7 +317,7 @@ struct Plugin
 };
 
 /**
- * @brief The RSA key used by the oidc enpoint
+ * @brief The RSA key used by the oidc endpoint
  */
 json_t *oidc_jwk;
 
@@ -907,9 +907,9 @@ read_jwk_from_file (const char *filename)
 /**
  * @brief Write the JWK to file. If unsuccessful emit warning
  *
- * @param filename the name of the file the JWK is writen to
+ * @param filename the name of the file the JWK is written to
  * @param jwk the JWK that is going to be written
- * @return int Return GNUNET_OK if write is sucessfull
+ * @return int Return GNUNET_OK if write is successful
  */
 static int
 write_jwk_to_file (const char *filename,

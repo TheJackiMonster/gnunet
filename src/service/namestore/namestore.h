@@ -91,6 +91,17 @@ struct RecordStoreMessage
   struct GNUNET_NAMESTORE_Header gns_header;
 
   /**
+   * Reserved
+   */
+  uint16_t reserved;
+
+  /**
+   * GNUNET_YES if all sets should be stored
+   * in a single transaction (e.g. BEGIN/COMMIT).
+   */
+  uint16_t single_tx GNUNET_PACKED;
+
+  /**
    * Number of record sets
    */
   uint16_t rd_set_count;
@@ -352,7 +363,7 @@ struct ZoneToNameMessage
 
 
 /**
- * Respone for zone to name lookup
+ * Response for zone to name lookup
  */
 struct ZoneToNameResponseMessage
 {

@@ -3,6 +3,7 @@ libgnunetdht_src = ['dht_api.c']
 gnunetservicedht_src = ['gnunet-service-dht.c',
                         'plugin_dhtu_gnunet.c',
                         'plugin_dhtu_ip.c',
+                        'dht_helper.c',
                         'gnunet-service-dht_datacache.c',
                         'gnunet-service-dht_neighbours.c',
                         'gnunet-service-dht_routing.c']
@@ -53,7 +54,15 @@ executable ('gnunet-service-dht',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
-
+executable ('gnunet-dht-tvg',
+            ['gnunet-dht-tvg.c', 'dht_helper.c'],
+            dependencies: [libgnunetdht_dep, libgnunetutil_dep,
+                           libgnunetblock_dep,
+                           m_dep,
+                           libgnunetblockgroup_dep,
+                           libgnunethello_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
 if false
 
 libgnunettestingdhtu = library('gnunettestingdhtu',

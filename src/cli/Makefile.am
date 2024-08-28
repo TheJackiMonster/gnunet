@@ -2,8 +2,8 @@ SUBDIRS = \
 	util \
 	arm \
 	statistics \
-	peerstore \
 	core \
+	hello \
 	nat \
 	nat-auto \
 	nse \

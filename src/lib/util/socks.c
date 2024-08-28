@@ -385,7 +385,7 @@ transmit_ready (void *cls, size_t size, void *buf)
    *   connect_error() - DNS done but no socket?
    * transmit_ready() - scheduler shutdown or timeout, or signal_transmit_error()
    * We'd need to dig into the scheduler to guess at the reason, as
-   * connection.c tells us nothing itself, but mostly its timouts.
+   * connection.c tells us nothing itself, but mostly its timeouts.
    * Initially, we'll simply ignore this and leave massive timeouts, but
    * maybe that should change for error handling pruposes.  It appears that
    * successful operations, including DNS resolution, do not use this.  */if (NULL == buf)

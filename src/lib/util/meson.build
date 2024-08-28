@@ -31,6 +31,7 @@ libgnunetutil_src = ['bandwidth.c',
        'crypto_hash.c',
        'crypto_hash_file.c',
        'crypto_hkdf.c',
+       'crypto_hpke.c',
        'crypto_kdf.c',
        'crypto_mpi.c',
        'crypto_paillier.c',
@@ -80,8 +81,8 @@ configure_file(input : 'util.conf',
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
-        soversion: '15',
-        version: '15.0.0',
+        soversion: '17',
+        version: '17.0.0',
         dependencies: [
           lgmp_dep,
           mhd_dep,
@@ -101,6 +102,14 @@ libgnunetutil = library('gnunetutil',
 libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')
+
+
+executable ('gnunet-elligator-tvg',
+            ['gnunet-elligator-tvg.c'],
+            dependencies: [libgnunetutil_dep],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
 
 logging_dummy = executable ('test_common_logging_dummy',
                             ['test_common_logging_dummy.c'],
@@ -311,6 +320,17 @@ testcrypto_ecdh_ecdsa = executable ('test_crypto_ecdh_ecdsa',
 test('test_crypto_ecdh_ecdsa', testcrypto_ecdh_ecdsa,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-crypto'])
+
+testcrypto_hpke = executable ('test_crypto_hpke',
+                                    ['test_crypto_hpke.c'],
+                                    dependencies: [libgnunetutil_dep],
+                                    include_directories: [incdir, configuration_inc],
+                                    build_by_default: false,
+                                    install: false)
+test('test_crypto_hpke', testcrypto_hpke,
+     workdir: meson.current_build_dir(),
+     suite: ['util', 'util-crypto'])
+
 
 testcrypto_edx25519 = executable ('test_crypto_edx25519',
                                   ['test_crypto_edx25519.c'],

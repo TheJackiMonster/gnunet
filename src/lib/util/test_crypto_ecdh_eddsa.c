@@ -27,8 +27,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gcrypt.h>
-
 
 static int
 test_ecdh ()
@@ -67,20 +65,9 @@ test_ecdh ()
   return 0;
 }
 
-
 int
 main (int argc, char *argv[])
 {
-  if (! gcry_check_version ("1.6.0"))
-  {
-    fprintf (stderr,
-             _ (
-               "libgcrypt has not the expected version (version %s is required).\n"),
-             "1.6.0");
-    return 0;
-  }
-  if (getenv ("GNUNET_GCRYPT_DEBUG"))
-    gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
   GNUNET_log_setup ("test-crypto-ecdh-eddsa", "WARNING", NULL);
   for (unsigned int i = 0; i < 4; i++)
   {
@@ -88,6 +75,8 @@ main (int argc, char *argv[])
              ".");
     if (0 != test_ecdh ())
       return 1;
+    /*if (0 != test_ecdh_nohash ())
+      return 1;*/
   }
   return 0;
 }

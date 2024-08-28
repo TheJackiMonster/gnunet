@@ -1,0 +1,7 @@
+Doing the cross-compilation jobs requires installing
+
+# apt install qemu-user-static
+
+(see also: https://wiki.archlinux.org/title/Podman#Foreign_architectures)
+
+Otherwise, you get some fun errors.

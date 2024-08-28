@@ -24,9 +24,15 @@
  * @author Nathan Evans
  */
 #include "platform.h"
+#include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_core_service.h"
+#include "gnunet_util_lib.h"
 
+/**
+ * Return code
+ */
+static int ret;
 
 /**
  * Option -m.
@@ -48,6 +54,15 @@ static int show_conns;
  */
 static struct GNUNET_CORE_MonitorHandle *mh;
 
+/**
+ * Peer private key
+ */
+static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
+
+/**
+ * Peer identity
+ */
+static struct GNUNET_PeerIdentity my_full_id;
 
 /**
  * Task run in monitor mode when the user presses CTRL-C to abort.
@@ -160,16 +175,23 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_CRYPTO_EddsaPrivateKey pk;
-  struct GNUNET_CRYPTO_EddsaPublicKey pub;
   char *keyfile;
   (void) cls;
   (void) cfgfile;
+
   if (NULL != args[0])
   {
     fprintf (stderr, _ ("Invalid command line argument `%s'\n"), args[0]);
     return;
   }
+  if (! show_pid && ! show_conns && ! monitor_connections)
+  {
+    fprintf (stderr, "%s", _ ("No argument given.\n"));
+    ret = 1;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg,
                                                "PEER",
@@ -180,42 +202,38 @@ run (void *cls,
       GNUNET_ERROR_TYPE_ERROR,
       _ ("Core service is lacking HOSTKEY configuration setting.  Exiting.\n"));
     GNUNET_SCHEDULER_shutdown ();
+    ret =  1;
     return;
   }
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
                                          GNUNET_YES,
-                                         &pk))
+                                         &my_private_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to read peer's private key!\n");
     GNUNET_SCHEDULER_shutdown ();
+    ret = 1;
     GNUNET_free (keyfile);
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public (&pk, &pub);
+  GNUNET_free (keyfile);
+  GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_full_id.public_key);
   if (show_pid)
     fprintf (stdout,
              _ ("Current local peer identity: %s\n"),
-             GNUNET_i2s_full ((struct GNUNET_PeerIdentity*) &pub));
+             GNUNET_i2s_full (&my_full_id));
   if (show_conns || monitor_connections)
   {
     mh = GNUNET_CORE_monitor_start (cfg, &monitor_cb, NULL);
     if (NULL == mh)
     {
       fprintf (stderr, "%s", _ ("Failed to connect to CORE service!\n"));
-      GNUNET_free (keyfile);
-      return;
+      ret = 1;
+      GNUNET_SCHEDULER_shutdown ();
     }
-  }
-  if (! show_pid && ! show_conns && ! monitor_connections)
-  {
-    fprintf (stderr, "%s", _ ("No argument given.\n"));
-    GNUNET_free (keyfile);
     return;
   }
-  GNUNET_free (keyfile);
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
 }
 
 
@@ -266,7 +284,7 @@ main (int argc, char *const *argv)
 
   GNUNET_free_nz ((void *) argv);
   if (GNUNET_OK == res)
-    return 0;
+    return ret;
   return 1;
 }
 

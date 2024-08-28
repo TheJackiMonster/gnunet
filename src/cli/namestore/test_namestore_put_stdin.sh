@@ -7,7 +7,7 @@ if [ -z $LOCATION ]
 then
   LOCATION="gnunet-config"
 fi
-$LOCATION --version 1> /dev/null
+$LOCATION --section arm 1> /dev/null
 if test $? != 0
 then
 	echo "GNUnet command line tools cannot be found, check environmental variables PATH and GNUNET_PREFIX"
@@ -40,14 +40,32 @@ function stop_peer
 start_peer
 # Create a public record
 EGOKEY=`gnunet-identity -d | grep testego2 | cut -d' ' -f3`
-gnunet-namestore -a -c $CONFIGURATION -S <<EOF
-$TEST_RECORD_NAME.testego:
+gnunet-namestore -B 3 -a -c $CONFIGURATION -S <<EOF
+${TEST_RECORD_NAME}.testego:
+  A 3600000000 [pr] $TEST_IP
+  TXT 21438201833 [r] $TEST_IP2
+
+  TXT 21438201833 [r] aslkdj asdlkjaslkd 231!
+
+${TEST_RECORD_NAME}1.testego:
   A 3600000000 [pr] $TEST_IP
   TXT 21438201833 [r] $TEST_IP2
 
   TXT 21438201833 [r] aslkdj asdlkjaslkd 232!
 
-$TEST_RECORD_NAME2.testego:
+${TEST_RECORD_NAME}2.testego:
+  A 3600000000 [pr] $TEST_IP
+  TXT 21438201833 [r] $TEST_IP2
+
+  TXT 21438201833 [r] aslkdj asdlkjaslkd 233!
+
+${TEST_RECORD_NAME}3.testego:
+  A 3600000000 [pr] $TEST_IP
+  TXT 21438201833 [r] $TEST_IP2
+
+  TXT 21438201833 [r] aslkdj asdlkjaslkd 234!
+
+${TEST_RECORD_NAME}4.testego:
   AAAA 324241223 [prS] ::dead:beef
   A 111324241223000000 [pC] 1.1.1.1
 
@@ -56,13 +74,14 @@ www7.$EGOKEY:
 
 EOF
 NAMESTORE_RES=$?
+gnunet-identity -d -c $CONFIGURATION
 gnunet-namestore -D -r -c $CONFIGURATION
 stop_peer
 
 if [ $NAMESTORE_RES = 0 ]
 then
-  echo "PASS: Creating name in namestore"
+  echo "PASS: Recordline import in namestore"
 else
-  echo "FAIL: Creating name in namestore failed with $NAMESTORE_RES."
+  echo "FAIL: Recordline import in namestore failed with $NAMESTORE_RES."
   exit 1
 fi

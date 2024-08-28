@@ -2208,7 +2208,7 @@ handle_client_evaluate (void *cls,
   context = GNUNET_MQ_extract_nested_mh (msg);
 
   /* Advance generation values, so that
-     mutations won't interfer with the running operation. */
+     mutations won't interfere with the running operation. */
   op->set = set;
   op->generation_created = set->current_generation;
   advance_generation (set);
@@ -2381,7 +2381,7 @@ handle_client_accept (void *cls,
   op->client_request_id = ntohl (msg->request_id);
 
   /* Advance generation values, so that future mutations do not
-     interfer with the running operation. */
+     interfere with the running operation. */
   op->generation_created = set->current_generation;
   advance_generation (set);
   {

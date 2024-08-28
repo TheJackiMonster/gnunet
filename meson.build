@@ -208,7 +208,22 @@ quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
   quic_dep = cc.find_library('quiche', required : false)
 endif
-
+ngtcp2_crypto_dep = dependency('libngtcp2_crypto_gnutls', required : false)
+if not ngtcp2_crypto_dep.found()
+  ngtcp2_crypto_dep = cc.find_library('ngtcp2_crypto_gnutls', required : false)
+endif
+ngtcp2_dep = dependency('libngtcp2', required : false)
+if not ngtcp2_dep.found()
+  ngtcp2_dep = cc.find_library('ngtcp2', required : false)
+endif
+nghttp3_dep = dependency('libnghttp3', required : false)
+if not nghttp3_dep.found()
+  nghttp3_dep = cc.find_library('nghttp3', required : false)
+endif
+http3_enabled = ngtcp2_dep.found() and ngtcp2_crypto_dep.found() and nghttp3_dep.found()
+if http3_enabled
+  message ('HTTP3 enabled')
+endif
 idn_dep = dependency('libidn2', required : false)
 if not idn_dep.found()
   idn_dep = cc.find_library('idn2', required : false)
@@ -224,7 +239,6 @@ else
     add_project_arguments('-DHAVE_IDN_H', language : 'c')
   endif
 endif
-
 pthread_dep = cc.find_library('pthread', required : false)
 if pthread_dep.found()
   add_project_arguments('-DHAVE_PTHREAD', language : 'c')

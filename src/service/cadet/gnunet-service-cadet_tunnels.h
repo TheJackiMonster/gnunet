@@ -65,7 +65,7 @@ enum CadetTunnelEState
 
   /**
    * KX received and we sent KX_AUTH back, but we got no traffic yet,
-   * so we're waiting for either KX_AUTH or ENCRYPED traffic from
+   * so we're waiting for either KX_AUTH or ENCRYPTED traffic from
    * the other peer.
    *
    * We will not yet send traffic, as this might have been a replay.

@@ -422,6 +422,65 @@ struct GNUNET_DHT_MonitorGetRespMessage
   /* Payload */
 };
 
+/**
+ * P2P PUT message
+ */
+struct PeerPutMessage
+{
+  /**
+   * Type: #GNUNET_MESSAGE_TYPE_DHT_P2P_PUT
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * Content type, must not be zero.
+   */
+  uint32_t type GNUNET_PACKED;
+
+  /**
+   * Processing options
+   */
+  uint16_t options GNUNET_PACKED;
+
+  /**
+   * Hop count
+   */
+  uint16_t hop_count GNUNET_PACKED;
+
+  /**
+   * Replication level for this message
+   */
+  uint16_t desired_replication_level GNUNET_PACKED;
+
+  /**
+   * Length of the PUT path that follows (if tracked).
+   */
+  uint16_t put_path_length GNUNET_PACKED;
+
+  /**
+   * When does the content expire?
+   */
+  struct GNUNET_TIME_AbsoluteNBO expiration_time;
+
+  /**
+   * Bloomfilter (for peer identities) to stop circular routes
+   */
+  char bloomfilter[DHT_BLOOM_SIZE];
+
+  /**
+   * The key we are storing under.
+   */
+  struct GNUNET_HashCode key;
+
+  /* trunc_peer (if truncated) */
+
+  /* put path (if tracked) */
+
+  /* sender_sig (if path tracking is on) */
+
+  /* Payload */
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 #endif

@@ -69,7 +69,7 @@ struct GNUNET_CRYPTO_FileHashContext
   struct GNUNET_DISK_FileHandle *fh;
 
   /**
-   * Cummulated hash.
+   * Cumulated hash.
    */
   gcry_md_hd_t md;
 

@@ -467,7 +467,7 @@ check_ipv6_listed (const struct GNUNET_STRINGS_IPv6NetworkPolicy *list,
        i++)
   {
     bool match = true;
-    
+
     for (unsigned int j = 0; j < sizeof(struct in6_addr) / sizeof(int); j++)
       if (((((int *) ip)[j] & ((int *) &list[i].netmask)[j])) !=
           (((int *) &list[i].network)[j] & ((int *) &list[i].netmask)[j]))
@@ -1064,7 +1064,7 @@ get_server_addresses (const char *service_name,
                       struct sockaddr ***addrs,
                       socklen_t **addr_lens)
 {
-  int disablev6;
+  bool disablev6;
   struct GNUNET_NETWORK_Handle *desc;
   unsigned long long port;
   char *unixpath;
@@ -1082,53 +1082,49 @@ get_server_addresses (const char *service_name,
   *addrs = NULL;
   *addr_lens = NULL;
   desc = NULL;
-  disablev6 = GNUNET_NO;
-  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
+  disablev6 = false;
+  if ((GNUNET_NO ==
+       GNUNET_NETWORK_test_pf (PF_INET6)) ||
       (GNUNET_YES ==
-       GNUNET_CONFIGURATION_get_value_yesno (cfg, service_name, "DISABLEV6")))
-    disablev6 = GNUNET_YES;
+       GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                             service_name,
+                                             "DISABLEV6")))
+    disablev6 = true;
 
   port = 0;
-  if (GNUNET_CONFIGURATION_have_value (cfg, service_name, "PORT"))
+  if (GNUNET_SYSERR ==
+      GNUNET_CONFIGURATION_get_value_number (cfg,
+                                             service_name,
+                                             "PORT",
+                                             &port))
   {
-    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
-                                                            service_name,
-                                                            "PORT",
-                                                            &port))
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           _ ("Require valid port number for service `%s' in configuration!\n"),
-           service_name);
-    }
-    if (port > 65535)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           _ ("Require valid port number for service `%s' in configuration!\n"),
-           service_name);
-      return GNUNET_SYSERR;
-    }
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         _ ("Require valid port number for service `%s' in configuration!\n"),
+         service_name);
+  }
+  if (port > 65535)
+  {
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         _ ("Require valid port number for service `%s' in configuration!\n"),
+         service_name);
+    return GNUNET_SYSERR;
   }
 
-  if (GNUNET_CONFIGURATION_have_value (cfg, service_name, "BINDTO"))
-  {
-    GNUNET_break (GNUNET_OK ==
-                  GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                         service_name,
-                                                         "BINDTO",
-                                                         &hostname));
-  }
-  else
-    hostname = NULL;
+  hostname = NULL;
+  GNUNET_break (GNUNET_SYSERR !=
+                GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                       service_name,
+                                                       "BINDTO",
+                                                       &hostname));
 
   unixpath = NULL;
 #ifdef AF_UNIX
-  if ((GNUNET_YES ==
-       GNUNET_CONFIGURATION_have_value (cfg, service_name, "UNIXPATH")) &&
-      (GNUNET_OK == GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                                             service_name,
-                                                             "UNIXPATH",
-                                                             &unixpath)) &&
-      (0 < strlen (unixpath)))
+  if ( (GNUNET_OK ==
+        GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                 service_name,
+                                                 "UNIXPATH",
+                                                 &unixpath)) &&
+       (0 < strlen (unixpath)) )
   {
     /* probe UNIX support */
     struct sockaddr_un s_un;
@@ -1136,31 +1132,40 @@ get_server_addresses (const char *service_name,
     if (strlen (unixpath) >= sizeof(s_un.sun_path))
     {
       LOG (GNUNET_ERROR_TYPE_WARNING,
-           _ ("UNIXPATH `%s' too long, maximum length is %llu\n"),
+           "UNIXPATH `%s' too long, maximum length is %llu\n",
            unixpath,
            (unsigned long long) sizeof(s_un.sun_path));
       unixpath = GNUNET_NETWORK_shorten_unixpath (unixpath);
-      LOG (GNUNET_ERROR_TYPE_INFO, _ ("Using `%s' instead\n"), unixpath);
+      LOG (GNUNET_ERROR_TYPE_INFO,
+           _ ("Using `%s' instead\n"),
+           unixpath);
     }
-    if (GNUNET_OK != GNUNET_DISK_directory_create_for_file (unixpath))
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "mkdir", unixpath);
+    if (GNUNET_OK !=
+        GNUNET_DISK_directory_create_for_file (unixpath))
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                                "mkdir",
+                                unixpath);
   }
   if (NULL != unixpath)
   {
-    desc = GNUNET_NETWORK_socket_create (AF_UNIX, SOCK_STREAM, 0);
+    desc = GNUNET_NETWORK_socket_create (AF_UNIX,
+                                         SOCK_STREAM,
+                                         0);
     if (NULL == desc)
     {
-      if ((ENOBUFS == errno) || (ENOMEM == errno) || (ENFILE == errno) ||
+      if ((ENOBUFS == errno) ||
+          (ENOMEM == errno) ||
+          (ENFILE == errno) ||
           (EACCES == errno))
       {
-        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "socket");
+        LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                      "socket");
         GNUNET_free (hostname);
         GNUNET_free (unixpath);
         return GNUNET_SYSERR;
       }
-      LOG (GNUNET_ERROR_TYPE_INFO,
-           _ (
-             "Disabling UNIX domain socket support for service `%s', failed to create UNIX domain socket: %s\n"),
+      LOG (GNUNET_ERROR_TYPE_WARNING,
+           "Failed to create UNIX domain socket for service %s: %s\n",
            service_name,
            strerror (errno));
       GNUNET_free (unixpath);
@@ -1168,17 +1173,18 @@ get_server_addresses (const char *service_name,
     }
     else
     {
-      GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (desc));
+      GNUNET_break (GNUNET_OK ==
+                    GNUNET_NETWORK_socket_close (desc));
       desc = NULL;
     }
   }
 #endif
 
-  if ((0 == port) && (NULL == unixpath))
+  if ( (0 == port) &&
+       (NULL == unixpath) )
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
-         _ (
-           "Have neither PORT nor UNIXPATH for service `%s', but one is required\n"),
+         "Have neither PORT nor UNIXPATH for service `%s', but one is required\n",
          service_name);
     GNUNET_free (hostname);
     return GNUNET_SYSERR;
@@ -1496,7 +1502,7 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
   errno = 0;
   if ( (NULL != (nfds = getenv ("LISTEN_FDS"))) &&
        (1 == sscanf (nfds, "%u%1s", &cnt, dummy)) && (cnt > 0) &&
-      (cnt < FD_SETSIZE) && (cnt + 4 < FD_SETSIZE))
+       (cnt < FD_SETSIZE) && (cnt + 4 < FD_SETSIZE))
   {
     lsocks = GNUNET_new_array (cnt + 1, struct GNUNET_NETWORK_Handle *);
     while (0 < cnt--)
@@ -2309,7 +2315,7 @@ GNUNET_SERVICE_main (int argc,
     GNUNET_GETOPT_option_version (pd->version),
     GNUNET_GETOPT_OPTION_END
   };
-  
+
   xdg = getenv ("XDG_CONFIG_HOME");
   if (NULL != xdg)
     GNUNET_asprintf (&cfg_filename,

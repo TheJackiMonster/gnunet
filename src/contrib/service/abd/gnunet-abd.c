@@ -491,10 +491,10 @@ add_continuation (void *cls, enum GNUNET_ErrorCode ec)
   struct GNUNET_NAMESTORE_QueueEntry **qe = cls;
   *qe = NULL;
 
-  if (GNUNET_OK == GNUNET_EC_NONE)
+  if (GNUNET_EC_NONE == ec)
     printf ("Adding successful.\n");
   else
-    fprintf (stderr, "Error occurred during adding, shutting down.\n");
+    fprintf (stderr, "Error: `%s'.\n", GNUNET_ErrorCode_get_hint (ec));
 
   GNUNET_SCHEDULER_shutdown ();
 }

@@ -29,7 +29,7 @@
 
 
 /**
- * Salt for PoW calcualations.
+ * Salt for PoW calculations.
  */
 static struct GNUNET_CRYPTO_PowSalt salt = { "gnunet-nse-proof" };
 

@@ -30,7 +30,7 @@
  * IPv6).  Those sockets are closed if they are not in use for 5s
  * (which means they will be freshly randomized afterwards).  For new
  * requests, we pick a random slot in the array with 128 socket slots
- * (and re-use an existing socket if the slot is still in use).  Thus
+ * (and reuse an existing socket if the slot is still in use).  Thus
  * each request will be given one of 128 random source ports, and the
  * 128 random source ports will also change "often" (less often if the
  * system is very busy, each time if we are mostly idle).  At the same

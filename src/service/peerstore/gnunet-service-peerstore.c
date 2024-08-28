@@ -60,7 +60,7 @@ struct Monitor
   struct Monitor *prev;
 
   /**
-   * Namestore client which intiated this zone monitor
+   * Namestore client which initiated this zone monitor
    */
   struct PeerstoreClient *pc;
 
@@ -144,7 +144,7 @@ struct Iteration
   struct Iteration *prev;
 
   /**
-   * Namestore client which intiated this zone iteration
+   * Namestore client which initiated this zone iteration
    */
   struct PeerstoreClient *pc;
 
@@ -372,7 +372,7 @@ monitor_sync (struct Monitor *mc)
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *sync;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Synching zone monitor %p\n", mc);
+              "Syncing zone monitor %p\n", mc);
 
   env = GNUNET_MQ_msg (sync, GNUNET_MESSAGE_TYPE_PEERSTORE_MONITOR_SYNC);
   GNUNET_MQ_send (mc->pc->mq, env);

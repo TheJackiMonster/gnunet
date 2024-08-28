@@ -189,7 +189,7 @@ DID_create_namestore_lookup_cb (void *cls,
     // If no DID Document is given a default one is created
     if (did_document != NULL)
       printf (
-        "DID Docuement is read from \"DID-document\" argument (EXPERIMENTAL)\n");
+        "DID Document is read from \"DID-document\" argument (EXPERIMENTAL)\n");
     else
       did_document = DID_pkey_to_did_document (&pkey);
 

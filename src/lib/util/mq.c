@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2012-2019 GNUnet e.V.
+     Copyright (C) 2012-2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -296,6 +296,7 @@ GNUNET_MQ_get_length (struct GNUNET_MQ_Handle *mq)
   {
     return mq->queue_length;
   }
+  GNUNET_assert (0 < mq->queue_length);
   return mq->queue_length - 1;
 }
 
@@ -325,7 +326,17 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
                                       ev);
     return;
   }
-  GNUNET_assert (NULL == mq->envelope_head);
+  else if (NULL != mq->envelope_head)
+  {
+    GNUNET_CONTAINER_DLL_insert_tail (mq->envelope_head,
+                                      mq->envelope_tail,
+                                      ev);
+    
+    ev = mq->envelope_head;
+    GNUNET_CONTAINER_DLL_remove (mq->envelope_head,
+                                 mq->envelope_tail,
+                                 ev);
+  }
   mq->current_envelope = ev;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -343,6 +354,9 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_unsent_head (struct GNUNET_MQ_Handle *mq)
 {
+  GNUNET_assert (0 < mq->queue_length);
+  GNUNET_assert (NULL != mq->envelope_head);
+  GNUNET_assert (NULL != mq->envelope_tail);
   struct GNUNET_MQ_Envelope *env;
 
   env = mq->envelope_head;
@@ -370,6 +384,7 @@ void
 GNUNET_MQ_send_copy (struct GNUNET_MQ_Handle *mq,
                      const struct GNUNET_MQ_Envelope *ev)
 {
+  GNUNET_assert (NULL != ev);
   struct GNUNET_MQ_Envelope *env;
   uint16_t msize;
 
@@ -394,6 +409,7 @@ static void
 impl_send_continue (void *cls)
 {
   struct GNUNET_MQ_Handle *mq = cls;
+  GNUNET_assert (NULL != mq->send_task);
 
   mq->send_task = NULL;
   /* call is only valid if we're actually currently sending
@@ -427,6 +443,7 @@ GNUNET_MQ_impl_send_continue (struct GNUNET_MQ_Handle *mq)
   mq->queue_length--;
   mq->in_flight = false;
   current_envelope = mq->current_envelope;
+  GNUNET_assert (NULL != current_envelope);
   current_envelope->parent_queue = NULL;
   mq->current_envelope = NULL;
   GNUNET_assert (NULL == mq->send_task);
