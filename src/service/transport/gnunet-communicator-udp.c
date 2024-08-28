@@ -3575,7 +3575,7 @@ start_burst (const char *addr,
               "1 sock addr %s addr %s rtt %lu %u\n",
               sock_info->address,
               addr,
-              sock_info->rtt.rel_value_us,
+              (unsigned long) sock_info->rtt.rel_value_us,
               my_port);
   burst_task = GNUNET_get_udp_socket (sock_info,
                                       &udp_socket_notify);
@@ -3584,7 +3584,10 @@ start_burst (const char *addr,
 
 
 static void
-run_ (const struct GNUNET_CONFIGURATION_Handle *c)
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *c)
 {
   const struct sockaddr_in *v4;
   char *bindto;
@@ -3790,32 +3793,5 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
 }
 
 
-/**
- * Setup communicator and launch network interactions.
- *
- * @param cls NULL (always)
- * @param args remaining command-line arguments
- * @param cfgfile name of the configuration file used (for saving, can be NULL!)
- * @param c configuration
- */
-#ifndef HAVE_GNUNET_MONOLITH
-static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *c)
-{
-  run_ (c);
-}
 GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run)
-#else
-static void
-run_monolith (void *cls)
-{
-  const struct GNUNET_CONFIGURATION_Handle *c = cls;
-
-  run_ (c);
-}
-GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run_monolith)
-#endif
 /* end of gnunet-communicator-udp.c */

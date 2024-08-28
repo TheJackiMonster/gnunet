@@ -125,7 +125,7 @@ GNUNET_PROGRAM_run (int argc,
 enum GNUNET_GenericReturnValue
 GNUNET_DAEMON_register (const char *daemon_name,
                         const char *daemon_desc,
-                        GNUNET_SCHEDULER_TaskCallback task);
+                        GNUNET_PROGRAM_Main task);
 
 /**
  * Start all services and daemons in a single prozess.

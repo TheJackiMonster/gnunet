@@ -1145,7 +1145,10 @@ setup_plugin (const char *name,
  * @param c configuration
  */
 static void
-run_ (const struct GNUNET_CONFIGURATION_Handle *c)
+run (void *cls,
+     char *const *args,
+     const char *cfgfile,
+     const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static const char *err_page = "{}";
   char *addr_str;
@@ -1430,25 +1433,6 @@ run_ (const struct GNUNET_CONFIGURATION_Handle *c)
 }
 
 
-#ifndef HAVE_GNUNET_MONOLITH
-static void
-run (void *cls,
-     char *const *args,
-     const char *cfgfile,
-     const struct GNUNET_CONFIGURATION_Handle *c)
-{
-  run_ (c);
-}
 GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run)
-#else
-static void
-run_monolith (void *cls)
-{
-  const struct GNUNET_CONFIGURATION_Handle *c = cls;
-
-  run_ (c);
-}
-GNUNET_DAEMON_MAIN ("rest", _ ("GNUnet REST service"), &run_monolith)
-#endif
 
 /* end of gnunet-rest-server.c */
