@@ -202,6 +202,8 @@ finish_response ()
 {
   if (NULL != response)
     MHD_destroy_response (response);
+  if (NULL != response_json)
+    MHD_destroy_response (response_json);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Creating hostlist response with %u bytes\n",
               (unsigned int) builder->size);
@@ -954,6 +956,11 @@ GNUNET_HOSTLIST_server_stop ()
   {
     MHD_destroy_response (response);
     response = NULL;
+  }
+  if (NULL != response_json)
+  {
+    MHD_destroy_response (response_json);
+    response_json = NULL;
   }
   if (NULL != peerstore_notify)
   {
