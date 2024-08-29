@@ -34,7 +34,8 @@
 #include "gnunet-daemon-hostlist.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_mhd_compat.h"
-
+#include <jansson.h>
+#include <strings.h>
 
 /**
  * How long until our hostlist advertisement transmission via CORE should
@@ -101,6 +102,11 @@ static struct GNUNET_SCHEDULER_Task *hostlist_task_v6;
 static struct MHD_Response *response;
 
 /**
+ * Our json response.
+ */
+static struct MHD_Response *response_json;
+
+/**
  * Handle to the PEERSTORE service.
  */
 static struct GNUNET_PEERSTORE_Handle *peerstore;
@@ -156,6 +162,38 @@ add_cors_headers (struct MHD_Response *response)
 }
 
 
+static struct MHD_Response*
+build_json_response (const struct HostSet *builder)
+{
+  struct GNUNET_MessageHeader *hello;
+  struct GNUNET_HELLO_Builder *hbuilder;
+  json_t*hello_uri_j;
+  json_t*hello_array;
+  char *hello_uri;
+  char *hello_uris;
+  size_t offset = 0;
+
+  hello_uri_j = json_object ();
+  hello_array = json_array ();
+  while (offset < builder->size)
+  {
+    hello = (struct GNUNET_MessageHeader*) (builder->data + offset);
+    hbuilder = GNUNET_HELLO_builder_from_msg (hello);
+    hello_uri = GNUNET_HELLO_builder_to_url (hbuilder, NULL);
+    json_array_append_new (hello_array, json_string (hello_uri));
+    GNUNET_free (hello_uri);
+    GNUNET_HELLO_builder_free (hbuilder);
+    offset += ntohs (hello->size);
+  }
+  json_object_set_new (hello_uri_j, "hellos", hello_array);
+  hello_uris = json_dumps (hello_uri_j, JSON_INDENT (2));
+  json_decref (hello_uri_j);
+  return MHD_create_response_from_buffer (strlen (hello_uris),
+                                          hello_uris,
+                                          MHD_RESPMEM_MUST_FREE);
+}
+
+
 /**
  * Function that assembles our response.
  */
@@ -170,11 +208,17 @@ finish_response ()
   response = MHD_create_response_from_buffer (builder->size,
                                               builder->data,
                                               MHD_RESPMEM_MUST_FREE);
+  response_json = build_json_response (builder);
+  MHD_add_response_header (response_json,
+                           "Content-Type",
+                           "application/json");
   add_cors_headers (response);
   if ((NULL == daemon_handle_v4) && (NULL == daemon_handle_v6))
   {
     MHD_destroy_response (response);
     response = NULL;
+    MHD_destroy_response (response_json);
+    response_json = NULL;
   }
   GNUNET_STATISTICS_set (stats,
                          gettext_noop ("bytes in hostlist"),
@@ -259,6 +303,20 @@ accept_policy_callback (void *cls,
   return MHD_YES; /* accept all */
 }
 
+static int
+header_iterator (void *cls,
+                 enum MHD_ValueKind kind,
+                 const char *key,
+                 const char *value)
+{
+  enum GNUNET_GenericReturnValue *want_json = cls;
+
+  if (0 != strcasecmp(key, "Accept"))
+    return GNUNET_YES;
+  if (0 == strcasecmp (value, "application/json"))
+    *want_json = GNUNET_YES;
+  return MHD_YES;
+}
 
 /**
  * Main request handler.
@@ -306,6 +364,7 @@ access_handler_callback (void *cls,
                          void **con_cls)
 {
   static int dummy;
+  struct MHD_Response *selected_response;
 
   /* CORS pre-flight request */
   if (0 == strcmp (MHD_HTTP_METHOD_OPTIONS, method))
@@ -350,7 +409,17 @@ access_handler_callback (void *cls,
                               GNUNET_YES);
     return MHD_NO;   /* do not support upload data */
   }
-  if (NULL == response)
+  selected_response = response;
+  enum GNUNET_GenericReturnValue want_json = GNUNET_NO;
+  MHD_get_connection_values (connection,
+                             MHD_HEADER_KIND,
+                             (MHD_KeyValueIterator) &header_iterator,
+                             &want_json);
+  if (GNUNET_YES == want_json)
+  {
+    selected_response = response_json;
+  }
+  if (NULL == selected_response)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_WARNING,
@@ -369,7 +438,7 @@ access_handler_callback (void *cls,
                             gettext_noop ("hostlist requests processed"),
                             1,
                             GNUNET_YES);
-  return MHD_queue_response (connection, MHD_HTTP_OK, response);
+  return MHD_queue_response (connection, MHD_HTTP_OK, selected_response);
 }
 
 

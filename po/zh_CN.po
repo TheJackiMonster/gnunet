@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-08-28 13:58+0200\n"
+"POT-Creation-Date: 2024-08-29 11:36+0200\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -3569,94 +3569,94 @@ msgstr "您必须向“%s”选项传递一个数字。\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:59
+#: src/lib/util/gnunet_error_codes.c:60
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:65
+#: src/lib/util/gnunet_error_codes.c:66
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "未知的用户“%s”\n"
 
-#: src/lib/util/gnunet_error_codes.c:71
+#: src/lib/util/gnunet_error_codes.c:72
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "连接 %s:%u 出错。守护程序在运行吗？\n"
 
-#: src/lib/util/gnunet_error_codes.c:77
+#: src/lib/util/gnunet_error_codes.c:78
 msgid "Ego not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:83
+#: src/lib/util/gnunet_error_codes.c:84
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:89
+#: src/lib/util/gnunet_error_codes.c:90
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:95
+#: src/lib/util/gnunet_error_codes.c:96
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "未知的用户“%s”\n"
 
-#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
+#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
 msgid "Zone iteration failed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:107
+#: src/lib/util/gnunet_error_codes.c:108
 msgid "Zone not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:113
+#: src/lib/util/gnunet_error_codes.c:114
 msgid "Record not found."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:125
+#: src/lib/util/gnunet_error_codes.c:126
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:131
+#: src/lib/util/gnunet_error_codes.c:132
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "运行 %s失败：%s %d\n"
 
-#: src/lib/util/gnunet_error_codes.c:137
+#: src/lib/util/gnunet_error_codes.c:138
 #, fuzzy
 msgid "No records given."
 msgstr "无法获取有关用户“%s”的信息：%s\n"
 
-#: src/lib/util/gnunet_error_codes.c:143
+#: src/lib/util/gnunet_error_codes.c:144
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:149
+#: src/lib/util/gnunet_error_codes.c:150
 msgid "No label given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:155
+#: src/lib/util/gnunet_error_codes.c:156
 #, fuzzy
 msgid "No results given."
 msgstr "无法获取有关用户“%s”的信息：%s\n"
 
-#: src/lib/util/gnunet_error_codes.c:161
+#: src/lib/util/gnunet_error_codes.c:162
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:167
+#: src/lib/util/gnunet_error_codes.c:168
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:173
+#: src/lib/util/gnunet_error_codes.c:174
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:179
+#: src/lib/util/gnunet_error_codes.c:180
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "运行 %s失败：%s %d\n"
 
-#: src/lib/util/gnunet_error_codes.c:185
+#: src/lib/util/gnunet_error_codes.c:186
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -3733,18 +3733,18 @@ msgstr "解析配置文件“%s”失败\n"
 msgid "Malformed configuration. Exiting ...\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/lib/util/program.c:436 src/lib/util/service.c:1996
+#: src/lib/util/program.c:437 src/lib/util/service.c:1996
 msgid "do daemonize (detach from terminal)"
 msgstr ""
 
-#: src/lib/util/program.c:491 src/lib/util/program.c:506
+#: src/lib/util/program.c:492 src/lib/util/program.c:507
 #: src/lib/util/service.c:2071 src/lib/util/service.c:2086
 #: src/service/transport/transport-testing-communicator.c:1057
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/lib/util/program.c:519 src/lib/util/service.c:2098
+#: src/lib/util/program.c:520 src/lib/util/service.c:2098
 #, fuzzy
 msgid "Malformed configuration, exit ...\n"
 msgstr "解析配置文件“%s”失败\n"
@@ -6792,7 +6792,7 @@ msgstr ""
 msgid "Gns REST API initialized\n"
 msgstr ""
 
-#: src/service/rest/gnunet-rest-server.c:1451
+#: src/service/rest/gnunet-rest-server.c:1436
 #, fuzzy
 msgid "GNUnet REST service"
 msgstr "GNUnet 错误日志"
@@ -6907,13 +6907,13 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-http3.c:3871
 #: src/service/transport/gnunet-communicator-quic.c:1717
 #: src/service/transport/gnunet-communicator-tcp.c:3865
-#: src/service/transport/gnunet-communicator-udp.c:3738
+#: src/service/transport/gnunet-communicator-udp.c:3743
 #: src/service/transport/gnunet-service-transport.c:12982
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "立即保存配置？"
 
-#: src/service/transport/gnunet-communicator-http3.c:3933
+#: src/service/transport/gnunet-communicator-http3.c:3934
 msgid "GNUnet HTTP3 communicator"
 msgstr ""
 
@@ -6925,7 +6925,7 @@ msgstr ""
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:3817
+#: src/service/transport/gnunet-communicator-udp.c:3796
 msgid "GNUnet UDP communicator"
 msgstr ""
 

@@ -476,6 +476,9 @@ GNUNET_HELLO_builder_from_block (const void *block,
       GNUNET_HELLO_builder_free (b);
       return NULL;
     }
+    b->et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    b->sig = bh->sig;
+    b->signature_set = GNUNET_YES;
   }
   return b;
 }
@@ -708,10 +711,19 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
   const char *sep = "?";
 
   et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
-  sign_hello (builder,
-              et,
-              priv,
-              &sig);
+  if (NULL != priv)
+  {
+    sign_hello (builder,
+                et,
+                priv,
+                &sig);
+  }
+  else
+  {
+    GNUNET_assert (GNUNET_YES == builder->signature_set);
+    et = GNUNET_TIME_absolute_to_timestamp (builder->et);
+    sig = builder->sig;
+  }
   pids = GNUNET_STRINGS_data_to_string_alloc (&builder->pid,
                                               sizeof (builder->pid));
   sigs = GNUNET_STRINGS_data_to_string_alloc (&sig,
