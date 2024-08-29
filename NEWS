@@ -1,3 +1,13 @@
+v0.22.0:
+  - New logging API to print/parse hex bytes
+  - Added RFC9180 HPKE and associated KEMs
+  - Replace oneshot PKE and KEM APIs with HPKE
+  - New Elligator KEM
+  - Namestore API allows multiple records to be inserted in a single transaction (if plugin supports this)
+  - New ECDH API that uses KDFs instead of hash
+  - Renamed GNUNET_CRYPTO_hkdf to GNUNET_CRYPTO_hkdf_gnunet
+  - Added new standard SHA256-based HKDF APIs
+
 v0.21.2:
   - Reworked TESTING API
   - Disabled many old-style tests
