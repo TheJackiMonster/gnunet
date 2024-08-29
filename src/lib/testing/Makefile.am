@@ -60,22 +60,25 @@ gnunet_testing_netjail_launcher_LDADD = $(XLIB) \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
 
-check_PROGRAMS = \
-  test_testing_api
-
 check_SCRIPTS = \
   test_netjail_api.sh
 
 TESTS = \
-  $(check_PROGRAMS) \
   $(check_SCRIPTS)
 
+if HAVE_EXPERIMENTAL
+check_PROGRAMS = \
+  test_testing_api
 test_testing_api_SOURCES = \
   test_testing_api.c
 test_testing_api_LDADD = \
   libgnunettesting.la \
   -lgnunetutil \
   $(XLIB)
+TESTS += $(check_PROGRAMS)
+endif
+
+
 
 EXTRA_DIST = \
   $(check_SCRIPTS) \

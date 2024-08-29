@@ -7,6 +7,7 @@ v0.22.0:
   - New ECDH API that uses KDFs instead of hash
   - Renamed GNUNET_CRYPTO_hkdf to GNUNET_CRYPTO_hkdf_gnunet
   - Added new standard SHA256-based HKDF APIs
+  - New hostlist bootrap domain https://bootstrap.gnunet.org
 
 v0.21.2:
   - Reworked TESTING API
