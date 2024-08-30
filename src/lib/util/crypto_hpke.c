@@ -994,6 +994,7 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_PublicKey *pk,
   case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->q_y,
                                                    pk->ecdsa_key.q_y))
+      return GNUNET_SYSERR;
     return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->q_y,
