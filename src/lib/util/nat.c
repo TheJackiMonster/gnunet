@@ -389,6 +389,8 @@ read_send (void *cls)
                 address);
     GNUNET_assert (0);
   }
+  GNUNET_free (address);
+  address = NULL;
   GNUNET_asprintf (&bind_address,
                    "%s:%u",
                    sock_info->bind_address,
@@ -405,6 +407,8 @@ read_send (void *cls)
                 bind_address);
     GNUNET_assert (0);
   }
+  GNUNET_free (bind_address);
+  bind_address = NULL;
   udp_sock =
     GNUNET_NETWORK_socket_create (bind_in->sa_family,
                                   SOCK_DGRAM,
@@ -417,6 +421,7 @@ read_send (void *cls)
                 GNUNET_a2s (bind_in,
                             bind_in_len),
                 in->sa_family);
+    GNUNET_free (bind_in);
     if (EMFILE == errno)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -425,6 +430,9 @@ read_send (void *cls)
       read_send_task = GNUNET_SCHEDULER_add_delayed (again,
                                                      &read_send,
                                                      sock_info);
+      GNUNET_free (si);
+      GNUNET_free (in);
+      GNUNET_free (bind_in);
       return;
     }
     GNUNET_free (sock_info);
@@ -483,10 +491,9 @@ read_send (void *cls)
   }
 
 next_port:
+  GNUNET_free (si);
   GNUNET_free (in);
   GNUNET_free (bind_in);
-  GNUNET_free (address);
-  GNUNET_free (bind_address);
 
   if (65535 == udp_port)
     return;
@@ -502,7 +509,7 @@ struct GNUNET_SCHEDULER_Task *
 GNUNET_get_udp_socket (struct GNUNET_UdpSocketInfo *sock_info,
                        GNUNET_NotifyUdpSocket nus)
 {
-  struct GNUNET_BurstMessage bm;
+  struct GNUNET_BurstMessage bm = {0};
   struct GNUNET_UdpSocketInfo *si = GNUNET_new (struct GNUNET_UdpSocketInfo);
   char dgram[sizeof (struct GNUNET_BurstMessage)];
   char *address;

@@ -1557,7 +1557,10 @@ setup_service (struct GNUNET_SERVICE_Handle *sh)
 
     num = get_server_addresses (sh->service_name, sh->cfg, &addrs, &addrlens);
     if (GNUNET_SYSERR == num)
+    {
+      GNUNET_free (csocks);
       return GNUNET_SYSERR;
+    }
 
     for (int i = 0; i < num; i++)
     {
