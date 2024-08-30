@@ -336,17 +336,20 @@ gns_string_to_value (void *cls,
       struct GNUNET_GNSRECORD_SBoxRecord *box;
       size_t rest;
       char *prefix;
+      char *p;
       char *underscore_prefix;
       unsigned int record_type;
       void *bval;
       size_t bval_size;
-      prefix = GNUNET_malloc (strlen (s));
       size_t prefix_size;
+
+      prefix = GNUNET_malloc (strlen (s) + 1);
       if (2 != sscanf (s, "%s %u ", prefix, &record_type))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse SBOX record string `%s'\n"),
                     s);
+        GNUNET_free (prefix);
         return GNUNET_SYSERR;
       }
       underscore_prefix = strrchr (prefix, '.');
@@ -364,6 +367,7 @@ gns_string_to_value (void *cls,
                     _ (
                       "Unable to parse SBOX record string `%s', the rightmost label `%s' does not start with an underscore\n"),
                     prefix, underscore_prefix);
+        GNUNET_free (prefix);
         return GNUNET_SYSERR;
       }
       rest = snprintf (NULL, 0, "%s %u ", prefix, record_type);
@@ -371,11 +375,16 @@ gns_string_to_value (void *cls,
                                                          &s[rest],
                                                          &bval,
                                                          &bval_size))
+      {
+        GNUNET_free (prefix);
         return GNUNET_SYSERR;
+      }
       prefix_size = strlen (prefix) + 1;
       *data_size = sizeof(struct GNUNET_GNSRECORD_SBoxRecord) + prefix_size
                    + bval_size;
-      void *p = *data = box = GNUNET_malloc (*data_size);
+      *data = GNUNET_malloc (*data_size);
+      p = *data;
+      box = *data;
       box->record_type = htonl (record_type);
       p += sizeof(struct GNUNET_GNSRECORD_SBoxRecord);
       GNUNET_memcpy (p, prefix, prefix_size);
