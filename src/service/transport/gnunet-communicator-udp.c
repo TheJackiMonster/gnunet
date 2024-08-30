@@ -666,7 +666,7 @@ struct ReceiverAddress
    * Read task, if this receiver has its own socket.
    */
   struct GNUNET_SCHEDULER_Task *read_task;
-  
+
   /**
    * MTU we allowed transport for this receiver's KX queue.
    */
@@ -2246,9 +2246,12 @@ create_receiver (const struct GNUNET_PeerIdentity *peer,
   }
   else if (AF_INET == in->sa_family)
   {
-    struct sockaddr_in *sin = (struct sockaddr_in *)in;
+    struct sockaddr_in *sin = (struct sockaddr_in *) in;
     if (0 == sin->sin_port)
+    {
+      GNUNET_free (in);
       return GNUNET_NO;
+    }
   }
 
   hsh = GNUNET_CRYPTO_hash_context_start ();
@@ -2296,10 +2299,11 @@ create_receiver (const struct GNUNET_PeerIdentity *peer,
   receiver->foreign_addr =
     sockaddr_to_udpaddr_string (receiver->address, receiver->address_len);
   if (NULL != udp_sock)
-    receiver->read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
-                                                         udp_sock,
-                                                         &sock_read,
-                                                         udp_sock);
+    receiver->read_task = GNUNET_SCHEDULER_add_read_net (
+      GNUNET_TIME_UNIT_FOREVER_REL,
+      udp_sock,
+      &sock_read,
+      udp_sock);
   setup_receiver_mq (receiver);
   if (NULL == timeout_task)
     timeout_task = GNUNET_SCHEDULER_add_now (&check_timeouts, NULL);
@@ -3051,7 +3055,7 @@ mq_init (void *cls, const struct GNUNET_PeerIdentity *peer, const char *address)
 {
   (void) cls;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "create receiver for mq_init\n");
+              "create receiver for mq_init\n");
   return create_receiver (peer,
                           address,
                           NULL);
@@ -3535,10 +3539,12 @@ try_connection_reversal (void *cls,
 }
 
 
-static void udp_socket_notify (struct GNUNET_UdpSocketInfo *sock_info)
+static void
+udp_socket_notify (struct GNUNET_UdpSocketInfo *sock_info)
 {
   char *address = sockaddr_to_udpaddr_string (sock_info->actual_address,
-                                              sizeof (*sock_info->actual_address));
+                                              sizeof (*sock_info->actual_address
+                                                      ));
   create_receiver (sock_info->pid,
                    address,
                    default_udp_sock == sock_info->udp_sock ?
@@ -3597,7 +3603,7 @@ run (void *cls,
   socklen_t sto_len;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-       "Entering the run method of udp communicator.\n");
+              "Entering the run method of udp communicator.\n");
 
   cfg = c;
   if (GNUNET_OK !=
@@ -3612,8 +3618,8 @@ run (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-       "The udp communicator will bind to %s\n",
-       bindto);
+              "The udp communicator will bind to %s\n",
+              bindto);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_time (cfg,
                                            COMMUNICATOR_CONFIG_SECTION,
@@ -3710,11 +3716,11 @@ run (void *cls,
   switch (in->sa_family)
   {
   case AF_INET:
-    v4 = (const struct sockaddr_in *)in;
+    v4 = (const struct sockaddr_in *) in;
 
     my_ipv4 = GNUNET_malloc (INET_ADDRSTRLEN);
     my_port = ntohs (((struct sockaddr_in *) in)->sin_port);
-    inet_ntop(AF_INET, &v4->sin_addr, my_ipv4, in_len);
+    inet_ntop (AF_INET, &v4->sin_addr, my_ipv4, in_len);
     break;
 
   case AF_INET6:
@@ -3793,5 +3799,6 @@ run (void *cls,
 }
 
 
-GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &run)
+GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &
+                    run)
 /* end of gnunet-communicator-udp.c */

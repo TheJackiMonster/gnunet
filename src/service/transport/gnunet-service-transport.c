@@ -1495,7 +1495,7 @@ struct VirtualLink
   struct GNUNET_TIME_Relative last_fc_rtt;
 
   /**
-   * Avarage RTT for over all paths of the DistanceVector of this VirtualLink 
+   * Avarage RTT for over all paths of the DistanceVector of this VirtualLink
    * calculated by the target.
    */
   struct GNUNET_TIME_Relative other_rtt;
@@ -4639,7 +4639,8 @@ handle_communicator_available (
               "Communicator for peer %s with prefix '%s' connected %s\n",
               GNUNET_i2s (&GST_my_identity),
               tc->details.communicator.address_prefix,
-              tc->details.communicator.can_burst ? "can burst" : "can not burst");
+              tc->details.communicator.can_burst ? "can burst" :
+              "can not burst");
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
@@ -5435,8 +5436,11 @@ add_global_addresses (void *cls,
               "sending address %s length %u\n",
               addr,
               ntohl (tgna->address_length));
-  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct TransportGlobalNattedAddress) + ntohl (tgna->address_length));
-  ctx->off += sizeof(struct TransportGlobalNattedAddress) + ntohl (tgna->address_length);
+  GNUNET_memcpy (&(ctx->tgnas[ctx->off]), tgna, sizeof (struct
+                                                        TransportGlobalNattedAddress)
+                 + ntohl (tgna->address_length));
+  ctx->off += sizeof(struct TransportGlobalNattedAddress) + ntohl (tgna->
+                                                                   address_length);
 
   return GNUNET_OK;
 }
@@ -5466,14 +5470,17 @@ consider_sending_fc (void *cls)
   if (NULL != n && 0 < n->number_of_addresses)
   {
     size_t addresses_size =
-      n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n->size_of_global_addresses;
+      n->number_of_addresses * sizeof (struct TransportGlobalNattedAddress) + n
+      ->size_of_global_addresses;
     char *tgnas = GNUNET_malloc (addresses_size);
     struct AddGlobalAddressesContext ctx;
     ctx.off = 0;
     ctx.tgnas = tgnas;
 
-    fc = GNUNET_malloc (sizeof (struct TransportFlowControlMessage) + addresses_size);
-    fc->header.size = htons (sizeof(struct TransportFlowControlMessage) + addresses_size);
+    fc = GNUNET_malloc (sizeof (struct TransportFlowControlMessage)
+                        + addresses_size);
+    fc->header.size = htons (sizeof(struct TransportFlowControlMessage)
+                             + addresses_size);
     fc->size_of_addresses = htonl (n->size_of_global_addresses);
     fc->number_of_addresses = htonl (n->number_of_addresses);
     GNUNET_CONTAINER_multipeermap_iterate (n->natted_addresses,
@@ -5516,8 +5523,8 @@ consider_sending_fc (void *cls)
   fc->header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_FLOW_CONTROL);
   fc->seq = htonl (vl->fc_seq_gen++);
   fc->inbound_window_size = GNUNET_htonll (vl->incoming_fc_window_size
-                                          + vl->incoming_fc_window_size_used
-                                          + vl->incoming_fc_window_size_loss);
+                                           + vl->incoming_fc_window_size_used
+                                           + vl->incoming_fc_window_size_loss);
   fc->outbound_sent = GNUNET_htonll (vl->outbound_fc_window_size_used);
   fc->outbound_window_size = GNUNET_htonll (vl->outbound_fc_window_size);
   fc->sender_time = GNUNET_TIME_absolute_hton (monotime);
@@ -6047,15 +6054,16 @@ handle_add_address (void *cls,
   address = GNUNET_malloc (slen);
   memcpy (address, &aam[1], slen);
   ale = create_address_entry (tc,
-                        GNUNET_TIME_relative_ntoh (aam->expiration),
-                        (enum GNUNET_NetworkType) ntohl (aam->nt),
-                        address,
-                        aam->aid,
-                        slen);
+                              GNUNET_TIME_relative_ntoh (aam->expiration),
+                              (enum GNUNET_NetworkType) ntohl (aam->nt),
+                              address,
+                              aam->aid,
+                              slen);
   GNUNET_CONTAINER_DLL_insert (tc->details.communicator.addr_head,
                                tc->details.communicator.addr_tail,
                                ale);
   GNUNET_SERVICE_client_continue (tc->client);
+  GNUNET_free (address);
 }
 
 
@@ -7472,7 +7480,8 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
         q_timeout = GNUNET_TIME_absolute_max (q_timeout, q->validated_until);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "remainig %lu to %s\n",
-                  (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+                  (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout)
+                  .rel_value_us,
                   GNUNET_i2s (&n->pid));
       if (0 != GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
       {
@@ -7556,7 +7565,8 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
           /* Some peer send DV learn messages too often, we are learning
              the same path faster than it would be useful; do not forward! */
           GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                      "Rediscovered path too quickly, not forwarding further\n");
+                      "Rediscovered path too quickly, not forwarding further\n")
+          ;
           return GNUNET_NO;
         }
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -8003,7 +8013,7 @@ get_network_latency (const struct TransportDVLearnMessage *dvl)
   // Need also something to lookup initiation time
   // to compute RTT! -> add RTT argument here?
   latency = GNUNET_TIME_absolute_get_duration (GNUNET_TIME_absolute_ntoh (
-                                                                          dvl->monotonic_time));
+                                                 dvl->monotonic_time));
   GNUNET_assert (latency.rel_value_us >= host_latency_sum.rel_value_us);
   // latency = GNUNET_TIME_UNIT_FOREVER_REL;   // FIXME: initialize properly
   // (based on dvl->challenge, we can identify time of origin!)
@@ -8409,7 +8419,8 @@ forward_dv_box (struct Neighbour *next_hop,
   hdr->header.size = htons (msg_size);
   memcpy (msg_buf, hdr, sizeof(*hdr));
   dhops = (struct GNUNET_PeerIdentity *) &msg_buf[sizeof(struct
-                                                         TransportDVBoxMessage)];
+                                                         TransportDVBoxMessage)]
+  ;
   memcpy (dhops, hops, num_hops * sizeof(struct GNUNET_PeerIdentity));
   memcpy (&dhops[num_hops], enc_payload, enc_payload_size);
 
@@ -9777,19 +9788,23 @@ calculate_rtt (struct DistanceVector *dv)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "calculate_rtt\n");
   for (struct DistanceVectorHop *pos = dv->dv_head; NULL != pos;
-         pos = pos->next_dv)
+       pos = pos->next_dv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "calculate_rtt %lu\n",
                 (unsigned long) pos->pd.aged_rtt.rel_value_us);
     n_hops++;
-    ret = GNUNET_TIME_relative_add (GNUNET_TIME_relative_multiply (pos->pd.aged_rtt, pos->distance + 2), ret);
+    ret = GNUNET_TIME_relative_add (GNUNET_TIME_relative_multiply (pos->pd.
+                                                                   aged_rtt, pos
+                                                                   ->distance
+                                                                   + 2), ret);
   }
 
   GNUNET_assert (0 != n_hops);
 
-  return ret ;
+  return ret;
 }
+
 
 static void
 iterate_address_start_burst (void *cls,
@@ -9820,7 +9835,8 @@ iterate_address_start_burst (void *cls,
               slash);
   if (0 == strcmp (uri_without_port, slash))
   {
-    vl->burst_addr = GNUNET_strndup (uri_without_port, strlen (uri_without_port));
+    vl->burst_addr = GNUNET_strndup (uri_without_port, strlen (uri_without_port)
+                                     );
   }
   else
     vl->burst_addr = NULL;
@@ -9832,8 +9848,8 @@ iterate_address_start_burst (void *cls,
 
 static void
 check_for_burst_address (void *cls,
-                        const struct GNUNET_PEERSTORE_Record *record,
-                        const char *emsg)
+                         const struct GNUNET_PEERSTORE_Record *record,
+                         const char *emsg)
 {
   struct GNUNET_StartBurstCls *sb_cls = cls;
   struct VirtualLink *vl = sb_cls->vl;
@@ -9843,8 +9859,8 @@ check_for_burst_address (void *cls,
   if (NULL != emsg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-         "Got failure from PEERSTORE: %s\n",
-         emsg);
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
     return;
   }
   if (NULL == record)
@@ -9893,7 +9909,7 @@ start_burst (void *cls)
   GNUNET_memcpy (buf, uri_without_port,  strlen (uri_without_port));
   buf[strlen (uri_without_port)] = '\0';*/
   env =
-    GNUNET_MQ_msg_extra (sb ,
+    GNUNET_MQ_msg_extra (sb,
                          strlen (uri_without_port) + 1,
                          GNUNET_MESSAGE_TYPE_TRANSPORT_START_BURST);
   sb->rtt = GNUNET_TIME_relative_hton (sb_cls->rtt);
@@ -9906,7 +9922,8 @@ start_burst (void *cls)
                 tc->details.communicator.address_prefix);
     if (CT_COMMUNICATOR != tc->type)
       continue;
-    if (GNUNET_YES == tc->details.communicator.can_burst){
+    if (GNUNET_YES == tc->details.communicator.can_burst)
+    {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "iterate_address_start_burst %s call %lu %u rtt %lu\n",
                   uri_without_port,
@@ -9915,14 +9932,16 @@ start_burst (void *cls)
                   (unsigned long) sb_cls->rtt.rel_value_us);
       GNUNET_MQ_send (tc->mq, env);
       burst_running = GNUNET_YES;
-      burst_timeout_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
-                                                                                        60),
-                                                         &burst_timeout,
-                                                         NULL);
-      //TODO We need some algo to choose from available communicators. Can we run two bursts at once? Atm we only implemented udp burst.
+      burst_timeout_task = GNUNET_SCHEDULER_add_delayed (
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
+                                       60),
+        &burst_timeout,
+        NULL);
+      // TODO We need some algo to choose from available communicators. Can we run two bursts at once? Atm we only implemented udp burst.
       break;
     }
   }
+  GNUNET_free (env);
   GNUNET_free (sb_cls);
 }
 
@@ -9948,11 +9967,12 @@ queue_burst (void *cls)
     GNUNET_free (sb_cls);
     return;
   }
-  if (GNUNET_NO == burst_running && NULL != vl->burst_addr && NULL == burst_task)
+  if (GNUNET_NO == burst_running && NULL != vl->burst_addr && NULL == burst_task
+      )
   {
     burst_task = GNUNET_SCHEDULER_add_delayed (sb_cls->delay,
-                                  &start_burst,
-                                  sb_cls);
+                                               &start_burst,
+                                               sb_cls);
   }
   else if (NULL == vl->burst_addr)
   {
@@ -9964,6 +9984,7 @@ queue_burst (void *cls)
                                                sb_cls);
   }
 }
+
 
 /**
  * Communicator gave us a transport address validation response.  Process the
@@ -10018,10 +10039,11 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "remaining %lu timeout for neighbour %p\n",
-              (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us,
+              (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout).
+              rel_value_us,
               vl->n);
   if (NULL == vl->n ||
-       0 == GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
+      0 == GNUNET_TIME_absolute_get_remaining (q_timeout).rel_value_us)
   {
     struct GNUNET_TIME_Relative rtt;
     struct GNUNET_BurstSync burst_sync;
@@ -11984,10 +12006,10 @@ iterate_address_and_compare_cb (void *cls,
   char *address_uri;
   char *prefix;
   char *uri_without_port;
-  char *address_uri_without_port = get_address_without_port (queue->address); 
+  char *address_uri_without_port;
 
   slash = strrchr (uri, '/');
-  prefix = GNUNET_strndup (uri, (slash - uri) - 2); 
+  prefix = GNUNET_strndup (uri, (slash - uri) - 2);
   GNUNET_assert (NULL != slash);
   slash++;
   GNUNET_asprintf (&address_uri,
@@ -12004,7 +12026,12 @@ iterate_address_and_compare_cb (void *cls,
 
   uri_without_port = get_address_without_port (address_uri);
   if (1 != inet_pton (AF_INET, uri_without_port, &v4.sin_addr))
+  {
+    GNUNET_free (prefix);
+    GNUNET_free (address_uri);
+    GNUNET_free (uri_without_port);
     return;
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "2 not global natted_address %u %s %s\n",
@@ -12013,18 +12040,26 @@ iterate_address_and_compare_cb (void *cls,
               queue->address);
 
   if (GNUNET_NO == queue->is_global_natted)
+  {
+    GNUNET_free (prefix);
+    GNUNET_free (address_uri);
+    GNUNET_free (uri_without_port);
     return;
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "3 not global natted_address %u %s %s\n",
               queue->is_global_natted,
               uri,
               queue->address);
-  
-  uri_without_port = get_address_without_port (address_uri);
 
   if (0 == strcmp (uri_without_port, address_uri))
+  {
+    GNUNET_free (prefix);
+    GNUNET_free (address_uri);
+    GNUNET_free (uri_without_port);
     return;
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "4 not global natted_address %u %s %s\n",
@@ -12082,7 +12117,7 @@ contains_address (void *cls,
               tgna,
               addr,
               ntohl (tgna->address_length),
-              strlen(tgna_cls->addr));
+              strlen (tgna_cls->addr));
   if (strlen (tgna_cls->addr) == ntohl (tgna->address_length)
       && 0 == strncmp (addr, tgna_cls->addr, ntohl (tgna->address_length)))
   {
@@ -12124,8 +12159,8 @@ check_for_global_natted (void *cls,
   if (NULL != emsg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-         	"Got failure from PEERSTORE: %s\n",
-         	emsg);
+                "Got failure from PEERSTORE: %s\n",
+                emsg);
     return;
   }
   if (0 == record->value_size)
@@ -12152,7 +12187,7 @@ check_for_global_natted (void *cls,
   address_len_without_port = strlen (tgna_cls.addr);
   /*{
     char buf[address_len_without_port + 1];
-      
+
       GNUNET_memcpy (&buf, addr, address_len_without_port);
       buf[address_len_without_port] = '\0';
       GNUNET_free (addr);
@@ -12287,8 +12322,10 @@ handle_add_queue_message (void *cls,
                 ntohl (aqm->mtu));
     queue = GNUNET_malloc (sizeof(struct Queue) + addr_len);
     queue->tc = tc;
-    for (struct Queue *q = neighbour->queue_head; NULL != q; q = q->next_neighbour)
-      validated_until = GNUNET_TIME_absolute_max (validated_until, q->validated_until);
+    for (struct Queue *q = neighbour->queue_head; NULL != q; q = q->
+                                                                 next_neighbour)
+      validated_until = GNUNET_TIME_absolute_max (validated_until, q->
+                                                  validated_until);
     if (0 == GNUNET_TIME_absolute_get_remaining (validated_until).rel_value_us)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -12337,13 +12374,16 @@ handle_add_queue_message (void *cls,
                                                   "peerstore",
                                                   &neighbour->pid,
                                                   GNUNET_PEERSTORE_HELLO_KEY,
-                                                  &check_for_global_natted_error_cb,
+                                                  &
+                                                  check_for_global_natted_error_cb,
                                                   NULL,
-                                                  &check_for_global_natted_sync_cb,
+                                                  &
+                                                  check_for_global_natted_sync_cb,
                                                   NULL,
                                                   &check_for_global_natted,
                                                   queue);
     }
+    GNUNET_free (addr_without);
   }
   /* check if valdiations are waiting for the queue */
   if (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (validation_map,
@@ -12990,8 +13030,8 @@ run (void *cls,
               GNUNET_i2s_full (&GST_my_identity));
   GST_my_hello = GNUNET_HELLO_builder_new (&GST_my_identity);
   use_burst = GNUNET_CONFIGURATION_get_value_yesno (GST_cfg,
-                                        "transport",
-                                        "USE_BURST_NAT");
+                                                    "transport",
+                                                    "USE_BURST_NAT");
   if (GNUNET_SYSERR == use_burst)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Could not configure burst nat use. Default to no.\n");
