@@ -652,7 +652,7 @@ dns_string_to_value (void *cls,
 
   case GNUNET_DNSPARSER_TYPE_URI: {
       struct GNUNET_DNSPARSER_UriRecord uri;
-      char target[strlen (s)];
+      char target[strlen (s) + 1];
       unsigned int priority;
       unsigned int weight;
       size_t off;
