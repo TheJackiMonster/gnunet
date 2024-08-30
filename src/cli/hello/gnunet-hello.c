@@ -258,6 +258,7 @@ run (void *cls,
     shc = GNUNET_PEERSTORE_hello_add (peerstore_handle,
                                       GNUNET_MQ_env_get_msg (env),
                                       &hello_store_success, NULL);
+    GNUNET_free (env);
     GNUNET_HELLO_builder_free (hb);
     return;
   }
