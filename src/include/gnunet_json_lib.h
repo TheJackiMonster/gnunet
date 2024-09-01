@@ -200,7 +200,7 @@ GNUNET_JSON_spec_fixed (const char *name,
  * @param obj pointer where to write the data (type of `*obj` will determine size)
  */
 #define GNUNET_JSON_spec_fixed_auto(name, obj) \
-  GNUNET_JSON_spec_fixed (name, obj, sizeof(*obj))
+        GNUNET_JSON_spec_fixed (name, (obj), sizeof(*(obj)))
 
 
 /**
@@ -223,7 +223,7 @@ GNUNET_JSON_spec_fixed64 (const char *name,
  * @param obj pointer where to write the data (type of `*obj` will determine size)
  */
 #define GNUNET_JSON_spec_fixed64_auto(name, obj) \
-  GNUNET_JSON_spec_fixed (name, obj, sizeof(*obj))
+        GNUNET_JSON_spec_fixed (name, (obj), sizeof(*(obj)))
 
 
 /**
@@ -449,7 +449,8 @@ GNUNET_JSON_spec_blinded_message (const char *name,
  */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_blinded_signature (const char *field,
-                                    struct GNUNET_CRYPTO_BlindedSignature **b_sig);
+                                    struct GNUNET_CRYPTO_BlindedSignature **
+                                    b_sig);
 
 
 /**
@@ -460,7 +461,8 @@ GNUNET_JSON_spec_blinded_signature (const char *field,
  */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_unblinded_signature (const char *field,
-                                     struct GNUNET_CRYPTO_UnblindedSignature **ub_sig);
+                                      struct GNUNET_CRYPTO_UnblindedSignature **
+                                      ub_sig);
 
 
 /* ****************** Generic generator interface ******************* */
@@ -500,7 +502,7 @@ GNUNET_JSON_from_data64 (const void *data,
  * @return json string that encodes @a data
  */
 #define GNUNET_JSON_from_data_auto(ptr) \
-  GNUNET_JSON_from_data (ptr, sizeof(*ptr))
+        GNUNET_JSON_from_data (ptr, sizeof(*(ptr)))
 
 
 /**
@@ -511,7 +513,7 @@ GNUNET_JSON_from_data64 (const void *data,
  * @return json string that encodes @a data
  */
 #define GNUNET_JSON_from_data64_auto(ptr) \
-  GNUNET_JSON_from_data64 (ptr, sizeof(*ptr))
+        GNUNET_JSON_from_data64 (ptr, sizeof(*(ptr)))
 
 
 /**
@@ -716,8 +718,8 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[]);
  * @return JSON object
  */
 #define GNUNET_JSON_PACK(...) \
-  GNUNET_JSON_pack_ ((struct GNUNET_JSON_PackSpec[]) {__VA_ARGS__, \
-                                                      GNUNET_JSON_pack_end_ ()})
+        GNUNET_JSON_pack_ ((struct GNUNET_JSON_PackSpec[]) {__VA_ARGS__, \
+                                                            GNUNET_JSON_pack_end_ ()})
 
 
 /**
@@ -885,7 +887,7 @@ GNUNET_JSON_pack_data_varsize (const char *name,
  * @return json pack specification
  */
 #define GNUNET_JSON_pack_data_auto(name,blob) \
-  GNUNET_JSON_pack_data_varsize (name, blob, sizeof (*blob))
+        GNUNET_JSON_pack_data_varsize (name, (blob), sizeof (*(blob)))
 
 
 /**
@@ -916,7 +918,7 @@ GNUNET_JSON_pack_data64_varsize (const char *name,
  * @return json pack specification
  */
 #define GNUNET_JSON_pack_data64_auto(name,blob) \
-  GNUNET_JSON_pack_data64_varsize (name, blob, sizeof (*blob))
+        GNUNET_JSON_pack_data64_varsize (name, (blob), sizeof (*(blob)))
 
 
 /**
@@ -1009,7 +1011,8 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
  */
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_unblinded_signature (const char *name,
-                                      const struct GNUNET_CRYPTO_UnblindedSignature *sig);
+                                      const struct
+                                      GNUNET_CRYPTO_UnblindedSignature *sig);
 
 
 /**
@@ -1022,7 +1025,8 @@ GNUNET_JSON_pack_unblinded_signature (const char *name,
  */
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_blinded_message (const char *name,
-                                  const struct GNUNET_CRYPTO_BlindedMessage *msg);
+                                  const struct GNUNET_CRYPTO_BlindedMessage *msg
+                                  );
 
 
 /**
