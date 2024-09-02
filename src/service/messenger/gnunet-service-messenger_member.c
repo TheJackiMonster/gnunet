@@ -536,9 +536,9 @@ iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
                          GNUNET_MESSENGER_MemberIteratorCallback it,
                          void *cls)
 {
-  GNUNET_assert ((member) && (member->sessions) && (it));
-
   struct GNUNET_MESSENGER_ClosureIterateSessions iterate;
+  
+  GNUNET_assert ((member) && (member->sessions) && (it));
 
   iterate.it = it;
   iterate.cls = cls;

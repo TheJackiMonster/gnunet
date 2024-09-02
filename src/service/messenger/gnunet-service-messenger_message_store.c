@@ -350,7 +350,7 @@ iterate_save_messages (void *cls,
                        const struct GNUNET_HashCode *key,
                        void *value)
 {
-  struct GNUNET_MESSENGER_MessageEntryStorage storage;;
+  struct GNUNET_MESSENGER_MessageEntryStorage storage;
   struct GNUNET_MESSENGER_ClosureMessageSave *save;
   struct GNUNET_MESSENGER_Message *message;
 

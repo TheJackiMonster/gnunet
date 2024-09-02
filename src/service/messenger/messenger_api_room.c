@@ -322,7 +322,7 @@ handle_message (struct GNUNET_MESSENGER_Room *room,
                 struct GNUNET_MESSENGER_RoomMessageEntry *entry);
 
 
-void
+static void
 handle_join_message (struct GNUNET_MESSENGER_Room *room,
                      const struct GNUNET_HashCode *hash,
                      struct GNUNET_MESSENGER_RoomMessageEntry *entry)
