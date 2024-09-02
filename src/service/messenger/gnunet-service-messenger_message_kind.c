@@ -32,11 +32,12 @@
 struct GNUNET_MESSENGER_Message*
 create_message_info (struct GNUNET_MESSENGER_Service *service)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! service)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_INFO);
+  message = create_message (GNUNET_MESSENGER_KIND_INFO);
 
   if (! message)
     return NULL;
@@ -50,11 +51,12 @@ create_message_info (struct GNUNET_MESSENGER_Service *service)
 struct GNUNET_MESSENGER_Message*
 create_message_peer (struct GNUNET_MESSENGER_Service *service)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! service)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_PEER);
+  message = create_message (GNUNET_MESSENGER_KIND_PEER);
 
   if (! message)
     return NULL;
@@ -73,11 +75,12 @@ create_message_peer (struct GNUNET_MESSENGER_Service *service)
 struct GNUNET_MESSENGER_Message*
 create_message_miss (const struct GNUNET_PeerIdentity *peer)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! peer)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_MISS);
+  message = create_message (GNUNET_MESSENGER_KIND_MISS);
 
   if (! message)
   {
@@ -94,11 +97,12 @@ create_message_miss (const struct GNUNET_PeerIdentity *peer)
 struct GNUNET_MESSENGER_Message*
 create_message_merge (const struct GNUNET_HashCode *previous)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! previous)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_MERGE);
+  message = create_message (GNUNET_MESSENGER_KIND_MERGE);
 
   if (! message)
     return NULL;
@@ -113,11 +117,12 @@ create_message_merge (const struct GNUNET_HashCode *previous)
 struct GNUNET_MESSENGER_Message*
 create_message_connection (const struct GNUNET_MESSENGER_SrvRoom *room)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! room)
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *message = create_message (
-    GNUNET_MESSENGER_KIND_CONNECTION);
+  message = create_message (GNUNET_MESSENGER_KIND_CONNECTION);
 
   if (! message)
     return NULL;

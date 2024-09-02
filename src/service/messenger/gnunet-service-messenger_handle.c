@@ -42,10 +42,11 @@ struct GNUNET_MESSENGER_SrvHandle*
 create_srv_handle (struct GNUNET_MESSENGER_Service *service,
                    struct GNUNET_MQ_Handle *mq)
 {
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+
   GNUNET_assert ((service) && (mq));
 
-  struct GNUNET_MESSENGER_SrvHandle *handle = GNUNET_new (struct
-                                                          GNUNET_MESSENGER_SrvHandle);
+  handle = GNUNET_new (struct GNUNET_MESSENGER_SrvHandle);
 
   handle->service = service;
   handle->mq = mq;
@@ -65,7 +66,12 @@ iterate_close_rooms (void *cls,
                      const struct GNUNET_HashCode *key,
                      void *value)
 {
-  struct GNUNET_MESSENGER_SrvHandle *handle = cls;
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+
+  GNUNET_assert ((cls) && (key));
+
+  handle = cls;
+
   close_service_room (handle->service, handle, key, GNUNET_NO);
   return GNUNET_YES;
 }
@@ -76,6 +82,8 @@ iterate_free_values (void *cls,
                      const struct GNUNET_HashCode *key,
                      void *value)
 {
+  GNUNET_assert (value);
+
   GNUNET_free (value);
   return GNUNET_YES;
 }
@@ -153,10 +161,11 @@ static enum GNUNET_GenericReturnValue
 create_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key)
 {
+  struct GNUNET_ShortHashCode *random_id;
+
   GNUNET_assert ((handle) && (key));
 
-  struct GNUNET_ShortHashCode *random_id = GNUNET_new (struct
-                                                       GNUNET_ShortHashCode);
+  random_id = GNUNET_new (struct GNUNET_ShortHashCode);
 
   if (! random_id)
     return GNUNET_NO;
@@ -195,10 +204,11 @@ change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_HashCode *key,
                              const struct GNUNET_ShortHashCode *unique_id)
 {
+  struct GNUNET_ShortHashCode *member_id;
+
   GNUNET_assert ((handle) && (key) && (unique_id));
 
-  struct GNUNET_ShortHashCode *member_id = GNUNET_CONTAINER_multihashmap_get (
-    handle->member_ids, key);
+  member_id = GNUNET_CONTAINER_multihashmap_get (handle->member_ids, key);
 
   if (! member_id)
   {
@@ -288,14 +298,16 @@ close_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
   if (! get_srv_handle_member_id (handle, key))
     return GNUNET_NO;
 
-  enum GNUNET_GenericReturnValue result;
-  result = close_service_room (handle->service, handle, key, GNUNET_YES);
+  {
+    enum GNUNET_GenericReturnValue result;
+    result = close_service_room (handle->service, handle, key, GNUNET_YES);
 
-  if (GNUNET_YES != result)
+    if (GNUNET_YES != result)
+      return result;
+
+    GNUNET_CONTAINER_multihashmap_remove_all (handle->routing, key);
     return result;
-
-  GNUNET_CONTAINER_multihashmap_remove_all (handle->routing, key);
-  return result;
+  }
 }
 
 
@@ -315,10 +327,11 @@ sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
                           const struct GNUNET_HashCode *prev,
                           struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_SrvRoom *room;
+
   GNUNET_assert ((handle) && (key) && (prev) && (hash));
 
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (handle->service,
-                                                            key);
+  room = get_service_room (handle->service, key);
 
   if ((! room) || (! get_srv_handle_member_id (handle, key)))
   {
@@ -336,10 +349,12 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                          const struct GNUNET_HashCode *key,
                          const struct GNUNET_MESSENGER_Message *message)
 {
+  const struct GNUNET_ShortHashCode *id;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+
   GNUNET_assert ((handle) && (key) && (message));
 
-  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle,
-                                                                    key);
+  id = get_srv_handle_member_id (handle, key);
 
   if (! id)
   {
@@ -358,8 +373,7 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     return GNUNET_NO;
   }
 
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (handle->service,
-                                                            key);
+  room = get_service_room (handle->service, key);
 
   if (! room)
   {
@@ -368,8 +382,18 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     return GNUNET_NO;
   }
 
-  struct GNUNET_MESSENGER_Message *msg = copy_message (message);
-  return send_srv_room_message (room, handle, msg);
+  {
+    struct GNUNET_MESSENGER_Message *msg;
+    msg = copy_message (message);
+
+    if (! msg)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Copying message failed!\n");
+      return GNUNET_NO;
+    }
+    
+    return send_srv_room_message (room, handle, msg);
+  }
 }
 
 
@@ -377,6 +401,8 @@ static const struct GNUNET_HashCode*
 get_next_member_session_context (const struct
                                  GNUNET_MESSENGER_MemberSession *session)
 {
+  GNUNET_assert (session);
+
   if (session->next)
     return get_next_member_session_context (session->next);
   else
@@ -389,10 +415,12 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
                            struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *key)
 {
+  const struct GNUNET_ShortHashCode *id;
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+
   GNUNET_assert ((handle) && (room) && (key) && (handle->service));
 
-  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle,
-                                                                    key);
+  id = get_srv_handle_member_id (handle, key);
 
   if (! id)
   {
@@ -402,10 +430,7 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
     return NULL;
   }
 
-  struct GNUNET_MESSENGER_MemberStore *store = get_srv_room_member_store (room);
-  struct GNUNET_MESSENGER_Member *member = get_store_member (store, id);
-
-  const struct GNUNET_CRYPTO_PublicKey *pubkey = get_srv_handle_key (handle);
+  pubkey = get_srv_handle_key (handle);
 
   if (! pubkey)
   {
@@ -415,7 +440,15 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
     return NULL;
   }
 
-  return get_member_session (member, pubkey);
+  {
+    struct GNUNET_MESSENGER_MemberStore *store;
+    struct GNUNET_MESSENGER_Member *member;
+    
+    store = get_srv_room_member_store (room);
+    member = get_store_member (store, id);
+
+    return get_member_session (member, pubkey);
+  }
 }
 
 
@@ -427,11 +460,18 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                            const struct GNUNET_HashCode *hash,
                            enum GNUNET_GenericReturnValue recent)
 {
+  const struct GNUNET_HashCode *key;
+  const struct GNUNET_ShortHashCode *id;
+  const struct GNUNET_HashCode *context;
+  struct GNUNET_TIME_Absolute timestamp;
+  const struct GNUNET_ShortHashCode *discourse;
+  struct GNUNET_MESSENGER_Subscription *subscription;
+  struct GNUNET_HashCode sender;
+
   GNUNET_assert ((handle) && (room) && (session) && (message) && (hash));
 
-  const struct GNUNET_HashCode *key = get_srv_room_key (room);
-  const struct GNUNET_ShortHashCode *id = get_srv_handle_member_id (handle, 
-                                                                    key);
+  key = get_srv_room_key (room);
+  id = get_srv_handle_member_id (handle, key);
 
   if ((! handle->mq) || (! id))
   {
@@ -440,31 +480,30 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     return;
   }
 
-  struct GNUNET_HashCode sender;
-  const struct GNUNET_HashCode *context = NULL;
+  context = NULL;
 
   if (GNUNET_MESSENGER_KIND_TALK != message->header.kind)
     goto skip_message_filter;
 
-  struct GNUNET_TIME_Absolute timestamp =
-    GNUNET_TIME_absolute_ntoh(message->header.timestamp);
-  const struct GNUNET_ShortHashCode *discourse =
-    &(message->body.talk.discourse);
+  timestamp = GNUNET_TIME_absolute_ntoh(message->header.timestamp);
+  discourse = &(message->body.talk.discourse);
 
-  struct GNUNET_MESSENGER_MemberStore *member_store =
-    get_srv_room_member_store (room);
-  
-  if (! member_store)
-    return;
+  {
+    struct GNUNET_MESSENGER_MemberStore *member_store;
+    struct GNUNET_MESSENGER_Member *member;
 
-  struct GNUNET_MESSENGER_Member *member =
-    get_store_member (member_store, id);
-  
-  if (! member)
-    return;
+    member_store = get_srv_room_member_store (room);
 
-  struct GNUNET_MESSENGER_Subscription *subscription =
-    get_member_subscription(member, discourse);
+    if (! member_store)
+      return;
+
+    member = get_store_member (member_store, id);
+
+    if (! member)
+      return;
+
+    subscription = get_member_subscription(member, discourse);
+  }
   
   if ((! subscription) ||
       (GNUNET_YES != has_subscription_of_timestamp(subscription, timestamp)))
@@ -497,33 +536,35 @@ skip_message_filter:
               GNUNET_h2s (hash), GNUNET_MESSENGER_name_of_kind (
                 message->header.kind));
 
-  struct GNUNET_MESSENGER_RecvMessage *msg;
-  struct GNUNET_MQ_Envelope *env;
+  {
+    struct GNUNET_MESSENGER_RecvMessage *msg;
+    struct GNUNET_MQ_Envelope *env;
 
-  uint16_t length = get_message_size (message, GNUNET_YES);
+    uint16_t length = get_message_size (message, GNUNET_YES);
 
-  env = GNUNET_MQ_msg_extra (msg, length,
-                             GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
+    env = GNUNET_MQ_msg_extra (msg, length,
+                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
 
-  GNUNET_memcpy (&(msg->key), key, sizeof(msg->key));
-  GNUNET_memcpy (&(msg->sender), &sender, sizeof(msg->sender));
-  GNUNET_memcpy (&(msg->context), context, sizeof(msg->context));
-  GNUNET_memcpy (&(msg->hash), hash, sizeof(msg->hash));
+    GNUNET_memcpy (&(msg->key), key, sizeof(msg->key));
+    GNUNET_memcpy (&(msg->sender), &sender, sizeof(msg->sender));
+    GNUNET_memcpy (&(msg->context), context, sizeof(msg->context));
+    GNUNET_memcpy (&(msg->hash), hash, sizeof(msg->hash));
 
-  msg->flags = (uint32_t) GNUNET_MESSENGER_FLAG_NONE;
+    msg->flags = (uint32_t) GNUNET_MESSENGER_FLAG_NONE;
 
-  if (GNUNET_YES == is_peer_message (message))
-    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_PEER;
-  else if (get_handle_member_session (handle, room, key) == session->member)
-    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_SENT;
+    if (GNUNET_YES == is_peer_message (message))
+      msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_PEER;
+    else if (get_handle_member_session (handle, room, key) == session->member)
+      msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_SENT;
 
-  if (GNUNET_YES == recent)
-    msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_RECENT;
+    if (GNUNET_YES == recent)
+      msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_RECENT;
 
-  char *buffer = ((char*) msg) + sizeof(*msg);
-  encode_message (message, length, buffer, GNUNET_YES);
+    char *buffer = ((char*) msg) + sizeof(*msg);
+    encode_message (message, length, buffer, GNUNET_YES);
 
-  GNUNET_MQ_send (handle->mq, env);
+    GNUNET_MQ_send (handle->mq, env);
+  }
 }
 
 
@@ -532,23 +573,30 @@ iterate_next_member_ids (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
 {
-  struct GNUNET_MESSENGER_SrvHandle *handle = cls;
-  struct GNUNET_MESSENGER_NextMemberId *next = value;
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+  struct GNUNET_MESSENGER_NextMemberId *next;
+
+  GNUNET_assert ((cls) && (value));
+
+  handle = cls;
+  next = value;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Notifying client about next member id: %s (%s)\n",
               GNUNET_sh2s (&(next->id)), GNUNET_h2s (key));
 
-  struct GNUNET_MESSENGER_MemberMessage *msg;
-  struct GNUNET_MQ_Envelope *env;
+  {
+    struct GNUNET_MESSENGER_MemberMessage *msg;
+    struct GNUNET_MQ_Envelope *env;
 
-  env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID);
+    env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID);
 
-  GNUNET_memcpy (&(msg->key), key, sizeof(*key));
-  GNUNET_memcpy (&(msg->id), &(next->id), sizeof(next->id));
-  msg->reset = (uint32_t) next->reset;
+    GNUNET_memcpy (&(msg->key), key, sizeof(*key));
+    GNUNET_memcpy (&(msg->id), &(next->id), sizeof(next->id));
+    msg->reset = (uint32_t) next->reset;
 
-  GNUNET_MQ_send (handle->mq, env);
+    GNUNET_MQ_send (handle->mq, env);
+  }
 
   GNUNET_free (next);
   return GNUNET_YES;
@@ -558,7 +606,11 @@ iterate_next_member_ids (void *cls,
 static void
 task_notify_srv_handle_member_id (void *cls)
 {
-  struct GNUNET_MESSENGER_SrvHandle *handle = cls;
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+
+  GNUNET_assert (cls);
+
+  handle = cls;
   handle->notify = NULL;
 
   GNUNET_CONTAINER_multihashmap_iterate (handle->next_ids,
@@ -573,26 +625,35 @@ notify_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_ShortHashCode *member_id,
                              enum GNUNET_GenericReturnValue reset)
 {
+  struct GNUNET_MESSENGER_NextMemberId *next;
+  struct GNUNET_MESSENGER_NextMemberId *prev;
+  const struct GNUNET_HashCode *key;
+
   GNUNET_assert ((handle) && (room) && (member_id));
 
-  struct GNUNET_MESSENGER_NextMemberId *next = GNUNET_new (struct
-                                                           GNUNET_MESSENGER_NextMemberId);
+  next = GNUNET_new (struct GNUNET_MESSENGER_NextMemberId);
+  key = get_srv_room_key (room);
+  
   if (! next)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Allocation of next member id failed: %s (%s)\n",
+                GNUNET_sh2s (member_id), GNUNET_h2s (key));
     return;
   }
 
   GNUNET_memcpy (&(next->id), member_id, sizeof(next->id));
   next->reset = reset;
 
-  const struct GNUNET_HashCode *key = get_srv_room_key (room);
+  prev = GNUNET_CONTAINER_multihashmap_get (handle->next_ids, key);
 
-  struct GNUNET_MESSENGER_NextMemberId *prev =
-    GNUNET_CONTAINER_multihashmap_get (handle->next_ids, key);
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_put (handle->next_ids, key,
                                                        next,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Update of next member id failed: %s (%s)\n",
+                GNUNET_sh2s (member_id), GNUNET_h2s (key));
     return;
   }
 

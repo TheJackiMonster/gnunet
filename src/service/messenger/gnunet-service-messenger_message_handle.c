@@ -32,9 +32,11 @@ handle_member_session_switch (struct GNUNET_MESSENGER_MemberSession *session,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberSession *next = switch_member_session (session,
-                                                                       message,
-                                                                       hash);
+  struct GNUNET_MESSENGER_MemberSession *next;
+
+  GNUNET_assert ((session) && (message) && (hash));
+  
+  next = switch_member_session (session, message, hash);
 
   if (next != session)
     add_member_session (next->member, next);
@@ -93,7 +95,9 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
+  struct GNUNET_MESSENGER_PeerStore *store;
+  
+  store = get_srv_room_peer_store (room);
 
   if (0 == GNUNET_memcmp (session->peer, &(message->body.peer.peer)))
     update_store_peer (store, &(message->body.peer.peer), GNUNET_YES);
@@ -130,13 +134,16 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
+  struct GNUNET_MESSENGER_PeerStore *store;
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  
+  store = get_srv_room_peer_store (room);
 
   if (0 == GNUNET_memcmp (session->peer, &(message->body.miss.peer)))
     update_store_peer (store, &(message->body.miss.peer), GNUNET_NO);
 
-  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (
-    &(room->basement), &(message->body.miss.peer), NULL);
+  element = find_list_tunnels (&(room->basement), 
+                               &(message->body.miss.peer), NULL);
 
   if (! element)
     return;
@@ -154,10 +161,11 @@ handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_TIME_Relative delay = GNUNET_TIME_relative_ntoh (
-    message->body.deletion.delay);
-  struct GNUNET_TIME_Absolute action = GNUNET_TIME_absolute_ntoh (
-    message->header.timestamp);
+  struct GNUNET_TIME_Relative delay;
+  struct GNUNET_TIME_Absolute action;
+  
+  delay = GNUNET_TIME_relative_ntoh (message->body.deletion.delay);
+  action = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
 
   action = GNUNET_TIME_absolute_add (action, delay);
   delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (),
@@ -174,8 +182,9 @@ handle_message_connection (struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_MESSENGER_Message *message,
                            const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_ListTunnel *element = find_list_tunnels (
-    &(room->basement), session->peer, NULL);
+  struct GNUNET_MESSENGER_ListTunnel *element;
+  
+  element = find_list_tunnels (&(room->basement), session->peer, NULL);
 
   if (! element)
     return;
@@ -191,35 +200,38 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_MESSENGER_Message *message,
                           const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Member *member = session->member->member;
-
-  const struct GNUNET_TIME_Absolute timestamp =
-    GNUNET_TIME_absolute_ntoh (message->header.timestamp);
-
-  const struct GNUNET_ShortHashCode *discourse =
-    &(message->body.subscribe.discourse);
-  
-  const struct GNUNET_TIME_Relative duration =
-    GNUNET_TIME_relative_ntoh (message->body.subscribe.time);
-
+  struct GNUNET_MESSENGER_Member *member;
+  const struct GNUNET_ShortHashCode *discourse;
   struct GNUNET_MESSENGER_Subscription *subscription;
+  
+  member = session->member->member;
+
+  discourse = &(message->body.subscribe.discourse);
   subscription = get_member_subscription (member, discourse);
 
-  if (subscription)
-    update_subscription (subscription, 
-                         timestamp,
-                         duration);
-  else
   {
-    subscription =
-      create_subscription (room, member, discourse, 
-                           timestamp,
-                           duration);
+    struct GNUNET_TIME_Absolute timestamp;
+    struct GNUNET_TIME_Relative duration;
 
-    if (! subscription)
-      return;
+    timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+    duration = GNUNET_TIME_relative_ntoh (message->body.subscribe.time);
 
-    add_member_subscription (member, subscription);
+    if (subscription)
+      update_subscription (subscription, 
+                          timestamp,
+                          duration);
+    else
+    {
+      subscription =
+        create_subscription (room, member, discourse, 
+                            timestamp,
+                            duration);
+
+      if (! subscription)
+        return;
+
+      add_member_subscription (member, subscription);
+    }
   }
 
   update_subscription_timing (subscription);

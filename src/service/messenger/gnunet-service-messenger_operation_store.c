@@ -45,10 +45,13 @@ iterate_destroy_operations (void *cls,
                             const struct GNUNET_HashCode *key,
                             void *value)
 {
-  struct GNUNET_MESSENGER_Operation *op = value;
+  struct GNUNET_MESSENGER_Operation *op;
+
+  GNUNET_assert (value);
+  
+  op = value;
 
   destroy_operation (op);
-
   return GNUNET_YES;
 }
 
@@ -71,7 +74,12 @@ static enum GNUNET_GenericReturnValue
 callback_scan_for_operations (void *cls,
                               const char *filename)
 {
-  struct GNUNET_MESSENGER_OperationStore *store = cls;
+  struct GNUNET_MESSENGER_OperationStore *store;
+  struct GNUNET_MESSENGER_Operation *op;
+
+  GNUNET_assert ((cls) && (filename));
+  
+  store = cls;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (filename))
     return GNUNET_OK;
@@ -80,7 +88,7 @@ callback_scan_for_operations (void *cls,
                                                 - 4, ".cfg")))
     return GNUNET_OK;
 
-  struct GNUNET_MESSENGER_Operation *op = load_operation (store, filename);
+  op = load_operation (store, filename);
 
   if ((op) && (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
                  store->operations,
@@ -98,9 +106,10 @@ void
 load_operation_store (struct GNUNET_MESSENGER_OperationStore *store,
                       const char *directory)
 {
+  char *load_dir;
+
   GNUNET_assert ((store) && (directory));
 
-  char *load_dir;
   GNUNET_asprintf (&load_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -119,14 +128,18 @@ iterate_save_operations (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
 {
-  const char *save_dir = cls;
+  struct GNUNET_MESSENGER_Operation *op;
+  const char *save_dir;
+  char *op_dir;
 
-  struct GNUNET_MESSENGER_Operation *op = value;
+  GNUNET_assert ((value) && (key) && (cls));
+
+  op = value;
+  save_dir = cls;
 
   if (! op)
     return GNUNET_YES;
 
-  char *op_dir;
   GNUNET_asprintf (&op_dir, "%s%s.cfg", save_dir, GNUNET_h2s (key));
   save_operation (op, op_dir);
 
@@ -139,9 +152,10 @@ void
 save_operation_store (const struct GNUNET_MESSENGER_OperationStore *store,
                       const char *directory)
 {
+  char *save_dir;
+
   GNUNET_assert ((store) && (directory));
 
-  char *save_dir;
   GNUNET_asprintf (&save_dir, "%s%s%c", directory, "operations", DIR_SEPARATOR);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -161,10 +175,11 @@ enum GNUNET_MESSENGER_OperationType
 get_store_operation_type (const struct GNUNET_MESSENGER_OperationStore *store,
                           const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_Operation *op;
+
   GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
-    store->operations, hash);
+  op = GNUNET_CONTAINER_multihashmap_get (store->operations, hash);
 
   if (! op)
     return GNUNET_MESSENGER_OP_UNKNOWN;
@@ -179,10 +194,11 @@ use_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                      enum GNUNET_MESSENGER_OperationType type,
                      struct GNUNET_TIME_Relative delay)
 {
+  struct GNUNET_MESSENGER_Operation *op;
+
   GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
-    store->operations, hash);
+  op = GNUNET_CONTAINER_multihashmap_get (store->operations, hash);
 
   if (op)
     goto use_op;
@@ -211,10 +227,11 @@ void
 cancel_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                         const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_Operation *op;
+
   GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_MESSENGER_Operation *op = GNUNET_CONTAINER_multihashmap_get (
-    store->operations, hash);
+  op = GNUNET_CONTAINER_multihashmap_get (store->operations, hash);
 
   if (! op)
     return;
@@ -244,13 +261,15 @@ callback_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                           enum GNUNET_MESSENGER_OperationType type,
                           const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_HashCode op_hash;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+
   GNUNET_assert ((store) && (hash));
 
-  struct GNUNET_HashCode op_hash;
   GNUNET_memcpy (&op_hash, hash, sizeof(op_hash));
   cancel_store_operation (store, &op_hash);
 
-  struct GNUNET_MESSENGER_SrvRoom *room = store->room;
+  room = store->room;
 
   switch (type)
   {

@@ -36,9 +36,10 @@ create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration)
 {
+  struct GNUNET_MESSENGER_Subscription *subscribtion;
+
   GNUNET_assert ((room) && (member) && (discourse));
 
-  struct GNUNET_MESSENGER_Subscription *subscribtion;
   subscribtion = GNUNET_new (struct GNUNET_MESSENGER_Subscription);
 
   if (! subscribtion)
@@ -93,9 +94,11 @@ update_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration)
 {
+  struct GNUNET_TIME_Absolute end;
+
   GNUNET_assert (subscribtion);
 
-  const struct GNUNET_TIME_Absolute end = GNUNET_TIME_absolute_add (timestamp, duration);
+  end = GNUNET_TIME_absolute_add (timestamp, duration);
 
   if (GNUNET_TIME_absolute_cmp (end, <, subscribtion->start))
     return;
@@ -109,18 +112,22 @@ update_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion,
 static void
 task_subscription_exit (void *cls)
 {
+  struct GNUNET_MESSENGER_Subscription *subscribtion;
+  struct GNUNET_MESSENGER_Member *member;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_ShortHashCode discourse;
+
   GNUNET_assert (cls);
 
-  struct GNUNET_MESSENGER_Subscription *subscribtion = cls;
-  struct GNUNET_MESSENGER_Member *member = subscribtion->member;
+  subscribtion = cls;
+  member = subscribtion->member;
 
   subscribtion->task = NULL;
 
   if (! member)
     return;
 
-  struct GNUNET_MESSENGER_SrvRoom *room = subscribtion->room;
-  struct GNUNET_ShortHashCode discourse;
+  room = subscribtion->room;
 
   memcpy (&discourse, &(subscribtion->discourse), 
           sizeof (struct GNUNET_ShortHashCode));
@@ -134,12 +141,13 @@ task_subscription_exit (void *cls)
 void
 update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscribtion)
 {
+  struct GNUNET_TIME_Absolute current;
+  struct GNUNET_TIME_Relative time;
+
   GNUNET_assert (subscribtion);
 
-  struct GNUNET_TIME_Absolute current = GNUNET_TIME_absolute_get ();
-
-  struct GNUNET_TIME_Relative time =
-    GNUNET_TIME_absolute_get_difference (current, subscribtion->end);
+  current = GNUNET_TIME_absolute_get ();
+  time = GNUNET_TIME_absolute_get_difference (current, subscribtion->end);
   
   if (subscribtion->task)
     GNUNET_SCHEDULER_cancel (subscribtion->task);

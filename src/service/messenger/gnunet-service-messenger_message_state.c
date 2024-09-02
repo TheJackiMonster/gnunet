@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -98,9 +98,10 @@ void
 load_message_state (struct GNUNET_MESSENGER_MessageState *state,
                     const char *path)
 {
+  char *last_messages_file;
+
   GNUNET_assert ((state) && (path));
 
-  char *last_messages_file;
   GNUNET_asprintf (&last_messages_file, "%s%s", path, "last_messages.list");
 
   load_list_messages (&(state->last_messages), last_messages_file);
@@ -112,9 +113,10 @@ void
 save_message_state (const struct GNUNET_MESSENGER_MessageState *state,
                     const char *path)
 {
+  char *last_messages_file;
+  
   GNUNET_assert ((state) && (path));
 
-  char *last_messages_file;
   GNUNET_asprintf (&last_messages_file, "%s%s", path, "last_messages.list");
 
   save_list_messages (&(state->last_messages), last_messages_file);

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2023 GNUnet e.V.
+   Copyright (C) 2021--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,11 +34,12 @@ struct GNUNET_MESSENGER_MemberSession*
 create_member_session (struct GNUNET_MESSENGER_Member *member,
                        const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
+  struct GNUNET_MESSENGER_MemberSession *session;
+
   if ((! member) || (! pubkey) || (! (member->store)))
     return NULL;
 
-  struct GNUNET_MESSENGER_MemberSession *session = GNUNET_new (struct
-                                                               GNUNET_MESSENGER_MemberSession);
+  session = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
   session->member = member;
 
   GNUNET_memcpy (&(session->public_key), pubkey, sizeof(session->public_key));
@@ -48,15 +49,18 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
     get_member_session_id (session),
     &(session->context)
     );
+  
+  {
+    struct GNUNET_MESSENGER_ContactStore *store;
 
-  struct GNUNET_MESSENGER_ContactStore *store = get_member_contact_store (
-    session->member->store);
+    store = get_member_contact_store (session->member->store);
 
-  session->contact = get_store_contact (
-    store,
-    get_member_session_context (session),
-    get_member_session_public_key (session)
-    );
+    session->contact = get_store_contact (
+      store,
+      get_member_session_context (session),
+      get_member_session_public_key (session)
+      );
+  }
 
   if (! (session->contact))
   {
@@ -85,6 +89,12 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
 static void
 check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 {
+  const struct GNUNET_HashCode *start;
+  const struct GNUNET_HashCode *end;
+  struct GNUNET_MESSENGER_MessageStore *msg_store;
+  struct GNUNET_MESSENGER_ListMessages level;
+  struct GNUNET_MESSENGER_ListMessages list;
+
   GNUNET_assert (session);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -97,18 +107,14 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
     goto completion;
   }
 
-  const struct GNUNET_HashCode *start = &(session->messages.head->hash);
-  const struct GNUNET_HashCode *end = &(session->messages.tail->hash);
+  start = &(session->messages.head->hash);
+  end = &(session->messages.tail->hash);
 
-  struct GNUNET_MESSENGER_ListMessages level;
+  msg_store = get_srv_room_message_store (session->member->store->room);
+
   init_list_messages (&level);
-
   add_to_list_messages (&level, end);
 
-  struct GNUNET_MESSENGER_MessageStore *store = get_srv_room_message_store (
-    session->member->store->room);
-
-  struct GNUNET_MESSENGER_ListMessages list;
   init_list_messages (&list);
 
   while (level.head)
@@ -117,8 +123,10 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 
     for (element = level.head; element; element = element->next)
     {
-      const struct GNUNET_MESSENGER_MessageLink *link = get_store_message_link (
-        store, &(element->hash), GNUNET_NO
+      const struct GNUNET_MESSENGER_MessageLink *link;
+
+      link = get_store_message_link (
+        msg_store, &(element->hash), GNUNET_NO
         );
 
       if (! link)
@@ -151,11 +159,12 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 completion:
   if (GNUNET_YES == is_member_session_completed (session))
   {
+    struct GNUNET_MESSENGER_ContactStore *store;
+
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Completed session history (%s)\n",
                 GNUNET_sh2s (get_member_session_id (session)));
 
-    struct GNUNET_MESSENGER_ContactStore *store = get_member_contact_store (
-      session->member->store);
+    store = get_member_contact_store (session->member->store);
 
     if ((session->contact) && (GNUNET_YES == decrease_contact_rc (
                                  session->contact)))
@@ -175,7 +184,11 @@ iterate_copy_history (void *cls,
                       const struct GNUNET_HashCode *key,
                       void *value)
 {
-  struct GNUNET_MESSENGER_MemberSession *next = cls;
+  struct GNUNET_MESSENGER_MemberSession *next;
+
+  GNUNET_assert ((cls) && (key));
+  
+  next = cls;
 
   GNUNET_CONTAINER_multihashmap_put (next->history, key, (value? next : NULL),
                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
@@ -189,14 +202,15 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_MemberSession *next;
+
   if ((! session) || (! message) || (! hash))
     return NULL;
 
   GNUNET_assert ((GNUNET_MESSENGER_KIND_ID == message->header.kind) ||
                  (GNUNET_MESSENGER_KIND_KEY == message->header.kind));
 
-  struct GNUNET_MESSENGER_MemberSession *next = GNUNET_new (struct
-                                                            GNUNET_MESSENGER_MemberSession);
+  next = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
 
   if (GNUNET_MESSENGER_KIND_ID == message->header.kind)
     next->member = add_store_member (session->member->store,
@@ -264,14 +278,15 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
 void
 destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 {
+  struct GNUNET_MESSENGER_Contact *contact;
+
   GNUNET_assert (session);
 
   GNUNET_CONTAINER_multihashmap_destroy (session->history);
 
   clear_list_messages (&(session->messages));
 
-  struct GNUNET_MESSENGER_Contact *contact = get_member_session_contact (
-    session);
+  contact = get_member_session_contact ( session);
 
   if ((contact) && (GNUNET_YES == decrease_contact_rc (contact)))
     remove_store_contact (
@@ -288,15 +303,20 @@ enum GNUNET_GenericReturnValue
 reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                       const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_Contact *contact;
+
   GNUNET_assert ((session) && (hash));
 
-  struct GNUNET_MESSENGER_ContactStore *store = get_member_contact_store (
-    session->member->store);
-  struct GNUNET_MESSENGER_Contact *contact = get_store_contact (
-    store,
-    get_member_session_context (session),
-    get_member_session_public_key (session)
-    );
+  {
+    struct GNUNET_MESSENGER_ContactStore *store;
+
+    store = get_member_contact_store (session->member->store);
+    contact = get_store_contact (
+      store,
+      get_member_session_context (session),
+      get_member_session_public_key (session)
+      );
+  }
 
   if (! contact)
     return GNUNET_SYSERR;
@@ -533,30 +553,30 @@ static void
 load_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
                              const char *path)
 {
+  struct GNUNET_DISK_FileHandle *handle;
+  enum GNUNET_GenericReturnValue status;
+
   GNUNET_assert ((session) && (path));
 
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE
-                                                   );
+  {
+    enum GNUNET_DISK_AccessPermissions permission;
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
-    path, GNUNET_DISK_OPEN_READ, permission
-    );
+    permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+    handle = GNUNET_DISK_file_open (path, GNUNET_DISK_OPEN_READ, permission);
+  }
 
   if (! handle)
     return;
 
   GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
 
-  struct GNUNET_MESSENGER_MemberSessionHistoryEntry entry;
-  ssize_t len;
-
-  enum GNUNET_GenericReturnValue status;
-
   do {
+    struct GNUNET_MESSENGER_MemberSessionHistoryEntry entry;
+    ssize_t len;
+
     len = GNUNET_DISK_file_read (handle, &(entry.hash), sizeof(entry.hash));
 
     if (len != sizeof(entry.hash))
@@ -582,12 +602,15 @@ void
 load_member_session (struct GNUNET_MESSENGER_Member *member,
                      const char *directory)
 {
+  char *config_file;
+  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+
   GNUNET_assert ((member) && (directory));
 
-  char *config_file;
   GNUNET_asprintf (&config_file, "%s%s", directory, "session.cfg");
 
-  struct GNUNET_MESSENGER_MemberSession *session = NULL;
+  session = NULL;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (config_file))
     goto free_config;
@@ -595,29 +618,29 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Load session configuration of member: %s\n", config_file);
 
-  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create ();
+
+  if (! cfg)
+    goto free_config;
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, config_file))
   {
+    struct GNUNET_CRYPTO_PublicKey key;
+    enum GNUNET_GenericReturnValue key_result;
+    unsigned long long numeric_value;
     char *key_data;
 
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg, "session",
                                                             "key", &key_data))
       goto destroy_config;
 
-    struct GNUNET_CRYPTO_PublicKey key;
-
-    enum GNUNET_GenericReturnValue key_return =
-      GNUNET_CRYPTO_public_key_from_string (key_data, &key);
-
+    key_result = GNUNET_CRYPTO_public_key_from_string (key_data, &key);
     GNUNET_free (key_data);
 
-    if (GNUNET_OK != key_return)
+    if (GNUNET_OK != key_result)
       goto destroy_config;
 
     session = create_member_session (member, &key);
-
-    unsigned long long numeric_value;
 
     if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (cfg, "session",
                                                             "start",
@@ -645,17 +668,21 @@ free_config:
   if (! session)
     return;
 
-  char *history_file;
-  GNUNET_asprintf (&history_file, "%s%s", directory, "history.map");
+  {
+    char *history_file;
+    GNUNET_asprintf (&history_file, "%s%s", directory, "history.map");
 
-  load_member_session_history (session, history_file);
-  GNUNET_free (history_file);
+    load_member_session_history (session, history_file);
+    GNUNET_free (history_file);
+  }
 
-  char *messages_file;
-  GNUNET_asprintf (&messages_file, "%s%s", directory, "messages.list");
+  {
+    char *messages_file;
+    GNUNET_asprintf (&messages_file, "%s%s", directory, "messages.list");
 
-  load_list_messages (&(session->messages), messages_file);
-  GNUNET_free (messages_file);
+    load_list_messages (&(session->messages), messages_file);
+    GNUNET_free (messages_file);
+  }
 
   add_member_session (member, session);
 }
@@ -665,10 +692,12 @@ static struct GNUNET_MESSENGER_MemberSession*
 get_cycle_safe_next_session (struct GNUNET_MESSENGER_MemberSession *session,
                              struct GNUNET_MESSENGER_MemberSession *next)
 {
+  struct GNUNET_MESSENGER_MemberSession *check;
+
   if (! next)
     return NULL;
 
-  struct GNUNET_MESSENGER_MemberSession *check = next;
+  check = next;
 
   do {
     if (check == session)
@@ -685,9 +714,12 @@ void
 load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
                           const char *directory)
 {
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+  char *config_file;
+
+
   GNUNET_assert ((session) && (directory));
 
-  char *config_file;
   GNUNET_asprintf (&config_file, "%s%s", directory, "session.cfg");
 
   if (GNUNET_YES != GNUNET_DISK_file_test (config_file))
@@ -696,10 +728,16 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Load next session configuration of member: %s\n", config_file);
 
-  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create ();
+
+  if (! cfg)
+    goto free_config;
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, config_file))
   {
+    struct GNUNET_CRYPTO_PublicKey next_key;
+    enum GNUNET_GenericReturnValue key_result;
+    struct GNUNET_ShortHashCode next_id;
     char *key_data;
 
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg, "session",
@@ -707,28 +745,25 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
                                                             &key_data))
       goto destroy_config;
 
-    struct GNUNET_CRYPTO_PublicKey next_key;
-
-    enum GNUNET_GenericReturnValue key_return =
-      GNUNET_CRYPTO_public_key_from_string (key_data, &next_key);
-
+    key_result = GNUNET_CRYPTO_public_key_from_string (key_data, &next_key);
     GNUNET_free (key_data);
 
-    if (GNUNET_OK != key_return)
+    if (GNUNET_OK != key_result)
       goto destroy_config;
-
-    struct GNUNET_ShortHashCode next_id;
 
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "session", "next_id",
                                                     &next_id, sizeof(next_id)))
       goto destroy_config;
 
-    struct GNUNET_MESSENGER_Member *member = get_store_member (
-      session->member->store, &next_id);
+    {
+      struct GNUNET_MESSENGER_Member *member;
+      
+      member = get_store_member (session->member->store, &next_id);
 
-    session->next = get_cycle_safe_next_session (
-      session, member? get_member_session (member, &next_key) : NULL
-      );
+      session->next = get_cycle_safe_next_session (
+        session, member? get_member_session (member, &next_key) : NULL
+        );
+    }
 
     if (session->next)
       session->next->prev = session;
@@ -747,8 +782,13 @@ iterate_save_member_session_history_hentries (void *cls,
                                               const struct GNUNET_HashCode *key,
                                               void *value)
 {
-  struct GNUNET_DISK_FileHandle *handle = cls;
-  unsigned char ownership = value? GNUNET_YES : GNUNET_NO;
+  struct GNUNET_DISK_FileHandle *handle;
+  unsigned char ownership;
+
+  GNUNET_assert ((cls) && (key));
+  
+  handle = cls;
+  ownership = value? GNUNET_YES : GNUNET_NO;
 
   GNUNET_DISK_file_write (handle, key, sizeof(*key));
   GNUNET_DISK_file_write (handle, &ownership, sizeof(ownership));
@@ -761,15 +801,19 @@ static void
 save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
                              const char *path)
 {
+  struct GNUNET_DISK_FileHandle *handle;
+
   GNUNET_assert ((session) && (path));
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE
-                                                   );
+  {
+    enum GNUNET_DISK_AccessPermissions permission;
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
-    path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
-    );
+    permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+    handle = GNUNET_DISK_file_open (
+      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
+      );
+  }
 
   if (! handle)
     return;
@@ -791,23 +835,28 @@ void
 save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                      const char *directory)
 {
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+  char *config_file;
+  char *key_data;
+
   GNUNET_assert ((session) && (directory));
 
-  char *config_file;
   GNUNET_asprintf (&config_file, "%s%s", directory, "session.cfg");
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Save session configuration of member: %s\n", config_file);
 
-  struct GNUNET_CONFIGURATION_Handle *cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create ();
 
-  char *key_data = GNUNET_CRYPTO_public_key_to_string (
+  if (! cfg)
+    goto free_config;
+
+  key_data = GNUNET_CRYPTO_public_key_to_string (
     get_member_session_public_key (session));
 
   if (key_data)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg, "session", "key", key_data);
-
     GNUNET_free (key_data);
   }
 
@@ -823,7 +872,6 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
     {
       GNUNET_CONFIGURATION_set_value_string (cfg, "session", "next_id",
                                              next_id_data);
-
       GNUNET_free (next_id_data);
     }
 
@@ -834,7 +882,6 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
     {
       GNUNET_CONFIGURATION_set_value_string (cfg, "session", "next_key",
                                              key_data);
-
       GNUNET_free (key_data);
     }
   }
@@ -850,17 +897,22 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_CONFIGURATION_write (cfg, config_file);
   GNUNET_CONFIGURATION_destroy (cfg);
 
+free_config:
   GNUNET_free (config_file);
 
-  char *history_file;
-  GNUNET_asprintf (&history_file, "%s%s", directory, "history.map");
+  {
+    char *history_file;
+    GNUNET_asprintf (&history_file, "%s%s", directory, "history.map");
 
-  save_member_session_history (session, history_file);
-  GNUNET_free (history_file);
+    save_member_session_history (session, history_file);
+    GNUNET_free (history_file);
+  }
 
-  char *messages_file;
-  GNUNET_asprintf (&messages_file, "%s%s", directory, "messages.list");
+  {
+    char *messages_file;
+    GNUNET_asprintf (&messages_file, "%s%s", directory, "messages.list");
 
-  save_list_messages (&(session->messages), messages_file);
-  GNUNET_free (messages_file);
+    save_list_messages (&(session->messages), messages_file);
+    GNUNET_free (messages_file);
+  }
 }

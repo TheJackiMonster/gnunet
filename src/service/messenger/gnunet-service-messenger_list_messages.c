@@ -59,10 +59,11 @@ void
 add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
                       const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_ListMessage *element;
+
   GNUNET_assert ((messages) && (hash));
 
-  struct GNUNET_MESSENGER_ListMessage *element = GNUNET_new (struct
-                                                             GNUNET_MESSENGER_ListMessage);
+  element = GNUNET_new (struct GNUNET_MESSENGER_ListMessage);
 
   GNUNET_memcpy (&(element->hash), hash, sizeof(struct GNUNET_HashCode));
 
@@ -74,9 +75,9 @@ void
 copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
                     const struct GNUNET_MESSENGER_ListMessages *origin)
 {
-  GNUNET_assert ((messages) && (origin));
-
   struct GNUNET_MESSENGER_ListMessage *element;
+
+  GNUNET_assert ((messages) && (origin));
 
   for (element = origin->head; element; element = element->next)
     add_to_list_messages (messages, &(element->hash));
@@ -87,9 +88,9 @@ void
 remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
                            const struct GNUNET_HashCode *hash)
 {
-  GNUNET_assert ((messages) && (hash));
-
   struct GNUNET_MESSENGER_ListMessage *element;
+
+  GNUNET_assert ((messages) && (hash));
 
   for (element = messages->head; element; element = element->next)
     if (0 == GNUNET_CRYPTO_hash_cmp (&(element->hash), hash))
@@ -105,26 +106,27 @@ void
 load_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
                     const char *path)
 {
+  struct GNUNET_DISK_FileHandle *handle;
+  struct GNUNET_HashCode hash;
+  ssize_t len;
+
   GNUNET_assert ((messages) && (path));
 
   if (GNUNET_YES != GNUNET_DISK_file_test (path))
     return;
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE
-                                                   );
+  {
+    enum GNUNET_DISK_AccessPermissions permission;
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
-    path, GNUNET_DISK_OPEN_READ, permission
-    );
+    permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+
+    handle = GNUNET_DISK_file_open (path, GNUNET_DISK_OPEN_READ, permission);
+  }
 
   if (! handle)
     return;
 
   GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
-
-  struct GNUNET_HashCode hash;
-  ssize_t len;
 
   do {
     len = GNUNET_DISK_file_read (handle, &hash, sizeof(hash));
@@ -143,25 +145,30 @@ void
 save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages,
                     const char *path)
 {
+  struct GNUNET_DISK_FileHandle *handle;
+
   GNUNET_assert ((messages) && (path));
 
-  enum GNUNET_DISK_AccessPermissions permission = (GNUNET_DISK_PERM_USER_READ
-                                                   | GNUNET_DISK_PERM_USER_WRITE
-                                                   );
+  {
+    enum GNUNET_DISK_AccessPermissions permission;
 
-  struct GNUNET_DISK_FileHandle *handle = GNUNET_DISK_file_open (
-    path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
-    );
+    permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
+    
+    handle = GNUNET_DISK_file_open (
+      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission);
+  }
 
   if (! handle)
     return;
 
   GNUNET_DISK_file_seek (handle, 0, GNUNET_DISK_SEEK_SET);
 
-  struct GNUNET_MESSENGER_ListMessage *element;
+  {
+    struct GNUNET_MESSENGER_ListMessage *element;
 
-  for (element = messages->head; element; element = element->next)
-    GNUNET_DISK_file_write (handle, &(element->hash), sizeof(element->hash));
+    for (element = messages->head; element; element = element->next)
+      GNUNET_DISK_file_write (handle, &(element->hash), sizeof(element->hash));
+  }
 
   GNUNET_DISK_file_sync (handle);
   GNUNET_DISK_file_close (handle);

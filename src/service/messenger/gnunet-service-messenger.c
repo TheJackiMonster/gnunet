@@ -43,7 +43,11 @@ static void
 handle_create (void *cls,
                const struct GNUNET_MESSENGER_CreateMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert (cls);
+  
+  msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Handle created\n");
 
@@ -55,7 +59,11 @@ static void
 handle_destroy (void *cls,
                 const struct GNUNET_MESSENGER_DestroyMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert (cls);
+  
+  msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Handle destroyed\n");
 
@@ -66,26 +74,34 @@ handle_destroy (void *cls,
 static enum GNUNET_GenericReturnValue
 check_room_initial_key (const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  const uint16_t full_length = ntohs (msg->header.size);
+  uint16_t full_length;
+  uint16_t msg_length;
+  const char *msg_buffer;
+
+  GNUNET_assert (msg);
+
+  full_length = ntohs (msg->header.size);
 
   if (full_length < sizeof(*msg))
     return GNUNET_NO;
 
-  const uint16_t msg_length = full_length - sizeof(*msg);
-  const char *msg_buffer = ((const char*) msg) + sizeof(*msg);
+  msg_length = full_length - sizeof(*msg);
+  msg_buffer = ((const char*) msg) + sizeof(*msg);
 
   if (0 == msg_length)
     return GNUNET_OK;
 
-  struct GNUNET_CRYPTO_PublicKey key;
-  size_t key_len;
+  {
+    struct GNUNET_CRYPTO_PublicKey key;
+    size_t key_len;
 
-  if (GNUNET_OK != GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
-                                                              msg_length,
-                                                              &key, &key_len))
-    return GNUNET_NO;
+    if (GNUNET_OK != GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
+                                                                msg_length,
+                                                                &key, &key_len))
+      return GNUNET_NO;
 
-  return key_len == msg_length ? GNUNET_OK : GNUNET_NO;
+    return key_len == msg_length ? GNUNET_OK : GNUNET_NO;
+  }
 }
 
 
@@ -93,11 +109,15 @@ static void
 initialize_handle_via_key (struct GNUNET_MESSENGER_SrvHandle *handle,
                            const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  GNUNET_assert (handle);
+  uint16_t full_length;
+  uint16_t msg_length;
+  const char *msg_buffer;
 
-  const uint16_t full_length = ntohs (msg->header.size);
-  const uint16_t msg_length = full_length - sizeof(*msg);
-  const char *msg_buffer = ((const char*) msg) + sizeof(*msg);
+  GNUNET_assert ((handle) && (msg));
+
+  full_length = ntohs (msg->header.size);
+  msg_length = full_length - sizeof(*msg);
+  msg_buffer = ((const char*) msg) + sizeof(*msg);
 
   if (msg_length > 0)
   {
@@ -130,7 +150,11 @@ static void
 handle_room_open (void *cls,
                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert ((cls) && (msg));
+
+  msg_client = cls;
 
   initialize_handle_via_key (msg_client->handle, msg);
 
@@ -140,17 +164,17 @@ handle_room_open (void *cls,
   if (GNUNET_YES == open_srv_handle_room (msg_client->handle, &(msg->key)))
   {
     struct GNUNET_HashCode prev;
+    const struct GNUNET_ShortHashCode *member_id;
+    struct GNUNET_MESSENGER_RoomMessage *response;
+    struct GNUNET_MQ_Envelope *env;
+
     sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
                               &prev);
 
-    const struct GNUNET_ShortHashCode *member_id = get_srv_handle_member_id (
-      msg_client->handle, &(msg->key));
+    member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Opening room with member id: %s\n",
                 GNUNET_sh2s (member_id));
-
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
@@ -177,28 +201,32 @@ static void
 handle_room_entry (void *cls,
                    const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert ((cls) && (msg));
+
+  msg_client = cls;
 
   initialize_handle_via_key (msg_client->handle, msg);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Entering room: %s, %s\n", GNUNET_h2s (
-                &(msg->key)), GNUNET_i2s (&(msg->door)));
+              &(msg->key)), GNUNET_i2s (&(msg->door)));
 
   if (GNUNET_YES == entry_srv_handle_room (msg_client->handle, &(msg->door),
                                            &(msg->key)))
   {
     struct GNUNET_HashCode prev;
+    const struct GNUNET_ShortHashCode *member_id;
+    struct GNUNET_MESSENGER_RoomMessage *response;
+    struct GNUNET_MQ_Envelope *env;
+
     sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
                               &prev);
 
-    const struct GNUNET_ShortHashCode *member_id = get_srv_handle_member_id (
-      msg_client->handle, &(msg->key));
+    member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Entering room with member id: %s\n",
                 GNUNET_sh2s (member_id));
-
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY);
     GNUNET_memcpy (&(response->door), &(msg->door), sizeof(response->door));
@@ -219,18 +247,22 @@ static void
 handle_room_close (void *cls,
                    const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert (cls);
+
+  msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closing room: %s\n", GNUNET_h2s (
                 &(msg->key)));
 
   if (GNUNET_YES == close_srv_handle_room (msg_client->handle, &(msg->key)))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closing room succeeded: %s\n",
-                GNUNET_h2s (&(msg->key)));
-
     struct GNUNET_MESSENGER_RoomMessage *response;
     struct GNUNET_MQ_Envelope *env;
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closing room succeeded: %s\n",
+                GNUNET_h2s (&(msg->key)));
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
@@ -250,22 +282,28 @@ static void
 handle_room_sync (void *cls,
                   const struct GNUNET_MESSENGER_RoomMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert (cls);
+
+  msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Syncing room: %s\n", GNUNET_h2s (
                 &(msg->key)));
+  
+  {
+    struct GNUNET_HashCode prev;
+    struct GNUNET_MESSENGER_RoomMessage *response;
+    struct GNUNET_MQ_Envelope *env;
 
-  struct GNUNET_HashCode prev;
-  sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                            &prev);
+    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
+                              &prev);
 
-  struct GNUNET_MESSENGER_RoomMessage *response;
-  struct GNUNET_MQ_Envelope *env;
-
-  env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC);
-  GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-  GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
-  GNUNET_MQ_send (msg_client->handle->mq, env);
+    env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC);
+    GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
+    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_MQ_send (msg_client->handle->mq, env);
+  }
 
   GNUNET_SERVICE_client_continue (msg_client->client);
 }
@@ -275,15 +313,20 @@ static enum GNUNET_GenericReturnValue
 check_send_message (void *cls,
                     const struct GNUNET_MESSENGER_SendMessage *msg)
 {
-  const uint16_t full_length = ntohs (msg->header.size);
+  uint16_t full_length;
+  uint16_t msg_length;
+  const char *msg_buffer;
+  struct GNUNET_MESSENGER_Message message;
+
+  GNUNET_assert (msg);
+
+  full_length = ntohs (msg->header.size);
 
   if (full_length < sizeof(*msg))
     return GNUNET_NO;
 
-  const uint16_t msg_length = full_length - sizeof(*msg);
-  const char *msg_buffer = ((const char*) msg) + sizeof(*msg);
-
-  struct GNUNET_MESSENGER_Message message;
+  msg_length = full_length - sizeof(*msg);
+  msg_buffer = ((const char*) msg) + sizeof(*msg);
 
   if (msg_length < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN,
                                           GNUNET_YES))
@@ -303,17 +346,19 @@ check_send_message (void *cls,
     return GNUNET_NO;
   }
 
-  enum GNUNET_GenericReturnValue allowed;
-  allowed = filter_message_sending (&message);
+  {
+    enum GNUNET_GenericReturnValue allowed;
+    allowed = filter_message_sending (&message);
 
-  if (GNUNET_SYSERR == allowed)
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Sending message not allowed: %s to %s\n",
-                GNUNET_MESSENGER_name_of_kind (message.header.kind),
-                GNUNET_h2s (&(msg->key)));
+    if (GNUNET_SYSERR == allowed)
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Sending message not allowed: %s to %s\n",
+                  GNUNET_MESSENGER_name_of_kind (message.header.kind),
+                  GNUNET_h2s (&(msg->key)));
 
-  cleanup_message (&message);
-  return GNUNET_SYSERR != allowed? GNUNET_OK : GNUNET_NO;
+    cleanup_message (&message);
+    return GNUNET_SYSERR != allowed? GNUNET_OK : GNUNET_NO;
+  }
 }
 
 
@@ -321,26 +366,35 @@ static void
 handle_send_message (void *cls,
                      const struct GNUNET_MESSENGER_SendMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+  const struct GNUNET_HashCode *key;
+  const char *msg_buffer;
+  uint16_t msg_length;
 
-  const struct GNUNET_HashCode *key = &(msg->key);
-  const char *msg_buffer = ((const char*) msg) + sizeof(*msg);
-  const uint16_t msg_length = ntohs (msg->header.size) - sizeof(*msg);
+  GNUNET_assert ((cls) && (msg));
+  
+  msg_client = cls;
 
-  struct GNUNET_MESSENGER_Message message;
-  decode_message (&message, msg_length, msg_buffer, GNUNET_YES, NULL);
+  key = &(msg->key);
+  msg_buffer = ((const char*) msg) + sizeof(*msg);
+  msg_length = ntohs (msg->header.size) - sizeof(*msg);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending message: %s to %s (by %s)\n",
-              GNUNET_MESSENGER_name_of_kind (message.header.kind),
-              GNUNET_h2s (key),
-              GNUNET_sh2s (&(message.header.sender_id)));
+  {
+    struct GNUNET_MESSENGER_Message message;
+    decode_message (&message, msg_length, msg_buffer, GNUNET_YES, NULL);
 
-  if (GNUNET_YES != send_srv_handle_message (msg_client->handle, key, &message))
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Sending message failed: %s to %s\n",
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending message: %s to %s (by %s)\n",
                 GNUNET_MESSENGER_name_of_kind (message.header.kind),
-                GNUNET_h2s (key));
+                GNUNET_h2s (key),
+                GNUNET_sh2s (&(message.header.sender_id)));
 
-  cleanup_message (&message);
+    if (GNUNET_YES != send_srv_handle_message (msg_client->handle, key, &message))
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Sending message failed: %s to %s\n",
+                  GNUNET_MESSENGER_name_of_kind (message.header.kind),
+                  GNUNET_h2s (key));
+
+    cleanup_message (&message);
+  }
 
   GNUNET_SERVICE_client_continue (msg_client->client);
 }
@@ -352,16 +406,21 @@ callback_found_message (void *cls,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+  struct GNUNET_MESSENGER_SenderSession session;
+
+  GNUNET_assert ((cls) && (room) && (hash));
+  
+  msg_client = cls;
 
   if (! message)
   {
+    struct GNUNET_MESSENGER_GetMessage *response;
+    struct GNUNET_MQ_Envelope *env;
+
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Notifying client about missing message: %s\n",
                 GNUNET_h2s (hash));
-
-    struct GNUNET_MESSENGER_GetMessage *response;
-    struct GNUNET_MQ_Envelope *env;
 
     env = GNUNET_MQ_msg (response,
                          GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_GET_MESSAGE);
@@ -371,12 +430,11 @@ callback_found_message (void *cls,
     return;
   }
 
-  struct GNUNET_MESSENGER_SenderSession session;
-
   if (GNUNET_YES == is_peer_message (message))
   {
-    struct GNUNET_MESSENGER_PeerStore *store = get_srv_room_peer_store (room);
-
+    struct GNUNET_MESSENGER_PeerStore *store;
+    
+    store = get_srv_room_peer_store (room);
     session.peer = get_store_peer_of (store, message, hash);
 
     if (! session.peer)
@@ -389,10 +447,11 @@ callback_found_message (void *cls,
   }
   else
   {
-    struct GNUNET_MESSENGER_MemberStore *store = get_srv_room_member_store (
-      room);
-    struct GNUNET_MESSENGER_Member *member = get_store_member_of (store,
-                                                                  message);
+    struct GNUNET_MESSENGER_MemberStore *store;
+    struct GNUNET_MESSENGER_Member *member;
+    
+    store = get_srv_room_member_store (room);
+    member = get_store_member_of (store, message);
 
     if (! member)
     {
@@ -421,15 +480,23 @@ static void
 handle_get_message (void *cls,
                     const struct GNUNET_MESSENGER_GetMessage *msg)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  const struct GNUNET_ShortHashCode *member_id;
+  struct GNUNET_MESSENGER_Member *member;
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  struct GNUNET_MESSENGER_MemberSession *session;
+
+  GNUNET_assert ((cls) && (msg));
+  
+  msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Requesting message from room: %s\n",
               GNUNET_h2s (&(msg->key)));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Requested message: %s\n",
               GNUNET_h2s (&(msg->hash)));
 
-  struct GNUNET_MESSENGER_SrvRoom *room = get_service_room (messenger,
-                                                            &(msg->key));
+  room = get_service_room (messenger, &(msg->key));
 
   if (! room)
   {
@@ -438,15 +505,16 @@ handle_get_message (void *cls,
     goto end_handling;
   }
 
-  struct GNUNET_MESSENGER_MemberStore *member_store =
-    get_srv_room_member_store (room);
+  {
+    struct GNUNET_MESSENGER_MemberStore *member_store;
+    member_store = get_srv_room_member_store (room);
 
-  const struct GNUNET_ShortHashCode *member_id;
-  member_id = get_srv_handle_member_id (msg_client->handle,
-                                        &(msg->key));
+    
+    member_id = get_srv_handle_member_id (msg_client->handle,
+                                          &(msg->key));
 
-  struct GNUNET_MESSENGER_Member *member = get_store_member (member_store,
-                                                             member_id);
+    member = get_store_member (member_store, member_id);
+  }
 
   if (! member)
   {
@@ -456,8 +524,7 @@ handle_get_message (void *cls,
     goto end_handling;
   }
 
-  const struct GNUNET_CRYPTO_PublicKey *pubkey = get_srv_handle_key (
-    msg_client->handle);
+  pubkey = get_srv_handle_key (msg_client->handle);
 
   if (! pubkey)
   {
@@ -467,8 +534,7 @@ handle_get_message (void *cls,
     goto end_handling;
   }
 
-  struct GNUNET_MESSENGER_MemberSession *session = get_member_session (member,
-                                                                       pubkey);
+  session = get_member_session (member, pubkey);
 
   if (! session)
   {
@@ -491,8 +557,11 @@ callback_client_connect (void *cls,
                          struct GNUNET_SERVICE_Client *client,
                          struct GNUNET_MQ_Handle *mq)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = GNUNET_new (struct
-                                                           GNUNET_MESSENGER_Client);
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert ((client) && (mq));
+  
+  msg_client = GNUNET_new (struct GNUNET_MESSENGER_Client);
 
   msg_client->client = client;
   msg_client->handle = add_service_handle (messenger, mq);
@@ -506,7 +575,11 @@ callback_client_disconnect (void *cls,
                             struct GNUNET_SERVICE_Client *client,
                             void *internal_cls)
 {
-  struct GNUNET_MESSENGER_Client *msg_client = internal_cls;
+  struct GNUNET_MESSENGER_Client *msg_client;
+
+  GNUNET_assert (internal_cls);
+  
+  msg_client = internal_cls;
 
   remove_service_handle (messenger, msg_client->handle);
 
@@ -526,6 +599,8 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *config,
      struct GNUNET_SERVICE_Handle *service)
 {
+  GNUNET_assert ((config) && (service));
+  
   messenger = create_service (config, service);
 
   if (! messenger)

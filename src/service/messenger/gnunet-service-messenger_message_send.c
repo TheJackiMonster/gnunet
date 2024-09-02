@@ -46,12 +46,13 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
                       struct GNUNET_CONTAINER_MultiHashMap *map,
                       enum GNUNET_GenericReturnValue check_permission)
 {
+  struct GNUNET_MESSENGER_MessageStore *message_store;
+  struct GNUNET_MESSENGER_ListMessage *element;
+
   if (session->prev)
     notify_about_members (notify, session->prev, map, GNUNET_YES);
 
-  struct GNUNET_MESSENGER_MessageStore *message_store =
-    get_srv_room_message_store (notify->room);
-  struct GNUNET_MESSENGER_ListMessage *element;
+  message_store = get_srv_room_message_store (notify->room);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notify through all of member session: %s\n",
@@ -59,6 +60,8 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
 
   for (element = session->messages.head; element; element = element->next)
   {
+    const struct GNUNET_MESSENGER_Message *message;
+
     if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (map,
                                                               &(element->hash)))
       continue;
@@ -80,8 +83,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Notification of session message could be duplicated!\n");
 
-    const struct GNUNET_MESSENGER_Message *message = get_store_message (
-      message_store, &(element->hash));
+    message = get_store_message (message_store, &(element->hash));
 
     if ((! message) || (GNUNET_YES == is_peer_message (message)))
     {
@@ -90,11 +92,13 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
       continue;
     }
 
-    struct GNUNET_MESSENGER_SenderSession sender;
-    sender.member = session;
+    {
+      struct GNUNET_MESSENGER_SenderSession sender;
+      sender.member = session;
 
-    notify_srv_handle_message (notify->handle, notify->room, &sender, message,
-                               &(element->hash), GNUNET_NO);
+      notify_srv_handle_message (notify->handle, notify->room, &sender, message,
+                                 &(element->hash), GNUNET_NO);
+    }
   }
 }
 
@@ -105,7 +109,11 @@ iterate_notify_about_members (void *cls,
                               GNUNET_CRYPTO_PublicKey *public_key,
                               struct GNUNET_MESSENGER_MemberSession *session)
 {
-  struct GNUNET_MESSENGER_MemberNotify *notify = cls;
+  struct GNUNET_MESSENGER_MemberNotify *notify;
+
+  GNUNET_assert ((cls) && (session));
+  
+  notify = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
               GNUNET_sh2s (get_member_session_id (session)));
@@ -130,16 +138,17 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                    const struct GNUNET_MESSENGER_Message *message,
                    const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_MemberStore *member_store;
+  struct GNUNET_MESSENGER_Member *member;
+  struct GNUNET_MESSENGER_MemberSession *session;
+
   set_srv_handle_key (handle, &(message->body.join.key));
 
-  struct GNUNET_MESSENGER_MemberStore *member_store =
-    get_srv_room_member_store (room);
-  struct GNUNET_MESSENGER_Member *member = add_store_member (member_store,
-                                                             &(message->header.
-                                                               sender_id));
+  member_store = get_srv_room_member_store (room);
+  member = add_store_member (member_store,
+                             &(message->header.sender_id));
 
-  struct GNUNET_MESSENGER_MemberSession *session = get_member_session_of (
-    member, message, hash);
+  session = get_member_session_of (member, message, hash);
 
   if (! session)
   {
@@ -148,18 +157,20 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
     goto skip_member_notification;
   }
 
-  struct GNUNET_MESSENGER_MemberNotify notify;
+  {
+    struct GNUNET_MESSENGER_MemberNotify notify;
 
-  notify.room = room;
-  notify.handle = handle;
-  notify.session = session;
+    notify.room = room;
+    notify.handle = handle;
+    notify.session = session;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Notify about all member sessions except: %s\n",
-              GNUNET_sh2s (get_member_session_id (session)));
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Notify about all member sessions except: %s\n",
+                GNUNET_sh2s (get_member_session_id (session)));
 
-  iterate_store_members (get_srv_room_member_store (room),
-                         iterate_notify_about_members, &notify);
+    iterate_store_members (get_srv_room_member_store (room),
+                          iterate_notify_about_members, &notify);
+  }
 
 skip_member_notification:
   check_srv_room_peer_status (room, NULL);
@@ -208,8 +219,9 @@ send_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_OperationStore *operation_store =
-    get_srv_room_operation_store (room);
+  struct GNUNET_MESSENGER_OperationStore *operation_store;
+  
+  operation_store = get_srv_room_operation_store (room);
 
   use_store_operation (
     operation_store,
