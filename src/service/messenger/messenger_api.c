@@ -1115,10 +1115,12 @@ GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
 void
 GNUNET_MESSENGER_close_room (struct GNUNET_MESSENGER_Room *room)
 {
+  struct GNUNET_MESSENGER_Message *message;
+
   if (! room)
     return;
 
-  struct GNUNET_MESSENGER_Message *message = create_message_leave ();
+  message = create_message_leave ();
 
   if (! message)
     return;

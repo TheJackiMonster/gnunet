@@ -37,9 +37,9 @@
 struct GNUNET_MESSENGER_MessageControl*
 create_message_control (struct GNUNET_MESSENGER_Room *room)
 {
-  GNUNET_assert (room);
-
   struct GNUNET_MESSENGER_MessageControl *control;
+
+  GNUNET_assert (room);
 
   control = GNUNET_new (struct GNUNET_MESSENGER_MessageControl);
   control->room = room;
@@ -60,9 +60,9 @@ destroy_message_control (struct GNUNET_MESSENGER_MessageControl *control)
 {
   GNUNET_assert (control);
 
-  struct GNUNET_MESSENGER_MessageControlQueue *queue;
   while (control->head)
   {
+    struct GNUNET_MESSENGER_MessageControlQueue *queue;
     queue = control->head;
 
     if (queue->task)
@@ -89,15 +89,15 @@ enqueue_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                          const struct GNUNET_MESSENGER_Message *message,
                          enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  struct GNUNET_CONTAINER_MultiShortmap *map;
+  struct GNUNET_MESSENGER_MessageControlQueue *queue;
+
   GNUNET_assert ((control) && (sender) && (context) && (hash) && (message));
 
-  struct GNUNET_CONTAINER_MultiShortmap *map;
   if (GNUNET_YES == is_peer_message (message))
     map = control->peer_messages;
   else
     map = control->member_messages;
-
-  struct GNUNET_MESSENGER_MessageControlQueue *queue;
 
   queue = GNUNET_new (struct GNUNET_MESSENGER_MessageControlQueue);
   queue->control = control;
@@ -141,21 +141,29 @@ handle_message_control (struct GNUNET_MESSENGER_MessageControl *control,
 static void
 task_message_control (void *cls)
 {
+  struct GNUNET_MESSENGER_MessageControlQueue *queue;
+  struct GNUNET_MESSENGER_MessageControl *control;
+  struct GNUNET_MESSENGER_Contact *contact;
+  struct GNUNET_CONTAINER_MultiShortmap *map;
+
   GNUNET_assert (cls);
 
-  struct GNUNET_MESSENGER_MessageControlQueue *queue = cls;
-  struct GNUNET_MESSENGER_MessageControl *control = queue->control;
+  queue = cls;
+  control = queue->control;
 
   queue->task = NULL;
 
-  struct GNUNET_MESSENGER_Handle *handle = get_room_handle (control->room);
-  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store (
-    handle);
+  {
+    struct GNUNET_MESSENGER_Handle *handle;
+    struct GNUNET_MESSENGER_ContactStore *store;
 
-  struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
-    store, &(queue->context), &(queue->sender));
+    handle = get_room_handle (control->room);
+    store = get_handle_contact_store (handle);
 
-  struct GNUNET_CONTAINER_MultiShortmap *map;
+    contact = get_store_contact_raw (
+      store, &(queue->context), &(queue->sender));
+  }
+
   if (GNUNET_YES == is_peer_message (queue->message))
     map = control->peer_messages;
   else
@@ -184,9 +192,11 @@ iterate_message_control (void *cls,
                          const struct GNUNET_ShortHashCode *key,
                          void *value)
 {
-  GNUNET_assert ((key) && (value));
+  struct GNUNET_MESSENGER_MessageControlQueue *queue;
 
-  struct GNUNET_MESSENGER_MessageControlQueue *queue = value;
+  GNUNET_assert ((key) && (value));
+  
+  queue = value;
 
   if (queue->task)
     return GNUNET_YES;
@@ -204,14 +214,21 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                          const struct GNUNET_MESSENGER_Message *message,
                          enum GNUNET_MESSENGER_MessageFlags flags)
 {
+  struct GNUNET_MESSENGER_Contact *contact;
+  struct GNUNET_CONTAINER_MultiShortmap *map;
+  const struct GNUNET_ShortHashCode *id;
+
   GNUNET_assert ((control) && (sender) && (context) && (hash) && (message));
 
-  struct GNUNET_MESSENGER_Handle *handle = get_room_handle (control->room);
-  struct GNUNET_MESSENGER_ContactStore *store = get_handle_contact_store (
-    handle);
+  {
+    struct GNUNET_MESSENGER_Handle *handle;
+    struct GNUNET_MESSENGER_ContactStore *store;
 
-  struct GNUNET_MESSENGER_Contact *contact = get_store_contact_raw (
-    store, context, sender);
+    handle = get_room_handle (control->room);
+    store = get_handle_contact_store (handle);
+
+    contact = get_store_contact_raw (store, context, sender);
+  }
 
   if ((! contact) &&
       (GNUNET_MESSENGER_KIND_JOIN != message->header.kind) &&
@@ -220,8 +237,8 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
   else
     handle_message_control (control, contact, hash, message, flags);
 
-  struct GNUNET_CONTAINER_MultiShortmap *map = NULL;
-  const struct GNUNET_ShortHashCode *id = &(message->header.sender_id);
+  map = NULL;
+  id = &(message->header.sender_id);
 
   if (GNUNET_YES == is_peer_message (message))
     map = control->peer_messages;

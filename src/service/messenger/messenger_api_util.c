@@ -31,7 +31,9 @@
 static void
 callback_close_channel (void *cls)
 {
-  struct GNUNET_CADET_Channel *channel = cls;
+  struct GNUNET_CADET_Channel *channel;
+  
+  channel = cls;
 
   if (channel)
     GNUNET_CADET_channel_destroy (channel);
@@ -53,10 +55,11 @@ enum GNUNET_GenericReturnValue
 generate_free_member_id (struct GNUNET_ShortHashCode *id,
                          const struct GNUNET_CONTAINER_MultiShortmap *members)
 {
+  size_t counter;
+
   GNUNET_assert (id);
 
-  size_t counter = 1 + (members ? GNUNET_CONTAINER_multishortmap_size (
-                          members) : 0);
+  counter = 1 + (members ? GNUNET_CONTAINER_multishortmap_size (members) : 0);
 
   do
   {
@@ -81,7 +84,8 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
 const struct GNUNET_CRYPTO_PrivateKey*
 get_anonymous_private_key ()
 {
-  const struct GNUNET_IDENTITY_Ego *ego = GNUNET_IDENTITY_ego_get_anonymous ();
+  const struct GNUNET_IDENTITY_Ego *ego;
+  ego = GNUNET_IDENTITY_ego_get_anonymous ();
   return GNUNET_IDENTITY_ego_get_private_key (ego);
 }
 
@@ -106,8 +110,10 @@ void
 convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
                                struct GNUNET_HashCode *port)
 {
-  static uint32_t version_value = 0;
   static struct GNUNET_HashCode version;
+  static uint32_t version_value = 0;
+
+  GNUNET_assert ((key) && (port));
 
   if (! version_value)
   {
@@ -125,5 +131,7 @@ void
 convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
                              struct GNUNET_ShortHashCode *id)
 {
+  GNUNET_assert ((identity) && (id));
+
   GNUNET_memcpy (id, identity, sizeof(struct GNUNET_ShortHashCode));
 }

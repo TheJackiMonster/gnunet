@@ -122,12 +122,15 @@ iterate_notify_about_members (void *cls,
                                        is_member_session_completed (session)))
     return GNUNET_YES;
 
-  struct GNUNET_CONTAINER_MultiHashMap *map =
-    GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
+  {
+    struct GNUNET_CONTAINER_MultiHashMap *map;
+    map = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
 
-  notify_about_members (notify, session, map, GNUNET_NO);
+    notify_about_members (notify, session, map, GNUNET_NO);
 
-  GNUNET_CONTAINER_multihashmap_destroy (map);
+    GNUNET_CONTAINER_multihashmap_destroy (map);
+  }
+
   return GNUNET_YES;
 }
 

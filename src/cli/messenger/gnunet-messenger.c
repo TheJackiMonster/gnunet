@@ -68,7 +68,7 @@ idle (void *cls);
  * @param[in] hash Hash of message
  * @param[in] flags Flags of message
  */
-void
+static void
 on_message (void *cls,
             struct GNUNET_MESSENGER_Room *room,
             const struct GNUNET_MESSENGER_Contact *sender,
@@ -77,7 +77,11 @@ on_message (void *cls,
             const struct GNUNET_HashCode *hash,
             enum GNUNET_MESSENGER_MessageFlags flags)
 {
-  const uint64_t waited = waiting;
+  uint64_t waited;
+  const char *sender_name;
+  const char *recipient_name;
+  
+  waited = waiting;
 
   if (GNUNET_YES == talk_mode)
   {
@@ -101,8 +105,8 @@ on_message (void *cls,
   else if (GNUNET_YES == silence_flag)
     goto skip_printing;
 
-  const char *sender_name = GNUNET_MESSENGER_contact_get_name (sender);
-  const char *recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
+  sender_name = GNUNET_MESSENGER_contact_get_name (sender);
+  recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
 
   if (! sender_name)
     sender_name = "anonymous";
@@ -143,7 +147,9 @@ on_message (void *cls,
     }
   case GNUNET_MESSENGER_KIND_TEXT:
     {
-      const uint16_t len = strlen (message->body.text.text) + 1;
+      uint16_t len;
+
+      len = strlen (message->body.text.text) + 1;
 
       if (flags & GNUNET_MESSENGER_FLAG_SENT)
       {
@@ -186,17 +192,19 @@ skip_printing:
   if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) &&
       (flags & GNUNET_MESSENGER_FLAG_SENT))
   {
+    struct GNUNET_MESSENGER_Message response;
+    const char *name;
+
     if (! read_task)
       read_task = GNUNET_SCHEDULER_add_with_priority (
         GNUNET_SCHEDULER_PRIORITY_IDLE,
         idle, room);
 
-    const char *name = GNUNET_MESSENGER_get_name (messenger);
+    name = GNUNET_MESSENGER_get_name (messenger);
 
     if (! name)
       return;
 
-    struct GNUNET_MESSENGER_Message response;
     response.header.kind = GNUNET_MESSENGER_KIND_NAME;
     response.body.name.name = GNUNET_strdup (name);
 
@@ -230,7 +238,11 @@ struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
 static void
 shutdown_hook (void *cls)
 {
-  struct GNUNET_MESSENGER_Room *room = cls;
+  struct GNUNET_MESSENGER_Room *room;
+
+  GNUNET_assert (cls);
+  
+  room = cls;
 
   if (read_task)
     GNUNET_SCHEDULER_cancel (read_task);
@@ -256,7 +268,11 @@ iterate_send_private_message (void *cls,
                               struct GNUNET_MESSENGER_Room *room,
                               const struct GNUNET_MESSENGER_Contact *contact)
 {
-  struct GNUNET_MESSENGER_Message *message = cls;
+  struct GNUNET_MESSENGER_Message *message;
+
+  GNUNET_assert ((cls) && (room) && (contact));
+  
+  message = cls;
 
   if (GNUNET_MESSENGER_contact_get_key (contact))
     GNUNET_MESSENGER_send_message (room, message, contact);
@@ -275,13 +291,15 @@ int private_mode;
 static void
 read_stdio (void *cls)
 {
-  struct GNUNET_MESSENGER_Room *room = cls;
+  struct GNUNET_MESSENGER_Room *room;
   struct GNUNET_MESSENGER_Message message;
-
-  read_task = NULL;
-
   char buffer[MAX_BUFFER_SIZE];
   ssize_t length;
+
+  GNUNET_assert (cls);
+
+  room = cls;
+  read_task = NULL;
 
   length = read (0, buffer, MAX_BUFFER_SIZE - 1);
 
@@ -331,10 +349,11 @@ read_stdio (void *cls)
 static void
 listen_stdio (void *cls)
 {
+  struct GNUNET_NETWORK_FDSet *rs;
+
   read_task = NULL;
 
-  struct GNUNET_NETWORK_FDSet *rs = GNUNET_NETWORK_fdset_create ();
-
+  rs = GNUNET_NETWORK_fdset_create ();
   GNUNET_NETWORK_fdset_set_native (rs, 0);
 
   read_task = GNUNET_SCHEDULER_add_select (GNUNET_SCHEDULER_PRIORITY_DEFAULT,
@@ -353,7 +372,11 @@ listen_stdio (void *cls)
 static void
 idle (void *cls)
 {
-  struct GNUNET_MESSENGER_Room *room = cls;
+  struct GNUNET_MESSENGER_Room *room;
+
+  GNUNET_assert (cls);
+  
+  room = cls;
 
   if ((GNUNET_YES != talk_mode) ||
       (GNUNET_YES == silence_flag))
@@ -380,13 +403,17 @@ on_identity (void *cls,
              struct GNUNET_MESSENGER_Handle *handle)
 {
   struct GNUNET_HashCode key;
+  struct GNUNET_MESSENGER_Room *room;
+  struct GNUNET_PeerIdentity door_peer;
+  struct GNUNET_PeerIdentity *door;
+  const char *name;
+
   memset (&key, 0, sizeof(key));
 
   if (room_key)
     GNUNET_CRYPTO_hash (room_key, strlen (room_key), &key);
 
-  struct GNUNET_PeerIdentity door_peer;
-  struct GNUNET_PeerIdentity *door = NULL;
+  door = NULL;
 
   if ((door_id) &&
       (GNUNET_OK == GNUNET_CRYPTO_eddsa_public_key_from_string (door_id,
@@ -395,14 +422,12 @@ on_identity (void *cls,
                                                                 &(door_peer.
                                                                   public_key))))
     door = &door_peer;
-
-  struct GNUNET_MESSENGER_Room *room;
   
   if ((GNUNET_YES == talk_mode) ||
       (GNUNET_YES == silence_flag))
     goto skip_welcome;
 
-  const char *name = GNUNET_MESSENGER_get_name (handle);
+  name = GNUNET_MESSENGER_get_name (handle);
 
   if (! name)
     name = "anonymous";
@@ -444,9 +469,10 @@ static void
 on_ego_lookup (void *cls,
                struct GNUNET_IDENTITY_Ego *ego)
 {
+  const struct GNUNET_CRYPTO_PrivateKey *key;
+
   ego_lookup = NULL;
 
-  const struct GNUNET_CRYPTO_PrivateKey *key;
   key = ego ? GNUNET_IDENTITY_ego_get_private_key (ego) : NULL;
 
   messenger = GNUNET_MESSENGER_connect (config, ego_name, key, &on_message,

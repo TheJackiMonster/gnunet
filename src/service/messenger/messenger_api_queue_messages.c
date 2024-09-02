@@ -45,7 +45,8 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 
   while (messages->head)
   {
-    struct GNUNET_MESSENGER_QueueMessage *element = messages->head;
+    struct GNUNET_MESSENGER_QueueMessage *element;
+    element = messages->head;
 
     GNUNET_CONTAINER_DLL_remove (messages->head, messages->tail, element);
 
@@ -69,15 +70,16 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      struct GNUNET_MESSENGER_Message *message,
                      struct GNUNET_MESSENGER_Message *transcript)
 {
+  struct GNUNET_MESSENGER_QueueMessage *element;
+  enum GNUNET_MESSENGER_MessageKind kind;
+
   GNUNET_assert ((messages) && (sender) && (message));
 
-  struct GNUNET_MESSENGER_QueueMessage *element = GNUNET_new (struct
-                                                              GNUNET_MESSENGER_QueueMessage);
-
+  element = GNUNET_new (struct GNUNET_MESSENGER_QueueMessage);
   if (! element)
     return;
 
-  const enum GNUNET_MESSENGER_MessageKind kind = message->header.kind;
+  kind = message->header.kind;
 
   element->message = message;
   element->transcript = transcript;
@@ -97,8 +99,9 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
     GNUNET_CONTAINER_DLL_insert (messages->head, messages->tail, element);
   else if (GNUNET_MESSENGER_KIND_SUBSCRIBE == kind)
   {
-    struct GNUNET_MESSENGER_QueueMessage *other = messages->head;
+    struct GNUNET_MESSENGER_QueueMessage *other;
     
+    other = messages->head;
     while (other)
     {
       if (GNUNET_MESSENGER_KIND_TALK == other->message->header.kind)
@@ -119,10 +122,12 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                        struct GNUNET_CRYPTO_PrivateKey *sender,
                        struct GNUNET_MESSENGER_Message **transcript)
 {
+  struct GNUNET_MESSENGER_QueueMessage *element;
+  struct GNUNET_MESSENGER_Message *message;
+
   GNUNET_assert (messages);
 
-  struct GNUNET_MESSENGER_QueueMessage *element = messages->head;
-
+  element = messages->head;
   if (! element)
   {
     if (transcript)
@@ -131,7 +136,7 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
     return NULL;
   }
 
-  struct GNUNET_MESSENGER_Message *message = element->message;
+  message = element->message;
 
   if (transcript)
     *transcript = element->transcript;

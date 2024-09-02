@@ -539,8 +539,10 @@ skip_message_filter:
   {
     struct GNUNET_MESSENGER_RecvMessage *msg;
     struct GNUNET_MQ_Envelope *env;
+    uint16_t length;
+    char *buffer;
 
-    uint16_t length = get_message_size (message, GNUNET_YES);
+    length = get_message_size (message, GNUNET_YES);
 
     env = GNUNET_MQ_msg_extra (msg, length,
                               GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
@@ -560,7 +562,7 @@ skip_message_filter:
     if (GNUNET_YES == recent)
       msg->flags |= (uint32_t) GNUNET_MESSENGER_FLAG_RECENT;
 
-    char *buffer = ((char*) msg) + sizeof(*msg);
+    buffer = ((char*) msg) + sizeof(*msg);
     encode_message (message, length, buffer, GNUNET_YES);
 
     GNUNET_MQ_send (handle->mq, env);

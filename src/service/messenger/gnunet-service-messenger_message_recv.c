@@ -134,17 +134,17 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
     
     for (element = room->basement.head; element; element = element->next)
     {
-      const struct GNUNET_MESSENGER_Message *message;
+      const struct GNUNET_MESSENGER_Message *msg;
 
       if (! element->hash)
         continue;
 
-      message = get_store_message (message_store, element->hash);
+      msg = get_store_message (message_store, element->hash);
 
-      if (! message)
+      if (! msg)
         continue;
 
-      forward_tunnel_message (tunnel, message, element->hash);
+      forward_tunnel_message (tunnel, msg, element->hash);
     }
   }
 

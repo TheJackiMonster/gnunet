@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -46,7 +46,12 @@ iterate_destroy_contacts (void *cls,
                           const struct GNUNET_HashCode *key,
                           void *value)
 {
-  struct GNUNET_MESSENGER_Contact *contact = value;
+  struct GNUNET_MESSENGER_Contact *contact;
+
+  GNUNET_assert (value);
+  
+  contact = value;
+  
   destroy_contact (contact);
   return GNUNET_YES;
 }
@@ -74,10 +79,13 @@ select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store,
                           const struct GNUNET_HashCode *context,
                           struct GNUNET_HashCode *hash)
 {
-  const struct GNUNET_CRYPTO_PublicKey *anonymous =
-    get_anonymous_public_key ();
-
+  const struct GNUNET_CRYPTO_PublicKey *anonymous;
   struct GNUNET_HashCode anonHash;
+
+  GNUNET_assert (hash);
+  
+  anonymous = get_anonymous_public_key ();
+
   GNUNET_CRYPTO_hash (anonymous, sizeof(*anonymous), &anonHash);
 
   if ((context) && (0 == GNUNET_CRYPTO_hash_cmp (hash, &anonHash)))
@@ -95,14 +103,14 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
                        const struct GNUNET_HashCode *context,
                        const struct GNUNET_HashCode *key_hash)
 {
+  struct GNUNET_CONTAINER_MultiHashMap *map;
+  struct GNUNET_HashCode hash;
+
   GNUNET_assert ((store) && (store->contacts) && (context) && (key_hash));
 
-  struct GNUNET_HashCode hash;
   GNUNET_memcpy (&hash, key_hash, sizeof(*key_hash));
 
-  struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
-    store, context, &hash
-    );
+  map = select_store_contact_map (store, context, &hash);
 
   return GNUNET_CONTAINER_multihashmap_get (map, &hash);
 }
@@ -113,23 +121,24 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                    const struct GNUNET_HashCode *context,
                    const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
+  struct GNUNET_CONTAINER_MultiHashMap *map;
+  struct GNUNET_MESSENGER_Contact *contact;
+  struct GNUNET_HashCode hash;
+
   GNUNET_assert ((store) && (store->contacts) && (pubkey));
 
-  struct GNUNET_HashCode hash;
   GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
 
-  struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
-    store, context, &hash);
-
-  struct GNUNET_MESSENGER_Contact *contact = GNUNET_CONTAINER_multihashmap_get (
-    map, &hash);
+  map = select_store_contact_map (store, context, &hash);
+  contact = GNUNET_CONTAINER_multihashmap_get (map, &hash);
 
   if (contact)
   {
     if (0 != GNUNET_memcmp (pubkey, get_contact_key (contact)))
     {
-      char *str = GNUNET_CRYPTO_public_key_to_string (get_contact_key (
-                                                        contact));
+      char *str;
+      str = GNUNET_CRYPTO_public_key_to_string (get_contact_key (contact));
+
       GNUNET_log (GNUNET_ERROR_TYPE_INVALID,
                   "Contact in store uses wrong key: %s\n", str);
       GNUNET_free (str);
@@ -158,19 +167,19 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       const struct GNUNET_HashCode *next_context,
                       const struct GNUNET_CRYPTO_PublicKey *pubkey)
 {
+  const struct GNUNET_CRYPTO_PublicKey *oldkey;
+  struct GNUNET_CONTAINER_MultiHashMap *map;
+  struct GNUNET_HashCode hash;
+
   GNUNET_assert ((store) && (store->contacts) && (contact) && (pubkey));
 
-  const struct GNUNET_CRYPTO_PublicKey *oldkey = get_contact_key (contact);
-
-  struct GNUNET_HashCode hash;
+  oldkey = get_contact_key (contact);
   GNUNET_CRYPTO_hash (oldkey, sizeof(*oldkey), &hash);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Update contact store entry: %s\n",
               GNUNET_h2s (&hash));
 
-  struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
-    store, context, &hash
-    );
+  map = select_store_contact_map (store, context, &hash);
 
   if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (map, &hash, contact))
   {
@@ -178,9 +187,7 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
 
     GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
 
-    map = select_store_contact_map (
-      store, next_context, &hash
-      );
+    map = select_store_contact_map (store, next_context, &hash);
 
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
@@ -196,19 +203,19 @@ remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context)
 {
+  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  struct GNUNET_CONTAINER_MultiHashMap *map;
+  struct GNUNET_HashCode hash;
+
   GNUNET_assert ((store) && (store->contacts) && (contact));
 
-  const struct GNUNET_CRYPTO_PublicKey *pubkey = get_contact_key (contact);
-
-  struct GNUNET_HashCode hash;
+  pubkey = get_contact_key (contact);
   GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &hash);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Remove contact store entry: %s\n",
               GNUNET_h2s (&hash));
 
-  struct GNUNET_CONTAINER_MultiHashMap *map = select_store_contact_map (
-    store, context, &hash
-    );
+  map = select_store_contact_map (store, context, &hash);
 
   if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (map, &hash, contact))
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Removing a contact failed: %s\n",

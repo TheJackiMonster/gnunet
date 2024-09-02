@@ -93,23 +93,25 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
     op = create_operation (&hash);
   }
 
-  unsigned long long type_number;
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg, "operation",
-                                                          "type", &type_number))
-    switch (type_number)
-    {
-    case GNUNET_MESSENGER_OP_REQUEST:
-      op->type = GNUNET_MESSENGER_OP_REQUEST;
-      break;
-    case GNUNET_MESSENGER_OP_DELETE:
-      op->type = GNUNET_MESSENGER_OP_DELETE;
-      break;
-    case GNUNET_MESSENGER_OP_MERGE:
-      op->type = GNUNET_MESSENGER_OP_MERGE;
-      break;
-    default:
-      break;
-    }
+  {
+    unsigned long long type_number;
+    if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg, "operation",
+                                                            "type", &type_number))
+      switch (type_number)
+      {
+      case GNUNET_MESSENGER_OP_REQUEST:
+        op->type = GNUNET_MESSENGER_OP_REQUEST;
+        break;
+      case GNUNET_MESSENGER_OP_DELETE:
+        op->type = GNUNET_MESSENGER_OP_DELETE;
+        break;
+      case GNUNET_MESSENGER_OP_MERGE:
+        op->type = GNUNET_MESSENGER_OP_MERGE;
+        break;
+      default:
+        break;
+      }
+  }
 
   if ((GNUNET_MESSENGER_OP_UNKNOWN == op->type) ||
       (GNUNET_OK != GNUNET_CONFIGURATION_get_data (cfg, "operation",

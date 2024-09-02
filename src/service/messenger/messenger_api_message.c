@@ -29,6 +29,9 @@
 #include "gnunet_messenger_service.h"
 #include "gnunet_signatures.h"
 
+const uint16_t encryption_overhead = 
+  GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
+
 struct GNUNET_MESSENGER_MessageSignature
 {
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
@@ -44,9 +47,9 @@ struct GNUNET_MESSENGER_ShortMessage
 struct GNUNET_MESSENGER_Message*
 create_message (enum GNUNET_MESSENGER_MessageKind kind)
 {
-  struct GNUNET_MESSENGER_Message *message = GNUNET_new (struct
-                                                         GNUNET_MESSENGER_Message);
-
+  struct GNUNET_MESSENGER_Message *message;
+  
+  message = GNUNET_new (struct GNUNET_MESSENGER_Message);
   message->header.kind = kind;
 
   switch (message->header.kind)
@@ -89,11 +92,11 @@ create_message (enum GNUNET_MESSENGER_MessageKind kind)
 struct GNUNET_MESSENGER_Message*
 copy_message (const struct GNUNET_MESSENGER_Message *message)
 {
+  struct GNUNET_MESSENGER_Message *copy;
+
   GNUNET_assert (message);
 
-  struct GNUNET_MESSENGER_Message *copy = GNUNET_new (struct
-                                                      GNUNET_MESSENGER_Message);
-
+  copy = GNUNET_new (struct GNUNET_MESSENGER_Message);
   GNUNET_memcpy (copy, message, sizeof(struct GNUNET_MESSENGER_Message));
 
   switch (message->header.kind)
@@ -158,9 +161,11 @@ void
 copy_message_header (struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_MESSENGER_MessageHeader *header)
 {
+  enum GNUNET_MESSENGER_MessageKind kind;
+
   GNUNET_assert ((message) && (header));
 
-  enum GNUNET_MESSENGER_MessageKind kind = message->header.kind;
+  kind = message->header.kind;
 
   GNUNET_memcpy (&(message->header), header,
                  sizeof(struct GNUNET_MESSENGER_MessageHeader));
@@ -173,6 +178,8 @@ static void
 destroy_message_body (enum GNUNET_MESSENGER_MessageKind kind,
                       struct GNUNET_MESSENGER_MessageBody *body)
 {
+  GNUNET_assert (body);
+
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_NAME:
@@ -278,7 +285,9 @@ unfold_short_message (struct GNUNET_MESSENGER_ShortMessage *shortened,
 static uint16_t
 get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
 {
-  uint16_t length = 0;
+  uint16_t length;
+
+  length = 0;
 
   switch (kind)
   {
@@ -358,7 +367,9 @@ uint16_t
 get_message_kind_size (enum GNUNET_MESSENGER_MessageKind kind,
                        enum GNUNET_GenericReturnValue include_header)
 {
-  uint16_t length = 0;
+  uint16_t length;
+  
+  length = 0;
 
   if (GNUNET_YES == include_header)
   {
@@ -377,7 +388,9 @@ static uint16_t
 get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
                        const struct GNUNET_MESSENGER_MessageBody *body)
 {
-  uint16_t length = 0;
+  uint16_t length;
+  
+  length = 0;
 
   switch (kind)
   {
@@ -424,9 +437,11 @@ uint16_t
 get_message_size (const struct GNUNET_MESSENGER_Message *message,
                   enum GNUNET_GenericReturnValue include_header)
 {
-  GNUNET_assert (message);
+  uint16_t length;
 
-  uint16_t length = 0;
+  GNUNET_assert (message);
+  
+  length = 0;
 
   if (GNUNET_YES == include_header)
     length += GNUNET_CRYPTO_signature_get_length (
@@ -443,7 +458,9 @@ static uint16_t
 get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
                         enum GNUNET_GenericReturnValue include_body)
 {
-  const uint16_t minimum_size = sizeof(struct GNUNET_HashCode) + sizeof(kind_t);
+  uint16_t minimum_size;
+
+  minimum_size = sizeof(struct GNUNET_HashCode) + sizeof(kind_t);
 
   if (message)
     return minimum_size + get_message_body_kind_size (message->kind)
@@ -457,8 +474,10 @@ get_short_message_size (const struct GNUNET_MESSENGER_ShortMessage *message,
 static uint16_t
 calc_usual_padding ()
 {
-  uint16_t padding = 0;
+  uint16_t padding;
   uint16_t kind_size;
+
+  padding = 0;
 
   for (unsigned int i = 0; i <= GNUNET_MESSENGER_KIND_MAX; i++)
   {
@@ -479,11 +498,12 @@ static uint16_t
 calc_padded_length (uint16_t length)
 {
   static uint16_t usual_padding = 0;
+  uint16_t padded_length;
 
   if (! usual_padding)
     usual_padding = calc_usual_padding ();
 
-  const uint16_t padded_length = max (
+  padded_length = max (
     length + GNUNET_MESSENGER_PADDING_MIN,
     usual_padding
     );
@@ -541,6 +561,9 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
                      uint16_t offset)
 {
   uint32_t value0, value1;
+
+  GNUNET_assert ((body) && (buffer));
+
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
@@ -662,18 +685,23 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   if (offset >= length)
     return;
 
-  const uint16_t padding = length - offset;
-  const uint16_t used_padding = sizeof(padding) + sizeof(char);
+  {
+    uint16_t padding;
+    uint16_t used_padding;
 
-  GNUNET_assert (padding >= used_padding);
+    padding = length - offset;
+    used_padding = sizeof(padding) + sizeof(char);
 
-  buffer[offset++] = '\0';
+    GNUNET_assert (padding >= used_padding);
 
-  if (padding > used_padding)
-    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK, buffer + offset,
-                                padding - used_padding);
+    buffer[offset++] = '\0';
 
-  GNUNET_memcpy (buffer + length - sizeof(padding), &padding, sizeof(padding));
+    if (padding > used_padding)
+      GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK, buffer + offset,
+                                  padding - used_padding);
+
+    GNUNET_memcpy (buffer + length - sizeof(padding), &padding, sizeof(padding));
+  }
 }
 
 
@@ -683,15 +711,18 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
                 char *buffer,
                 enum GNUNET_GenericReturnValue include_header)
 {
+  uint16_t offset;
+  kind_t kind;
+
   GNUNET_assert ((message) && (buffer));
 
-  uint16_t offset = 0;
+  offset = 0;
 
   if (GNUNET_YES == include_header)
     encode_step_signature (buffer, offset, &(message->header.signature),
                            length);
 
-  const kind_t kind = GNUNET_htobe32 ((kind_t) message->header.kind);
+  kind = GNUNET_htobe32 ((kind_t) message->header.kind);
 
   if (GNUNET_YES == include_header)
   {
@@ -713,9 +744,13 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
                       char *buffer)
 {
   struct GNUNET_HashCode hash;
-  uint16_t offset = sizeof(hash);
+  uint16_t offset;
+  kind_t kind;
 
-  const kind_t kind = GNUNET_htobe32 ((kind_t) message->kind);
+  GNUNET_assert ((message) && (buffer));
+
+  offset = sizeof(hash);
+  kind = GNUNET_htobe32 ((kind_t) message->kind);
 
   encode_step (buffer, offset, &kind);
 
@@ -764,21 +799,28 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
                      const char *buffer,
                      uint16_t offset)
 {
-  uint16_t padding = 0;
+  uint16_t padding;
+  uint32_t value0, value1;
+
+  GNUNET_assert ((kind) && (body) && (buffer));
+  
+  padding = 0;
 
   GNUNET_memcpy (&padding, buffer + length - sizeof(padding), sizeof(padding));
 
   if (padding > length - offset)
     padding = 0;
 
-  const uint16_t end_zero = length - padding;
+  {
+    uint16_t end_zero;
+    end_zero = length - padding;
 
-  if ((padding) && (buffer[end_zero] != '\0'))
-    padding = 0;
+    if ((padding) && (buffer[end_zero] != '\0'))
+      padding = 0;
+  }
 
   length -= padding;
 
-  uint32_t value0, value1;
   switch (*kind)
   {
   case GNUNET_MESSENGER_KIND_INFO:
@@ -931,6 +973,10 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
                 enum GNUNET_GenericReturnValue include_header,
                 uint16_t *padding)
 {
+  uint16_t offset;
+  uint16_t count;
+  kind_t kind;
+
   GNUNET_assert (
     (message) &&
     (buffer) &&
@@ -938,13 +984,14 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
                                       include_header))
     );
 
-  uint16_t offset = 0;
+  offset = 0;
 
   if (GNUNET_YES == include_header)
   {
-    ssize_t result = GNUNET_CRYPTO_read_signature_from_buffer (
-      &(message->header.signature), buffer, length - offset
-      );
+    ssize_t result;
+
+    result = GNUNET_CRYPTO_read_signature_from_buffer (
+      &(message->header.signature), buffer, length - offset);
 
     if (result < 0)
       return GNUNET_NO;
@@ -952,13 +999,10 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
       offset += result;
   }
 
-  const uint16_t count = length - offset;
-
+  count = length - offset;
   if (count < get_message_kind_size (GNUNET_MESSENGER_KIND_UNKNOWN,
                                      include_header))
     return GNUNET_NO;
-
-  kind_t kind;
 
   if (GNUNET_YES == include_header)
   {
@@ -975,12 +1019,14 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
   if (count < get_message_kind_size (message->header.kind, include_header))
     return GNUNET_NO;
 
-  const uint16_t result = decode_message_body (&(message->header.kind),
-                                               &(message->body), length, buffer,
-                                               offset);
+  {
+    uint16_t result;
+    result = decode_message_body (&(message->header.kind),
+                                  &(message->body), length, buffer, offset);
 
-  if (padding)
-    *padding = result;
+    if (padding)
+      *padding = result;
+  }
 
   return GNUNET_YES;
 }
@@ -992,7 +1038,12 @@ decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message,
                       const char *buffer)
 {
   struct GNUNET_HashCode expected, hash;
-  uint16_t offset = sizeof(hash);
+  uint16_t offset;
+  kind_t kind;
+
+  GNUNET_assert ((message) && (buffer));
+  
+  offset = sizeof(hash);
 
   if (length < get_short_message_size (NULL, GNUNET_NO))
     return GNUNET_NO;
@@ -1002,13 +1053,10 @@ decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message,
   GNUNET_CRYPTO_hash (
     buffer + sizeof(hash),
     length - sizeof(hash),
-    &expected
-    );
+    &expected);
 
   if (0 != GNUNET_CRYPTO_hash_cmp (&hash, &expected))
     return GNUNET_NO;
-
-  kind_t kind;
 
   decode_step (buffer, offset, &kind);
 
@@ -1033,11 +1081,11 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
               const char *buffer,
               struct GNUNET_HashCode *hash)
 {
+  ssize_t offset;
+
   GNUNET_assert ((message) && (buffer) && (hash));
 
-  const ssize_t offset = GNUNET_CRYPTO_signature_get_length (
-    &(message->header.signature)
-    );
+  offset = GNUNET_CRYPTO_signature_get_length (&(message->header.signature));
 
   GNUNET_CRYPTO_hash (buffer + offset, length - offset, hash);
 }
@@ -1055,18 +1103,22 @@ sign_message (struct GNUNET_MESSENGER_Message *message,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sign message by member: %s\n",
               GNUNET_h2s (hash));
 
-  struct GNUNET_MESSENGER_MessageSignature signature;
+  {
+    struct GNUNET_MESSENGER_MessageSignature signature;
 
-  signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
-  signature.purpose.size = htonl (sizeof(signature));
+    signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
+    signature.purpose.size = htonl (sizeof(signature));
 
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
-  GNUNET_CRYPTO_sign (key, &signature, &(message->header.signature));
+    GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
+    GNUNET_CRYPTO_sign (key, &signature, &(message->header.signature));
+  }
 
   message->header.signature.type = key->type;
 
-  uint16_t offset = 0;
-  encode_step_signature (buffer, offset, &(message->header.signature), length);
+  {
+    uint16_t offset = 0;
+    encode_step_signature (buffer, offset, &(message->header.signature), length);
+  }
 }
 
 
@@ -1082,20 +1134,23 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sign message by peer: %s\n",
               GNUNET_h2s (hash));
 
-  struct GNUNET_MESSENGER_MessageSignature signature;
+  {
+    struct GNUNET_MESSENGER_MessageSignature signature;
+    signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
+    signature.purpose.size = htonl (sizeof(signature));
 
-  signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
-  signature.purpose.size = htonl (sizeof(signature));
-
-  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
-  GNUNET_CRYPTO_sign_by_peer_identity (cfg, &(signature.purpose),
-                                       &(message->header.signature.
-                                         eddsa_signature));
+    GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
+    GNUNET_CRYPTO_sign_by_peer_identity (cfg, &(signature.purpose),
+                                        &(message->header.signature.
+                                          eddsa_signature));
+  }
 
   message->header.signature.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
 
-  uint16_t offset = 0;
-  encode_step_signature (buffer, offset, &(message->header.signature), length);
+  {
+    uint16_t offset = 0;
+    encode_step_signature (buffer, offset, &(message->header.signature), length);
+  }
 }
 
 
@@ -1104,12 +1159,12 @@ verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
                 const struct GNUNET_CRYPTO_PublicKey *key)
 {
+  struct GNUNET_MESSENGER_MessageSignature signature;
+
   GNUNET_assert ((message) && (hash) && (key));
 
   if (key->type != message->header.signature.type)
     return GNUNET_SYSERR;
-
-  struct GNUNET_MESSENGER_MessageSignature signature;
 
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
@@ -1127,12 +1182,12 @@ verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_PeerIdentity *identity)
 {
+  struct GNUNET_MESSENGER_MessageSignature signature;
+
   GNUNET_assert ((message) && (hash) && (identity));
 
   if (ntohl (GNUNET_PUBLIC_KEY_TYPE_EDDSA) != message->header.signature.type)
     return GNUNET_SYSERR;
-
-  struct GNUNET_MESSENGER_MessageSignature signature;
 
   signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
   signature.purpose.size = htonl (sizeof(signature));
@@ -1150,34 +1205,35 @@ enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PublicKey *key)
 {
-  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
-
   struct GNUNET_CRYPTO_EcdhePublicKey hpke_key;
+  enum GNUNET_GenericReturnValue result;
+  struct GNUNET_MESSENGER_ShortMessage shortened;
+  uint16_t length, padded_length, encoded_length;
+  uint8_t *data;
+
   GNUNET_assert ((message) && (key));
 
   if (GNUNET_YES == is_service_message (message))
     return GNUNET_NO;
 
-  struct GNUNET_MESSENGER_ShortMessage shortened;
-
   fold_short_message (message, &shortened);
 
-  const uint16_t length = get_short_message_size (&shortened, GNUNET_YES);
-  const uint16_t padded_length = calc_padded_length (length + overhead);
+  length = get_short_message_size (&shortened, GNUNET_YES);
+  padded_length = calc_padded_length (length + encryption_overhead);
 
-  GNUNET_assert (padded_length >= length + overhead);
+  GNUNET_assert (padded_length >= length + encryption_overhead);
 
   message->header.kind = GNUNET_MESSENGER_KIND_PRIVATE;
   message->body.privacy.data = GNUNET_malloc (padded_length);
   message->body.privacy.length = padded_length;
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (key, &hpke_key));
-  const uint16_t encoded_length = (padded_length - overhead);
+  encoded_length = (padded_length - encryption_overhead);
 
-  GNUNET_assert (padded_length == encoded_length + overhead);
+  GNUNET_assert (padded_length == encoded_length + encryption_overhead);
 
-  enum GNUNET_GenericReturnValue result = GNUNET_NO;
-  uint8_t *data = GNUNET_malloc (encoded_length);
+  result = GNUNET_NO;
+  data = GNUNET_malloc (encoded_length);
 
   encode_short_message (&shortened, encoded_length, (char *) data);
 
@@ -1210,14 +1266,16 @@ enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
                  const struct GNUNET_CRYPTO_PrivateKey *key)
 {
-  const uint16_t overhead = GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
-
   struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
+  enum GNUNET_GenericReturnValue result;
+  uint16_t padded_length, encoded_length;
+  uint8_t *data;
+
   GNUNET_assert ((message) && (key));
 
-  const uint16_t padded_length = message->body.privacy.length;
+  padded_length = message->body.privacy.length;
 
-  if (padded_length < overhead)
+  if (padded_length < encryption_overhead)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Message length too short to decrypt!\n");
@@ -1226,12 +1284,12 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   }
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (key, &hpke_key));
-  const uint16_t encoded_length = (padded_length - overhead);
+  encoded_length = (padded_length - encryption_overhead);
 
-  GNUNET_assert (padded_length == encoded_length + overhead);
+  GNUNET_assert (padded_length == encoded_length + encryption_overhead);
 
-  enum GNUNET_GenericReturnValue result = GNUNET_NO;
-  uint8_t *data = GNUNET_malloc (encoded_length);
+  result = GNUNET_NO;
+  data = GNUNET_malloc (encoded_length);
 
   if (GNUNET_OK !=
       GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
@@ -1248,20 +1306,21 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
     goto cleanup;
   }
 
-  struct GNUNET_MESSENGER_ShortMessage shortened;
-
-  if (GNUNET_YES != decode_short_message (&shortened,
-                                          encoded_length,
-                                          (char*) data))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Decoding decrypted message failed!\n");
+    struct GNUNET_MESSENGER_ShortMessage shortened;
+    if (GNUNET_YES != decode_short_message (&shortened,
+                                            encoded_length,
+                                            (char*) data))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Decoding decrypted message failed!\n");
 
-    goto cleanup;
+      goto cleanup;
+    }
+
+    unfold_short_message (&shortened, message);
+    result = GNUNET_YES;
   }
-
-  unfold_short_message (&shortened, message);
-  result = GNUNET_YES;
 
 cleanup:
   GNUNET_free (data);
@@ -1273,13 +1332,14 @@ struct GNUNET_MESSENGER_Message*
 transcribe_message (const struct GNUNET_MESSENGER_Message *message,
                     const struct GNUNET_CRYPTO_PublicKey *key)
 {
+  struct GNUNET_MESSENGER_Message *transcript;
+
   GNUNET_assert ((message) && (key));
 
   if (GNUNET_YES == is_service_message (message))
     return NULL;
 
-  struct GNUNET_MESSENGER_Message *transcript = create_message (
-    GNUNET_MESSENGER_KIND_TRANSCRIPT);
+  transcript = create_message (GNUNET_MESSENGER_KIND_TRANSCRIPT);
 
   if (! transcript)
   {
@@ -1290,18 +1350,20 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
   GNUNET_memcpy (&(transcript->body.transcript.key), key,
                  sizeof(transcript->body.transcript.key));
 
-  struct GNUNET_MESSENGER_ShortMessage shortened;
+  {
+    struct GNUNET_MESSENGER_ShortMessage shortened;
+    uint16_t data_length;
 
-  fold_short_message (message, &shortened);
+    fold_short_message (message, &shortened);
 
-  const uint16_t data_length = get_short_message_size (
-    &shortened, GNUNET_YES);
+    data_length = get_short_message_size (&shortened, GNUNET_YES);
 
-  transcript->body.transcript.data = GNUNET_malloc (data_length);
-  transcript->body.transcript.length = data_length;
+    transcript->body.transcript.data = GNUNET_malloc (data_length);
+    transcript->body.transcript.length = data_length;
 
-  encode_short_message (&shortened, data_length,
-                        transcript->body.transcript.data);
+    encode_short_message (&shortened, data_length,
+                          transcript->body.transcript.data);
+  }
 
   return transcript;
 }
@@ -1310,14 +1372,16 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
 enum GNUNET_GenericReturnValue
 read_transcript_message (struct GNUNET_MESSENGER_Message *message)
 {
+  uint16_t data_length;
+  struct GNUNET_MESSENGER_ShortMessage shortened;
+
   GNUNET_assert (message);
 
   if (GNUNET_MESSENGER_KIND_TRANSCRIPT != message->header.kind)
     return GNUNET_NO;
 
-  const uint16_t data_length = message->body.transcript.length;
+  data_length = message->body.transcript.length;
 
-  struct GNUNET_MESSENGER_ShortMessage shortened;
   if (GNUNET_YES != decode_short_message (&shortened,
                                           data_length,
                                           message->body.transcript.data))
@@ -1340,31 +1404,29 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
               enum GNUNET_MESSENGER_PackMode mode,
               const void *cls)
 {
+  struct GNUNET_MessageHeader *header;
+  uint16_t length, padded_length;
+  struct GNUNET_MQ_Envelope *env;
+  char *buffer;
+
   GNUNET_assert (message);
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Packing message kind=%u and sender: %s\n",
               message->header.kind, GNUNET_sh2s (&(message->header.sender_id)));
 
-  struct GNUNET_MessageHeader *header;
-
-  const uint16_t length = get_message_size (message, GNUNET_YES);
-  const uint16_t padded_length = calc_padded_length (length);
-
-  struct GNUNET_MQ_Envelope *env;
-  char *buffer;
+  length = get_message_size (message, GNUNET_YES);
+  padded_length = calc_padded_length (length);
 
   if (GNUNET_MESSENGER_PACK_MODE_ENVELOPE == mode)
   {
     env = GNUNET_MQ_msg_extra (header, padded_length,
                                GNUNET_MESSAGE_TYPE_CADET_CLI);
-
     buffer = (char*) &(header[1]);
   }
   else
   {
     env = NULL;
-
     buffer = GNUNET_malloc (padded_length);
   }
 
