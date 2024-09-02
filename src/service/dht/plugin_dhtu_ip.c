@@ -1008,7 +1008,10 @@ DHTU_ip_init (struct GNUNET_DHTU_PluginEnvironment *env)
     GNUNET_free (plugin);
     return NULL;
   }
-  af = AF_INET6;
+  if (GNUNET_NETWORK_test_pf (PF_INET6))
+    af = AF_INET6;
+  else
+    af = AF_INET;
   sock = socket (af,
                  SOCK_DGRAM,
                  IPPROTO_UDP);
