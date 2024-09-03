@@ -524,7 +524,7 @@ GNUNET_DISK_directory_create (const char *dir)
       if (GNUNET_NO == ret)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Creating directory `%s' failed",
+                    "Creating directory `%s' failed\n",
                     rdir);
         GNUNET_free (rdir);
         return GNUNET_SYSERR;
@@ -551,7 +551,7 @@ GNUNET_DISK_directory_create (const char *dir)
       if (GNUNET_NO == ret)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Creating directory `%s' failed",
+                    "Creating directory `%s' failed\n",
                     rdir);
         GNUNET_free (rdir);
         return GNUNET_SYSERR;
