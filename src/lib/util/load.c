@@ -24,8 +24,7 @@
  * @author Christian Grothoff
  */
 
-#include "platform.h"
-#include "gnunet_util_lib.h"
+#include "gnunet_load_lib.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-load", __VA_ARGS__)

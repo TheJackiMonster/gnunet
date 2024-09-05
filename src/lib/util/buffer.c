@@ -148,8 +148,9 @@ GNUNET_buffer_reap_str (struct GNUNET_Buffer *buf)
 void *
 GNUNET_buffer_reap (struct GNUNET_Buffer *buf, size_t *size)
 {
+  void *res;
   *size = buf->position;
-  void *res = buf->mem;
+  res = buf->mem;
   memset (buf, 0, sizeof (struct GNUNET_Buffer));
   return res;
 }

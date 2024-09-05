@@ -26,6 +26,7 @@
 #ifndef GNUNET_DISK_H_
 #define GNUNET_DISK_H_
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 /**
@@ -37,7 +38,7 @@
  * @param dst_len length of @a dst
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
-int
+enum GNUNET_GenericReturnValue
 GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
                                    void *dst, size_t dst_len);
 

@@ -155,7 +155,6 @@ GNUNET_CRYPTO_mpi_scan_unsigned (gcry_mpi_t *result,
  * @param result where to store MPI value (allocated)
  * @param data raw data (GCRYMPI_FMT_USG)
  * @param size number of bytes in @a data
- */
 void
 GNUNET_CRYPTO_mpi_scan_unsigned_le (gcry_mpi_t *result,
                                     const void *data,
@@ -173,6 +172,7 @@ GNUNET_CRYPTO_mpi_scan_unsigned_le (gcry_mpi_t *result,
     GNUNET_assert (0);
   }
 }
+ */
 
 
 /* end of crypto_mpi.c */

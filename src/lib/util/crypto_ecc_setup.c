@@ -332,7 +332,6 @@ GNUNET_CRYPTO_verify_peer_identity (uint32_t purpose,
  * key is fast (for example in time-dependent testcases).
  *
  * @param cfg_name name of the configuration file to use
- */
 void
 GNUNET_CRYPTO_eddsa_setup_key (const char *cfg_name)
 {
@@ -346,6 +345,7 @@ GNUNET_CRYPTO_eddsa_setup_key (const char *cfg_name)
     GNUNET_free (priv);
   GNUNET_CONFIGURATION_destroy (cfg);
 }
+ */
 
 
 /* end of crypto_ecc_setup.c */

@@ -30,7 +30,7 @@
  * How frequently do we scan the interfaces for changes to the addresses?
  */
 #define INTERFACE_PROCESSING_INTERVAL GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 2)
+          GNUNET_TIME_UNIT_MINUTES, 2)
 
 
 const char *
@@ -237,19 +237,21 @@ interface_proc (void *cls,
 #if HAVE_SOCKADDR_IN_SIN_LEN
     network6.sin6_len = sizeof(network6);
 #endif
-    unsigned int c = 0;
-    uint32_t *addr_elem = (uint32_t *) &addr6->sin6_addr;
-    uint32_t *mask_elem = (uint32_t *) &netmask6->sin6_addr;
-    uint32_t *net_elem = (uint32_t *) &network6.sin6_addr;
-    for (c = 0; c < 4; c++)
-      net_elem[c] = addr_elem[c] & mask_elem[c];
+    {
+      unsigned int c;
+      uint32_t *addr_elem = (uint32_t *) &addr6->sin6_addr;
+      uint32_t *mask_elem = (uint32_t *) &netmask6->sin6_addr;
+      uint32_t *net_elem = (uint32_t *) &network6.sin6_addr;
+      for (c = 0; c < 4; c++)
+        net_elem[c] = addr_elem[c] & mask_elem[c];
 
-    GNUNET_memcpy (net->netmask,
-                   netmask6,
-                   sizeof(struct sockaddr_in6));
-    GNUNET_memcpy (net->network,
-                   &network6,
-                   sizeof(struct sockaddr_in6));
+      GNUNET_memcpy (net->netmask,
+                     netmask6,
+                     sizeof(struct sockaddr_in6));
+      GNUNET_memcpy (net->network,
+                     &network6,
+                     sizeof(struct sockaddr_in6));
+    }
   }
   if (NULL == net)
     return GNUNET_OK; /* odd / unsupported address family */

@@ -424,7 +424,7 @@ pstrcmp (const void *a,
  *
  * @returns #GNUNET_SYSERR on error, #GNUNET_OK otherwise
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
                const char *path_or_glob,
                bool path_is_glob,
@@ -531,6 +531,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     if (cfg->diagnostics)
     {
+      const char *pwname;
+      const char *grname;
       char *sfn = GNUNET_STRINGS_filename_expand (inline_path);
       struct stat istat;
 
@@ -539,8 +541,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       {
         struct passwd *pw = getpwuid (istat.st_uid);
         struct group *gr = getgrgid (istat.st_gid);
-        char *pwname = (NULL == pw) ? "<unknown>" : pw->pw_name;
-        char *grname = (NULL == gr) ? "<unknown>" : gr->gr_name;
+        pwname = (NULL == pw) ? "<unknown>" : pw->pw_name;
+        grname = (NULL == gr) ? "<unknown>" : gr->gr_name;
 
         GNUNET_asprintf (&cs->hint_secret_stat,
                          "%s:%s %o",
@@ -2604,23 +2606,25 @@ GNUNET_CONFIGURATION_load (
     GNUNET_free (ipath);
   }
 
-  char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
-  GNUNET_free (baseconfig);
-
-  if ((GNUNET_YES ==
-       GNUNET_DISK_directory_test (dname,
-                                   GNUNET_YES)) &&
-      (GNUNET_SYSERR ==
-       GNUNET_CONFIGURATION_load_from (cfg,
-                                       dname)))
   {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         "Failed to load base configuration from '%s'\n",
-         filename);
+    char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
+    GNUNET_free (baseconfig);
+
+    if ((GNUNET_YES ==
+         GNUNET_DISK_directory_test (dname,
+                                     GNUNET_YES)) &&
+        (GNUNET_SYSERR ==
+         GNUNET_CONFIGURATION_load_from (cfg,
+                                         dname)))
+    {
+      LOG (GNUNET_ERROR_TYPE_WARNING,
+           "Failed to load base configuration from '%s'\n",
+           filename);
+      GNUNET_free (dname);
+      return GNUNET_SYSERR;     /* no configuration at all found */
+    }
     GNUNET_free (dname);
-    return GNUNET_SYSERR;       /* no configuration at all found */
   }
-  GNUNET_free (dname);
   if ((NULL != filename) &&
       (GNUNET_OK !=
        GNUNET_CONFIGURATION_parse (cfg,

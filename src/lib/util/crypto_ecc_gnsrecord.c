@@ -44,7 +44,7 @@
  *        typically the name of the subsystem/application
  * @param hc where to write the result
  */
-void
+static void
 derive_h (const void *pub,
           size_t pubsize,
           const char *label,
@@ -84,6 +84,8 @@ GNUNET_CRYPTO_eddsa_sign_derived (
   unsigned char R[32];
   unsigned char zk[32];
   unsigned char tmp[32];
+  unsigned char r_mod[64];
+  unsigned char hram_mod[64];
 
   /**
    * Derive the private key
@@ -132,7 +134,6 @@ GNUNET_CRYPTO_eddsa_sign_derived (
   /**
    * Reduce the scalar value r
    */
-  unsigned char r_mod[64];
   crypto_core_ed25519_scalar_reduce (r_mod, r);
 
   /**
@@ -154,7 +155,6 @@ GNUNET_CRYPTO_eddsa_sign_derived (
   /**
    * Reduce the resulting scalar value
    */
-  unsigned char hram_mod[64];
   crypto_core_ed25519_scalar_reduce (hram_mod, hram);
 
   /**
@@ -356,18 +356,19 @@ GNUNET_CRYPTO_eddsa_private_key_derive (
   gcry_mpi_release (h_mod_L);
   gcry_ctx_release (ctx);
   GNUNET_CRYPTO_mpi_print_unsigned (dc, sizeof(dc), d);
-  /**
-   * We hash the derived "h" parameter with the
-   * other half of the expanded private key. This ensures
-   * that for signature generation, the "R" is derived from
-   * the same derivation path as "h" and is not reused.
-   */
-  crypto_hash_sha256_state hs;
-  crypto_hash_sha256_init (&hs);
-  crypto_hash_sha256_update (&hs, sk + 32, 32);
-  crypto_hash_sha256_update (&hs, (unsigned char*) &hc, sizeof (hc));
-  crypto_hash_sha256_final (&hs, result->s + 32);
-  // memcpy (result->s, sk, sizeof (sk));
+  {
+    /**
+     * We hash the derived "h" parameter with the
+     * other half of the expanded private key. This ensures
+     * that for signature generation, the "R" is derived from
+     * the same derivation path as "h" and is not reused.
+     */
+    crypto_hash_sha256_state hs;
+    crypto_hash_sha256_init (&hs);
+    crypto_hash_sha256_update (&hs, sk + 32, 32);
+    crypto_hash_sha256_update (&hs, (unsigned char*) &hc, sizeof (hc));
+    crypto_hash_sha256_final (&hs, result->s + 32);
+  }
   /* Convert to little endian for libsodium */
   for (size_t i = 0; i < 32; i++)
     result->s[i] = dc[31 - i];

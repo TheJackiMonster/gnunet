@@ -436,7 +436,7 @@ setup_log_file (const struct tm *tm)
  * @return 0 on success, regex-specific error otherwise
  */
 static int
-add_definition (const char *component,
+add_definition (const char *lcomponent,
                 const char *file,
                 const char *function,
                 int from_line,
@@ -450,9 +450,9 @@ add_definition (const char *component,
   if (logdefs_size == logdefs_len)
     resize_logdefs ();
   memset (&n, 0, sizeof(n));
-  if (0 == strlen (component))
-    component = (char *) ".*";
-  r = regcomp (&n.component_regex, (const char *) component, REG_NOSUB);
+  if (0 == strlen (lcomponent))
+    lcomponent = (char *) ".*";
+  r = regcomp (&n.component_regex, (const char *) lcomponent, REG_NOSUB);
   if (0 != r)
   {
     return r;
@@ -1568,7 +1568,7 @@ GNUNET_print_bytes (const void *buf, size_t buf_len, int fold, int in_be)
 /**
  * Initializer
  */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_util_cl_init ()
 {
   GNUNET_stderr = stderr;
@@ -1578,7 +1578,7 @@ GNUNET_util_cl_init ()
 /**
  * Destructor
  */
-void __attribute__ ((destructor))
+static void __attribute__ ((destructor))
 GNUNET_util_cl_fini ()
 {
 

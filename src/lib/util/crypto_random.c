@@ -360,7 +360,7 @@ w_check (const void *p)
 /**
  * Initialize libgcrypt.
  */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_CRYPTO_random_init ()
 {
   gcry_error_t rc;
@@ -399,7 +399,7 @@ GNUNET_CRYPTO_random_init ()
 /**
  * Nicely shut down libgcrypt.
  */
-void __attribute__ ((destructor))
+static void __attribute__ ((destructor))
 GNUNET_CRYPTO_random_fini ()
 {
   gcry_set_progress_handler (NULL, NULL);

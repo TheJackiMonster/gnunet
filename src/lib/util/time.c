@@ -316,10 +316,11 @@ struct GNUNET_TIME_Absolute
 GNUNET_TIME_relative_to_absolute (struct GNUNET_TIME_Relative rel)
 {
   struct GNUNET_TIME_Absolute ret;
+  struct GNUNET_TIME_Absolute now;
 
   if (GNUNET_TIME_relative_is_forever (rel))
     return GNUNET_TIME_UNIT_FOREVER_ABS;
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  now = GNUNET_TIME_absolute_get ();
 
   if (rel.rel_value_us + now.abs_value_us < rel.rel_value_us)
   {
@@ -405,10 +406,11 @@ struct GNUNET_TIME_Relative
 GNUNET_TIME_absolute_get_remaining (struct GNUNET_TIME_Absolute future)
 {
   struct GNUNET_TIME_Relative ret;
+  struct GNUNET_TIME_Absolute now;
 
   if (GNUNET_TIME_absolute_is_never (future))
     return GNUNET_TIME_UNIT_FOREVER_REL;
-  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
+  now = GNUNET_TIME_absolute_get ();
 
   if (now.abs_value_us > future.abs_value_us)
     return GNUNET_TIME_UNIT_ZERO;
@@ -981,7 +983,7 @@ GNUNET_TIME_absolute_get_monotonic (
 /**
  * Destructor
  */
-void __attribute__ ((destructor))
+static void __attribute__ ((destructor))
 GNUNET_util_time_fini ()
 {
   (void) GNUNET_TIME_absolute_get_monotonic (NULL);

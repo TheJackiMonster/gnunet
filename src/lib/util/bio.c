@@ -645,14 +645,12 @@ GNUNET_BIO_get_buffer_contents (struct GNUNET_BIO_WriteHandle *h,
                                 void **contents,
                                 size_t *size)
 {
+  enum GNUNET_GenericReturnValue ret;
   if (IO_BUFFER != h->type)
     return GNUNET_SYSERR;
   if ((NULL == contents) || (NULL == size))
     return GNUNET_SYSERR;
-  enum GNUNET_GenericReturnValue ret
-    = (NULL != h->emsg)
-    ? GNUNET_SYSERR
-    : GNUNET_OK;
+  ret = (NULL != h->emsg) ? GNUNET_SYSERR : GNUNET_OK;
   if (NULL != emsg)
     *emsg = h->emsg;
   else

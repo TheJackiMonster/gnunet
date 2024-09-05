@@ -354,10 +354,10 @@ GNUNET_MQ_send (struct GNUNET_MQ_Handle *mq,
 struct GNUNET_MQ_Envelope *
 GNUNET_MQ_unsent_head (struct GNUNET_MQ_Handle *mq)
 {
+  struct GNUNET_MQ_Envelope *env;
   GNUNET_assert (0 < mq->queue_length);
   GNUNET_assert (NULL != mq->envelope_head);
   GNUNET_assert (NULL != mq->envelope_tail);
-  struct GNUNET_MQ_Envelope *env;
 
   env = mq->envelope_head;
   GNUNET_CONTAINER_DLL_remove (mq->envelope_head,
@@ -384,9 +384,9 @@ void
 GNUNET_MQ_send_copy (struct GNUNET_MQ_Handle *mq,
                      const struct GNUNET_MQ_Envelope *ev)
 {
-  GNUNET_assert (NULL != ev);
   struct GNUNET_MQ_Envelope *env;
   uint16_t msize;
+  GNUNET_assert (NULL != ev);
 
   msize = ntohs (ev->mh->size);
   env = GNUNET_malloc (sizeof(struct GNUNET_MQ_Envelope) + msize);

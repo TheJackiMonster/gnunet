@@ -117,7 +117,7 @@ GNUNET_CRYPTO_paillier_create (struct
  *         or desired_ops, in case that is lower,
  *         or -1 if less than one homomorphic operation is possible
  */
-int
+static int
 GNUNET_CRYPTO_paillier_encrypt1 (const struct
                                  GNUNET_CRYPTO_PaillierPublicKey *public_key,
                                  const gcry_mpi_t m,

@@ -98,24 +98,6 @@ GNUNET_CRYPTO_public_key_get_length (const struct
 }
 
 
-ssize_t
-GNUNET_CRYPTO_private_key_length_by_type (enum GNUNET_CRYPTO_KeyType kt)
-{
-  switch (kt)
-  {
-  case GNUNET_PUBLIC_KEY_TYPE_ECDSA:
-    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
-    break;
-  case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
-    return sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey);
-    break;
-  default:
-    GNUNET_break (0);
-  }
-  return -1;
-}
-
-
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
                                            size_t len,
@@ -123,12 +105,13 @@ GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
                                            key,
                                            size_t *kb_read)
 {
+  ssize_t length;
   if (len < sizeof (key->type))
     return GNUNET_SYSERR;
   GNUNET_memcpy (&key->type,
                  buffer,
                  sizeof (key->type));
-  ssize_t length = GNUNET_CRYPTO_public_key_get_length (key);
+  length = GNUNET_CRYPTO_public_key_get_length (key);
   if (len < length)
     return GNUNET_SYSERR;
   if (length < 0)
@@ -166,12 +149,13 @@ GNUNET_CRYPTO_read_private_key_from_buffer (const void *buffer,
                                             GNUNET_CRYPTO_PrivateKey *key,
                                             size_t *kb_read)
 {
+  ssize_t length;
   if (len < sizeof (key->type))
     return GNUNET_SYSERR;
   GNUNET_memcpy (&key->type,
                  buffer,
                  sizeof (key->type));
-  ssize_t length = GNUNET_CRYPTO_private_key_get_length (key);
+  length = GNUNET_CRYPTO_private_key_get_length (key);
   if (len < length)
     return GNUNET_SYSERR;
   if (length < 0)
@@ -245,10 +229,11 @@ GNUNET_CRYPTO_read_signature_from_buffer (struct
                                           const void*buffer,
                                           size_t len)
 {
+  ssize_t length;
   if (len < sizeof (sig->type))
     return -1;
   GNUNET_memcpy (&(sig->type), buffer, sizeof (sig->type));
-  const ssize_t length = GNUNET_CRYPTO_signature_get_length (sig);
+  length = GNUNET_CRYPTO_signature_get_length (sig);
   if (len < length)
     return -1;
   if (length < 0)

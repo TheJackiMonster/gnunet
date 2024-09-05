@@ -222,28 +222,10 @@ encode_bytes (uint8_t *bytes, mp_limb_t *number)
 /**
  * Initialize elligator scratch space.
 */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_CRYPTO_ecdhe_elligator_initialize ()
 {
   static bool initialized = false;
-
-  if (initialized)
-  {
-    return;
-  }
-
-  decode_bytes (p, p_bytes);
-  decode_bytes (negative_1, negative_1_bytes);
-  decode_bytes (negative_2, negative_2_bytes);
-  decode_bytes (divide_negative_1_2, divide_negative_1_2_bytes);
-  decode_bytes (divide_plus_p_3_8, divide_plus_p_3_8_bytes);
-  decode_bytes (divide_minus_p_1_2, divide_minus_p_1_2_bytes);
-  decode_bytes (square_root_negative_1, square_root_negative_1_bytes);
-  decode_bytes (A, A_bytes);
-  decode_bytes (negative_A, negative_A_bytes);
-  decode_bytes (u, u_bytes);
-  decode_bytes (inverted_u, inverted_u_bytes);
-  decode_bytes (d, d_bytes);
 
   mp_size_t scratch_space_lengths[] = {
     // For least_square_root
@@ -280,6 +262,25 @@ GNUNET_CRYPTO_ecdhe_elligator_initialize ()
     mpn_sec_sub_1_itch (P_LIMBS)
   };
 
+  if (initialized)
+  {
+    return;
+  }
+
+  decode_bytes (p, p_bytes);
+  decode_bytes (negative_1, negative_1_bytes);
+  decode_bytes (negative_2, negative_2_bytes);
+  decode_bytes (divide_negative_1_2, divide_negative_1_2_bytes);
+  decode_bytes (divide_plus_p_3_8, divide_plus_p_3_8_bytes);
+  decode_bytes (divide_minus_p_1_2, divide_minus_p_1_2_bytes);
+  decode_bytes (square_root_negative_1, square_root_negative_1_bytes);
+  decode_bytes (A, A_bytes);
+  decode_bytes (negative_A, negative_A_bytes);
+  decode_bytes (u, u_bytes);
+  decode_bytes (inverted_u, inverted_u_bytes);
+  decode_bytes (d, d_bytes);
+
+
   for (size_t i = 0; i < sizeof scratch_space_lengths
        / sizeof *scratch_space_lengths; ++i)
   {
@@ -308,6 +309,7 @@ least_square_root (mp_limb_t *root,
 {
   mp_limb_t a[P_LIMBS + P_LIMBS];
   mp_limb_t b[P_LIMBS];
+  mp_limb_t condition;
 
   // root := number ^ ((p + 3) / 8)
 
@@ -321,7 +323,7 @@ least_square_root (mp_limb_t *root,
   mpn_sec_div_r (a, P_LIMBS + P_LIMBS, p, P_LIMBS, scratch_space);
   mpn_sub_n (b, a, number, P_LIMBS);
 
-  mp_limb_t condition = mpn_sec_sub_1 (b, b, P_LIMBS, 1, scratch_space) ^ 1;
+  condition = mpn_sec_sub_1 (b, b, P_LIMBS, 1, scratch_space) ^ 1;
 
   mpn_sec_mul (a, root, P_LIMBS, square_root_negative_1, P_LIMBS,
                scratch_space);
@@ -349,7 +351,6 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
   bool msb_set;
   bool smsb_set;
 
-  high_y = random_tweak & 1;
 
   uint8_t *representative = r->r;
   uint8_t *point = (uint8_t *) pub->q_y;
@@ -359,6 +360,8 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
   mp_limb_t a[P_LIMBS + P_LIMBS];
   mp_limb_t b[P_LIMBS + P_LIMBS];
   mp_limb_t c[P_LIMBS + P_LIMBS];
+
+  high_y = random_tweak & 1;
 
   // a := point
 
@@ -394,22 +397,24 @@ GNUNET_CRYPTO_ecdhe_elligator_encoding (
   mpn_sec_div_r (a, P_LIMBS + P_LIMBS, p, P_LIMBS, scratch_space);
   mpn_sub_n (a, a, c, P_LIMBS);
 
-  bool result = mpn_sec_sub_1 (a, a, P_LIMBS, 1, scratch_space);
-
-  encode_bytes (representative, b);
-
-  // Setting most significant bit and second most significant bit randomly
-  msb_set = (random_tweak >> 1) & 1;
-  smsb_set = (random_tweak >> 2) & 1;
-  if (msb_set)
   {
-    r->r[31] |= 128;
+    bool result = mpn_sec_sub_1 (a, a, P_LIMBS, 1, scratch_space);
+
+    encode_bytes (representative, b);
+
+    // Setting most significant bit and second most significant bit randomly
+    msb_set = (random_tweak >> 1) & 1;
+    smsb_set = (random_tweak >> 2) & 1;
+    if (msb_set)
+    {
+      r->r[31] |= 128;
+    }
+    if (smsb_set)
+    {
+      r->r[31] |= 64;
+    }
+    return result;
   }
-  if (smsb_set)
-  {
-    r->r[31] |= 64;
-  }
-  return result;
 }
 
 
@@ -435,6 +440,7 @@ elligator_direct_map (uint8_t *point,
   mp_limb_t b[P_LIMBS + P_LIMBS];
   mp_limb_t c[P_LIMBS];
   mp_limb_t e[P_LIMBS + P_LIMBS];
+  bool result;
 
   // a := representative
 
@@ -442,7 +448,7 @@ elligator_direct_map (uint8_t *point,
 
   // Determine whether a < (p - 1) / 2
 
-  bool result = mpn_sub_n (b, divide_minus_p_1_2, a, P_LIMBS) ^ 1;
+  result = mpn_sub_n (b, divide_minus_p_1_2, a, P_LIMBS) ^ 1;
 
   // b := -A / (1 + u * a ^ 2)
 
@@ -491,6 +497,7 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (
   const struct GNUNET_CRYPTO_ElligatorRepresentative *representative)
 {
   // if sign of direct map transformation not needed throw it away
+  struct GNUNET_CRYPTO_ElligatorRepresentative r_tmp;
   bool high_y_local;
   bool *high_y_ptr;
   if (NULL == high_y)
@@ -498,7 +505,6 @@ GNUNET_CRYPTO_ecdhe_elligator_decoding (
   else
     high_y_ptr = high_y;
 
-  struct GNUNET_CRYPTO_ElligatorRepresentative r_tmp;
   memcpy (&r_tmp.r, &representative->r, sizeof(r_tmp.r));
   r_tmp.r[31] &= 63;
   // GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"Print high_y\n");
@@ -530,6 +536,7 @@ convert_from_ed_to_curve (uint8_t *point,
   mp_limb_t c[P_LIMBS + P_LIMBS];
 
   uint8_t y_bytes[P_BYTES];
+  bool result;
 
   memcpy (y_bytes, source, 31);
 
@@ -539,7 +546,7 @@ convert_from_ed_to_curve (uint8_t *point,
 
   // Check if y < p
 
-  bool result = mpn_sub_n (a, y, p, P_LIMBS);
+  result = mpn_sub_n (a, y, p, P_LIMBS);
 
   // a := (y ^ 2 - 1) / (1 + d * y ^ 2)
 
@@ -592,15 +599,15 @@ elligator_generate_public_key (
   // eHigh
   // crypto_scalarmult_ed25519_base clamps the scalar pk->d and return only 0 if pk->d is zero
   unsigned char eHigh[crypto_scalarmult_SCALARBYTES] = {0};
+  int sLow = (pk->d)[0] % 8;
+  unsigned char eLow[crypto_scalarmult_SCALARBYTES] = {0};
+  unsigned char edPub[crypto_scalarmult_SCALARBYTES] = {0};
   GNUNET_assert (0 == crypto_scalarmult_ed25519_base (eHigh, pk->d));
 
   // eLow: choose a random point of low order
-  int sLow = (pk->d)[0] % 8;
-  unsigned char eLow[crypto_scalarmult_SCALARBYTES] = {0};
   memcpy (eLow, lookupTable[sLow], crypto_scalarmult_SCALARBYTES);
 
   // eHigh + eLow
-  unsigned char edPub[crypto_scalarmult_SCALARBYTES] = {0};
   if (crypto_core_ed25519_add (edPub, eLow, eHigh) == -1)
   {
     return GNUNET_SYSERR;
@@ -668,7 +675,8 @@ GNUNET_CRYPTO_ecdhe_elligator_key_create (
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                                 sk,
                                 sizeof (struct
-                                        GNUNET_CRYPTO_ElligatorEcdhePrivateKey));
+                                        GNUNET_CRYPTO_ElligatorEcdhePrivateKey))
+    ;
     if (GNUNET_OK == GNUNET_CRYPTO_ecdhe_elligator_key_get_public (sk, &pk,
                                                                    &repr))
       break;

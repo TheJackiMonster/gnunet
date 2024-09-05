@@ -113,6 +113,7 @@ GNUNET_CRYPTO_edx25519_sign_ (
   unsigned char r_mod[64];
   unsigned char R[32];
   unsigned char tmp[32];
+  unsigned char hram_mod[64];
 
   crypto_hash_sha512_init (&hs);
 
@@ -165,7 +166,6 @@ GNUNET_CRYPTO_edx25519_sign_ (
   /**
    * Reduce the resulting scalar value
    */
-  unsigned char hram_mod[64];
   crypto_core_ed25519_scalar_reduce (hram_mod, hram);
 
   /**

@@ -508,10 +508,11 @@ enum GNUNET_GenericReturnValue
 GNUNET_NETWORK_socket_close (struct GNUNET_NETWORK_Handle *desc)
 {
   int ret;
+  const struct sockaddr_un *un;
 
   ret = close (desc->fd);
 
-  const struct sockaddr_un *un = (const struct sockaddr_un *) desc->addr;
+  un = (const struct sockaddr_un *) desc->addr;
 
   /* Cleanup the UNIX domain socket and its parent directories in case of non
      abstract sockets */

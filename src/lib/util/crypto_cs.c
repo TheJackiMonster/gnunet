@@ -155,6 +155,10 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
                      struct GNUNET_CRYPTO_CsC *c)
 {
   // SHA-512 hash of R' and message
+  struct GNUNET_HashCode prehash;
+  gcry_mpi_t l_mpi;
+  gcry_mpi_t c_mpi;
+  unsigned char c_big_endian[256 / 8];
   size_t r_m_concat_len = sizeof(struct GNUNET_CRYPTO_CsRPublic) + msg_len;
   char r_m_concat[r_m_concat_len];
   memcpy (r_m_concat,
@@ -163,20 +167,17 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
   memcpy (r_m_concat + sizeof(struct GNUNET_CRYPTO_CsRPublic),
           msg,
           msg_len);
-  struct GNUNET_HashCode prehash;
 
   GNUNET_CRYPTO_hash (r_m_concat,
                       r_m_concat_len,
                       &prehash);
 
   // modulus converted to MPI representation
-  gcry_mpi_t l_mpi;
   GNUNET_CRYPTO_mpi_scan_unsigned (&l_mpi,
                                    L_BIG_ENDIAN,
                                    sizeof(L_BIG_ENDIAN));
 
   // calculate full domain hash
-  gcry_mpi_t c_mpi;
   GNUNET_CRYPTO_kdf_mod_mpi (&c_mpi,
                              l_mpi,
                              pub,
@@ -187,7 +188,6 @@ cs_full_domain_hash (const struct GNUNET_CRYPTO_CsRPublic *r_dash,
   gcry_mpi_release (l_mpi);
 
   // convert c from mpi
-  unsigned char c_big_endian[256 / 8];
   GNUNET_CRYPTO_mpi_print_unsigned (c_big_endian,
                                     sizeof(c_big_endian),
                                     c_mpi);
@@ -213,17 +213,17 @@ calc_r_dash (const struct GNUNET_CRYPTO_CsBlindingSecret *bs,
 {
   // R'i = Ri + alpha i*G + beta i*pub
   struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base;
+  struct GNUNET_CRYPTO_Cs25519Point beta_mul_pub;
+  struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base_plus_beta_mul_pub;
   GNUNET_assert (0 ==
                  crypto_scalarmult_ed25519_base_noclamp (
                    alpha_mul_base.y,
                    bs->alpha.d));
-  struct GNUNET_CRYPTO_Cs25519Point beta_mul_pub;
   GNUNET_assert (0 ==
                  crypto_scalarmult_ed25519_noclamp (
                    beta_mul_pub.y,
                    bs->beta.d,
                    pub->point.y));
-  struct GNUNET_CRYPTO_Cs25519Point alpha_mul_base_plus_beta_mul_pub;
   GNUNET_assert (0 == crypto_core_ed25519_add (
                    alpha_mul_base_plus_beta_mul_pub.y,
                    alpha_mul_base.y,
@@ -246,6 +246,8 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
   struct GNUNET_CRYPTO_CsC blinded_c[2],
   struct GNUNET_CRYPTO_CSPublicRPairP *r_pub_blind)
 {
+  struct GNUNET_CRYPTO_CsC c_dash_0;
+  struct GNUNET_CRYPTO_CsC c_dash_1;
   /* for i 0/1: R'i = Ri + alpha i*G + beta i*pub */
   calc_r_dash (&bs[0],
                &r_pub[0],
@@ -257,8 +259,6 @@ GNUNET_CRYPTO_cs_calc_blinded_c (
                &r_pub_blind->r_pub[1]);
 
   /* for i 0/1: c'i = H(R'i, msg) */
-  struct GNUNET_CRYPTO_CsC c_dash_0;
-  struct GNUNET_CRYPTO_CsC c_dash_1;
   cs_full_domain_hash (&r_pub_blind->r_pub[0],
                        msg,
                        msg_len,
@@ -334,6 +334,9 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
 {
   // calculate c' = H(R, m)
   struct GNUNET_CRYPTO_CsC c_dash;
+  struct GNUNET_CRYPTO_Cs25519Point sig_scal_mul_base;
+  struct GNUNET_CRYPTO_Cs25519Point c_dash_mul_pub;
+  struct GNUNET_CRYPTO_Cs25519Point R_add_c_dash_mul_pub;
 
   cs_full_domain_hash (&sig->r_point,
                        msg,
@@ -342,16 +345,13 @@ GNUNET_CRYPTO_cs_verify (const struct GNUNET_CRYPTO_CsSignature *sig,
                        &c_dash);
 
   // s'G ?= R' + c' pub
-  struct GNUNET_CRYPTO_Cs25519Point sig_scal_mul_base;
   GNUNET_assert (0 ==
                  crypto_scalarmult_ed25519_base_noclamp (
                    sig_scal_mul_base.y,
                    sig->s_scalar.scalar.d));
-  struct GNUNET_CRYPTO_Cs25519Point c_dash_mul_pub;
   GNUNET_assert (0 == crypto_scalarmult_ed25519_noclamp (c_dash_mul_pub.y,
                                                          c_dash.scalar.d,
                                                          pub->point.y));
-  struct GNUNET_CRYPTO_Cs25519Point R_add_c_dash_mul_pub;
   GNUNET_assert (0 == crypto_core_ed25519_add (R_add_c_dash_mul_pub.y,
                                                sig->r_point.point.y,
                                                c_dash_mul_pub.y));

@@ -178,9 +178,9 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
                              va_list argp)
 {
   unsigned char prk[crypto_auth_hmacsha512_BYTES];
+  crypto_auth_hmacsha512_state st;
 
   memset (result, 0, out_len);
-  crypto_auth_hmacsha512_state st;
   if (crypto_auth_hmacsha512_init (&st, xts, xts_len))
     return GNUNET_SYSERR;
   if (crypto_auth_hmacsha512_update (&st, skm, skm_len))

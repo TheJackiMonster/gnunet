@@ -452,11 +452,11 @@ GNUNET_CRYPTO_hpke_elligator_kem_encaps (
   struct GNUNET_ShortHashCode *shared_secret)
 {
   uint8_t random_tweak;
+  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skE;
+
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
                               &random_tweak,
                               sizeof(uint8_t));
-
-  struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skE;
 
   // skE, pkE = GenerateElligatorKeyPair()
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&skE);
@@ -581,7 +581,7 @@ verify_psk_inputs (enum GNUNET_CRYPTO_HpkeMode mode,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 key_schedule (enum GNUNET_CRYPTO_HpkeRole role,
               enum GNUNET_CRYPTO_HpkeMode mode,
               const struct GNUNET_ShortHashCode *shared_secret,
