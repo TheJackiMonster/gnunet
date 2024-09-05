@@ -165,7 +165,7 @@ test_mode_base ()
   struct GNUNET_CRYPTO_HpkeContext ctxS;
   struct GNUNET_CRYPTO_HpkeContext ctxR;
   uint8_t rfc9180_a2_base_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
-  uint8_t rfc9180_a2_key[GNUNET_CRYPTO_HPKE_NONCE_LEN];
+  uint8_t rfc9180_a2_key[GNUNET_CRYPTO_HPKE_KEY_LEN];
   uint8_t rfc9180_a2_info[strlen (rfc9180_a2_1_info_str) / 2];
   uint8_t rfc9180_a2_pt[strlen (rfc9180_a2_1_pt_str) / 2];
   uint8_t rfc9180_a2_aad[strlen (rfc9180_a2_1_aad_seq0_str) / 2];
@@ -340,7 +340,7 @@ test_mode_auth_psk ()
   struct GNUNET_CRYPTO_HpkeContext ctxS;
   struct GNUNET_CRYPTO_HpkeContext ctxR;
   uint8_t rfc9180_a2_base_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
-  uint8_t rfc9180_a2_key[GNUNET_CRYPTO_HPKE_NONCE_LEN];
+  uint8_t rfc9180_a2_key[GNUNET_CRYPTO_HPKE_KEY_LEN];
   uint8_t rfc9180_a2_info[strlen (rfc9180_a2_4_info_str) / 2];
   uint8_t rfc9180_a2_pt[strlen (rfc9180_a2_4_pt_str) / 2];
   uint8_t rfc9180_a2_psk[strlen (rfc9180_a2_4_psk_str) / 2];
