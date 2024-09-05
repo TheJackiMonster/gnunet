@@ -25,7 +25,6 @@
  */
 #include "platform.h"
 #include "gnunet_arm_service.h"
-#include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
 
 /**
@@ -531,7 +530,7 @@ static void
 list_callback (void *cls,
                enum GNUNET_ARM_RequestStatus rs,
                unsigned int count,
-               const struct GNUNET_ARM_ServiceInfo *list)
+               const struct GNUNET_ARM_ServiceInfo *service_info)
 {
   unsigned int num_stopped = 0;
   unsigned int num_started = 0;
@@ -554,7 +553,7 @@ list_callback (void *cls,
     ret = 3;
     GNUNET_SCHEDULER_shutdown ();
   }
-  if (NULL == list)
+  if (NULL == service_info)
   {
     fprintf (stderr,
              "%s",
@@ -565,7 +564,7 @@ list_callback (void *cls,
   }
   for (unsigned int i = 0; i < count; i++)
   {
-    switch (list[i].status)
+    switch (service_info[i].status)
     {
     case GNUNET_ARM_SERVICE_STATUS_STOPPED:
       num_stopped++;
@@ -583,15 +582,15 @@ list_callback (void *cls,
       num_stopping++;
       fprintf (stdout,
                "%s (binary='%s', status=stopping)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     default:
       GNUNET_break_op (0);
       fprintf (stdout,
                "%s (binary='%s', status=unknown)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     }
   }
@@ -667,49 +666,49 @@ list_callback (void *cls,
   for (unsigned int i = 0; i < count; i++)
   {
     struct GNUNET_TIME_Relative restart_in;
-    switch (list[i].status)
+    switch (service_info[i].status)
     {
     case GNUNET_ARM_SERVICE_STATUS_STOPPED:
       if (show_all)
         fprintf (stdout,
                  "%s (binary='%s', status=stopped)\n",
-                 list[i].name,
-                 list[i].binary);
+                 service_info[i].name,
+                 service_info[i].binary);
       break;
     case GNUNET_ARM_SERVICE_STATUS_FAILED:
-      restart_in = GNUNET_TIME_absolute_get_remaining (list[i].restart_at);
+      restart_in = GNUNET_TIME_absolute_get_remaining (service_info[i].restart_at);
       fprintf (stdout,
                "%s (binary='%s', status=failed, exit_status=%d, restart_delay='%s')\n",
-               list[i].name,
-               list[i].binary,
-               list[i].last_exit_status,
+               service_info[i].name,
+               service_info[i].binary,
+               service_info[i].last_exit_status,
                GNUNET_STRINGS_relative_time_to_string (restart_in,
                                                        GNUNET_YES));
       break;
     case GNUNET_ARM_SERVICE_STATUS_FINISHED:
       fprintf (stdout,
                "%s (binary='%s', status=finished)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     case GNUNET_ARM_SERVICE_STATUS_STARTED:
       fprintf (stdout,
                "%s (binary='%s', status=started)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     case GNUNET_ARM_SERVICE_STATUS_STOPPING:
       fprintf (stdout,
                "%s (binary='%s', status=stopping)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     default:
       GNUNET_break_op (0);
       fprintf (stdout,
                "%s (binary='%s', status=unknown)\n",
-               list[i].name,
-               list[i].binary);
+               service_info[i].name,
+               service_info[i].binary);
       break;
     }
   }

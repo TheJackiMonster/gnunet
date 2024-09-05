@@ -106,7 +106,7 @@ init ()
 /**
  * Dual function to #init().
  */
-void __attribute__ ((destructor))
+static void __attribute__ ((destructor))
 RECLAIM_CREDENTIAL_fini ()
 {
   struct Plugin *plugin;

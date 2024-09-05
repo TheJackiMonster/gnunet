@@ -213,13 +213,13 @@ delete_finished (void *cls,
  */
 static void
 create_finished (void *cls,
-                 const struct GNUNET_CRYPTO_PrivateKey *pk,
+                 const struct GNUNET_CRYPTO_PrivateKey *pk_created,
                  enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_IDENTITY_Operation **op = cls;
 
   *op = NULL;
-  if (NULL == pk)
+  if (NULL == pk_created)
   {
     fprintf (stderr,
              _ ("Failed to create ego: %s\n"),
@@ -231,13 +231,13 @@ create_finished (void *cls,
     struct GNUNET_CRYPTO_PublicKey pub;
     char *pubs;
 
-    GNUNET_CRYPTO_key_get_public (pk, &pub);
+    GNUNET_CRYPTO_key_get_public (pk_created, &pub);
     pubs = GNUNET_CRYPTO_public_key_to_string (&pub);
     if (private_keys)
     {
       char *privs;
 
-      privs = GNUNET_CRYPTO_private_key_to_string (pk);
+      privs = GNUNET_CRYPTO_private_key_to_string (pk_created);
       fprintf (stdout, "%s - %s\n", pubs, privs);
       GNUNET_free (privs);
     }
@@ -260,6 +260,7 @@ write_encrypted_message (void)
 {
   struct GNUNET_CRYPTO_PublicKey recipient;
   struct GNUNET_CRYPTO_EcdhePublicKey hpke_key = {0};
+  size_t msg_len = strlen (write_msg) + 1;
   size_t ct_len = strlen (write_msg) + 1
                   + GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
   unsigned char ct[ct_len];
@@ -268,7 +269,6 @@ write_encrypted_message (void)
   {
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient, &hpke_key));
-    size_t msg_len = strlen (write_msg) + 1;
     if (GNUNET_OK == GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
                                                       NULL, 0, // FIXME provide?
                                                       NULL, 0,
@@ -387,7 +387,7 @@ print_ego (void *cls,
            void **ctx,
            const char *identifier)
 {
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_PublicKey pk_tmp;
   char *s;
   char *privs;
 
@@ -418,8 +418,8 @@ print_ego (void *cls,
        (0 != strcmp (identifier,
                      set_ego)) )
     return;
-  GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-  s = GNUNET_CRYPTO_public_key_to_string (&pk);
+  GNUNET_IDENTITY_ego_get_public_key (ego, &pk_tmp);
+  s = GNUNET_CRYPTO_public_key_to_string (&pk_tmp);
   privs = GNUNET_CRYPTO_private_key_to_string (
     GNUNET_IDENTITY_ego_get_private_key (ego));
   if ((NULL != read_msg) && (NULL != set_ego))
@@ -443,12 +443,12 @@ print_ego (void *cls,
       if (private_keys)
         fprintf (stdout, "%s - %s - %s - %s\n",
                  identifier, s, privs,
-                 (ntohl (pk.type) == GNUNET_PUBLIC_KEY_TYPE_ECDSA) ?
+                 (ntohl (pk_tmp.type) == GNUNET_PUBLIC_KEY_TYPE_ECDSA) ?
                  "ECDSA" : "EdDSA");
       else
         fprintf (stdout, "%s - %s - %s\n",
                  identifier, s,
-                 (ntohl (pk.type) == GNUNET_PUBLIC_KEY_TYPE_ECDSA) ?
+                 (ntohl (pk_tmp.type) == GNUNET_PUBLIC_KEY_TYPE_ECDSA) ?
                  "ECDSA" : "EdDSA");
 
     }

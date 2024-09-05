@@ -388,7 +388,7 @@ GNUNET_SERVICE_MAIN
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_ARM_memory_init ()
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);

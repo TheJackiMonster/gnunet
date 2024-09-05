@@ -27,6 +27,7 @@
 #include "platform.h"
 #include "gnunet_rest_plugin.h"
 #include <gnunet_rest_lib.h>
+#include "copying_plugin.h"
 
 #define GNUNET_REST_API_NS_COPYING "/copying"
 

@@ -51,7 +51,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
-#include "gnunet_testing_lib.h"
 #include <jansson.h>
 #include <gcrypt.h>
 
@@ -895,87 +894,88 @@ checkvec (const char *operation,
       GNUNET_break (0);
       return GNUNET_SYSERR;
     }
-
-    struct GNUNET_CRYPTO_CsRSecret r_priv_comp[2];
-    struct GNUNET_CRYPTO_CsRPublic r_pub_comp[2];
-    struct GNUNET_CRYPTO_CsBlindingSecret bs_comp[2];
-    struct GNUNET_CRYPTO_CsC c_comp[2];
-    struct GNUNET_CRYPTO_CSPublicRPairP r_pub_blind_comp;
-    struct GNUNET_CRYPTO_CsBlindSignature blinded_s_comp;
-    struct GNUNET_CRYPTO_CsS signature_scalar_comp;
-    struct GNUNET_CRYPTO_CsSignature sig_comp;
-
-    GNUNET_CRYPTO_cs_r_derive (&snonce,
-                               "rw",
-                               &priv,
-                               r_priv_comp);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[0],
-                                   &r_pub_comp[0]);
-    GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[1],
-                                   &r_pub_comp[1]);
-    GNUNET_assert (0 == memcmp (&r_priv_comp,
-                                &r_priv,
-                                sizeof(struct GNUNET_CRYPTO_CsRSecret) * 2));
-    GNUNET_assert (0 == memcmp (&r_pub_comp,
-                                &r_pub,
-                                sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
-
-    GNUNET_CRYPTO_cs_blinding_secrets_derive (&bnonce,
-                                              bs_comp);
-    GNUNET_assert (0 ==
-                   memcmp (&bs_comp,
-                           &bs,
-                           sizeof(struct GNUNET_CRYPTO_CsBlindingSecret)
-                           * 2));
-    GNUNET_CRYPTO_cs_calc_blinded_c (bs_comp,
-                                     r_pub_comp,
-                                     &pub,
-                                     &message_hash,
-                                     sizeof(message_hash),
-                                     c_comp,
-                                     &r_pub_blind_comp);
-    GNUNET_assert (0 ==
-                   memcmp (&c_comp,
-                           &c,
-                           sizeof(struct GNUNET_CRYPTO_CsC) * 2));
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (&r_pub_blind_comp,
-                                  &r_pub_blind));
     {
-      struct GNUNET_CRYPTO_CsBlindedMessage bm = {
-        .c[0] = c_comp[0],
-        .c[1] = c_comp[1],
-        .nonce = snonce
-      };
+      struct GNUNET_CRYPTO_CsRSecret r_priv_comp[2];
+      struct GNUNET_CRYPTO_CsRPublic r_pub_comp[2];
+      struct GNUNET_CRYPTO_CsBlindingSecret bs_comp[2];
+      struct GNUNET_CRYPTO_CsC c_comp[2];
+      struct GNUNET_CRYPTO_CSPublicRPairP r_pub_blind_comp;
+      struct GNUNET_CRYPTO_CsBlindSignature blinded_s_comp;
+      struct GNUNET_CRYPTO_CsS signature_scalar_comp;
+      struct GNUNET_CRYPTO_CsSignature sig_comp;
 
-      GNUNET_CRYPTO_cs_sign_derive (&priv,
-                                    r_priv_comp,
-                                    &bm,
-                                    &blinded_s_comp);
-    }
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (&blinded_s_comp.s_scalar,
-                                  &blinded_s));
-    GNUNET_assert (b == blinded_s_comp.b);
-    GNUNET_CRYPTO_cs_unblind (&blinded_s_comp.s_scalar,
-                              &bs_comp[b],
-                              &signature_scalar_comp);
-    GNUNET_assert (0 ==
-                   GNUNET_memcmp (&signature_scalar_comp,
-                                  &signature_scalar));
-    sig_comp.r_point = r_pub_blind_comp.r_pub[b];
-    sig_comp.s_scalar = signature_scalar_comp;
-    GNUNET_assert (0 == memcmp (&sig_comp,
-                                &sig,
-                                sizeof(sig_comp)));
-    if (GNUNET_OK !=
-        GNUNET_CRYPTO_cs_verify (&sig_comp,
-                                 &pub,
-                                 &message_hash,
-                                 sizeof(message_hash)))
-    {
-      GNUNET_break (0);
-      return GNUNET_SYSERR;
+      GNUNET_CRYPTO_cs_r_derive (&snonce,
+                                 "rw",
+                                 &priv,
+                                 r_priv_comp);
+      GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[0],
+                                     &r_pub_comp[0]);
+      GNUNET_CRYPTO_cs_r_get_public (&r_priv_comp[1],
+                                     &r_pub_comp[1]);
+      GNUNET_assert (0 == memcmp (&r_priv_comp,
+                                  &r_priv,
+                                  sizeof(struct GNUNET_CRYPTO_CsRSecret) * 2));
+      GNUNET_assert (0 == memcmp (&r_pub_comp,
+                                  &r_pub,
+                                  sizeof(struct GNUNET_CRYPTO_CsRPublic) * 2));
+
+      GNUNET_CRYPTO_cs_blinding_secrets_derive (&bnonce,
+                                                bs_comp);
+      GNUNET_assert (0 ==
+                     memcmp (&bs_comp,
+                             &bs,
+                             sizeof(struct GNUNET_CRYPTO_CsBlindingSecret)
+                             * 2));
+      GNUNET_CRYPTO_cs_calc_blinded_c (bs_comp,
+                                       r_pub_comp,
+                                       &pub,
+                                       &message_hash,
+                                       sizeof(message_hash),
+                                       c_comp,
+                                       &r_pub_blind_comp);
+      GNUNET_assert (0 ==
+                     memcmp (&c_comp,
+                             &c,
+                             sizeof(struct GNUNET_CRYPTO_CsC) * 2));
+      GNUNET_assert (0 ==
+                     GNUNET_memcmp (&r_pub_blind_comp,
+                                    &r_pub_blind));
+      {
+        struct GNUNET_CRYPTO_CsBlindedMessage bm = {
+          .c[0] = c_comp[0],
+          .c[1] = c_comp[1],
+          .nonce = snonce
+        };
+
+        GNUNET_CRYPTO_cs_sign_derive (&priv,
+                                      r_priv_comp,
+                                      &bm,
+                                      &blinded_s_comp);
+      }
+      GNUNET_assert (0 ==
+                     GNUNET_memcmp (&blinded_s_comp.s_scalar,
+                                    &blinded_s));
+      GNUNET_assert (b == blinded_s_comp.b);
+      GNUNET_CRYPTO_cs_unblind (&blinded_s_comp.s_scalar,
+                                &bs_comp[b],
+                                &signature_scalar_comp);
+      GNUNET_assert (0 ==
+                     GNUNET_memcmp (&signature_scalar_comp,
+                                    &signature_scalar));
+      sig_comp.r_point = r_pub_blind_comp.r_pub[b];
+      sig_comp.s_scalar = signature_scalar_comp;
+      GNUNET_assert (0 == memcmp (&sig_comp,
+                                  &sig,
+                                  sizeof(sig_comp)));
+      if (GNUNET_OK !=
+          GNUNET_CRYPTO_cs_verify (&sig_comp,
+                                   &pub,
+                                   &message_hash,
+                                   sizeof(message_hash)))
+      {
+        GNUNET_break (0);
+        return GNUNET_SYSERR;
+      }
     }
   }
   else
@@ -1077,7 +1077,7 @@ output_vectors ()
   {
     json_t *vec = vec_for (vecs, "hash");
     struct GNUNET_HashCode hc;
-    char *str = "Hello, GNUnet";
+    const char *str = "Hello, GNUnet";
 
     GNUNET_CRYPTO_hash (str, strlen (str), &hc);
 
@@ -1179,9 +1179,9 @@ output_vectors ()
     json_t *vec = vec_for (vecs, "kdf");
     size_t out_len = 64;
     char out[out_len];
-    char *ikm = "I'm the secret input key material";
-    char *salt = "I'm very salty";
-    char *ctx = "I'm a context chunk, also known as 'info' in the RFC";
+    const char *ikm = "I'm the secret input key material";
+    const char *salt = "I'm very salty";
+    const char *ctx = "I'm a context chunk, also known as 'info' in the RFC";
 
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_kdf (&out,

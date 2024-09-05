@@ -22,7 +22,6 @@
  * @file src/reclaim/gnunet-service-reclaim.c
  * @brief reclaim Service
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-reclaim_tickets.h"
 #include "gnunet_gnsrecord_lib.h"
@@ -1522,6 +1521,11 @@ update_tickets (void *cls)
 {
   struct AttributeDeleteHandle *adh = cls;
   struct TicketRecordsEntry *le;
+  int j = 0;
+  int i = 0;
+  struct GNUNET_RECLAIM_AttributeListEntry *ale;
+  struct GNUNET_RECLAIM_CredentialListEntry *cle;
+  struct GNUNET_RECLAIM_Presentation *presentation;
 
   if (NULL == adh->tickets_to_update_head)
   {
@@ -1535,85 +1539,84 @@ update_tickets (void *cls)
   GNUNET_CONTAINER_DLL_remove (adh->tickets_to_update_head,
                                adh->tickets_to_update_tail,
                                le);
-  struct GNUNET_GNSRECORD_Data rd[le->rd_count];
-  struct GNUNET_GNSRECORD_Data rd_new[le->rd_count - 1];
-  if (GNUNET_OK != GNUNET_GNSRECORD_records_deserialize (le->data_size,
-                                                         le->data,
-                                                         le->rd_count,
-                                                         rd))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unable to deserialize record data!\n");
-    send_delete_response (adh, GNUNET_SYSERR);
-    cleanup_adh (adh);
-    return;
-  }
-  int j = 0;
-  int i = 0;
-  struct GNUNET_RECLAIM_AttributeListEntry *ale;
-  struct GNUNET_RECLAIM_CredentialListEntry *cle;
-  struct GNUNET_RECLAIM_Presentation *presentation;
-  for (i = 0; i < le->rd_count; i++)
-  {
-    switch (rd[i].record_type)
+    struct GNUNET_GNSRECORD_Data rd[le->rd_count];
+    struct GNUNET_GNSRECORD_Data rd_new[le->rd_count - 1];
+    if (GNUNET_OK != GNUNET_GNSRECORD_records_deserialize (le->data_size,
+                                                           le->data,
+                                                           le->rd_count,
+                                                           rd))
     {
-    case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF:
-      for (ale = adh->existing_attributes->list_head; NULL != ale; ale =
-             ale->next)
-      {
-        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (rd[i].data,
-                                                      &ale->attribute->id))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Found attribute %s, re-adding...\n",
-                      ale->attribute->name);
-          rd_new[j] = rd[i];
-          j++;
-          break;   // Found and added
-        }
-      }
-      break;
-    case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
-      presentation = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
-                                                              rd[i].data_size);
-      for (cle = adh->existing_credentials->list_head; NULL != cle; cle =
-             cle->next)
-      {
-        if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (
-              &presentation->credential_id,
-              &cle->credential->id))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Found presentation for credential %s, re-adding...\n",
-                      cle->credential->name);
-          rd_new[j] = rd[i];
-          j++;
-          break;   // Found and added
-        }
-      }
-      GNUNET_free (presentation);
-      break;
-    case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
-      rd_new[j] = rd[i];
-      j++;
-      break;   // Found and added
-    default:
-      GNUNET_break (0);
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Unable to deserialize record data!\n");
+      send_delete_response (adh, GNUNET_SYSERR);
+      cleanup_adh (adh);
+      return;
     }
+    for (i = 0; i < le->rd_count; i++)
+    {
+      switch (rd[i].record_type)
+      {
+      case GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF:
+        for (ale = adh->existing_attributes->list_head; NULL != ale; ale =
+               ale->next)
+        {
+          if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (rd[i].data,
+                                                        &ale->attribute->id))
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                        "Found attribute %s, re-adding...\n",
+                        ale->attribute->name);
+            rd_new[j] = rd[i];
+            j++;
+            break; // Found and added
+          }
+        }
+        break;
+      case GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION:
+        presentation = GNUNET_RECLAIM_presentation_deserialize (rd[i].data,
+                                                                rd[i].data_size)
+        ;
+        for (cle = adh->existing_credentials->list_head; NULL != cle; cle =
+               cle->next)
+        {
+          if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (
+                &presentation->credential_id,
+                &cle->credential->id))
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                        "Found presentation for credential %s, re-adding...\n",
+                        cle->credential->name);
+            rd_new[j] = rd[i];
+            j++;
+            break; // Found and added
+          }
+        }
+        GNUNET_free (presentation);
+        break;
+      case GNUNET_GNSRECORD_TYPE_RECLAIM_TICKET:
+        rd_new[j] = rd[i];
+        j++;
+        break; // Found and added
+      default:
+        GNUNET_break (0);
+      }
+    }
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Updating ticket with %d entries (%d before)...\n",
+                j, i);
+    adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                    &adh->identity,
+                                                    le->label,
+                                                    j,
+                                                    rd_new,
+                                                    &ticket_updated,
+                                                    adh);
+    GNUNET_free (le->label);
+    GNUNET_free (le->data);
+    GNUNET_free (le);
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Updating ticket with %d entries (%d before)...\n",
-              j, i);
-  adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
-                                                  &adh->identity,
-                                                  le->label,
-                                                  j,
-                                                  rd_new,
-                                                  &ticket_updated,
-                                                  adh);
-  GNUNET_free (le->label);
-  GNUNET_free (le->data);
-  GNUNET_free (le);
 }
 
 
@@ -1654,6 +1657,7 @@ purge_attributes (void *cls)
   struct AttributeDeleteHandle *adh = cls;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
   struct GNUNET_RECLAIM_CredentialListEntry *cle;
+  char *label;
 
   for (ale = adh->existing_attributes->list_head; NULL != ale; ale = ale->next)
   {
@@ -1686,9 +1690,8 @@ purge_attributes (void *cls)
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Attributes inconsistent, deleting offending attribute.\n");
-  char *label
-    = GNUNET_STRINGS_data_to_string_alloc (&ale->attribute->id,
-                                           sizeof(ale->attribute->id));
+  label = GNUNET_STRINGS_data_to_string_alloc (&ale->attribute->id,
+                                               sizeof(ale->attribute->id));
 
   adh->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
                                                   &adh->identity,
@@ -2039,6 +2042,7 @@ attr_iter_cb (void *cls,
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_CRYPTO_PublicKey identity;
+  struct AttributeResultMessage *arm;
   char *data_tmp;
   size_t key_len;
   ssize_t written;
@@ -2049,7 +2053,6 @@ attr_iter_cb (void *cls,
     GNUNET_NAMESTORE_zone_iterator_next (ai->ns_it, 1);
     return;
   }
-  struct AttributeResultMessage *arm;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found attribute under: %s\n",
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

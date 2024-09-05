@@ -22,8 +22,6 @@
  * @brief special file-sharing functions
  * @author Christian Grothoff
  */
-#include "platform.h"
-
 #include "gnunet_fs_service.h"
 
 /**

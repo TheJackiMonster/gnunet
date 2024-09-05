@@ -229,7 +229,7 @@ static struct GNUNET_STATISTICS_Handle *stats;
 /**
  * Context for DNS resolution.
  */
-static struct GNUNET_DNSSTUB_Context *ctx;
+static struct GNUNET_DNSSTUB_Context *dns_ctx;
 
 /**
  * The number of DNS queries that are outstanding
@@ -1220,7 +1220,7 @@ process_queue (void *cls)
       continue;
     }
     req->op_start_time = GNUNET_TIME_absolute_get ();
-    req->rs = GNUNET_DNSSTUB_resolve (ctx, raw, raw_size, &process_result, req);
+    req->rs = GNUNET_DNSSTUB_resolve (dns_ctx, raw, raw_size, &process_result, req);
     GNUNET_assert (NULL != req->rs);
     req->issue_num++;
     lookups++;
@@ -1332,10 +1332,10 @@ do_shutdown (void *cls)
     GNUNET_NAMESTORE_disconnect (ns);
     ns = NULL;
   }
-  if (NULL != ctx)
+  if (NULL != dns_ctx)
   {
-    GNUNET_DNSSTUB_stop (ctx);
-    ctx = NULL;
+    GNUNET_DNSSTUB_stop (dns_ctx);
+    dns_ctx = NULL;
   }
   if (NULL != req_heap)
   {
@@ -1794,8 +1794,8 @@ run (void *cls,
     fprintf (stderr, "Failed to allocate memory for main hash map\n");
     return;
   }
-  ctx = GNUNET_DNSSTUB_start (256);
-  if (NULL == ctx)
+  dns_ctx = GNUNET_DNSSTUB_start (256);
+  if (NULL == dns_ctx)
   {
     fprintf (stderr, "Failed to initialize GNUnet DNS STUB\n");
     return;
@@ -1808,7 +1808,7 @@ run (void *cls,
   }
   for (unsigned int i = 0; NULL != args[i]; i++)
   {
-    if (GNUNET_OK != GNUNET_DNSSTUB_add_dns_ip (ctx, args[i]))
+    if (GNUNET_OK != GNUNET_DNSSTUB_add_dns_ip (dns_ctx, args[i]))
     {
       fprintf (stderr, "Failed to use `%s' for DNS resolver\n", args[i]);
       return;

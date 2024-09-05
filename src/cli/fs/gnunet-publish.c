@@ -48,7 +48,7 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 /**
  * Handle for interaction with file-sharing service.
  */
-static struct GNUNET_FS_Handle *ctx;
+static struct GNUNET_FS_Handle *fs_handle;
 
 /**
  * Handle to FS-publishing operation.
@@ -169,10 +169,10 @@ do_stop_task (void *cls)
     pc = NULL;
     GNUNET_FS_publish_stop (p);
   }
-  if (NULL != ctx)
+  if (NULL != fs_handle)
   {
-    GNUNET_FS_stop (ctx);
-    ctx = NULL;
+    GNUNET_FS_stop (fs_handle);
+    fs_handle = NULL;
   }
   if (NULL != meta)
   {
@@ -378,8 +378,8 @@ publish_inspector (void *cls,
                    struct GNUNET_FS_FileInformation *fi,
                    uint64_t length,
                    struct GNUNET_FS_MetaData *m,
-                   struct GNUNET_FS_Uri **uri,
-                   struct GNUNET_FS_BlockOptions *bo,
+                   struct GNUNET_FS_Uri **uri_info,
+                   struct GNUNET_FS_BlockOptions *bo_info,
                    int *do_index,
                    void **client_info)
 {
@@ -389,23 +389,23 @@ publish_inspector (void *cls,
 
   if (cls == fi)
     return GNUNET_OK;
-  if ((disable_extractor) && (NULL != *uri))
+  if ((disable_extractor) && (NULL != *uri_info))
   {
-    GNUNET_FS_uri_destroy (*uri);
-    *uri = NULL;
+    GNUNET_FS_uri_destroy (*uri_info);
+    *uri_info = NULL;
   }
   if (NULL != topKeywords)
   {
-    if (NULL != *uri)
+    if (NULL != *uri_info)
     {
-      new_uri = GNUNET_FS_uri_ksk_merge (topKeywords, *uri);
-      GNUNET_FS_uri_destroy (*uri);
-      *uri = new_uri;
+      new_uri = GNUNET_FS_uri_ksk_merge (topKeywords, *uri_info);
+      GNUNET_FS_uri_destroy (*uri_info);
+      *uri_info = new_uri;
       GNUNET_FS_uri_destroy (topKeywords);
     }
     else
     {
-      *uri = topKeywords;
+      *uri_info = topKeywords;
     }
     topKeywords = NULL;
   }
@@ -428,8 +428,8 @@ publish_inspector (void *cls,
     fprintf (stdout, _ ("Keywords for file `%s' (%s)\n"), fn, fs);
     GNUNET_free (fn);
     GNUNET_free (fs);
-    if (NULL != *uri)
-      GNUNET_FS_uri_ksk_get_keywords (*uri, &keyword_printer, NULL);
+    if (NULL != *uri_info)
+      GNUNET_FS_uri_ksk_get_keywords (*uri_info, &keyword_printer, NULL);
     fprintf (stdout, "%s", "\n");
   }
   if (GNUNET_YES == GNUNET_FS_meta_data_test_for_directory (m))
@@ -492,7 +492,7 @@ uri_ksk_continuation (void *cls,
   if (GNUNET_PUBLIC_KEY_TYPE_ECDSA != ntohl (pk->type))
     return;
   priv = &pk->ecdsa_key;
-  GNUNET_FS_publish_sks (ctx,
+  GNUNET_FS_publish_sks (fs_handle,
                          priv,
                          this_id,
                          next_id,
@@ -537,7 +537,7 @@ get_file_information (struct GNUNET_FS_ShareTreeItem *item)
       GNUNET_FS_uri_ksk_add_keyword (item->ksk_uri,
                                      GNUNET_FS_DIRECTORY_MIME,
                                      GNUNET_NO);
-    fi = GNUNET_FS_file_information_create_empty_directory (ctx,
+    fi = GNUNET_FS_file_information_create_empty_directory (fs_handle,
                                                             NULL,
                                                             item->ksk_uri,
                                                             item->meta,
@@ -551,7 +551,7 @@ get_file_information (struct GNUNET_FS_ShareTreeItem *item)
   }
   else
   {
-    fi = GNUNET_FS_file_information_create_from_file (ctx,
+    fi = GNUNET_FS_file_information_create_from_file (fs_handle,
                                                       NULL,
                                                       item->filename,
                                                       item->ksk_uri,
@@ -599,7 +599,7 @@ directory_trim_complete (struct GNUNET_FS_ShareTreeItem *directory_scan_result)
     GNUNET_assert (GNUNET_PUBLIC_KEY_TYPE_ECDSA == ntohl (pk->type));
     priv = &pk->ecdsa_key;
   }
-  pc = GNUNET_FS_publish_start (ctx,
+  pc = GNUNET_FS_publish_start (fs_handle,
                                 fi,
                                 priv,
                                 this_id,
@@ -719,7 +719,7 @@ identity_continuation (const char *args0)
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
-    GNUNET_FS_publish_ksk (ctx,
+    GNUNET_FS_publish_ksk (fs_handle,
                            topKeywords,
                            meta,
                            uri,
@@ -859,13 +859,13 @@ run (void *cls,
     }
   }
   cfg = c;
-  ctx = GNUNET_FS_start (cfg,
+  fs_handle = GNUNET_FS_start (cfg,
                          "gnunet-publish",
                          &progress_cb,
                          NULL,
                          GNUNET_FS_FLAGS_NONE,
                          GNUNET_FS_OPTIONS_END);
-  if (NULL == ctx)
+  if (NULL == fs_handle)
   {
     fprintf (stderr, _ ("Could not initialize `%s' subsystem.\n"), "FS");
     ret = 1;

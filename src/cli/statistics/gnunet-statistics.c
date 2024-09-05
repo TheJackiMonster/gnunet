@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "../../service/statistics/statistics.h"
 
 
 /**
@@ -178,16 +177,16 @@ static int num_nodes_ready_shutdown;
  * @return Newly allocated #ValueSet.
  */
 static struct ValueSet *
-new_value_set (const char *subsystem,
-               const char *name,
+new_value_set (const char *subsys,
+               const char *new_name,
                unsigned num_values,
                int is_persistent)
 {
   struct ValueSet *value_set;
 
   value_set = GNUNET_new (struct ValueSet);
-  value_set->subsystem = GNUNET_strdup (subsystem);
-  value_set->name = GNUNET_strdup (name);
+  value_set->subsystem = GNUNET_strdup (subsys);
+  value_set->name = GNUNET_strdup (new_name);
   value_set->values = GNUNET_new_array (num_values,
                                         uint64_t);
   value_set->is_persistent = persistent;
@@ -275,8 +274,8 @@ printer (void *cls,
  */
 static int
 printer_watch (void *cls,
-               const char *subsystem,
-               const char *name,
+               const char *subsys,
+               const char *print_name,
                uint64_t value,
                int is_persistent)
 {
@@ -294,10 +293,10 @@ printer_watch (void *cls,
                csv_separator,
                is_persistent ? "!" : " ",
                csv_separator,
-               subsystem,
+               subsys,
                csv_separator,
                (0 == strlen (csv_separator) ? "" : "\""),   /* quotes if csv */
-               _ (name),
+               _ (print_name),
                (0 == strlen (csv_separator) ? "" : "\""),   /* quotes if csv */
                (0 == strlen (csv_separator) ? ":" : csv_separator),
                (unsigned long long) value);
@@ -308,10 +307,10 @@ printer_watch (void *cls,
                "%s%s%12s%s %s%50s%s%s %16llu\n",
                is_persistent ? "!" : " ",
                csv_separator,
-               subsystem,
+               subsys,
                csv_separator,
                (0 == strlen (csv_separator) ? "" : "\""),   /* quotes if csv */
-               _ (name),
+               _ (print_name),
                (0 == strlen (csv_separator) ? "" : "\""),   /* quotes if csv */
                (0 == strlen (csv_separator) ? ":" : csv_separator),
                (unsigned long long) value);
@@ -477,8 +476,8 @@ cleanup (void *cls,
  */
 static int
 collector (void *cls,
-           const char *subsystem,
-           const char *name,
+           const char *subsys,
+           const char *coll_name,
            uint64_t value,
            int is_persistent)
 {
@@ -489,9 +488,9 @@ collector (void *cls,
   unsigned len_subsys_name;
   struct ValueSet *value_set;
 
-  len_subsys_name = strlen (subsystem) + 3 + strlen (name) + 1;
+  len_subsys_name = strlen (subsys) + 3 + strlen (coll_name) + 1;
   subsys_name = GNUNET_malloc (len_subsys_name);
-  sprintf (subsys_name, "%s---%s", subsystem, name);
+  sprintf (subsys_name, "%s---%s", subsys, coll_name);
   key = &hc;
   GNUNET_CRYPTO_hash (subsys_name, len_subsys_name, key);
   GNUNET_free (subsys_name);
@@ -501,7 +500,7 @@ collector (void *cls,
   }
   else
   {
-    value_set = new_value_set (subsystem, name, num_nodes, is_persistent);
+    value_set = new_value_set (subsys, coll_name, num_nodes, is_persistent);
   }
   value_set->values[index_node] = value;
   GNUNET_assert (GNUNET_YES ==
@@ -679,19 +678,19 @@ iter_testbed_path (void *cls,
  * @return number of running nodes
  */
 static int
-discover_testbed_nodes (const char *path_testbed)
+discover_testbed_nodes (const char *path_testbed_discovered)
 {
   int num_dir_entries;
 
   num_dir_entries =
-    GNUNET_DISK_directory_scan (path_testbed,
+    GNUNET_DISK_directory_scan (path_testbed_discovered,
                                 &iter_testbed_path,
                                 NULL);
   if (-1 == num_dir_entries)
   {
     fprintf (stderr,
              "Failure during scanning directory `%s'\n",
-             path_testbed);
+             path_testbed_discovered);
     return -1;
   }
   return 0;

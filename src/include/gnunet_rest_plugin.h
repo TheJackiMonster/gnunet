@@ -62,7 +62,7 @@ struct GNUNET_REST_Plugin
    * Plugin name. Used as the namespace for the API.
    * e.g. http://hostname:port/name
    */
-  char *name;
+  const char *name;
 };
 
 typedef enum GNUNET_GenericReturnValue (*GNUNET_REST_ProcessingFunction)(

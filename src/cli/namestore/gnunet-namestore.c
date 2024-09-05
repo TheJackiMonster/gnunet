@@ -367,24 +367,24 @@ static unsigned int max_batch_size = 1000;
  * @return #GNUNET_OK on success
  */
 static int
-parse_expiration (const char *expirationstring,
-                  int *etime_is_rel,
-                  uint64_t *etime)
+parse_expiration (const char *exp_str,
+                  int *is_rel,
+                  uint64_t *exptime)
 {
   struct GNUNET_TIME_Relative etime_rel;
   struct GNUNET_TIME_Absolute etime_abs;
 
-  if (0 == strcmp (expirationstring, "never"))
+  if (0 == strcmp (exp_str, "never"))
   {
-    *etime = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
-    *etime_is_rel = GNUNET_NO;
+    *exptime = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+    *is_rel = GNUNET_NO;
     return GNUNET_OK;
   }
   if (GNUNET_OK ==
-      GNUNET_STRINGS_fancy_time_to_relative (expirationstring, &etime_rel))
+      GNUNET_STRINGS_fancy_time_to_relative (exp_str, &etime_rel))
   {
-    *etime_is_rel = GNUNET_YES;
-    *etime = etime_rel.rel_value_us;
+    *is_rel = GNUNET_YES;
+    *exptime = etime_rel.rel_value_us;
     if (GNUNET_TIME_relative_cmp (etime_rel, <, WARN_RELATIVE_EXPIRATION_LIMIT))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -398,10 +398,10 @@ parse_expiration (const char *expirationstring,
     return GNUNET_OK;
   }
   if (GNUNET_OK ==
-      GNUNET_STRINGS_fancy_time_to_absolute (expirationstring, &etime_abs))
+      GNUNET_STRINGS_fancy_time_to_absolute (exp_str, &etime_abs))
   {
-    *etime_is_rel = GNUNET_NO;
-    *etime = etime_abs.abs_value_us;
+    *is_rel = GNUNET_NO;
+    *exptime = etime_abs.abs_value_us;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Storing record with absolute expiration time of %s\n",
                 GNUNET_STRINGS_absolute_time_to_string (etime_abs));
@@ -672,12 +672,12 @@ batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg);
 static void
 finish_command (void)
 {
-  //if (ri_sent < ri_count)
-  //{
+  // if (ri_sent < ri_count)
+  // {
   //  batch_insert_recordinfo (cfg);
   //  return;
-  //}
-  //reset_handles ();
+  // }
+  // reset_handles ();
   if (read_from_stdin)
   {
     process_command_stdin ();
@@ -937,34 +937,37 @@ display_record (const struct GNUNET_CRYPTO_PrivateKey *zone_key,
       at.abs_value_us = rd[i].expiration_time;
       ets = GNUNET_STRINGS_absolute_time_to_string (at);
     }
-    char flgstr[16];
-    sprintf (flgstr, "[%s%s%s%s%s]",
-             (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE) ? "" : "p",
-             (rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL) ? "S" : "",
-             (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION) ? "r" : "",
-             (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW) ? "S" : "",
-             (rd[i].flags & GNUNET_GNSRECORD_RF_CRITICAL) ? "C" : "");
-    if (output_recordline)
-      fprintf (stdout,
-               "  %s %" PRIu64 " %s %s\n",
-               typestr,
-               rd[i].expiration_time,
-               flgstr,
-               s);
-    else
-      fprintf (stdout,
-               "\t%s: %s (%s)\t%s\t%s\t%s\n",
-               typestr,
-               s,
-               ets,
-               (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)) ? "PRIVATE"
+    {
+      char flgstr[16];
+      sprintf (flgstr, "[%s%s%s%s%s]",
+               (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE) ? "" : "p",
+               (rd[i].flags & GNUNET_GNSRECORD_RF_SUPPLEMENTAL) ? "S" : "",
+               (rd[i].flags & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION) ? "r" :
+               "",
+               (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW) ? "S" : "",
+               (rd[i].flags & GNUNET_GNSRECORD_RF_CRITICAL) ? "C" : "");
+      if (output_recordline)
+        fprintf (stdout,
+                 "  %s %" PRIu64 " %s %s\n",
+                 typestr,
+                 rd[i].expiration_time,
+                 flgstr,
+                 s);
+      else
+        fprintf (stdout,
+                 "\t%s: %s (%s)\t%s\t%s\t%s\n",
+                 typestr,
+                 s,
+                 ets,
+                 (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE)) ? "PRIVATE"
              : "PUBLIC",
-               (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW)) ? "SHADOW"
+                 (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_SHADOW)) ? "SHADOW"
                : "",
-               (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_MAINTENANCE)) ?
-               "MAINTENANCE"
+                 (0 != (rd[i].flags & GNUNET_GNSRECORD_RF_MAINTENANCE)) ?
+                 "MAINTENANCE"
              : "");
-    GNUNET_free (s);
+      GNUNET_free (s);
+    }
   }
   // fprintf (stdout, "%s", "\n");
 }
@@ -1289,7 +1292,7 @@ del_monitor (void *cls,
 {
   struct GNUNET_GNSRECORD_Data rdx[rd_count];
   unsigned int rd_left;
-  uint32_t type;
+  uint32_t del_type;
   char *vs;
 
   (void) cls;
@@ -1320,14 +1323,14 @@ del_monitor (void *cls,
   }
   rd_left = 0;
   if (NULL != typestring)
-    type = GNUNET_GNSRECORD_typename_to_number (typestring);
+    del_type = GNUNET_GNSRECORD_typename_to_number (typestring);
   else
-    type = GNUNET_GNSRECORD_TYPE_ANY;
+    del_type = GNUNET_GNSRECORD_TYPE_ANY;
   for (unsigned int i = 0; i < rd_count; i++)
   {
     vs = NULL;
-    if (! (((GNUNET_GNSRECORD_TYPE_ANY == type) ||
-            (rd[i].record_type == type)) &&
+    if (! (((GNUNET_GNSRECORD_TYPE_ANY == del_type) ||
+            (rd[i].record_type == del_type)) &&
            ((NULL == value) ||
             (NULL ==
              (vs = (GNUNET_GNSRECORD_value_to_string (rd[i].record_type,
@@ -1360,10 +1363,11 @@ del_monitor (void *cls,
 
 
 static void
-schedule_finish (void* cls)
+schedule_finish (void*cls)
 {
-  finish_command();
+  finish_command ();
 }
+
 
 static void
 replace_cont (void *cls, enum GNUNET_ErrorCode ec)
@@ -1378,7 +1382,7 @@ replace_cont (void *cls, enum GNUNET_ErrorCode ec)
                 GNUNET_ErrorCode_get_hint (ec));
     ret = 1;   /* fail from 'main' */
   }
-  GNUNET_SCHEDULER_add_now(&schedule_finish, NULL);
+  GNUNET_SCHEDULER_add_now (&schedule_finish, NULL);
 }
 
 
@@ -1389,7 +1393,7 @@ replace_cont (void *cls, enum GNUNET_ErrorCode ec)
  * @param cfg configuration to use
  */
 static void
-batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg)
+batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *batch_cfg)
 {
   unsigned int sent_here;
 
@@ -1402,7 +1406,8 @@ batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg)
                                            &replace_cont,
                                            NULL);
   ri_sent += sent_here;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent %d/%d record infos\n", ri_sent, ri_count);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent %d/%d record infos\n", ri_sent,
+              ri_count);
   if (ri_sent == ri_count)
   {
     for (int i = 0; i < ri_count; i++)
@@ -1424,7 +1429,7 @@ batch_insert_recordinfo (const struct GNUNET_CONFIGURATION_Handle *cfg)
  * @param cfg configuration to use
  */
 static void
-run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
+run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg_)
 {
   struct GNUNET_GNSRECORD_Data rd;
   enum GNUNET_GNSRECORD_Filter filter_flags = GNUNET_GNSRECORD_FILTER_NONE;
@@ -1447,7 +1452,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   {
     /* replace entire record set */
     unsigned int rd_count;
-    struct GNUNET_GNSRECORD_Data *rd;
+    struct GNUNET_GNSRECORD_Data *rd_tmp;
 
     /* FIXME: We could easily support append and delete with this as well */
     if (! add)
@@ -1471,21 +1476,21 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
     rd_count = 0;
     for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
       rd_count++;
-    rd = GNUNET_new_array (rd_count, struct GNUNET_GNSRECORD_Data);
+    rd_tmp = GNUNET_new_array (rd_count, struct GNUNET_GNSRECORD_Data);
     rd_count = 0;
     for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
     {
-      rd[rd_count] = e->record;
+      rd_tmp[rd_count] = e->record;
       rd_count++;
     }
     set_qe = GNUNET_NAMESTORE_record_set_store (ns,
                                                 &zone_pkey,
                                                 name,
                                                 rd_count,
-                                                rd,
+                                                rd_tmp,
                                                 &replace_cont,
                                                 NULL);
-    GNUNET_free (rd);
+    GNUNET_free (rd_tmp);
     return;
   }
   if (NULL != nickstring)
@@ -1810,7 +1815,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg)
   }
   if (monitor)
   {
-    zm = GNUNET_NAMESTORE_zone_monitor_start2 (cfg,
+    zm = GNUNET_NAMESTORE_zone_monitor_start2 (cfg_,
                                                (NULL != ego_name) ?
                                                &zone_pkey : NULL,
                                                GNUNET_YES,
@@ -1929,44 +1934,50 @@ process_command_stdin ()
                              record_info_capacity,
                              record_info_capacity + max_batch_size);
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Recordinfo array grown to %u bytes!\n", record_info_capacity);
+                      "Recordinfo array grown to %u bytes!\n",
+                      record_info_capacity);
         }
         record_info[ri_count].a_label = GNUNET_strdup (current_name);
-        int rd_count = 0;
-        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
-          rd_count++;
-        record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
-                                                       struct
-                                                       GNUNET_GNSRECORD_Data);
-        rd_count = 0;
-        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
         {
-          record_info[ri_count].a_rd[rd_count] = e->record;
-          record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->
-                                                                     record.
-                                                                     data_size);
-          record_info[ri_count].a_rd[rd_count].data_size = e->record.
-                                                           data_size;
-          memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
-                  e->record.data, e->record.data_size);
-          rd_count++;
+          int rd_count = 0;
+          for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+            rd_count++;
+          record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
+                                                         struct
+                                                         GNUNET_GNSRECORD_Data);
+          rd_count = 0;
+          for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+          {
+            record_info[ri_count].a_rd[rd_count] = e->record;
+            record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->
+                                                                       record.
+                                                                       data_size);
+            record_info[ri_count].a_rd[rd_count].data_size = e->record.
+                                                             data_size;
+            memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
+                    e->record.data, e->record.data_size);
+            rd_count++;
+          }
+          record_info[ri_count].a_rd_count = rd_count;
+          ri_count++;
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "Added %d records to record info\n", rd_count);
+          clear_recordset ();
         }
-        record_info[ri_count].a_rd_count = rd_count;
-        ri_count++;
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Added %d records to record info\n", rd_count);
-        clear_recordset ();
         /* If the zone has changed, insert */
         /* If we have reached batch size, insert */
         if (0 != GNUNET_memcmp (&next_zone_key, &zone_pkey) ||
-           (ri_count >= max_batch_size))
+            (ri_count >= max_batch_size))
         {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Batch inserting %d RI\n", ri_count);
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Batch inserting %d RI\n",
+                      ri_count);
           batch_insert_recordinfo (cfg);
           return;
         }
       }
       zone_pkey = next_zone_key;
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching from %s to %s\n", current_name, next_name);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switching from %s to %s\n",
+                  current_name, next_name);
       if (NULL != current_name)
         GNUNET_free (current_name);
       current_name = GNUNET_strdup (next_name);
@@ -1987,28 +1998,30 @@ process_command_stdin ()
       if (GNUNET_YES == zonekey_set)
       {
         record_info[ri_count].a_label = GNUNET_strdup (current_name);
-        int rd_count = 0;
-        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
-          rd_count++;
-        record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
-                                                       struct
-                                                       GNUNET_GNSRECORD_Data);
-        rd_count = 0;
-        for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
         {
-          record_info[ri_count].a_rd[rd_count] = e->record;
-          record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->record
-                                                                     .
-                                                                     data_size);
-          record_info[ri_count].a_rd[rd_count].data_size = e->record.data_size
-          ;
-          memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
-                  e->record.data, e->record.data_size);
-          rd_count++;
+          int rd_count = 0;
+          for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+            rd_count++;
+          record_info[ri_count].a_rd = GNUNET_new_array (rd_count,
+                                                         struct
+                                                         GNUNET_GNSRECORD_Data);
+          rd_count = 0;
+          for (struct RecordSetEntry *e = recordset; NULL != e; e = e->next)
+          {
+            record_info[ri_count].a_rd[rd_count] = e->record;
+            record_info[ri_count].a_rd[rd_count].data = GNUNET_malloc (e->record
+                                                                       .
+                                                                       data_size);
+            record_info[ri_count].a_rd[rd_count].data_size = e->record.data_size
+            ;
+            memcpy ((void*) record_info[ri_count].a_rd[rd_count].data,
+                    e->record.data, e->record.data_size);
+            rd_count++;
+          }
+          record_info[ri_count].a_rd_count = rd_count;
         }
-        record_info[ri_count].a_rd_count = rd_count;
         ri_count++;
-        batch_insert_recordinfo (cfg); /** One last time **/
+        batch_insert_recordinfo (cfg);   /** One last time **/
         finished = GNUNET_YES;
         return;
       }
@@ -2017,7 +2030,7 @@ process_command_stdin ()
   }
   if (ri_sent < ri_count)
   {
-    batch_insert_recordinfo(cfg);
+    batch_insert_recordinfo (cfg);
     return;
   }
   GNUNET_SCHEDULER_shutdown ();
@@ -2041,24 +2054,24 @@ static void
 id_connect_cb (void *cls,
                struct GNUNET_IDENTITY_Ego *ego,
                void **ctx,
-               const char *name)
+               const char *ego_name_tmp)
 {
   struct GNUNET_CRYPTO_PublicKey pk;
   struct EgoEntry *ego_entry;
 
   (void) ctx;
-  (void) name;
-  if ((NULL != name) && (NULL != ego))
+  (void) ego_name_tmp;
+  if ((NULL != ego_name_tmp) && (NULL != ego))
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
     ego_entry->ego = ego;
-    ego_entry->identifier = GNUNET_strdup (name);
+    ego_entry->identifier = GNUNET_strdup (ego_name_tmp);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
                                       ego_tail,
                                       ego_entry);
-    if ((NULL != ego_name) &&
-        (0 == strcmp (name, ego_name)))
+    if ((NULL != ego_name_tmp) &&
+        (0 == strcmp (ego_name_tmp, ego_name_tmp)))
       zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
     return;
   }

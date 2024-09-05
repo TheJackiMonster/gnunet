@@ -77,18 +77,18 @@ static struct GNUNET_ChildWaitHandle *waitchildproc = NULL;
  * Macro to handle verbosity when printing messages.
  */
 #define LOG(fmt, ...)                                           \
-  do                                                            \
-  {                                                             \
-    if (0 < verbosity)                                          \
-    {                                                           \
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO, fmt, ##__VA_ARGS__);  \
-      if (verbosity > 1)                                        \
-      {                                                         \
-        fprintf (stdout, fmt, ##__VA_ARGS__);                   \
-      }                                                         \
-    }                                                           \
-  }                                                             \
-  while (0)
+        do                                                            \
+        {                                                             \
+          if (0 < verbosity)                                          \
+          {                                                           \
+            GNUNET_log (GNUNET_ERROR_TYPE_INFO, fmt, ## __VA_ARGS__);  \
+            if (verbosity > 1)                                        \
+            {                                                         \
+              fprintf (stdout, fmt, ## __VA_ARGS__);                   \
+            }                                                         \
+          }                                                           \
+        }                                                             \
+        while (0)
 
 /**
  * Executed when program is terminating.
@@ -107,6 +107,7 @@ shutdown_program (void *cls)
   }
 }
 
+
 /**
  * Callback executed when the child process terminates.
  *
@@ -119,25 +120,26 @@ wait_child (void *cls,
             enum GNUNET_OS_ProcessStatusType type,
             long unsigned int code)
 {
+  char *uri = cls;
   GNUNET_OS_process_destroy (childproc);
   childproc = NULL;
   waitchildproc = NULL;
 
-  char *uri = cls;
 
   if (0 != exit_code)
   {
-    fprintf (stdout, _("Failed to add URI %s\n"), uri);
+    fprintf (stdout, _ ("Failed to add URI %s\n"), uri);
   }
   else
   {
-    fprintf (stdout, _("Added URI %s\n"), uri);
+    fprintf (stdout, _ ("Added URI %s\n"), uri);
   }
 
   GNUNET_free (uri);
 
   GNUNET_SCHEDULER_shutdown ();
 }
+
 
 /**
  * Dispatch URIs to the appropriate GNUnet helper process.
@@ -154,32 +156,35 @@ handle_uri (void *cls,
             const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   const char *cursor = uri;
+  const char *slash;
+  char *subsystem;
+  char *program = NULL;
 
   if (0 != strncasecmp ("gnunet://", uri, strlen ("gnunet://")))
   {
     fprintf (stderr,
-             _("Invalid URI: does not start with `gnunet://'\n"));
+             _ ("Invalid URI: does not start with `gnunet://'\n"));
     exit_code = 1;
     return;
   }
 
   cursor += strlen ("gnunet://");
 
-  const char *slash = strchr (cursor, '/');
+  slash = strchr (cursor, '/');
   if (NULL == slash)
   {
-    fprintf (stderr, _("Invalid URI: fails to specify a subsystem\n"));
+    fprintf (stderr, _ ("Invalid URI: fails to specify a subsystem\n"));
     exit_code = 1;
     return;
   }
 
-  char *subsystem = GNUNET_strndup (cursor, slash - cursor);
-  char *program = NULL;
+  subsystem = GNUNET_strndup (cursor, slash - cursor);
+  program = NULL;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg, "uri", subsystem, &program))
   {
-    fprintf (stderr, _("No known handler for subsystem `%s'\n"), subsystem);
+    fprintf (stderr, _ ("No known handler for subsystem `%s'\n"), subsystem);
     GNUNET_free (subsystem);
     exit_code = 1;
     return;
@@ -187,43 +192,46 @@ handle_uri (void *cls,
 
   GNUNET_free (subsystem);
 
-  char **childargv = NULL;
-  unsigned int childargc = 0;
-
-  for (const char *token=strtok (program, " ");
-       NULL!=token;
-       token=strtok(NULL, " "))
   {
-    GNUNET_array_append (childargv, childargc, GNUNET_strdup (token));
+    char **childargv = NULL;
+    unsigned int childargc = 0;
+
+    for (const char *token = strtok (program, " ");
+         NULL!=token;
+         token = strtok (NULL, " "))
+    {
+      GNUNET_array_append (childargv, childargc, GNUNET_strdup (token));
+    }
+    GNUNET_array_append (childargv, childargc, GNUNET_strdup (uri));
+    GNUNET_array_append (childargv, childargc, NULL);
+
+    childproc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
+                                             NULL,
+                                             NULL,
+                                             NULL,
+                                             childargv[0],
+                                             childargv);
+    for (size_t i = 0; i<childargc - 1; ++i)
+    {
+      GNUNET_free (childargv[i]);
+    }
+
+    GNUNET_array_grow (childargv, childargc, 0);
+
+    if (NULL == childproc)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  _ ("Unable to start child process `%s'\n"),
+                  program);
+      GNUNET_free (program);
+      exit_code = 1;
+      return;
+    }
+
+    waitchildproc = GNUNET_wait_child (childproc, &wait_child, (void *) uri);
   }
-  GNUNET_array_append (childargv, childargc, GNUNET_strdup (uri));
-  GNUNET_array_append (childargv, childargc, NULL);
-
-  childproc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
-                                           NULL,
-                                           NULL,
-                                           NULL,
-                                           childargv[0],
-                                           childargv);
-  for (size_t i=0; i<childargc-1; ++i)
-  {
-    GNUNET_free (childargv[i]);
-  }
-
-  GNUNET_array_grow (childargv, childargc, 0);
-
-  if (NULL == childproc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _("Unable to start child process `%s'\n"),
-                program);
-    GNUNET_free (program);
-    exit_code = 1;
-    return;
-  }
-
-  waitchildproc = GNUNET_wait_child (childproc, &wait_child, (void *)uri);
 }
+
 
 /**
  * Obtain a QR code symbol from @a proc.
@@ -234,17 +242,20 @@ handle_uri (void *cls,
 static const zbar_symbol_t *
 get_symbol (zbar_processor_t *proc)
 {
+  const zbar_symbol_set_t *symbols;
+  int r, n;
+
   if (0 != zbar_processor_parse_config (proc, "enable"))
   {
     GNUNET_break (0);
     return NULL;
   }
 
-  int r = zbar_processor_init (proc, device, 1);
+  r = zbar_processor_init (proc, device, 1);
   if (0 != r)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _("Failed to open device: `%s': %d\n"),
+                _ ("Failed to open device: `%s': %d\n"),
                 device,
                 r);
     return NULL;
@@ -258,22 +269,22 @@ get_symbol (zbar_processor_t *proc)
     return NULL;
   }
 
-  LOG (_("Capturing...\n"));
+  LOG (_ ("Capturing...\n"));
 
-  int n = zbar_process_one (proc, -1);
+  n = zbar_process_one (proc, -1);
 
   zbar_processor_set_active (proc, 0);
   zbar_processor_set_visible (proc, 0);
 
   if (-1 == n)
   {
-    LOG (_("No captured images\n"));
+    LOG (_ ("No captured images\n"));
     return NULL;
   }
 
-  LOG(_("Got %d images\n"), n);
+  LOG (_ ("Got %d images\n"), n);
 
-  const zbar_symbol_set_t *symbols = zbar_processor_get_results (proc);
+  symbols = zbar_processor_get_results (proc);
   if (NULL == symbols)
   {
     GNUNET_break (0);
@@ -282,6 +293,7 @@ get_symbol (zbar_processor_t *proc)
 
   return zbar_symbol_set_first_symbol (symbols);
 }
+
 
 /**
  * Run the zbar QR code parser.
@@ -292,6 +304,10 @@ static char *
 run_zbar (void)
 {
   zbar_processor_t *proc = zbar_processor_create (1);
+  const zbar_symbol_t *symbol;
+  const char *data;
+  char *copy;
+
   if (NULL == proc)
   {
     GNUNET_break (0);
@@ -303,14 +319,14 @@ run_zbar (void)
     device = GNUNET_strdup ("/dev/video0");
   }
 
-  const zbar_symbol_t *symbol = get_symbol (proc);
+  symbol = get_symbol (proc);
   if (NULL == symbol)
   {
     zbar_processor_destroy (proc);
     return NULL;
   }
 
-  const char *data = zbar_symbol_get_data (symbol);
+  data = zbar_symbol_get_data (symbol);
   if (NULL == data)
   {
     GNUNET_break (0);
@@ -318,17 +334,18 @@ run_zbar (void)
     return NULL;
   }
 
-  LOG (_("Found %s: \"%s\"\n"),
+  LOG (_ ("Found %s: \"%s\"\n"),
        zbar_get_symbol_name (zbar_symbol_get_type (symbol)),
        data);
 
-  char *copy = GNUNET_strdup (data);
+  copy = GNUNET_strdup (data);
 
   zbar_processor_destroy (proc);
   GNUNET_free (device);
 
   return copy;
 }
+
 
 #if HAVE_PNG
 /**
@@ -362,9 +379,9 @@ png_parse (uint32_t *width, uint32_t *height)
   {
     fclose (pngfile);
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _("%s is not a PNG file\n"),
+                _ ("%s is not a PNG file\n"),
                 pngfilename);
-    fprintf (stderr, _("%s is not a PNG file\n"), pngfilename);
+    fprintf (stderr, _ ("%s is not a PNG file\n"), pngfilename);
     return NULL;
   }
 
@@ -438,9 +455,9 @@ png_parse (uint32_t *width, uint32_t *height)
   char *buffer = GNUNET_new_array (pngwidth * pngheight, char);
   png_bytepp rows = GNUNET_new_array (pngheight, png_bytep);
 
-  for (png_uint_32 i=0; i<pngheight; ++i)
+  for (png_uint_32 i = 0; i<pngheight; ++i)
   {
-    rows[i] = (unsigned char *)buffer + (pngwidth * i);
+    rows[i] = (unsigned char *) buffer + (pngwidth * i);
   }
 
   png_read_image (png, rows);
@@ -453,6 +470,7 @@ png_parse (uint32_t *width, uint32_t *height)
 
   return buffer;
 }
+
 
 /**
  * Parse a PNG-encoded file for a QR code.
@@ -482,11 +500,11 @@ run_png_reader (void)
 
   if (-1 == n)
   {
-    LOG (_("No captured images\n"));
+    LOG (_ ("No captured images\n"));
     return NULL;
   }
 
-  LOG(_("Got %d images\n"), n);
+  LOG (_ ("Got %d images\n"), n);
 
   const zbar_symbol_t *symbol = zbar_image_first_symbol (zimage);
 
@@ -499,7 +517,7 @@ run_png_reader (void)
     return NULL;
   }
 
-  LOG (_("Found %s: \"%s\"\n"),
+  LOG (_ ("Found %s: \"%s\"\n"),
        zbar_get_symbol_name (zbar_symbol_get_type (symbol)),
        data);
 
@@ -510,6 +528,8 @@ run_png_reader (void)
 
   return copy;
 }
+
+
 #endif
 
 /**
@@ -543,7 +563,7 @@ run (void *cls,
 
   if (NULL == data)
   {
-    LOG (_("No data found\n"));
+    LOG (_ ("No data found\n"));
     exit_code = 1;
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -553,14 +573,15 @@ run (void *cls,
 
   if (0 != exit_code)
   {
-    fprintf (stdout, _("Failed to add URI %s\n"), data);
+    fprintf (stdout, _ ("Failed to add URI %s\n"), data);
     GNUNET_free (data);
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
 
-  LOG (_("Dispatching the URI\n"));
+  LOG (_ ("Dispatching the URI\n"));
 }
+
 
 int
 main (int argc, char *const *argv)

@@ -24,7 +24,6 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
-#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_constants.h"
 #include "gnunet_protocols.h"
@@ -854,6 +853,7 @@ enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom)
 {
+  int delta;
   if (0 == GNUNET_memcmp (&GDS_my_identity_hash,
                           key))
     return GNUNET_YES;
@@ -880,9 +880,9 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
          they mismatch with our PID on the pivotal bit. So
          because an unfiltered peer exists, we are not the
          closest. */
-      int delta = GNUNET_CRYPTO_hash_xorcmp (&pos->phash,
-                                             &GDS_my_identity_hash,
-                                             key);
+      delta = GNUNET_CRYPTO_hash_xorcmp (&pos->phash,
+                                         &GDS_my_identity_hash,
+                                         key);
       switch (delta)
       {
       case -1: /* pos closer */
@@ -2658,10 +2658,10 @@ GDS_try_connect (void *cls,
                  const struct GNUNET_PeerIdentity *pid,
                  const char *uri)
 {
-  (void) cls;
   struct GNUNET_HashCode phash;
   int peer_bucket;
   struct PeerBucket *bucket;
+  (void) cls;
 
   if (0 == GNUNET_memcmp (&GDS_my_identity,
                           pid))

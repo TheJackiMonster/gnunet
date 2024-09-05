@@ -230,7 +230,7 @@ next_token (char *token)
 }
 
 static int
-parse_ttl (char *token, struct GNUNET_TIME_Relative *ttl)
+parse_ttl (char *token, struct GNUNET_TIME_Relative *pttl)
 {
   char *next;
   unsigned int ttl_tmp;
@@ -247,12 +247,12 @@ parse_ttl (char *token, struct GNUNET_TIME_Relative *ttl)
     return GNUNET_SYSERR;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "TTL is: %u\n", ttl_tmp);
-  ttl->rel_value_us = ttl_tmp * 1000 * 1000;
+  pttl->rel_value_us = ttl_tmp * 1000 * 1000;
   return GNUNET_OK;
 }
 
 static int
-parse_origin (char *token, char *origin)
+parse_origin (char *token, char *porigin)
 {
   char *next;
   next = strchr (token, ';');
@@ -261,8 +261,8 @@ parse_origin (char *token, char *origin)
   next = strchr (token, ' ');
   if (NULL != next)
     next[0] = '\0';
-  strcpy (origin, token);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", origin);
+  strcpy (porigin, token);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", porigin);
   return GNUNET_OK;
 }
 
@@ -365,10 +365,10 @@ parse (void *cls)
   int type;
   int bracket_unclosed = 0;
   int quoted = 0;
+  int ln = 0;
 
   parse_task = NULL;
   /* use filename provided as 1st argument (stdin by default) */
-  int ln = 0;
   while ((res = fgets (buf, sizeof(buf), stdin)))                     /* read each line of input */
   {
     ln++;

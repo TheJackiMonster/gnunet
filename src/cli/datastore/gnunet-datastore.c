@@ -181,6 +181,8 @@ get_cb (void *cls,
         struct GNUNET_TIME_Absolute expiration,
         uint64_t uid)
 {
+  struct DataRecord dr;
+  ssize_t len;
   qe = NULL;
   if (NULL == key)
   {
@@ -197,7 +199,6 @@ get_cb (void *cls,
     return;
   }
 
-  struct DataRecord dr;
   dr.size = htonl ((uint32_t) size);
   dr.type = htonl (type);
   dr.priority = htonl (priority);
@@ -206,7 +207,6 @@ get_cb (void *cls,
   dr.expiration = GNUNET_TIME_absolute_hton (expiration);
   dr.key = *key;
 
-  ssize_t len;
   len = GNUNET_DISK_file_write (file_handle, &dr, sizeof(dr));
   if (sizeof(dr) != len)
   {
@@ -313,6 +313,8 @@ put_cb (void *cls,
         struct GNUNET_TIME_Absolute min_expiration,
         const char *msg)
 {
+  struct DataRecord dr;
+  ssize_t len;
   qe = NULL;
   if (GNUNET_SYSERR == success)
   {
@@ -322,8 +324,6 @@ put_cb (void *cls,
     return;
   }
 
-  struct DataRecord dr;
-  ssize_t len;
 
   len = GNUNET_DISK_file_read (file_handle, &dr, sizeof(dr));
   if (0 == len)
@@ -344,40 +344,42 @@ put_cb (void *cls,
     return;
   }
 
-  const size_t size = ntohl (dr.size);
-  uint8_t data[size];
-  len = GNUNET_DISK_file_read (file_handle, data, size);
-  if (size != len)
   {
-    fprintf (stderr,
-             _ ("Short read from file: %zd bytes expecting %zd\n"),
-             len,
-             size);
-    ret = 1;
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
+    const size_t size = ntohl (dr.size);
+    uint8_t data[size];
+    len = GNUNET_DISK_file_read (file_handle, data, size);
+    if (size != len)
+    {
+      fprintf (stderr,
+               _ ("Short read from file: %zd bytes expecting %zd\n"),
+               len,
+               size);
+      ret = 1;
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
 
-  record_count++;
-  qe = GNUNET_DATASTORE_put (datastore,
-                             0,
-                             &dr.key,
-                             size,
-                             data,
-                             ntohl (dr.type),
-                             ntohl (dr.priority),
-                             ntohl (dr.anonymity),
-                             ntohl (dr.replication),
-                             GNUNET_TIME_absolute_ntoh (dr.expiration),
-                             0,
-                             1,
-                             &put_cb,
-                             NULL);
-  if (NULL == qe)
-  {
-    fprintf (stderr, _ ("Error queueing datastore PUT operation\n"));
-    ret = 1;
-    GNUNET_SCHEDULER_shutdown ();
+    record_count++;
+    qe = GNUNET_DATASTORE_put (datastore,
+                               0,
+                               &dr.key,
+                               size,
+                               data,
+                               ntohl (dr.type),
+                               ntohl (dr.priority),
+                               ntohl (dr.anonymity),
+                               ntohl (dr.replication),
+                               GNUNET_TIME_absolute_ntoh (dr.expiration),
+                               0,
+                               1,
+                               &put_cb,
+                               NULL);
+    if (NULL == qe)
+    {
+      fprintf (stderr, _ ("Error queueing datastore PUT operation\n"));
+      ret = 1;
+      GNUNET_SCHEDULER_shutdown ();
+    }
   }
 }
 
@@ -388,6 +390,8 @@ put_cb (void *cls,
 static void
 start_insert ()
 {
+  uint8_t buf[MAGIC_LEN];
+  ssize_t len;
   record_count = 0;
 
   if (NULL != file_name)
@@ -407,9 +411,6 @@ start_insert ()
   {
     file_handle = GNUNET_DISK_get_handle_from_int_fd (STDIN_FILENO);
   }
-
-  uint8_t buf[MAGIC_LEN];
-  ssize_t len;
 
   len = GNUNET_DISK_file_read (file_handle, buf, MAGIC_LEN);
   if ((len != MAGIC_LEN) || (0 != memcmp (buf, MAGIC_BYTES, MAGIC_LEN)))

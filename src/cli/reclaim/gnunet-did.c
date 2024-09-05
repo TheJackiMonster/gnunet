@@ -32,7 +32,6 @@
  * @file src/did/gnunet-did.c
  * @brief DID Method Wrapper
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
@@ -380,8 +379,8 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
   else
   {
-    char *did = DID_identity_to_did (ego);
-    void *cls = malloc (strlen (did) + 1);
+    char *did_tmp = DID_identity_to_did (ego);
+    void *cls_tmp = malloc (strlen (did_tmp) + 1);
     struct GNUNET_TIME_Relative expire_relative;
 
     if (expire == NULL)
@@ -399,14 +398,14 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
       return;
     }
 
-    strcpy (cls, did);
+    strcpy (cls_tmp, did_tmp);
     // TODO: Add DID_document argument
     if (GNUNET_OK != DID_create (ego,
                                  NULL,
                                  &expire_relative,
                                  namestore_handle,
                                  create_did_cb,
-                                 cls))
+                                 cls_tmp))
     {
       printf ("An error occurred while creating the DID.\n");
       ret = 1;

@@ -163,15 +163,15 @@ static struct GNUNET_OS_Process *publish_proc;
 static char *
 get_state_file ()
 {
-  char *ret;
+  char *retval;
 
-  GNUNET_asprintf (&ret,
+  GNUNET_asprintf (&retval,
                    "%s%s.auto-share",
                    dir_name,
                    (DIR_SEPARATOR == dir_name[strlen (dir_name) - 1])
                    ? ""
                    : DIR_SEPARATOR_STR);
-  return ret;
+  return retval;
 }
 
 
@@ -251,10 +251,6 @@ write_item (void *cls, const struct GNUNET_HashCode *key, void *value)
   struct GNUNET_BIO_WriteHandle *wh = cls;
   struct WorkItem *wi = value;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Saving serialization ID of file `%s' with value `%s'\n",
-              wi->filename,
-              GNUNET_h2s (&wi->id));
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_string ("auto-share-write-item-filename",
                                   wi->filename),
@@ -262,6 +258,10 @@ write_item (void *cls, const struct GNUNET_HashCode *key, void *value)
                                                         GNUNET_HashCode)),
     GNUNET_BIO_write_spec_end (),
   };
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Saving serialization ID of file `%s' with value `%s'\n",
+              wi->filename,
+              GNUNET_h2s (&wi->id));
   if (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws))
     return GNUNET_SYSERR; /* write error, abort iteration */
   return GNUNET_OK;
@@ -349,7 +349,7 @@ maint_child_death (void *cls)
   struct GNUNET_HashCode key;
   enum GNUNET_OS_ProcessStatusType type;
   unsigned long code;
-  int ret;
+  int retval;
   char c;
   const struct GNUNET_DISK_FileHandle *pr;
   const struct GNUNET_SCHEDULER_TaskContext *tc;
@@ -370,9 +370,9 @@ maint_child_death (void *cls)
   /* consume the signal */
   GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
 
-  ret = GNUNET_OS_process_status (publish_proc, &type, &code);
-  GNUNET_assert (GNUNET_SYSERR != ret);
-  if (GNUNET_NO == ret)
+  retval = GNUNET_OS_process_status (publish_proc, &type, &code);
+  GNUNET_assert (GNUNET_SYSERR != retval);
+  if (GNUNET_NO == retval)
   {
     /* process still running? Then where did the SIGCHLD come from?
        Well, let's declare it spurious (kernel bug?) and keep rolling.
@@ -384,7 +384,7 @@ maint_child_death (void *cls)
                                                wi);
     return;
   }
-  GNUNET_assert (GNUNET_OK == ret);
+  GNUNET_assert (GNUNET_OK == retval);
 
   GNUNET_OS_process_destroy (publish_proc);
   publish_proc = NULL;

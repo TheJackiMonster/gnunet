@@ -26,12 +26,12 @@
 #include "platform.h"
 #include "gnunet_rest_plugin.h"
 #include "gnunet_rest_lib.h"
-#include "gnunet_json_lib.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_gnsrecord_json_lib.h"
 #include "gnunet_gns_service.h"
 #include "microhttpd.h"
 #include <jansson.h>
+#include "gns_plugin.h"
 
 /**
  * Rest API GNS Namespace
@@ -288,7 +288,7 @@ handle_gns_response (void *cls,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 get_gns_cont (struct GNUNET_REST_RequestHandle *con_handle,
               const char *url,
               void *cls)
@@ -459,10 +459,9 @@ REST_gns_init (const struct GNUNET_CONFIGURATION_Handle *c)
  * @param cls the plugin context (as returned by "init")
  * @return always NULL
  */
-void *
-REST_gns_done (void *cls)
+void
+REST_gns_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct RequestHandle *request;
   struct Plugin *plugin;
 
@@ -479,7 +478,6 @@ REST_gns_done (void *cls)
   GNUNET_free (allow_methods);
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Gns REST plugin is finished\n");
-  return NULL;
 }
 
 

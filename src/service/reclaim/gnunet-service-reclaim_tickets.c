@@ -440,36 +440,38 @@ process_tickets (void *cls)
   GNUNET_CONTAINER_DLL_remove (rvk->tickets_to_update_head,
                                rvk->tickets_to_update_tail,
                                le);
-  struct GNUNET_GNSRECORD_Data rd[le->rd_count];
-  if (GNUNET_OK != GNUNET_GNSRECORD_records_deserialize (le->data_size,
-                                                         le->data,
-                                                         le->rd_count,
-                                                         rd))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unable to deserialize ticket record(s)\n");
-    rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
-    cleanup_rvk (rvk);
-    return;
-  }
-  for (int i = 0; i < le->rd_count; i++)
-  {
-    if (GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF != rd[i].record_type)
-      continue;
-    for (ae = rvk->attrs_head; NULL != ae; ae = ae->next)
+    struct GNUNET_GNSRECORD_Data rd[le->rd_count];
+    if (GNUNET_OK != GNUNET_GNSRECORD_records_deserialize (le->data_size,
+                                                           le->data,
+                                                           le->rd_count,
+                                                           rd))
     {
-      if (0 != memcmp (rd[i].data, &ae->old_id, sizeof(ae->old_id)))
-        continue;
-      rd[i].data = &ae->new_id;
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Unable to deserialize ticket record(s)\n");
+      rvk->cb (rvk->cb_cls, GNUNET_SYSERR);
+      cleanup_rvk (rvk);
+      return;
     }
+    for (int i = 0; i < le->rd_count; i++)
+    {
+      if (GNUNET_GNSRECORD_TYPE_RECLAIM_ATTRIBUTE_REF != rd[i].record_type)
+        continue;
+      for (ae = rvk->attrs_head; NULL != ae; ae = ae->next)
+      {
+        if (0 != memcmp (rd[i].data, &ae->old_id, sizeof(ae->old_id)))
+          continue;
+        rd[i].data = &ae->new_id;
+      }
+    }
+    rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
+                                                    &rvk->identity,
+                                                    le->label,
+                                                    le->rd_count,
+                                                    rd,
+                                                    &ticket_processed,
+                                                    rvk);
   }
-  rvk->ns_qe = GNUNET_NAMESTORE_record_set_store (nsh,
-                                                  &rvk->identity,
-                                                  le->label,
-                                                  le->rd_count,
-                                                  rd,
-                                                  &ticket_processed,
-                                                  rvk);
   GNUNET_free (le->label);
   GNUNET_free (le->data);
   GNUNET_free (le);
@@ -1314,6 +1316,8 @@ issue_ticket (struct TicketIssueHandle *ih)
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   struct GNUNET_RECLAIM_PresentationListEntry *ple;
   struct GNUNET_GNSRECORD_Data *attrs_record;
+  struct GNUNET_RECLAIM_Presentation *presentation;
+  struct GNUNET_CRYPTO_PublicKey pub;
   char *label;
   char *tkt_data;
   int i;
@@ -1326,8 +1330,8 @@ issue_ticket (struct TicketIssueHandle *ih)
   // Worst case we have one presentation per attribute plus the ticket
   // plus the RP URI record
   attrs_record =
-    GNUNET_malloc ((2 * attrs_count + 2) * sizeof(struct GNUNET_GNSRECORD_Data))
-  ;
+    GNUNET_malloc ((2 * attrs_count + 2)
+                   * sizeof(struct GNUNET_GNSRECORD_Data));
   i = 0;
   for (le = ih->attrs->list_head; NULL != le; le = le->next)
   {
@@ -1344,7 +1348,7 @@ issue_ticket (struct TicketIssueHandle *ih)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Attribute is backed by credential. Adding...\n");
-      struct GNUNET_RECLAIM_Presentation *presentation = NULL;
+      presentation = NULL;
       for (j = 0; j < i; j++)
       {
         if (attrs_record[j].record_type
@@ -1385,23 +1389,25 @@ issue_ticket (struct TicketIssueHandle *ih)
                       "Presentation does not match credential ID.\n");
           continue;
         }
-        char *pres_buf;
-        size_t pres_size;
+        {
+          char *pres_buf;
+          size_t pres_size;
 
-        pres_size =
-          GNUNET_RECLAIM_presentation_serialize_get_size (ple->presentation);
-        pres_buf = GNUNET_malloc (pres_size);
-        GNUNET_RECLAIM_presentation_serialize (ple->presentation,
-                                               pres_buf);
-        attrs_record[i].data = pres_buf;
-        attrs_record[i].data_size = pres_size;
-        attrs_record[i].expiration_time =
-          ticket_refresh_interval.rel_value_us;
-        attrs_record[i].record_type =
-          GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION;
-        attrs_record[i].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-        i++;
-        break;
+          pres_size =
+            GNUNET_RECLAIM_presentation_serialize_get_size (ple->presentation);
+          pres_buf = GNUNET_malloc (pres_size);
+          GNUNET_RECLAIM_presentation_serialize (ple->presentation,
+                                                 pres_buf);
+          attrs_record[i].data = pres_buf;
+          attrs_record[i].data_size = pres_size;
+          attrs_record[i].expiration_time =
+            ticket_refresh_interval.rel_value_us;
+          attrs_record[i].record_type =
+            GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION;
+          attrs_record[i].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+          i++;
+          break;
+        }
       }
     }
   }
@@ -1409,14 +1415,15 @@ issue_ticket (struct TicketIssueHandle *ih)
   label =
     GNUNET_STRINGS_data_to_string_alloc (&ih->rnd,
                                          sizeof(ih->rnd));
-  struct GNUNET_CRYPTO_PublicKey pub;
   GNUNET_CRYPTO_key_get_public (&ih->identity,
                                 &pub);
-  char *str = GNUNET_CRYPTO_public_key_to_string (&pub);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Storing AuthZ information under %s in %s\n", label, str);
-  sprintf (ih->ticket.gns_name, "%s.%s", label, str);
-  GNUNET_free (str);
+  {
+    char *str = GNUNET_CRYPTO_public_key_to_string (&pub);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Storing AuthZ information under %s in %s\n", label, str);
+    sprintf (ih->ticket.gns_name, "%s.%s", label, str);
+    GNUNET_free (str);
+  }
 
   attrs_record[i].data_size =
     strlen (ih->ticket.gns_name) + 1;
@@ -1514,6 +1521,8 @@ filter_tickets_cb (void *cls,
   struct GNUNET_RECLAIM_AttributeListEntry *le;
   unsigned int attr_cnt = 0;
   unsigned int pres_cnt = 0;
+  unsigned int found_attrs_cnt = 0;
+  unsigned int found_pres_cnt = 0;
   int ticket_found = GNUNET_NO;
   int rp_uri_matches = GNUNET_NO;
 
@@ -1525,8 +1534,8 @@ filter_tickets_cb (void *cls,
   }
 
   // ticket search
-  unsigned int found_attrs_cnt = 0;
-  unsigned int found_pres_cnt = 0;
+  found_attrs_cnt = 0;
+  found_pres_cnt = 0;
   ticket_presentations = GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
 
   for (int i = 0; i < rd_count; i++)

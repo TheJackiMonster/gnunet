@@ -29,9 +29,8 @@
 #include "gnunet_util_lib.h"
 
 #include "gnunet_identity_service.h"
-#include "gnunet_namestore_service.h"
 #include "gnunet_reclaim_service.h"
-#include "gnunet_signatures.h"
+
 /**
  * return value
  */
@@ -231,13 +230,13 @@ do_cleanup (void *cls)
 
 static void
 ticket_issue_cb (void *cls,
-                 const struct GNUNET_RECLAIM_Ticket *ticket,
+                 const struct GNUNET_RECLAIM_Ticket *iss_ticket,
                  const struct GNUNET_RECLAIM_PresentationList *presentations)
 {
   reclaim_op = NULL;
-  if (NULL != ticket)
+  if (NULL != iss_ticket)
   {
-    printf ("%s\n", ticket->gns_name);
+    printf ("%s\n", iss_ticket->gns_name);
   }
   cleanup_task = GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
 }
@@ -333,9 +332,10 @@ ticket_iter_fin (void *cls)
 
 
 static void
-ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *ticket, const char* rp_uri)
+ticket_iter (void *cls, const struct GNUNET_RECLAIM_Ticket *tkt, const char*
+             rp_uri)
 {
-  fprintf (stdout, "Ticket: %s | RP URI: %s\n", ticket->gns_name, rp_uri);
+  fprintf (stdout, "Ticket: %s | RP URI: %s\n", tkt->gns_name, rp_uri);
   GNUNET_RECLAIM_ticket_iteration_next (ticket_iterator);
 }
 
@@ -452,7 +452,7 @@ iter_finished (void *cls)
     if (NULL == ex_rp_uri)
     {
       fprintf (stderr, "Expected an RP URI to consume ticket\n");
-      GNUNET_SCHEDULER_add_now(&do_cleanup, NULL);
+      GNUNET_SCHEDULER_add_now (&do_cleanup, NULL);
       return;
     }
     reclaim_op = GNUNET_RECLAIM_ticket_consume (reclaim_handle,
@@ -643,14 +643,14 @@ cred_iter_finished (void *cls)
   {
     enum GNUNET_RECLAIM_CredentialType ctype =
       GNUNET_RECLAIM_credential_typename_to_number (credential_type);
-    struct GNUNET_RECLAIM_Credential *credential =
+    struct GNUNET_RECLAIM_Credential *cred =
       GNUNET_RECLAIM_credential_new (credential_name,
                                      ctype,
                                      attr_value,
                                      strlen (attr_value));
     reclaim_op = GNUNET_RECLAIM_credential_store (reclaim_handle,
                                                   pkey,
-                                                  credential,
+                                                  cred,
                                                   &exp_interval,
                                                   store_cont,
                                                   NULL);
@@ -684,6 +684,7 @@ cred_iter_cb (void *cls,
   char *id;
   const char *cred_type;
   struct GNUNET_RECLAIM_AttributeListEntry *ale;
+  struct GNUNET_RECLAIM_AttributeList *attrs;
 
   if (GNUNET_YES == GNUNET_RECLAIM_id_is_equal (&credential,
                                                 &cred->id))
@@ -701,8 +702,7 @@ cred_iter_cb (void *cls,
              cred_str,
              cred_type,
              id);
-    struct GNUNET_RECLAIM_AttributeList *attrs =
-      GNUNET_RECLAIM_credential_get_attributes (cred);
+    attrs = GNUNET_RECLAIM_credential_get_attributes (cred);
     if (NULL != attrs)
     {
       fprintf (stdout,
@@ -837,7 +837,6 @@ run (void *cls,
 int
 main (int argc, char *const argv[])
 {
-  exp_interval = GNUNET_TIME_UNIT_HOURS;
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_string ('a',
                                  "add",
@@ -930,6 +929,7 @@ main (int argc, char *const argv[])
 
     GNUNET_GETOPT_OPTION_END
   };
+  exp_interval = GNUNET_TIME_UNIT_HOURS;
   if (GNUNET_OK != GNUNET_PROGRAM_run (argc,
                                        argv,
                                        "gnunet-reclaim",

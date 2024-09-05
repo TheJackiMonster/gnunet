@@ -29,6 +29,7 @@
 #include <gnunet_rest_lib.h>
 #include <gnunet_util_lib.h>
 #include <jansson.h>
+#include "config_plugin.h"
 
 #define GNUNET_REST_API_NS_CONFIG "/config"
 
@@ -208,7 +209,7 @@ get_cont (struct GNUNET_REST_RequestHandle *con_handle,
 }
 
 
-struct GNUNET_CONFIGURATION_Handle *
+static struct GNUNET_CONFIGURATION_Handle *
 set_value (struct GNUNET_CONFIGURATION_Handle *config,
            const char *section,
            const char *option,
@@ -244,7 +245,8 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
 {
   struct RequestHandle *handle = cls;
   char term_data[handle->rest_handle->data_size + 1];
-  struct GNUNET_CONFIGURATION_Handle *out = GNUNET_CONFIGURATION_dup (config_cfg);
+  struct GNUNET_CONFIGURATION_Handle *out = GNUNET_CONFIGURATION_dup (config_cfg
+                                                                      );
 
   json_error_t err;
   json_t *data_json;
@@ -320,16 +322,18 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
 
   // get cfg file path
   cfg_fn = NULL;
-  const char *xdg = getenv ("XDG_CONFIG_HOME");
-  if (NULL != xdg)
-    GNUNET_asprintf (&cfg_fn,
-                     "%s%s%s",
-                     xdg,
-                     DIR_SEPARATOR_STR,
-                     GNUNET_OS_project_data_get ()->config_file);
-  else
-    cfg_fn = GNUNET_strdup (GNUNET_OS_project_data_get ()->user_config_file);
+  {
+    const char *xdg = getenv ("XDG_CONFIG_HOME");
+    if (NULL != xdg)
+      GNUNET_asprintf (&cfg_fn,
+                       "%s%s%s",
+                       xdg,
+                       DIR_SEPARATOR_STR,
+                       GNUNET_OS_project_data_get ()->config_file);
+    else
+      cfg_fn = GNUNET_strdup (GNUNET_OS_project_data_get ()->user_config_file);
 
+  }
   GNUNET_CONFIGURATION_write (out, cfg_fn);
   config_cfg = out;
   handle->proc (handle->proc_cls,
@@ -368,6 +372,8 @@ REST_config_process_request (void *plugin,
                              GNUNET_REST_ResultProcessor proc,
                              void *proc_cls)
 {
+  struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
+  struct GNUNET_REST_RequestHandlerError err;
   static const struct GNUNET_REST_RequestHandler handlers[] = {
     { MHD_HTTP_METHOD_GET, GNUNET_REST_API_NS_CONFIG, &get_cont },
     { MHD_HTTP_METHOD_POST, GNUNET_REST_API_NS_CONFIG, &set_cont },
@@ -375,8 +381,6 @@ REST_config_process_request (void *plugin,
     GNUNET_REST_HANDLER_END
   };
   (void) plugin;
-  struct RequestHandle *handle = GNUNET_new (struct RequestHandle);
-  struct GNUNET_REST_RequestHandlerError err;
 
   handle->proc_cls = proc_cls;
   handle->proc = proc;
@@ -395,6 +399,7 @@ REST_config_process_request (void *plugin,
   }
   return GNUNET_YES;
 }
+
 
 void
 REST_config_done (struct GNUNET_REST_Plugin *api)
@@ -420,9 +425,9 @@ void *
 REST_config_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
+  struct GNUNET_REST_Plugin *api;
 
   config_cfg = c;
-  struct GNUNET_REST_Plugin *api;
 
   memset (&plugin, 0, sizeof(struct Plugin));
   plugin.cfg = c;
@@ -432,7 +437,6 @@ REST_config_init (const struct GNUNET_CONFIGURATION_Handle *c)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("CONFIG REST API initialized\n"));
   return api;
 }
-
 
 
 /* end of plugin_rest_config.c */

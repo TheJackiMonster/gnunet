@@ -40,6 +40,7 @@
 #include "gnunet_rest_plugin.h"
 #include "microhttpd.h"
 #include "oidc_helper.h"
+#include "openid_plugin.h"
 
 /**
  * REST root namespace
@@ -245,13 +246,13 @@
 /**
  * OIDC ignored parameter array
  */
-static char *OIDC_ignored_parameter_array[] = { "display",
-                                                "prompt",
-                                                "ui_locales",
-                                                "response_mode",
-                                                "id_token_hint",
-                                                "login_hint",
-                                                "acr_values" };
+static const char *OIDC_ignored_parameter_array[] = { "display",
+                                                      "prompt",
+                                                      "ui_locales",
+                                                      "response_mode",
+                                                      "id_token_hint",
+                                                      "login_hint",
+                                                      "acr_values" };
 
 /**
  * OIDC hashmap for cached access tokens and codes
@@ -885,7 +886,7 @@ cookie_identity_interpretation (struct RequestHandle *handle)
  * @param filename the file to read the JWK from
  * @return json_t* the reed JWK
  */
-json_t *
+static json_t *
 read_jwk_from_file (const char *filename)
 {
   json_t *jwk;
@@ -932,7 +933,7 @@ write_jwk_to_file (const char *filename,
  *
  * @return json_t* the generated JWK
  */
-json_t *
+static json_t *
 generate_jwk ()
 {
   json_t *jwk;
@@ -948,7 +949,7 @@ generate_jwk ()
  *
  * @param cls the RequestHandle
  */
-char *
+static char *
 get_oidc_dir_path (void *cls)
 {
   char *oidc_directory;
@@ -977,7 +978,7 @@ get_oidc_dir_path (void *cls)
  *
  * @param cls the RequestHandle
  */
-char *
+static char *
 get_oidc_jwk_path (void *cls)
 {
   char *oidc_directory;
@@ -1668,6 +1669,7 @@ build_authz_response (void *cls)
 
   char *expected_scope;
   char delimiter[] = " ";
+  char *test;
   int number_of_ignored_parameter, iterator;
 
 
@@ -1744,7 +1746,6 @@ build_authz_response (void *cls)
 
   // Checks if scope contains 'openid'
   expected_scope = GNUNET_strdup (handle->oidc->scope);
-  char *test;
   test = strtok (expected_scope, delimiter);
   while (NULL != test)
   {
@@ -2139,7 +2140,7 @@ check_authorization (struct RequestHandle *handle,
 }
 
 
-const struct EgoEntry *
+static const struct EgoEntry *
 find_ego (struct RequestHandle *handle,
           struct GNUNET_CRYPTO_PublicKey *test_key)
 {
@@ -2178,6 +2179,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   struct GNUNET_CRYPTO_PublicKey cid;
   struct GNUNET_HashCode cache_key;
   struct MHD_Response *resp = NULL;
+  struct GNUNET_CRYPTO_PublicKey issuer;
   char *grant_type = NULL;
   char *code = NULL;
   char *json_response = NULL;
@@ -2187,11 +2189,12 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *jwt_secret = NULL;
   char *nonce = NULL;
   char *code_verifier = NULL;
-  json_t *oidc_jwk = NULL;
+  json_t *oidc_jwk_tmp = NULL;
   char *oidc_jwk_path = NULL;
   char *oidc_directory = NULL;
   char *tmp_at = NULL;
   char *received_cid = NULL;
+  char *emsg = NULL;
 
   /*
    * Check Authorization
@@ -2265,7 +2268,6 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   // decode code
-  char *emsg = NULL;
   if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid, code,
                                           code_verifier,
                                           &ticket,
@@ -2312,23 +2314,22 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Could not read OIDC JSON Web Algorithm config attribute."
                 "Defaulting to RS256.");
-    jwa = JWT_ALG_VALUE_RSA;
+    jwa = GNUNET_strdup (JWT_ALG_VALUE_RSA);
   }
 
-  struct GNUNET_CRYPTO_PublicKey issuer;
   GNUNET_GNS_parse_ztld (ticket.gns_name, &issuer);
 
   if (! strcmp (jwa, JWT_ALG_VALUE_RSA))
   {
     // Replace for now
     oidc_jwk_path = get_oidc_jwk_path (cls);
-    oidc_jwk = read_jwk_from_file (oidc_jwk_path);
+    oidc_jwk_tmp = read_jwk_from_file (oidc_jwk_path);
 
     // Check if secret JWK exists
-    if (! oidc_jwk)
+    if (! oidc_jwk_tmp)
     {
       // Generate and save a new key
-      oidc_jwk = generate_jwk ();
+      oidc_jwk_tmp = generate_jwk ();
       oidc_directory = get_oidc_dir_path (cls);
 
       // Create new oidc directory
@@ -2340,7 +2341,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
       }
       else
       {
-        write_jwk_to_file (oidc_jwk_path, oidc_jwk);
+        write_jwk_to_file (oidc_jwk_path, oidc_jwk_tmp);
       }
     }
 
@@ -2351,7 +2352,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
                                            pl,
                                            &expiration_time,
                                            (NULL != nonce) ? nonce : NULL,
-                                           oidc_jwk);
+                                           oidc_jwk_tmp);
   }
   else if (! strcmp (jwa, JWT_ALG_VALUE_HMAC))
   {
@@ -2369,6 +2370,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
       GNUNET_RECLAIM_presentation_list_destroy (pl);
       if (NULL != nonce)
         GNUNET_free (nonce);
+      GNUNET_free (jwa);
       GNUNET_SCHEDULER_add_now (&do_error, handle);
       return;
     }
@@ -2387,6 +2389,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   {
     // TODO: OPTION NOT FOUND ERROR
   }
+  GNUNET_free (jwa);
 
   if (NULL != nonce)
     GNUNET_free (nonce);
@@ -2488,10 +2491,11 @@ consume_ticket (void *cls,
 
   if (NULL == identity)
   {
+    struct GNUNET_CRYPTO_PublicKey issuer;
+    char *key;
     char *tmp = GNUNET_strdup (handle->ticket.gns_name);
     GNUNET_assert (NULL != strtok (tmp, "."));
-    char *key = strtok (NULL, ".");
-    struct GNUNET_CRYPTO_PublicKey issuer;
+    key = strtok (NULL, ".");
     GNUNET_assert (NULL != key);
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_public_key_from_string (key, &issuer));
@@ -2555,10 +2559,14 @@ consume_fail (void *cls)
   struct GNUNET_RECLAIM_Ticket ticket;
   struct GNUNET_CRYPTO_PublicKey cid;
   struct MHD_Response *resp;
+  struct GNUNET_CRYPTO_PublicKey issuer;
   char *nonce;
   char *cached_code;
   char *result_str;
   char *received_cid;
+  char *emsg;
+  char *tmp;
+  char *key;
 
   handle->consume_timeout_op = NULL;
   if (NULL != handle->idp_op)
@@ -2594,11 +2602,11 @@ consume_fail (void *cls)
                                  sizeof(struct GNUNET_CRYPTO_PublicKey));
 
   // decode code
-  char *emsg;
   if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid,
                                           cached_code, NULL, &ticket,
                                           &cl, &pl, &nonce,
-                                          OIDC_VERIFICATION_NO_CODE_VERIFIER, &emsg))
+                                          OIDC_VERIFICATION_NO_CODE_VERIFIER, &
+                                          emsg))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_REQUEST);
     handle->edesc = emsg;
@@ -2612,10 +2620,9 @@ consume_fail (void *cls)
 
   GNUNET_free (cached_code);
 
-  char *tmp = GNUNET_strdup (handle->ticket.gns_name);
+  tmp = GNUNET_strdup (handle->ticket.gns_name);
   GNUNET_assert (NULL != strtok (tmp, "."));
-  char *key = strtok (NULL, ".");
-  struct GNUNET_CRYPTO_PublicKey issuer;
+  key = strtok (NULL, ".");
   GNUNET_assert (NULL != key);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_public_key_from_string (key, &issuer));
@@ -2697,39 +2704,41 @@ userinfo_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     return;
   }
 
-  char *rp_uri;
-  if (GNUNET_OK != OIDC_access_token_parse (authorization_access_token,
-                                            &ticket, &rp_uri))
   {
-    handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
-    handle->edesc = GNUNET_strdup ("The access token is invalid");
-    handle->response_code = MHD_HTTP_UNAUTHORIZED;
-    GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
+    char *rp_uri;
+    if (GNUNET_OK != OIDC_access_token_parse (authorization_access_token,
+                                              &ticket, &rp_uri))
+    {
+      handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_TOKEN);
+      handle->edesc = GNUNET_strdup ("The access token is invalid");
+      handle->response_code = MHD_HTTP_UNAUTHORIZED;
+      GNUNET_SCHEDULER_add_now (&do_userinfo_error, handle);
+      GNUNET_free (authorization);
+      return;
+
+    }
+    GNUNET_assert (NULL != ticket);
+    handle->ticket = *ticket;
+    GNUNET_free (ticket);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Consuming ticket\n");
+    handle->attr_userinfo_list =
+      GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
+    handle->presentations =
+      GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
+
+    /* If the consume takes too long, we use values from the cache */
+    handle->access_token = GNUNET_strdup (authorization_access_token);
+    handle->consume_timeout_op = GNUNET_SCHEDULER_add_delayed (consume_timeout,
+                                                               &consume_fail,
+                                                               handle);
+    handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
+                                                    &handle->ticket,
+                                                    rp_uri,
+                                                    &consume_ticket,
+                                                    handle);
     GNUNET_free (authorization);
-    return;
-
+    GNUNET_free (rp_uri);
   }
-  GNUNET_assert (NULL != ticket);
-  handle->ticket = *ticket;
-  GNUNET_free (ticket);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Consuming ticket\n");
-  handle->attr_userinfo_list =
-    GNUNET_new (struct GNUNET_RECLAIM_AttributeList);
-  handle->presentations =
-    GNUNET_new (struct GNUNET_RECLAIM_PresentationList);
-
-  /* If the consume takes too long, we use values from the cache */
-  handle->access_token = GNUNET_strdup (authorization_access_token);
-  handle->consume_timeout_op = GNUNET_SCHEDULER_add_delayed (consume_timeout,
-                                                             &consume_fail,
-                                                             handle);
-  handle->idp_op = GNUNET_RECLAIM_ticket_consume (idp,
-                                                  &handle->ticket,
-                                                  rp_uri,
-                                                  &consume_ticket,
-                                                  handle);
-  GNUNET_free (authorization);
-  GNUNET_free (rp_uri);
 }
 
 
@@ -2748,18 +2757,18 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   char *oidc_directory;
   char *oidc_jwk_path;
   char *oidc_jwk_pub_str;
-  json_t *oidc_jwk;
+  json_t *oidc_jwk_tmp;
   struct MHD_Response *resp;
   struct RequestHandle *handle = cls;
 
   oidc_jwk_path = get_oidc_jwk_path (cls);
-  oidc_jwk = read_jwk_from_file (oidc_jwk_path);
+  oidc_jwk_tmp = read_jwk_from_file (oidc_jwk_path);
 
   // Check if secret JWK exists
-  if (! oidc_jwk)
+  if (! oidc_jwk_tmp)
   {
     // Generate and save a new key
-    oidc_jwk = generate_jwk ();
+    oidc_jwk_tmp = generate_jwk ();
     oidc_directory = get_oidc_dir_path (cls);
 
     // Create new oidc directory
@@ -2771,18 +2780,18 @@ jwks_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
     }
     else
     {
-      write_jwk_to_file (oidc_jwk_path, oidc_jwk);
+      write_jwk_to_file (oidc_jwk_path, oidc_jwk_tmp);
     }
   }
 
   // Convert secret JWK to public JWK
-  jose_jwk_pub (NULL, oidc_jwk);
+  jose_jwk_pub (NULL, oidc_jwk_tmp);
 
   // Encode JWK as string and return to API endpoint
-  oidc_jwk_pub_str = json_dumps (oidc_jwk, JSON_INDENT (1));
+  oidc_jwk_pub_str = json_dumps (oidc_jwk_tmp, JSON_INDENT (1));
   resp = GNUNET_REST_create_response (oidc_jwk_pub_str);
   handle->proc (handle->proc_cls, resp, MHD_HTTP_OK);
-  json_decref (oidc_jwk);
+  json_decref (oidc_jwk_tmp);
   GNUNET_free (oidc_jwk_pub_str);
   GNUNET_free (oidc_jwk_pub_str);
   cleanup_handle (handle);
@@ -3131,16 +3140,9 @@ cleanup_hashmap (void *cls, const struct GNUNET_HashCode *key, void *value)
 }
 
 
-/**
-   * Exit point from the plugin.
-   *
-   * @param cls the plugin context (as returned by "init")
-   * @return always NULL
-   */
-void *
-REST_openid_done (void *cls)
+void
+REST_openid_done (struct GNUNET_REST_Plugin *api)
 {
-  struct GNUNET_REST_Plugin *api = cls;
   struct Plugin *plugin = api->cls;
   struct EgoEntry *ego_entry;
 
@@ -3181,7 +3183,6 @@ REST_openid_done (void *cls)
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "OpenID Connect REST plugin is finished\n");
-  return NULL;
 }
 
 

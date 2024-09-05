@@ -148,12 +148,12 @@ address_cb (void *cls,
  */
 static void
 reversal_cb (void *cls,
-             const struct sockaddr *remote_addr,
+             const struct sockaddr *addr,
              socklen_t remote_addrlen)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_MESSAGE,
               "Connection reversal requested by %s\n",
-              GNUNET_a2s (remote_addr, remote_addrlen));
+              GNUNET_a2s (addr, remote_addrlen));
 }
 
 

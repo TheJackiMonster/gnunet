@@ -77,7 +77,7 @@
  * (per record).
  */
 #define MAXIMUM_ZONE_ITERATION_INTERVAL GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 15)
+          GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * The factor the current zone iteration interval is divided by for each
@@ -388,6 +388,7 @@ free_job (struct RecordPublicationJob *job)
     GNUNET_free (job->label);
   GNUNET_free (job);
 }
+
 
 /**
  * Task run during shutdown.
@@ -762,7 +763,8 @@ check_zone_namestore_next ()
     delay = GNUNET_TIME_UNIT_ZERO;
   GNUNET_assert (NULL == zone_publish_task);
   zone_publish_task = GNUNET_SCHEDULER_add_delayed (delay,
-                                                    &publish_zone_namestore_next,
+                                                    &publish_zone_namestore_next
+                                                    ,
                                                     NULL);
 }
 
@@ -819,6 +821,7 @@ dispatch_job (const struct GNUNET_CRYPTO_PrivateKey *key,
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_GNSRECORD_Block *block_priv;
   struct GNUNET_TIME_Absolute expire_pub;
+  struct RecordPublicationJob *job;
   size_t block_size;
   unsigned int rd_public_count = 0;
   char *emsg;
@@ -861,7 +864,7 @@ dispatch_job (const struct GNUNET_CRYPTO_PrivateKey *key,
     block_priv = block;
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_assert (0 == pthread_mutex_lock (&sign_jobs_lock));
-  struct RecordPublicationJob *job = GNUNET_new (struct RecordPublicationJob);
+  job = GNUNET_new (struct RecordPublicationJob);
   job->block = block;
   job->block_size = block_size;
   job->block_priv = block_priv;
@@ -1133,6 +1136,7 @@ dispatch_job_monitor (const struct GNUNET_CRYPTO_PrivateKey *key,
   struct GNUNET_GNSRECORD_Block *block;
   struct GNUNET_GNSRECORD_Block *block_priv;
   struct GNUNET_TIME_Absolute expire_pub;
+  struct RecordPublicationJob *job;
   size_t block_size;
   unsigned int rd_public_count = 0;
   char *emsg;
@@ -1175,7 +1179,7 @@ dispatch_job_monitor (const struct GNUNET_CRYPTO_PrivateKey *key,
     block_priv = block;
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_assert (0 == pthread_mutex_lock (&sign_jobs_lock));
-  struct RecordPublicationJob *job = GNUNET_new (struct RecordPublicationJob);
+  job = GNUNET_new (struct RecordPublicationJob);
   job->block = block;
   job->block_size = block_size;
   job->block_priv = block_priv;
@@ -1318,6 +1322,7 @@ run (void *cls,
      struct GNUNET_SERVICE_Handle *service)
 {
   unsigned long long max_parallel_bg_queries = 128;
+  const struct GNUNET_DISK_FileHandle *np_fh;
 
   (void) cls;
   (void) service;
@@ -1418,36 +1423,38 @@ run (void *cls,
                                  NULL);
 
   notification_pipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
-  const struct GNUNET_DISK_FileHandle *np_fh = GNUNET_DISK_pipe_handle (
+  np_fh = GNUNET_DISK_pipe_handle (
     notification_pipe,
     GNUNET_DISK_PIPE_END_READ);
   pipe_read_task = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                                    np_fh,
                                                    notification_pipe_cb, NULL);
 
-  long long unsigned int worker_count = 1;
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_number (c,
-                                             "zonemaster",
-                                             "WORKER_COUNT",
-                                             &worker_count))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Number of workers not defined falling back to 1\n");
-  }
-  worker = GNUNET_malloc (sizeof (pthread_t) * worker_count);
-  /** Start worker */
-  for (int i = 0; i < worker_count; i++)
-  {
-    if (0 !=
-        pthread_create (&worker[i],
-                        NULL,
-                        &sign_worker,
-                        NULL))
+    long long unsigned int worker_count = 1;
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_number (c,
+                                               "zonemaster",
+                                               "WORKER_COUNT",
+                                               &worker_count))
     {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
-                           "pthread_create");
-      GNUNET_SCHEDULER_shutdown ();
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Number of workers not defined falling back to 1\n");
+    }
+    worker = GNUNET_malloc (sizeof (pthread_t) * worker_count);
+    /** Start worker */
+    for (int i = 0; i < worker_count; i++)
+    {
+      if (0 !=
+          pthread_create (&worker[i],
+                          NULL,
+                          &sign_worker,
+                          NULL))
+      {
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "pthread_create");
+        GNUNET_SCHEDULER_shutdown ();
+      }
     }
   }
 }

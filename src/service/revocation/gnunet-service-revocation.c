@@ -36,16 +36,12 @@
  *                 to make it rare to traverse each link twice (NSE-style)
  */
 #include "platform.h"
-#include <math.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_block_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
-#include "gnunet_revocation_service.h"
 #include "gnunet_setu_service.h"
 #include "revocation.h"
 #include <gcrypt.h>
@@ -1051,7 +1047,7 @@ GNUNET_SERVICE_MAIN
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_REVOCATION_memory_init ()
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);

@@ -205,6 +205,9 @@ item_printer (void *const cls,
               const char *const data,
               const size_t data_size)
 {
+  const char *cursor;
+  const char *next_spec;
+  const char *next_esc;
 #define info ((struct GNUNET_SEARCH_MetadataPrinterInfo *) cls)
   if ((format != EXTRACTOR_METAFORMAT_UTF8 &&
        format != EXTRACTOR_METAFORMAT_C_STRING) ||
@@ -214,9 +217,9 @@ item_printer (void *const cls,
   if ((info->flags & METADATA_PRINTER_FLAG_HAVE_TYPE) && type != info->type)
     return 0;
 
-  const char *cursor = meta_format_string;
-  const char *next_spec = strchr (cursor, '%');
-  const char *next_esc = strchr (cursor, '\\');
+  cursor = meta_format_string;
+  next_spec = strchr (cursor, '%');
+  next_esc = strchr (cursor, '\\');
 
   parse_format:
 

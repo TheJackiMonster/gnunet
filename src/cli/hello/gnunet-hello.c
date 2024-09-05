@@ -109,7 +109,7 @@ shutdown_task (void *cls)
  * @param cls closure pointing to a `struct GNUNET_PeerIdentity *`
  * @param uri one of the URIs
  */
-void
+static void
 print_hello_addrs (void *cls,
                    const struct GNUNET_PeerIdentity *pid,
                    const char *uri)
@@ -121,7 +121,7 @@ print_hello_addrs (void *cls,
 }
 
 
-void
+static void
 hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
             const char *emsg)
 {

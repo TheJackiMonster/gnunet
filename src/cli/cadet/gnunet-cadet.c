@@ -84,7 +84,7 @@ static char *target_id;
 /**
  * Port to connect to
  */
-static char *target_port = "default";
+static const char *target_port = "default";
 
 /**
  * Cadet handle.
@@ -266,7 +266,7 @@ shutdown_task (void *cls)
 }
 
 
-void
+static void
 mq_cb (void *cls)
 {
   listen_stdio ();

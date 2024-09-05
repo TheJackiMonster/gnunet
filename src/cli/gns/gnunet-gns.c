@@ -355,7 +355,6 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  timeout = GNUNET_TIME_UNIT_FOREVER_REL;
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_option_mandatory (
       GNUNET_GETOPT_option_string ('u',
@@ -387,6 +386,7 @@ main (int argc, char *const *argv)
                                &dns_compat),
     GNUNET_GETOPT_OPTION_END };
   int ret;
+  timeout = GNUNET_TIME_UNIT_FOREVER_REL;
 
   if (GNUNET_OK !=
       GNUNET_STRINGS_get_utf8_args (argc, argv,
