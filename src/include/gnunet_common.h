@@ -81,7 +81,9 @@
    the header file.  Because this header file uses gettext, this include
    statement makes sure gettext macros are defined even when platform.h is
    unavailable. */
+#ifndef _LIBGETTEXT_H
 #include "gettext.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
