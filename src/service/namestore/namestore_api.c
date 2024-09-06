@@ -1222,7 +1222,7 @@ GNUNET_NAMESTORE_records_store (
                                              &msg[1],
                                              key_len);
   rd_set = (struct RecordSet*) (((char*) &msg[1]) + key_len);
-  for (int i = 0; i < *rds_sent; i++)
+  for (i = 0; i < *rds_sent; i++)
   {
     label = record_info[i].a_label;
     rd = record_info[i].a_rd;

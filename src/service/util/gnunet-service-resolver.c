@@ -27,7 +27,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
-#include "gnunet_statistics_service.h"
 #include "../../lib/util/resolver.h"
 
 
@@ -649,9 +648,9 @@ try_cache (const char *hostname,
     if ((GNUNET_DNSPARSER_TYPE_CNAME == record->type) &&
         (GNUNET_DNSPARSER_TYPE_CNAME != record_type) && (GNUNET_NO == found))
     {
-      const char *hostname = record->data.hostname;
+      const char *hostname_tmp = record->data.hostname;
 
-      process_get (hostname, record_type, client_request_id, client);
+      process_get (hostname_tmp, record_type, client_request_id, client);
       return GNUNET_YES;     /* counts as a cache "hit" */
     }
     if (0 == strcmp (record->name, hostname))
@@ -1369,7 +1368,7 @@ GNUNET_SERVICE_MAIN (
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
-void __attribute__ ((constructor))
+static void __attribute__ ((constructor))
 GNUNET_RESOLVER_memory_init ()
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);

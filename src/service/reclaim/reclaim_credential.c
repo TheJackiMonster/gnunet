@@ -364,7 +364,7 @@ GNUNET_RECLAIM_credential_list_deserialize (const char *data, size_t data_size)
  * @param attrs claim list to copy
  * @return copied claim list
  */
-struct GNUNET_RECLAIM_CredentialList *
+static struct GNUNET_RECLAIM_CredentialList *
 GNUNET_RECLAIM_credential_list_dup (
   const struct GNUNET_RECLAIM_CredentialList *al)
 {
@@ -572,7 +572,7 @@ GNUNET_RECLAIM_credential_get_expiration (const struct
  * @param typename name to convert
  * @return corresponding number, UINT32_MAX on error
  */
-uint32_t
+static uint32_t
 GNUNET_RECLAIM_presentation_typename_to_number (const char *typename)
 {
   unsigned int i;
@@ -787,7 +787,7 @@ GNUNET_RECLAIM_presentation_list_deserialize (const char *data, size_t
  * @param attrs claim list to copy
  * @return copied claim list
  */
-struct GNUNET_RECLAIM_PresentationList *
+static struct GNUNET_RECLAIM_PresentationList *
 GNUNET_RECLAIM_presentation_list_dup (
   const struct GNUNET_RECLAIM_PresentationList *al)
 {

@@ -25,9 +25,7 @@
  * @author Matthias Wachs
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_gnsrecord_plugin.h"
 
@@ -113,7 +111,7 @@ init ()
 /**
  * Dual function to #init().
  */
-void __attribute__ ((destructor))
+static void __attribute__ ((destructor))
 GNSRECORD_fini ()
 {
   struct Plugin *plugin;

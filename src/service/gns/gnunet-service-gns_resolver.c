@@ -42,11 +42,9 @@
 #include "gnunet_dht_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_namecache_service.h"
-#include "gnunet_dns_service.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_revocation_service.h"
 #include "gnunet_gns_service.h"
-#include "gns.h"
 #include "gnunet-service-gns.h"
 #include "gnunet-service-gns_resolver.h"
 #include "gnu_name_system_protocols.h"
@@ -57,13 +55,13 @@
  * Default DHT timeout for lookups.
  */
 #define DHT_LOOKUP_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 60)
+          GNUNET_TIME_UNIT_SECONDS, 60)
 
 /**
  * Default timeout for DNS lookups.
  */
 #define DNS_LOOKUP_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 15)
+          GNUNET_TIME_UNIT_SECONDS, 15)
 
 /**
  * DHT replication level
@@ -486,7 +484,8 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
  * @param name the name to test
  * @return #GNUNET_YES if canonical
  */
-/* dead, but keep for now */ int
+/* dead, but keep for now */
+static int
 is_canonical (const char *name)
 {
   const char *pos;
@@ -2104,27 +2103,27 @@ handle_gns_resolution_result (void *cls,
 
       case GNUNET_DNSPARSER_TYPE_CNAME:
         {
-          char *cname;
+          char *cname_tmp;
 
           off = 0;
-          cname = GNUNET_DNSPARSER_parse_name (rd[i].data,
-                                               rd[i].data_size,
-                                               &off);
-          if ((NULL == cname) ||
+          cname_tmp = GNUNET_DNSPARSER_parse_name (rd[i].data,
+                                                   rd[i].data_size,
+                                                   &off);
+          if ((NULL == cname_tmp) ||
               (off != rd[i].data_size))
           {
             GNUNET_break_op (0);      /* record not well-formed */
           }
           else
           {
-            cname = translate_dot_plus (rh, cname);
-            GNUNET_break (NULL != cname);
+            cname_tmp = translate_dot_plus (rh, cname_tmp);
+            GNUNET_break (NULL != cname_tmp);
             scratch_start = scratch_off;
             if (GNUNET_OK !=
                 GNUNET_DNSPARSER_builder_add_name (scratch,
                                                    sizeof(scratch),
                                                    &scratch_off,
-                                                   cname))
+                                                   cname_tmp))
             {
               GNUNET_break (0);
             }
@@ -2136,7 +2135,7 @@ handle_gns_resolution_result (void *cls,
               rd_off++;
             }
           }
-          GNUNET_free (cname);
+          GNUNET_free (cname_tmp);
         }
         break;
 
@@ -2393,13 +2392,14 @@ handle_gns_resolution_result (void *cls,
               (rd[i].data_size >= sizeof(struct GNUNET_GNSRECORD_SBoxRecord)))
           {
             const struct GNUNET_GNSRECORD_SBoxRecord *box;
+            const char *prefix;
+            size_t prefix_len;
 
             box = rd[i].data;
-            const char *prefix = rd[i].data + sizeof(struct
-                                                     GNUNET_GNSRECORD_SBoxRecord);
-            size_t prefix_len = strnlen (prefix, rd[i].data_size - sizeof(struct
-                                                                          GNUNET_GNSRECORD_SBoxRecord))
-                                + 1;
+            prefix = rd[i].data + sizeof(struct GNUNET_GNSRECORD_SBoxRecord);
+            prefix_len = strnlen (
+              prefix,
+              rd[i].data_size - sizeof(struct GNUNET_GNSRECORD_SBoxRecord)) + 1;
             if (prefix_len - 1 >= rd[i].data_size - sizeof(struct
                                                            GNUNET_GNSRECORD_SBoxRecord))
             {

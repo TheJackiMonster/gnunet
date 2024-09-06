@@ -714,7 +714,7 @@ GNUNET_STRINGS_data_to_string (const void *data,
   /**
    * 32 characters for encoding
    */
-  static char *encTable__ = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+  static const char *encTable__ = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
   unsigned int wpos;
   unsigned int rpos;
   unsigned int bits;
@@ -1613,9 +1613,9 @@ GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX)
 /** ******************** Base64 encoding ***********/
 
 #define FILLCHAR '='
-static char *cvt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                   "abcdefghijklmnopqrstuvwxyz"
-                   "0123456789+/";
+static const char *cvt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                         "abcdefghijklmnopqrstuvwxyz"
+                         "0123456789+/";
 
 
 size_t
@@ -1833,9 +1833,10 @@ GNUNET_STRINGS_urldecode (const char *data,
                           char **out)
 {
   const char *rpos = data;
-  *out = GNUNET_malloc (len + 1); /* output should always fit into input */
-  char *wpos = *out;
+  char *wpos;
   size_t resl = 0;
+  *out = GNUNET_malloc (len + 1); /* output should always fit into input */
+  wpos = *out;
 
   while ( ('\0' != *rpos) &&
           (data + len != rpos) )

@@ -27,9 +27,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
-#include "gnunet_signatures.h"
-#include "gnunet_arm_service.h"
 #include "gnunet_gnsrecord_lib.h"
 
 
@@ -372,32 +369,6 @@ GNUNET_GNSRECORD_query_from_block (const struct GNUNET_GNSRECORD_Block *block,
     return GNUNET_SYSERR;
   }
   return GNUNET_SYSERR;
-
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_GNSRECORD_record_to_identity_key (const struct GNUNET_GNSRECORD_Data *rd,
-                                         struct GNUNET_CRYPTO_PublicKey *key)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Got record of type %u\n",
-              rd->record_type);
-  switch (rd->record_type)
-  {
-  case GNUNET_GNSRECORD_TYPE_PKEY:
-    key->type = htonl (rd->record_type);
-    memcpy (&key->ecdsa_key, rd->data, sizeof (key->ecdsa_key));
-    return GNUNET_OK;
-  case GNUNET_GNSRECORD_TYPE_EDKEY:
-    key->type = htonl (rd->record_type);
-    memcpy (&key->eddsa_key, rd->data, sizeof (key->eddsa_key));
-    return GNUNET_OK;
-  default:
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_SYSERR;
-
 
 }
 

@@ -26,7 +26,6 @@
 #include <gnunet_util_lib.h>
 #include <gnunet_gns_service.h>
 #include "gnunet_vpn_service.h"
-#include "gns.h"
 
 /**
  * Timeout for DNS requests.
@@ -400,7 +399,7 @@ dns_result_processor (void *cls,
 static void
 vpn_allocation_cb (void *cls,
                    int af,
-                   const void *address)
+                   const void *vaddress)
 {
   struct VpnContext *vpn_ctx = cls;
   struct Request *request = vpn_ctx->request;
@@ -427,7 +426,7 @@ vpn_allocation_cb (void *cls,
         rd[i].expiration_time = GNUNET_TIME_relative_to_absolute (
           VPN_TIMEOUT).abs_value_us;
         rd[i].flags = 0;
-        rd[i].data = address;
+        rd[i].data = vaddress;
         break;
 
       case AF_INET6:
@@ -435,7 +434,7 @@ vpn_allocation_cb (void *cls,
         rd[i].expiration_time = GNUNET_TIME_relative_to_absolute (
           VPN_TIMEOUT).abs_value_us;
         rd[i].flags = 0;
-        rd[i].data = address;
+        rd[i].data = vaddress;
         rd[i].data_size = sizeof(struct in6_addr);
         break;
 

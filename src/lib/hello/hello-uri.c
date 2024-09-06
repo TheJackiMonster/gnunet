@@ -835,7 +835,7 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
 }
 
 
-struct GNUNET_MQ_Envelope *
+static struct GNUNET_MQ_Envelope *
 GNUNET_HELLO_builder_to_env_ (const struct GNUNET_HELLO_Builder *builder,
                               const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
                               struct GNUNET_TIME_Relative expiration_time,

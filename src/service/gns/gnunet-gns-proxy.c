@@ -41,8 +41,6 @@
 #include <regex.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_gns_service.h"
-#include "gnunet_identity_service.h"
-#include "gns.h"
 #include "gnunet_mhd_compat.h"
 
 /**
@@ -1846,7 +1844,7 @@ create_response (void *cls,
   const struct sockaddr *sa;
   const struct sockaddr_in *s4;
   const struct sockaddr_in6 *s6;
-  uint16_t port;
+  uint16_t port_tmp;
   size_t left;
 
   if (NULL == s5r)
@@ -1878,7 +1876,7 @@ create_response (void *cls,
                          sizeof(ipaddr),
                          "%s",
                          ipstring);
-        port = ntohs (s4->sin_port);
+        port_tmp = ntohs (s4->sin_port);
         break;
 
       case AF_INET6:
@@ -1895,7 +1893,7 @@ create_response (void *cls,
                          sizeof(ipaddr),
                          "%s",
                          ipstring);
-        port = ntohs (s6->sin6_port);
+        port_tmp = ntohs (s6->sin6_port);
         break;
 
       default:
@@ -1905,7 +1903,7 @@ create_response (void *cls,
       GNUNET_asprintf (&curl_hosts,
                        "%s:%d:%s",
                        s5r->leho,
-                       port,
+                       port_tmp,
                        ipaddr);
       s5r->hosts = curl_slist_append (NULL,
                                       curl_hosts);
@@ -1913,7 +1911,7 @@ create_response (void *cls,
     }
     else
     {
-      port = s5r->port;
+      port_tmp = s5r->port;
     }
     if (NULL == s5r->curl)
       s5r->curl = curl_easy_init ();
@@ -1976,7 +1974,7 @@ create_response (void *cls,
                        (NULL != s5r->leho)
                        ? s5r->leho
                        : ipaddr,
-                       port,
+                       port_tmp,
                        s5r->url);
     }
     else
@@ -1986,7 +1984,7 @@ create_response (void *cls,
                        ? "http://%s:%d%s"
                        : "https://%s:%d%s",
                        s5r->domain,
-                       port,
+                       port_tmp,
                        s5r->url);
     }
     curl_easy_setopt (s5r->curl,
@@ -3308,10 +3306,10 @@ do_s5r_read (void *cls)
     case SOCKS5_AT_IPV4:
       {
         const struct in_addr *v4 = (const struct in_addr *) &c_req[1];
-        const uint16_t *port = (const uint16_t *) &v4[1];
+        const uint16_t *v4port = (const uint16_t *) &v4[1];
         struct sockaddr_in *in;
 
-        s5r->port = ntohs (*port);
+        s5r->port = ntohs (*v4port);
         alen = sizeof(struct in_addr);
         if (s5r->rbuf_len < sizeof(struct Socks5ClientRequestMessage)
             + alen + sizeof(uint16_t))
@@ -3319,7 +3317,7 @@ do_s5r_read (void *cls)
         in = (struct sockaddr_in *) &s5r->destination_address;
         in->sin_family = AF_INET;
         in->sin_addr = *v4;
-        in->sin_port = *port;
+        in->sin_port = *v4port;
 #if HAVE_SOCKADDR_IN_SIN_LEN
         in->sin_len = sizeof(*in);
 #endif
@@ -3330,10 +3328,10 @@ do_s5r_read (void *cls)
     case SOCKS5_AT_IPV6:
       {
         const struct in6_addr *v6 = (const struct in6_addr *) &c_req[1];
-        const uint16_t *port = (const uint16_t *) &v6[1];
+        const uint16_t *v6port = (const uint16_t *) &v6[1];
         struct sockaddr_in6 *in;
 
-        s5r->port = ntohs (*port);
+        s5r->port = ntohs (*v6port);
         alen = sizeof(struct in6_addr);
         if (s5r->rbuf_len < sizeof(struct Socks5ClientRequestMessage)
             + alen + sizeof(uint16_t))
@@ -3341,7 +3339,7 @@ do_s5r_read (void *cls)
         in = (struct sockaddr_in6 *) &s5r->destination_address;
         in->sin6_family = AF_INET6;
         in->sin6_addr = *v6;
-        in->sin6_port = *port;
+        in->sin6_port = *v6port;
 #if HAVE_SOCKADDR_IN_SIN_LEN
         in->sin6_len = sizeof(*in);
 #endif
@@ -3353,7 +3351,7 @@ do_s5r_read (void *cls)
       {
         const uint8_t *dom_len;
         const char *dom_name;
-        const uint16_t *port;
+        const uint16_t *dport;
 
         dom_len = (const uint8_t *) &c_req[1];
         alen = *dom_len + 1;
@@ -3361,16 +3359,16 @@ do_s5r_read (void *cls)
             + alen + sizeof(uint16_t))
           return;     /* need more data */
         dom_name = (const char *) &dom_len[1];
-        port = (const uint16_t *) &dom_name[*dom_len];
+        dport = (const uint16_t *) &dom_name[*dom_len];
         s5r->domain = GNUNET_strndup (dom_name,
                                       *dom_len);
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Requested connection is to %s:%d\n",
                     // (HTTPS_PORT == s5r->port) ? "s" : "",
                     s5r->domain,
-                    ntohs (*port));
+                    ntohs (*dport));
         s5r->state = SOCKS5_RESOLVING;
-        s5r->port = ntohs (*port);
+        s5r->port = ntohs (*dport);
         s5r->is_tls = (HTTPS_PORT == s5r->port) ? GNUNET_YES : GNUNET_NO;
         s5r->gns_lookup = GNUNET_GNS_lookup_with_tld (gns_handle,
                                                       s5r->domain,

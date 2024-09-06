@@ -2158,14 +2158,14 @@ GSC_KX_handle_client_monitor_peers (struct GNUNET_MQ_Handle *mq)
   GNUNET_notification_context_add (nc, mq);
   for (kx = kx_head; NULL != kx; kx = kx->next)
   {
-    struct GNUNET_MQ_Envelope *env;
+    struct GNUNET_MQ_Envelope *env_notify;
     struct MonitorNotifyMessage *msg;
 
-    env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY);
+    env_notify = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY);
     msg->state = htonl ((uint32_t) kx->status);
     msg->peer = *kx->peer;
     msg->timeout = GNUNET_TIME_absolute_hton (kx->timeout);
-    GNUNET_MQ_send (mq, env);
+    GNUNET_MQ_send (mq, env_notify);
   }
   env = GNUNET_MQ_msg (done_msg, GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY);
   done_msg->state = htonl ((uint32_t) GNUNET_CORE_KX_ITERATION_FINISHED);

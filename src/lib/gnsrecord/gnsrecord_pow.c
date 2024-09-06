@@ -23,11 +23,10 @@
  * @brief API for proof of work
  * @author Martin Schanzenbach
  */
-#include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_signatures.h"
-#include "gnunet_protocols.h"
 #include <inttypes.h>
 
 /**
@@ -96,12 +95,11 @@ calculate_score (const struct GNUNET_GNSRECORD_PowCalculationHandle *ph)
   double sum = 0.0;
   for (unsigned int j = 0; j<POW_COUNT; j++)
     sum += ph->best[j].bits;
-  double avg = sum / POW_COUNT;
-  return avg;
+  return sum / POW_COUNT;
 }
 
 
-struct GNUNET_GNSRECORD_SignaturePurposePS *
+static struct GNUNET_GNSRECORD_SignaturePurposePS *
 GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow)
 {
   struct GNUNET_GNSRECORD_SignaturePurposePS *spurp;
@@ -121,7 +119,7 @@ GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow)
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 check_signature_identity (const struct GNUNET_GNSRECORD_PowP *pow,
                           const struct GNUNET_CRYPTO_PublicKey *key)
 {
@@ -144,7 +142,7 @@ check_signature_identity (const struct GNUNET_GNSRECORD_PowP *pow,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 check_signature (const struct GNUNET_GNSRECORD_PowP *pow)
 {
   const struct GNUNET_CRYPTO_PublicKey *pk;
@@ -264,7 +262,7 @@ GNUNET_GNSRECORD_check_pow (const struct GNUNET_GNSRECORD_PowP *pow,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 sign_pow_identity (const struct GNUNET_CRYPTO_PrivateKey *key,
                    struct GNUNET_GNSRECORD_PowP *pow)
 {
@@ -273,6 +271,7 @@ sign_pow_identity (const struct GNUNET_CRYPTO_PrivateKey *key,
   const struct GNUNET_CRYPTO_PublicKey *pk;
   size_t ksize;
   char *sig;
+  enum GNUNET_GenericReturnValue result;
 
   /**
    * Predate the validity period to prevent rejections due to
@@ -285,9 +284,9 @@ sign_pow_identity (const struct GNUNET_CRYPTO_PrivateKey *key,
   pow->timestamp = GNUNET_TIME_absolute_hton (ts);
   rp = GNR_create_signature_message (pow);
   sig = ((char*) &pow[1]) + ksize;
-  int result = GNUNET_CRYPTO_sign_raw_ (key,
-                                        &rp->purpose,
-                                        (void*) sig);
+  result = GNUNET_CRYPTO_sign_raw_ (key,
+                                    &rp->purpose,
+                                    (void*) sig);
   GNUNET_free (rp);
   if (result == GNUNET_SYSERR)
     return GNUNET_NO;
@@ -296,7 +295,7 @@ sign_pow_identity (const struct GNUNET_CRYPTO_PrivateKey *key,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 sign_pow (const struct GNUNET_CRYPTO_PrivateKey *key,
           struct GNUNET_GNSRECORD_PowP *pow)
 {
@@ -458,5 +457,3 @@ GNUNET_GNSRECORD_pow_stop (struct GNUNET_GNSRECORD_PowCalculationHandle *pc)
 {
   GNUNET_free (pc);
 }
-
-

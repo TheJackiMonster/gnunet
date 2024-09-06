@@ -25,7 +25,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "disk.h"
 // DEBUG
 #include <inttypes.h>
 
@@ -473,7 +472,7 @@ check_priority (enum GNUNET_SCHEDULER_Priority p)
  * to tell the driver the next wakeup time (using its set_wakeup
  * callback)
  */
-struct GNUNET_TIME_Absolute
+static struct GNUNET_TIME_Absolute
 get_timeout ()
 {
   struct GNUNET_SCHEDULER_Task *pos;
@@ -793,7 +792,7 @@ GNUNET_SCHEDULER_get_load (enum GNUNET_SCHEDULER_Priority p)
 }
 
 
-void
+static void
 init_fd_info (struct GNUNET_SCHEDULER_Task *t,
               const struct GNUNET_NETWORK_Handle *const *read_nh,
               unsigned int read_nh_len,
@@ -861,8 +860,7 @@ init_fd_info (struct GNUNET_SCHEDULER_Task *t,
     t->fds = fdi;
     t->read_fd = -1;
     t->write_fd = -1;
-    unsigned int i;
-    for (i = 0; i != read_nh_len; ++i)
+    for (int i = 0; i != read_nh_len; ++i)
     {
       fdi->fd = read_nh[i];
       GNUNET_assert (NULL != fdi->fd);
@@ -870,7 +868,7 @@ init_fd_info (struct GNUNET_SCHEDULER_Task *t,
       fdi->sock = GNUNET_NETWORK_get_fd (read_nh[i]);
       ++fdi;
     }
-    for (i = 0; i != write_nh_len; ++i)
+    for (int i = 0; i != write_nh_len; ++i)
     {
       fdi->fd = write_nh[i];
       GNUNET_assert (NULL != fdi->fd);
@@ -878,7 +876,7 @@ init_fd_info (struct GNUNET_SCHEDULER_Task *t,
       fdi->sock = GNUNET_NETWORK_get_fd (write_nh[i]);
       ++fdi;
     }
-    for (i = 0; i != read_fh_len; ++i)
+    for (int i = 0; i != read_fh_len; ++i)
     {
       fdi->fh = read_fh[i];
       GNUNET_assert (NULL != fdi->fh);
@@ -886,7 +884,7 @@ init_fd_info (struct GNUNET_SCHEDULER_Task *t,
       fdi->sock = (read_fh[i])->fd;     // FIXME: does not work under WIN32
       ++fdi;
     }
-    for (i = 0; i != write_fh_len; ++i)
+    for (int i = 0; i != write_fh_len; ++i)
     {
       fdi->fh = write_fh[i];
       GNUNET_assert (NULL != fdi->fh);
@@ -1750,7 +1748,7 @@ GNUNET_SCHEDULER_add_file_with_priority (struct GNUNET_TIME_Relative delay,
 }
 
 
-void
+static void
 extract_handles (const struct GNUNET_NETWORK_FDSet *fdset,
                  const struct GNUNET_NETWORK_Handle ***ntarget,
                  unsigned int *extracted_nhandles,
@@ -1849,10 +1847,6 @@ GNUNET_SCHEDULER_add_select (enum GNUNET_SCHEDULER_Priority prio,
   unsigned int write_nhandles_len = 0;
   unsigned int read_fhandles_len = 0;
   unsigned int write_fhandles_len = 0;
-
-  /* scheduler must be running */
-  GNUNET_assert (NULL != scheduler_driver);
-  GNUNET_assert (NULL != task);
   int no_rs = (NULL == rs);
   int no_ws = (NULL == ws);
   int empty_rs = (NULL != rs) && (0 == rs->nsds);
@@ -1861,6 +1855,11 @@ GNUNET_SCHEDULER_add_select (enum GNUNET_SCHEDULER_Priority prio,
                (empty_rs && empty_ws) ||
                (no_rs && empty_ws) ||
                (no_ws && empty_rs);
+  int no_fds_extracted;
+
+  /* scheduler must be running */
+  GNUNET_assert (NULL != scheduler_driver);
+  GNUNET_assert (NULL != task);
   if (! no_fds)
   {
     if (NULL != rs)
@@ -1886,10 +1885,11 @@ GNUNET_SCHEDULER_add_select (enum GNUNET_SCHEDULER_Priority prio,
    * this case gracefully because some libraries such as libmicrohttpd
    * only provide a hint what the maximum FD number in an FD set might be
    * and not the exact FD number (see e.g. gnunet-rest-service.c)
-   */int no_fds_extracted = (0 == read_nhandles_len) &&
-                         (0 == read_fhandles_len) &&
-                         (0 == write_nhandles_len) &&
-                         (0 == write_fhandles_len);
+   */
+  no_fds_extracted = (0 == read_nhandles_len) &&
+                     (0 == read_fhandles_len) &&
+                     (0 == write_nhandles_len) &&
+                     (0 == write_fhandles_len);
   if (no_fds || no_fds_extracted)
     return GNUNET_SCHEDULER_add_delayed_with_priority (delay,
                                                        prio,
@@ -2470,6 +2470,7 @@ select_add (void *cls,
             struct GNUNET_SCHEDULER_FdInfo *fdi)
 {
   struct DriverContext *context = cls;
+  struct Scheduled *scheduled;
 
   GNUNET_assert (NULL != context);
   GNUNET_assert (NULL != task);
@@ -2483,7 +2484,7 @@ select_add (void *cls,
     return GNUNET_SYSERR;
   }
 
-  struct Scheduled *scheduled = GNUNET_new (struct Scheduled);
+  scheduled = GNUNET_new (struct Scheduled);
   scheduled->task = task;
   scheduled->fdi = fdi;
   scheduled->et = fdi->et;
