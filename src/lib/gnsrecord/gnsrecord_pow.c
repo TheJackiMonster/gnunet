@@ -28,6 +28,7 @@
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_signatures.h"
 #include <inttypes.h>
+#include "gnsrecord_crypto.h"
 
 /**
  * Helper struct that holds a found pow nonce
@@ -99,7 +100,7 @@ calculate_score (const struct GNUNET_GNSRECORD_PowCalculationHandle *ph)
 }
 
 
-static struct GNUNET_GNSRECORD_SignaturePurposePS *
+struct GNUNET_GNSRECORD_SignaturePurposePS *
 GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow)
 {
   struct GNUNET_GNSRECORD_SignaturePurposePS *spurp;
