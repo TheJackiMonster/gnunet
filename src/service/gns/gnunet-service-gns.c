@@ -23,6 +23,7 @@
  * @author Martin Schanzenbach
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_dns_service.h"
@@ -32,6 +33,7 @@
 #include "gnunet_gns_service.h"
 #include "gnunet_statistics_service.h"
 #include "gns.h"
+#include "gnunet-service-gns.h"
 #include "gnunet-service-gns_resolver.h"
 #include "gnunet-service-gns_interceptor.h"
 #include "gnunet_protocols.h"
@@ -174,7 +176,7 @@ static struct GNS_TopLevelDomain *tld_tail;
  * @param[out] pkey public key to set
  * @return #GNUNET_YES if @a tld was found #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNS_find_tld (const char *tld_str,
               struct GNUNET_CRYPTO_PublicKey *pkey)
 {

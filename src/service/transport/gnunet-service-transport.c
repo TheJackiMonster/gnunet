@@ -5645,14 +5645,14 @@ check_vl_transmission (struct VirtualLink *vl)
       for (struct DistanceVectorHop *pos = dv->dv_head; NULL != pos;
            pos = pos->next_dv)
       {
-        struct Neighbour *nh = pos->next_hop;
+        struct Neighbour *nh_iter = pos->next_hop;
 
 
         if (pos->path_valid_until.abs_value_us <= now.abs_value_us)
           continue;   /* skip this one: path not validated */
         else
         {
-          vl_next_hop = lookup_virtual_link (&nh->pid);
+          vl_next_hop = lookup_virtual_link (&nh_iter->pid);
           GNUNET_assert (NULL != vl_next_hop);
           if (pm->bytes_msg + vl_next_hop->outbound_fc_window_size_used >
               vl_next_hop->outbound_fc_window_size)
@@ -5670,14 +5670,14 @@ check_vl_transmission (struct VirtualLink *vl)
             consider_sending_fc (vl_next_hop);
             continue; /* We have a message, but flow control says "nope" for the first hop of this path */
           }
-          for (struct Queue *queue = nh->queue_head; NULL != queue;
+          for (struct Queue *queue = nh_iter->queue_head; NULL != queue;
                queue = queue->next_neighbour)
             if ((GNUNET_YES == queue->idle) &&
                 (queue->validated_until.abs_value_us > now.abs_value_us))
             {
               GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                           "Next hop neighbour %s not stalled\n",
-                          GNUNET_i2s (&nh->pid));
+                          GNUNET_i2s (&nh_iter->pid));
               schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
                                           queue,
                                           GNUNET_SCHEDULER_PRIORITY_BACKGROUND);
@@ -6741,14 +6741,14 @@ check_reliability_box (void *cls,
                        const struct TransportReliabilityBoxMessage *rb)
 {
   (void) cls;
-  const struct GNUNET_MessageHeader *inbox =  (const struct
+  const struct GNUNET_MessageHeader *box =  (const struct
                                                GNUNET_MessageHeader *) &rb[1];
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_send_msg with size %u: inner msg type %u and size %u (%lu %lu)\n",
               ntohs (rb->header.size),
-              ntohs (inbox->type),
-              ntohs (inbox->size),
+              ntohs (box->type),
+              ntohs (box->size),
               sizeof (struct TransportReliabilityBoxMessage),
               sizeof (struct GNUNET_MessageHeader));
   GNUNET_MQ_check_boxed_message (rb);
@@ -10075,9 +10075,8 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 
     for (int i = 1; i <= number_of_addresses; i++)
     {
-      struct TransportGlobalNattedAddress *tgna = (struct
-                                                   TransportGlobalNattedAddress
-                                                   *) &tgnas[off];
+      struct TransportGlobalNattedAddress *tgna;
+      tgna = (struct TransportGlobalNattedAddress*) &tgnas[off];
       char *addr = (char *) &tgna[1];
       unsigned int address_length;
 
@@ -10384,23 +10383,23 @@ fragment_message (struct Queue *queue,
     char *msg;
     uint16_t fragmax;
     uint16_t fragsize;
-    uint16_t msize;
+    uint16_t msize_ff;
     uint16_t xoff = 0;
     pm->frag_count++;
 
     orig = (const char *) &ff[1];
-    msize = ff->bytes_msg;
+    msize_ff = ff->bytes_msg;
     if (pm != ff)
     {
       const struct TransportFragmentBoxMessage *tfbo;
 
       tfbo = (const struct TransportFragmentBoxMessage *) orig;
       orig += sizeof(struct TransportFragmentBoxMessage);
-      msize -= sizeof(struct TransportFragmentBoxMessage);
+      msize_ff -= sizeof(struct TransportFragmentBoxMessage);
       xoff = ntohs (tfbo->frag_off);
     }
     fragmax = mtu - sizeof(struct TransportFragmentBoxMessage);
-    fragsize = GNUNET_MIN (msize - ff->frag_off, fragmax);
+    fragsize = GNUNET_MIN (msize_ff - ff->frag_off, fragmax);
     frag =
       GNUNET_malloc (sizeof(struct PendingMessage)
                      + sizeof(struct TransportFragmentBoxMessage) + fragsize);

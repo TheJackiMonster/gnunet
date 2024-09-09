@@ -149,7 +149,7 @@ jwt_number_to_typename (void *cls, uint32_t type)
  * @param cred the jwt credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes (void *cls,
                       const char *data,
                       size_t data_size)
@@ -261,7 +261,7 @@ jwt_parse_attributes (void *cls,
  * @param cred the jwt credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes_c (void *cls,
                         const struct GNUNET_RECLAIM_Credential *cred)
 {
@@ -278,7 +278,7 @@ jwt_parse_attributes_c (void *cls,
  * @param cred the jwt credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 jwt_parse_attributes_p (void *cls,
                         const struct GNUNET_RECLAIM_Presentation *cred)
 {
@@ -295,7 +295,7 @@ jwt_parse_attributes_p (void *cls,
  * @param cred the jwt credential
  * @return a string, containing the isser
  */
-char *
+static char *
 jwt_get_issuer (void *cls,
                 const char *data,
                 size_t data_size)
@@ -339,7 +339,7 @@ jwt_get_issuer (void *cls,
  * @param cred the jwt credential
  * @return a string, containing the isser
  */
-char *
+static char *
 jwt_get_issuer_c (void *cls,
                   const struct GNUNET_RECLAIM_Credential *cred)
 {
@@ -356,7 +356,7 @@ jwt_get_issuer_c (void *cls,
  * @param cred the jwt credential
  * @return a string, containing the isser
  */
-char *
+static char *
 jwt_get_issuer_p (void *cls,
                   const struct GNUNET_RECLAIM_Presentation *cred)
 {
@@ -373,7 +373,7 @@ jwt_get_issuer_p (void *cls,
  * @param cred the jwt credential
  * @return a string, containing the isser
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 jwt_get_expiration (void *cls,
                     const char *data,
                     size_t data_size,
@@ -417,7 +417,7 @@ jwt_get_expiration (void *cls,
  * @param cred the jwt credential
  * @return the expirati
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 jwt_get_expiration_c (void *cls,
                       const struct GNUNET_RECLAIM_Credential *cred,
                       struct GNUNET_TIME_Absolute *exp)
@@ -435,7 +435,7 @@ jwt_get_expiration_c (void *cls,
  * @param cred the jwt credential
  * @return a string, containing the isser
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 jwt_get_expiration_p (void *cls,
                       const struct GNUNET_RECLAIM_Presentation *cred,
                       struct GNUNET_TIME_Absolute *exp)
@@ -446,7 +446,7 @@ jwt_get_expiration_p (void *cls,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 jwt_create_presentation (void *cls,
                          const struct GNUNET_RECLAIM_Credential *cred,
                          const struct GNUNET_RECLAIM_AttributeList *attrs,

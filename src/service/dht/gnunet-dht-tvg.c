@@ -32,7 +32,7 @@
 #include "dht_helper.h"
 #include <inttypes.h>
 
-static char* peers_str[] = {
+static const char*peers_str[] = {
   "a4bba7746dfd3432da2a11c57b248b2d6b14eafb3ad54401c44bd37f232d1ce5",
   "02163d1dde228f9796c5327c781b4e5880ebf356204d3c4cceb9a77ae32157d7",
   "859836011003dc5d0cd84418812e381f3989797fb994464a52e3b7ad954c2695",
@@ -61,8 +61,8 @@ run (void *cls,
   struct GNUNET_HashCode key; // FIXME set to key
   enum GNUNET_DHT_RouteOption ro = GNUNET_DHT_RO_RECORD_ROUTE;
   size_t msize;
-  uint64_t i = 23;
-  uint8_t *block_data = (uint8_t*) &i;
+  uint64_t data_num = 23;
+  uint8_t *block_data = (uint8_t*) &data_num;
   size_t block_len = 8;
   unsigned int put_path_len = 0;
   size_t putlen;
@@ -73,7 +73,7 @@ run (void *cls,
 
   for (int i = 0; i < NUM_PEERS; i++)
   {
-    GNUNET_hex2b(peers_str[i], &peers_sk[i], sizeof peers_sk[i], 0);
+    GNUNET_hex2b (peers_str[i], &peers_sk[i], sizeof peers_sk[i], 0);
     GNUNET_CRYPTO_eddsa_key_get_public (&peers_sk[i],
                                         &peers[i].public_key);
     GNUNET_CRYPTO_hash (&peers[i], sizeof (struct GNUNET_PeerIdentity), &

@@ -31,7 +31,7 @@
 #include "gnunet_util_lib.h"
 
 
-void
+static void
 tc1 (void)
 {
   unsigned char ikm[22] =
@@ -61,7 +61,7 @@ tc1 (void)
 }
 
 
-void
+static void
 tc2 ()
 {
   unsigned char ikm[80] =
@@ -110,7 +110,7 @@ tc2 ()
 }
 
 
-void
+static void
 tc3 ()
 {
   unsigned char ikm[22] =
@@ -134,7 +134,7 @@ tc3 ()
 }
 
 
-void
+static void
 tc8 ()
 {
   unsigned char ikm[32] =

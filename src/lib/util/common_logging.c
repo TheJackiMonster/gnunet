@@ -1523,10 +1523,10 @@ GNUNET_async_scope_get (struct GNUNET_AsyncScopeSave *scope_ret)
 
 
 size_t
-GNUNET_hex2b (char *src, void *dst, size_t dstlen, int invert)
+GNUNET_hex2b (const char *src, void *dst, size_t dstlen, int invert)
 {
-  char *line = src;
-  char *data = line;
+  const char *line = src;
+  const char *data = line;
   uint8_t *buf = dst;
   int off;
   int read_byte;

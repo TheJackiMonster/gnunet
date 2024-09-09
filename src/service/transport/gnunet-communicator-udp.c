@@ -1509,7 +1509,7 @@ setup_receiver_mq (struct ReceiverAddress *receiver);
  * @param ss_list_tail the oldest secret in the list of interest.
  * @return number of deleted secrets.
  */
-unsigned int
+static unsigned int
 purge_secrets (struct SharedSecret *ss_list_tail)
 {
   struct SharedSecret *pos;

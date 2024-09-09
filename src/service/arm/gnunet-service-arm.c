@@ -340,7 +340,7 @@ add_unixpath (struct sockaddr **saddrs,
  */
 static int
 get_server_addresses (const char *service_name,
-                      const struct GNUNET_CONFIGURATION_Handle *cfg,
+                      const struct GNUNET_CONFIGURATION_Handle *cfg_,
                       struct sockaddr ***addrs,
                       socklen_t **addr_lens)
 {
@@ -365,7 +365,7 @@ get_server_addresses (const char *service_name,
   desc = NULL;
   disablev6 = GNUNET_NO;
   if (GNUNET_SYSERR ==
-      (disablev6 = GNUNET_CONFIGURATION_get_value_yesno (cfg,
+      (disablev6 = GNUNET_CONFIGURATION_get_value_yesno (cfg_,
                                                          service_name,
                                                          "DISABLEV6")))
     return GNUNET_SYSERR;
@@ -396,10 +396,10 @@ get_server_addresses (const char *service_name,
   }
 
   port = 0;
-  if (GNUNET_CONFIGURATION_have_value (cfg, service_name, "PORT"))
+  if (GNUNET_CONFIGURATION_have_value (cfg_, service_name, "PORT"))
   {
     if (GNUNET_OK !=
-        GNUNET_CONFIGURATION_get_value_number (cfg,
+        GNUNET_CONFIGURATION_get_value_number (cfg_,
                                                service_name,
                                                "PORT",
                                                &port))
@@ -419,7 +419,7 @@ get_server_addresses (const char *service_name,
 
   hostname = NULL;
   GNUNET_break (GNUNET_SYSERR !=
-                GNUNET_CONFIGURATION_get_value_string (cfg,
+                GNUNET_CONFIGURATION_get_value_string (cfg_,
                                                        service_name,
                                                        "BINDTO",
                                                        &hostname));
@@ -427,7 +427,7 @@ get_server_addresses (const char *service_name,
   abstract = GNUNET_NO;
 #ifdef AF_UNIX
   if ( (GNUNET_OK ==
-        GNUNET_CONFIGURATION_get_value_filename (cfg,
+        GNUNET_CONFIGURATION_get_value_filename (cfg_,
                                                  service_name,
                                                  "UNIXPATH",
                                                  &unixpath)) &&
@@ -488,7 +488,7 @@ get_server_addresses (const char *service_name,
   if ((0 == port) && (NULL == unixpath))
   {
     if (GNUNET_YES ==
-        GNUNET_CONFIGURATION_get_value_yesno (cfg,
+        GNUNET_CONFIGURATION_get_value_yesno (cfg_,
                                               service_name,
                                               "START_ON_DEMAND"))
       LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -1520,12 +1520,12 @@ do_shutdown ()
  * @return number of active services found
  */
 static unsigned int
-list_count (struct ServiceList *running_head)
+list_count (struct ServiceList *run_head)
 {
   struct ServiceList *i;
   unsigned int res;
 
-  for (res = 0, i = running_head; NULL != i; i = i->next, res++)
+  for (res = 0, i = run_head; NULL != i; i = i->next, res++)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "%s\n", i->name);
   return res;
 }

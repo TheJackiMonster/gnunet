@@ -926,7 +926,7 @@ GNUNET_a2s (const struct sockaddr *addr, socklen_t addrlen);
  * @return number of bytes written.
  */
 size_t
-GNUNET_hex2b (char *src, void *dst, size_t dstlen, int invert);
+GNUNET_hex2b (const char *src, void *dst, size_t dstlen, int invert);
 
 /**
  * @ingroup logging

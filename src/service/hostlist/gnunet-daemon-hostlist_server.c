@@ -152,18 +152,18 @@ static struct HostSet *builder;
  * @param response response to add headers to
  */
 static void
-add_cors_headers (struct MHD_Response *response)
+add_cors_headers (struct MHD_Response *resp)
 {
-  MHD_add_response_header (response, "Access-Control-Allow-Origin", "*");
-  MHD_add_response_header (response,
+  MHD_add_response_header (resp, "Access-Control-Allow-Origin", "*");
+  MHD_add_response_header (resp,
                            "Access-Control-Allow-Methods",
                            "GET, OPTIONS");
-  MHD_add_response_header (response, "Access-Control-Max-Age", "86400");
+  MHD_add_response_header (resp, "Access-Control-Max-Age", "86400");
 }
 
 
 static struct MHD_Response*
-build_json_response (const struct HostSet *builder)
+build_json_response (const struct HostSet *bu)
 {
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *hbuilder;
@@ -175,9 +175,9 @@ build_json_response (const struct HostSet *builder)
 
   hello_uri_j = json_object ();
   hello_array = json_array ();
-  while (offset < builder->size)
+  while (offset < bu->size)
   {
-    hello = (struct GNUNET_MessageHeader*) (builder->data + offset);
+    hello = (struct GNUNET_MessageHeader*) (bu->data + offset);
     hbuilder = GNUNET_HELLO_builder_from_msg (hello);
     hello_uri = GNUNET_HELLO_builder_to_url (hbuilder, NULL);
     json_array_append_new (hello_array, json_string (hello_uri));

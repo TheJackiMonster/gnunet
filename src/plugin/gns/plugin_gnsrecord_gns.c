@@ -306,19 +306,19 @@ gns_string_to_value (void *cls,
       size_t rest;
       unsigned int protocol;
       unsigned int service;
-      unsigned int record_type;
+      unsigned int rrtype;
       void *bval;
       size_t bval_size;
 
-      if (3 != sscanf (s, "%u %u %u ", &protocol, &service, &record_type))
+      if (3 != sscanf (s, "%u %u %u ", &protocol, &service, &rrtype))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse BOX record string `%s'\n"),
                     s);
         return GNUNET_SYSERR;
       }
-      rest = snprintf (NULL, 0, "%u %u %u ", protocol, service, record_type);
-      if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record_type,
+      rest = snprintf (NULL, 0, "%u %u %u ", protocol, service, rrtype);
+      if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (rrtype,
                                                          &s[rest],
                                                          &bval,
                                                          &bval_size))
@@ -327,7 +327,7 @@ gns_string_to_value (void *cls,
       *data = box = GNUNET_malloc (*data_size);
       box->protocol = htons (protocol);
       box->service = htons (service);
-      box->record_type = htonl (record_type);
+      box->record_type = htonl (rrtype);
       GNUNET_memcpy (&box[1], bval, bval_size);
       GNUNET_free (bval);
       return GNUNET_OK;
@@ -338,13 +338,13 @@ gns_string_to_value (void *cls,
       char *prefix;
       char *p;
       char *underscore_prefix;
-      unsigned int record_type;
+      unsigned int rrtype;
       void *bval;
       size_t bval_size;
       size_t prefix_size;
 
       prefix = GNUNET_malloc (strlen (s) + 1);
-      if (2 != sscanf (s, "%s %u ", prefix, &record_type))
+      if (2 != sscanf (s, "%s %u ", prefix, &rrtype))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unable to parse SBOX record string `%s'\n"),
@@ -370,8 +370,8 @@ gns_string_to_value (void *cls,
         GNUNET_free (prefix);
         return GNUNET_SYSERR;
       }
-      rest = snprintf (NULL, 0, "%s %u ", prefix, record_type);
-      if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (record_type,
+      rest = snprintf (NULL, 0, "%s %u ", prefix, rrtype);
+      if (GNUNET_OK != GNUNET_GNSRECORD_string_to_value (rrtype,
                                                          &s[rest],
                                                          &bval,
                                                          &bval_size))
@@ -385,7 +385,7 @@ gns_string_to_value (void *cls,
       *data = GNUNET_malloc (*data_size);
       p = *data;
       box = *data;
-      box->record_type = htonl (record_type);
+      box->record_type = htonl (rrtype);
       p += sizeof(struct GNUNET_GNSRECORD_SBoxRecord);
       GNUNET_memcpy (p, prefix, prefix_size);
       p += prefix_size;

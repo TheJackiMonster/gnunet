@@ -35,7 +35,7 @@
  * @param[out] pkey public key to set
  * @return #GNUNET_YES if @a tld was found #GNUNET_NO if not
  */
-int
+enum GNUNET_GenericReturnValue
 GNS_find_tld (const char *tld_str,
               struct GNUNET_CRYPTO_PublicKey *pkey);
 

@@ -441,7 +441,7 @@ dns_string_to_value (void *cls,
       const char *keyp;
       const char *algp;
       const char *certp;
-      unsigned int type;
+      unsigned int cert_rrtype;
       unsigned int key;
       unsigned int alg;
       size_t cert_size;
@@ -451,8 +451,8 @@ dns_string_to_value (void *cls,
       sdup = GNUNET_strdup (s);
       typep = strtok (sdup, " ");
       if ((NULL == typep) ||
-          ((0 == (type = rfc4398_mnemonic_to_value (typep))) &&
-           ((1 != sscanf (typep, "%u", &type)) || (type > UINT16_MAX))))
+          ((0 == (cert_rrtype = rfc4398_mnemonic_to_value (typep))) &&
+           ((1 != sscanf (typep, "%u", &cert_rrtype)) || (cert_rrtype > UINT16_MAX))))
       {
         GNUNET_free (sdup);
         return GNUNET_SYSERR;
@@ -467,7 +467,7 @@ dns_string_to_value (void *cls,
       alg = 0;
       algp = strtok (NULL, " ");
       if ((NULL == algp) ||
-          ((0 == (type = rfc4034_mnemonic_to_value (typep))) &&
+          ((0 == (cert_rrtype = rfc4034_mnemonic_to_value (typep))) &&
            ((1 != sscanf (algp, "%u", &alg)) || (alg > UINT8_MAX))))
       {
         GNUNET_free (sdup);
@@ -483,7 +483,7 @@ dns_string_to_value (void *cls,
                                                 strlen (certp),
                                                 (void **) &cert_data);
       GNUNET_free (sdup);
-      cert.cert_type = type;
+      cert.cert_type = cert_rrtype;
       cert.cert_tag = key;
       cert.algorithm = alg;
       cert.certificate_size = cert_size;

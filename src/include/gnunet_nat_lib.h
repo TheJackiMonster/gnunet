@@ -18,6 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
+#include "gnunet_common.h"
 #if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
@@ -36,6 +37,7 @@
 #ifndef GNUNET_NAT_LIB_H
 #define GNUNET_NAT_LIB_H
 
+GNUNET_NETWORK_STRUCT_BEGIN
 /**
  * Wrapper struct with the avarage RTT of message to some peer
  * and if this peer und us is ready to sync.
@@ -68,6 +70,7 @@ struct GNUNET_BurstMessage
    */
   unsigned int local_port;
 };
+GNUNET_NETWORK_STRUCT_END
 
 /**
  * Struct wrapping information we use for starting the burst.
