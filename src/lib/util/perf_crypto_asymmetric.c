@@ -26,7 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
 
 static struct GNUNET_TIME_Absolute start;
 
@@ -55,7 +54,6 @@ log_duration (const char *cryptosystem,
            s,
            GNUNET_STRINGS_relative_time_to_string (t,
                                                    GNUNET_NO));
-  GAUGER ("UTIL", s, t.rel_value_us, "us");
 }
 
 

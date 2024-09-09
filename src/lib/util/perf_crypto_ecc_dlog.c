@@ -27,8 +27,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include <gcrypt.h>
-#include <gauger.h>
-
 
 /**
  * Name of the curve we are using.  Note that we have hard-coded
@@ -155,9 +153,6 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "ECC DLOG initialization",
-          GNUNET_TIME_absolute_get_duration
-            (start).rel_value_us / 1000LL, "ms/op");
   start = GNUNET_TIME_absolute_get ();
   /* first do a baseline run without the DLOG */
   test_dlog (edc, false);
@@ -171,11 +166,6 @@ main (int argc, char *argv[])
           TEST_ITER,
           GNUNET_STRINGS_relative_time_to_string (delta,
                                                   GNUNET_YES));
-  GAUGER ("UTIL",
-          "ECC DLOG operations",
-          delta.rel_value_us / 1000LL / TEST_ITER,
-          "ms/op");
-
   GNUNET_CRYPTO_ecc_dlog_release (edc);
   return 0;
 }

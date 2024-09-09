@@ -25,7 +25,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
 
 #define RUNS (1024 * 1024)
 
@@ -85,6 +84,7 @@ int
 main (int argc, char *argv[])
 {
   struct GNUNET_TIME_Absolute start;
+  struct GNUNET_TIME_Relative duration;
   uint64_t tasks;
 
   start = GNUNET_TIME_absolute_get ();
@@ -93,10 +93,10 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Scheduler",
-          tasks / 1024 / (1
+  duration.rel_value_us = tasks / 1024 / (1
                           + GNUNET_TIME_absolute_get_duration
-                            (start).rel_value_us / 1000LL), "tasks/ms");
+                            (start).rel_value_us);
+  printf ("%s tasks/us\n", GNUNET_STRINGS_relative_time_to_string(duration, 0));
   return 0;
 }
 

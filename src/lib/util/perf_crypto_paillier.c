@@ -26,8 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
-
 
 int
 main (int argc, char *argv[])
@@ -47,11 +45,6 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Paillier key generation",
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "keys/ms");
-
   m1 = gcry_mpi_new (0);
   m1 = gcry_mpi_set_ui (m1, 1);
   /* m1 = m1 * 2 ^ (GCPB - 3) */
@@ -68,10 +61,6 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Paillier encryption",
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
 
   start = GNUNET_TIME_absolute_get ();
   for (i = 0; i < 10; i++)
@@ -83,11 +72,6 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Paillier decryption",
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
-
 
   return 0;
 }

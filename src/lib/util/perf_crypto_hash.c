@@ -26,8 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
-#include <gcrypt.h>
 
 
 static void
@@ -93,20 +91,12 @@ main (int argc, char *argv[])
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Cryptographic hashing",
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "kb/ms");
   start = GNUNET_TIME_absolute_get ();
   perfHKDF ();
   printf ("HKDF perf took %s\n",
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Cryptographic HKDF",
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "kb/ms");
   return 0;
 }
 

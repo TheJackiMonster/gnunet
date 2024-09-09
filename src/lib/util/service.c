@@ -33,7 +33,6 @@
 
 #if HAVE_MALLINFO2
 #include <malloc.h>
-#include "gauger.h"
 #endif
 
 
@@ -2150,31 +2149,6 @@ shutdown:
       LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "write");
     GNUNET_break (0 == close (sh.ready_confirm_fd));
   }
-#if HAVE_MALLINFO2
-  {
-    char *counter;
-
-    if ( (GNUNET_YES ==
-          GNUNET_CONFIGURATION_have_value (sh.cfg,
-                                           service_name,
-                                           "GAUGER_HEAP")) &&
-         (GNUNET_OK ==
-          GNUNET_CONFIGURATION_get_value_string (sh.cfg,
-                                                 service_name,
-                                                 "GAUGER_HEAP",
-                                                 &counter)))
-    {
-      struct mallinfo2 mi;
-
-      mi = mallinfo2 ();
-      GAUGER (service_name,
-              counter,
-              mi.usmblks,
-              "blocks");
-      GNUNET_free (counter);
-    }
-  }
-#endif
   teardown_service (&sh);
   GNUNET_free (sh.handlers);
   GNUNET_SPEEDUP_stop_ ();

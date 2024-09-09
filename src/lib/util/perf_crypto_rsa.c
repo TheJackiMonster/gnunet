@@ -26,8 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
-
 
 /**
  * Evaluate RSA performance.
@@ -63,10 +61,6 @@ eval (unsigned int len)
                    sizeof(sbuf),
                    "RSA %u-key generation",
                    len);
-  GAUGER ("UTIL", sbuf,
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "keys/ms");
   private_key = GNUNET_CRYPTO_rsa_private_key_create (len);
   public_key = GNUNET_CRYPTO_rsa_private_key_get_public (private_key);
   for (i = 0; i < 10; i++)
@@ -109,11 +103,6 @@ eval (unsigned int len)
                    sizeof(sbuf),
                    "RSA %u-blinding",
                    len);
-  GAUGER ("UTIL",
-          sbuf,
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
   GNUNET_CRYPTO_rsa_blind (&hc,
                            sizeof (hc),
                            &bsec[0],
@@ -135,11 +124,6 @@ eval (unsigned int len)
                    sizeof(sbuf),
                    "RSA %u-signing",
                    len);
-  GAUGER ("UTIL",
-          sbuf,
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
   sig = GNUNET_CRYPTO_rsa_sign_blinded (private_key,
                                         &bm);
   start = GNUNET_TIME_absolute_get ();
@@ -159,11 +143,6 @@ eval (unsigned int len)
                    sizeof(sbuf),
                    "RSA %u-unblinding",
                    len);
-  GAUGER ("UTIL",
-          sbuf,
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
   rsig = GNUNET_CRYPTO_rsa_unblind (sig,
                                     &bsec[0],
                                     public_key);
@@ -185,11 +164,6 @@ eval (unsigned int len)
                    sizeof(sbuf),
                    "RSA %u-verification",
                    len);
-  GAUGER ("UTIL",
-          sbuf,
-          64 * 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "ops/ms");
   GNUNET_CRYPTO_rsa_signature_free (sig);
   GNUNET_CRYPTO_rsa_public_key_free (public_key);
   GNUNET_CRYPTO_rsa_private_key_free (private_key);
@@ -203,7 +177,7 @@ main (int argc, char *argv[])
   eval (1024);
   eval (2048);
   eval (3072);
-  eval (4096); 
+  eval (4096);
   return 0;
 }
 

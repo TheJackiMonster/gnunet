@@ -5,7 +5,6 @@ gnunetincludedir = $(includedir)/gnunet
 
 EXTRA_DIST = \
   platform.h \
-  gauger.h \
   block_fs.h \
   block_dns.h \
   block_regex.h

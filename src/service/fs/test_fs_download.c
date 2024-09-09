@@ -28,7 +28,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_fs_service.h"
 #include "gnunet_testing_lib.h"
-#include <gauger.h>
 
 /**
  * File-size we use for testing.
@@ -150,14 +149,6 @@ progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *event)
                                    / (1
                                       + GNUNET_TIME_absolute_get_duration
                                         (start).rel_value_us) / 1024LL));
-    GAUGER ("FS",
-            (GNUNET_YES == indexed)
-            ? "Publishing speed (indexing)"
-            : "Publishing speed (insertion)",
-            (unsigned long long) (FILESIZE * 1000000LL
-                                  / (1
-                                     + GNUNET_TIME_absolute_get_duration
-                                       (start).rel_value_us) / 1024LL), "kb/s");
     fn = GNUNET_DISK_mktemp ("gnunet-download-test-dst");
     start = GNUNET_TIME_absolute_get ();
     download =
@@ -177,14 +168,6 @@ progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *event)
                                    / (1
                                       + GNUNET_TIME_absolute_get_duration
                                         (start).rel_value_us) / 1024LL));
-    GAUGER ("FS",
-            (GNUNET_YES == indexed)
-            ? "Local download speed (indexed)"
-            : "Local download speed (inserted)",
-            (unsigned long long) (FILESIZE * 1000000LL
-                                  / (1
-                                     + GNUNET_TIME_absolute_get_duration
-                                       (start).rel_value_us) / 1024LL), "kb/s");
     GNUNET_SCHEDULER_add_now (&abort_download_task, NULL);
     break;
 

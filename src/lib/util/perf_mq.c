@@ -27,7 +27,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
 
 #define NUM_TRANSMISSIONS 1000000
 
@@ -293,9 +292,5 @@ main (int argc, char **argv)
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
             GNUNET_YES));
-  GAUGER ("UTIL", "Scheduler",
-          received_cnt / 1024 / (1
-                                 + GNUNET_TIME_absolute_get_duration
-                                   (start).rel_value_us / 1000LL), "kmsg/ms");
   return global_ret;
 }

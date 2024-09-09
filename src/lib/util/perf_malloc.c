@@ -26,7 +26,6 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include <gauger.h>
 
 static uint64_t
 perf_malloc ()
@@ -77,20 +76,16 @@ main (int argc, char *argv[])
 
   start = GNUNET_TIME_absolute_get ();
   kb = perf_malloc ();
-  printf ("Malloc perf took %s\n",
+  printf ("Malloc perf took %s (%"PRIu64"kb)\n",
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
-            GNUNET_YES));
-  GAUGER ("UTIL", "Allocation",
-          kb / 1024 / (1
-                       + GNUNET_TIME_absolute_get_duration
-                         (start).rel_value_us / 1000LL), "kb/ms");
+            GNUNET_YES), kb);
   start = GNUNET_TIME_absolute_get ();
   kb = perf_realloc ();
-  printf ("Realloc perf took %s\n",
+  printf ("Realloc perf took %s (%"PRIu64"kb)\n",
           GNUNET_STRINGS_relative_time_to_string (
             GNUNET_TIME_absolute_get_duration (start),
-            GNUNET_YES));
+            GNUNET_YES), kb);
   return 0;
 }
 
