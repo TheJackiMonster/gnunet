@@ -45,7 +45,7 @@ create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_leave ();
+create_message_leave (void);
 
 /**
  * Creates and allocates a new name message containing the <i>name</i> to change to.

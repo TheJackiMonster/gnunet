@@ -25,7 +25,9 @@
 
 #include "gnunet-service-messenger_operation.h"
 
+#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_operation_store.h"
+#include "gnunet-service-messenger_room.h"
 
 struct GNUNET_MESSENGER_Operation*
 create_operation (const struct GNUNET_HashCode *hash)
@@ -192,21 +194,64 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op,
 
 
 extern void
-callback_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
-                          enum GNUNET_MESSENGER_OperationType type,
-                          const struct GNUNET_HashCode *hash);
+callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room,
+                        const struct GNUNET_HashCode *hash);
+
+extern void
+callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room,
+                     const struct GNUNET_HashCode *hash);
 
 static void
 callback_operation (void *cls)
 {
   struct GNUNET_MESSENGER_Operation *op;
+  struct GNUNET_MESSENGER_OperationStore *store;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  enum GNUNET_MESSENGER_OperationType type;
+  struct GNUNET_HashCode hash;
 
   GNUNET_assert (cls);
   
   op = cls;
   op->task = NULL;
 
-  callback_store_operation (op->store, op->type, &(op->hash));
+  GNUNET_assert ((op->store) && (op->store->room));
+
+  store = op->store;
+  room = store->room;
+  type = op->type;
+
+  GNUNET_memcpy (&hash, &(op->hash), sizeof(hash));
+
+  cancel_store_operation (store, &hash);
+
+  switch (type)
+  {
+  case GNUNET_MESSENGER_OP_REQUEST:
+    break;
+  case GNUNET_MESSENGER_OP_DELETE:
+  {
+    if (GNUNET_OK != delete_store_message (get_srv_room_message_store (room),
+                                           &hash))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deletion of message failed! (%s)\n",
+                  GNUNET_h2s (&hash));
+      break;
+    }
+
+    break;
+  }
+  case GNUNET_MESSENGER_OP_MERGE:
+  {
+    if (! room->host)
+      break;
+
+    send_srv_room_message (room, room->host, create_message_merge (&hash));
+    break;
+  }
+  default:
+    break;
+  }
 }
 
 

@@ -27,9 +27,10 @@
 #include "gnunet_messenger_service.h"
 
 #include "gnunet-service-messenger.h"
-
 #include "gnunet_reclaim_service.h"
 #include "gnunet_time_lib.h"
+
+#include "messenger_api.h"
 #include "messenger_api_contact.h"
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
@@ -207,11 +208,6 @@ handle_room_sync (void *cls,
   dequeue_messages_from_room (room);
 }
 
-
-void
-enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
-                         struct GNUNET_MESSENGER_Message *message,
-                         struct GNUNET_MESSENGER_Message *transcript);
 
 static void
 handle_member_id (void *cls,
@@ -1470,28 +1466,6 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
 
 
 void
-delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
-                        const struct GNUNET_HashCode *hash,
-                        const struct GNUNET_TIME_Relative delay)
-{
-  struct GNUNET_MESSENGER_Message *message;
-
-  GNUNET_assert ((room) && (hash));
-  
-  message = create_message_delete (hash, delay);
-
-  if (! message)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Sending deletion aborted: Message creation failed!\n");
-    return;
-  }
-
-  enqueue_message_to_room (room, message, NULL);
-}
-
-
-void
 GNUNET_MESSENGER_delete_message (struct GNUNET_MESSENGER_Room *room,
                                  const struct GNUNET_HashCode *hash,
                                  const struct GNUNET_TIME_Relative delay)
@@ -1499,7 +1473,7 @@ GNUNET_MESSENGER_delete_message (struct GNUNET_MESSENGER_Room *room,
   if ((! room) || (! hash))
     return;
 
-  delete_message_in_room (room, hash, delay);
+  delete_room_message (room, hash, delay);
 }
 
 

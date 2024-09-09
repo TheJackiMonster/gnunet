@@ -26,10 +26,12 @@
 #include "gnunet-service-messenger_tunnel.h"
 
 #include "gnunet-service-messenger_handle.h"
+#include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_message_recv.h"
 #include "gnunet-service-messenger_message_store.h"
 #include "gnunet-service-messenger_operation_store.h"
 #include "gnunet-service-messenger_operation.h"
+#include "gnunet-service-messenger_room.h"
 
 #include "messenger_api_util.h"
 
@@ -90,32 +92,107 @@ bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 }
 
 
-extern void
-callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
-                          void *cls);
-
 void
 callback_tunnel_disconnect (void *cls,
                             const struct GNUNET_CADET_Channel *channel)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_PeerIdentity identity;
   
   tunnel = cls;
 
-  if (tunnel)
-  {
-    tunnel->channel = NULL;
+  if (! tunnel)
+    return;
+  
+  tunnel->channel = NULL;
 
-    callback_room_disconnect (tunnel->room, cls);
+  GNUNET_assert (tunnel->room);
+
+  room = tunnel->room;
+
+  if (! room->host)
+    return;
+
+  get_tunnel_peer_identity (tunnel, &identity);
+
+  if ((GNUNET_YES != GNUNET_CONTAINER_multipeermap_remove (room->tunnels,
+                                                           &identity,
+                                                           tunnel)) ||
+      (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (room->tunnels,
+                                                             &identity)))
+    return;
+
+  if (GNUNET_YES == contains_list_tunnels (&(room->basement), &identity))
+    send_srv_room_message (room, room->host, create_message_miss (&identity));
+
+  if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
+      (GNUNET_NO == room->service->auto_connecting))
+    return;
+
+  {
+    struct GNUNET_MESSENGER_ListTunnel *element;
+    element = find_list_tunnels_alternate (&(room->basement), &identity);
+
+    if (! element)
+      return;
+
+    GNUNET_PEER_resolve (element->peer, &identity);
   }
+
+  enter_srv_room_at (room, room->host, &identity);
 }
 
 
-extern enum GNUNET_GenericReturnValue
-callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                              void *cls,
-                              struct GNUNET_MESSENGER_Message *message,
-                              struct GNUNET_HashCode *hash);
+static enum GNUNET_GenericReturnValue
+verify_tunnel_message (struct GNUNET_MESSENGER_SrvRoom *room,
+                       struct GNUNET_MESSENGER_Message *message,
+                       struct GNUNET_HashCode *hash)
+{
+  const struct GNUNET_MESSENGER_Message *previous;
+
+  GNUNET_assert ((room) && (message));
+
+  if (GNUNET_MESSENGER_KIND_UNKNOWN == message->header.kind)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Message error: Kind is unknown! (%d)\n", message->header.kind);
+    return GNUNET_SYSERR;
+  }
+
+  {
+    struct GNUNET_MESSENGER_MessageStore *message_store;
+
+    message_store = get_srv_room_message_store (room);
+
+    previous = get_store_message (
+      message_store, &(message->header.previous));
+  }
+
+  if (! previous)
+    goto skip_time_comparison;
+
+  {
+    struct GNUNET_TIME_Absolute timestamp;
+    struct GNUNET_TIME_Absolute last;
+    
+    timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
+    last = GNUNET_TIME_absolute_ntoh (previous->header.timestamp);
+
+    if (GNUNET_TIME_relative_get_zero_ ().rel_value_us !=
+        GNUNET_TIME_absolute_get_difference (timestamp, last).rel_value_us)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Message warning: Timestamp does not check out!\n");
+    }
+  }
+
+skip_time_comparison:
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Receiving message of kind: %s!\n",
+              GNUNET_MESSENGER_name_of_kind (message->header.kind));
+
+  return GNUNET_OK;
+}
 
 enum GNUNET_GenericReturnValue
 check_tunnel_message (void *cls,
@@ -159,7 +236,7 @@ check_tunnel_message (void *cls,
     hash_message (&message, length - padding, buffer, &hash);
   }
 
-  return callback_verify_room_message (tunnel->room, cls, &message, &hash);
+  return verify_tunnel_message (tunnel->room, &message, &hash);
 }
 
 

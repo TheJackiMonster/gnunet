@@ -30,7 +30,7 @@ lib_LTLIBRARIES = \
 #  libgnunettestingmessenger.la
 
 libgnunetmessenger_la_SOURCES = \
-  messenger_api.c \
+  messenger_api.c messenger_api.h \
   messenger_api_contact.c messenger_api_contact.h \
   messenger_api_contact_store.c messenger_api_contact_store.h \
   messenger_api_message.c messenger_api_message.h \

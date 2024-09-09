@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -74,6 +74,39 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel);
 void
 bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
              struct GNUNET_CADET_Channel *channel);
+
+/**
+ * Callback for message verification via <i>header</i> in a tunnel that is 
+ * provided as a closure from a CADET channel.
+ *
+ * @param[in,out] cls Closure
+ * @param[in] header Message header
+ */
+enum GNUNET_GenericReturnValue
+check_tunnel_message (void *cls,
+                      const struct GNUNET_MessageHeader *header);
+
+/**
+ * Callback for message handling via <i>header</i> in a tunnel that is 
+ * provided as a closure from a CADET channel.
+ *
+ * @param[in,out] cls Closure
+ * @param[in] header Message header
+ */
+void
+handle_tunnel_message (void *cls,
+                       const struct GNUNET_MessageHeader *header);
+
+/**
+ * Callback for a CADET <i>channel</i> disconnecting to manage this event
+ * as a proper tunnel provided as its closure.
+ *
+ * @param[in,out] cls Closure
+ * @param[in] channel CADET channel
+ */
+void
+callback_tunnel_disconnect (void *cls,
+                            const struct GNUNET_CADET_Channel *channel);
 
 /**
  * Tries to connect a <i>tunnel</i> by creating a new CADET channel and binding it.

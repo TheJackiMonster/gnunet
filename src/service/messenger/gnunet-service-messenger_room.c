@@ -297,19 +297,6 @@ join_room_locally (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-extern enum GNUNET_GenericReturnValue
-check_tunnel_message (void *cls,
-                      const struct GNUNET_MessageHeader *header);
-
-extern void
-handle_tunnel_message (void *cls,
-                       const struct GNUNET_MessageHeader *header);
-
-extern void
-callback_tunnel_disconnect (void *cls,
-                            const struct GNUNET_CADET_Channel *channel);
-
-
 enum GNUNET_GenericReturnValue
 open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
                struct GNUNET_MESSENGER_SrvHandle *handle)
@@ -742,31 +729,6 @@ merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-void
-callback_room_deletion (struct GNUNET_MESSENGER_SrvRoom *room,
-                        const struct GNUNET_HashCode *hash)
-{
-  if (GNUNET_OK != delete_store_message (get_srv_room_message_store (room),
-                                         hash))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deletion of message failed! (%s)\n",
-                GNUNET_h2s (hash));
-    return;
-  }
-}
-
-
-void
-callback_room_merge (struct GNUNET_MESSENGER_SrvRoom *room,
-                     const struct GNUNET_HashCode *hash)
-{
-  if (! room->host)
-    return;
-
-  send_srv_room_message (room, room->host, create_message_merge (hash));
-}
-
-
 enum GNUNET_GenericReturnValue
 delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                          struct GNUNET_MESSENGER_MemberSession *session,
@@ -929,102 +891,6 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
     callback (cls, room, NULL, hash);
 
   return result;
-}
-
-
-void
-callback_room_disconnect (struct GNUNET_MESSENGER_SrvRoom *room,
-                          void *cls)
-{
-  struct GNUNET_MESSENGER_SrvTunnel *tunnel;
-  struct GNUNET_PeerIdentity identity;
-
-  GNUNET_assert ((room) && (cls));
-  
-  tunnel = cls;
-
-  if (! room->host)
-    return;
-
-  get_tunnel_peer_identity (tunnel, &identity);
-
-  if ((GNUNET_YES != GNUNET_CONTAINER_multipeermap_remove (room->tunnels,
-                                                           &identity,
-                                                           tunnel)) ||
-      (GNUNET_YES == GNUNET_CONTAINER_multipeermap_contains (room->tunnels,
-                                                             &identity)))
-    return;
-
-  if (GNUNET_YES == contains_list_tunnels (&(room->basement), &identity))
-    send_srv_room_message (room, room->host, create_message_miss (&identity));
-
-  if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
-      (GNUNET_NO == room->service->auto_connecting))
-    return;
-
-  {
-    struct GNUNET_MESSENGER_ListTunnel *element;
-    element = find_list_tunnels_alternate (&(room->basement), &identity);
-
-    if (! element)
-      return;
-
-    GNUNET_PEER_resolve (element->peer, &identity);
-  }
-
-  enter_srv_room_at (room, room->host, &identity);
-}
-
-
-enum GNUNET_GenericReturnValue
-callback_verify_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                              void *cls,
-                              struct GNUNET_MESSENGER_Message *message,
-                              struct GNUNET_HashCode *hash)
-{
-  const struct GNUNET_MESSENGER_Message *previous;
-
-  GNUNET_assert ((room) && (message));
-
-  if (GNUNET_MESSENGER_KIND_UNKNOWN == message->header.kind)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Message error: Kind is unknown! (%d)\n", message->header.kind);
-    return GNUNET_SYSERR;
-  }
-
-  {
-    struct GNUNET_MESSENGER_MessageStore *message_store;
-
-    message_store = get_srv_room_message_store (room);
-
-    previous = get_store_message (
-      message_store, &(message->header.previous));
-  }
-
-  if (! previous)
-    goto skip_time_comparison;
-
-  {
-    struct GNUNET_TIME_Absolute timestamp;
-    struct GNUNET_TIME_Absolute last;
-    
-    timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
-    last = GNUNET_TIME_absolute_ntoh (previous->header.timestamp);
-
-    if (GNUNET_TIME_relative_get_zero_ ().rel_value_us !=
-        GNUNET_TIME_absolute_get_difference (timestamp, last).rel_value_us)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Message warning: Timestamp does not check out!\n");
-    }
-  }
-
-skip_time_comparison:
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Receiving message of kind: %s!\n",
-              GNUNET_MESSENGER_name_of_kind (message->header.kind));
-
-  return GNUNET_OK;
 }
 
 

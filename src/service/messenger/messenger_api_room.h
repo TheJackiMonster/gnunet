@@ -183,6 +183,19 @@ struct GNUNET_MESSENGER_Contact*
 get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
                     const struct GNUNET_HashCode *hash);
 
+
+/**
+ * Deletes a message with a given <i>hash</i> inside a <i>room</i> under a specific <i>delay</i>.
+ *
+ * @param[in,out] room Room
+ * @param[in] hash Hash of message
+ * @param[in] delay Delay of deletion
+ */
+void
+delete_room_message (struct GNUNET_MESSENGER_Room *room,
+                     const struct GNUNET_HashCode *hash,
+                     const struct GNUNET_TIME_Relative delay);
+
 /**
  * Executes the message callback for a given <i>hash</i> in a <i>room</i>.
  *

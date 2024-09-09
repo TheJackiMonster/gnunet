@@ -1012,9 +1012,9 @@ decode_message (struct GNUNET_MESSENGER_Message *message,
   }
 
   decode_step (buffer, offset, &kind);
+  kind = GNUNET_be32toh (kind);
 
-  message->header.kind = (enum GNUNET_MESSENGER_MessageKind) GNUNET_be32toh (
-    kind);
+  message->header.kind = (enum GNUNET_MESSENGER_MessageKind) kind;
 
   if (count < get_message_kind_size (message->header.kind, include_header))
     return GNUNET_NO;
@@ -1059,8 +1059,9 @@ decode_short_message (struct GNUNET_MESSENGER_ShortMessage *message,
     return GNUNET_NO;
 
   decode_step (buffer, offset, &kind);
+  kind = GNUNET_be32toh (kind);
 
-  message->kind = (enum GNUNET_MESSENGER_MessageKind) GNUNET_be32toh (kind);
+  message->kind = (enum GNUNET_MESSENGER_MessageKind) kind;
 
   if (length < get_short_message_size (message, GNUNET_NO))
     return GNUNET_NO;

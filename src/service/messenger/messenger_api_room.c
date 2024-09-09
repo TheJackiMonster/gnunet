@@ -28,6 +28,7 @@
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
 
+#include "messenger_api.h"
 #include "messenger_api_contact_store.h"
 #include "messenger_api_handle.h"
 #include "messenger_api_message.h"
@@ -287,6 +288,28 @@ get_room_recipient (const struct GNUNET_MESSENGER_Room *room,
 
 
 void
+delete_room_message (struct GNUNET_MESSENGER_Room *room,
+                     const struct GNUNET_HashCode *hash,
+                     const struct GNUNET_TIME_Relative delay)
+{
+  struct GNUNET_MESSENGER_Message *message;
+
+  GNUNET_assert ((room) && (hash));
+  
+  message = create_message_delete (hash, delay);
+
+  if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Sending deletion aborted: Message creation failed!\n");
+    return;
+  }
+
+  enqueue_message_to_room (room, message, NULL);
+}
+
+
+void
 callback_room_message (struct GNUNET_MESSENGER_Room *room,
                        const struct GNUNET_HashCode *hash)
 {
@@ -519,12 +542,6 @@ handle_private_message (struct GNUNET_MESSENGER_Room *room,
 }
 
 
-extern void
-delete_message_in_room (struct GNUNET_MESSENGER_Room *room,
-                        const struct GNUNET_HashCode *hash,
-                        const struct GNUNET_TIME_Relative delay);
-
-
 static void
 handle_delete_message (struct GNUNET_MESSENGER_Room *room,
                        const struct GNUNET_HashCode *hash,
@@ -550,7 +567,7 @@ handle_delete_message (struct GNUNET_MESSENGER_Room *room,
     delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (),
                                                  action);
 
-    link_room_deletion (room, target_hash, delay, delete_message_in_room);
+    link_room_deletion (room, target_hash, delay, delete_room_message);
   }
 
   target = GNUNET_CONTAINER_multihashmap_get (room->messages, target_hash);

@@ -23,8 +23,8 @@
  * @brief messenger api: client implementation of GNUnet MESSENGER service
  */
 
-#ifndef GNUNET_SERVICE_MESSENGER_UTIL_H
-#define GNUNET_SERVICE_MESSENGER_UTIL_H
+#ifndef GNUNET_MESSENGER_API_UTIL_H
+#define GNUNET_MESSENGER_API_UTIL_H
 
 #include "gnunet_cadet_service.h"
 #include "gnunet_util_lib.h"
@@ -56,7 +56,7 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
  * @return anonymous private key
  */
 const struct GNUNET_CRYPTO_PrivateKey*
-get_anonymous_private_key ();
+get_anonymous_private_key (void);
 
 /**
  * Returns the public identity key of #GNUNET_IDENTITY_ego_get_anonymous() without
@@ -65,7 +65,7 @@ get_anonymous_private_key ();
  * @return anonymous public key
  */
 const struct GNUNET_CRYPTO_PublicKey*
-get_anonymous_public_key ();
+get_anonymous_public_key (void);
 
 /**
  * Converts a Messenger service key of a room to the specific port which
@@ -92,4 +92,4 @@ void
 convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
                              struct GNUNET_ShortHashCode *id);
 
-#endif //GNUNET_SERVICE_MESSENGER_UTIL_H
+#endif //GNUNET_MESSENGER_API_UTIL_H

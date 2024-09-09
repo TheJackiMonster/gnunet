@@ -46,7 +46,7 @@ create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key)
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_leave ()
+create_message_leave (void)
 {
   return create_message (GNUNET_MESSENGER_KIND_LEAVE);
 }
