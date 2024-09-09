@@ -53,12 +53,12 @@ struct ParameterMap
   /**
    * Name of the parameter from the request.
    */
-  char *name;
+  const char *name;
 
   /**
    * Name of the definition in the TeX output.
    */
-  char *definition;
+  const char *definition;
 };
 
 /**

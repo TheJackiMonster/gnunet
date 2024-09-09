@@ -31,7 +31,7 @@
 
 /* run a test function and return result */
 #define mu_run_test(test) do { \
-    char *message = test (); tests_run++; \
+    const char *message = test (); tests_run++; \
     if (message) { return message; } \
   } while (0)
 
@@ -81,7 +81,7 @@ strcmp_wrap (const char *str,
   mu_silent_assert ("should set the fragment attribute correctly", \
                     0 == strcmp_wrap (as_url.fragment, as_fragment));
 
-static char *
+static const char *
 test_parse_http_url_ok (void)
 {
   int rc;
@@ -394,7 +394,7 @@ test_parse_http_url_ok (void)
   return NULL;
 }
 
-static char *
+static const char *
 test_parse_http_rel_url_ok (void)
 {
   int rc;
@@ -489,7 +489,7 @@ test_parse_http_rel_url_ok (void)
   return NULL;
 }
 
-static char *
+static const char *
 test_parse_url_fail (void)
 {
   int rc;
@@ -555,7 +555,7 @@ test_parse_url_fail (void)
   return NULL;
 }
 
-static char *
+static const char *
 test_split_path_ok (void)
 {
   int rc;
@@ -623,7 +623,7 @@ test_split_path_ok (void)
   return NULL;
 }
 
-static char *
+static const char *
 test_parse_query_ok (void)
 {
   int rc;
@@ -803,7 +803,7 @@ test_parse_query_ok (void)
   return NULL;
 }
 
-static char *
+static const char *
 all_tests (void)
 {
   mu_group ("GNUNET_uri_parse () with an HTTP URL");
@@ -827,7 +827,7 @@ all_tests (void)
 int
 main (void)
 {
-  char *result;
+  const char *result;
 
   result = all_tests ();
   if (result != NULL) {

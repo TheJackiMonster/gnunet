@@ -325,7 +325,6 @@ route_message (struct CadetPeer *prev,
   route = get_route (cid);
   if (NULL == route)
   {
-    struct GNUNET_MQ_Envelope *env;
     struct GNUNET_CADET_ConnectionBrokenMessage *bm;
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -370,10 +369,11 @@ route_message (struct CadetPeer *prev,
        (GNUNET_MQ_env_get_options (dir->env_head) & GNUNET_MQ_PREF_UNRELIABLE)))
     discard_buffer (dir, dir->env_head);
   /* Check for duplicates */
-  for (const struct GNUNET_MQ_Envelope *env = dir->env_head; NULL != env;
-       env = GNUNET_MQ_env_next (env))
+  for (const struct GNUNET_MQ_Envelope *env_tmp = dir->env_head;
+       NULL != env_tmp;
+       env_tmp = GNUNET_MQ_env_next (env_tmp))
   {
-    const struct GNUNET_MessageHeader *hdr = GNUNET_MQ_env_get_msg (env);
+    const struct GNUNET_MessageHeader *hdr = GNUNET_MQ_env_get_msg (env_tmp);
 
     if ((hdr->size == msg->size) && (0 == memcmp (hdr, msg, ntohs (msg->size))))
     {
