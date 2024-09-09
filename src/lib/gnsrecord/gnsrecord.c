@@ -107,12 +107,14 @@ init ()
                                      NULL);
 }
 
+void
+GNSRECORD_fini (void);
 
 /**
  * Dual function to #init().
  */
-static void __attribute__ ((destructor))
-GNSRECORD_fini ()
+void __attribute__ ((destructor))
+GNSRECORD_fini (void)
 {
   struct Plugin *plugin;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();

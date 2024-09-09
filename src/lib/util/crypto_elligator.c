@@ -218,12 +218,14 @@ encode_bytes (uint8_t *bytes, mp_limb_t *number)
   }
 }
 
+void
+GNUNET_CRYPTO_ecdhe_elligator_initialize (void);
 
 /**
  * Initialize elligator scratch space.
 */
-static void __attribute__ ((constructor))
-GNUNET_CRYPTO_ecdhe_elligator_initialize ()
+void __attribute__ ((constructor))
+GNUNET_CRYPTO_ecdhe_elligator_initialize (void)
 {
   static bool initialized = false;
 

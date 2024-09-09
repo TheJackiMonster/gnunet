@@ -26,11 +26,7 @@
 #include <jansson.h>
 #include "gnunet_curl_lib.h"
 #include "gnunet_util_lib.h"
-
-extern void *
-GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
-                                  CURL *eh,
-                                  long *response_code);
+#include "curl_internal.h"
 
 /**
  * Closure for #GNUNET_CURL_gnunet_scheduler_reschedule().

@@ -27,6 +27,7 @@
 #include <jansson.h>
 #include <microhttpd.h>
 #include "gnunet_curl_lib.h"
+#include "curl_internal.h"
 
 #if ENABLE_BENCHMARK
 #include "../util/benchmark.h"
@@ -682,7 +683,7 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
        (but keep response code) */
     if (0 != db->buf_size)
     {
-      char *url;
+      const char *url;
 
       if (CURLE_OK !=
           curl_easy_getinfo (eh,
@@ -698,7 +699,7 @@ GNUNET_CURL_download_get_result_ (struct GNUNET_CURL_DownloadBuffer *db,
   }
   if (0 == *response_code)
   {
-    char *url;
+    const char *url;
 
     if (CURLE_OK !=
         curl_easy_getinfo (eh,
@@ -800,7 +801,7 @@ GNUNET_CURL_perform2 (struct GNUNET_CURL_Context *ctx,
       rc (response);
     }
     {
-      char *url = NULL;
+      const char *url = NULL;
 
       if (CURLE_UNKNOWN_OPTION ==
           curl_easy_getinfo (job->easy_handle,
@@ -878,11 +879,13 @@ GNUNET_CURL_fini (struct GNUNET_CURL_Context *ctx)
   GNUNET_free (ctx);
 }
 
+void
+GNUNET_CURL_constructor__ (void);
 
 /**
  * Initial global setup logic, specifically runs the Curl setup.
  */
-__attribute__ ((constructor)) void
+void __attribute__ ((constructor)) 
 GNUNET_CURL_constructor__ (void)
 {
   CURLcode ret;
@@ -896,11 +899,13 @@ GNUNET_CURL_constructor__ (void)
   }
 }
 
+void
+GNUNET_CURL_destructor__ (void);
 
 /**
  * Cleans up after us, specifically runs the Curl cleanup.
  */
-__attribute__ ((destructor)) void
+void __attribute__ ((destructor))
 GNUNET_CURL_destructor__ (void)
 {
   if (curl_fail)

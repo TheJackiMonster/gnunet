@@ -356,11 +356,13 @@ w_check (const void *p)
   return 0; /* not secure memory */
 }
 
+void
+GNUNET_CRYPTO_random_init (void);
 
 /**
  * Initialize libgcrypt.
  */
-static void __attribute__ ((constructor))
+void __attribute__ ((constructor))
 GNUNET_CRYPTO_random_init ()
 {
   gcry_error_t rc;
@@ -395,12 +397,14 @@ GNUNET_CRYPTO_random_init ()
     ^ GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE, UINT32_MAX));
 }
 
+void
+GNUNET_CRYPTO_random_fini (void);
 
 /**
  * Nicely shut down libgcrypt.
  */
-static void __attribute__ ((destructor))
-GNUNET_CRYPTO_random_fini ()
+void __attribute__ ((destructor))
+GNUNET_CRYPTO_random_fini (void)
 {
   gcry_set_progress_handler (NULL, NULL);
 #ifdef GCRYCTL_CLOSE_RANDOM_DEVICE

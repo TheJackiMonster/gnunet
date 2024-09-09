@@ -160,7 +160,7 @@ GNUNET_PROGRAM_monolith_main (int argc,
         }
 #else
 #define GNUNET_DAEMON_MAIN(daemon_name, daemon_help, init_cb)  \
-        static int __attribute__ ((constructor)) \
+        int __attribute__ ((constructor)) \
         init (void) \
         { \
           return GNUNET_DAEMON_register (daemon_name, \

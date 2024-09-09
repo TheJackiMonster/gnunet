@@ -1564,22 +1564,27 @@ GNUNET_print_bytes (const void *buf, size_t buf_len, int fold, int in_be)
   printf ("\n");
 }
 
+void
+GNUNET_util_cl_init (void);
 
 /**
  * Initializer
  */
-static void __attribute__ ((constructor))
-GNUNET_util_cl_init ()
+void __attribute__ ((constructor))
+GNUNET_util_cl_init (void)
 {
   GNUNET_stderr = stderr;
 }
 
 
+void
+GNUNET_util_cl_fini (void);
+
 /**
  * Destructor
  */
-static void __attribute__ ((destructor))
-GNUNET_util_cl_fini ()
+void __attribute__ ((destructor))
+GNUNET_util_cl_fini (void)
 {
 
 }

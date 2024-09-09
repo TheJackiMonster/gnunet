@@ -979,12 +979,14 @@ GNUNET_TIME_absolute_get_monotonic (
   return now;
 }
 
+void
+GNUNET_util_time_fini (void);
 
 /**
  * Destructor
  */
-static void __attribute__ ((destructor))
-GNUNET_util_time_fini ()
+void __attribute__ ((destructor))
+GNUNET_util_time_fini (void)
 {
   (void) GNUNET_TIME_absolute_get_monotonic (NULL);
 }
