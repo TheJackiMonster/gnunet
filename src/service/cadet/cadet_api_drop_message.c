@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "cadet.h"
 
-
 /**
  * Drop the next cadet message of a given type.
  *
@@ -33,7 +32,7 @@
  * @param ccn client channel number.
  * @param type of cadet message to be dropped.
  */
-void
+static void
 GNUNET_CADET_drop_message (struct GNUNET_MQ_Handle *mq,
                            struct GNUNET_CADET_ClientChannelNumber ccn,
                            uint16_t type)

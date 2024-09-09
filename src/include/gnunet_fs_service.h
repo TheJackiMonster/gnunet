@@ -2460,7 +2460,7 @@ enum GNUNET_FS_DownloadOptions
    * Also, probe downloads are not serialized on suspension.  Normal
    * clients should not use this!
    */
-  GNUNET_FS_DOWNLOAD_IS_PROBE = (1 << 31)
+  GNUNET_FS_DOWNLOAD_IS_PROBE = (UINT32_C(1) << 31)
 };
 
 

@@ -33,6 +33,7 @@
 #include "gnunet_gnsrecord_json_lib.h"
 #include "microhttpd.h"
 #include <jansson.h>
+#include "namestore_plugin.h"
 
 /**
  * Namestore namespace
@@ -362,7 +363,7 @@ do_error (void *cls)
  * @param name the name of an identity (only one can be NULL)
  * @return EgoEntry or NULL if not found
  */
-struct EgoEntry *
+static struct EgoEntry *
 get_egoentry_namestore (struct RequestHandle *handle, char *name)
 {
   struct EgoEntry *ego_entry;
@@ -581,7 +582,7 @@ ns_get_lookup_cb (void *cls,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_get (struct GNUNET_REST_RequestHandle *con_handle,
                const char *url,
                void *cls)
@@ -872,7 +873,7 @@ bulk_tx_start (struct RequestHandle *handle)
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
                   const char *url,
                   void *cls)
@@ -921,7 +922,7 @@ namestore_import (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
                          const char *url,
                          void *cls)
@@ -1009,7 +1010,7 @@ namestore_add_or_update (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_update (struct GNUNET_REST_RequestHandle *con_handle,
                   const char *url,
                   void *cls)
@@ -1027,7 +1028,7 @@ namestore_update (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_add (struct GNUNET_REST_RequestHandle *con_handle,
                const char *url,
                void *cls)
@@ -1045,7 +1046,7 @@ namestore_add (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 namestore_delete (struct GNUNET_REST_RequestHandle *con_handle,
                   const char *url,
                   void *cls)

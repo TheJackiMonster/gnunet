@@ -38,6 +38,8 @@
 #include "gnunet_rest_plugin.h"
 #include "gnunet_signatures.h"
 #include "json_reclaim.h"
+#include "reclaim_plugin.h"
+
 /**
  * REST root namespace
  */
@@ -884,7 +886,7 @@ add_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
  *
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_Attribute *
+static struct GNUNET_RECLAIM_Attribute *
 parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
            const char *claim)
 {
@@ -1467,7 +1469,7 @@ REST_reclaim_process_request (void *plugin,
  * @return NULL on error, otherwise the plugin context
  */
 void *
-REST_reclaim_init (struct GNUNET_CONFIGURATION_Handle *c)
+REST_reclaim_init (const struct GNUNET_CONFIGURATION_Handle *c)
 {
   static struct Plugin plugin;
   struct GNUNET_REST_Plugin *api;
@@ -1502,7 +1504,7 @@ REST_reclaim_init (struct GNUNET_CONFIGURATION_Handle *c)
  * @param cls the plugin context (as returned by "init")
  * @return always NULL
  */
-void *
+void
 REST_reclaim_done (struct GNUNET_REST_Plugin *api)
 {
   struct Plugin *plugin = api->cls;
@@ -1530,7 +1532,6 @@ REST_reclaim_done (struct GNUNET_REST_Plugin *api)
   GNUNET_free (api);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Identity Provider REST plugin is finished\n");
-  return NULL;
 }
 
 

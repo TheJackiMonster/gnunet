@@ -32,6 +32,7 @@
 #include "gnunet_util_lib.h"
 #include "microhttpd.h"
 #include <jansson.h>
+#include "identity_plugin.h"
 
 /**
  * Identity Namespace
@@ -333,7 +334,7 @@ do_error (void *cls)
  * @param name the name of an identity (only one can be NULL)
  * @return EgoEntry or NULL if not found
  */
-struct EgoEntry *
+static struct EgoEntry *
 get_egoentry (struct RequestHandle *handle, char *pubkey, char *name)
 {
   struct EgoEntry *ego_entry;
@@ -369,7 +370,7 @@ get_egoentry (struct RequestHandle *handle, char *pubkey, char *name)
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_get_all (struct GNUNET_REST_RequestHandle *con_handle,
              const char *url,
              void *cls)
@@ -431,7 +432,7 @@ ego_get_all (struct GNUNET_REST_RequestHandle *con_handle,
  * @param handle the struct RequestHandle
  * @param ego_entry the struct EgoEntry for the response
  */
-void
+static void
 ego_get_response (struct RequestHandle *handle, struct EgoEntry *ego_entry)
 {
   struct MHD_Response *resp;
@@ -480,7 +481,7 @@ ego_get_response (struct RequestHandle *handle, struct EgoEntry *ego_entry)
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_get_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
                 const char *url,
                 void *cls)
@@ -518,7 +519,7 @@ ego_get_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_get_name (struct GNUNET_REST_RequestHandle *con_handle,
               const char *url,
               void *cls)
@@ -606,7 +607,7 @@ do_finished_create (void *cls,
  * @param handle the struct RequestHandle
  * @param ego_entry the struct EgoEntry we want to edit
  */
-void
+static void
 ego_edit (struct RequestHandle *handle, struct EgoEntry *ego_entry)
 {
   json_t *data_js;
@@ -691,7 +692,7 @@ ego_edit (struct RequestHandle *handle, struct EgoEntry *ego_entry)
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_edit_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
                  const char *url,
                  void *cls)
@@ -729,7 +730,7 @@ ego_edit_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_edit_name (struct GNUNET_REST_RequestHandle *con_handle,
                const char *url,
                void *cls)
@@ -767,7 +768,7 @@ ego_edit_name (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_create (struct GNUNET_REST_RequestHandle *con_handle,
             const char *url,
             void *cls)
@@ -867,7 +868,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_delete_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
                    const char *url,
                    void *cls)
@@ -909,7 +910,7 @@ ego_delete_pubkey (struct GNUNET_REST_RequestHandle *con_handle,
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_delete_name (struct GNUNET_REST_RequestHandle *con_handle,
                  const char *url,
                  void *cls)
@@ -950,7 +951,7 @@ struct ego_sign_data_cls
   struct RequestHandle *handle;
 };
 
-void
+static void
 ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   struct RequestHandle *handle = ((struct ego_sign_data_cls *) cls)->handle;
@@ -1010,7 +1011,7 @@ ego_sign_data_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
  * @param url the url
  * @param cls the RequestHandle
  */
-void
+static void
 ego_sign_data (struct GNUNET_REST_RequestHandle *con_handle,
                const char *url,
                void *cls)

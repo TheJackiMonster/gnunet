@@ -268,7 +268,6 @@ GNUNET_CADET_get_mq (const struct GNUNET_CADET_Channel *channel);
 void
 GNUNET_CADET_receive_done (struct GNUNET_CADET_Channel *channel);
 
-
 /**
  * Transitional function to convert an unsigned int port to a hash value.
  * WARNING: local static value returned, NOT reentrant!

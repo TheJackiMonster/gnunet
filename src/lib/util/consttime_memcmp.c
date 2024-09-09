@@ -128,6 +128,9 @@ SOFTWARE.
 #define USE_VOLATILE_TEMPORARY 0
 
 int
+consttime_memcmp (const void *b1, const void *b2, size_t len);
+
+int
 consttime_memcmp (const void *b1, const void *b2, size_t len)
 {
   const uint8_t *c1, *c2;

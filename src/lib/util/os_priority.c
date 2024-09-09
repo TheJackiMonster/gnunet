@@ -150,7 +150,7 @@ GNUNET_OS_install_parent_control_handler (void *cls)
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Not installing a handler because $%s is empty\n",
          GNUNET_OS_CONTROL_PIPE);
-    putenv (GNUNET_OS_CONTROL_PIPE "=");
+    setenv (GNUNET_OS_CONTROL_PIPE, "", 1);
     return;
   }
   errno = 0;
@@ -158,7 +158,7 @@ GNUNET_OS_install_parent_control_handler (void *cls)
   if ((0 != errno) || (env_buf == env_buf_end))
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "strtoull", env_buf);
-    putenv (GNUNET_OS_CONTROL_PIPE "=");
+    setenv (GNUNET_OS_CONTROL_PIPE, "", 1);
     return;
   }
   if (pipe_fd >= FD_SETSIZE)
@@ -166,7 +166,7 @@ GNUNET_OS_install_parent_control_handler (void *cls)
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "GNUNET_OS_CONTROL_PIPE `%s' contains garbage?\n",
          env_buf);
-    putenv (GNUNET_OS_CONTROL_PIPE "=");
+    setenv (GNUNET_OS_CONTROL_PIPE, "", 1);
     return;
   }
 
@@ -175,7 +175,7 @@ GNUNET_OS_install_parent_control_handler (void *cls)
   if (NULL == control_pipe)
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "open", env_buf);
-    putenv (GNUNET_OS_CONTROL_PIPE "=");
+    setenv (GNUNET_OS_CONTROL_PIPE, "", 1);
     return;
   }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -186,7 +186,7 @@ GNUNET_OS_install_parent_control_handler (void *cls)
                                         &parent_control_handler,
                                         control_pipe);
   spch = GNUNET_SCHEDULER_add_shutdown (&shutdown_pch, control_pipe);
-  putenv (GNUNET_OS_CONTROL_PIPE "=");
+  setenv (GNUNET_OS_CONTROL_PIPE, "", 1);
 }
 
 

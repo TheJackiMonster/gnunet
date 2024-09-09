@@ -27,6 +27,7 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
 #include "gnunet_gnsrecord_lib.h"
+#include "gnunet_gnsrecord_json_lib.h"
 
 #define GNUNET_JSON_GNSRECORD_VALUE "value"
 #define GNUNET_JSON_GNSRECORD_RECORD_DATA "data"
