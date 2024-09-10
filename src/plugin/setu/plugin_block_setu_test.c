@@ -156,6 +156,8 @@ block_plugin_setu_test_get_key (void *cls,
   return GNUNET_NO;
 }
 
+void *
+libgnunet_plugin_block_setu_test_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -178,6 +180,8 @@ libgnunet_plugin_block_setu_test_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_block_setu_test_done (void *cls);
 
 /**
  * Exit point from the plugin.

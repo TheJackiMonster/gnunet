@@ -1352,7 +1352,7 @@ create_mhd_response_from_s5r (struct Socks5Request *s5r)
               s5r->domain,
               s5r->url);
   s5r->response_code = resp_code;
-  s5r->response = MHD_create_response_from_callback ((-1 == content_length)
+  s5r->response = MHD_create_response_from_callback ((0 > content_length)
                                                      ? MHD_SIZE_UNKNOWN
                                                      : content_length,
                                                      IO_BUFFERSIZE,

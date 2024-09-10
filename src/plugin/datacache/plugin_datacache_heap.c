@@ -461,6 +461,8 @@ heap_plugin_get_closest (void *cls,
   return num_results * 2;
 }
 
+void *
+libgnunet_plugin_datacache_heap_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -493,6 +495,8 @@ libgnunet_plugin_datacache_heap_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_datacache_heap_done (void *cls);
 
 /**
  * Exit point from the plugin.

@@ -180,6 +180,8 @@ block_plugin_template_get_key (void *cls,
   return GNUNET_SYSERR;
 }
 
+void *
+libgnunet_plugin_block_template_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -205,6 +207,8 @@ libgnunet_plugin_block_template_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_block_template_done (void *cls);
 
 /**
  * Exit point from the plugin.

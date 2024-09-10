@@ -852,6 +852,8 @@ dns_is_critical (void *cls, uint32_t type)
   return GNUNET_NO;
 }
 
+void *
+libgnunet_plugin_gnsrecord_dns_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -873,6 +875,8 @@ libgnunet_plugin_gnsrecord_dns_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_gnsrecord_dns_done (void *cls);
 
 /**
  * Exit point from the plugin.

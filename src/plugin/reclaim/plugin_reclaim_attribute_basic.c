@@ -141,6 +141,8 @@ basic_number_to_typename (void *cls, uint32_t type)
   return basic_name_map[i].name;
 }
 
+void *
+libgnunet_plugin_reclaim_attribute_basic_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -161,6 +163,8 @@ libgnunet_plugin_reclaim_attribute_basic_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_reclaim_attribute_basic_done (void *cls);
 
 /**
  * Exit point from the plugin.

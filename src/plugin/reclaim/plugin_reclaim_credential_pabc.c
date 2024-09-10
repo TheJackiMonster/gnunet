@@ -25,6 +25,7 @@
  *
  * @author Martin Schanzenbach
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_reclaim_plugin.h"
@@ -178,7 +179,7 @@ inspect_attrs (char const *const key,
  * @param cred the pabc credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 pabc_parse_attributes (void *cls,
                        const char *data,
                        size_t data_size)
@@ -202,7 +203,7 @@ pabc_parse_attributes (void *cls,
  * @param cred the pabc credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 pabc_parse_attributes_c (void *cls,
                          const struct GNUNET_RECLAIM_Credential *cred)
 {
@@ -219,7 +220,7 @@ pabc_parse_attributes_c (void *cls,
  * @param cred the pabc credential
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-struct GNUNET_RECLAIM_AttributeList *
+static struct GNUNET_RECLAIM_AttributeList *
 pabc_parse_attributes_p (void *cls,
                          const struct GNUNET_RECLAIM_Presentation *cred)
 {
@@ -236,7 +237,7 @@ pabc_parse_attributes_p (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-char*
+static char*
 pabc_get_issuer (void *cls,
                  const char *data,
                  size_t data_size)
@@ -257,7 +258,7 @@ pabc_get_issuer (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-char *
+static char *
 pabc_get_issuer_c (void *cls,
                    const struct GNUNET_RECLAIM_Credential *cred)
 {
@@ -274,7 +275,7 @@ pabc_get_issuer_c (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-char *
+static char *
 pabc_get_issuer_p (void *cls,
                    const struct GNUNET_RECLAIM_Presentation *cred)
 {
@@ -291,7 +292,7 @@ pabc_get_issuer_p (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 pabc_get_expiration (void *cls,
                      const char *data,
                      size_t data_size,
@@ -329,7 +330,7 @@ pabc_get_expiration (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 pabc_get_expiration_c (void *cls,
                        const struct GNUNET_RECLAIM_Credential *cred,
                        struct GNUNET_TIME_Absolute *exp)
@@ -347,7 +348,7 @@ pabc_get_expiration_c (void *cls,
  * @param cred the pabc credential
  * @return a string, containing the isser
  */
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 pabc_get_expiration_p (void *cls,
                        const struct GNUNET_RECLAIM_Presentation *cred,
                        struct GNUNET_TIME_Absolute *exp)
@@ -358,7 +359,7 @@ pabc_get_expiration_p (void *cls,
 }
 
 
-int
+static enum GNUNET_GenericReturnValue
 pabc_create_presentation (void *cls,
                           const struct GNUNET_RECLAIM_Credential *credential,
                           const struct GNUNET_RECLAIM_AttributeList *attrs,
@@ -521,6 +522,8 @@ pabc_create_presentation (void *cls,
   return GNUNET_OK;
 }
 
+void *
+libgnunet_plugin_reclaim_credential_pabc_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -552,6 +555,8 @@ libgnunet_plugin_reclaim_credential_pabc_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_reclaim_credential_pabc_done (void *cls);
 
 /**
  * Exit point from the plugin.

@@ -339,6 +339,8 @@ block_plugin_regex_get_key (void *cls,
   }
 }
 
+void *
+libgnunet_plugin_block_regex_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -363,6 +365,8 @@ libgnunet_plugin_block_regex_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_block_regex_done (void *cls);
 
 /**
  * Exit point from the plugin.

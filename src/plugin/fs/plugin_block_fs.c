@@ -295,6 +295,8 @@ block_plugin_fs_check_reply (void *cls,
   }
 }
 
+void *
+libgnunet_plugin_block_fs_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -320,6 +322,8 @@ libgnunet_plugin_block_fs_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_block_fs_done (void *cls);
 
 /**
  * Exit point from the plugin.

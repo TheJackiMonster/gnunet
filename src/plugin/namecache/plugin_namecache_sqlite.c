@@ -532,6 +532,8 @@ namecache_sqlite_lookup_block (void *cls,
   return ret;
 }
 
+void *
+libgnunet_plugin_namecache_sqlite_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -564,6 +566,8 @@ libgnunet_plugin_namecache_sqlite_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_namecache_sqlite_done (void *cls);
 
 /**
  * Exit point from the plugin.

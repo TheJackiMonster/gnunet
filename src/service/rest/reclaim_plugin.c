@@ -886,66 +886,66 @@ add_attribute_cont (struct GNUNET_REST_RequestHandle *con_handle,
  *
  * @return a GNUNET_RECLAIM_Attribute, containing the new value
  */
-static struct GNUNET_RECLAIM_Attribute *
-parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
-           const char *claim)
-{
-  char *jwt_string;
-  struct GNUNET_RECLAIM_Attribute *attr;
-  char delim[] = ".";
-  const char *type_str = NULL;
-  const char *val_str = NULL;
-  char *data;
-  size_t data_size;
-  uint32_t type;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Parsing JWT attributes.\n");
-  char *decoded_jwt;
-  json_t *json_val;
-  json_error_t *json_err = NULL;
-
-  jwt_string = GNUNET_RECLAIM_credential_value_to_string (cred->type,
-                                                          cred->data,
-                                                          cred->data_size);
-  char *jwt_body = strtok (jwt_string, delim);
-  jwt_body = strtok (NULL, delim);
-  GNUNET_STRINGS_base64_decode (jwt_body, strlen (jwt_body),
-                                (void **) &decoded_jwt);
-  json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
-  const char *key;
-  json_t *value;
-  json_object_foreach (json_val, key, value) {
-    if (0 == strcasecmp (key,claim))
-    {
-      val_str = json_dumps (value, JSON_ENCODE_ANY);
-    }
-  }
-  type_str = "String";
-  type = GNUNET_RECLAIM_attribute_typename_to_number (type_str);
-  if (GNUNET_SYSERR == GNUNET_RECLAIM_attribute_string_to_value (type,val_str,
-                                                                 (void **) &data
-                                                                 ,
-                                                                 &data_size))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Attribute value from JWT Parser invalid!\n");
-    GNUNET_RECLAIM_attribute_string_to_value (type,
-                                              "Error: Referenced Claim Name not Found",
-                                              (void **) &data,
-                                              &data_size);
-    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
-                                         type, data, data_size);
-    attr->id = cred->id;
-    attr->flag = 1;
-  }
-  else
-  {
-    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
-                                         type, data, data_size);
-    attr->id = cred->id;
-    attr->flag = 1;
-  }
-  return attr;
-}
+//static struct GNUNET_RECLAIM_Attribute *
+//parse_jwt (const struct GNUNET_RECLAIM_Credential *cred,
+//           const char *claim)
+//{
+//  char *jwt_string;
+//  struct GNUNET_RECLAIM_Attribute *attr;
+//  char delim[] = ".";
+//  const char *type_str = NULL;
+//  const char *val_str = NULL;
+//  char *data;
+//  size_t data_size;
+//  uint32_t type;
+//  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Parsing JWT attributes.\n");
+//  char *decoded_jwt;
+//  json_t *json_val;
+//  json_error_t *json_err = NULL;
+//
+//  jwt_string = GNUNET_RECLAIM_credential_value_to_string (cred->type,
+//                                                          cred->data,
+//                                                          cred->data_size);
+//  char *jwt_body = strtok (jwt_string, delim);
+//  jwt_body = strtok (NULL, delim);
+//  GNUNET_STRINGS_base64_decode (jwt_body, strlen (jwt_body),
+//                                (void **) &decoded_jwt);
+//  json_val = json_loads (decoded_jwt, JSON_DECODE_ANY, json_err);
+//  const char *key;
+//  json_t *value;
+//  json_object_foreach (json_val, key, value) {
+//    if (0 == strcasecmp (key,claim))
+//    {
+//      val_str = json_dumps (value, JSON_ENCODE_ANY);
+//    }
+//  }
+//  type_str = "String";
+//  type = GNUNET_RECLAIM_attribute_typename_to_number (type_str);
+//  if (GNUNET_SYSERR == GNUNET_RECLAIM_attribute_string_to_value (type,val_str,
+//                                                                 (void **) &data
+//                                                                 ,
+//                                                                 &data_size))
+//  {
+//    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+//                "Attribute value from JWT Parser invalid!\n");
+//    GNUNET_RECLAIM_attribute_string_to_value (type,
+//                                              "Error: Referenced Claim Name not Found",
+//                                              (void **) &data,
+//                                              &data_size);
+//    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
+//                                         type, data, data_size);
+//    attr->id = cred->id;
+//    attr->flag = 1;
+//  }
+//  else
+//  {
+//    attr = GNUNET_RECLAIM_attribute_new (claim, &cred->id,
+//                                         type, data, data_size);
+//    attr->id = cred->id;
+//    attr->flag = 1;
+//  }
+//  return attr;
+//}
 
 
 /**

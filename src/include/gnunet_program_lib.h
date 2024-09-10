@@ -147,7 +147,7 @@ GNUNET_PROGRAM_monolith_main (int argc,
           }; \
           if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, \
                                                          &argv)) \
-            return 2; \
+          return 2; \
           ret =  GNUNET_PROGRAM_run (argc, \
                                      argv, \
                                      daemon_name, \
@@ -160,6 +160,7 @@ GNUNET_PROGRAM_monolith_main (int argc,
         }
 #else
 #define GNUNET_DAEMON_MAIN(daemon_name, daemon_help, init_cb)  \
+        int init (void);                                       \
         int __attribute__ ((constructor)) \
         init (void) \
         { \
@@ -188,7 +189,6 @@ GNUNET_DAEMON_main (int argc,
                     char *const *argv,
                     struct GNUNET_CONFIGURATION_Handle *cfg,
                     enum GNUNET_GenericReturnValue with_scheduler);
-
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

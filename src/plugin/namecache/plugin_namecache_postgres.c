@@ -258,6 +258,8 @@ database_shutdown (struct Plugin *plugin)
   plugin->dbh = NULL;
 }
 
+void *
+libgnunet_plugin_namecache_postgres_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -290,6 +292,8 @@ libgnunet_plugin_namecache_postgres_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_namecache_postgres_done (void *cls);
 
 /**
  * Exit point from the plugin.

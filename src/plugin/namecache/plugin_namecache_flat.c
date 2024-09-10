@@ -372,6 +372,8 @@ namecache_lookup_block (void *cls,
   return GNUNET_YES;
 }
 
+void *
+libgnunet_plugin_namecache_flat_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -404,6 +406,8 @@ libgnunet_plugin_namecache_flat_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_namecache_flat_done (void *cls);
 
 /**
  * Exit point from the plugin.
