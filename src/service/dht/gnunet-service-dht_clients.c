@@ -32,8 +32,8 @@
 #include "gnunet-service-dht.h"
 #include "gnunet-service-dht_datacache.h"
 #include "gnunet-service-dht_neighbours.h"
+#include "gnunet-service-dht.h"
 #include "dht.h"
-
 
 /**
  * Enable slow sanity checks to debug issues.
@@ -1680,12 +1680,13 @@ GDS_CLIENTS_stop (void)
                                  NULL), \
           GNUNET_MQ_handler_end ())
 
+void GDS_CLIENTS_done (void);
 
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((destructor))
-GDS_CLIENTS_done ()
+GDS_CLIENTS_done (void)
 {
   if (NULL != retry_heap)
   {

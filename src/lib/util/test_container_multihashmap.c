@@ -45,6 +45,9 @@ testMap (int i)
   struct GNUNET_CONTAINER_MultiHashMapIterator *iter = NULL;
   struct GNUNET_HashCode key_ret;
   const char *ret;
+  char v1[] = "v1";
+  char v2[] = "v2";
+  char v3[] = "v3";
   int j;
 
   CHECK (NULL != (m = GNUNET_CONTAINER_multihashmap_create (i, GNUNET_NO)));
@@ -62,24 +65,24 @@ testMap (int i)
   CHECK (0 == GNUNET_CONTAINER_multihashmap_get_multiple (m, &k1, NULL, NULL));
 
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap_put (m, &k1, "v1",
+         GNUNET_CONTAINER_multihashmap_put (m, &k1, v1,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE));
   CHECK (1 == GNUNET_CONTAINER_multihashmap_size (m));
   ret = GNUNET_CONTAINER_multihashmap_get (m, &k1);
   GNUNET_assert (ret != NULL);
   CHECK (0 == strcmp ("v1", ret));
   CHECK (GNUNET_NO ==
-         GNUNET_CONTAINER_multihashmap_put (m, &k1, "v1",
+         GNUNET_CONTAINER_multihashmap_put (m, &k1, v1,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE));
   CHECK (1 == GNUNET_CONTAINER_multihashmap_size (m));
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap_put (m, &k1, "v2",
+         GNUNET_CONTAINER_multihashmap_put (m, &k1, v2,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap_put (m, &k1, "v3",
+         GNUNET_CONTAINER_multihashmap_put (m, &k1, v3,
                                             GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   CHECK (3 == GNUNET_CONTAINER_multihashmap_size (m));
-  CHECK (GNUNET_OK == GNUNET_CONTAINER_multihashmap_remove (m, &k1, "v3"));
+  CHECK (GNUNET_OK == GNUNET_CONTAINER_multihashmap_remove (m, &k1, v3));
   CHECK (2 == GNUNET_CONTAINER_multihashmap_size (m));
   CHECK (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (m, &k1));
   CHECK (GNUNET_NO == GNUNET_CONTAINER_multihashmap_contains (m, &k2));
@@ -106,7 +109,7 @@ testMap (int i)
   CHECK (2 == GNUNET_CONTAINER_multihashmap_remove_all (m, &k1));
   for (j = 0; j < 1024; j++)
     CHECK (GNUNET_OK ==
-           GNUNET_CONTAINER_multihashmap_put (m, &k1, "v2",
+           GNUNET_CONTAINER_multihashmap_put (m, &k1, v2,
                                               GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   iter = GNUNET_CONTAINER_multihashmap_iterator_create (m);
   for (j = 0; j < GNUNET_CONTAINER_multihashmap_size (m); j++)

@@ -156,7 +156,7 @@ cleanup (void *cls)
 static void
 print_did_document (
   enum GNUNET_GenericReturnValue status,
-  char *did_document,
+  const char *did_document,
   void *cls
   )
 {

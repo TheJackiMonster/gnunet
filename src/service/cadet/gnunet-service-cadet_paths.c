@@ -278,7 +278,7 @@ GCPP_release (struct CadetPeerPath *path)
  * @param off offset of the entry to update
  * @param delta change in the score to apply
  */
-void
+static void
 GCPP_update_score (struct CadetPeerPath *path,
                    unsigned int off,
                    int delta)
@@ -389,7 +389,7 @@ check_match (void *cls,
  */
 static void
 extend_path (struct CadetPeerPath *path,
-             struct CadetPeer **peers,
+             struct CadetPeer **peers_ext,
              unsigned int num_peers,
              int force)
 {
@@ -405,7 +405,7 @@ extend_path (struct CadetPeerPath *path,
     struct CadetPeerPathEntry *entry = GNUNET_new (struct CadetPeerPathEntry);
 
     path->entries[old_len + i] = entry;
-    entry->peer = peers[i];
+    entry->peer = peers_ext[i];
     entry->path = path;
   }
   for (i = num_peers - 1; i >= 0; i--)

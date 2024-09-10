@@ -2725,7 +2725,7 @@ send_offers_iterator (void *cls,
  * @param op union operation
  * @param ibf_key IBF key of interest
  */
-void
+static void
 send_offers_for_key (struct Operation *op,
                      struct IBF_Key ibf_key)
 {
@@ -5086,12 +5086,12 @@ handle_client_evaluate (void *cls,
   op->mq = GNUNET_CADET_get_mq (op->channel);
   {
     struct GNUNET_MQ_Envelope *ev;
-    struct OperationRequestMessage *msg;
+    struct OperationRequestMessage *msg_tmp;
 
 #if MEASURE_PERFORMANCE
     perf_store.operation_request.sent += 1;
 #endif
-    ev = GNUNET_MQ_msg_nested_mh (msg,
+    ev = GNUNET_MQ_msg_nested_mh (msg_tmp,
                                   GNUNET_MESSAGE_TYPE_SETU_P2P_OPERATION_REQUEST,
                                   context);
     if (NULL == ev)
@@ -5288,7 +5288,7 @@ handle_client_accept (void *cls,
                             GNUNET_NO);
   {
     struct MultiStrataEstimator *se;
-    struct GNUNET_MQ_Envelope *ev;
+    struct GNUNET_MQ_Envelope *ev_tmp;
     struct StrataEstimatorMessage *strata_msg;
     char *buf;
     size_t len;
@@ -5334,7 +5334,7 @@ handle_client_accept (void *cls,
       type = GNUNET_MESSAGE_TYPE_SETU_P2P_SEC;
     else
       type = GNUNET_MESSAGE_TYPE_SETU_P2P_SE;
-    ev = GNUNET_MQ_msg_extra (strata_msg,
+    ev_tmp = GNUNET_MQ_msg_extra (strata_msg,
                               len,
                               type);
     GNUNET_memcpy (&strata_msg[1],
@@ -5346,7 +5346,7 @@ handle_client_accept (void *cls,
                          op->set->content->elements));
     strata_msg->se_count = se_count;
     GNUNET_MQ_send (op->mq,
-                    ev);
+                    ev_tmp);
     op->phase = PHASE_EXPECT_IBF;
   }
   /* Now allow CADET to continue, as we did not do this in

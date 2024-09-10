@@ -346,7 +346,7 @@ static struct GNUNET_GNS_Handle *gns;
 static struct GNUNET_NAMESTORE_Handle *namestore;
 
 static void
-print_deleset (struct DelegationSetQueueEntry *dsentry, char *text)
+print_deleset (struct DelegationSetQueueEntry *dsentry, const char *text)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "%s %s.%s <- %s.%s\n",

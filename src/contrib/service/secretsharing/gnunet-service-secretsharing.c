@@ -1567,26 +1567,26 @@ keygen_round2_new_element (void *cls,
   for (j = 0; j < ks->num_peers; j++)
   {
     unsigned int k;
-    int cmp_result;
+    int cmp_result_tmp;
     gcry_mpi_t exp_preshare;
     gcry_mpi_set_ui (prod, 1);
     for (k = 0; k < ks->threshold; k++)
     {
       // Using pow(double,double) is a bit sketchy.
       // We count players from 1, but shares from 0.
-      gcry_mpi_t tmp;
+      gcry_mpi_t tmp_exp;
       gcry_mpi_set_ui (j_to_k, (unsigned int) pow (j + 1, k));
-      tmp = keygen_reveal_get_exp_coeff (ks, d, k);
-      gcry_mpi_powm (tmp, tmp, j_to_k, elgamal_p);
-      gcry_mpi_mulm (prod, prod, tmp, elgamal_p);
-      gcry_mpi_release (tmp);
+      tmp_exp = keygen_reveal_get_exp_coeff (ks, d, k);
+      gcry_mpi_powm (tmp_exp, tmp_exp, j_to_k, elgamal_p);
+      gcry_mpi_mulm (prod, prod, tmp_exp, elgamal_p);
+      gcry_mpi_release (tmp_exp);
     }
     exp_preshare = keygen_reveal_get_exp_preshare (ks, d, j);
     gcry_mpi_mod (exp_preshare, exp_preshare, elgamal_p);
-    cmp_result = gcry_mpi_cmp (prod, exp_preshare);
+    cmp_result_tmp = gcry_mpi_cmp (prod, exp_preshare);
     gcry_mpi_release (exp_preshare);
     exp_preshare = NULL;
-    if (0 != cmp_result)
+    if (0 != cmp_result_tmp)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "P%u: reveal data from P%u incorrect\n",

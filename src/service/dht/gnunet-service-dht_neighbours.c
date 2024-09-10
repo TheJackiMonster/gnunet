@@ -800,7 +800,7 @@ get_forward_count (uint16_t hop_count,
   uint32_t random_value;
   uint32_t forward_count;
   float target_value;
-  float rm1;
+  double rm1;
 
   if (hop_count > GDS_NSE_get () * 4.0)
   {

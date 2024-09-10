@@ -2024,7 +2024,7 @@ GNUNET_FS_download_signal_suspend_ (void *cls)
  * @param cctx initial value for the client context for this download
  * @return context that can be used to control this download
  */
-struct GNUNET_FS_DownloadContext *
+static struct GNUNET_FS_DownloadContext *
 create_download_context (struct GNUNET_FS_Handle *h,
                          const struct GNUNET_FS_Uri *uri,
                          const struct GNUNET_FS_MetaData *meta,

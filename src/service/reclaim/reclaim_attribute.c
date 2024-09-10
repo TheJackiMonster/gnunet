@@ -103,11 +103,13 @@ init ()
                                      NULL);
 }
 
+void RECLAIM_ATTRIBUTE_fini (void);
+
 /**
  * Dual function to #init().
  */
 void __attribute__ ((destructor))
-RECLAIM_ATTRIBUTE_fini ()
+RECLAIM_ATTRIBUTE_fini (void)
 {
   struct Plugin *plugin;
   const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();

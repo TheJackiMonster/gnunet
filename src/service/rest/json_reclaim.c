@@ -28,7 +28,7 @@
 #include "gnunet_json_lib.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
-
+#include "json_reclaim.h"
 
 /**
  * Parse given JSON object to a claim

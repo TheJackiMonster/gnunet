@@ -868,15 +868,15 @@ read_cb (void *cls)
                 CMSG_DATA (cmsg),
                 sizeof (pi));
         {
-          struct sockaddr_in sa = {
+          struct sockaddr_in sa_tmp = {
             .sin_family = AF_INET,
             .sin_addr = pi.ipi_addr,
             .sin_port = htons (plugin->port16)
           };
 
           src = find_source (plugin,
-                             &sa,
-                             sizeof (sa));
+                             &sa_tmp,
+                             sizeof (sa_tmp));
           /* For sources we discovered by reading,
              force the generation far into the future */
           src->scan_generation = plugin->scan_generation + 60;
@@ -898,7 +898,7 @@ read_cb (void *cls)
                 CMSG_DATA (cmsg),
                 sizeof (pi));
         {
-          struct sockaddr_in6 sa = {
+          struct sockaddr_in6 sa_tmp = {
             .sin6_family = AF_INET6,
             .sin6_addr = pi.ipi6_addr,
             .sin6_port = htons (plugin->port16),
@@ -906,8 +906,8 @@ read_cb (void *cls)
           };
 
           src = find_source (plugin,
-                             &sa,
-                             sizeof (sa));
+                             &sa_tmp,
+                             sizeof (sa_tmp));
           /* For sources we discovered by reading,
              force the generation far into the future */
           src->scan_generation = plugin->scan_generation + 60;

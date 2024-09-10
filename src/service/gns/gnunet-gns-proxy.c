@@ -841,7 +841,7 @@ cleanup_s5r (struct Socks5Request *s5r)
 /* ************************* HTTP handling with cURL *********************** */
 
 static void
-curl_download_prepare ();
+curl_download_prepare (void);
 
 
 /**
@@ -1566,7 +1566,7 @@ curl_task_download (void *cls);
  * Ask cURL for the select() sets and schedule cURL operations.
  */
 static void
-curl_download_prepare ()
+curl_download_prepare (void)
 {
   CURLMcode mret;
   fd_set rs;

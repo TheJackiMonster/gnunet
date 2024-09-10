@@ -656,7 +656,7 @@ do_shutdown (void *cls)
 
 
 static void
-process_command_stdin ();
+process_command_stdin (void);
 
 static unsigned int ri_sent = 0;
 
@@ -1874,7 +1874,7 @@ get_identity_for_string (const char *str,
 
 
 static void
-process_command_stdin ()
+process_command_stdin (void)
 {
   char buf[MAX_LINE_LEN];
   static struct GNUNET_CRYPTO_PrivateKey next_zone_key;

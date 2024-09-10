@@ -83,7 +83,7 @@ glibc_weak_rand32 ()
 static double
 get_weak_random (void)
 {
-  return((double) random () / RAND_MAX);
+  return(random () / (double) RAND_MAX);
 }
 
 

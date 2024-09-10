@@ -469,44 +469,6 @@ static int disable_cache;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 
-/**
- * Determine if this name is canonical (is a legal name in a zone, without delegation);
- * note that we do not test that the name does not contain illegal characters, we only
- * test for delegation.  Note that service records (like _foo._srv) are canonical names
- * even though they consist of multiple labels.
- *
- * Examples:
- * a.b.gnu   = not canonical
- * a         = canonical
- * _foo._srv = canonical
- * _f.bar    = not canonical
- *
- * @param name the name to test
- * @return #GNUNET_YES if canonical
- */
-/* dead, but keep for now */
-static int
-is_canonical (const char *name)
-{
-  const char *pos;
-  const char *dot;
-
-  if (NULL == strchr (name,
-                      (unsigned char) '.'))
-    return GNUNET_YES;
-  if ('_' != name[0])
-    return GNUNET_NO;
-  pos = &name[1];
-  while (NULL != (dot = strchr (pos,
-                                (unsigned char) '.')))
-    if ('_' != dot[1])
-      return GNUNET_NO;
-    else
-      pos = dot + 1;
-  return GNUNET_YES;
-}
-
-
 /* ************************** Resolution **************************** */
 
 /**

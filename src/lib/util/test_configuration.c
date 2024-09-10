@@ -173,7 +173,7 @@ diffsCallBack (void *cls,
 
 
 static struct GNUNET_CONFIGURATION_Handle *
-editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg,
+editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg_,
                    int option)
 {
   struct DiffsCBData diffsCB;
@@ -187,8 +187,8 @@ editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg,
   case EDIT_ALL:
   case ADD_NEW_ENTRY:
     diffsCB.callBackOption = option;
-    diffsCB.cfg = cfg;
-    GNUNET_CONFIGURATION_iterate (cfg, diffsCallBack, &diffsCB);
+    diffsCB.cfg = cfg_;
+    GNUNET_CONFIGURATION_iterate (cfg_, diffsCallBack, &diffsCB);
     break;
 
   case EDIT_NOTHING:
@@ -203,7 +203,7 @@ editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg,
       for (i = 0; i < 5; i++)
       {
         GNUNET_asprintf (&key, "key%d", i);
-        GNUNET_CONFIGURATION_set_value_string (cfg, "new-section", key,
+        GNUNET_CONFIGURATION_set_value_string (cfg_, "new-section", key,
                                                "new-value");
         GNUNET_CONFIGURATION_set_value_string (diffsCB.cfgDiffs, "new-section",
                                                key, "new-value");
@@ -230,9 +230,9 @@ editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg,
  * Checking configuration diffs
  */
 static int
-checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_default, int option)
+checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_, int option)
 {
-  struct GNUNET_CONFIGURATION_Handle *cfg;
+  struct GNUNET_CONFIGURATION_Handle *cfg_new;
   struct GNUNET_CONFIGURATION_Handle *cfgDiffs;
   struct DiffsCBData cbData;
   int ret;
@@ -240,32 +240,32 @@ checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_default, int option)
 
   initDiffsCBData (&cbData);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg_new = GNUNET_CONFIGURATION_create ();
   /* load defaults */
-  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_load (cfg, NULL));
+  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_load (cfg_new, NULL));
 
   /* Modify configuration and save it */
-  cfgDiffs = editConfiguration (cfg, option);
+  cfgDiffs = editConfiguration (cfg_new, option);
   diffsFileName = GNUNET_DISK_mktemp ("gnunet-test-configurations-diffs.conf");
   if (diffsFileName == NULL)
   {
     GNUNET_break (0);
-    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_CONFIGURATION_destroy (cfg_new);
     GNUNET_CONFIGURATION_destroy (cfgDiffs);
     return 1;
   }
-  GNUNET_CONFIGURATION_write_diffs (cfg_default, cfg, diffsFileName);
-  GNUNET_CONFIGURATION_destroy (cfg);
+  GNUNET_CONFIGURATION_write_diffs (cfg_, cfg_new, diffsFileName);
+  GNUNET_CONFIGURATION_destroy (cfg_new);
 
   /* Compare the dumped configuration with modifications done */
-  cfg = GNUNET_CONFIGURATION_create ();
-  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, diffsFileName));
+  cfg_new = GNUNET_CONFIGURATION_create ();
+  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg_new, diffsFileName));
   if (0 != remove (diffsFileName))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "remove",
                               diffsFileName);
   cbData.callBackOption = COMPARE;
   cbData.cfgDiffs = cfgDiffs;
-  GNUNET_CONFIGURATION_iterate (cfg,
+  GNUNET_CONFIGURATION_iterate (cfg_new,
                                 &diffsCallBack,
                                 &cbData);
   if (1 == (ret = cbData.status))
@@ -274,7 +274,7 @@ checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_default, int option)
              "Incorrect Configuration Diffs: Diffs may contain data not actually edited\n");
     goto housekeeping;
   }
-  cbData.cfgDiffs = cfg;
+  cbData.cfgDiffs = cfg_new;
   GNUNET_CONFIGURATION_iterate (cfgDiffs, diffsCallBack, &cbData);
   if ((ret = cbData.status) == 1)
     fprintf (stderr, "%s",
@@ -290,7 +290,7 @@ housekeeping:
   printf ("\nActual Diffs:\n");
   GNUNET_CONFIGURATION_iterate (cfg, diffsCallBack, &cbData);
 #endif
-  GNUNET_CONFIGURATION_destroy (cfg);
+  GNUNET_CONFIGURATION_destroy (cfg_new);
   GNUNET_CONFIGURATION_destroy (cfgDiffs);
   GNUNET_free (diffsFileName);
   return ret;

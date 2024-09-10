@@ -2228,9 +2228,9 @@ handle_client_evaluate (void *cls,
   op->mq = GNUNET_CADET_get_mq (op->channel);
   {
     struct GNUNET_MQ_Envelope *ev;
-    struct OperationRequestMessage *msg;
+    struct OperationRequestMessage *msg_tmp;
 
-    ev = GNUNET_MQ_msg_nested_mh (msg,
+    ev = GNUNET_MQ_msg_nested_mh (msg_tmp,
                                   GNUNET_MESSAGE_TYPE_SETI_P2P_OPERATION_REQUEST,
                                   context);
     if (NULL == ev)
@@ -2249,7 +2249,7 @@ handle_client_evaluate (void *cls,
       = GNUNET_CONTAINER_multihashmap_create (op->my_element_count,
                                               GNUNET_YES);
 
-    msg->element_count = htonl (op->my_element_count);
+    msg_tmp->element_count = htonl (op->my_element_count);
     GNUNET_MQ_send (op->mq,
                     ev);
     op->phase = PHASE_COUNT_SENT;

@@ -1694,7 +1694,7 @@ diff_compose (struct DiffEntry *diff_1,
 #endif
 
 
-struct ReferendumEntry *
+static struct ReferendumEntry *
 rfn_create (uint16_t size)
 {
   struct ReferendumEntry *rfn;

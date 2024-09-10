@@ -27,7 +27,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-
+#include "regex_test_lib.h"
 
 /**
  * Struct to hold the tree formed by prefix-combining the regexes.

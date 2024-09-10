@@ -209,7 +209,7 @@ static int etime_is_rel = GNUNET_SYSERR;
 /**
  * Record label for storing delegations
  */
-static char *record_label;
+static const char *record_label;
 
 /**
  * Task run on shutdown.  Cleans up everything.
@@ -270,7 +270,7 @@ handle_intermediate_result (void *cls,
                             struct GNUNET_ABD_Delegation *dd,
                             bool is_bw)
 {
-  char *prefix = "";
+  const char *prefix = "";
   if (is_bw)
     prefix = "Backward -";
   else
@@ -436,8 +436,8 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
  */
 static int
 parse_expiration (const char *expirationstring,
-                  int *etime_is_rel,
-                  uint64_t *etime)
+                  int *etime_is_rel_,
+                  uint64_t *etime_)
 {
   // copied from namestore/gnunet-namestore.c
   struct GNUNET_TIME_Relative etime_rel;
@@ -445,15 +445,15 @@ parse_expiration (const char *expirationstring,
 
   if (0 == strcmp (expirationstring, "never"))
   {
-    *etime = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
-    *etime_is_rel = GNUNET_NO;
+    *etime_ = GNUNET_TIME_UNIT_FOREVER_ABS.abs_value_us;
+    *etime_is_rel_ = GNUNET_NO;
     return GNUNET_OK;
   }
   if (GNUNET_OK ==
       GNUNET_STRINGS_fancy_time_to_relative (expirationstring, &etime_rel))
   {
-    *etime_is_rel = GNUNET_YES;
-    *etime = etime_rel.rel_value_us;
+    *etime_is_rel_ = GNUNET_YES;
+    *etime_ = etime_rel.rel_value_us;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Storing record with relative expiration time of %s\n",
                 GNUNET_STRINGS_relative_time_to_string (etime_rel, GNUNET_NO));
@@ -462,8 +462,8 @@ parse_expiration (const char *expirationstring,
   if (GNUNET_OK ==
       GNUNET_STRINGS_fancy_time_to_absolute (expirationstring, &etime_abs))
   {
-    *etime_is_rel = GNUNET_NO;
-    *etime = etime_abs.abs_value_us;
+    *etime_is_rel_ = GNUNET_NO;
+    *etime_ = etime_abs.abs_value_us;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Storing record with absolute expiration time of %s\n",
                 GNUNET_STRINGS_absolute_time_to_string (etime_abs));
@@ -544,7 +544,7 @@ get_existing_record (void *cls,
 static void
 store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  const struct GNUNET_CONFIGURATION_Handle *cfg_ = cls;
   struct GNUNET_ABD_Delegate *cred;
   struct GNUNET_CRYPTO_PublicKey zone_pubkey;
   char *subject_pubkey_str;
@@ -552,7 +552,7 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
   el = NULL;
 
-  ns = GNUNET_NAMESTORE_connect (cfg);
+  ns = GNUNET_NAMESTORE_connect (cfg_);
   if (NULL == ns)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

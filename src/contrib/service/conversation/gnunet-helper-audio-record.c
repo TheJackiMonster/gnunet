@@ -464,12 +464,12 @@ stream_read_callback (pa_stream *s,
  * Exit callback for SIGTERM and SIGINT
  */
 static void
-exit_signal_callback (pa_mainloop_api *m,
+exit_signal_callback (pa_mainloop_api *m_,
                       pa_signal_event *e,
                       int sig,
                       void *userdata)
 {
-  (void) m;
+  (void) m_;
   (void) e;
   (void) sig;
   (void) userdata;

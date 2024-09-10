@@ -1253,12 +1253,12 @@ GCCH_handle_channel_plaintext_data (
       if ((GNUNET_YES == ch->out_of_order) && (GNUNET_NO == ch->reliable))
       {
         /* possibly shift by more if we skipped messages */
-        uint64_t delta = htonl (msg->mid.mid) - 1 - ntohl (ch->mid_recv.mid);
+        uint64_t d = htonl (msg->mid.mid) - 1 - ntohl (ch->mid_recv.mid);
 
-        if (delta > 63)
+        if (d > 63)
           ch->mid_futures = 0;
         else
-          ch->mid_futures >>= delta;
+          ch->mid_futures >>= d;
         ch->mid_recv.mid = htonl (1 + ntohl (msg->mid.mid));
       }
       send_channel_data_ack (ch);

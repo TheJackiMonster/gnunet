@@ -2164,13 +2164,13 @@ handle_icmp_remote (void *cls,
   }
 
   {
-    char buf[INET6_ADDRSTRLEN];
+    char buf_tmp[INET6_ADDRSTRLEN];
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Received ICMP data from %s for forwarding to %s\n",
                 GNUNET_i2s (&state->peer),
                 inet_ntop (af,
                            &state->specifics.tcp_udp.ri.remote_address.address,
-                           buf, sizeof(buf)));
+                           buf_tmp, sizeof(buf_tmp)));
   }
   send_icmp_packet_via_tun (&state->specifics.tcp_udp.ri.remote_address,
                             &state->specifics.tcp_udp.ri.local_address,

@@ -47,7 +47,8 @@
  * @param cls previously given closure
  */
 typedef void
-  DID_resolve_callback (enum GNUNET_GenericReturnValue status, char *did_document, void *cls);
+  DID_resolve_callback (enum GNUNET_GenericReturnValue status, const char *
+                        did_document, void *cls);
 
 /**
  * @brief Signature of a callback function that is called after a did has been removed
@@ -103,7 +104,7 @@ DID_remove (const struct GNUNET_IDENTITY_Ego *ego,
  * @param ego ego for which the DID should be created.
  * @param did_document did_document that should be saved in namestore.
  * If did_document==NULL -> Default DID document is created.
- * @param expire_time 
+ * @param expire_time
  * @param namestore_handle
  * @param cont callback function
  * @param cls closure

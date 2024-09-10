@@ -1856,7 +1856,7 @@ route_packet (struct DestinationEntry *destination,
       struct GNUNET_EXIT_UdpInternetMessage *uim;
       struct in_addr *ip4dst;
       struct in6_addr *ip6dst;
-      void *payload;
+      void *payload_tmp;
 
       mlen = sizeof(struct GNUNET_EXIT_UdpInternetMessage) + alen
              + payload_length - sizeof(struct GNUNET_TUN_UdpHeader);
@@ -1878,19 +1878,19 @@ route_packet (struct DestinationEntry *destination,
       case AF_INET:
         ip4dst = (struct in_addr *) &uim[1];
         *ip4dst = destination->details.exit_destination.ip.v4;
-        payload = &ip4dst[1];
+        payload_tmp = &ip4dst[1];
         break;
 
       case AF_INET6:
         ip6dst = (struct in6_addr *) &uim[1];
         *ip6dst = destination->details.exit_destination.ip.v6;
-        payload = &ip6dst[1];
+        payload_tmp = &ip6dst[1];
         break;
 
       default:
         GNUNET_assert (0);
       }
-      GNUNET_memcpy (payload,
+      GNUNET_memcpy (payload_tmp,
                      &udp[1],
                      payload_length - sizeof(struct GNUNET_TUN_UdpHeader));
     }
@@ -1926,7 +1926,7 @@ route_packet (struct DestinationEntry *destination,
         struct GNUNET_EXIT_TcpInternetStartMessage *tim;
         struct in_addr *ip4dst;
         struct in6_addr *ip6dst;
-        void *payload;
+        void *payload_tmp;
 
         mlen = sizeof(struct GNUNET_EXIT_TcpInternetStartMessage) + alen
                + payload_length - sizeof(struct GNUNET_TUN_TcpHeader);
@@ -1947,19 +1947,19 @@ route_packet (struct DestinationEntry *destination,
         case AF_INET:
           ip4dst = (struct in_addr *) &tim[1];
           *ip4dst = destination->details.exit_destination.ip.v4;
-          payload = &ip4dst[1];
+          payload_tmp = &ip4dst[1];
           break;
 
         case AF_INET6:
           ip6dst = (struct in6_addr *) &tim[1];
           *ip6dst = destination->details.exit_destination.ip.v6;
-          payload = &ip6dst[1];
+          payload_tmp = &ip6dst[1];
           break;
 
         default:
           GNUNET_assert (0);
         }
-        GNUNET_memcpy (payload,
+        GNUNET_memcpy (payload_tmp,
                        &tcp[1],
                        payload_length - sizeof(struct GNUNET_TUN_TcpHeader));
       }
@@ -2078,7 +2078,7 @@ route_packet (struct DestinationEntry *destination,
       struct GNUNET_EXIT_IcmpInternetMessage *iim;
       struct in_addr *ip4dst;
       struct in6_addr *ip6dst;
-      void *payload;
+      void *payload_tmp;
       uint8_t new_type;
 
       new_type = icmp->type;
@@ -2228,19 +2228,19 @@ route_packet (struct DestinationEntry *destination,
       case AF_INET:
         ip4dst = (struct in_addr *) &iim[1];
         *ip4dst = destination->details.exit_destination.ip.v4;
-        payload = &ip4dst[1];
+        payload_tmp = &ip4dst[1];
         break;
 
       case AF_INET6:
         ip6dst = (struct in6_addr *) &iim[1];
         *ip6dst = destination->details.exit_destination.ip.v6;
-        payload = &ip6dst[1];
+        payload_tmp = &ip6dst[1];
         break;
 
       default:
         GNUNET_assert (0);
       }
-      GNUNET_memcpy (payload,
+      GNUNET_memcpy (payload_tmp,
                      &icmp[1],
                      payload_length - sizeof(struct GNUNET_TUN_IcmpHeader));
     }

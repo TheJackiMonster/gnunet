@@ -97,7 +97,7 @@ DID_did_to_pkey (const char *did, struct GNUNET_CRYPTO_PublicKey *pkey)
 /**
  * @brief Convert a base 64 encoded public key to a GNUNET key
  */
-struct GNUNET_CRYPTO_PublicKey *
+static struct GNUNET_CRYPTO_PublicKey *
 GNUNET_DID_key_convert_multibase_base64_to_gnunet (char *pkey_str)
 {
   return NULL;

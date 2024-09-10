@@ -31,6 +31,7 @@
 #include "gnunet_abd_service.h"
 #include "gnunet_signatures.h"
 #include "abd.h"
+#include "abd_serialization.h"
 
 /**
  * Calculate how many bytes we will need to serialize

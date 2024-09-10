@@ -342,7 +342,7 @@ plan (struct PeerPlan *pp,
  * @param rp plan to investigate
  * @return pending request with highest TTL
  */
-struct GSF_PendingRequest *
+static struct GSF_PendingRequest *
 get_latest (const struct GSF_RequestPlan *rp)
 {
   struct GSF_PendingRequest *ret;

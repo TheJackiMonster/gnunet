@@ -983,7 +983,7 @@ get_all_tunnels_iterator (void *cls,
   msg->channels = htonl (GCT_count_channels (t));
   msg->connections = htonl (GCT_count_any_connections (t));
   msg->cstate = htons (0);
-  msg->estate = htons ((uint16_t) GCT_get_estate (t));
+  msg->estate = htons (GCT_get_estate (t));
   GNUNET_MQ_send (c->mq,
                   env);
   return GNUNET_YES;

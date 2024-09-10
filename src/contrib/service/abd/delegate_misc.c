@@ -32,6 +32,7 @@
 #include "gnunet_signatures.h"
 #include "abd.h"
 #include <inttypes.h>
+#include "delegate_misc.h"
 
 char *
 GNUNET_ABD_delegate_to_string (

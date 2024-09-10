@@ -221,6 +221,8 @@ conversation_number_to_typename (void *cls,
   return name_map[i].name;
 }
 
+void *
+libgnunet_plugin_gnsrecord_conversation_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -242,6 +244,8 @@ libgnunet_plugin_gnsrecord_conversation_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_gnsrecord_conversation_done (void *cls);
 
 /**
  * Exit point from the plugin.

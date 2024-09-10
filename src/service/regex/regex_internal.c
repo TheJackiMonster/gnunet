@@ -1268,7 +1268,8 @@ automaton_create_proofs_simplify (const struct StringBuffer *R_last_ij,
          * (e|a)|(e|a)a*a = a*
          * (e|a)|(e|a)a*(e|a) = a*
          * (e|a)|(e|a)(e|a)*(e|a) = a*
-         */if (GNUNET_YES == needs_parentheses (&R_temp_ij))
+         */
+        if (GNUNET_YES == needs_parentheses (&R_temp_ij))
           sb_printf1 (R_cur_r, "(%.*s)*", 3, &R_temp_ij);
         else
           sb_printf1 (R_cur_r, "%.*s*", 1, &R_temp_ij);
@@ -1281,7 +1282,8 @@ automaton_create_proofs_simplify (const struct StringBuffer *R_last_ij,
          * a|aa*(e|a) = a+
          * a|(e|a)(e|a)*a = a+
          * a|a(e|a)*(e|a) = a+
-         */if (GNUNET_YES == needs_parentheses (&R_temp_ij))
+         */
+        if (GNUNET_YES == needs_parentheses (&R_temp_ij))
           sb_printf1 (R_cur_r, "(%.*s)+", 3, &R_temp_ij);
         else
           sb_printf1 (R_cur_r, "%.*s+", 1, &R_temp_ij);
@@ -1418,7 +1420,8 @@ automaton_create_proofs_simplify (const struct StringBuffer *R_last_ij,
        * aa*(e|a) = a+
        * a(e|a)*(e|a) = a+
        * (e|a)a*a = a+
-       */else
+       */
+      else
       {
         eps_check = (has_epsilon (R_last_ik) + has_epsilon (R_last_kk)
                      + has_epsilon (R_last_kj));
@@ -2222,7 +2225,7 @@ REGEX_INTERNAL_dfa_add_multi_strides (struct REGEX_INTERNAL_Context *regex_ctx,
  * @param transitions_head transitions DLL.
  * @param transitions_tail transitions DLL.
  */
-void
+static void
 dfa_compress_paths_helper (struct REGEX_INTERNAL_Automaton *dfa,
                            struct REGEX_INTERNAL_State *start,
                            struct REGEX_INTERNAL_State *cur,
@@ -2793,7 +2796,7 @@ REGEX_INTERNAL_construct_nfa (const char *regex, const size_t len)
   struct REGEX_INTERNAL_Automaton *nfa;
   const char *regexp;
   char curlabel[2];
-  char *error_msg;
+  const char *error_msg;
   unsigned int count;
   unsigned int altcount;
   unsigned int atomcount;

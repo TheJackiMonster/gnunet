@@ -590,7 +590,7 @@ GCT_count_channels (struct CadetTunnel *t)
  * @param ctn number of channel to find
  * @return NULL if channel does not exist
  */
-struct CadetChannel *
+static struct CadetChannel *
 lookup_channel (struct CadetTunnel *t,
                 struct GNUNET_CADET_ChannelTunnelNumber ctn)
 {

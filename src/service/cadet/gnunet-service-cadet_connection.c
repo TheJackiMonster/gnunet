@@ -585,7 +585,7 @@ GCC_handle_encrypted (struct CadetConnection *cc,
  *
  * @param msg The GNUNET_CADET_ConnectionCreateMessage.
  */
-void
+static void
 set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
 {
 
