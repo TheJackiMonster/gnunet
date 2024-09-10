@@ -185,7 +185,6 @@ EXTRA_DIST = \
   testbed_configs/testbed_supermuc.conf \
   packages/guix/guix.README \
   web/log.php \
-  ci/buildbot/buildbot-update.sh \
   ci/buildbot/ssh-keys \
   ci/buildbot/ssh-config \
   docker/docker-entrypoint.sh \
