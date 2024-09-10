@@ -42,7 +42,7 @@
 
 static struct GNUNET_GNSRECORD_Data *s_rd;
 
-static char *s_name;
+static const char *s_name;
 
 static int res;
 

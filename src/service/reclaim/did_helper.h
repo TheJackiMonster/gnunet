@@ -48,12 +48,6 @@ DID_identity_to_did (struct GNUNET_IDENTITY_Ego *ego);
 enum GNUNET_GenericReturnValue
 DID_did_to_pkey (const char *did, struct GNUNET_CRYPTO_PublicKey *pkey);
 
-// /**
-//  * @brief Convert a base 64 encoded public key to a GNUNET key
-//  */
-// struct GNUNET_CRYPTO_PublicKey *
-// GNUNET_DID_key_convert_multibase_base64_to_gnunet(char *);
-
 /**
  * @brief Convert GNUNET key to a base 64 encoded public key
  */

@@ -33,18 +33,18 @@
 #include <inttypes.h>
 
 
-static char *d_pkey =
+static const char *d_pkey =
   "50d7b652a4efeadff37396909785e5952171a02178c8e7d450fa907925fafd98";
 
-static char *d_edkey =
+static const char *d_edkey =
   "5af7020ee19160328832352bbc6a68a8d71a7cbe1b929969a7c66d415a0d8f65";
 
 
 static int
-parsehex (char *src, char *dst, size_t dstlen, int invert)
+parsehex (const char *src, char *dst, size_t dstlen, int invert)
 {
-  char *line = src;
-  char *data = line;
+  const char *line = src;
+  const char *data = line;
   int off;
   int read_byte;
   int data_len = 0;

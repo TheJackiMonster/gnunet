@@ -63,7 +63,7 @@ static struct GNUNET_CRYPTO_PublicKey test_pkey;
 static struct json_t *test_did_document;
 static char *test_did_document_str;
 
-void
+static void
 test_GNUNET_DID_pkey_to_did ()
 {
   char *str_did;
@@ -72,7 +72,7 @@ test_GNUNET_DID_pkey_to_did ()
   GNUNET_free (str_did);
 }
 
-void
+static void
 test_GNUNET_DID_did_to_pkey ()
 {
   struct GNUNET_CRYPTO_PublicKey pkey;
@@ -84,10 +84,7 @@ test_GNUNET_DID_did_to_pkey ()
                          sizeof (test_pkey.eddsa_key)) == 0);
 }
 
-// void
-// test_GNUNET_DID_key_convert_multibase_base64_to_gnunet ();
-
-void
+static void
 test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
 {
   char *multibase_key;
@@ -97,7 +94,7 @@ test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
   GNUNET_free (multibase_key);
 }
 
-void
+static void
 test_GNUNET_DID_pkey_to_did_document ()
 {
   struct json_t *did_document;

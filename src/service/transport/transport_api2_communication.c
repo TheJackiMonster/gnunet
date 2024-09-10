@@ -784,12 +784,12 @@ check_start_burst (void *cls,
                    const struct GNUNET_TRANSPORT_StartBurst *sb)
 {
   (void) cls;
-  const char *str = (const char *) &sb[1];
+  const char *addr_str = (const char *) &sb[1];
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_start_burst %s %lu\n",
-              str,
-              strlen (str));
+              addr_str,
+              strlen (addr_str));
   GNUNET_MQ_check_zero_termination (sb);
   return GNUNET_OK;
 }

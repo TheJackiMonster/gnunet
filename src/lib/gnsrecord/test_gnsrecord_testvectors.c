@@ -11,24 +11,24 @@ struct GnsTv
 {
   uint32_t expected_rd_count;
   struct GNUNET_GNSRECORD_Data expected_rd[2048];
-  char *d;
-  char *zid;
-  char *ztld;
-  char *label;
-  char *q;
-  char *rdata;
-  char *rrblock;
-  char *k;
-  char *nonce;
+  const char *d;
+  const char *zid;
+  const char *ztld;
+  const char *label;
+  const char *q;
+  const char *rdata;
+  const char *rrblock;
+  const char *k;
+  const char *nonce;
 };
 
 struct RevocationTv
 {
-  char *d;
-  char *zid;
-  char *ztld;
-  char *m;
-  char *proof;
+  const char *d;
+  const char *zid;
+  const char *ztld;
+  const char *m;
+  const char *proof;
   int diff;
   int epochs;
 };
@@ -437,8 +437,8 @@ print_bytes (void *buf,
 }
 
 
-int
-parsehex (char *src, char *dst, size_t dstlen, int invert)
+static int
+parsehex (const char *src, char *dst, size_t dstlen, int invert)
 {
   int off;
   int read_byte;
@@ -468,7 +468,7 @@ parsehex (char *src, char *dst, size_t dstlen, int invert)
 }
 
 
-void
+static void
 res_checker (void *cls,
              unsigned int rd_count, const struct GNUNET_GNSRECORD_Data *rd)
 {
@@ -525,7 +525,7 @@ res_checker (void *cls,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 check_derivations_edkey (const char*label,
                          struct GNUNET_TIME_Absolute expire,
                          struct GNUNET_CRYPTO_PublicKey *pub,
@@ -563,7 +563,7 @@ check_derivations_edkey (const char*label,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 check_derivations_pkey (const char*label,
                         struct GNUNET_TIME_Absolute expire,
                         struct GNUNET_CRYPTO_PublicKey *pub,

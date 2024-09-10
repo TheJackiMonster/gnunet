@@ -59,6 +59,19 @@ check ()
   struct GNUNET_CONTAINER_HeapNode *n7;
   struct GNUNET_CONTAINER_HeapNode *n8;
   const char *r;
+  char val11[] = "11";
+  char val10[] = "10";
+  char val20[] = "20";
+  char val30[] = "30";
+  char val40[] = "40";
+  char val50[] = "50";
+  char val60[] = "60";
+  char val70[] = "70";
+  char val80[] = "80";
+  char val100[] = "100";
+  char val78[] = "78";
+  char val15[] = "15";
+  char val30div200[] = "30/200";
 
   myHeap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
 
@@ -74,7 +87,7 @@ check ()
   n1 = GNUNET_CONTAINER_heap_walk_get_next (myHeap);
   GNUNET_assert (NULL == n1);
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "11", 11);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val11, 11);
   GNUNET_assert (NULL != n1);
 
 
@@ -90,24 +103,24 @@ check ()
 
   GNUNET_CONTAINER_heap_iterate (myHeap, &iterator_callback, NULL);
   GNUNET_assert (1 == GNUNET_CONTAINER_heap_get_size (myHeap));
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "78", 78);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val78, 78);
   GNUNET_assert (2 == GNUNET_CONTAINER_heap_get_size (myHeap));
   GNUNET_assert (0 == strcmp ("78", GNUNET_CONTAINER_heap_remove_node (n2)));
   GNUNET_assert (1 == GNUNET_CONTAINER_heap_get_size (myHeap));
   GNUNET_CONTAINER_heap_iterate (myHeap, &iterator_callback, NULL);
 
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "15", 5);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val15, 5);
   GNUNET_CONTAINER_heap_update_cost (n3, 15);
   GNUNET_assert (2 == GNUNET_CONTAINER_heap_get_size (myHeap));
   GNUNET_CONTAINER_heap_iterate (myHeap, &iterator_callback, NULL);
 
-  n4 = GNUNET_CONTAINER_heap_insert (myHeap, "50", 50);
+  n4 = GNUNET_CONTAINER_heap_insert (myHeap, val50, 50);
   GNUNET_CONTAINER_heap_update_cost (n4, 50);
   GNUNET_assert (3 == GNUNET_CONTAINER_heap_get_size (myHeap));
   GNUNET_CONTAINER_heap_iterate (myHeap, &iterator_callback, NULL);
 
-  n5 = GNUNET_CONTAINER_heap_insert (myHeap, "100", 100);
-  n6 = GNUNET_CONTAINER_heap_insert (myHeap, "30/200", 30);
+  n5 = GNUNET_CONTAINER_heap_insert (myHeap, val100, 100);
+  n6 = GNUNET_CONTAINER_heap_insert (myHeap, val30div200, 30);
   GNUNET_assert (5 == GNUNET_CONTAINER_heap_get_size (myHeap));
   GNUNET_CONTAINER_heap_remove_node (n5);
   r = GNUNET_CONTAINER_heap_remove_root (myHeap);        /* n1 */
@@ -131,15 +144,15 @@ check ()
 
   myHeap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
   GNUNET_CONTAINER_heap_update_cost (n1, 15);
 
   r = GNUNET_CONTAINER_heap_remove_node (n1);
   GNUNET_assert (NULL != r);
   GNUNET_assert (0 == strcmp ("10", r));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
 
   GNUNET_CONTAINER_heap_walk_get_next (myHeap);
   r = GNUNET_CONTAINER_heap_remove_node (n2);
@@ -149,9 +162,9 @@ check ()
   GNUNET_assert (NULL != r);
   GNUNET_assert (0 == strcmp ("10", r));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 10);
 
   GNUNET_CONTAINER_heap_remove_node (n2);
   GNUNET_CONTAINER_heap_remove_node (n1);
@@ -159,9 +172,9 @@ check ()
   GNUNET_assert (NULL != r);
   GNUNET_assert (0 == strcmp ("30", r));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 10);
 
   GNUNET_CONTAINER_heap_remove_node (n2);
   GNUNET_CONTAINER_heap_remove_node (n1);
@@ -169,9 +182,9 @@ check ()
   GNUNET_assert (NULL != r);
   GNUNET_assert (0 == strcmp ("30", r));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 20);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 30);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 20);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 30);
 
   GNUNET_assert (0 == nstrcmp ("20", GNUNET_CONTAINER_heap_remove_node (n2)));
   GNUNET_assert (0 ==
@@ -179,16 +192,16 @@ check ()
   GNUNET_assert (0 ==
                  nstrcmp ("30", GNUNET_CONTAINER_heap_remove_root (myHeap)));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 20);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 30);
-  n4 = GNUNET_CONTAINER_heap_insert (myHeap, "40", 40);
-  n5 = GNUNET_CONTAINER_heap_insert (myHeap, "50", 50);
-  n6 = GNUNET_CONTAINER_heap_insert (myHeap, "60", 60);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 20);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 30);
+  n4 = GNUNET_CONTAINER_heap_insert (myHeap, val40, 40);
+  n5 = GNUNET_CONTAINER_heap_insert (myHeap, val50, 50);
+  n6 = GNUNET_CONTAINER_heap_insert (myHeap, val60, 60);
 
   // Inserting nodes deeper in the tree with lower costs
-  n7 = GNUNET_CONTAINER_heap_insert (myHeap, "70", 10);
-  n8 = GNUNET_CONTAINER_heap_insert (myHeap, "80", 10);
+  n7 = GNUNET_CONTAINER_heap_insert (myHeap, val70, 10);
+  n8 = GNUNET_CONTAINER_heap_insert (myHeap, val80, 10);
 
   GNUNET_assert (0 == nstrcmp ("30", GNUNET_CONTAINER_heap_remove_node (n3)));
 
@@ -216,45 +229,45 @@ check ()
 
   myHeap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MAX);
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
   GNUNET_CONTAINER_heap_update_cost (n1, 15);
 
   GNUNET_assert (0 == nstrcmp ("10", GNUNET_CONTAINER_heap_remove_node (n1)));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
 
   GNUNET_CONTAINER_heap_walk_get_next (myHeap);
   GNUNET_assert (0 == nstrcmp ("20", GNUNET_CONTAINER_heap_remove_node (n2)));
   GNUNET_assert (0 == nstrcmp ("10", GNUNET_CONTAINER_heap_remove_node (n1)));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 10);
 
   GNUNET_CONTAINER_heap_remove_node (n2);
   GNUNET_CONTAINER_heap_remove_node (n1);
   GNUNET_assert (0 ==
                  nstrcmp ("30", GNUNET_CONTAINER_heap_remove_root (myHeap)));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 10);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 10);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 10);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 10);
 
   GNUNET_CONTAINER_heap_remove_node (n2);
   GNUNET_CONTAINER_heap_remove_node (n1);
   GNUNET_assert (0 == nstrcmp ("30", GNUNET_CONTAINER_heap_remove_node (n3)));
 
-  n1 = GNUNET_CONTAINER_heap_insert (myHeap, "10", 10);
-  n2 = GNUNET_CONTAINER_heap_insert (myHeap, "20", 20);
-  n3 = GNUNET_CONTAINER_heap_insert (myHeap, "30", 30);
-  n4 = GNUNET_CONTAINER_heap_insert (myHeap, "40", 40);
-  n5 = GNUNET_CONTAINER_heap_insert (myHeap, "50", 50);
-  n6 = GNUNET_CONTAINER_heap_insert (myHeap, "60", 60);
+  n1 = GNUNET_CONTAINER_heap_insert (myHeap, val10, 10);
+  n2 = GNUNET_CONTAINER_heap_insert (myHeap, val20, 20);
+  n3 = GNUNET_CONTAINER_heap_insert (myHeap, val30, 30);
+  n4 = GNUNET_CONTAINER_heap_insert (myHeap, val40, 40);
+  n5 = GNUNET_CONTAINER_heap_insert (myHeap, val50, 50);
+  n6 = GNUNET_CONTAINER_heap_insert (myHeap, val60, 60);
 
   // Inserting nodes deeper in the tree with lower costs
-  n7 = GNUNET_CONTAINER_heap_insert (myHeap, "70", 10);
-  n8 = GNUNET_CONTAINER_heap_insert (myHeap, "80", 10);
+  n7 = GNUNET_CONTAINER_heap_insert (myHeap, val70, 10);
+  n8 = GNUNET_CONTAINER_heap_insert (myHeap, val80, 10);
 
   GNUNET_assert (0 == nstrcmp ("30", GNUNET_CONTAINER_heap_remove_node (n3)));
 

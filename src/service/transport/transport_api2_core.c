@@ -336,9 +336,11 @@ mq_send_impl (struct GNUNET_MQ_Handle *mq,
   n->env_size = ntohs (msg->size);
   {
     struct GNUNET_MQ_Envelope *env;
+    enum GNUNET_MQ_PriorityPreferences prio;
 
     env = GNUNET_MQ_get_current_envelope (mq);
-    obm->priority = htonl ((uint32_t) GNUNET_MQ_env_get_options (env));
+    prio = GNUNET_MQ_env_get_options (env);
+    obm->priority = htonl ((uint32_t) prio);
   }
   obm->peer = n->id;
   if (0 == n->ready_window)

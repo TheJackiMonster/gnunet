@@ -59,6 +59,9 @@ struct GNUNET_GNS_Protocol GNUNET_GNS_Protocols[] = {
 };
 
 uint16_t
+GNUNET_GNS_protocol_name_to_number (const char *name);
+
+uint16_t
 GNUNET_GNS_protocol_name_to_number (const char *name)
 {
   int i = 0;
@@ -71,6 +74,8 @@ GNUNET_GNS_protocol_name_to_number (const char *name)
   return 0;
 }
 
+const char*
+GNUNET_GNS_protocol_number_to_name (uint16_t number);
 
 const char*
 GNUNET_GNS_protocol_number_to_name (uint16_t number)

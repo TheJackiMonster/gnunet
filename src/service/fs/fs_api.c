@@ -1462,27 +1462,29 @@ GNUNET_FS_file_information_sync_ (struct GNUNET_FS_FileInformation *fi)
     if ((NULL != fi->data.dir.entries) &&
         (NULL == fi->data.dir.entries->serialization))
       GNUNET_FS_file_information_sync_ (fi->data.dir.entries);
-    struct GNUNET_BIO_WriteSpec ws[] = {
-      GNUNET_BIO_write_spec_int32 ("dir size",
-                                   (int32_t *) &fi->data.dir.dir_size),
-      GNUNET_BIO_write_spec_int64 (
-        "contents completed",
-        (int64_t *) &fi->data.dir.contents_completed),
-      GNUNET_BIO_write_spec_int64 ("contents size",
-                                   (int64_t *) &fi->data.dir.contents_size),
-      GNUNET_BIO_write_spec_object ("dir data",
-                                    fi->data.dir.dir_data,
-                                    (uint32_t) fi->data.dir.dir_size),
-      GNUNET_BIO_write_spec_string ("dir entries",
-                                    (fi->data.dir.entries == NULL)
+    {
+      struct GNUNET_BIO_WriteSpec ws[] = {
+        GNUNET_BIO_write_spec_int32 ("dir size",
+                                     (int32_t *) &fi->data.dir.dir_size),
+        GNUNET_BIO_write_spec_int64 (
+          "contents completed",
+          (int64_t *) &fi->data.dir.contents_completed),
+        GNUNET_BIO_write_spec_int64 ("contents size",
+                                     (int64_t *) &fi->data.dir.contents_size),
+        GNUNET_BIO_write_spec_object ("dir data",
+                                      fi->data.dir.dir_data,
+                                      (uint32_t) fi->data.dir.dir_size),
+        GNUNET_BIO_write_spec_string ("dir entries",
+                                      (fi->data.dir.entries == NULL)
                                     ? NULL
                                     : fi->data.dir.entries->serialization),
-      GNUNET_BIO_write_spec_end (),
-    };
-    if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)))
-    {
-      GNUNET_break (0);
-      goto cleanup;
+        GNUNET_BIO_write_spec_end (),
+      };
+      if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)))
+      {
+        GNUNET_break (0);
+        goto cleanup;
+      }
     }
     break;
 
@@ -1633,22 +1635,24 @@ deserialize_publish_file (void *cls, const char *filename)
     GNUNET_break (0);
     goto cleanup;
   }
-  struct GNUNET_BIO_ReadSpec rs[] = {
-    GNUNET_BIO_read_spec_string ("publish-nid", &pc->nid, 1024),
-    GNUNET_BIO_read_spec_string ("publish-nuid", &pc->nuid, 1024),
-    GNUNET_BIO_read_spec_int32 ("options", &options),
-    GNUNET_BIO_read_spec_int32 ("all done", &all_done),
-    GNUNET_BIO_read_spec_int32 ("have ns", &have_ns),
-    GNUNET_BIO_read_spec_string ("publish-firoot", &fi_root, 128),
-    GNUNET_BIO_read_spec_string ("publish-fipos", &fi_pos, 128),
-    GNUNET_BIO_read_spec_end (),
-  };
-  if ((GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs)) ||
-      ((GNUNET_YES == have_ns) &&
-       (GNUNET_OK != GNUNET_BIO_read (rh, "publish-ns", &ns, sizeof(ns)))))
   {
-    GNUNET_break (0);
-    goto cleanup;
+    struct GNUNET_BIO_ReadSpec rs[] = {
+      GNUNET_BIO_read_spec_string ("publish-nid", &pc->nid, 1024),
+      GNUNET_BIO_read_spec_string ("publish-nuid", &pc->nuid, 1024),
+      GNUNET_BIO_read_spec_int32 ("options", &options),
+      GNUNET_BIO_read_spec_int32 ("all done", &all_done),
+      GNUNET_BIO_read_spec_int32 ("have ns", &have_ns),
+      GNUNET_BIO_read_spec_string ("publish-firoot", &fi_root, 128),
+      GNUNET_BIO_read_spec_string ("publish-fipos", &fi_pos, 128),
+      GNUNET_BIO_read_spec_end (),
+    };
+    if ((GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs)) ||
+        ((GNUNET_YES == have_ns) &&
+         (GNUNET_OK != GNUNET_BIO_read (rh, "publish-ns", &ns, sizeof(ns)))))
+    {
+      GNUNET_break (0);
+      goto cleanup;
+    }
   }
   pc->options = options;
   pc->all_done = all_done;
@@ -1770,28 +1774,30 @@ GNUNET_FS_publish_sync_ (struct GNUNET_FS_PublishContext *pc)
     goto cleanup;
   }
   have_ns = (NULL != pc->ns) ? GNUNET_YES : GNUNET_NO;
-  struct GNUNET_BIO_WriteSpec ws[] = {
-    GNUNET_BIO_write_spec_string ("nid", pc->nid),
-    GNUNET_BIO_write_spec_string ("nuid", pc->nuid),
-    GNUNET_BIO_write_spec_int32 ("options", (int32_t *) &pc->options),
-    GNUNET_BIO_write_spec_int32 ("all done", &pc->all_done),
-    GNUNET_BIO_write_spec_int32 ("have ns", &have_ns),
-    GNUNET_BIO_write_spec_string ("serialization", pc->fi->serialization),
-    GNUNET_BIO_write_spec_string ("pos serialization", (NULL == pc->fi_pos)
+  {
+    struct GNUNET_BIO_WriteSpec ws[] = {
+      GNUNET_BIO_write_spec_string ("nid", pc->nid),
+      GNUNET_BIO_write_spec_string ("nuid", pc->nuid),
+      GNUNET_BIO_write_spec_int32 ("options", (int32_t *) &pc->options),
+      GNUNET_BIO_write_spec_int32 ("all done", &pc->all_done),
+      GNUNET_BIO_write_spec_int32 ("have ns", &have_ns),
+      GNUNET_BIO_write_spec_string ("serialization", pc->fi->serialization),
+      GNUNET_BIO_write_spec_string ("pos serialization", (NULL == pc->fi_pos)
                                   ? NULL
                                   : pc->fi_pos->serialization),
-    GNUNET_BIO_read_spec_end ()
-  };
-  if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)) ||
-      ((NULL != pc->ns) &&
-       (GNUNET_OK !=
-        GNUNET_BIO_write (wh,
-                          "ns",
-                          pc->ns,
-                          sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey)))))
-  {
-    GNUNET_break (0);
-    goto cleanup;
+      GNUNET_BIO_read_spec_end ()
+    };
+    if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)) ||
+        ((NULL != pc->ns) &&
+         (GNUNET_OK !=
+          GNUNET_BIO_write (wh,
+                            "ns",
+                            pc->ns,
+                            sizeof(struct GNUNET_CRYPTO_EcdsaPrivateKey)))))
+    {
+      GNUNET_break (0);
+      goto cleanup;
+    }
   }
   if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))
   {
@@ -1842,32 +1848,34 @@ GNUNET_FS_unindex_sync_ (struct GNUNET_FS_UnindexContext *uc)
     uris = GNUNET_FS_uri_to_string (uc->ksk_uri);
   else
     uris = NULL;
-  struct GNUNET_BIO_WriteSpec ws1[] = {
-    GNUNET_BIO_write_spec_string ("filename", uc->filename),
-    GNUNET_BIO_write_spec_int64 ("file size", (int64_t *) &uc->file_size),
-    GNUNET_BIO_write_spec_end (),
-  };
-  struct GNUNET_BIO_WriteSpec ws2[] = {
-    GNUNET_BIO_write_spec_int32 ("state", (int32_t *) &uc->state),
-    GNUNET_BIO_write_spec_object ("hashkey", &uc->chk,
-                                  sizeof (struct ContentHashKey)),
-    GNUNET_BIO_write_spec_string ("uris", uris),
-    GNUNET_BIO_write_spec_int32 ("ksk offset", (int32_t *) &uc->ksk_offset),
-    GNUNET_BIO_write_spec_end (),
-  };
-  if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws1)) ||
-      (GNUNET_OK != write_start_time (wh, uc->start_time)) ||
-      (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws2)) ||
-      ((uc->state == UNINDEX_STATE_FS_NOTIFY) &&
-       (GNUNET_OK != GNUNET_BIO_write (wh,
-                                       "file id",
-                                       &uc->file_id,
-                                       sizeof(struct GNUNET_HashCode)))) ||
-      ((uc->state == UNINDEX_STATE_ERROR) &&
-       (GNUNET_OK != GNUNET_BIO_write_string (wh, "emsg", uc->emsg))))
   {
-    GNUNET_break (0);
-    goto cleanup;
+    struct GNUNET_BIO_WriteSpec ws1[] = {
+      GNUNET_BIO_write_spec_string ("filename", uc->filename),
+      GNUNET_BIO_write_spec_int64 ("file size", (int64_t *) &uc->file_size),
+      GNUNET_BIO_write_spec_end (),
+    };
+    struct GNUNET_BIO_WriteSpec ws2[] = {
+      GNUNET_BIO_write_spec_int32 ("state", (int32_t *) &uc->state),
+      GNUNET_BIO_write_spec_object ("hashkey", &uc->chk,
+                                    sizeof (struct ContentHashKey)),
+      GNUNET_BIO_write_spec_string ("uris", uris),
+      GNUNET_BIO_write_spec_int32 ("ksk offset", (int32_t *) &uc->ksk_offset),
+      GNUNET_BIO_write_spec_end (),
+    };
+    if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws1)) ||
+        (GNUNET_OK != write_start_time (wh, uc->start_time)) ||
+        (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws2)) ||
+        ((uc->state == UNINDEX_STATE_FS_NOTIFY) &&
+         (GNUNET_OK != GNUNET_BIO_write (wh,
+                                         "file id",
+                                         &uc->file_id,
+                                         sizeof(struct GNUNET_HashCode)))) ||
+        ((uc->state == UNINDEX_STATE_ERROR) &&
+         (GNUNET_OK != GNUNET_BIO_write_string (wh, "emsg", uc->emsg))))
+    {
+      GNUNET_break (0);
+      goto cleanup;
+    }
   }
   if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))
   {
@@ -2175,33 +2183,35 @@ GNUNET_FS_search_result_sync_ (struct GNUNET_FS_SearchResult *sr)
     goto cleanup;
   }
   uris = GNUNET_FS_uri_to_string (sr->uri);
-  struct GNUNET_BIO_WriteSpec ws[] = {
-    GNUNET_BIO_write_spec_string ("uris", uris),
-    GNUNET_BIO_write_spec_string ("download serialization",
-                                  (sr->download != NULL)
+  {
+    struct GNUNET_BIO_WriteSpec ws[] = {
+      GNUNET_BIO_write_spec_string ("uris", uris),
+      GNUNET_BIO_write_spec_string ("download serialization",
+                                    (sr->download != NULL)
                                   ? sr->download->serialization
                                   : NULL),
-    GNUNET_BIO_write_spec_string ("update search serialization",
-                                  (sr->update_search != NULL)
+      GNUNET_BIO_write_spec_string ("update search serialization",
+                                    (sr->update_search != NULL)
                                   ? sr->update_search->serialization
                                   : NULL),
-    GNUNET_FS_write_spec_meta_data ("metadata", sr->meta),
-    GNUNET_BIO_write_spec_object ("key", &sr->key,
-                                  sizeof(struct GNUNET_HashCode)),
-    GNUNET_BIO_write_spec_int32 ("mandatory missing",
-                                 (int32_t *) &sr->mandatory_missing),
-    GNUNET_BIO_write_spec_int32 ("optional support",
-                                 (int32_t *) &sr->optional_support),
-    GNUNET_BIO_write_spec_int32 ("availability success",
-                                 (int32_t *) &sr->availability_success),
-    GNUNET_BIO_write_spec_int32 ("availability trials",
-                                 (int32_t *) &sr->availability_trials),
-    GNUNET_BIO_write_spec_end (),
-  };
-  if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)))
-  {
-    GNUNET_break (0);
-    goto cleanup;
+      GNUNET_FS_write_spec_meta_data ("metadata", sr->meta),
+      GNUNET_BIO_write_spec_object ("key", &sr->key,
+                                    sizeof(struct GNUNET_HashCode)),
+      GNUNET_BIO_write_spec_int32 ("mandatory missing",
+                                   (int32_t *) &sr->mandatory_missing),
+      GNUNET_BIO_write_spec_int32 ("optional support",
+                                   (int32_t *) &sr->optional_support),
+      GNUNET_BIO_write_spec_int32 ("availability success",
+                                   (int32_t *) &sr->availability_success),
+      GNUNET_BIO_write_spec_int32 ("availability trials",
+                                   (int32_t *) &sr->availability_trials),
+      GNUNET_BIO_write_spec_end (),
+    };
+    if ((GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws)))
+    {
+      GNUNET_break (0);
+      goto cleanup;
+    }
   }
   if ((NULL != sr->uri) && (GNUNET_FS_URI_KSK == sr->sc->uri->type) &&
       (GNUNET_OK !=
