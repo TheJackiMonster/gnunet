@@ -39,6 +39,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "nat_stun.h"
+#include "gnunet-service-nat_stun.h"
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "stun", __VA_ARGS__)
 

@@ -1032,6 +1032,8 @@ database_connect (struct Plugin *plugin)
   return GNUNET_OK;
 }
 
+void *
+libgnunet_plugin_namestore_sqlite_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -1073,6 +1075,8 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_namestore_sqlite_done (void *cls);
 
 /**
  * Exit point from the plugin.

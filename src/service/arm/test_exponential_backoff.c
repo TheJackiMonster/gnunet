@@ -412,16 +412,16 @@ check ()
 static int
 init (void)
 {
-  struct GNUNET_CONFIGURATION_Handle *cfg;
+  struct GNUNET_CONFIGURATION_Handle *cfg_;
   char pwd[PATH_MAX];
   char *binary;
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg_ = GNUNET_CONFIGURATION_create ();
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_parse (cfg,
+      GNUNET_CONFIGURATION_parse (cfg_,
                                   "test_arm_api_data.conf"))
   {
-    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_CONFIGURATION_destroy (cfg_);
     return GNUNET_SYSERR;
   }
   if (NULL == getcwd (pwd,
@@ -431,19 +431,19 @@ init (void)
                                       "%s/%s",
                                       pwd,
                                       BINARY));
-  GNUNET_CONFIGURATION_set_value_string (cfg,
+  GNUNET_CONFIGURATION_set_value_string (cfg_,
                                          SERVICE,
                                          "BINARY",
                                          binary);
   GNUNET_free (binary);
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_write (cfg,
+      GNUNET_CONFIGURATION_write (cfg_,
                                   CFGFILENAME))
   {
-    GNUNET_CONFIGURATION_destroy (cfg);
+    GNUNET_CONFIGURATION_destroy (cfg_);
     return GNUNET_SYSERR;
   }
-  GNUNET_CONFIGURATION_destroy (cfg);
+  GNUNET_CONFIGURATION_destroy (cfg_);
 
 #if LOG_BACKOFF
   killLogFileName = GNUNET_DISK_mktemp ("exponential-backoff-waiting.log");

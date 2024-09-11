@@ -113,9 +113,11 @@ GNUNET_SERVICE_MAIN ("do-nothing",
                                               NULL),
                      GNUNET_MQ_handler_end ());
 
+void
+GNUNET_mockup_done (void);
 
 void __attribute__ ((destructor))
-GNUNET_mockup_done ()
+GNUNET_mockup_done (void)
 {
   _exit (special_ret);
 }

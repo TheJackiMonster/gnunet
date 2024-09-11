@@ -236,7 +236,7 @@ main (int argc, char *argv[])
   /*check  GNUNET_TIME_absolute_max */
   GNUNET_assert (now.abs_value_us ==
                  GNUNET_TIME_absolute_max (now, last).abs_value_us);
-  for (unsigned int i = 0; i < 30; i++)
+  for (i = 0; i < 30; i++)
   {
     struct GNUNET_CONFIGURATION_Handle *cfg;
 

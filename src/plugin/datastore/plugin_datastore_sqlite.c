@@ -1299,6 +1299,8 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
   *estimate = pages * page_size;
 }
 
+void *
+libgnunet_plugin_datastore_sqlite_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -1339,6 +1341,8 @@ libgnunet_plugin_datastore_sqlite_init (void *cls)
   return api;
 }
 
+void *
+libgnunet_plugin_datastore_sqlite_done (void *cls);
 
 /**
  * Exit point from the plugin.

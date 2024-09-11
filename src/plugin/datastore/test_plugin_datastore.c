@@ -292,7 +292,6 @@ static void
 test (void *cls)
 {
   struct CpsRunContext *crc = cls;
-  struct GNUNET_HashCode key;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "In phase %d, iteration %u\n", crc->phase, crc->cnt);
@@ -310,26 +309,28 @@ test (void *cls)
     break;
 
   case RP_GET:
-    if (crc->cnt == 1)
     {
-      crc->cnt = 0;
-      crc->phase++;
-      GNUNET_SCHEDULER_add_now (&test, crc);
+      struct GNUNET_HashCode key;
+      if (crc->cnt == 1)
+      {
+        crc->cnt = 0;
+        crc->phase++;
+        GNUNET_SCHEDULER_add_now (&test, crc);
+        break;
+      }
+      gen_key (5, &key);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Looking for %s\n",
+                  GNUNET_h2s (&key));
+      crc->api->get_key (crc->api->cls,
+                         0,
+                         false,
+                         &key,
+                         GNUNET_BLOCK_TYPE_ANY,
+                         &iterate_one_shot,
+                         crc);
       break;
     }
-    gen_key (5, &key);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Looking for %s\n",
-                GNUNET_h2s (&key));
-    crc->api->get_key (crc->api->cls,
-                       0,
-                       false,
-                       &key,
-                       GNUNET_BLOCK_TYPE_ANY,
-                       &iterate_one_shot,
-                       crc);
-    break;
-
   case RP_ITER_ZERO:
     if (crc->cnt == 1)
     {
@@ -366,7 +367,6 @@ test (void *cls)
                             crc);
       break;
     }
-
   case RP_DROP:
     crc->api->drop (crc->api->cls);
     GNUNET_SCHEDULER_add_now (&cleaning_task, crc);

@@ -201,9 +201,9 @@ main (int argc, char *av[])
 #if HAVE_GETADDRINFO
   {
     struct addrinfo *ai;
-    int ret;
+    int retval;
 
-    if (0 != (ret = getaddrinfo (hostname, NULL, NULL, &ai)))
+    if (0 != (retval = getaddrinfo (hostname, NULL, NULL, &ai)))
     {
       fprintf (stderr,
                "Failed to resolve `%s', testcase not run.\n",

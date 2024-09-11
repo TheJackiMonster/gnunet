@@ -72,7 +72,7 @@ handle_recv (void *cls,
 static void *
 connect_cb (void *cls,
             struct GNUNET_SERVICE_Client *c,
-            struct GNUNET_MQ_Handle *mq)
+            struct GNUNET_MQ_Handle *mq_)
 {
   /* FIXME: in the future, do something with mq
      to test sending messages to the client! */

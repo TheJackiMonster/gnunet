@@ -852,6 +852,8 @@ heap_plugin_remove_key (void *cls,
         NULL);
 }
 
+void *
+libgnunet_plugin_datastore_heap_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -917,6 +919,8 @@ free_value (void *cls,
   return GNUNET_OK;
 }
 
+void *
+libgnunet_plugin_datastore_heap_done (void *cls);
 
 /**
  * Exit point from the plugin.

@@ -141,7 +141,7 @@ modify_request (void *cls,
   unsigned int i;
   char *buf;
   size_t len;
-  int ret;
+  int retval;
 
   p = GNUNET_DNSPARSER_parse (request, request_length);
   if (NULL == p)
@@ -153,11 +153,11 @@ modify_request (void *cls,
   for (i = 0; i < p->num_answers; i++)
     modify_record (&p->answers[i]);
   buf = NULL;
-  ret = GNUNET_DNSPARSER_pack (p, 1024, &buf, &len);
+  retval = GNUNET_DNSPARSER_pack (p, 1024, &buf, &len);
   GNUNET_DNSPARSER_free_packet (p);
-  if (GNUNET_OK != ret)
+  if (GNUNET_OK != retval)
   {
-    if (GNUNET_NO == ret)
+    if (GNUNET_NO == retval)
       fprintf (stderr,
                "Modified DNS response did not fit, keeping old response\n");
     else

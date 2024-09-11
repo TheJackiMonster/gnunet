@@ -815,6 +815,15 @@ GNUNET_RECLAIM_presentation_string_to_value (uint32_t type,
 const char *
 GNUNET_RECLAIM_presentation_number_to_typename (uint32_t type);
 
+/**
+ * Convert an presentation type name to the corresponding number
+ *
+ * @param typename name to convert
+ * @return corresponding number, UINT32_MAX on error
+ */
+uint32_t
+GNUNET_RECLAIM_presentation_typename_to_number (const char *typename);
+
 struct GNUNET_RECLAIM_AttributeList*
 GNUNET_RECLAIM_presentation_get_attributes (const struct
                                            GNUNET_RECLAIM_Presentation *cred);
@@ -829,6 +838,14 @@ GNUNET_RECLAIM_presentation_get_expiration (const struct
                                            struct GNUNET_TIME_Absolute *exp);
 
 
+/**
+ * Make a (deep) copy of the presentation list
+ * @param attrs claim list to copy
+ * @return copied claim list
+ */
+struct GNUNET_RECLAIM_PresentationList *
+GNUNET_RECLAIM_presentation_list_dup (
+  const struct GNUNET_RECLAIM_PresentationList *al);
 
 /**
  * Create a presentation from a credential and a lift of (selected)
@@ -848,6 +865,9 @@ GNUNET_RECLAIM_credential_get_presentation (
                               const struct GNUNET_RECLAIM_AttributeList *attrs,
                               struct GNUNET_RECLAIM_Presentation **presentation);
 
+struct GNUNET_RECLAIM_CredentialList *
+GNUNET_RECLAIM_credential_list_dup (
+  const struct GNUNET_RECLAIM_CredentialList *al);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

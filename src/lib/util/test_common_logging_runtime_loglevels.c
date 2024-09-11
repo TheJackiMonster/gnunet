@@ -99,7 +99,7 @@ end_task (void *cls)
 static char *
 read_output_line (int phase_from1, int phase_to1, int phase_from2,
                   int phase_to2, char c, const char *expect_level,
-                  long delay_morethan, long delay_lessthan, int phase,
+                  long delay_morethan, long delay_lessthan, int phasecur,
                   char *p,
                   int *len, long *delay, char level[8])
 {
@@ -114,8 +114,8 @@ read_output_line (int phase_from1, int phase_to1, int phase_from2,
   j = 0;
   int stage = 0;
 
-  if (! ((phase >= phase_from1) && (phase <= phase_to1)) &&
-      ! ((phase >= phase_from2) && (phase <= phase_to2)))
+  if (! ((phasecur >= phase_from1) && (phasecur <= phase_to1)) &&
+      ! ((phasecur >= phase_from2) && (phasecur <= phase_to2)))
     return p;
 #if 0
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
