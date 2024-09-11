@@ -41,6 +41,9 @@ testMap (int i)
   uint32_t k1;
   uint32_t k2;
   const char *ret;
+  char v1[] = "v1";
+  char v2[] = "v2";
+  char v3[] = "v3";
   int j;
 
   CHECK (NULL != (m = GNUNET_CONTAINER_multihashmap32_create (i)));
@@ -58,24 +61,24 @@ testMap (int i)
   CHECK (0 == GNUNET_CONTAINER_multihashmap32_get_multiple (m, k1, NULL, NULL));
 
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap32_put (m, k1, "v1",
+         GNUNET_CONTAINER_multihashmap32_put (m, k1, v1,
                                               GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE));
   CHECK (1 == GNUNET_CONTAINER_multihashmap32_size (m));
   ret = GNUNET_CONTAINER_multihashmap32_get (m, k1);
   GNUNET_assert (ret != NULL);
   CHECK (0 == strcmp ("v1", ret));
   CHECK (GNUNET_NO ==
-         GNUNET_CONTAINER_multihashmap32_put (m, k1, "v1",
+         GNUNET_CONTAINER_multihashmap32_put (m, k1, v1,
                                               GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE));
   CHECK (1 == GNUNET_CONTAINER_multihashmap32_size (m));
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap32_put (m, k1, "v2",
+         GNUNET_CONTAINER_multihashmap32_put (m, k1, v2,
                                               GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   CHECK (GNUNET_OK ==
-         GNUNET_CONTAINER_multihashmap32_put (m, k1, "v3",
+         GNUNET_CONTAINER_multihashmap32_put (m, k1, v3,
                                               GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   CHECK (3 == GNUNET_CONTAINER_multihashmap32_size (m));
-  CHECK (GNUNET_OK == GNUNET_CONTAINER_multihashmap32_remove (m, k1, "v3"));
+  CHECK (GNUNET_OK == GNUNET_CONTAINER_multihashmap32_remove (m, k1, v3));
   CHECK (2 == GNUNET_CONTAINER_multihashmap32_size (m));
   CHECK (GNUNET_YES == GNUNET_CONTAINER_multihashmap32_contains (m, k1));
   CHECK (GNUNET_NO == GNUNET_CONTAINER_multihashmap32_contains (m, k2));
@@ -85,7 +88,7 @@ testMap (int i)
   CHECK (2 == GNUNET_CONTAINER_multihashmap32_remove_all (m, k1));
   for (j = 0; j < 1024; j++)
     CHECK (GNUNET_OK ==
-           GNUNET_CONTAINER_multihashmap32_put (m, k1, "v2",
+           GNUNET_CONTAINER_multihashmap32_put (m, k1, v2,
                                                 GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   GNUNET_CONTAINER_multihashmap32_destroy (m);
   return 0;

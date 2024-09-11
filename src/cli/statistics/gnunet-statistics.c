@@ -67,7 +67,12 @@ static int quiet;
 /**
  * @brief Separator string for csv.
  */
-static char *csv_separator;
+static char *csv_separator_opt;
+
+/**
+ * @brief Separator string for csv.
+ */
+static const char *csv_separator;
 
 /**
  * Remote host
@@ -385,6 +390,7 @@ print_finish (void *cls)
                                          &printer,
                                          NULL);
   GNUNET_CONTAINER_multihashmap_destroy (values);
+  GNUNET_free (csv_separator_opt);
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -829,7 +835,7 @@ main (int argc, char *const *argv)
                                  "csv-separator",
                                  "CSV_SEPARATOR",
                                  gettext_noop ("use as csv separator"),
-                                 &csv_separator),
+                                 &csv_separator_opt),
     GNUNET_GETOPT_option_filename ('t',
                                    "testbed",
                                    "TESTBED",

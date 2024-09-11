@@ -24,15 +24,20 @@
 
 #include "platform.h"
 
+void *
+libgnunet_plugin_utiltest_init (void *arg);
 
 void *
 libgnunet_plugin_utiltest_init (void *arg)
 {
+  static char hello[] = "Hello";
   if (0 == strcmp (arg, "in"))
-    return "Hello";
+    return hello;
   return NULL;
 }
 
+void *
+libgnunet_plugin_utiltest_done (void *arg);
 
 void *
 libgnunet_plugin_utiltest_done (void *arg)

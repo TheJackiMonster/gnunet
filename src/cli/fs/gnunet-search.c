@@ -88,11 +88,17 @@ static struct GNUNET_FS_SearchContext *sc;
 
 static char *output_filename;
 
-static char *format_string;
+static char *format_string_opt;
 
-static char *dir_format_string;
+static char *dir_format_string_opt;
 
-static char *meta_format_string;
+static char *meta_format_string_opt;
+
+static const char *format_string;
+
+static const char *dir_format_string;
+
+static const char *meta_format_string;
 
 static struct GNUNET_FS_DirectoryBuilder *db;
 
@@ -562,6 +568,9 @@ shutdown_task (void *const cls)
     GNUNET_FS_search_stop (sc);
     sc = NULL;
   }
+  GNUNET_free (format_string_opt);
+  GNUNET_free (dir_format_string_opt);
+  GNUNET_free (meta_format_string_opt);
 }
 
 
@@ -612,15 +621,21 @@ run (void *const cls,
     ret = 1;
     return;
   }
-  if (NULL == dir_format_string)
-    dir_format_string = format_string ? format_string
+  if (NULL == dir_format_string_opt)
+    dir_format_string = format_string_opt ? format_string_opt
                       : verbose ? VERB_DEFAULT_DIR_FORMAT
                       : DEFAULT_DIR_FORMAT;
-  if (NULL == format_string)
+  else
+    dir_format_string = dir_format_string_opt;
+  if (NULL == format_string_opt)
     format_string = verbose ? VERB_DEFAULT_FILE_FORMAT
                   : DEFAULT_FILE_FORMAT;
-  if (NULL == meta_format_string)
+  else
+    format_string = format_string_opt;
+  if (NULL == meta_format_string_opt)
     meta_format_string = DEFAULT_META_FORMAT;
+  else
+    meta_format_string = meta_format_string_opt;
   argc = 0;
   while (NULL != args[argc])
     argc++;
@@ -720,7 +735,7 @@ main (int argc, char *const *argv)
                     "%n, %s; defaults to the value of --printf when omitted "
                     "or to `" HELP_DEFAULT_DIR_FORMAT "` if --printf is "
                     "omitted too"),
-      &dir_format_string),
+      &dir_format_string_opt),
     GNUNET_GETOPT_option_string (
       'f',
       "printf",
@@ -728,7 +743,7 @@ main (int argc, char *const *argv)
       gettext_noop ("write search results according to FORMAT; accepted "
                     "placeholders are: %a, %f, %j, %l, %m, %n, %s; defaults "
                     "to `" HELP_DEFAULT_FILE_FORMAT "` when omitted"),
-      &format_string),
+      &format_string_opt),
     GNUNET_GETOPT_option_string (
       'i',
       "iter-printf",
@@ -738,7 +753,7 @@ main (int argc, char *const *argv)
                     "FORMAT; accepted placeholders are: %i, %l, %n, %p"
                     HELP_EXTRACTOR_TEXTADD ", %w; defaults to `"
                     HELP_DEFAULT_META_FORMAT "` when omitted"),
-      &meta_format_string),
+      &meta_format_string_opt),
     GNUNET_GETOPT_option_uint ('N',
                                "results",
                                "VALUE",

@@ -203,6 +203,7 @@ do_stop_task (void *cls)
 static void *
 progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *info)
 {
+  static char progress_canary[] = "canary";
   const char *s;
   char *suri;
 
@@ -300,7 +301,7 @@ progress_cb (void *cls, const struct GNUNET_FS_ProgressInfo *info)
     fprintf (stderr, _ ("Unexpected status: %d\n"), info->status);
     return NULL;
   }
-  return ""; /* non-null */
+  return progress_canary; /* non-null */
 }
 
 

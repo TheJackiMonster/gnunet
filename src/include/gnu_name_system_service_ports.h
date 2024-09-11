@@ -67,6 +67,9 @@ struct GNUNET_GNS_ServicePort GNUNET_GNS_ServicePorts[] = {
 };
 
 uint16_t
+GNUNET_GNS_service_port_name_to_number (const char *name);
+
+uint16_t
 GNUNET_GNS_service_port_name_to_number (const char *name)
 {
   int i = 0;
@@ -79,6 +82,8 @@ GNUNET_GNS_service_port_name_to_number (const char *name)
   return 0;
 }
 
+const char*
+GNUNET_GNS_service_port_number_to_name (uint16_t port);
 
 const char*
 GNUNET_GNS_service_port_number_to_name (uint16_t port)
