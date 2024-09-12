@@ -762,15 +762,17 @@ setup_fresh_ping (struct GSC_KeyExchangeInfo *kx)
                    pm->nonce,
                    kx->encrypt_key));
 #else
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  pm->iv_seed = calculate_seed (kx);
-  derive_iv (&iv, &kx->encrypt_key, pm->iv_seed, kx->peer);
-  do_encrypt (kx,
-              &iv,
-              &pp.target,
-              &pm->target,
-              sizeof(struct PingMessage)
-              - ((void *) &pm->target - (void *) pm));
+  {
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    pm->iv_seed = calculate_seed (kx);
+    derive_iv (&iv, &kx->encrypt_key, pm->iv_seed, kx->peer);
+    do_encrypt (kx,
+                &iv,
+                &pp.target,
+                &pm->target,
+                sizeof(struct PingMessage)
+                - ((void *) &pm->target - (void *) pm));
+  }
 #endif
 }
 
@@ -1218,6 +1220,10 @@ handle_ping (void *cls, const struct PingMessage *m)
   struct PongMessage tx;
   struct PongMessage *tp;
   struct GNUNET_MQ_Envelope *env;
+#if CONG_CRYPTO_ENABLED
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+#endif
 
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PING messages received"),
@@ -1255,7 +1261,6 @@ handle_ping (void *cls, const struct PingMessage *m)
     return;
   }
 #else
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   derive_iv (&iv, &kx->decrypt_key, m->iv_seed, &GSC_my_identity);
   if (GNUNET_OK != do_decrypt (kx,
                                &iv,
@@ -1415,6 +1420,10 @@ handle_pong (void *cls, const struct PongMessage *m)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
   struct PongMessage t;
+#if CONG_CRYPTO_ENABLED
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+#endif
 
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# PONG messages received"),
@@ -1476,7 +1485,6 @@ handle_pong (void *cls, const struct PongMessage *m)
     return;
   }
 #else
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   derive_pong_iv (&iv,
                   &kx->decrypt_key,
                   m->iv_seed,
@@ -1628,6 +1636,11 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
   struct EncryptedMessage *em; /* encrypted message */
   struct EncryptedMessage *ph; /* plaintext header */
   struct GNUNET_MQ_Envelope *env;
+#if CONG_CRYPTO_ENABLED
+#else
+  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+  struct GNUNET_CRYPTO_AuthKey auth_key;
+#endif
 
   ph = (struct EncryptedMessage *) pbuf;
   ph->sequence_number = htonl (++kx->last_sequence_number_sent);
@@ -1651,8 +1664,6 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                    ph->nonce,
                    kx->encrypt_key));
 #else
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_AuthKey auth_key;
   ph->iv_seed = calculate_seed (kx);
   em->iv_seed = ph->iv_seed;
   derive_iv (&iv, &kx->encrypt_key, ph->iv_seed, kx->peer);
@@ -1803,46 +1814,48 @@ handle_encrypted (void *cls, const struct EncryptedMessage *m)
     return;
   }
 #else
-  struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
-  struct GNUNET_CRYPTO_AuthKey auth_key;
-  struct GNUNET_HashCode ph;
-  derive_auth_key (&auth_key, &kx->decrypt_key, m->iv_seed);
-  GNUNET_CRYPTO_hmac (&auth_key,
-                      &m->sequence_number,
-                      size - ENCRYPTED_HEADER_SIZE,
-                      &ph);
+  {
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    struct GNUNET_CRYPTO_AuthKey auth_key;
+    struct GNUNET_HashCode ph;
+    derive_auth_key (&auth_key, &kx->decrypt_key, m->iv_seed);
+    GNUNET_CRYPTO_hmac (&auth_key,
+                        &m->sequence_number,
+                        size - ENCRYPTED_HEADER_SIZE,
+                        &ph);
 #if DEBUG_KX
-  {
-    struct GNUNET_HashCode hc;
+    {
+      struct GNUNET_HashCode hc;
 
-    GNUNET_CRYPTO_hash (&auth_key, sizeof(auth_key), &hc);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "For peer %s, used AC %s to verify hmac %s\n",
-                GNUNET_i2s (kx->peer),
-                GNUNET_h2s (&hc),
-                GNUNET_h2s2 (&m->hmac));
-  }
+      GNUNET_CRYPTO_hash (&auth_key, sizeof(auth_key), &hc);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "For peer %s, used AC %s to verify hmac %s\n",
+                  GNUNET_i2s (kx->peer),
+                  GNUNET_h2s (&hc),
+                  GNUNET_h2s2 (&m->hmac));
+    }
 #endif
-  if (0 != memcmp (&ph, &m->hmac, sizeof(struct GNUNET_HashCode)))
-  {
-    /* checksum failed */
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed checksum validation for a message from `%s'\n",
-                GNUNET_i2s (kx->peer));
-    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
-    return;
-  }
-  derive_iv (&iv, &kx->decrypt_key, m->iv_seed, &GSC_my_identity);
-  /* decrypt */
-  if (GNUNET_OK != do_decrypt (kx,
-                               &iv,
-                               &m->sequence_number,
-                               &buf[ENCRYPTED_HEADER_SIZE],
-                               size - ENCRYPTED_HEADER_SIZE))
-  {
-    GNUNET_break_op (0);
-    GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
-    return;
+    if (0 != memcmp (&ph, &m->hmac, sizeof(struct GNUNET_HashCode)))
+    {
+      /* checksum failed */
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Failed checksum validation for a message from `%s'\n",
+                  GNUNET_i2s (kx->peer));
+      GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+      return;
+    }
+    derive_iv (&iv, &kx->decrypt_key, m->iv_seed, &GSC_my_identity);
+    /* decrypt */
+    if (GNUNET_OK != do_decrypt (kx,
+                                 &iv,
+                                 &m->sequence_number,
+                                 &buf[ENCRYPTED_HEADER_SIZE],
+                                 size - ENCRYPTED_HEADER_SIZE))
+    {
+      GNUNET_break_op (0);
+      GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+      return;
+    }
   }
 #endif
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
