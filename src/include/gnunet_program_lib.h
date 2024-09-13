@@ -128,7 +128,7 @@ GNUNET_DAEMON_register (const char *daemon_name,
                         GNUNET_PROGRAM_Main task);
 
 /**
- * Start all services and daemons in a single prozess.
+ * Start all services and daemons in a single process.
  */
 void
 GNUNET_PROGRAM_monolith_main (int argc,

@@ -326,7 +326,7 @@
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
- * Difference of the avarage RTT for the DistanceVector calculate by us and the target
+ * Difference of the average RTT for the DistanceVector calculate by us and the target
  * we are willing to accept for starting the burst.
  */
 #define RTT_DIFF  \
@@ -991,7 +991,7 @@ struct TransportFlowControlMessage
   struct GNUNET_TIME_AbsoluteNBO sender_time;
 
   /**
-   * Avarage RTT for the DistanceVector of the VirtualLink we tell the target.
+   * Average RTT for the DistanceVector of the VirtualLink we tell the target.
    */
   struct GNUNET_TIME_RelativeNBO rtt;
 
@@ -1495,7 +1495,7 @@ struct VirtualLink
   struct GNUNET_TIME_Relative last_fc_rtt;
 
   /**
-   * Avarage RTT for over all paths of the DistanceVector of this VirtualLink
+   * Average RTT for over all paths of the DistanceVector of this VirtualLink
    * calculated by the target.
    */
   struct GNUNET_TIME_Relative other_rtt;
@@ -5464,7 +5464,7 @@ consider_sending_fc (void *cls)
   struct TransportFlowControlMessage *fc;
   struct GNUNET_TIME_Relative duration;
   struct GNUNET_TIME_Relative rtt;
-  struct GNUNET_TIME_Relative rtt_avarage;
+  struct GNUNET_TIME_Relative rtt_average;
   struct Neighbour *n = vl->n;
 
   if (NULL != n && 0 < n->number_of_addresses)
@@ -5506,16 +5506,16 @@ consider_sending_fc (void *cls)
      the bandwidth statistics need to be added for the VL!*/(void) duration;
 
   if (NULL != vl->dv)
-    rtt_avarage = calculate_rtt (vl->dv);
+    rtt_average = calculate_rtt (vl->dv);
   else
-    rtt_avarage = GNUNET_TIME_UNIT_FOREVER_REL;
-  fc->rtt = GNUNET_TIME_relative_hton (rtt_avarage);
+    rtt_average = GNUNET_TIME_UNIT_FOREVER_REL;
+  fc->rtt = GNUNET_TIME_relative_hton (rtt_average);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending FC seq %u to %s with new window %llu %lu %u\n",
               (unsigned int) vl->fc_seq_gen,
               GNUNET_i2s (&vl->target),
               (unsigned long long) vl->incoming_fc_window_size,
-              (unsigned long) rtt_avarage.rel_value_us,
+              (unsigned long) rtt_average.rel_value_us,
               vl->sync_ready);
   monotime = GNUNET_TIME_absolute_get_monotonic (GST_cfg);
   vl->last_fc_transmission = monotime;
@@ -7479,7 +7479,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
       for (struct Queue *q = n->queue_head; NULL != q; q = q->next_neighbour)
         q_timeout = GNUNET_TIME_absolute_max (q_timeout, q->validated_until);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "remainig %lu to %s\n",
+                  "remaining %lu to %s\n",
                   (unsigned long) GNUNET_TIME_absolute_get_remaining (q_timeout)
                   .rel_value_us,
                   GNUNET_i2s (&n->pid));
@@ -10056,8 +10056,8 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
       rtt = calculate_rtt (vl->dv);
     else
       rtt = GNUNET_TIME_UNIT_FOREVER_REL;
-    burst_sync.rtt_avarage = fc->rtt;
-    bcls->rtt = GNUNET_TIME_relative_ntoh (burst_sync.rtt_avarage);
+    burst_sync.rtt_average = fc->rtt;
+    bcls->rtt = GNUNET_TIME_relative_ntoh (burst_sync.rtt_average);
     burst_sync.sync_ready = fc->sync_ready;
 
     GNUNET_is_burst_ready (rtt,

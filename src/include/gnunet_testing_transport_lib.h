@@ -140,7 +140,7 @@ struct GNUNET_TESTING_StartPeerState
   enum GNUNET_GenericReturnValue not_all_started;
 
   /**
-   * Flag indicating if all (udo and tcp) communicators connected to transport service.
+   * Flag indicating if all (udp and tcp) communicators connected to transport service.
    */
   enum GNUNET_GenericReturnValue coms_started;
 

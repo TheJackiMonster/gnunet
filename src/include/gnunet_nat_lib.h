@@ -39,15 +39,15 @@
 
 GNUNET_NETWORK_STRUCT_BEGIN
 /**
- * Wrapper struct with the avarage RTT of message to some peer
+ * Wrapper struct with the average RTT of message to some peer
  * and if this peer und us is ready to sync.
  */
 struct GNUNET_BurstSync
 {
   /**
-   * The avarage RTT for the peer to communicate with.
+   * The average RTT for the peer to communicate with.
    */
-  struct GNUNET_TIME_RelativeNBO rtt_avarage;
+  struct GNUNET_TIME_RelativeNBO rtt_average;
 
   /**
    * Is this peer already ready to sync.
@@ -83,7 +83,7 @@ struct GNUNET_StartBurstCls
   void *context;
 
   /**
-   * The avarage RTT between the peers.
+   * The average RTT between the peers.
    */
   struct GNUNET_TIME_Relative rtt;
 
@@ -145,7 +145,7 @@ struct GNUNET_UdpSocketInfo
   struct GNUNET_PeerIdentity *pid;
 
   /**
-   * The notify function to call if burst mode was successfull.
+   * The notify function to call if burst mode was successful.
    */
   GNUNET_NotifyUdpSocket nus;
 
@@ -194,20 +194,20 @@ struct GNUNET_UdpSocketInfo
 /**
  * Create @a GNUNET_BurstSync message.
  *
- * @param rtt_avarage The avarage RTT for the peer to communicate with.
+ * @param rtt_average The average RTT for the peer to communicate with.
  * @param sync_ready Is this peer already ready to sync.
  *
  * @return The GNUNET_BurstSync message to send to the other peer.
  */
 struct GNUNET_BurstSync *
-GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
+GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_average,
                            enum GNUNET_GenericReturnValue sync_ready);
 
 
 /**
  * Checks if we are ready and starts burst when we and the other peer is ready.
  *
- * @param rtt_avarage The avarage RTT for the peer to communicate with.
+ * @param rtt_average The average RTT for the peer to communicate with.
  * @param sync_ready Is this peer already ready to sync.
  * @param burst_sync The GNUNET_BurstSync from the other peer.
  * @param task Task to be executed if both peers are ready.
@@ -216,7 +216,7 @@ GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
  * @return Are we burst ready. This is independent from the other peer being ready.
  */
 void
-GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
+GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_average,
                        struct GNUNET_BurstSync *burst_sync,
                        GNUNET_SCHEDULER_TaskCallback task,
                        struct GNUNET_StartBurstCls *task_cls);
@@ -227,7 +227,7 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
  *
  * @param sock_info Struct with information correlated to a specific port at the other peer.
  * @param nus Callback to give the caller the struct GNUNET_UdpSocketInfo to use to connect the other peer.
- * @return The intial read task to read from the default socket.
+ * @return The initial read task to read from the default socket.
  */
 struct GNUNET_SCHEDULER_Task * 
 GNUNET_get_udp_socket (struct GNUNET_UdpSocketInfo *sock_info,

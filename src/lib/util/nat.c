@@ -20,7 +20,7 @@
 
 /**
  * @file util/nat.c
- * @brief Library for NAT traversal related functonality.
+ * @brief Library for NAT traversal related functionality.
  * @author t3sserakt
  */
 
@@ -37,7 +37,7 @@
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 100)
 
 /**
- * Difference of the avarage RTT for the DistanceVector calculate by us and the target
+ * Difference of the average RTT for the DistanceVector calculate by us and the target
  * we are willing to accept for starting the burst.
  */
 #define RTT_DIFF  \
@@ -59,16 +59,16 @@ unsigned int nr_open_sockets;
 /**
  * Create @a GNUNET_BurstSync message.
  *
- * @param rtt_avarage The avarage RTT for the peer to communicate with.
+ * @param rtt_average The average RTT for the peer to communicate with.
  * @param sync_ready Is this peer already ready to sync.
  */
 struct GNUNET_BurstSync *
-GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
+GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_average,
                            enum GNUNET_GenericReturnValue sync_ready)
 {
   struct GNUNET_BurstSync *burst_sync = GNUNET_new (struct GNUNET_BurstSync);
 
-  burst_sync->rtt_avarage = GNUNET_TIME_relative_hton (rtt_avarage);
+  burst_sync->rtt_average = GNUNET_TIME_relative_hton (rtt_average);
   burst_sync->sync_ready = sync_ready;
 
   return burst_sync;
@@ -78,7 +78,7 @@ GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
 /**
  * Checks if we are ready and starts burst when we and the other peer is ready.
  *
- * @param rtt_avarage The avarage RTT for the peer to communicate with.
+ * @param rtt_average The average RTT for the peer to communicate with.
  * @param burst_sync The GNUNET_BurstSync from the other peer.
  * @param task Task to be executed if both peers are ready.
  * @param task_cls Closure for the task.
@@ -86,7 +86,7 @@ GNUNET_get_burst_sync_msg (struct GNUNET_TIME_Relative rtt_avarage,
  * @return Are we burst ready. This is independent from the other peer being ready.
  */
 void
-GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
+GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_average,
                        struct GNUNET_BurstSync *burst_sync,
                        GNUNET_SCHEDULER_TaskCallback task,
                        struct GNUNET_StartBurstCls *task_cls)
@@ -95,18 +95,18 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
   struct GNUNET_TIME_Relative rel1;
   struct GNUNET_TIME_Relative rel2;
 
-  other_rtt = GNUNET_TIME_relative_ntoh (burst_sync->rtt_avarage);
-  rel1 = GNUNET_TIME_relative_subtract (other_rtt, rtt_avarage);
-  rel2 = GNUNET_TIME_relative_subtract (rtt_avarage, other_rtt);
+  other_rtt = GNUNET_TIME_relative_ntoh (burst_sync->rtt_average);
+  rel1 = GNUNET_TIME_relative_subtract (other_rtt, rtt_average);
+  rel2 = GNUNET_TIME_relative_subtract (rtt_average, other_rtt);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "other sync ready %u, other rtt %lu and rtt %lu rel1 %lu rel2 %lu\n",
               burst_sync->sync_ready,
               (unsigned long) other_rtt.rel_value_us,
-              (unsigned long) rtt_avarage.rel_value_us,
+              (unsigned long) rtt_average.rel_value_us,
               (unsigned long) rel1.rel_value_us,
               (unsigned long) rel2.rel_value_us);
   if ((other_rtt.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us &&
-       rtt_avarage.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
+       rtt_average.rel_value_us != GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us) &&
       rel1.rel_value_us  < RTT_DIFF.rel_value_us &&
       rel2.rel_value_us < RTT_DIFF.rel_value_us)
   {
@@ -116,14 +116,14 @@ GNUNET_is_burst_ready (struct GNUNET_TIME_Relative rtt_avarage,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "other sync ready 2\n");
-      task_cls->delay = GNUNET_TIME_relative_saturating_multiply (rtt_avarage,
+      task_cls->delay = GNUNET_TIME_relative_saturating_multiply (rtt_average,
                                                                   2);
     }
     else
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "other sync ready 3\n");
-      task_cls->delay  = GNUNET_TIME_relative_saturating_multiply (rtt_avarage,
+      task_cls->delay  = GNUNET_TIME_relative_saturating_multiply (rtt_average,
                                                                    4);
     }
     task_cls->sync_ready = GNUNET_YES;
