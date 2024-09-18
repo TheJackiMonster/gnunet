@@ -945,7 +945,7 @@ listen_cb (void *cls);
 
 static void
 eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
-                     struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+                        struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
   struct GNUNET_CRYPTO_PrivateKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
@@ -953,15 +953,17 @@ eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
   GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
 }
 
+
 static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
-                     struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+                       struct GNUNET_CRYPTO_EcdhePublicKey *pk)
 {
   struct GNUNET_CRYPTO_PublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
 }
+
 
 /**
  * Functions with this signature are called whenever we need
@@ -1680,8 +1682,8 @@ pending_reversals_delete_it (void *cls,
                              const struct GNUNET_HashCode *key,
                              void *value)
 {
-  (void) cls;
   struct PendingReversal *pending_reversal = value;
+  (void) cls;
 
   if (NULL != pending_reversal->timeout_task)
   {
@@ -1847,39 +1849,41 @@ queue_write (void *cls)
           GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
     }
   }
-  /* can we encrypt more? (always encrypt full messages, needed
-     such that #mq_cancel() can work!) */
-  unsigned int we_do_not_need_to_rekey = (0 < queue->rekey_left_bytes
-                                          - (queue->cwrite_off
-                                             + queue->pwrite_off
-                                             + sizeof (struct TCPRekey)));
-  if (we_do_not_need_to_rekey &&
-      (queue->pwrite_off > 0) &&
-      (queue->cwrite_off + queue->pwrite_off <= BUF_SIZE))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Encrypting %lu bytes\n", queue->pwrite_off);
-    GNUNET_assert (0 ==
-                   gcry_cipher_encrypt (queue->out_cipher,
-                                        &queue->cwrite_buf[queue->cwrite_off],
-                                        queue->pwrite_off,
-                                        queue->pwrite_buf,
-                                        queue->pwrite_off));
-    if (queue->rekey_left_bytes > queue->pwrite_off)
-      queue->rekey_left_bytes -= queue->pwrite_off;
-    else
-      queue->rekey_left_bytes = 0;
-    queue->cwrite_off += queue->pwrite_off;
-    queue->pwrite_off = 0;
-  }
-  // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
-  if (((0 == queue->rekey_left_bytes) ||
-       (0 == GNUNET_TIME_absolute_get_remaining (
-          queue->rekey_time).rel_value_us)) &&
-      (((0 == queue->pwrite_off) || ! we_do_not_need_to_rekey) &&
-       (queue->cwrite_off + sizeof (struct TCPRekey) <= BUF_SIZE)))
-  {
-    inject_rekey (queue);
+    /* can we encrypt more? (always encrypt full messages, needed
+       such that #mq_cancel() can work!) */
+    unsigned int we_do_not_need_to_rekey = (0 < queue->rekey_left_bytes
+                                            - (queue->cwrite_off
+                                               + queue->pwrite_off
+                                               + sizeof (struct TCPRekey)));
+    if (we_do_not_need_to_rekey &&
+        (queue->pwrite_off > 0) &&
+        (queue->cwrite_off + queue->pwrite_off <= BUF_SIZE))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Encrypting %lu bytes\n", queue->pwrite_off);
+      GNUNET_assert (0 ==
+                     gcry_cipher_encrypt (queue->out_cipher,
+                                          &queue->cwrite_buf[queue->cwrite_off],
+                                          queue->pwrite_off,
+                                          queue->pwrite_buf,
+                                          queue->pwrite_off));
+      if (queue->rekey_left_bytes > queue->pwrite_off)
+        queue->rekey_left_bytes -= queue->pwrite_off;
+      else
+        queue->rekey_left_bytes = 0;
+      queue->cwrite_off += queue->pwrite_off;
+      queue->pwrite_off = 0;
+    }
+    // if ((-1 != unverified_size)&& ((0 == queue->pwrite_off) &&
+    if (((0 == queue->rekey_left_bytes) ||
+         (0 == GNUNET_TIME_absolute_get_remaining (
+            queue->rekey_time).rel_value_us)) &&
+        (((0 == queue->pwrite_off) || ! we_do_not_need_to_rekey) &&
+         (queue->cwrite_off + sizeof (struct TCPRekey) <= BUF_SIZE)))
+    {
+      inject_rekey (queue);
+    }
   }
   if ((0 == queue->pwrite_off) && (! queue->finishing) &&
       (GNUNET_YES == queue->mq_awaits_continue))
@@ -2035,39 +2039,40 @@ try_handle_plaintext (struct Queue *queue)
      */
     queue->initial_core_kx_done = GNUNET_YES;
 
-    char *foreign_addr;
-
-    switch (queue->address->sa_family)
     {
-    case AF_INET:
-      GNUNET_asprintf (&foreign_addr,
-                       "%s-%s",
-                       COMMUNICATOR_ADDRESS_PREFIX,
-                       GNUNET_a2s (queue->address, queue->address_len));
-      break;
+      char *foreign_addr;
 
-    case AF_INET6:
-      GNUNET_asprintf (&foreign_addr,
-                       "%s-%s",
-                       COMMUNICATOR_ADDRESS_PREFIX,
-                       GNUNET_a2s (queue->address, queue->address_len));
-      break;
+      switch (queue->address->sa_family)
+      {
+      case AF_INET:
+        GNUNET_asprintf (&foreign_addr,
+                         "%s-%s",
+                         COMMUNICATOR_ADDRESS_PREFIX,
+                         GNUNET_a2s (queue->address, queue->address_len));
+        break;
 
-    default:
-      GNUNET_assert (0);
+      case AF_INET6:
+        GNUNET_asprintf (&foreign_addr,
+                         "%s-%s",
+                         COMMUNICATOR_ADDRESS_PREFIX,
+                         GNUNET_a2s (queue->address, queue->address_len));
+        break;
+
+      default:
+        GNUNET_assert (0);
+      }
+      queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
+                                                        &queue->target,
+                                                        foreign_addr,
+                                                        UINT16_MAX, /* no MTU */
+                                                        GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
+                                                        0, /* Priority */
+                                                        queue->nt,
+                                                        queue->cs,
+                                                        queue->mq);
+
+      GNUNET_free (foreign_addr);
     }
-
-    queue->qh = GNUNET_TRANSPORT_communicator_mq_add (ch,
-                                                      &queue->target,
-                                                      foreign_addr,
-                                                      UINT16_MAX, /* no MTU */
-                                                      GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED,
-                                                      0, /* Priority */
-                                                      queue->nt,
-                                                      queue->cs,
-                                                      queue->mq);
-
-    GNUNET_free (foreign_addr);
 
     size = ntohs (hdr->size);
     break;
@@ -3269,10 +3274,10 @@ try_connection_reversal (void *cls,
                          const struct sockaddr *addr,
                          socklen_t addrlen)
 {
-  (void) cls;
   struct TCPNATProbeMessage pm;
   struct ProtoQueue *pq;
   struct sockaddr *in_addr;
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "addr->sa_family %d\n",

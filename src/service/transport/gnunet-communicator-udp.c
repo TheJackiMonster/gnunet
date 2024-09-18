@@ -2775,7 +2775,6 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   }
   /* begin "BOX" encryption method, scan for ACKs from tail! */
   ss = receiver->ss_tail;
-  struct SharedSecret *ss_tmp;
   while (NULL != ss)
   {
     size_t payload_len = sizeof(struct UDPBox) + receiver->d_mtu;
@@ -2792,6 +2791,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     }
     if (ss->bytes_sent >= rekey_max_bytes)
     {
+      struct SharedSecret *ss_tmp;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Skipping ss because rekey bytes reached.\n");
       // FIXME cleanup ss with too many bytes sent!
@@ -2819,60 +2819,61 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
                   GNUNET_sh2s (&ss->master),
                   ss->sequence_used,
                   ss->sequence_allowed);
-
-    char dgram[payload_len];
-    struct UDPBox *box;
-    gcry_cipher_hd_t out_cipher;
-    size_t dpos;
-
-    box = (struct UDPBox *) dgram;
-    ss->sequence_used++;
-    get_kid (&ss->master, ss->sequence_used, &box->kid);
-    setup_cipher (&ss->master, ss->sequence_used, &out_cipher);
-    /* Append encrypted payload to dgram */
-    dpos = sizeof(struct UDPBox);
-    if (GNUNET_YES == inject_rekey)
     {
+      char dgram[payload_len];
+      struct UDPBox *box;
+      gcry_cipher_hd_t out_cipher;
+      size_t dpos;
+
+      box = (struct UDPBox *) dgram;
+      ss->sequence_used++;
+      get_kid (&ss->master, ss->sequence_used, &box->kid);
+      setup_cipher (&ss->master, ss->sequence_used, &out_cipher);
+      /* Append encrypted payload to dgram */
+      dpos = sizeof(struct UDPBox);
+      if (GNUNET_YES == inject_rekey)
+      {
+        GNUNET_assert (
+          0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], sizeof (rekey),
+                                    &rekey, sizeof (rekey)));
+        dpos += sizeof (rekey);
+      }
       GNUNET_assert (
-        0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], sizeof (rekey),
-                                  &rekey, sizeof (rekey)));
-      dpos += sizeof (rekey);
-    }
-    GNUNET_assert (
-      0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], msize, msg, msize));
-    dpos += msize;
-    do_pad (out_cipher, &dgram[dpos], sizeof(dgram) - dpos);
-    GNUNET_assert (0 == gcry_cipher_gettag (out_cipher,
-                                            box->gcm_tag,
-                                            sizeof(box->gcm_tag)));
-    gcry_cipher_close (out_cipher);
+        0 == gcry_cipher_encrypt (out_cipher, &dgram[dpos], msize, msg, msize));
+      dpos += msize;
+      do_pad (out_cipher, &dgram[dpos], sizeof(dgram) - dpos);
+      GNUNET_assert (0 == gcry_cipher_gettag (out_cipher,
+                                              box->gcm_tag,
+                                              sizeof(box->gcm_tag)));
+      gcry_cipher_close (out_cipher);
 
-    if (-1 == GNUNET_NETWORK_socket_sendto (get_socket (receiver),
-                                            dgram,
-                                            payload_len, // FIXME why always send sizeof dgram?
-                                            receiver->address,
-                                            receiver->address_len))
-    {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Sending UDPBox to %s family %d failed sock %p failed\n",
-                  GNUNET_a2s (receiver->address,
-                              receiver->address_len),
-                  receiver->address->sa_family,
+      if (-1 == GNUNET_NETWORK_socket_sendto (get_socket (receiver),
+                                              dgram,
+                                              payload_len, // FIXME why always send sizeof dgram?
+                                              receiver->address,
+                                              receiver->address_len))
+      {
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Sending UDPBox to %s family %d failed sock %p failed\n",
+                    GNUNET_a2s (receiver->address,
+                                receiver->address_len),
+                    receiver->address->sa_family,
+                    get_socket (receiver));
+        receiver_destroy (receiver);
+        return;
+      }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent with socket %p\n",
+                  msize,
+                  receiver->acks_available,
+                  (unsigned long) ss->bytes_sent,
                   get_socket (receiver));
-      receiver_destroy (receiver);
+      ss->bytes_sent += sizeof (dgram);
+      receiver->acks_available--;
+      GNUNET_MQ_impl_send_continue (mq);
       return;
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending UDPBox with payload size %u, %u acks left, %lu bytes sent with socket %p\n",
-                msize,
-                receiver->acks_available,
-                (unsigned long) ss->bytes_sent,
-                get_socket (receiver));
-    ss->bytes_sent += sizeof (dgram);
-    receiver->acks_available--;
-    GNUNET_MQ_impl_send_continue (mq);
-    return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "No suitable ss found, sending as KX...\n");

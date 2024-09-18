@@ -3714,8 +3714,8 @@ remove_global_addresses (void *cls,
                          const struct GNUNET_PeerIdentity *pid,
                          void *value)
 {
-  (void) cls;
   struct TransportGlobalNattedAddress *tgna = value;
+  (void) cls;
 
   GNUNET_free (tgna);
 
@@ -4178,11 +4178,11 @@ client_disconnect_cb (void *cls,
     break;
 
   case CT_CORE: {
+      struct PendingMessage *pm;
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "CORE Client %p disconnected, cleaning up.\n",
                   tc);
 
-      struct PendingMessage *pm;
 
       while (NULL != (pm = tc->details.core.pending_msg_head))
       {
@@ -4203,12 +4203,12 @@ client_disconnect_cb (void *cls,
     break;
 
   case CT_COMMUNICATOR: {
+      struct Queue *q;
+      struct AddressListEntry *ale;
+
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "COMMUNICATOR Client %p disconnected, cleaning up.\n",
                   tc);
-
-      struct Queue *q;
-      struct AddressListEntry *ale;
 
       if (NULL != tc->details.communicator.free_queue_entry_task)
         GNUNET_SCHEDULER_cancel (
@@ -4734,10 +4734,9 @@ free_timedout_queue_entry (void *cls)
     while (NULL != qep)
     {
       struct QueueEntry *pos = qep;
-
-      qep = qep->next;
       struct GNUNET_TIME_Relative diff = GNUNET_TIME_absolute_get_difference (
         pos->creation_timestamp, now);
+      qep = qep->next;
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "diff to now %s \n",
@@ -6740,9 +6739,9 @@ static int
 check_reliability_box (void *cls,
                        const struct TransportReliabilityBoxMessage *rb)
 {
-  (void) cls;
   const struct GNUNET_MessageHeader *box =  (const struct
-                                               GNUNET_MessageHeader *) &rb[1];
+                                             GNUNET_MessageHeader *) &rb[1];
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_send_msg with size %u: inner msg type %u and size %u (%lu %lu)\n",
@@ -8807,17 +8806,19 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   cmc->total_hops = ntohs (dvb->total_hops);
 
   // DH key derivation with received DV, could be garbage.
-  struct GNUNET_ShortHashCode km;
-
-  if (GNUNET_YES != GNUNET_CRYPTO_eddsa_kem_decaps (GST_my_private_key,
-                                                    &dvb->ephemeral_key,
-                                                    &km))
   {
-    GNUNET_break_op (0);
-    finish_cmc_handling (cmc);
-    return;
+    struct GNUNET_ShortHashCode km;
+
+    if (GNUNET_YES != GNUNET_CRYPTO_eddsa_kem_decaps (GST_my_private_key,
+                                                      &dvb->ephemeral_key,
+                                                      &km))
+    {
+      GNUNET_break_op (0);
+      finish_cmc_handling (cmc);
+      return;
+    }
+    dv_setup_key_state_from_km (&km, &dvb->iv, &key);
   }
-  dv_setup_key_state_from_km (&km, &dvb->iv, &key);
   hdr = (const char *) &dvb[1];
   hdr_len = ntohs (dvb->orig_size) - sizeof(*dvb) - sizeof(struct
                                                            GNUNET_PeerIdentity)
@@ -9156,11 +9157,11 @@ hello_for_incoming_cb (void *cls,
                        const struct GNUNET_PeerIdentity *pid,
                        const char *uri)
 {
-  (void) cls;
   struct Queue *q;
   int pfx_len;
   const char *eou;
   char *address;
+  (void) cls;
 
   eou = strstr (uri,
                 "://");
@@ -9754,8 +9755,8 @@ handle_incoming_msg (void *cls,
 static int
 check_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
 {
-  (void) cls;
   unsigned int number_of_addresses = ntohl (fc->number_of_addresses);
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Flow control header size %u size of addresses %u number of addresses %u size of message struct %lu second struct %lu\n",
@@ -10076,10 +10077,11 @@ handle_flow_control (void *cls, const struct TransportFlowControlMessage *fc)
     for (int i = 1; i <= number_of_addresses; i++)
     {
       struct TransportGlobalNattedAddress *tgna;
-      tgna = (struct TransportGlobalNattedAddress*) &tgnas[off];
-      char *addr = (char *) &tgna[1];
+      char *addr;
       unsigned int address_length;
 
+      tgna = (struct TransportGlobalNattedAddress*) &tgnas[off];
+      addr = (char *) &tgna[1];
       address_length = ntohl (tgna->address_length);
       off += sizeof(struct TransportGlobalNattedAddress) + address_length;
 
@@ -11213,19 +11215,22 @@ transmit_on_queue (void *cls)
       wait_duration = DEFAULT_ACK_WAIT_DURATION;
       wait_multiplier = 4;
     }
-    struct GNUNET_TIME_Absolute next = GNUNET_TIME_relative_to_absolute (
-      GNUNET_TIME_relative_multiply (
-        wait_duration, wait_multiplier));
-    struct GNUNET_TIME_Relative plus = GNUNET_TIME_relative_multiply (
-      wait_duration, wait_multiplier);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Waiting %s for ACK until %s\n",
-                GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_NO),
-                GNUNET_STRINGS_absolute_time_to_string (next));
-    update_pm_next_attempt (pm,
-                            GNUNET_TIME_relative_to_absolute (
-                              GNUNET_TIME_relative_multiply (wait_duration,
-                                                             wait_multiplier)));
+    {
+      struct GNUNET_TIME_Absolute next = GNUNET_TIME_relative_to_absolute (
+        GNUNET_TIME_relative_multiply (
+          wait_duration, wait_multiplier));
+      struct GNUNET_TIME_Relative plus = GNUNET_TIME_relative_multiply (
+        wait_duration, wait_multiplier);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Waiting %s for ACK until %s\n",
+                  GNUNET_STRINGS_relative_time_to_string (plus, GNUNET_NO),
+                  GNUNET_STRINGS_absolute_time_to_string (next));
+      update_pm_next_attempt (pm,
+                              GNUNET_TIME_relative_to_absolute (
+                                GNUNET_TIME_relative_multiply (wait_duration,
+                                                               wait_multiplier))
+                              );
+    }
   }
   /* finally, re-schedule queue transmission task itself */
   schedule_transmit_on_queue (GNUNET_TIME_UNIT_ZERO,
@@ -12562,11 +12567,11 @@ hello_for_client_cb (void *cls,
                      const struct GNUNET_PeerIdentity *pid,
                      const char *uri)
 {
-  (void) cls;
   struct Queue *q;
   int pfx_len;
   const char *eou;
   char *address;
+  (void) cls;
 
   eou = strstr (uri,
                 "://");
