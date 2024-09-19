@@ -570,7 +570,7 @@ GNUNET_HELLO_builder_from_url (const char *url)
       GNUNET_break_op (0);
       return NULL;
     }
-    et = GNUNET_TIME_absolute_from_s (sec);
+    et = GNUNET_TIME_timestamp_from_s (sec).abs_time;
   }
 
   b = GNUNET_HELLO_builder_new (&pid);
@@ -700,8 +700,9 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
 
 
 char *
-GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
-                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
+GNUNET_HELLO_builder_to_url2 (const struct GNUNET_HELLO_Builder *builder,
+                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                              struct GNUNET_TIME_Relative validity)
 {
   struct GNUNET_CRYPTO_EddsaSignature sig;
   struct GNUNET_TIME_Timestamp et;
@@ -710,7 +711,7 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
   char *sigs;
   const char *sep = "?";
 
-  et = GNUNET_TIME_relative_to_timestamp (GNUNET_HELLO_ADDRESS_EXPIRATION);
+  et = GNUNET_TIME_relative_to_timestamp (validity);
   if (NULL != priv)
   {
     sign_hello (builder,
@@ -770,6 +771,15 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
     sep = "&";
   }
   return result;
+}
+
+
+char *
+GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
+                             const struct GNUNET_CRYPTO_EddsaPrivateKey *priv)
+{
+  return GNUNET_HELLO_builder_to_url2 (builder, priv,
+                                       GNUNET_HELLO_ADDRESS_EXPIRATION);
 }
 
 

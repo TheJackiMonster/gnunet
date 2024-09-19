@@ -1129,12 +1129,12 @@ store_hello_continuation (void *cls, int success)
 static int
 hosts_directory_scan_callback (void *cls, const char *fullname)
 {
-  (void) cls;
   ssize_t size_total;
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
   const struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *builder;
   const struct GNUNET_PeerIdentity *pid;
+  (void) cls;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (fullname))
     return GNUNET_OK; /* ignore non-files */

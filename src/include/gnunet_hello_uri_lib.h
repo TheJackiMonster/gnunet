@@ -56,7 +56,7 @@ struct GNUNET_HELLO_Builder;
  * For how long are HELLO signatures valid?
  */
 #define GNUNET_HELLO_ADDRESS_EXPIRATION GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_DAYS, 2)
+          GNUNET_TIME_UNIT_DAYS, 2)
 
 
 /**
@@ -168,6 +168,19 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv);
 
 /**
+ * Generate GNUnet HELLO URI from a @a builder
+ *
+ * @param builder builder to serialize
+ * @param priv private key to use to sign the result
+ * @param expiration_time the expiration time to use (only if NULL != priv).
+ * @return hello URI
+ */
+char *
+GNUNET_HELLO_builder_to_url2 (const struct GNUNET_HELLO_Builder *builder,
+                              const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                              struct GNUNET_TIME_Relative expiration_time);
+
+/**
  * Generate DHT block from a @a builder
  *
  * @param builder the builder to serialize
@@ -220,7 +233,7 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
  */
 typedef void
 (*GNUNET_HELLO_UriCallback) (void *cls,
-                             const struct GNUNET_PeerIdentity* pid,
+                             const struct GNUNET_PeerIdentity*pid,
                              const char *uri);
 
 

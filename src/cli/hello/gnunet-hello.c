@@ -67,6 +67,16 @@ static struct GNUNET_PeerIdentity my_full_id;
 static int export_own_hello;
 
 /**
+ * Optional expiration string -E
+ */
+static char *expirationstring;
+
+/**
+ * Expiration time for exported hello
+ */
+static struct GNUNET_TIME_Relative hello_validity;
+
+/**
  * HELLO export/import format option
  */
 static enum GNUNET_GenericReturnValue binary_output;
@@ -134,7 +144,6 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   struct GNUNET_HELLO_Builder *hb;
   struct GNUNET_TIME_Absolute hello_exp;
   const struct GNUNET_PeerIdentity *pid;
-  char *url;
 
   if ((NULL == record) && (NULL == emsg))
   {
@@ -161,7 +170,17 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     {
       if (GNUNET_NO == binary_output)
       {
-        url = GNUNET_HELLO_builder_to_url (hb, &my_private_key);
+        char *url;
+        if (NULL != expirationstring)
+        {
+          url = GNUNET_HELLO_builder_to_url2 (hb,
+                                              &my_private_key,
+                                              hello_validity);
+        }
+        else
+        {
+          url = GNUNET_HELLO_builder_to_url (hb, &my_private_key);
+        }
         printf ("%s\n", url);
         GNUNET_free (url);
         GNUNET_PEERSTORE_iteration_stop (iter_ctx);
@@ -171,7 +190,26 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
       }
       else
       {
-        fwrite (record->value, 1, record->value_size, stdout);
+        struct GNUNET_MQ_Envelope *env;
+        struct GNUNET_TIME_Relative validity_tmp;
+        const struct GNUNET_MessageHeader *msg;
+
+        if (NULL != expirationstring)
+        {
+          env = GNUNET_HELLO_builder_to_env (hb,
+                                             &my_private_key,
+                                             hello_validity);
+        }
+        else
+        {
+          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp);
+          env = GNUNET_HELLO_builder_to_env (hb,
+                                             &my_private_key,
+                                             validity_tmp);
+        }
+        msg = GNUNET_MQ_env_get_msg (env);
+        fwrite (msg, 1, ntohs (msg->size), stdout);
+        GNUNET_free (env);
         GNUNET_PEERSTORE_iteration_stop (iter_ctx);
         iter_ctx = NULL;
         GNUNET_HELLO_builder_free (hb);
@@ -269,6 +307,17 @@ run (void *cls,
   GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_full_id.public_key);
   peerstore_handle = GNUNET_PEERSTORE_connect (cfg);
   GNUNET_assert (NULL != peerstore_handle);
+  hello_validity = GNUNET_TIME_UNIT_DAYS;
+  if (NULL != expirationstring)
+  {
+    if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (expirationstring,
+                                                            &hello_validity))
+    {
+      fprintf (stderr, "Invalid expiration time `%s'", expirationstring);
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+  }
   if (GNUNET_YES == import_hello)
   {
     char buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
@@ -299,6 +348,7 @@ run (void *cls,
       if (NULL == hb)
       {
         fprintf (stderr, "Unable to parse URI `%s'\n", buffer);
+        GNUNET_SCHEDULER_shutdown ();
         return;
       }
       env = GNUNET_HELLO_builder_to_env (hb, NULL, GNUNET_TIME_UNIT_ZERO);
@@ -359,6 +409,12 @@ main (int argc, char *const *argv)
                                "import-hello",
                                gettext_noop ("Import a HELLO"),
                                &import_hello),
+    GNUNET_GETOPT_option_string ('E',
+                                 "expiration",
+                                 "TIME",
+                                 gettext_noop (
+                                   "Expiration time to set for exported hello. (Default: 1 day)"),
+                                 &expirationstring),
     GNUNET_GETOPT_option_flag ('D',
                                "dump-hellos",
                                gettext_noop (
