@@ -32,8 +32,9 @@
 .Op Fl c Ar FILENAME | Fl -config= Ns Ar FILENAME
 .Op Fl h | -help
 .Op Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
-.Op Fl I Ar HELLOURI | Fl -import-hello= Ns Ar HELLOURI
-.Op Fl H | -export-hello
+.Op Fl i | -import-hello
+.Op Fl e | -export-hello
+.Op Fl b | -binary
 .Op Fl D | -dump-hellos
 .Op Fl v | -version
 .Op Fl V | -verbose
@@ -48,9 +49,12 @@ Print the help page.
 .It Fl L Ar LOGLEVEL | Fl -loglevel= Ns Ar LOGLEVEL
 Change the loglevel.
 Possible values for LOGLEVEL are ERROR, WARNING, INFO and DEBUG.
-.It Fl I Ar HELLOURI | Fl -import-hello= Ns Ar HELLOURI
-Import a HELLO URI (into the peerstore and make it available to core).
-.It Fl H | -export-hello
+.It Fl i | -import-hello
+Import a HELLO (into the peerstore and make it available to core).
+Reads from stdin.
+.It Fl b | -binary
+Output in binary format (for use with `--export').
+.It Fl e | -export-hello
 Print a freshly signed HELLO URI for our peer.
 .It Fl D | -dump-hellos
 Print all known HELLOs (peer IDs and addresses).

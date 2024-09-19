@@ -23,6 +23,7 @@
  * @brief Export/import/print HELLOs.
  * @author Nathan Evans
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -61,9 +62,14 @@ static struct GNUNET_CRYPTO_EddsaPrivateKey my_private_key;
 static struct GNUNET_PeerIdentity my_full_id;
 
 /**
- * HELLO URI export option -H
+ * HELLO export option -H
  */
-static int export_own_hello_uri;
+static int export_own_hello;
+
+/**
+ * HELLO export/import format option
+ */
+static enum GNUNET_GenericReturnValue binary_output;
 
 /**
  * Hello list option -D
@@ -71,9 +77,9 @@ static int export_own_hello_uri;
 static int print_hellos;
 
 /**
- * HELLO URI import option -I
+ * HELLO import option -I
  */
-static char *import_uri;
+static enum GNUNET_GenericReturnValue import_hello;
 
 /**
  * Task run in monitor mode when the user presses CTRL-C to abort.
@@ -148,18 +154,29 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   hb = GNUNET_HELLO_builder_from_msg (record->value);
   hello_exp = GNUNET_HELLO_builder_get_expiration_time (record->value);
   pid = GNUNET_HELLO_builder_get_id (hb);
-  if (export_own_hello_uri)
+  if (export_own_hello)
   {
     if (0 == GNUNET_memcmp (&my_full_id,
                             pid))
     {
-      url = GNUNET_HELLO_builder_to_url (hb, &my_private_key);
-      printf ("%s\n", url);
-      GNUNET_free (url);
-      GNUNET_PEERSTORE_iteration_stop (iter_ctx);
-      iter_ctx = NULL;
-      GNUNET_HELLO_builder_free (hb);
-      GNUNET_SCHEDULER_shutdown ();
+      if (GNUNET_NO == binary_output)
+      {
+        url = GNUNET_HELLO_builder_to_url (hb, &my_private_key);
+        printf ("%s\n", url);
+        GNUNET_free (url);
+        GNUNET_PEERSTORE_iteration_stop (iter_ctx);
+        iter_ctx = NULL;
+        GNUNET_HELLO_builder_free (hb);
+        GNUNET_SCHEDULER_shutdown ();
+      }
+      else
+      {
+        fwrite (record->value, 1, record->value_size, stdout);
+        GNUNET_PEERSTORE_iteration_stop (iter_ctx);
+        iter_ctx = NULL;
+        GNUNET_HELLO_builder_free (hb);
+        GNUNET_SCHEDULER_shutdown ();
+      }
       return;
     }
   }
@@ -183,6 +200,7 @@ hello_store_success (void *cls, int success)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Storing hello uri failed\n");
   }
+  printf ("HELLO imported.");
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -213,8 +231,8 @@ run (void *cls,
     return;
   }
   if (! print_hellos &&
-      ! export_own_hello_uri &&
-      (NULL == import_uri))
+      (GNUNET_NO == export_own_hello) &&
+      (GNUNET_NO == import_hello))
   {
     fprintf (stderr, "%s", _ ("No argument given.\n"));
     ret = 1;
@@ -251,15 +269,57 @@ run (void *cls,
   GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_full_id.public_key);
   peerstore_handle = GNUNET_PEERSTORE_connect (cfg);
   GNUNET_assert (NULL != peerstore_handle);
-  if (NULL != import_uri)
+  if (GNUNET_YES == import_hello)
   {
-    hb = GNUNET_HELLO_builder_from_url (import_uri);
-    env = GNUNET_HELLO_builder_to_env (hb, NULL, GNUNET_TIME_UNIT_ZERO);
-    shc = GNUNET_PEERSTORE_hello_add (peerstore_handle,
-                                      GNUNET_MQ_env_get_msg (env),
-                                      &hello_store_success, NULL);
-    GNUNET_free (env);
-    GNUNET_HELLO_builder_free (hb);
+    char buffer[GNUNET_MAX_MESSAGE_SIZE - 1];
+    char *write_ptr;
+    ssize_t nread;
+    size_t read_total = 0;
+
+    write_ptr = buffer;
+    while (0 < (nread = fread (write_ptr, 1,
+                               sizeof buffer - read_total, stdin)))
+    {
+      read_total += nread;
+      write_ptr += nread;
+    }
+    buffer[read_total] = '\0';
+    if (strlen ("gnunet://hello/") > read_total)
+    {
+      fprintf (stderr, "HELLO malformed\n");
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+    if (0 == strncasecmp ("gnunet://hello/",
+                          buffer, strlen ("gnunet://hello/")))
+    {
+      // Remove newline
+      buffer[read_total - 1] = '\0';
+      hb = GNUNET_HELLO_builder_from_url (buffer);
+      if (NULL == hb)
+      {
+        fprintf (stderr, "Unable to parse URI `%s'\n", buffer);
+        return;
+      }
+      env = GNUNET_HELLO_builder_to_env (hb, NULL, GNUNET_TIME_UNIT_ZERO);
+      shc = GNUNET_PEERSTORE_hello_add (peerstore_handle,
+                                        GNUNET_MQ_env_get_msg (env),
+                                        &hello_store_success, NULL);
+      GNUNET_free (env);
+      GNUNET_HELLO_builder_free (hb);
+    }
+    else if (read_total > sizeof (struct GNUNET_MessageHeader))
+    {
+      shc = GNUNET_PEERSTORE_hello_add (peerstore_handle,
+                                        (const struct GNUNET_MessageHeader*)
+                                        buffer,
+                                        &hello_store_success, NULL);
+    }
+    else
+    {
+      fprintf (stderr, "HELLO malformed\n");
+      GNUNET_SCHEDULER_shutdown ();
+    }
     return;
   }
 
@@ -284,23 +344,27 @@ int
 main (int argc, char *const *argv)
 {
   int res;
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  {
-    GNUNET_GETOPT_option_flag ('H',
-                               "export-hello-uri",
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_option_flag ('e',
+                               "export-hello",
                                gettext_noop (
-                                 "Print a HELLO URI for our peer identity"),
-                               &export_own_hello_uri),
-    GNUNET_GETOPT_option_string ('I',
-                                 "import-hello",
-                                 gettext_noop ("Import a HELLO URI"),
-                                 "URI",
-                                 &import_uri),
+                                 "Print a HELLO for our peer identity"),
+                               &export_own_hello),
+    GNUNET_GETOPT_option_flag ('b',
+                               "binary",
+                               gettext_noop (
+                                 "Output HELLO in binary format. Use with `--export'."),
+                               &binary_output),
+    GNUNET_GETOPT_option_flag ('i',
+                               "import-hello",
+                               gettext_noop ("Import a HELLO"),
+                               &import_hello),
     GNUNET_GETOPT_option_flag ('D',
                                "dump-hellos",
                                gettext_noop (
                                  "List all known HELLOs in peerstore"),
-                               &print_hellos),    GNUNET_GETOPT_OPTION_END };
+                               &print_hellos),    GNUNET_GETOPT_OPTION_END
+  };
 
   if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
     return 2;
