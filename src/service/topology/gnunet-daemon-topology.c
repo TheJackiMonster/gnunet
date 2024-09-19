@@ -27,6 +27,7 @@
  * - gossping HELLOs
  *
  */
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"
@@ -479,7 +480,8 @@ schedule_next_hello (void *cls)
   pl->next_hello_allowed =
     GNUNET_TIME_relative_to_absolute (HELLO_ADVERTISEMENT_MIN_FREQUENCY);
   delay = GNUNET_TIME_absolute_get_remaining (pl->next_hello_allowed);
-  pl->hello_delay_task = GNUNET_SCHEDULER_add_delayed (delay, &schedule_next_hello, pl);
+  pl->hello_delay_task = GNUNET_SCHEDULER_add_delayed (delay, &
+                                                       schedule_next_hello, pl);
 }
 
 
@@ -498,8 +500,8 @@ reschedule_hellos (void *cls,
                    const struct GNUNET_PeerIdentity *pid,
                    void *value)
 {
-  (void) cls;
   struct Peer *peer = value;
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Reschedule for `%s'\n",
@@ -689,10 +691,10 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   else if (NULL != peer->hello)
   {
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-    struct GNUNET_TIME_Absolute new_hello_exp =
-      GNUNET_HELLO_builder_get_expiration_time (hello);
-    struct GNUNET_TIME_Absolute old_hello_exp =
-      GNUNET_HELLO_builder_get_expiration_time (peer->hello);
+    struct GNUNET_TIME_Timestamp new_hello_exp =
+      GNUNET_HELLO_get_expiration_time_from_msg (hello);
+    struct GNUNET_TIME_Timestamp old_hello_exp =
+      GNUNET_HELLO_get_expiration_time_from_msg (peer->hello);
     struct GNUNET_HELLO_Builder *builder_old = GNUNET_HELLO_builder_from_msg (
       peer->hello);
 
@@ -700,8 +702,9 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
                                   &address_iterator,
                                   &num_addresses_old);
     GNUNET_HELLO_builder_free (builder_old);
-    if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
-        (GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp) ||
+    if (GNUNET_TIME_absolute_cmp (new_hello_exp.abs_time, >, now) &&
+        (GNUNET_TIME_absolute_cmp (new_hello_exp.abs_time, >, old_hello_exp.
+                                   abs_time) ||
          num_addresses_old < num_addresses_new))
     {
       GNUNET_free (peer->hello);

@@ -25,6 +25,8 @@
  */
 
 
+#include "gnunet_common.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #if HAVE_ICONV
 #include <iconv.h>
@@ -334,8 +336,18 @@ enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_fancy_time_to_timestamp (const char *fancy_time,
                                         struct GNUNET_TIME_Timestamp *atime)
 {
-  return GNUNET_STRINGS_fancy_time_to_absolute (fancy_time,
-                                                &atime->abs_time);
+  enum GNUNET_GenericReturnValue ret;
+  if (GNUNET_OK !=
+      (ret = GNUNET_STRINGS_fancy_time_to_absolute (fancy_time,
+                                                    &atime->abs_time)))
+  {
+    return ret;
+  }
+  if (GNUNET_TIME_absolute_is_never (atime->abs_time))
+  {
+    atime->abs_time = GNUNET_TIME_UNIT_FOREVER_TS.abs_time;
+  }
+  return GNUNET_OK;
 }
 
 
@@ -610,6 +622,20 @@ GNUNET_STRINGS_relative_time_to_string (struct GNUNET_TIME_Relative delta,
   GNUNET_snprintf (buf, sizeof(buf), "%llu %s",
                    (unsigned long long) dval, unit);
   return buf;
+}
+
+
+const char *
+GNUNET_STRINGS_timestamp_to_string (struct GNUNET_TIME_Timestamp t)
+{
+  struct GNUNET_TIME_Absolute av;
+
+  if (t.abs_time.abs_value_us == GNUNET_TIME_UNIT_FOREVER_TS.abs_time.
+      abs_value_us)
+    return GNUNET_STRINGS_absolute_time_to_string (GNUNET_TIME_UNIT_FOREVER_ABS)
+    ;
+  av.abs_value_us = t.abs_time.abs_value_us;
+  return GNUNET_STRINGS_absolute_time_to_string (av);
 }
 
 

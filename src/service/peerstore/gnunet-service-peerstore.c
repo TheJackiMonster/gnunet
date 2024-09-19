@@ -23,6 +23,7 @@
  * @brief peerstore service implementation
  * @author Omar Tarabai
  */
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_protocols.h"
@@ -1134,6 +1135,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   const struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Builder *builder;
   const struct GNUNET_PeerIdentity *pid;
+  struct GNUNET_TIME_Timestamp et;
   (void) cls;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (fullname))
@@ -1162,7 +1164,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
     return GNUNET_OK;
   }
   pid = GNUNET_HELLO_builder_get_id (builder);
-
+  et = GNUNET_HELLO_get_expiration_time_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store contrib hello for peer %s\n",
               GNUNET_i2s (pid));
@@ -1173,7 +1175,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
                                      GNUNET_PEERSTORE_HELLO_KEY,
                                      hello,
                                      size_total,
-                                     GNUNET_TIME_UNIT_FOREVER_ABS,
+                                     et.abs_time,
                                      GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
                                      &store_hello_continuation,
                                      NULL))

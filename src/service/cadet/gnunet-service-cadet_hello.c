@@ -94,8 +94,8 @@ got_hello (void *cls,
        "Hello for %s (%d bytes), expires on %s\n",
        GNUNET_i2s (&record->peer),
        ntohs (hello->size),
-       GNUNET_STRINGS_absolute_time_to_string (
-         GNUNET_HELLO_builder_get_expiration_time (hello)));
+       GNUNET_STRINGS_timestamp_to_string (
+         GNUNET_HELLO_get_expiration_time_from_msg (hello)));
   peer = GCP_get (&record->peer,
                   GNUNET_YES);
   GCP_set_hello (peer,

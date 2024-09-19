@@ -59,12 +59,12 @@ struct GNUNET_TIME_Absolute
 };
 
 /**
- * Rounded time for timestamps used by GNUnet, in seconds.
+ * Time for timestamps used by GNUnet, in microseconds rounded to seconds.
  */
 struct GNUNET_TIME_Timestamp
 {
   /**
-   * The actual value. Must be round number in seconds.
+   * The actual value. Must be a round number of seconds in microseconds.
    */
   struct GNUNET_TIME_Absolute abs_time;
 };

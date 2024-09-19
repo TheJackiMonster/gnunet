@@ -286,6 +286,19 @@ GNUNET_STRINGS_buffer_tokenize (const char *buffer,
  * Note that the returned value will be overwritten if this function
  * is called again.
  *
+ * @param t the timestamp to convert
+ * @return timestamp in human-readable form in local time
+ */
+const char *
+GNUNET_STRINGS_timestamp_to_string (struct GNUNET_TIME_Timestamp t);
+
+/**
+ * @ingroup time
+ * Like `asctime`, except for GNUnet time.  Converts a GNUnet internal
+ * absolute time (which is in UTC) to a string in local time.
+ * Note that the returned value will be overwritten if this function
+ * is called again.
+ *
  * @param t the absolute time to convert
  * @return timestamp in human-readable form in local time
  */

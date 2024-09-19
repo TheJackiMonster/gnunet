@@ -237,7 +237,7 @@ struct GNUNET_HELLO_Builder
   /**
    * Expiration time parsed
    */
-  struct GNUNET_TIME_Absolute et;
+  struct GNUNET_TIME_Timestamp et;
 };
 
 /**
@@ -340,13 +340,13 @@ sign_hello (const struct GNUNET_HELLO_Builder *builder,
  */
 static enum GNUNET_GenericReturnValue
 verify_hello (const struct GNUNET_HELLO_Builder *builder,
-              struct GNUNET_TIME_Absolute et,
+              struct GNUNET_TIME_Timestamp et,
               const struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct HelloSignaturePurpose hsp = {
     .purpose.size = htonl (sizeof (hsp)),
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_HELLO),
-    .expiration_time = GNUNET_TIME_absolute_hton (et)
+    .expiration_time = GNUNET_TIME_absolute_hton (et.abs_time)
   };
 
   hash_addresses (builder,
@@ -360,7 +360,7 @@ verify_hello (const struct GNUNET_HELLO_Builder *builder,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  if (GNUNET_TIME_absolute_is_past (et))
+  if (GNUNET_TIME_absolute_is_past (et.abs_time))
     return GNUNET_NO;
   return GNUNET_OK;
 }
@@ -466,9 +466,11 @@ GNUNET_HELLO_builder_from_block (const void *block,
   }
   {
     enum GNUNET_GenericReturnValue ret;
+    struct GNUNET_TIME_Timestamp et;
 
+    et.abs_time = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
     ret = verify_hello (b,
-                        GNUNET_TIME_absolute_ntoh (bh->expiration_time),
+                        et,
                         &bh->sig);
     GNUNET_break (GNUNET_SYSERR != ret);
     if (GNUNET_OK != ret)
@@ -476,7 +478,7 @@ GNUNET_HELLO_builder_from_block (const void *block,
       GNUNET_HELLO_builder_free (b);
       return NULL;
     }
-    b->et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    b->et.abs_time = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
     b->sig = bh->sig;
     b->signature_set = GNUNET_YES;
   }
@@ -484,26 +486,29 @@ GNUNET_HELLO_builder_from_block (const void *block,
 }
 
 
-struct GNUNET_TIME_Absolute
-GNUNET_HELLO_builder_get_expiration_time (const struct
-                                          GNUNET_MessageHeader *msg)
+struct GNUNET_TIME_Timestamp
+GNUNET_HELLO_get_expiration_time_from_msg (const struct
+                                           GNUNET_MessageHeader *msg)
 {
+  struct GNUNET_TIME_Timestamp et;
   if (GNUNET_MESSAGE_TYPE_HELLO_URI == ntohs (msg->type))
   {
     const struct HelloUriMessage *h = (struct HelloUriMessage *) msg;
     const struct BlockHeader *bh = (const struct BlockHeader *) &h[1];
 
-    return GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    et.abs_time = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    return et;
   }
   else if (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO == ntohs (msg->type))
   {
     const struct DhtHelloMessage *dht_hello = (struct DhtHelloMessage *) msg;
 
-    return GNUNET_TIME_absolute_ntoh (dht_hello->expiration_time);
+    et.abs_time = GNUNET_TIME_absolute_ntoh (dht_hello->expiration_time);
+    return et;
   }
   else
     GNUNET_break (0);
-  return GNUNET_TIME_UNIT_ZERO_ABS;
+  return GNUNET_TIME_UNIT_ZERO_TS;
 }
 
 
@@ -514,7 +519,7 @@ GNUNET_HELLO_builder_from_url (const char *url)
   const char *s1;
   const char *s2;
   struct GNUNET_PeerIdentity pid;
-  struct GNUNET_TIME_Absolute et;
+  struct GNUNET_TIME_Timestamp et;
   size_t len;
   struct GNUNET_HELLO_Builder *b;
   struct GNUNET_CRYPTO_EddsaSignature sig;
@@ -570,7 +575,7 @@ GNUNET_HELLO_builder_from_url (const char *url)
       GNUNET_break_op (0);
       return NULL;
     }
-    et = GNUNET_TIME_timestamp_from_s (sec).abs_time;
+    et = GNUNET_TIME_timestamp_from_s (sec);
   }
 
   b = GNUNET_HELLO_builder_new (&pid);
@@ -722,7 +727,7 @@ GNUNET_HELLO_builder_to_url2 (const struct GNUNET_HELLO_Builder *builder,
   else
   {
     GNUNET_assert (GNUNET_YES == builder->signature_set);
-    et = GNUNET_TIME_absolute_to_timestamp (builder->et);
+    et = builder->et;
     sig = builder->sig;
   }
   pids = GNUNET_STRINGS_data_to_string_alloc (&builder->pid,
@@ -824,7 +829,7 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
   else
   {
     GNUNET_assert (GNUNET_YES == builder->signature_set);
-    bh.expiration_time = GNUNET_TIME_absolute_hton (builder->et);
+    bh.expiration_time = GNUNET_TIME_absolute_hton (builder->et.abs_time);
     bh.sig = builder->sig;
   }
   memcpy (block,
@@ -1031,7 +1036,7 @@ GNUNET_HELLO_dht_msg_to_block (const struct GNUNET_MessageHeader *hello,
     return GNUNET_SYSERR;
   }
   ret = verify_hello (b,
-                      *block_expiration,
+                      *(struct GNUNET_TIME_Timestamp*) block_expiration,
                       &msg->sig);
   GNUNET_HELLO_builder_free (b);
   if (GNUNET_SYSERR == ret)

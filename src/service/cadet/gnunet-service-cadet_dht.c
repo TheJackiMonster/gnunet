@@ -41,7 +41,7 @@
  * we wait for the first notification.
  */
 #define STARTUP_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 500)
+          GNUNET_TIME_UNIT_MILLISECONDS, 500)
 
 /**
  * How long do we wait after we get an updated HELLO before publishing?
@@ -49,7 +49,7 @@
  * case multiple addresses changed and we got a partial update.
  */
 #define CHANGE_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 100)
+          GNUNET_TIME_UNIT_MILLISECONDS, 100)
 
 
 #define LOG(level, ...) GNUNET_log_from (level, "cadet-dht", __VA_ARGS__)
@@ -132,12 +132,12 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
   struct CadetPeer *peer;
 
   peer = GCP_get (&put_path[0].pred,
-                    GNUNET_YES);
+                  GNUNET_YES);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got HELLO for %s\n",
        GCP_2s (peer));
   GCP_set_hello (peer,
-                   hello);
+                 hello);
   GNUNET_HELLO_builder_free (builder);
 }
 
@@ -159,7 +159,7 @@ announce_id (void *cls)
   struct GNUNET_TIME_Relative next_put;
 
   hello = GCH_get_mine ();
-  size = (NULL != hello) ? ntohs(hello->size) : 0;
+  size = (NULL != hello) ? ntohs (hello->size) : 0;
   if (0 == size)
   {
     expiration = GNUNET_TIME_absolute_add (GNUNET_TIME_absolute_get (),
@@ -168,7 +168,7 @@ announce_id (void *cls)
   }
   else
   {
-    expiration = GNUNET_HELLO_builder_get_expiration_time (hello);
+    expiration = GNUNET_HELLO_get_expiration_time_from_msg (hello).abs_time;
     announce_delay = GNUNET_TIME_UNIT_SECONDS;
   }
 

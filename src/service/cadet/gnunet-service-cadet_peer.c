@@ -53,13 +53,13 @@
  * How long do we wait until tearing down an idle peer?
  */
 #define IDLE_PEER_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 5)
+          GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * How long do we keep paths around if we no longer care about the peer?
  */
 #define IDLE_PATH_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 2)
+          GNUNET_TIME_UNIT_MINUTES, 2)
 
 /**
  * Queue size when we start dropping OOO messages.
@@ -490,8 +490,8 @@ consider_peer_destroy (struct CadetPeer *cp)
   {
     /* relevant only until HELLO expires */
     exp = GNUNET_TIME_absolute_get_remaining (
-      GNUNET_HELLO_builder_get_expiration_time (cp
-                                                ->hello));
+      GNUNET_HELLO_get_expiration_time_from_msg (cp
+                                                 ->hello).abs_time);
     cp->destroy_task = GNUNET_SCHEDULER_add_delayed (exp,
                                                      &destroy_peer,
                                                      cp);
@@ -1044,7 +1044,8 @@ GCP_add_connection (struct CadetPeer *cp,
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multishortmap_put (cp->connections,
                                                      &GCC_get_id (
-                                                       cc)->connection_of_tunnel,
+                                                       cc)->connection_of_tunnel
+                                                     ,
                                                      cc,
                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   if (NULL != cp->destroy_task)
@@ -1319,10 +1320,10 @@ GCP_set_hello (struct CadetPeer *cp,
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
 
     struct GNUNET_TIME_Absolute new_hello_exp =
-      GNUNET_HELLO_builder_get_expiration_time (hello);
+      GNUNET_HELLO_get_expiration_time_from_msg (hello).abs_time;
     struct GNUNET_TIME_Absolute old_hello_exp =
-      GNUNET_HELLO_builder_get_expiration_time (cp
-                                                ->hello);
+      GNUNET_HELLO_get_expiration_time_from_msg (cp
+                                                 ->hello).abs_time;
 
     if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
         GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp))

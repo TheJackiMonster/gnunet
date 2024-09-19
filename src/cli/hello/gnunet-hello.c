@@ -142,7 +142,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
             const char *emsg)
 {
   struct GNUNET_HELLO_Builder *hb;
-  struct GNUNET_TIME_Absolute hello_exp;
+  struct GNUNET_TIME_Timestamp hello_exp;
   const struct GNUNET_PeerIdentity *pid;
 
   if ((NULL == record) && (NULL == emsg))
@@ -161,7 +161,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     return;
   }
   hb = GNUNET_HELLO_builder_from_msg (record->value);
-  hello_exp = GNUNET_HELLO_builder_get_expiration_time (record->value);
+  hello_exp = GNUNET_HELLO_get_expiration_time_from_msg (record->value);
   pid = GNUNET_HELLO_builder_get_id (hb);
   if (export_own_hello)
   {
@@ -202,7 +202,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
         }
         else
         {
-          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp);
+          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp.abs_time);
           env = GNUNET_HELLO_builder_to_env (hb,
                                              &my_private_key,
                                              validity_tmp);
@@ -221,7 +221,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   else if (print_hellos)
   {
     printf ("`%s' (expires: %s):\n", GNUNET_i2s (pid),
-            GNUNET_STRINGS_absolute_time_to_string (hello_exp));
+            GNUNET_STRINGS_timestamp_to_string (hello_exp));
     GNUNET_HELLO_builder_iterate (hb, &print_hello_addrs, NULL);
   }
   GNUNET_HELLO_builder_free (hb);
