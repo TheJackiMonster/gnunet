@@ -202,7 +202,7 @@ GNUNET_NETWORK_STRUCT_END
  * will be treated specially in all time operations.
  */
 #define GNUNET_TIME_UNIT_FOREVER_TS \
-  ((struct GNUNET_TIME_Timestamp){{UINT64_MAX}})
+  ((struct GNUNET_TIME_Timestamp){{UINT64_MAX - (UINT64_MAX % 1000000)}})
 
 
 /**
