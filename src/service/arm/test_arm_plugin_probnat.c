@@ -68,11 +68,11 @@ GNUNET_TESTING_MAKE_PLUGIN (
                                      "system",
                                      get_conf_name (my_node_id)),
   GNUNET_TESTING_cmd_exec_va ("sleep",
-                                GNUNET_OS_PROCESS_EXITED,
-                                0,
-                                "sleep",
-                                "3000",
-                                NULL),
+                              GNUNET_OS_PROCESS_EXITED,
+                              0,
+                              "sleep",
+                              "3000",
+                              NULL),
   GNUNET_TESTING_cmd_stop_peer ("stop",
                                 "start")
   )
