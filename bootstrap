@@ -79,7 +79,11 @@ check_libtool()
        existence libtoolize || \
        existence glibtoolize || \
        existence slibtool; then
-        autoreconf -if
+        autoreconf -if; ret=$?
+        if [ $ret -ne 0 ]; then
+          echo 'Error with `autoreconf -if`'
+          return $ret
+        fi
     elif ! existence meson; then
         echo "*** No libtoolize (libtool) or libtool or meson found, please install it ***" >&2;
         exit 1
@@ -133,7 +137,11 @@ main()
     if [ "$1" = "meson" ]; then
       echo "Skipping autoreconf"
     else
-      check_libtool
+      check_libtool; ret=$?
+      if [ $ret -ne 0 ]; then
+        echo 'Error with checking for libtool'
+        return $ret
+      fi
     fi
     pogen
     if test -d .git
