@@ -490,8 +490,7 @@ consider_peer_destroy (struct CadetPeer *cp)
   {
     /* relevant only until HELLO expires */
     exp = GNUNET_TIME_absolute_get_remaining (
-      GNUNET_HELLO_get_expiration_time_from_msg (cp
-                                                 ->hello).abs_time);
+      GNUNET_HELLO_get_expiration_time_from_msg (cp->hello));
     cp->destroy_task = GNUNET_SCHEDULER_add_delayed (exp,
                                                      &destroy_peer,
                                                      cp);
@@ -1320,10 +1319,9 @@ GCP_set_hello (struct CadetPeer *cp,
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
 
     struct GNUNET_TIME_Absolute new_hello_exp =
-      GNUNET_HELLO_get_expiration_time_from_msg (hello).abs_time;
+      GNUNET_HELLO_get_expiration_time_from_msg (hello);
     struct GNUNET_TIME_Absolute old_hello_exp =
-      GNUNET_HELLO_get_expiration_time_from_msg (cp
-                                                 ->hello).abs_time;
+      GNUNET_HELLO_get_expiration_time_from_msg (cp->hello);
 
     if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
         GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp))

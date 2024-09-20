@@ -65,7 +65,8 @@ block_plugin_dht_create_group (void *cls,
   if (0 == strcmp (guard,
                    "seen-set-size"))
     bf_size = GNUNET_BLOCK_GROUP_compute_bloomfilter_size (va_arg (va,
-                                                                   unsigned int),
+                                                                   unsigned int)
+                                                           ,
                                                            BLOOMFILTER_K);
   else if (0 == strcmp (guard,
                         "filter-size"))
@@ -137,23 +138,23 @@ block_plugin_dht_check_block (void *cls,
   {
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
-      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_HELLO_Parser *b;
       const struct GNUNET_PeerIdentity *pid;
       struct GNUNET_HashCode h_pid;
 
-      b = GNUNET_HELLO_builder_from_block (block,
-                                           block_size);
+      b = GNUNET_HELLO_parser_from_block (block,
+                                          block_size);
       if (NULL == b)
       {
         GNUNET_break (0);
         return GNUNET_NO;
       }
-      pid = GNUNET_HELLO_builder_iterate (b,
-                                          NULL, NULL);
+      pid = GNUNET_HELLO_parser_iterate (b,
+                                         NULL, NULL);
       GNUNET_CRYPTO_hash (pid,
                           sizeof (*pid),
                           &h_pid);
-      GNUNET_HELLO_builder_free (b);
+      GNUNET_HELLO_parser_free (b);
       return GNUNET_OK;
     }
   default:
@@ -194,19 +195,19 @@ block_plugin_dht_check_reply (
   {
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
-      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_HELLO_Parser *b;
       const struct GNUNET_PeerIdentity *pid;
       struct GNUNET_HashCode h_pid;
 
-      b = GNUNET_HELLO_builder_from_block (reply_block,
-                                           reply_block_size);
+      b = GNUNET_HELLO_parser_from_block (reply_block,
+                                          reply_block_size);
       GNUNET_assert (NULL != b);
-      pid = GNUNET_HELLO_builder_iterate (b,
-                                          NULL, NULL);
+      pid = GNUNET_HELLO_parser_iterate (b,
+                                         NULL, NULL);
       GNUNET_CRYPTO_hash (pid,
                           sizeof (*pid),
                           &h_pid);
-      GNUNET_HELLO_builder_free (b);
+      GNUNET_HELLO_parser_free (b);
       if (GNUNET_YES ==
           GNUNET_BLOCK_GROUP_bf_test_and_set (group,
                                               &h_pid))
@@ -241,11 +242,11 @@ block_plugin_dht_get_key (void *cls,
   {
   case GNUNET_BLOCK_TYPE_DHT_HELLO:
     {
-      struct GNUNET_HELLO_Builder *b;
+      struct GNUNET_HELLO_Parser *b;
       const struct GNUNET_PeerIdentity *pid;
 
-      b = GNUNET_HELLO_builder_from_block (block,
-                                           block_size);
+      b = GNUNET_HELLO_parser_from_block (block,
+                                          block_size);
       if (NULL == b)
       {
         GNUNET_break (0);
@@ -254,12 +255,12 @@ block_plugin_dht_get_key (void *cls,
                 sizeof (*key));
         return GNUNET_OK;
       }
-      pid = GNUNET_HELLO_builder_iterate (b,
-                                          NULL, NULL);
+      pid = GNUNET_HELLO_parser_iterate (b,
+                                         NULL, NULL);
       GNUNET_CRYPTO_hash (pid,
                           sizeof (*pid),
                           key);
-      GNUNET_HELLO_builder_free (b);
+      GNUNET_HELLO_parser_free (b);
       return GNUNET_OK;
     }
   default:
@@ -267,6 +268,7 @@ block_plugin_dht_get_key (void *cls,
     return GNUNET_SYSERR;
   }
 }
+
 
 void *
 libgnunet_plugin_block_dht_init (void *cls);
@@ -292,6 +294,7 @@ libgnunet_plugin_block_dht_init (void *cls)
   api->types = types;
   return api;
 }
+
 
 void *
 libgnunet_plugin_block_dht_done (void *cls);

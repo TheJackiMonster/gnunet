@@ -24,16 +24,7 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
-#include "platform.h"
-#include "gnunet_constants.h"
-#include "gnunet_protocols.h"
-#include "gnunet_hello_uri_lib.h"
-#include "gnunet_statistics_service.h"
-#include "gnunet-service-dht.h"
-#include "gnunet-service-dht_datacache.h"
-#include "gnunet-service-dht_neighbours.h"
-#include "gnunet-service-dht.h"
-#include "dht.h"
+#include "gnunet-service-dht_clients.h"
 
 /**
  * Enable slow sanity checks to debug issues.
@@ -1203,12 +1194,12 @@ handle_dht_local_hello_offer (void *cls,
 {
   struct ClientHandle *ch = cls;
   const char *url = (const char *) &msg[1];
-  struct GNUNET_HELLO_Builder *b;
+  struct GNUNET_HELLO_Parser *b;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Local client provided HELLO URL %s\n",
               url);
-  b = GNUNET_HELLO_builder_from_url (url);
+  b = GNUNET_HELLO_parser_from_url (url);
   if (NULL == b)
   {
     GNUNET_break (0);
@@ -1216,10 +1207,10 @@ handle_dht_local_hello_offer (void *cls,
     return;
   }
   GNUNET_SERVICE_client_continue (ch->client);
-  GNUNET_HELLO_builder_iterate (b,
-                                &GDS_try_connect,
-                                NULL);
-  GNUNET_HELLO_builder_free (b);
+  GNUNET_HELLO_parser_iterate (b,
+                               &GDS_try_connect,
+                               NULL);
+  GNUNET_HELLO_parser_free (b);
 }
 
 
@@ -1607,7 +1598,7 @@ GDS_CLIENTS_process_put (const struct GNUNET_DATACACHE_Block *bd,
 /**
  * Initialize client subsystem.
  */
-static void
+void
 GDS_CLIENTS_init (void)
 {
   forward_map
@@ -1621,7 +1612,7 @@ GDS_CLIENTS_init (void)
 /**
  * Shutdown client subsystem.
  */
-static void
+void
 GDS_CLIENTS_stop (void)
 {
   if (NULL != retry_task)

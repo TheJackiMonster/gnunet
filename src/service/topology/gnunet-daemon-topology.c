@@ -667,20 +667,21 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
 {
   int num_addresses_old = 0;
   int num_addresses_new = 0;
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
+  struct GNUNET_HELLO_Parser *parser;
   const struct GNUNET_PeerIdentity *pid;
   struct Peer *peer;
   uint16_t size;
 
-  pid = GNUNET_HELLO_builder_iterate (builder,
-                                      &address_iterator,
-                                      &num_addresses_new);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  pid = GNUNET_HELLO_parser_iterate (parser,
+                                     &address_iterator,
+                                     &num_addresses_new);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "consider 0 for %s\n",
               GNUNET_i2s (pid));
   if (0 == num_addresses_new)
   {
-    GNUNET_HELLO_builder_free (builder);
+    GNUNET_HELLO_parser_free (parser);
     return; /* no point in advertising this one... */
   }
   peer = GNUNET_CONTAINER_multipeermap_get (peers, pid);
@@ -691,20 +692,19 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   else if (NULL != peer->hello)
   {
     struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-    struct GNUNET_TIME_Timestamp new_hello_exp =
+    struct GNUNET_TIME_Absolute new_hello_exp =
       GNUNET_HELLO_get_expiration_time_from_msg (hello);
-    struct GNUNET_TIME_Timestamp old_hello_exp =
+    struct GNUNET_TIME_Absolute old_hello_exp =
       GNUNET_HELLO_get_expiration_time_from_msg (peer->hello);
-    struct GNUNET_HELLO_Builder *builder_old = GNUNET_HELLO_builder_from_msg (
-      peer->hello);
+    struct GNUNET_HELLO_Parser *parser_old =
+      GNUNET_HELLO_parser_from_msg (peer->hello);
 
-    GNUNET_HELLO_builder_iterate (builder_old,
-                                  &address_iterator,
-                                  &num_addresses_old);
-    GNUNET_HELLO_builder_free (builder_old);
-    if (GNUNET_TIME_absolute_cmp (new_hello_exp.abs_time, >, now) &&
-        (GNUNET_TIME_absolute_cmp (new_hello_exp.abs_time, >, old_hello_exp.
-                                   abs_time) ||
+    GNUNET_HELLO_parser_iterate (parser_old,
+                                 &address_iterator,
+                                 &num_addresses_old);
+    GNUNET_HELLO_parser_free (parser_old);
+    if (GNUNET_TIME_absolute_cmp (new_hello_exp, >, now) &&
+        (GNUNET_TIME_absolute_cmp (new_hello_exp, >, old_hello_exp) ||
          num_addresses_old < num_addresses_new))
     {
       GNUNET_free (peer->hello);
@@ -716,7 +716,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "consider 3\n");
-      GNUNET_HELLO_builder_free (builder);
+      GNUNET_HELLO_parser_free (parser);
       return;
     }
   }
@@ -738,7 +738,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   /* since we have a new HELLO to pick from, re-schedule all
    * HELLO requests that are not bound by the HELLO send rate! */
   GNUNET_CONTAINER_multipeermap_iterate (peers, &reschedule_hellos, NULL);
-  GNUNET_HELLO_builder_free (builder);
+  GNUNET_HELLO_parser_free (parser);
 }
 
 
@@ -887,11 +887,10 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
  *         #GNUNET_SYSERR if @a message is invalid
  */
 static int
-check_hello (void *cls, const struct GNUNET_MessageHeader *message)
+check_hello (void *cls, const struct GNUNET_MessageHeader *msg)
 {
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
-    message);
-  const struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_builder_get_id (builder);
+  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg);
+  const struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_parser_get_id (parser);
 
   if (NULL == pid)
   {
@@ -927,12 +926,11 @@ shc_cont (void *cls, int success)
  * @param message the actual HELLO message
  */
 static void
-handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
+handle_hello (void *cls, const struct GNUNET_MessageHeader *msg)
 {
   struct StoreHelloEntry *she;
   const struct GNUNET_PeerIdentity *other = cls;
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (
-    message);
+  struct GNUNET_HELLO_Parser *parser;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received encrypted HELLO from peer `%s'\n",
@@ -941,16 +939,16 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *message)
                             gettext_noop ("# HELLO messages received"),
                             1,
                             GNUNET_NO);
-  GNUNET_HELLO_builder_from_msg (message);
+  parser = GNUNET_HELLO_parser_from_msg (msg);
   she = GNUNET_new (struct StoreHelloEntry);
-  she->sc = GNUNET_PEERSTORE_hello_add (ps, message, &shc_cont, she);
+  she->sc = GNUNET_PEERSTORE_hello_add (ps, msg, &shc_cont, she);
   if (NULL != she->sc)
   {
     GNUNET_CONTAINER_DLL_insert (she_head, she_tail, she);
   }
   else
     GNUNET_free (she);
-  GNUNET_HELLO_builder_free (builder);
+  GNUNET_HELLO_parser_free (parser);
 }
 
 

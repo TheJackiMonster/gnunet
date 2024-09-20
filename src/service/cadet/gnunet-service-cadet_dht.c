@@ -120,16 +120,14 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
                     const void *data)
 {
   const struct GNUNET_MessageHeader *hello = data;
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (hello);
+  struct CadetPeer *peer;
 
-  GNUNET_assert (NULL != builder);
   (void) trunc_peer;
   GCPP_try_path_from_dht (get_path,
                           get_path_length,
                           put_path,
                           put_path_length);
 
-  struct CadetPeer *peer;
 
   peer = GCP_get (&put_path[0].pred,
                   GNUNET_YES);
@@ -138,7 +136,6 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
        GCP_2s (peer));
   GCP_set_hello (peer,
                  hello);
-  GNUNET_HELLO_builder_free (builder);
 }
 
 
@@ -168,7 +165,7 @@ announce_id (void *cls)
   }
   else
   {
-    expiration = GNUNET_HELLO_get_expiration_time_from_msg (hello).abs_time;
+    expiration = GNUNET_HELLO_get_expiration_time_from_msg (hello);
     announce_delay = GNUNET_TIME_UNIT_SECONDS;
   }
 

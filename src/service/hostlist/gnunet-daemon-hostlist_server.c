@@ -166,7 +166,7 @@ static struct MHD_Response*
 build_json_response (const struct HostSet *bu)
 {
   struct GNUNET_MessageHeader *hello;
-  struct GNUNET_HELLO_Builder *hbuilder;
+  struct GNUNET_HELLO_Parser *hparser;
   json_t*hello_uri_j;
   json_t*hello_array;
   char *hello_uri;
@@ -178,11 +178,11 @@ build_json_response (const struct HostSet *bu)
   while (offset < bu->size)
   {
     hello = (struct GNUNET_MessageHeader*) (bu->data + offset);
-    hbuilder = GNUNET_HELLO_builder_from_msg (hello);
-    hello_uri = GNUNET_HELLO_builder_to_url (hbuilder, NULL);
+    hparser = GNUNET_HELLO_parser_from_msg (hello);
+    hello_uri = GNUNET_HELLO_parser_to_url (hparser);
     json_array_append_new (hello_array, json_string (hello_uri));
     GNUNET_free (hello_uri);
-    GNUNET_HELLO_builder_free (hbuilder);
+    GNUNET_HELLO_parser_free (hparser);
     offset += ntohs (hello->size);
   }
   json_object_set_new (hello_uri_j, "hellos", hello_array);
@@ -245,10 +245,10 @@ host_processor (void *cls,
                 const struct GNUNET_PeerIdentity *peer,
                 void *value)
 {
-  (void) cls;
   size_t old;
   size_t s;
   struct GNUNET_MessageHeader *hello = value;
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "host_processor\n");
@@ -305,6 +305,7 @@ accept_policy_callback (void *cls,
   return MHD_YES; /* accept all */
 }
 
+
 static int
 header_iterator (void *cls,
                  enum MHD_ValueKind kind,
@@ -313,12 +314,13 @@ header_iterator (void *cls,
 {
   enum GNUNET_GenericReturnValue *want_json = cls;
 
-  if (0 != strcasecmp(key, "Accept"))
+  if (0 != strcasecmp (key, "Accept"))
     return GNUNET_YES;
   if (0 == strcasecmp (value, "application/json"))
     *want_json = GNUNET_YES;
   return MHD_YES;
 }
+
 
 /**
  * Main request handler.
@@ -367,6 +369,7 @@ access_handler_callback (void *cls,
 {
   static int dummy;
   struct MHD_Response *selected_response;
+  enum GNUNET_GenericReturnValue want_json = GNUNET_NO;
 
   /* CORS pre-flight request */
   if (0 == strcmp (MHD_HTTP_METHOD_OPTIONS, method))
@@ -412,10 +415,9 @@ access_handler_callback (void *cls,
     return MHD_NO;   /* do not support upload data */
   }
   selected_response = response;
-  enum GNUNET_GenericReturnValue want_json = GNUNET_NO;
   MHD_get_connection_values (connection,
                              MHD_HEADER_KIND,
-                             (MHD_KeyValueIterator) &header_iterator,
+                             (MHD_KeyValueIterator) & header_iterator,
                              &want_json);
   if (GNUNET_YES == want_json)
   {

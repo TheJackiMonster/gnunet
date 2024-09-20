@@ -9200,7 +9200,7 @@ handle_hello_for_incoming (void *cls,
                            const char *emsg)
 {
   struct IncomingRequest *ir = cls;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
 
   if (NULL != emsg)
@@ -9216,11 +9216,11 @@ handle_hello_for_incoming (void *cls,
     GNUNET_PEERSTORE_monitor_next (ir->nc, 1);
     return;
   }
-  builder = GNUNET_HELLO_builder_from_msg (hello);
-  GNUNET_HELLO_builder_iterate (builder,
-                                hello_for_incoming_cb,
-                                NULL);
-  GNUNET_HELLO_builder_free (builder);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  GNUNET_HELLO_parser_iterate (parser,
+                               hello_for_incoming_cb,
+                               NULL);
+  GNUNET_HELLO_parser_free (parser);
 }
 
 
@@ -9855,7 +9855,7 @@ check_for_burst_address (void *cls,
   struct GNUNET_StartBurstCls *sb_cls = cls;
   struct VirtualLink *vl = sb_cls->vl;
   struct GNUNET_MessageHeader *hello;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
 
   if (NULL != emsg)
   {
@@ -9877,11 +9877,11 @@ check_for_burst_address (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_for_burst_address\n");
   hello = record->value;
-  builder = GNUNET_HELLO_builder_from_msg (hello);
-  GNUNET_HELLO_builder_iterate (builder,
-                                &iterate_address_start_burst,
-                                vl);
-  GNUNET_HELLO_builder_free (builder);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  GNUNET_HELLO_parser_iterate (parser,
+                               &iterate_address_start_burst,
+                               vl);
+  GNUNET_HELLO_parser_free (parser);
 
   GNUNET_PEERSTORE_iteration_stop (vl->ic);
   GNUNET_free (sb_cls);
@@ -12155,7 +12155,7 @@ check_for_global_natted (void *cls,
 {
   struct Queue *queue = cls;
   struct Neighbour *neighbour = queue->neighbour;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
   struct TransportGlobalNattedAddressClosure tgna_cls;
   size_t address_len_without_port;
@@ -12175,17 +12175,17 @@ check_for_global_natted (void *cls,
   }
   queue->is_global_natted = GNUNET_YES;
   hello = record->value;
-  builder = GNUNET_HELLO_builder_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "before not global natted %u\n",
               queue->is_global_natted);
-  GNUNET_HELLO_builder_iterate (builder,
-                                &iterate_address_and_compare_cb,
-                                queue);
+  GNUNET_HELLO_parser_iterate (parser,
+                               &iterate_address_and_compare_cb,
+                               queue);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "after not global natted %u\n",
               queue->is_global_natted);
-  GNUNET_HELLO_builder_free (builder);
+  GNUNET_HELLO_parser_free (parser);
 
   tgna_cls.addr = get_address_without_port (queue->address);
   address_len_without_port = strlen (tgna_cls.addr);
@@ -12611,7 +12611,7 @@ handle_hello_for_client (void *cls,
                          const char *emsg)
 {
   struct PeerRequest *pr = cls;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
 
   if (NULL != emsg)
@@ -12627,11 +12627,11 @@ handle_hello_for_client (void *cls,
     GNUNET_PEERSTORE_monitor_next (pr->nc, 1);
     return;
   }
-  builder = GNUNET_HELLO_builder_from_msg (hello);
-  GNUNET_HELLO_builder_iterate (builder,
-                                hello_for_client_cb,
-                                NULL);
-  GNUNET_HELLO_builder_free (builder);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  GNUNET_HELLO_parser_iterate (parser,
+                               hello_for_client_cb,
+                               NULL);
+  GNUNET_HELLO_parser_free (parser);
 }
 
 

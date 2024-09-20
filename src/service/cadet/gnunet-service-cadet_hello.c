@@ -67,6 +67,7 @@ got_hello (void *cls,
            const char *err_msg)
 {
   struct CadetPeer *peer;
+  struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_HELLO_Builder *builder;
   struct GNUNET_MessageHeader *hello;
 
@@ -80,10 +81,12 @@ got_hello (void *cls,
                           &my_full_id))
   {
     GNUNET_free (mine);
-    builder = GNUNET_HELLO_builder_from_msg (hello);
+    parser = GNUNET_HELLO_parser_from_msg (hello);
+    builder = GNUNET_HELLO_builder_from_parser (parser);
     mine = GNUNET_HELLO_builder_to_dht_hello_msg (builder,
                                                   my_private_key,
                                                   GNUNET_TIME_UNIT_ZERO);
+    GNUNET_HELLO_parser_free (parser);
     GNUNET_HELLO_builder_free (builder);
     GCD_hello_update ();
     GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
@@ -94,7 +97,7 @@ got_hello (void *cls,
        "Hello for %s (%d bytes), expires on %s\n",
        GNUNET_i2s (&record->peer),
        ntohs (hello->size),
-       GNUNET_STRINGS_timestamp_to_string (
+       GNUNET_STRINGS_absolute_time_to_string (
          GNUNET_HELLO_get_expiration_time_from_msg (hello)));
   peer = GCP_get (&record->peer,
                   GNUNET_YES);

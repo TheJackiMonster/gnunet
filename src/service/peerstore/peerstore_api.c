@@ -873,9 +873,9 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
                 const char *emsg)
 {
   struct GNUNET_PEERSTORE_StoreHelloContext *huc = cls;
-  struct GNUNET_TIME_Timestamp hello_exp =
+  struct GNUNET_TIME_Absolute hello_exp =
     GNUNET_HELLO_get_expiration_time_from_msg (huc->hello);
-  struct GNUNET_TIME_Timestamp hello_record_exp;
+  struct GNUNET_TIME_Absolute hello_record_exp;
 
   if ((NULL == record) && (NULL == emsg))
   {
@@ -888,7 +888,7 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
                                       GNUNET_PEERSTORE_HELLO_KEY,
                                       huc->hello,
                                       ntohs (huc->hello->size),
-                                      hello_exp.abs_time,
+                                      hello_exp,
                                       GNUNET_PEERSTORE_STOREOPTION_REPLACE,
                                       &hello_store_success,
                                       huc);
@@ -901,13 +901,13 @@ hello_add_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     return;
   }
   hello_record_exp = GNUNET_HELLO_get_expiration_time_from_msg (record->value);
-  if (GNUNET_TIME_absolute_cmp (hello_record_exp.abs_time, >, hello_exp.abs_time))
+  if (GNUNET_TIME_absolute_cmp (hello_record_exp, >, hello_exp))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Not storing hello for %s since we seem to have a newer version on record expiring `%s' and after `%s'.\n",
          GNUNET_i2s (&huc->pid),
-         GNUNET_STRINGS_timestamp_to_string (hello_record_exp),
-         GNUNET_STRINGS_timestamp_to_string (hello_exp));
+         GNUNET_STRINGS_absolute_time_to_string (hello_record_exp),
+         GNUNET_STRINGS_absolute_time_to_string (hello_exp));
     huc->cont (huc->cont_cls, GNUNET_OK);
     GNUNET_PEERSTORE_iteration_stop (huc->ic);
     GNUNET_free (huc->hello);
@@ -924,18 +924,18 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
                             GNUNET_PEERSTORE_Continuation cont,
                             void *cont_cls)
 {
-  struct GNUNET_HELLO_Builder *builder = GNUNET_HELLO_builder_from_msg (msg);
+  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg);
   struct GNUNET_PEERSTORE_StoreHelloContext *huc;
   const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
-  struct GNUNET_TIME_Timestamp hello_exp =
+  struct GNUNET_TIME_Absolute hello_exp =
     GNUNET_HELLO_get_expiration_time_from_msg (msg);
   struct GNUNET_TIME_Absolute huc_exp;
   uint16_t size_msg = ntohs (msg->size);
 
-  if (NULL == builder)
+  if (NULL == parser)
     return NULL;
-  if (GNUNET_TIME_absolute_cmp (hello_exp.abs_time, <, now))
+  if (GNUNET_TIME_absolute_cmp (hello_exp, <, now))
     return NULL;
 
   huc = GNUNET_new (struct GNUNET_PEERSTORE_StoreHelloContext);
@@ -945,8 +945,8 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
   huc->hello = GNUNET_malloc (size_msg);
   GNUNET_memcpy (huc->hello, msg, size_msg);
   huc_exp =
-    GNUNET_HELLO_get_expiration_time_from_msg (huc->hello).abs_time;
-  pid = GNUNET_HELLO_builder_get_id (builder);
+    GNUNET_HELLO_get_expiration_time_from_msg (huc->hello);
+  pid = GNUNET_HELLO_parser_get_id (parser);
   huc->pid = *pid;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Adding hello for peer %s with expiration %s msg size %u\n",
@@ -958,7 +958,7 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
                                               GNUNET_PEERSTORE_HELLO_KEY,
                                               &hello_add_iter,
                                               huc);
-  GNUNET_HELLO_builder_free (builder);
+  GNUNET_HELLO_parser_free (parser);
   return huc;
 }
 

@@ -1199,20 +1199,20 @@ get_target_peers (const struct GNUNET_HashCode *key,
 static void
 hello_check (const struct GNUNET_DATACACHE_Block *bd)
 {
-  struct GNUNET_HELLO_Builder *b;
+  struct GNUNET_HELLO_Parser *b;
 
   if (GNUNET_BLOCK_TYPE_DHT_HELLO != bd->type)
     return;
 
-  b = GNUNET_HELLO_builder_from_block (bd->data,
-                                       bd->data_size);
+  b = GNUNET_HELLO_parser_from_block (bd->data,
+                                      bd->data_size);
   if (GNUNET_YES != disable_try_connect)
   {
-    GNUNET_HELLO_builder_iterate (b,
-                                  &GDS_try_connect,
-                                  NULL);
+    GNUNET_HELLO_parser_iterate (b,
+                                 &GDS_try_connect,
+                                 NULL);
   }
-  GNUNET_HELLO_builder_free (b);
+  GNUNET_HELLO_parser_free (b);
 }
 
 

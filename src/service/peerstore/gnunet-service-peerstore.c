@@ -1133,9 +1133,9 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   ssize_t size_total;
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
   const struct GNUNET_MessageHeader *hello;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
   const struct GNUNET_PeerIdentity *pid;
-  struct GNUNET_TIME_Timestamp et;
+  struct GNUNET_TIME_Absolute et;
   (void) cls;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (fullname))
@@ -1156,14 +1156,14 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
     return GNUNET_OK;
   }
   hello = (const struct GNUNET_MessageHeader *) &buffer[0];
-  builder = GNUNET_HELLO_builder_from_msg (hello);
-  if (NULL == builder)
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  if (NULL == parser)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Unable to parse HELLO message\n");
     return GNUNET_OK;
   }
-  pid = GNUNET_HELLO_builder_get_id (builder);
+  pid = GNUNET_HELLO_parser_get_id (parser);
   et = GNUNET_HELLO_get_expiration_time_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "store contrib hello for peer %s\n",
@@ -1175,14 +1175,14 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
                                      GNUNET_PEERSTORE_HELLO_KEY,
                                      hello,
                                      size_total,
-                                     et.abs_time,
+                                     et,
                                      GNUNET_PEERSTORE_STOREOPTION_MULTIPLE,
                                      &store_hello_continuation,
                                      NULL))
   {
     GNUNET_break (0);
   }
-  GNUNET_HELLO_builder_free (builder);
+  GNUNET_HELLO_parser_free (parser);
   return GNUNET_OK;
 }
 

@@ -408,7 +408,7 @@ peerinfo_cb (void *cls,
              const char *emsg)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_HELLO_Builder *builder;
+  struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
 
   hello = record->value;
@@ -421,11 +421,11 @@ peerinfo_cb (void *cls,
     GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
     return;
   }
-  builder = GNUNET_HELLO_builder_from_msg (hello);
-  GNUNET_HELLO_builder_iterate (builder,
-                                add_addr,
-                                plugin);
-  GNUNET_HELLO_builder_free (builder);
+  parser = GNUNET_HELLO_parser_from_msg (hello);
+  GNUNET_HELLO_parser_iterate (parser,
+                               add_addr,
+                               plugin);
+  GNUNET_HELLO_parser_free (parser);
   GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
 }
 

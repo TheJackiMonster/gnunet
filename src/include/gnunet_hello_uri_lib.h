@@ -47,9 +47,14 @@ extern "C" {
 
 
 /**
- * Context for building (or parsing) HELLO URIs.
+ * Context for building HELLOs.
  */
 struct GNUNET_HELLO_Builder;
+
+/**
+ * Context for parsing HELLOs.
+ */
+struct GNUNET_HELLO_Parser;
 
 
 /**
@@ -70,10 +75,19 @@ GNUNET_HELLO_builder_new (const struct GNUNET_PeerIdentity *pid);
 
 
 /**
+ * Allocate builder from parser.
+ *
+ * @param parser the parser
+ * @return new builder
+ */
+struct GNUNET_HELLO_Builder *
+GNUNET_HELLO_builder_from_parser (const struct GNUNET_HELLO_Parser *parser);
+
+/**
  * Get the PeerIdentity for this builder.
  */
 const struct GNUNET_PeerIdentity *
-GNUNET_HELLO_builder_get_id (const struct GNUNET_HELLO_Builder *builder);
+GNUNET_HELLO_parser_get_id (const struct GNUNET_HELLO_Parser *parser);
 
 
 /**
@@ -84,37 +98,45 @@ GNUNET_HELLO_builder_get_id (const struct GNUNET_HELLO_Builder *builder);
 void
 GNUNET_HELLO_builder_free (struct GNUNET_HELLO_Builder *builder);
 
+/**
+ * Release resources of a @a builder.
+ *
+ * @param[in] builder to free
+ */
+void
+GNUNET_HELLO_parser_free (struct GNUNET_HELLO_Parser *parser);
+
 
 /**
- * Parse @a msg into builder.
+ * Parse @a msg.
  *
  * @param msg message to parse
  * @return builder, NULL on failure
  */
-struct GNUNET_HELLO_Builder *
-GNUNET_HELLO_builder_from_msg (const struct GNUNET_MessageHeader *msg);
+struct GNUNET_HELLO_Parser *
+GNUNET_HELLO_parser_from_msg (const struct GNUNET_MessageHeader *msg);
 
 
 /**
- * Parse @a block into builder.
+ * Parse @a block.
  *
  * @param block DHT block to parse
  * @param block_size number of bytes in @a block
  * @return builder, NULL on failure
  */
-struct GNUNET_HELLO_Builder *
-GNUNET_HELLO_builder_from_block (const void *block,
-                                 size_t block_size);
+struct GNUNET_HELLO_Parser *
+GNUNET_HELLO_parser_from_block (const void *block,
+                                size_t block_size);
 
 
 /**
- * Parse GNUnet HELLO @a url into builder.
+ * Parse GNUnet HELLO @a url.
  *
  * @param url URL to parse
  * @return builder, NULL on failure
  */
-struct GNUNET_HELLO_Builder *
-GNUNET_HELLO_builder_from_url (const char *url);
+struct GNUNET_HELLO_Parser *
+GNUNET_HELLO_parser_from_url (const char *url);
 
 
 /**
@@ -123,7 +145,7 @@ GNUNET_HELLO_builder_from_url (const char *url);
  * @param  msg The hello msg.
  * @return The expiration time.
  */
-struct GNUNET_TIME_Timestamp
+struct GNUNET_TIME_Absolute
 GNUNET_HELLO_get_expiration_time_from_msg (const struct
                                            GNUNET_MessageHeader *msg);
 
@@ -143,6 +165,16 @@ GNUNET_HELLO_builder_to_env (const struct GNUNET_HELLO_Builder *builder,
 
 
 /**
+ * Generate envelope with GNUnet HELLO message (including
+ * peer ID) from a @a parser
+ *
+ * @param builder builder to serialize
+ * @return HELLO message matching @a parser
+ */
+struct GNUNET_MQ_Envelope *
+GNUNET_HELLO_parser_to_env (const struct GNUNET_HELLO_Parser *parser);
+
+/**
  * Generate DHT HELLO message (without peer ID) from a @a builder
  *
  * @param builder builder to serialize
@@ -155,6 +187,14 @@ GNUNET_HELLO_builder_to_dht_hello_msg (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
   struct GNUNET_TIME_Relative expiration_time);
 
+/**
+ * Generate GNUnet HELLO URI from a @a parser
+ *
+ * @param parser HELLO parser to serialize
+ * @return hello URI
+ */
+char *
+GNUNET_HELLO_parser_to_url (const struct GNUNET_HELLO_Parser *parser);
 
 /**
  * Generate GNUnet HELLO URI from a @a builder
@@ -172,7 +212,7 @@ GNUNET_HELLO_builder_to_url (const struct GNUNET_HELLO_Builder *builder,
  *
  * @param builder builder to serialize
  * @param priv private key to use to sign the result
- * @param expiration_time the expiration time to use (only if NULL != priv).
+ * @param expiration_time the expiration time to use.
  * @return hello URI
  */
 char *
@@ -198,6 +238,20 @@ GNUNET_HELLO_builder_to_block (const struct GNUNET_HELLO_Builder *builder,
                                size_t *block_size,
                                struct GNUNET_TIME_Relative expiration_time);
 
+
+/**
+ * Generate DHT block from a @a parser
+ *
+ * @param builder the builder to serialize
+ * @param[out] block where to write the block, NULL to only calculate @a block_size
+ * @param[in,out] block_size input is number of bytes available in @a block,
+ *                           output is number of bytes needed in @a block
+ * @return #GNUNET_OK on success, #GNUNET_NO if @a block_size was too small
+ *      or if @a block was NULL
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_HELLO_parser_to_block(const struct GNUNET_HELLO_Parser *parser,
+                             void *block, size_t *block_size);
 
 /**
  * Add individual @a address to the @a builder
@@ -233,12 +287,12 @@ GNUNET_HELLO_builder_del_address (struct GNUNET_HELLO_Builder *builder,
  */
 typedef void
 (*GNUNET_HELLO_UriCallback) (void *cls,
-                             const struct GNUNET_PeerIdentity*pid,
+                             const struct GNUNET_PeerIdentity *pid,
                              const char *uri);
 
 
 /**
- * Iterate over URIs in a builder.
+ * Iterate over URIs in a parser.
  *
  * @param builder builder to iterate over
  * @param uc callback invoked for each URI, can be NULL
@@ -246,9 +300,9 @@ typedef void
  * @return pid of the peer the @a builder is for, can be NULL
  */
 const struct GNUNET_PeerIdentity *
-GNUNET_HELLO_builder_iterate (const struct GNUNET_HELLO_Builder *builder,
-                              GNUNET_HELLO_UriCallback uc,
-                              void *uc_cls);
+GNUNET_HELLO_parser_iterate (const struct GNUNET_HELLO_Parser *parser,
+                             GNUNET_HELLO_UriCallback uc,
+                             void *uc_cls);
 
 
 /**

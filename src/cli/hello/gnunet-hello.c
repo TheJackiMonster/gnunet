@@ -141,8 +141,8 @@ static void
 hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
             const char *emsg)
 {
-  struct GNUNET_HELLO_Builder *hb;
-  struct GNUNET_TIME_Timestamp hello_exp;
+  struct GNUNET_HELLO_Parser *hp;
+  struct GNUNET_TIME_Absolute hello_exp;
   const struct GNUNET_PeerIdentity *pid;
 
   if ((NULL == record) && (NULL == emsg))
@@ -160,14 +160,17 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     GNUNET_PEERSTORE_iteration_next (iter_ctx, 1);
     return;
   }
-  hb = GNUNET_HELLO_builder_from_msg (record->value);
+  hp = GNUNET_HELLO_parser_from_msg (record->value);
   hello_exp = GNUNET_HELLO_get_expiration_time_from_msg (record->value);
-  pid = GNUNET_HELLO_builder_get_id (hb);
+  pid = GNUNET_HELLO_parser_get_id (hp);
   if (export_own_hello)
   {
     if (0 == GNUNET_memcmp (&my_full_id,
                             pid))
     {
+      struct GNUNET_HELLO_Builder *hb;
+
+      hb = GNUNET_HELLO_builder_from_parser(hp);
       if (GNUNET_NO == binary_output)
       {
         char *url;
@@ -185,6 +188,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
         GNUNET_free (url);
         GNUNET_PEERSTORE_iteration_stop (iter_ctx);
         iter_ctx = NULL;
+        GNUNET_HELLO_parser_free (hp);
         GNUNET_HELLO_builder_free (hb);
         GNUNET_SCHEDULER_shutdown ();
       }
@@ -202,7 +206,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
         }
         else
         {
-          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp.abs_time);
+          validity_tmp = GNUNET_TIME_absolute_get_duration (hello_exp);
           env = GNUNET_HELLO_builder_to_env (hb,
                                              &my_private_key,
                                              validity_tmp);
@@ -212,6 +216,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
         GNUNET_free (env);
         GNUNET_PEERSTORE_iteration_stop (iter_ctx);
         iter_ctx = NULL;
+        GNUNET_HELLO_parser_free (hp);
         GNUNET_HELLO_builder_free (hb);
         GNUNET_SCHEDULER_shutdown ();
       }
@@ -221,10 +226,10 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
   else if (print_hellos)
   {
     printf ("`%s' (expires: %s):\n", GNUNET_i2s (pid),
-            GNUNET_STRINGS_timestamp_to_string (hello_exp));
-    GNUNET_HELLO_builder_iterate (hb, &print_hello_addrs, NULL);
+            GNUNET_STRINGS_absolute_time_to_string (hello_exp));
+    GNUNET_HELLO_parser_iterate (hp, &print_hello_addrs, NULL);
   }
-  GNUNET_HELLO_builder_free (hb);
+  GNUNET_HELLO_parser_free (hp);
   GNUNET_PEERSTORE_iteration_next (iter_ctx, 1);
 }
 
@@ -257,7 +262,7 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_HELLO_Builder *hb;
+  struct GNUNET_HELLO_Parser *hp;
   struct GNUNET_MQ_Envelope *env;
   char *keyfile;
   (void) cls;
@@ -344,19 +349,19 @@ run (void *cls,
     {
       // Remove newline
       buffer[read_total - 1] = '\0';
-      hb = GNUNET_HELLO_builder_from_url (buffer);
-      if (NULL == hb)
+      hp = GNUNET_HELLO_parser_from_url (buffer);
+      if (NULL == hp)
       {
         fprintf (stderr, "Unable to parse URI `%s'\n", buffer);
         GNUNET_SCHEDULER_shutdown ();
         return;
       }
-      env = GNUNET_HELLO_builder_to_env (hb, NULL, GNUNET_TIME_UNIT_ZERO);
+      env = GNUNET_HELLO_parser_to_env (hp);
       shc = GNUNET_PEERSTORE_hello_add (peerstore_handle,
                                         GNUNET_MQ_env_get_msg (env),
                                         &hello_store_success, NULL);
       GNUNET_free (env);
-      GNUNET_HELLO_builder_free (hb);
+      GNUNET_HELLO_parser_free (hp);
     }
     else if (read_total > sizeof (struct GNUNET_MessageHeader))
     {
