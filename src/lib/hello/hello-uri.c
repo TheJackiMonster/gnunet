@@ -493,7 +493,7 @@ GNUNET_HELLO_get_expiration_time_from_msg (const struct
   struct GNUNET_TIME_Timestamp et;
   if (GNUNET_MESSAGE_TYPE_HELLO_URI == ntohs (msg->type))
   {
-    const struct HelloUriMessage *h = (struct HelloUriMessage *) msg;
+    const struct HelloUriMessage *h = (const struct HelloUriMessage *) msg;
     const struct BlockHeader *bh = (const struct BlockHeader *) &h[1];
 
     et.abs_time = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
@@ -501,7 +501,8 @@ GNUNET_HELLO_get_expiration_time_from_msg (const struct
   }
   else if (GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO == ntohs (msg->type))
   {
-    const struct DhtHelloMessage *dht_hello = (struct DhtHelloMessage *) msg;
+    const struct DhtHelloMessage *dht_hello
+      = (const struct DhtHelloMessage *) msg;
 
     et.abs_time = GNUNET_TIME_absolute_ntoh (dht_hello->expiration_time);
     return et;
