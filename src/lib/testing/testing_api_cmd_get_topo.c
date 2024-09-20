@@ -203,7 +203,11 @@ GNUNET_TESTING_cmd_load_topology_from_string (
   GNUNET_assert (NULL != topology_string);
   ts = GNUNET_new (struct TopologyState);
   ts->label = label;
-  ts->topology_string = topology_string;
+  if (NULL != topology_string)
+  {
+    ts->topology_alloc = GNUNET_strdup (topology_string);
+    ts->topology_string = ts->topology_alloc;
+  }
   return GNUNET_TESTING_command_new_ac (
     ts,
     label,
