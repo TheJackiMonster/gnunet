@@ -144,7 +144,7 @@ static bool finished;
  * @param cls NULL
  */
 static void
-do_shutdown (void *cls)
+do_shutdown_later (void *cls)
 {
   struct WriteContext *wc;
 
@@ -175,6 +175,7 @@ do_shutdown (void *cls)
   {
     GNUNET_PLUGIN_unload (plugin_name,
                           plugin);
+    plugin = NULL;
   }
   if (NULL != njt)
   {
@@ -182,6 +183,21 @@ do_shutdown (void *cls)
     njt = NULL;
   }
 }
+
+
+/**
+ * Task to shut down cleanly
+ *
+ * @param cls NULL
+ */
+static void
+do_shutdown (void *cls)
+{
+  GNUNET_SCHEDULER_add_with_priority (GNUNET_SCHEDULER_PRIORITY_IDLE,
+                                      &do_shutdown_later,
+                                      NULL);
+}
+
 
 
 /**
@@ -320,6 +336,14 @@ handle_helper_init (
     = (const struct GNUNET_ShortHashCode *) &msg[1];
   const char *topo = (const char *) &bd[barrier_count];
 
+  if (NULL != plugin)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Double-init!\n");
+    global_ret = EXIT_FAILURE;
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
 
   GNUNET_assert ('\0' == topo[left - 1]);
   njt = GNUNET_TESTING_get_topo_from_string_ (topo);
@@ -348,9 +372,8 @@ handle_helper_init (
     return;
   }
   struct GNUNET_TESTING_Command *commands = plugin->cls;
-  unsigned int i;
 
-  for (i = 0; NULL != commands[i].run; i++)
+  for (unsigned int i = 0; NULL != commands[i].run; i++)
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "helper %s\n",
               commands[i].label.value);
