@@ -149,7 +149,10 @@ on_message (void *cls,
     {
       uint16_t len;
 
-      len = strlen (message->body.text.text) + 1;
+      if (message->body.text.text)
+        len = strlen (message->body.text.text) + 1;
+      else
+        len = 0;
 
       if (flags & GNUNET_MESSENGER_FLAG_SENT)
       {
@@ -160,8 +163,11 @@ on_message (void *cls,
       else
         printf ("<");
 
-      printf (" '%s' says: \"%s\"\n", sender_name, 
-              message->body.text.text);
+      if (message->body.text.text)
+        printf (" '%s' says: \"%s\"\n", sender_name, 
+                message->body.text.text);
+      else
+        printf (" '%s' mumbles\n", sender_name);
       break;
     }
   case GNUNET_MESSENGER_KIND_FILE:
