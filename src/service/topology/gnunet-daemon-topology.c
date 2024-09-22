@@ -27,7 +27,6 @@
  * - gossping HELLOs
  *
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_hello_uri_lib.h"

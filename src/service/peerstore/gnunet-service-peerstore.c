@@ -23,7 +23,6 @@
  * @brief peerstore service implementation
  * @author Omar Tarabai
  */
-#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_protocols.h"
