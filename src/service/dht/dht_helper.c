@@ -48,11 +48,11 @@ GDS_helper_put_message_get_size (size_t *msize_out,
                                  const struct GNUNET_PeerIdentity *trunc_peer)
 {
   size_t msize;
-  *put_path_len_out = put_path_len_in;
   const struct GNUNET_DHT_PathElement *put_path_out = put_path_in;
-  *ro_out = ro_in;
   bool truncated = (0 != (*ro_out & GNUNET_DHT_RO_TRUNCATED));
   bool tracking = (0 != (*ro_out & GNUNET_DHT_RO_RECORD_ROUTE));
+  *put_path_len_out = put_path_len_in;
+  *ro_out = ro_in;
 
 #if SANITY_CHECKS > 1
   unsigned int failure_offset;

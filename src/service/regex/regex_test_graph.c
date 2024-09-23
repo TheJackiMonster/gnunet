@@ -150,8 +150,8 @@ scc_tarjan (struct REGEX_INTERNAL_Automaton *a)
  * @param count current count of the state, not used.
  * @param s state.
  */
-void
-REGEX_TEST_automaton_save_graph_step (void *cls, unsigned int count,
+static void
+automaton_save_graph_step (void *cls, unsigned int count,
                                       struct REGEX_INTERNAL_State *s)
 {
   struct REGEX_TEST_Graph_Context *ctx = cls;
@@ -304,14 +304,14 @@ REGEX_TEST_automaton_save_graph (struct REGEX_INTERNAL_Automaton *a,
   if (GNUNET_YES == ctx.coloring)
     scc_tarjan (a);
 
-  start = "digraph G {\nrankdir=LR\n";
+  start = (char*) "digraph G {\nrankdir=LR\n";
   fwrite (start, strlen (start), 1, ctx.filep);
 
   REGEX_INTERNAL_automaton_traverse (a, a->start, NULL, NULL,
-                                     &REGEX_TEST_automaton_save_graph_step,
+                                     &automaton_save_graph_step,
                                      &ctx);
 
-  end = "\n}\n";
+  end = (char*) "\n}\n";
   fwrite (end, strlen (end), 1, ctx.filep);
   fclose (ctx.filep);
 }

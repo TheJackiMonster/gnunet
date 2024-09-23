@@ -510,12 +510,12 @@ REGEX_INTERNAL_automaton_traverse (const struct REGEX_INTERNAL_Automaton *a,
                                    void *action_cls)
 {
   unsigned int count;
+  int marks[a->state_count];
   struct REGEX_INTERNAL_State *s;
 
   if ((NULL == a) || (0 == a->state_count))
     return;
 
-  int marks[a->state_count];
 
   for (count = 0, s = a->states_head; NULL != s && count < a->state_count;
        s = s->next, count++)

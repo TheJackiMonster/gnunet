@@ -1666,8 +1666,7 @@ static enum GNUNET_GenericReturnValue
 check_dht_p2p_put (void *cls,
                    const struct PeerPutMessage *put)
 {
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohs (put->options);
+  enum GNUNET_DHT_RouteOption ro = ntohs (put->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   bool has_path = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
   uint16_t msize = ntohs (put->header.size);
@@ -1715,8 +1714,7 @@ handle_dht_p2p_put (void *cls,
 {
   struct Target *t = cls;
   struct PeerInfo *peer = t->pi;
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohs (put->options);
+  enum GNUNET_DHT_RouteOption ro = ntohs (put->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   bool has_path = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
   uint16_t msize = ntohs (put->header.size);
@@ -2109,9 +2107,8 @@ handle_dht_p2p_get (void *cls,
   uint16_t msize = ntohs (get->header.size);
   uint16_t result_filter_size = ntohs (get->result_filter_size);
   uint16_t hop_count = ntohs (get->hop_count);
-  enum GNUNET_BLOCK_Type type = (enum GNUNET_BLOCK_Type) ntohl (get->type);
-  enum GNUNET_DHT_RouteOption options = (enum GNUNET_DHT_RouteOption)  ntohs (
-    get->options);
+  enum GNUNET_BLOCK_Type type = ntohl (get->type);
+  enum GNUNET_DHT_RouteOption options = ntohs (get->options);
   enum GNUNET_BLOCK_ReplyEvaluationResult eval = GNUNET_BLOCK_REPLY_OK_MORE;
   const void *result_filter = (const void *) &get[1];
   const void *xquery = result_filter + result_filter_size;
@@ -2321,8 +2318,7 @@ check_dht_p2p_result (void *cls,
                       const struct PeerResultMessage *prm)
 {
   uint16_t msize = ntohs (prm->header.size) - sizeof (*prm);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohs (prm->options);
+  enum GNUNET_DHT_RouteOption ro = ntohs (prm->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   bool tracked = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
 
@@ -2361,8 +2357,7 @@ handle_dht_p2p_result (void *cls,
   struct Target *t = cls;
   struct PeerInfo *peer = t->pi;
   uint16_t msize = ntohs (prm->header.size) - sizeof (*prm);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohs (prm->options);
+  enum GNUNET_DHT_RouteOption ro = ntohs (prm->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   bool tracked = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
   uint16_t get_path_length = ntohs (prm->get_path_length);

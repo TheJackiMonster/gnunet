@@ -490,7 +490,7 @@ handle_dht_local_put (void *cls,
     .data = &dht_msg[1],
     .data_size = size - sizeof (*dht_msg),
     .type = ntohl (dht_msg->type),
-    .ro = (enum GNUNET_DHT_RouteOption) ntohl (dht_msg->options)
+    .ro = ntohl (dht_msg->options)
   };
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -581,7 +581,7 @@ handle_local_result (void *cls,
  * @param get the actual message received
  * @return #GNUNET_OK (always)
  */
-static enum GNUNET_GenericReturnValue
+enum GNUNET_GenericReturnValue
 check_dht_local_get (void *cls,
                      const struct GNUNET_DHT_ClientGetMessage *get)
 {
@@ -598,7 +598,7 @@ check_dht_local_get (void *cls,
  * @param cls the client we received this message from
  * @param get the actual message received
  */
-static void
+void
 handle_dht_local_get (void *cls,
                       const struct GNUNET_DHT_ClientGetMessage *get)
 {
@@ -637,7 +637,7 @@ handle_dht_local_get (void *cls,
   cqr->unique_id = get->unique_id;
   cqr->xquery_size = xquery_size;
   cqr->replication = ntohl (get->desired_replication_level);
-  cqr->msg_options = (enum GNUNET_DHT_RouteOption) ntohl (get->options);
+  cqr->msg_options = ntohl (get->options);
   cqr->type = ntohl (get->type);
   GNUNET_CONTAINER_DLL_insert (ch->cqr_head,
                                ch->cqr_tail,
@@ -717,7 +717,7 @@ find_by_unique_id (void *cls,
  * @param seen the actual message received
  * @return #GNUNET_OK if @a seen is well-formed
  */
-static enum GNUNET_GenericReturnValue
+enum GNUNET_GenericReturnValue
 check_dht_local_get_result_seen (
   void *cls,
   const struct GNUNET_DHT_ClientGetResultSeenMessage *seen)
@@ -742,7 +742,7 @@ check_dht_local_get_result_seen (
  * @param cls the client we received this message from
  * @param seen the actual message received
  */
-static void
+void
 handle_dht_local_get_result_seen (
   void *cls,
   const struct GNUNET_DHT_ClientGetResultSeenMessage *seen)
@@ -832,7 +832,7 @@ remove_by_unique_id (void *cls,
  * @param dht_stop_msg the actual message received
  *
  */
-static void
+void
 handle_dht_local_get_stop (
   void *cls,
   const struct GNUNET_DHT_ClientGetStopMessage *dht_stop_msg)
@@ -1131,7 +1131,7 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
  * @param msg the actual message received
  *
  */
-static void
+void
 handle_dht_local_hello_get (void *cls,
                             const struct GNUNET_MessageHeader *msg)
 {
@@ -1164,7 +1164,7 @@ handle_dht_local_hello_get (void *cls,
  * @param hdr HELLO URL message from the service.
  * @return #GNUNET_OK if @a hdr is well-formed
  */
-static enum GNUNET_GenericReturnValue
+enum GNUNET_GenericReturnValue
 check_dht_local_hello_offer (void *cls,
                              const struct GNUNET_MessageHeader *hdr)
 {
@@ -1188,7 +1188,7 @@ check_dht_local_hello_offer (void *cls,
  * @param cls the client we received this message from
  * @param msg the actual message received
  */
-static void
+void
 handle_dht_local_hello_offer (void *cls,
                               const struct GNUNET_MessageHeader *msg)
 {
@@ -1224,7 +1224,7 @@ handle_dht_local_hello_offer (void *cls,
  * @param msg the actual message received
  *
  */
-static void
+void
 handle_dht_local_monitor (void *cls,
                           const struct GNUNET_DHT_MonitorStartStopMessage *msg)
 {
@@ -1252,7 +1252,7 @@ handle_dht_local_monitor (void *cls,
  * @param cls the client we received this message from
  * @param msg the actual message received
  */
-static void
+void
 handle_dht_local_monitor_stop (
   void *cls,
   const struct GNUNET_DHT_MonitorStartStopMessage *msg)

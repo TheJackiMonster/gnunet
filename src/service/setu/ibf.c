@@ -344,7 +344,6 @@ ibf_write_slice (const struct InvertibleBloomFilter *ibf,
 }
 
 
-
 void
 pack_counter (const struct InvertibleBloomFilter *ibf,
               uint32_t start,
@@ -408,7 +407,6 @@ pack_counter (const struct InvertibleBloomFilter *ibf,
 }
 
 
-
 void
 unpack_counter (const struct InvertibleBloomFilter *ibf,
                 uint32_t start,
@@ -451,16 +449,17 @@ unpack_counter (const struct InvertibleBloomFilter *ibf,
         {
           store = store << bytes_used;
         }
-
-        uint8_t bytes_to_shift = bit_to_read_left - bytes_used;
-        uint64_t counter_part = byte_read >> bytes_to_shift;
-        store = store | counter_part;
-        ibf->count[ibf_counter_ctr + start].count_val = store;
-        byte_read = byte_read & ((1 << bytes_to_shift) - 1);
-        bit_to_read_left -= bytes_used;
-        ibf_counter_ctr++;
-        store = 0;
-        store_bit_ctr = 0;
+        {
+          uint8_t bytes_to_shift = bit_to_read_left - bytes_used;
+          uint64_t counter_part = byte_read >> bytes_to_shift;
+          store = store | counter_part;
+          ibf->count[ibf_counter_ctr + start].count_val = store;
+          byte_read = byte_read & ((1 << bytes_to_shift) - 1);
+          bit_to_read_left -= bytes_used;
+          ibf_counter_ctr++;
+          store = 0;
+          store_bit_ctr = 0;
+        }
       }
       else
       {

@@ -306,12 +306,12 @@ strata_estimator_create (unsigned int strata_count,
   struct MultiStrataEstimator *se;
   unsigned int i;
   unsigned int j;
+  uint8_t ibf_prime_sizes[] = {79,79,79,79,79,79,79,79};
   se = GNUNET_new (struct MultiStrataEstimator);
 
   se->size = MULTI_SE_BASE_COUNT;
   se->stratas = GNUNET_new_array (MULTI_SE_BASE_COUNT,struct StrataEstimator *);
 
-  uint8_t ibf_prime_sizes[] = {79,79,79,79,79,79,79,79};
 
   for (uint8_t strata_ctr = 0; strata_ctr < MULTI_SE_BASE_COUNT; strata_ctr++)
   {
