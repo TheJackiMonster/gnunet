@@ -36,6 +36,7 @@
 .Op Fl e | -export-hello
 .Op Fl b | -binary
 .Op Fl D | -dump-hellos
+.Op Fl E Ar TIME | Fl -expiration= Ns Ar TIME
 .Op Fl v | -version
 .Op Fl V | -verbose
 .Sh DESCRIPTION
@@ -59,6 +60,11 @@ Print a freshly signed HELLO URI for our peer.
 .It Fl D | -dump-hellos
 Print all known HELLOs (peer IDs and addresses).
 These are only all known, and not necessarily connected peers.
+.It Fl E Ar TIME | Fl -expiration= Ns Ar TIME
+Specifies expiration time of hello to export; format is relative time,
+i.e "1 h" or "7 d 30 m".
+Supported units are "ms", "s", "min" or "minutes", "h" (hours), "d"
+(days) and "a" (years).
 .It Fl v | -version
 Print the version number.
 .It Fl V | -verbose
