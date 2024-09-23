@@ -24,9 +24,6 @@
  * @author Christian Grothoff
  */
 
-
-#include "gnunet_common.h"
-#include "gnunet_time_lib.h"
 #include "platform.h"
 #if HAVE_ICONV
 #include <iconv.h>
