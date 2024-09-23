@@ -38,10 +38,7 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_applications.h"
-#include "gnunet_constants.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "dns.h"
 #include "gnunet_dns_service.h"
 #include "gnunet_statistics_service.h"
@@ -781,7 +778,7 @@ handle_client_init (void *cls,
 {
   struct ClientRecord *cr = cls;
 
-  cr->flags = (enum GNUNET_DNS_Flags) ntohl (reg->flags);
+  cr->flags =  ntohl (reg->flags);
   GNUNET_SERVICE_client_continue (cr->client);
 }
 
@@ -1237,11 +1234,13 @@ GNUNET_SERVICE_MAIN
 
 /* FIXME: this might need a port on systems without 'getresgid' */
 #if HAVE_GETRESGID
+void __attribute__((constructor)) GNUNET_DNS_init(void);
+
 /**
  * Enable use of SGID capabilities on POSIX
  */
 void __attribute__ ((constructor))
-GNUNET_DNS_init ()
+GNUNET_DNS_init (void)
 {
   gid_t rgid;
   gid_t egid;

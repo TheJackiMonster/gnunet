@@ -34,14 +34,14 @@
  * Raspberry Pi takes 113 microseconds tops, this is 3x that value.
  */
 #define MAX_SKIP_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MICROSECONDS, 400).rel_value_us
+          GNUNET_TIME_UNIT_MICROSECONDS, 400).rel_value_us
 
 /**
  * How much time non-skipped log call should take, at least.
  * Keep in sync with the value in the dummy!
  */
 #define OUTPUT_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MICROSECONDS, 1000).rel_value_us
+          GNUNET_TIME_UNIT_MICROSECONDS, 1000).rel_value_us
 
 static int ok;
 
@@ -110,9 +110,9 @@ read_output_line (int phase_from1, int phase_to1, int phase_from2,
   int delay_is_sane;
   int delay_is_a_dummy;
   int delay_outside_of_range;
+  int stage = 0;
 
   j = 0;
-  int stage = 0;
 
   if (! ((phasecur >= phase_from1) && (phasecur <= phase_to1)) &&
       ! ((phasecur >= phase_from2) && (phasecur <= phase_to2)))
@@ -261,83 +261,85 @@ read_call (void *cls)
    * | 7D * * * *  * * * *
    * | 8  * *      * *
    * | 9  * *      * *
-   */char *p = buf;
-
-  if ((bytes == LOG_BUFFER_SIZE) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, 'L', "ERROR", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '1', "ERROR", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[0], level)) ||
-      ! (p =
-           read_output_line (1, 3, 5, 9, 'L', "WARNING", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '1', "WARNING", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[1], level)) ||
-      ! (p =
-           read_output_line (2, 3, 6, 7, 'L', "INFO", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '1', "INFO", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[2], level)) ||
-      ! (p =
-           read_output_line (3, 3, 7, 7, 'L', "DEBUG", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '1', "DEBUG", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[3], level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, 'L', "ERROR", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '2', "ERROR", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[4], level)) ||
-      ! (p =
-           read_output_line (0, 3, 5, 9, 'L', "WARNING", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '2', "WARNING", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[5], level)) ||
-      ! (p =
-           read_output_line (-1, -1, 6, 7, 'L', "INFO", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '2', "INFO", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[6], level)) ||
-      ! (p =
-           read_output_line (-1, -1, 7, 7, 'L', "DEBUG", -1,
-                             1, phase, p,
-                             &bytes, &delay, level)) ||
-      ! (p =
-           read_output_line (0, 3, 4, 9, '2', "DEBUG", OUTPUT_DELAY,
-                             MAX_SKIP_DELAY, phase, p,
-                             &bytes, &delays[7], level)))
+   */
   {
-    if (bytes == LOG_BUFFER_SIZE)
-      fprintf (stderr, "%s", "Ran out of buffer space!\n");
-    GNUNET_break (0);
-    ok = 2;
-    GNUNET_SCHEDULER_cancel (die_task);
-    GNUNET_SCHEDULER_add_now (&end_task, NULL);
-    return;
-  }
+    char *p = buf;
 
+    if ((bytes == LOG_BUFFER_SIZE) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, 'L', "ERROR", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '1', "ERROR", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[0], level)) ||
+        ! (p =
+             read_output_line (1, 3, 5, 9, 'L', "WARNING", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '1', "WARNING", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[1], level)) ||
+        ! (p =
+             read_output_line (2, 3, 6, 7, 'L', "INFO", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '1', "INFO", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[2], level)) ||
+        ! (p =
+             read_output_line (3, 3, 7, 7, 'L', "DEBUG", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '1', "DEBUG", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[3], level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, 'L', "ERROR", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '2', "ERROR", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[4], level)) ||
+        ! (p =
+             read_output_line (0, 3, 5, 9, 'L', "WARNING", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '2', "WARNING", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[5], level)) ||
+        ! (p =
+             read_output_line (-1, -1, 6, 7, 'L', "INFO", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '2', "INFO", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[6], level)) ||
+        ! (p =
+             read_output_line (-1, -1, 7, 7, 'L', "DEBUG", -1,
+                               1, phase, p,
+                               &bytes, &delay, level)) ||
+        ! (p =
+             read_output_line (0, 3, 4, 9, '2', "DEBUG", OUTPUT_DELAY,
+                               MAX_SKIP_DELAY, phase, p,
+                               &bytes, &delays[7], level)))
+    {
+      if (bytes == LOG_BUFFER_SIZE)
+        fprintf (stderr, "%s", "Ran out of buffer space!\n");
+      GNUNET_break (0);
+      ok = 2;
+      GNUNET_SCHEDULER_cancel (die_task);
+      GNUNET_SCHEDULER_add_now (&end_task, NULL);
+      return;
+    }
+  }
   GNUNET_SCHEDULER_cancel (die_task);
   GNUNET_SCHEDULER_add_now (&end_task, NULL);
 }

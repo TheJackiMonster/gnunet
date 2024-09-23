@@ -378,9 +378,9 @@ static int
 check ()
 {
   char *const argv[] = {
-    "test-exponential-backoff",
-    "-c", CFGFILENAME,
-    "-L", "INFO",
+    (char*) "test-exponential-backoff",
+    (char*) "-c", (char*) CFGFILENAME,
+    (char*) "-L", (char*) "INFO",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {

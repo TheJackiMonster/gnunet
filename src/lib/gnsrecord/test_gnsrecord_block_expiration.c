@@ -101,7 +101,7 @@ run (void *cls, char *const *args, const char *cfgfile,
 int
 main (int argc, char *argv[])
 {
-  static char *const argvx[] = { "test-gnsrecord-crypto",
+  static char *const argvx[] = { (char*) "test-gnsrecord-crypto",
                                  NULL };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END

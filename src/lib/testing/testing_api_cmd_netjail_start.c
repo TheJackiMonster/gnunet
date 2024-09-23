@@ -179,7 +179,7 @@ netjail_start_run (void *cls,
       script_name,
       (char *) topology_data,
       pid,
-      "0",
+      (char*) "0",
       NULL
     };
 

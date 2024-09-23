@@ -1117,7 +1117,7 @@ handle_ephemeral_key (void *cls, const struct EphemeralKeyMessage *m)
   derive_session_keys (kx);
 
   /* check if we still need to send the sender our key */
-  sender_status = (enum GNUNET_CORE_KxState) ntohl (m->sender_status);
+  sender_status = ntohl (m->sender_status);
   switch (sender_status)
   {
   case GNUNET_CORE_KX_STATE_DOWN:

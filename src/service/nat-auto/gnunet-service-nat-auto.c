@@ -31,13 +31,10 @@
  *   + test manually punched NAT (how?)
  */
 #include "platform.h"
-#include <math.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_resolver_service.h"
 #include "nat-auto.h"
 #include <gcrypt.h>
 
@@ -471,11 +468,13 @@ GNUNET_SERVICE_MAIN
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
+void __attribute__((constructor)) GNUNET_NAT_memory_init(void);
+
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((constructor))
-GNUNET_ARM_memory_init ()
+GNUNET_NAT_memory_init ()
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);
   mallopt (M_TOP_PAD, 1 * 1024);

@@ -27,8 +27,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "transport-testing-communicator.h"
-#include "gnunet_signatures.h"
-#include "gnunet_testing_lib.h"
 #include "transport.h"
 #include "gnunet_statistics_service.h"
 
@@ -620,14 +618,14 @@ choose_phase (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
                                                     tc_h);
     }
     else if ((0 == strcmp ("tcp", communicator_name)) && (0 == strcmp ("rekey",
-                                                                        test_name)))
+                                                                       test_name)))
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG, "Getting statistics... TCP\n");
       if (NULL != box_stats[peer_nr])
         GNUNET_STATISTICS_get_cancel (box_stats[peer_nr]);
       box_stats[peer_nr] = GNUNET_STATISTICS_get (stats[1],
                                                   "communicator-tcp",
-                                                  //"# messages decrypted with BOX",
+                                                  // "# messages decrypted with BOX",
                                                   NULL,
                                                   process_statistics_box_done,
                                                   &process_statistics,
@@ -671,12 +669,13 @@ static void
 finish_phase_long (unsigned int peer_nr)
 {
   static struct GNUNET_TIME_Relative duration;
+  char *goodput;
 
   duration = GNUNET_TIME_absolute_get_duration (start_long[peer_nr]);
   LOG (GNUNET_ERROR_TYPE_MESSAGE,
        "Long size packet test  for peer %u done.\n",
        peer_nr);
-  char *goodput = GNUNET_STRINGS_byte_size_fancy (
+  goodput = GNUNET_STRINGS_byte_size_fancy (
     (long_message_size * num_received_long[peer_nr] * 1000 * 1000)
     / duration.
     rel_value_us);
@@ -704,12 +703,13 @@ static void
 finish_phase_short (unsigned int peer_nr)
 {
   static struct GNUNET_TIME_Relative duration;
+  char *goodput;
 
   duration = GNUNET_TIME_absolute_get_duration (start_short[peer_nr]);
   LOG (GNUNET_ERROR_TYPE_MESSAGE,
        "Short size packet test for peer %u done.\n",
        peer_nr);
-  char *goodput = GNUNET_STRINGS_byte_size_fancy (
+  goodput = GNUNET_STRINGS_byte_size_fancy (
     (SHORT_MESSAGE_SIZE * num_received_short[peer_nr] * 1000 * 1000)
     / duration.rel_value_us);
   LOG (GNUNET_ERROR_TYPE_MESSAGE,
@@ -1121,7 +1121,7 @@ run (void *cls)
                                            cfg_peers[i]);
     }
     else if ((0 == strcmp ("tcp", communicator_name)) && (0 == strcmp ("rekey",
-                                                                        test_name)))
+                                                                       test_name)))
     {
       stats[i] = GNUNET_STATISTICS_create ("communicator-tcp",
                                            cfg_peers[i]);

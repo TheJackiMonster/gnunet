@@ -363,7 +363,7 @@ handle_client_send_request (void *cls, const struct SendMessageRequest *req)
   car->target = req->peer;
   car->received_time = GNUNET_TIME_absolute_get ();
   car->deadline = GNUNET_TIME_absolute_ntoh (req->deadline);
-  car->priority = (enum GNUNET_MQ_PriorityPreferences) ntohl (req->priority);
+  car->priority = ntohl (req->priority);
   car->msize = ntohs (req->size);
   car->smr_id = req->smr_id;
   car->was_solicited = GNUNET_NO;
@@ -509,7 +509,7 @@ handle_client_send (void *cls, const struct SendMessage *sm)
     return;
   }
   delay = GNUNET_TIME_absolute_get_duration (tc.car->received_time);
-  tc.priority = (enum GNUNET_MQ_PriorityPreferences) ntohl (sm->priority);
+  tc.priority = ntohl (sm->priority);
   if (delay.rel_value_us > GNUNET_CONSTANTS_LATENCY_WARN.rel_value_us)
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Client waited %s for transmission of %u bytes to `%s'\n",

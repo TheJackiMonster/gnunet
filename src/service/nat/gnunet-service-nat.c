@@ -2138,11 +2138,14 @@ GNUNET_SERVICE_MAIN
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
+void __attribute__ ((constructor))
+GNUNET_NATM_memory_init (void);
+
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((constructor))
-GNUNET_NATM_memory_init ()
+GNUNET_NATM_memory_init (void)
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);
   mallopt (M_TOP_PAD, 1 * 1024);

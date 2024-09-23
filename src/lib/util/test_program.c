@@ -55,13 +55,10 @@ main (int argc, char *argv[])
 {
   int ok = 1;
   char *const argvx[] = {
-    "test_program",
-    "-c",
-    "test_program_data.conf",
-    "-L",
-    "WARNING",
-    "-n",
-    "extra",
+    (char*) "test_program",
+    (char*) "-c", (char*) "test_program_data.conf",
+    (char*) "-L", (char*) "WARNING",
+    (char*) "-n", (char*) "extra",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options1[] = {

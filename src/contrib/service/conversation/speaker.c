@@ -58,7 +58,7 @@ enable (void *cls)
 {
   struct Speaker *spe = cls;
   static char *playback_helper_argv[] = {
-    "gnunet-helper-audio-playback",
+    (char*) "gnunet-helper-audio-playback",
     NULL
   };
 

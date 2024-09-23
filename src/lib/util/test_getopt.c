@@ -29,7 +29,7 @@
 static int
 testMinimal ()
 {
-  char *const emptyargv[] = { "test", NULL };
+  char *const emptyargv[] = { (char*) "test", NULL };
   const struct GNUNET_GETOPT_CommandLineOption emptyoptionlist[] = {
     GNUNET_GETOPT_OPTION_END
   };
@@ -44,7 +44,13 @@ testMinimal ()
 static int
 testVerbose ()
 {
-  char *const myargv[] = { "test", "-V", "-V", "more", NULL };
+  char *const myargv[] = {
+    (char*) "test",
+    (char*) "-V",
+    (char*) "-V",
+    (char*) "more",
+    NULL
+  };
   unsigned int vflags = 0;
 
   const struct GNUNET_GETOPT_CommandLineOption verboseoptionlist[] =
@@ -67,7 +73,10 @@ testVerbose ()
 static int
 testVersion ()
 {
-  char *const myargv[] = { "test_getopt", "-v", NULL };
+  char *const myargv[] = {
+    (char*) "test_getopt",
+    (char*) "-v", NULL
+  };
   const struct GNUNET_GETOPT_CommandLineOption versionoptionlist[] =
   { GNUNET_GETOPT_option_version (PACKAGE_VERSION " " VCS_VERSION),
     GNUNET_GETOPT_OPTION_END };
@@ -84,7 +93,11 @@ testVersion ()
 static int
 testAbout ()
 {
-  char *const myargv[] = { "test_getopt", "-h", NULL };
+  char *const myargv[] = {
+    (char*) "test_getopt",
+    (char*) "-h",
+    NULL
+  };
   const struct GNUNET_GETOPT_CommandLineOption aboutoptionlist[] =
   { GNUNET_GETOPT_option_help ("Testing"), GNUNET_GETOPT_OPTION_END };
 
@@ -100,8 +113,12 @@ testAbout ()
 static int
 testLogOpts ()
 {
-  char *const myargv[] =
-  { "test_getopt", "-l", "filename", "-L", "WARNING", NULL };
+  char *const myargv[] = {
+    (char*) "test_getopt",
+    (char*) "-l", (char*) "filename",
+    (char*) "-L", (char*) "WARNING",
+    NULL
+  };
   char *level = GNUNET_strdup ("stuff");
   char *fn = NULL;
 
@@ -132,7 +149,13 @@ testLogOpts ()
 static int
 testFlagNum ()
 {
-  char *const myargv[] = { "test_getopt", "-f", "-n", "42", "-N", "42", NULL };
+  char *const myargv[] = {
+    (char*) "test_getopt",
+    (char*) "-f",
+    (char*) "-n", (char*) "42",
+    (char*) "-N", (char*) "42",
+    NULL
+  };
   int flag = 0;
   unsigned int num = 0;
   unsigned long long lnum = 0;

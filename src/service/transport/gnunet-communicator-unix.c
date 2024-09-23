@@ -28,7 +28,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_protocols.h"
 #include "gnunet_constants.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_communication_service.h"
@@ -1150,11 +1149,14 @@ main (int argc, char *const *argv)
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
+void __attribute__ ((constructor))
+GNUNET_TRANSPORT_communicator_unix_memory_init (void);
+
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((constructor))
-GNUNET_TRANSPORT_communicator_unix_memory_init ()
+GNUNET_TRANSPORT_communicator_unix_memory_init (void)
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);
   mallopt (M_TOP_PAD, 1 * 1024);

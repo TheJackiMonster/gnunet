@@ -236,8 +236,9 @@ int
 main (int argc, char *argvx[])
 {
   char *const argv[] = {
-    "test-arm-api",
-    "-c", "test_arm_api_data.conf",
+    (char*) "test-arm-api",
+    (char*) "-c",
+    (char*) "test_arm_api_data.conf",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {

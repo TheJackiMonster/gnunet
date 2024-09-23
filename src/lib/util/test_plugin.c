@@ -39,7 +39,7 @@ test_cb (void *cls,
   GNUNET_assert (0 == strcmp (lib_ret,
                               "Hello"));
   ret = GNUNET_PLUGIN_unload (libname,
-                              "out");
+                              (char*) "out");
   GNUNET_assert (NULL != ret);
   GNUNET_assert (0 == strcmp (ret,
                               "World"));
@@ -63,14 +63,14 @@ main (int argc, char *argv[])
   if (NULL != ret)
     return 1;
   ret = GNUNET_PLUGIN_load ("libgnunet_plugin_utiltest",
-                            "in");
+                            (char*) "in");
   if (NULL == ret)
     return 1;
   if (0 != strcmp (ret,
                    "Hello"))
     return 2;
   ret = GNUNET_PLUGIN_unload ("libgnunet_plugin_utiltest",
-                              "out");
+                              (char*) "out");
   if (NULL == ret)
     return 3;
   if (0 != strcmp (ret,
@@ -78,9 +78,9 @@ main (int argc, char *argv[])
     return 4;
   free (ret);
   GNUNET_PLUGIN_load_all ("libgnunet_plugin_utiltes",
-                          "in",
+                          (char*) "in",
                           &test_cb,
-                          "test-closure");
+                          (char*) "test-closure");
   return 0;
 }
 

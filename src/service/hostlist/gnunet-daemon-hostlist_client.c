@@ -436,9 +436,9 @@ callback_download (void *ptr, size_t size, size_t nmemb, void *ctx)
     stat_hellos_obtained++;
     she = GNUNET_new (struct StoreHelloEntry);
     she->sc = GNUNET_PEERSTORE_hello_add (peerstore,
-                                           msg,
-                                           shc_cont,
-                                           she);
+                                          msg,
+                                          shc_cont,
+                                          she);
     if (NULL != she->sc)
     {
       GNUNET_CONTAINER_DLL_insert (she_head, she_tail, she);
@@ -1477,36 +1477,40 @@ load_hostlist_file ()
   }
 
   counter = 0;
-  struct GNUNET_BIO_ReadSpec rs[] = {
-    GNUNET_BIO_read_spec_int32 ("times used", (int32_t *) &times_used),
-    GNUNET_BIO_read_spec_int64 ("quality", (int64_t *) &quality),
-    GNUNET_BIO_read_spec_int64 ("last used", (int64_t *) &last_used),
-    GNUNET_BIO_read_spec_int64 ("created", (int64_t *) &created),
-    GNUNET_BIO_read_spec_int32 ("hellos returned",
-                                (int32_t *) &hellos_returned),
-    GNUNET_BIO_read_spec_end (),
-  };
-  while ((GNUNET_OK == GNUNET_BIO_read_string (rh, "url", &uri, MAX_URL_LEN)) &&
-         (NULL != uri) &&
-         (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs)))
   {
-    hostlist = GNUNET_malloc (sizeof(struct Hostlist) + strlen (uri) + 1);
-    hostlist->hello_count = hellos_returned;
-    hostlist->hostlist_uri = (const char *) &hostlist[1];
-    GNUNET_memcpy (&hostlist[1], uri, strlen (uri) + 1);
-    hostlist->quality = quality;
-    hostlist->time_creation.abs_value_us = created;
-    hostlist->time_last_usage.abs_value_us = last_used;
-    GNUNET_CONTAINER_DLL_insert (linked_list_head, linked_list_tail, hostlist);
-    linked_list_size++;
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Added hostlist entry with URI `%s' \n",
-                hostlist->hostlist_uri);
-    GNUNET_free (uri);
-    uri = NULL;
-    counter++;
-    if (counter >= MAX_NUMBER_HOSTLISTS)
-      break;
+    struct GNUNET_BIO_ReadSpec rs[] = {
+      GNUNET_BIO_read_spec_int32 ("times used", (int32_t *) &times_used),
+      GNUNET_BIO_read_spec_int64 ("quality", (int64_t *) &quality),
+      GNUNET_BIO_read_spec_int64 ("last used", (int64_t *) &last_used),
+      GNUNET_BIO_read_spec_int64 ("created", (int64_t *) &created),
+      GNUNET_BIO_read_spec_int32 ("hellos returned",
+                                  (int32_t *) &hellos_returned),
+      GNUNET_BIO_read_spec_end (),
+    };
+    while ((GNUNET_OK == GNUNET_BIO_read_string (rh, "url", &uri, MAX_URL_LEN))
+           &&
+           (NULL != uri) &&
+           (GNUNET_OK == GNUNET_BIO_read_spec_commit (rh, rs)))
+    {
+      hostlist = GNUNET_malloc (sizeof(struct Hostlist) + strlen (uri) + 1);
+      hostlist->hello_count = hellos_returned;
+      hostlist->hostlist_uri = (const char *) &hostlist[1];
+      GNUNET_memcpy (&hostlist[1], uri, strlen (uri) + 1);
+      hostlist->quality = quality;
+      hostlist->time_creation.abs_value_us = created;
+      hostlist->time_last_usage.abs_value_us = last_used;
+      GNUNET_CONTAINER_DLL_insert (linked_list_head, linked_list_tail, hostlist)
+      ;
+      linked_list_size++;
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Added hostlist entry with URI `%s' \n",
+                  hostlist->hostlist_uri);
+      GNUNET_free (uri);
+      uri = NULL;
+      counter++;
+      if (counter >= MAX_NUMBER_HOSTLISTS)
+        break;
+    }
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -1718,7 +1722,8 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
         GNUNET_log (
           GNUNET_ERROR_TYPE_ERROR,
           _ (
-            "Invalid proxy type: `%s', disabling proxy! Check configuration!\n"),
+            "Invalid proxy type: `%s', disabling proxy! Check configuration!\n")
+          ,
           proxytype_str);
         GNUNET_free (proxytype_str);
         GNUNET_free (proxy);

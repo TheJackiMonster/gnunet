@@ -131,8 +131,6 @@ struct Plugin
 static enum GNUNET_GenericReturnValue
 database_prepare (struct Plugin *plugin)
 {
-  if (plugin->ready)
-    return GNUNET_OK;
   struct GNUNET_SQ_ExecuteStatement es[] = {
     GNUNET_SQ_make_try_execute ("PRAGMA temp_store=MEMORY"),
     GNUNET_SQ_make_try_execute ("PRAGMA synchronous=NORMAL"),
@@ -186,6 +184,8 @@ database_prepare (struct Plugin *plugin)
     GNUNET_SQ_PREPARE_END
   };
 
+  if (plugin->ready)
+    return GNUNET_OK;
   if (GNUNET_OK !=
       GNUNET_SQ_exec_statements (plugin->dbh,
                                  es))
@@ -569,7 +569,6 @@ lookup_records (void *cls,
                 const char *editor_hint)
 {
   struct Plugin *plugin = cls;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_string (editor_hint),
     GNUNET_SQ_query_param_auto_from_type (zone),
@@ -577,6 +576,7 @@ lookup_records (void *cls,
     GNUNET_SQ_query_param_end
   };
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   if (NULL == zone)
   {
     GNUNET_break (0);
@@ -645,7 +645,6 @@ namestore_sqlite_editor_hint_clear (void *cls,
 {
   struct Plugin *plugin = cls;
   int n;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_string ((NULL == editor_hint_replacement) ? "":
                                   editor_hint_replacement),
@@ -655,6 +654,7 @@ namestore_sqlite_editor_hint_clear (void *cls,
     GNUNET_SQ_query_param_end
   };
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   if (NULL == zone)
   {
     GNUNET_break (0);
@@ -808,13 +808,13 @@ namestore_sqlite_zone_to_name (void *cls,
                                void *iter_cls)
 {
   struct Plugin *plugin = cls;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_auto_from_type (zone),
     GNUNET_SQ_query_param_auto_from_type (value_zone),
     GNUNET_SQ_query_param_end
   };
 
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   if (GNUNET_OK !=
       GNUNET_SQ_bind (plugin->zone_to_name,
                       params))

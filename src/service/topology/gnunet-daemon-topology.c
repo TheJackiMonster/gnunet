@@ -647,8 +647,8 @@ address_iterator (void *cls,
                   const struct GNUNET_PeerIdentity *pid,
                   const char *uri)
 {
-  (void) pid;
   int *flag = cls;
+  (void) pid;
 
   *flag = *flag + 1;
   // *flag = GNUNET_YES;
@@ -1102,11 +1102,14 @@ main (int argc, char *const *argv)
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
+void __attribute__ ((constructor))
+GNUNET_TOPOLOGY_memory_init (void);
+
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */
 void __attribute__ ((constructor))
-GNUNET_TOPOLOGY_memory_init ()
+GNUNET_TOPOLOGY_memory_init (void)
 {
   mallopt (M_TRIM_THRESHOLD, 4 * 1024);
   mallopt (M_TOP_PAD, 1 * 1024);

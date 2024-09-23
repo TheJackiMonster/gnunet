@@ -135,7 +135,7 @@ testDirScan ()
     return 1;
   }
   GNUNET_DISK_directory_scan ("test", &scan_callback,
-                              "test" DIR_SEPARATOR_STR "entry");
+                              (char *)"test" DIR_SEPARATOR_STR "entry");
   if (GNUNET_OK != GNUNET_DISK_directory_remove ("test"))
   {
     GNUNET_break (0);

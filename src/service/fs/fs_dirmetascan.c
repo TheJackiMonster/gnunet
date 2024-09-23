@@ -473,7 +473,7 @@ GNUNET_FS_directory_scan_start (const char *filename,
     ds->ex_arg = GNUNET_strdup ("-");
   else
     ds->ex_arg = (NULL != ex) ? GNUNET_strdup (ex) : NULL;
-  ds->args[0] = "gnunet-helper-fs-publish";
+  ds->args[0] = (char*) "gnunet-helper-fs-publish";
   ds->args[1] = ds->filename_expanded;
   ds->args[2] = ds->ex_arg;
   ds->args[3] = NULL;

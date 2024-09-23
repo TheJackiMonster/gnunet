@@ -75,8 +75,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_transport_monitor_service.h"
 #include "gnunet_peerstore_service.h"
+#include "gnunet_transport_communication_service.h"
 #include "gnunet_nat_service.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_signatures.h"
@@ -4631,10 +4631,8 @@ handle_communicator_available (
   }
   tc->details.communicator.address_prefix =
     GNUNET_strdup ((const char *) &cam[1]);
-  tc->details.communicator.cc =
-    (enum GNUNET_TRANSPORT_CommunicatorCharacteristics) ntohl (cam->cc);
-  tc->details.communicator.can_burst
-    = (enum GNUNET_GenericReturnValue) ntohl (cam->can_burst);
+  tc->details.communicator.cc = ntohl (cam->cc);
+  tc->details.communicator.can_burst = ntohl (cam->can_burst);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Communicator for peer %s with prefix '%s' connected %s\n",
               GNUNET_i2s (&GST_my_identity),
@@ -5723,7 +5721,7 @@ handle_client_send (void *cls, const struct OutboundMessage *obm)
   GNUNET_assert (CT_CORE == tc->type);
   obmm = (const struct GNUNET_MessageHeader *) &obm[1];
   bytes_msg = ntohs (obmm->size);
-  pp = (enum GNUNET_MQ_PriorityPreferences) ntohl (obm->priority);
+  pp = ntohl (obm->priority);
   vl = lookup_virtual_link (&obm->peer);
   if ((NULL == vl) || (GNUNET_NO == vl->confirmed))
   {
@@ -6054,7 +6052,7 @@ handle_add_address (void *cls,
   memcpy (address, &aam[1], slen);
   ale = create_address_entry (tc,
                               GNUNET_TIME_relative_ntoh (aam->expiration),
-                              (enum GNUNET_NetworkType) ntohl (aam->nt),
+                              ntohl (aam->nt),
                               address,
                               aam->aid,
                               slen);
@@ -12362,8 +12360,8 @@ handle_add_queue_message (void *cls,
 
   }
   queue->mtu = ntohl (aqm->mtu);
-  queue->nt = (enum GNUNET_NetworkType) ntohl (aqm->nt);
-  queue->cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (aqm->cs);
+  queue->nt = ntohl (aqm->nt);
+  queue->cs = ntohl (aqm->cs);
   queue->idle = GNUNET_YES;
 
   {
@@ -12685,7 +12683,7 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
   pr->tc = tc;
   pr->pid = msg->peer;
   pr->bw = msg->bw;
-  pr->pk = (enum GNUNET_MQ_PriorityPreferences) ntohl (msg->pk);
+  pr->pk = ntohl (msg->pk);
   if (GNUNET_YES != GNUNET_CONTAINER_multipeermap_put (
         tc->details.application.requests,
         &pr->pid,

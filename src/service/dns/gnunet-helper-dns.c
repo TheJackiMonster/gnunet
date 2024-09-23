@@ -527,6 +527,7 @@ run (int fd_tun)
   fd_set fds_w;
   fd_set fds_r;
   int max;
+  int r;
 
   while (1)
   {
@@ -564,7 +565,7 @@ run (int fd_tun)
     FD_SET (cpipe[0], &fds_r);
     max = (fd_tun > cpipe[0]) ? fd_tun : cpipe[0];
 
-    int r = select (max + 1, &fds_r, &fds_w, NULL, NULL);
+    r = select (max + 1, &fds_r, &fds_w, NULL, NULL);
 
     if (-1 == r)
     {
@@ -909,10 +910,12 @@ main (int argc, char *const*argv)
   /* Disable rp filtering */
   if (0 == nortsetup)
   {
-    char *const sysctl_args[] = { "sysctl", "-w",
-                                  "net.ipv4.conf.all.rp_filter=0", NULL };
-    char *const sysctl_args2[] = { "sysctl", "-w",
-                                   "net.ipv4.conf.default.rp_filter=0", NULL };
+    char *const sysctl_args[] = { (char*) "sysctl", (char*) "-w",
+                                  (char*) "net.ipv4.conf.all.rp_filter=0", NULL
+    };
+    char *const sysctl_args2[] = { (char*) "sysctl", (char*) "-w",
+                                   (char*) "net.ipv4.conf.default.rp_filter=0",
+                                   NULL };
     if ((0 != fork_and_exec (sbin_sysctl, sysctl_args)) ||
         (0 != fork_and_exec (sbin_sysctl, sysctl_args2)))
     {
@@ -976,18 +979,22 @@ main (int argc, char *const*argv)
     r = 8;   /* failed to fully setup routing table */
     {
       char *const mangle_args[] = {
-        "iptables", "-m", "owner", "-t", "mangle", "-I", "OUTPUT", "1", "-p",
-        "udp", "--gid-owner", mygid, "--dport", DNS_PORT, "-j",
-        "ACCEPT", NULL
+        (char*) "iptables", (char*) "-m",
+        (char*) "owner", (char*) "-t", (char*) "mangle",
+        (char*) "-I", (char*) "OUTPUT", (char*) "1", (char*) "-p",
+        (char*) "udp", (char*) "--gid-owner", mygid, (char*) "--dport",
+        (char*) DNS_PORT, (char*) "-j", (char*) "ACCEPT", NULL
       };
       if (0 != fork_and_exec (sbin_iptables, mangle_args))
         goto cleanup_rest;
     }
     {
       char *const mangle_args[] = {
-        "ip6tables", "-m", "owner", "-t", "mangle", "-I", "OUTPUT", "1", "-p",
-        "udp", "--gid-owner", mygid, "--dport", DNS_PORT, "-j",
-        "ACCEPT", NULL
+        (char*) "ip6tables", (char*) "-m", (char*) "owner",
+        (char*) "-t", (char*) "mangle", (char*) "-I", (char*) "OUTPUT",
+        (char*) "1", (char*) "-p", (char*) "udp", (char*) "--gid-owner",
+        mygid, (char*) "--dport", (char*) DNS_PORT, (char*) "-j",
+        (char*) "ACCEPT", NULL
       };
       if (0 != fork_and_exec (sbin_ip6tables, mangle_args))
         goto cleanup_mangle_1b;
@@ -996,9 +1003,9 @@ main (int argc, char *const*argv)
        unless it is on a link-local IPv6 address, which we cannot support. */
     {
       char *const mark_args[] = {
-        "iptables", "-t", "mangle", "-I", "OUTPUT", "2", "-p",
-        "udp", "--dport", DNS_PORT,
-        "-j", "MARK", "--set-mark", DNS_MARK,
+        (char*) "iptables", "-t", "mangle", "-I", "OUTPUT", "2", "-p",
+        (char*) "udp", "--dport", DNS_PORT,
+        (char*) "-j", "MARK", "--set-mark", DNS_MARK,
         NULL
       };
       if (0 != fork_and_exec (sbin_iptables, mark_args))

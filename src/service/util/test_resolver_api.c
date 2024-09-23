@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_resolver_service.h"
-#include "../lib/util/resolver.h"
 
 
 static int disable_rootserver_check;
@@ -340,7 +339,10 @@ main (int argc, char *argv[])
   char *fn;
   struct GNUNET_OS_Process *proc;
   char *const argvx[] = {
-    "test-resolver-api", "-c", "test_resolver_api_data.conf", NULL
+    (char*) "test-resolver-api",
+    (char*) "-c",
+    (char*) "test_resolver_api_data.conf",
+    NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_OPTION_END };

@@ -203,21 +203,20 @@ static int
 check ()
 {
   char *const argv[] = {
-    "test-core-api-start-only",
-    "-c",
-    "test_core_api_data.conf",
+    (char*) "test-core-api-start-only",
+    (char*) "-c", (char*) "test_core_api_data.conf",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
-  
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer1.conf", 
-       "GNUNET_TEST_HOME");
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer2.conf", 
-       "GNUNET_TEST_HOME");
+
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer1.conf",
+    "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer2.conf",
+    "GNUNET_TEST_HOME");
 
   ok = 1;
   GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
@@ -245,12 +244,12 @@ main (int argc,
                     "WARNING",
                     NULL);
   ret = check ();
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer1.conf", 
-       "GNUNET_TEST_HOME");
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer2.conf", 
-       "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer1.conf",
+    "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer2.conf",
+    "GNUNET_TEST_HOME");
   return ret;
 }
 

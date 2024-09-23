@@ -101,7 +101,7 @@ enable (void *cls,
 {
   struct Microphone *mic = cls;
   static char *const record_helper_argv[] = {
-    "gnunet-helper-audio-record",
+    (char*) "gnunet-helper-audio-record",
     NULL
   };
 

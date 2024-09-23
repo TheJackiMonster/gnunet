@@ -84,8 +84,8 @@ int
 main (int argc, char *argv[])
 {
   static char *const argvn[] = {
-    "test-speedup",
-    "-c", "test_speedup_data.conf",
+    (char*) "test-speedup",
+    (char*) "-c", (char*) "test_speedup_data.conf",
     NULL
   };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {

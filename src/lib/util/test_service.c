@@ -172,8 +172,7 @@ check (const char *sname)
   };
   char *const argv[] = {
     (char *) sname,
-    "-c",
-    "test_service_data.conf",
+    (char*) "-c", (char*) "test_service_data.conf",
     NULL
   };
 

@@ -162,8 +162,8 @@ handle_monitor_data (void *cls, const struct GNUNET_TRANSPORT_MonitorData *md)
   struct GNUNET_TRANSPORT_MonitorInformation mi;
 
   mi.address = (const char *) &md[1];
-  mi.nt = (enum GNUNET_NetworkType) ntohl (md->nt);
-  mi.cs = (enum GNUNET_TRANSPORT_ConnectionStatus) ntohl (md->cs);
+  mi.nt = ntohl (md->nt);
+  mi.cs = ntohl (md->cs);
   mi.num_msg_pending = ntohl (md->num_msg_pending);
   mi.num_bytes_pending = ntohl (md->num_bytes_pending);
   mi.last_validation = GNUNET_TIME_absolute_ntoh (md->last_validation);

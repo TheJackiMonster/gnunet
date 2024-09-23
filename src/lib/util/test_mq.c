@@ -304,8 +304,7 @@ main (int argc, char **argv)
 {
   char *test_argv[] = {
     (char *) "test_client",
-    "-c",
-    "test_client_data.conf",
+    (char*) "-c", (char*) "test_client_data.conf",
     NULL
   };
   struct GNUNET_MQ_MessageHandler mh[] = {

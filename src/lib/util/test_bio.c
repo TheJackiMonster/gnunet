@@ -119,7 +119,7 @@ test_nullstring_rw (void)
   struct GNUNET_BIO_WriteHandle *wh;
   struct GNUNET_BIO_ReadHandle *rh;
   char *filename = GNUNET_DISK_mktemp ("gnunet_bio");
-  char *rString = "not null";
+  char *rString = (char*) "not null";
 
   wh = GNUNET_BIO_write_open_file (filename);
   GNUNET_assert (NULL != wh);
@@ -275,7 +275,7 @@ test_fullfile_rw (void)
 
   struct GNUNET_BIO_WriteSpec ws[] = {
     GNUNET_BIO_write_spec_object ("test-fullfile-rw-bytes",
-                                  TESTSTRING,
+                                  (char*) TESTSTRING,
                                   strlen (TESTSTRING)),
     GNUNET_BIO_write_spec_string ("test-fullfile-rw-string",
                                   TESTSTRING),

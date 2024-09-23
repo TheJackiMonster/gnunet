@@ -188,9 +188,9 @@ int
 main (int argc, char *av[])
 {
   static char *const argv[] = {
-    "test-gnunet-service-arm",
-    "-c",
-    "test_arm_api_data.conf",
+    (char*) "test-gnunet-service-arm",
+    (char*) "-c",
+    (char*) "test_arm_api_data.conf",
     NULL
   };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {
