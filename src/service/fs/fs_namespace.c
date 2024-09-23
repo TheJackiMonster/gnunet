@@ -214,21 +214,23 @@ write_update_information_graph (struct GNUNET_FS_UpdateInformationGraph *uig)
   {
     n = uig->update_nodes[i];
     uris = GNUNET_FS_uri_to_string (n->uri);
-    struct GNUNET_BIO_WriteSpec ws[] = {
-      GNUNET_BIO_write_spec_string ("fs-namespace-node-id", n->id),
-      GNUNET_FS_write_spec_meta_data ("fs-namespace-node-meta", n->md),
-      GNUNET_BIO_write_spec_string ("fs-namespace-node-update", n->update),
-      GNUNET_BIO_write_spec_string ("fs-namespace-uris", uris),
-      GNUNET_BIO_write_spec_end (),
-    };
-    if (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws))
     {
-      GNUNET_free (uris);
-      break;
+      struct GNUNET_BIO_WriteSpec ws[] = {
+        GNUNET_BIO_write_spec_string ("fs-namespace-node-id", n->id),
+        GNUNET_FS_write_spec_meta_data ("fs-namespace-node-meta", n->md),
+        GNUNET_BIO_write_spec_string ("fs-namespace-node-update", n->update),
+        GNUNET_BIO_write_spec_string ("fs-namespace-uris", uris),
+        GNUNET_BIO_write_spec_end (),
+      };
+      if (GNUNET_OK != GNUNET_BIO_write_spec_commit (wh, ws))
+      {
+        GNUNET_free (uris);
+        break;
+      }
     }
     GNUNET_free (uris);
   }
-  END:
+END:
   if (GNUNET_OK != GNUNET_BIO_write_close (wh, NULL))
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to write `%s': %s\n"),
@@ -292,22 +294,24 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
   for (i = 0; i < count; i++)
   {
     n = GNUNET_new (struct NamespaceUpdateNode);
-    struct GNUNET_BIO_ReadSpec rs[] = {
-      GNUNET_BIO_read_spec_string ("identifier", &n->id, 1024),
-      GNUNET_FS_read_spec_meta_data ("meta", &n->md),
-      GNUNET_BIO_read_spec_string ("update-id", &n->update, 1024),
-      GNUNET_BIO_read_spec_string ("uri", &uris, 1024 * 2),
-      GNUNET_BIO_read_spec_end (),
-    };
-    if (GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs))
     {
-      GNUNET_break (0);
-      GNUNET_free (n->id);
-      GNUNET_free (n->update);
-      if (n->md != NULL)
-        GNUNET_FS_meta_data_destroy (n->md);
-      GNUNET_free (n);
-      break;
+      struct GNUNET_BIO_ReadSpec rs[] = {
+        GNUNET_BIO_read_spec_string ("identifier", &n->id, 1024),
+        GNUNET_FS_read_spec_meta_data ("meta", &n->md),
+        GNUNET_BIO_read_spec_string ("update-id", &n->update, 1024),
+        GNUNET_BIO_read_spec_string ("uri", &uris, 1024 * 2),
+        GNUNET_BIO_read_spec_end (),
+      };
+      if (GNUNET_OK != GNUNET_BIO_read_spec_commit (rh, rs))
+      {
+        GNUNET_break (0);
+        GNUNET_free (n->id);
+        GNUNET_free (n->update);
+        if (n->md != NULL)
+          GNUNET_FS_meta_data_destroy (n->md);
+        GNUNET_free (n);
+        break;
+      }
     }
     n->uri = GNUNET_FS_uri_parse (uris, &emsg);
     GNUNET_free (uris);
@@ -324,7 +328,7 @@ read_update_information_graph (struct GNUNET_FS_Handle *h,
     uig->update_nodes[i] = n;
   }
   uig->update_node_count = i;
-  END:
+END:
   if (GNUNET_OK != GNUNET_BIO_read_close (rh, &emsg))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

@@ -99,7 +99,7 @@ static char *plugin_name;
 /**
  * The loaded topology.
  */
-  struct GNUNET_TESTING_NetjailTopology *njt;
+struct GNUNET_TESTING_NetjailTopology *njt;
 
 /**
  * Our message stream tokenizer
@@ -197,7 +197,6 @@ do_shutdown (void *cls)
                                       &do_shutdown_later,
                                       NULL);
 }
-
 
 
 /**
@@ -328,7 +327,7 @@ handle_helper_init (
   const struct GNUNET_TESTING_CommandHelperInit *msg)
 {
   uint16_t msize = ntohs (msg->header.size);
-  //uint32_t barrier_count = GNUNET_ntohll (msg->barrier_count);
+  // uint32_t barrier_count = GNUNET_ntohll (msg->barrier_count);
   uint32_t barrier_count = ntohl (msg->barrier_count);
   size_t bs = barrier_count * sizeof (struct GNUNET_ShortHashCode);
   size_t left = msize - bs - sizeof (*msg);
@@ -371,12 +370,14 @@ handle_helper_init (
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  struct GNUNET_TESTING_Command *commands = plugin->cls;
+  {
+    struct GNUNET_TESTING_Command *commands = plugin->cls;
 
-  for (unsigned int i = 0; NULL != commands[i].run; i++)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "helper %s\n",
-              commands[i].label.value);
+    for (unsigned int i = 0; NULL != commands[i].run; i++)
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "helper %s\n",
+                  commands[i].label.value);
+  }
   is = plugin->start_testcase (plugin->cls,
                                topo,
                                barrier_count,

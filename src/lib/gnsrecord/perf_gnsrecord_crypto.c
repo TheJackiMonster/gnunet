@@ -117,7 +117,7 @@ int
 main (int argc, char *argv[])
 {
   static char *const argvx[] = {
-    "perf-gnsrecord-crypto",
+    (char*) "perf-gnsrecord-crypto",
     NULL
   };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {

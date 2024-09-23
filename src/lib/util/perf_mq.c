@@ -254,9 +254,9 @@ main (int argc, char **argv)
 {
   struct GNUNET_TIME_Absolute start;
   char *test_argv[] = {
-    (char *) "test_client",
-    "-c",
-    "test_client_data.conf",
+    (char*) "test_client",
+    (char*) "-c",
+    (char*) "test_client_data.conf",
     NULL
   };
   struct GNUNET_MQ_MessageHandler mh[] = {

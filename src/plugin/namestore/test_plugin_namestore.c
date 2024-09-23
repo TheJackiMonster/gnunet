@@ -50,6 +50,8 @@ unload_plugin (struct GNUNET_NAMESTORE_PluginFunctions *api)
   GNUNET_break (NULL == GNUNET_PLUGIN_unload (libname, api));
   GNUNET_free (libname);
 }
+
+
 #endif
 
 /**
@@ -189,7 +191,12 @@ int
 main (int argc, char *argv[])
 {
   char cfg_name[PATH_MAX];
-  char *const xargv[] = { "test-plugin-namestore", "-c", cfg_name, NULL };
+  char *const xargv[] = {
+    (char*) "test-plugin-namestore",
+    (char*) "-c",
+    cfg_name,
+    NULL
+  };
   struct GNUNET_GETOPT_CommandLineOption options[] =
   { GNUNET_GETOPT_OPTION_END };
 

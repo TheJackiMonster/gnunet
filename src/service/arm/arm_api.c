@@ -280,7 +280,7 @@ handle_arm_result (void *cls,
     return;
   }
 
-  result = (enum GNUNET_ARM_Result) ntohl (res->result);
+  result = ntohl (res->result);
   if ( (GNUNET_YES == op->is_arm_stop) &&
        (GNUNET_ARM_RESULT_STOPPING == result) )
   {

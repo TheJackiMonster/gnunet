@@ -71,7 +71,7 @@ access_handler_cb (void *cls,
       global_ret = 6;
     }
     json_decref (json);
-    resp = MHD_create_response_from_buffer (3, "OK\n", MHD_RESPMEM_PERSISTENT);
+    resp = MHD_create_response_from_buffer (3, (void*) "OK\n", MHD_RESPMEM_PERSISTENT);
     ret = MHD_queue_response (connection, MHD_HTTP_OK, resp);
     MHD_destroy_response (resp);
     return ret;

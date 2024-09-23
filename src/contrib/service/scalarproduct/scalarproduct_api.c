@@ -149,7 +149,7 @@ handle_response (void *cls,
   struct GNUNET_SCALARPRODUCT_ComputationHandle *h = cls;
   enum GNUNET_SCALARPRODUCT_ResponseStatus status;
 
-  status = (enum GNUNET_SCALARPRODUCT_ResponseStatus) ntohl (message->status);
+  status = ntohl (message->status);
   h->response_proc (h,
                     message,
                     status);

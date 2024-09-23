@@ -40,13 +40,13 @@ child_completed_callback (void *cls,
                           enum GNUNET_OS_ProcessStatusType type,
                           long unsigned int exit_code)
 {
+  FILE *file;
+  char code[9];
+
   cwh = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Process extided with code: %lu \n",
               exit_code);
-  FILE *file;
-  char code[9];
-
   file = fopen ("child_management_test.txt", "r");
   if (NULL == file)
   {

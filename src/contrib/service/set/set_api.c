@@ -401,7 +401,7 @@ handle_result (void *cls,
   int destroy_set;
 
   GNUNET_assert (NULL != set->mq);
-  result_status = (enum GNUNET_SET_Status) ntohs (msg->result_status);
+  result_status = ntohs (msg->result_status);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Got result message with status %d\n",
        result_status);

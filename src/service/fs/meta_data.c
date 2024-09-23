@@ -966,7 +966,7 @@ GNUNET_FS_meta_data_deserialize (const char *input, size_t size)
   {
     GNUNET_memcpy (&ent, &cdata[i * sizeof(struct MetaDataEntry)],
                    sizeof(struct MetaDataEntry));
-    format = (enum EXTRACTOR_MetaFormat) ntohl (ent.format);
+    format = ntohl (ent.format);
     if ((EXTRACTOR_METAFORMAT_UTF8 != format) &&
         (EXTRACTOR_METAFORMAT_C_STRING != format) &&
         (EXTRACTOR_METAFORMAT_BINARY != format))
@@ -1030,8 +1030,8 @@ GNUNET_FS_meta_data_deserialize (const char *input, size_t size)
     else
       mime_type = &mdata[left];
     GNUNET_FS_meta_data_insert (md, plugin_name,
-                                (enum EXTRACTOR_MetaType)
-                                ntohl (ent.type), format, mime_type,
+                                ntohl (ent.type), format,
+                                mime_type,
                                 meta_data, dlen);
   }
   GNUNET_free (data);

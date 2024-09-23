@@ -26,7 +26,6 @@
 #include "platform.h"
 #include "gnunet_sq_lib.h"
 #include "gnunet_namecache_plugin.h"
-#include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include <sqlite3.h>
 
@@ -271,8 +270,7 @@ database_shutdown (struct Plugin *plugin)
 static void
 namecache_sqlite_expire_blocks (struct Plugin *plugin)
 {
-  struct GNUNET_TIME_Absolute now;
-  now = GNUNET_TIME_absolute_get ();
+  struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();
   struct GNUNET_SQ_QueryParam params[] = {
     GNUNET_SQ_query_param_absolute_time (&now),
     GNUNET_SQ_query_param_end

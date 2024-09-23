@@ -56,7 +56,7 @@ static struct GNUNET_SCHEDULER_Task *tt;
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
  */
 static int
-postgres_prepare (struct GNUNET_PQ_Context *db)
+postgres_prepare (struct GNUNET_PQ_Context *db_)
 {
   struct GNUNET_PQ_PreparedStatement ps[] = {
     GNUNET_PQ_make_prepare ("test_insert",
@@ -112,7 +112,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
-  return GNUNET_PQ_prepare_statements (db,
+  return GNUNET_PQ_prepare_statements (db_,
                                        ps);
 }
 
@@ -124,7 +124,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db)
  * @return 0 on success
  */
 static int
-run_queries (struct GNUNET_PQ_Context *db)
+run_queries (struct GNUNET_PQ_Context *db_)
 {
   struct GNUNET_CRYPTO_RsaPublicKey *pub;
   struct GNUNET_CRYPTO_RsaPublicKey *pub2 = NULL;
@@ -137,7 +137,7 @@ run_queries (struct GNUNET_PQ_Context *db)
   struct GNUNET_HashCode hc;
   struct GNUNET_HashCode hc2;
   PGresult *result;
-  int ret;
+  int lret;
   struct GNUNET_CRYPTO_RsaPrivateKey *priv;
   const char msg[] = "hello";
   void *msg2;
@@ -191,18 +191,18 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_query_param_uint32 (&u32),
       GNUNET_PQ_query_param_uint64 (&u64),
       GNUNET_PQ_query_param_null (),
-      GNUNET_PQ_query_param_array_bool (5, ab, db),
-      GNUNET_PQ_query_param_array_uint16 (3, ai2, db),
-      GNUNET_PQ_query_param_array_uint32 (3, ai4, db),
-      GNUNET_PQ_query_param_array_uint64 (3, ai8, db),
+      GNUNET_PQ_query_param_array_bool (5, ab, db_),
+      GNUNET_PQ_query_param_array_uint16 (3, ai2, db_),
+      GNUNET_PQ_query_param_array_uint32 (3, ai4, db_),
+      GNUNET_PQ_query_param_array_uint64 (3, ai8, db_),
       GNUNET_PQ_query_param_array_bytes_same_size (3,
                                                    ahc,
                                                    sizeof(ahc[0]),
-                                                   db),
-      GNUNET_PQ_query_param_array_ptrs_string (3, as, db),
-      GNUNET_PQ_query_param_array_abs_time (2, ata, db),
-      GNUNET_PQ_query_param_array_rel_time (2, atr, db),
-      GNUNET_PQ_query_param_array_timestamp (2, ats, db),
+                                                   db_),
+      GNUNET_PQ_query_param_array_ptrs_string (3, as, db_),
+      GNUNET_PQ_query_param_array_abs_time (2, ata, db_),
+      GNUNET_PQ_query_param_array_rel_time (2, atr, db_),
+      GNUNET_PQ_query_param_array_timestamp (2, ats, db_),
       GNUNET_PQ_query_param_end
     };
     struct GNUNET_PQ_QueryParam params_select[] = {
@@ -243,51 +243,51 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_PQ_result_spec_allow_null (
         GNUNET_PQ_result_spec_uint64 ("unn", &uzzz),
         &got_null),
-      GNUNET_PQ_result_spec_array_bool (db,
+      GNUNET_PQ_result_spec_array_bool (db_,
                                         "arr_bool",
                                         &num_bool,
                                         &arr_bools),
-      GNUNET_PQ_result_spec_array_uint16 (db,
+      GNUNET_PQ_result_spec_array_uint16 (db_,
                                           "arr_int2",
                                           &num_u16,
                                           &arr_u16),
-      GNUNET_PQ_result_spec_array_uint32 (db,
+      GNUNET_PQ_result_spec_array_uint32 (db_,
                                           "arr_int4",
                                           &num_u32,
                                           &arr_u32),
-      GNUNET_PQ_result_spec_array_uint64 (db,
+      GNUNET_PQ_result_spec_array_uint64 (db_,
                                           "arr_int8",
                                           &num_u64,
                                           &arr_u64),
-      GNUNET_PQ_result_spec_array_abs_time (db,
+      GNUNET_PQ_result_spec_array_abs_time (db_,
                                             "arr_abs_time",
                                             &num_abs,
                                             &arr_abs),
-      GNUNET_PQ_result_spec_array_rel_time (db,
+      GNUNET_PQ_result_spec_array_rel_time (db_,
                                             "arr_rel_time",
                                             &num_rel,
                                             &arr_rel),
-      GNUNET_PQ_result_spec_array_timestamp (db,
+      GNUNET_PQ_result_spec_array_timestamp (db_,
                                              "arr_timestamp",
                                              &num_tstmp,
                                              &arr_tstmp),
-      GNUNET_PQ_result_spec_auto_array_from_type (db,
+      GNUNET_PQ_result_spec_auto_array_from_type (db_,
                                                   "arr_bytea",
                                                   &num_hash,
                                                   arr_hash),
-      GNUNET_PQ_result_spec_array_variable_size (db,
+      GNUNET_PQ_result_spec_array_variable_size (db_,
                                                  "arr_bytea",
                                                  &num_buf,
                                                  &sz_buf,
                                                  &arr_buf),
-      GNUNET_PQ_result_spec_array_string (db,
+      GNUNET_PQ_result_spec_array_string (db_,
                                           "arr_text",
                                           &num_str,
                                           &arr_str),
       GNUNET_PQ_result_spec_end
     };
 
-    result = GNUNET_PQ_exec_prepared (db,
+    result = GNUNET_PQ_exec_prepared (db_,
                                       "test_insert",
                                       params_insert);
     if (PGRES_COMMAND_OK != PQresultStatus (result))
@@ -303,7 +303,7 @@ run_queries (struct GNUNET_PQ_Context *db)
     }
 
     PQclear (result);
-    result = GNUNET_PQ_exec_prepared (db,
+    result = GNUNET_PQ_exec_prepared (db_,
                                       "test_select",
                                       params_select);
     if (1 !=
@@ -316,10 +316,10 @@ run_queries (struct GNUNET_PQ_Context *db)
       GNUNET_CRYPTO_rsa_public_key_free (pub);
       return 1;
     }
-    ret = GNUNET_PQ_extract_result (result,
+    lret = GNUNET_PQ_extract_result (result,
                                     results_select,
                                     0);
-    GNUNET_break (GNUNET_YES == ret);
+    GNUNET_break (GNUNET_YES == lret);
     GNUNET_break (abs_time.abs_value_us == abs_time2.abs_value_us);
     GNUNET_break (forever.abs_value_us == forever2.abs_value_us);
     GNUNET_break (0 ==
@@ -398,7 +398,7 @@ run_queries (struct GNUNET_PQ_Context *db)
   GNUNET_CRYPTO_rsa_signature_free (sig);
   GNUNET_CRYPTO_rsa_private_key_free (priv);
   GNUNET_CRYPTO_rsa_public_key_free (pub);
-  if (GNUNET_OK != ret)
+  if (GNUNET_OK != lret)
     return 1;
 
   return 0;
@@ -558,12 +558,12 @@ main (int argc,
 
   /* ensure oid lookup works */
   {
-    enum GNUNET_GenericReturnValue ret;
+    enum GNUNET_GenericReturnValue lret;
     Oid oid;
 
-    ret = GNUNET_PQ_get_oid_by_name (db, "int8", &oid);
+    lret = GNUNET_PQ_get_oid_by_name (db, "int8", &oid);
 
-    if (GNUNET_OK != ret)
+    if (GNUNET_OK != lret)
     {
       fprintf (stderr,
                "Cannot lookup oid for int8: %s\n",
@@ -575,8 +575,8 @@ main (int argc,
 
     PQexec (db->conn, "CREATE TYPE foo AS (foo int, bar int);");
 
-    ret = GNUNET_PQ_get_oid_by_name (db, "foo", &oid);
-    if (GNUNET_OK != ret)
+    lret = GNUNET_PQ_get_oid_by_name (db, "foo", &oid);
+    if (GNUNET_OK != lret)
     {
       fprintf (stderr,
                "Cannot lookup oid for foo: %s\n",
@@ -607,14 +607,14 @@ main (int argc,
   fprintf (stderr, "Result: %d (expect: 0)\n", ret);
 #endif
   {
-    struct GNUNET_PQ_ExecuteStatement es[] = {
+    struct GNUNET_PQ_ExecuteStatement es_tmp[] = {
       GNUNET_PQ_make_execute ("DROP TABLE test_pq"),
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
 
     if (GNUNET_OK !=
         GNUNET_PQ_exec_statements (db,
-                                   es))
+                                   es_tmp))
     {
       fprintf (stderr,
                "Failed to drop table\n");

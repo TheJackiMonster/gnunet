@@ -205,12 +205,14 @@ parse_record_data (struct GnsRecordInfo *gnsrecord_info, json_t *data)
   *(gnsrecord_info->rd_count) = json_array_size (data);
   *(gnsrecord_info->rd) = GNUNET_malloc (sizeof(struct GNUNET_GNSRECORD_Data)
                                          * json_array_size (data));
-  size_t index;
-  json_t *value;
-  json_array_foreach (data, index, value)
   {
-    if (GNUNET_OK != parse_record (value, &(*(gnsrecord_info->rd))[index]))
-      return GNUNET_SYSERR;
+    size_t index;
+    json_t *value;
+    json_array_foreach (data, index, value)
+    {
+      if (GNUNET_OK != parse_record (value, &(*(gnsrecord_info->rd))[index]))
+        return GNUNET_SYSERR;
+    }
   }
   return GNUNET_OK;
 }
@@ -284,10 +286,6 @@ GNUNET_GNSRECORD_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
                                       char **name)
 {
   struct GnsRecordInfo *gnsrecord_info = GNUNET_new (struct GnsRecordInfo);
-
-  gnsrecord_info->rd = rd;
-  gnsrecord_info->name = name;
-  gnsrecord_info->rd_count = rd_count;
   struct GNUNET_JSON_Specification ret = { .parser = &parse_gnsrecordobject,
                                            .cleaner = &clean_gnsrecordobject,
                                            .cls = NULL,
@@ -296,6 +294,10 @@ GNUNET_GNSRECORD_JSON_spec_gnsrecord (struct GNUNET_GNSRECORD_Data **rd,
                                                   gnsrecord_info,
                                            .ptr_size = 0,
                                            .size_ptr = NULL };
+
+  gnsrecord_info->rd = rd;
+  gnsrecord_info->name = name;
+  gnsrecord_info->rd_count = rd_count;
   return ret;
 }
 

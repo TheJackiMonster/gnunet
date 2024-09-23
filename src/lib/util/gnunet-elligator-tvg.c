@@ -78,21 +78,21 @@ main (int argc,
   struct GNUNET_CRYPTO_EddsaPrivateKey skRm;
   struct GNUNET_CRYPTO_EddsaPublicKey pkRm;
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skEm;
+  struct GNUNET_CRYPTO_EcdhePublicKey pkEm = {0};
+  struct GNUNET_CRYPTO_ElligatorRepresentative enc = {0}; // randomness through seed
+  struct GNUNET_CRYPTO_EcdhePublicKey pkRmHpke = {0};
+  struct GNUNET_ShortHashCode key = {0};
   memcpy (skRm.d, skRmBytes, sizeof(skRm.d));
   memcpy (pkRm.q_y, pkRmBytes, sizeof(pkRm.q_y));
   memcpy (skEm.d, skEmBytes, sizeof(skEm.d));
 
   // compute special elligator public key "pkEm" and representative "enc" deterministically
-  struct GNUNET_CRYPTO_EcdhePublicKey pkEm = {0};
-  struct GNUNET_CRYPTO_ElligatorRepresentative enc = {0}; // randomness through seed
   GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (seed,
                                                        &skEm,
                                                        &pkEm,
                                                        &enc);
 
   // compute "key" deterministically
-  struct GNUNET_CRYPTO_EcdhePublicKey pkRmHpke = {0};
-  struct GNUNET_ShortHashCode key = {0};
   eddsa_pub_to_hpke_key (&pkRm, &pkRmHpke);
   GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (seed,
                                                   &pkRmHpke,

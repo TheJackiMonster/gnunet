@@ -238,8 +238,7 @@ postgres_plugin_put (void *cls,
             _ ("Postgresql exec failure"));
       return;
     }
-    bool affected = (0 != ret);
-    if (affected)
+    if (0 != ret)
     {
       cont (cont_cls,
             key,
@@ -873,6 +872,9 @@ postgres_plugin_remove_key (void *cls,
 }
 
 
+void *
+libgnunet_plugin_datastore_postgres_init (void *cls);
+
 /**
  * Entry point for the plugin.
  *
@@ -907,6 +909,9 @@ libgnunet_plugin_datastore_postgres_init (void *cls)
   return api;
 }
 
+
+void *
+libgnunet_plugin_datastore_postgres_done (void *cls);
 
 /**
  * Exit point from the plugin.

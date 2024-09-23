@@ -266,7 +266,7 @@ handle_address_change_notification (
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Received address change notification\n");
-  ac = (enum GNUNET_NAT_AddressClass) ntohl (acn->addr_class);
+  ac = ntohl (acn->addr_class);
   if (GNUNET_YES == ntohl (acn->add_remove))
   {
     ae = GNUNET_malloc (sizeof(*ae) + alen);

@@ -534,8 +534,7 @@ handle_monitor_get (void *cls,
                     const struct GNUNET_DHT_MonitorGetMessage *msg)
 {
   struct GNUNET_DHT_Handle *handle = cls;
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
 
   for (struct GNUNET_DHT_MonitorHandle *mh = handle->monitor_head;
        NULL != mh;
@@ -552,7 +551,7 @@ handle_monitor_get (void *cls,
       continue;
     mh->get_cb (mh->cb_cls,
                 ro,
-                (enum GNUNET_BLOCK_Type) ntohl (msg->type),
+                ntohl (msg->type),
                 ntohl (msg->hop_count),
                 ntohl (msg->desired_replication_level),
                 &msg->key);
@@ -575,8 +574,7 @@ check_monitor_get_resp (void *cls,
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
   uint32_t getl = ntohl (msg->get_path_length);
   uint32_t putl = ntohl (msg->put_path_length);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
 
   if (truncated)
@@ -610,8 +608,7 @@ handle_monitor_get_resp (void *cls,
 {
   struct GNUNET_DHT_Handle *handle = cls;
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
   uint32_t getl = ntohl (msg->get_path_length);
   uint32_t putl = ntohl (msg->put_path_length);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
@@ -641,7 +638,7 @@ handle_monitor_get_resp (void *cls,
                               &msg->key)) )
       continue;
     mh->get_resp_cb (mh->cb_cls,
-                     (enum GNUNET_BLOCK_Type) ntohl (msg->type),
+                     ntohl (msg->type),
                      trunc_peer,
                      &path[putl],
                      getl,
@@ -669,8 +666,7 @@ check_monitor_put (void *cls,
 {
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
   uint32_t putl = ntohl (msg->put_path_length);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
 
   if (truncated)
@@ -704,8 +700,7 @@ handle_monitor_put (void *cls,
   struct GNUNET_DHT_Handle *handle = cls;
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
   uint32_t putl = ntohl (msg->put_path_length);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   const struct GNUNET_PeerIdentity *trunc_peer
     = truncated
@@ -734,7 +729,7 @@ handle_monitor_put (void *cls,
       continue;
     mh->put_cb (mh->cb_cls,
                 ro,
-                (enum GNUNET_BLOCK_Type) ntohl (msg->type),
+                ntohl (msg->type),
                 ntohl (msg->hop_count),
                 ntohl (msg->desired_replication_level),
                 trunc_peer,
@@ -763,8 +758,7 @@ check_client_result (void *cls,
   size_t msize = ntohs (msg->header.size) - sizeof(*msg);
   uint32_t put_path_length = ntohl (msg->put_path_length);
   uint32_t get_path_length = ntohl (msg->get_path_length);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (msg->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (msg->options);
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   size_t meta_length;
 
@@ -807,8 +801,7 @@ process_client_result (void *cls,
   struct GNUNET_DHT_GetHandle *get_handle = value;
   size_t msize = ntohs (crm->header.size) - sizeof(*crm);
   uint16_t type = ntohl (crm->type);
-  enum GNUNET_DHT_RouteOption ro
-    = (enum GNUNET_DHT_RouteOption) ntohl (crm->options);
+  enum GNUNET_DHT_RouteOption ro = ntohl (crm->options);
   bool truncated
     = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   uint32_t put_path_length

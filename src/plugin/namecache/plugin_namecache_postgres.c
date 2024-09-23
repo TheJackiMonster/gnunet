@@ -25,7 +25,6 @@
  */
 #include "platform.h"
 #include "gnunet_namecache_plugin.h"
-#include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_pq_lib.h"
 
@@ -151,8 +150,7 @@ namecache_postgres_cache_block (void *cls,
   struct Plugin *plugin = cls;
   struct GNUNET_HashCode query;
   size_t block_size = GNUNET_GNSRECORD_block_get_size (block);
-  struct GNUNET_TIME_Absolute exp;
-  exp = GNUNET_GNSRECORD_block_get_expiration (block);
+  struct GNUNET_TIME_Absolute exp = GNUNET_GNSRECORD_block_get_expiration (block);
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (&query),
     GNUNET_PQ_query_param_fixed_size (block, block_size),

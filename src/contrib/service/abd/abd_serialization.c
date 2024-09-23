@@ -27,7 +27,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_abd_service.h"
 #include "gnunet_signatures.h"
 #include "abd.h"
@@ -418,43 +417,44 @@ GNUNET_ABD_delegate_serialize (struct GNUNET_ABD_Delegate *dele,
   }
   size = sizeof (struct DelegateEntry) + attr_len;
 
-  char tmp_str[attr_len];
-  GNUNET_memcpy (tmp_str, dele->issuer_attribute, dele->issuer_attribute_len);
-  if (0 != dele->subject_attribute_len)
   {
-    tmp_str[dele->issuer_attribute_len] = '\0';
-    GNUNET_memcpy (tmp_str + dele->issuer_attribute_len + 1,
-                   dele->subject_attribute,
-                   dele->subject_attribute_len);
-  }
-  tmp_str[attr_len - 1] = '\0';
+    char tmp_str[attr_len];
+    GNUNET_memcpy (tmp_str, dele->issuer_attribute, dele->issuer_attribute_len);
+    if (0 != dele->subject_attribute_len)
+    {
+      tmp_str[dele->issuer_attribute_len] = '\0';
+      GNUNET_memcpy (tmp_str + dele->issuer_attribute_len + 1,
+                     dele->subject_attribute,
+                     dele->subject_attribute_len);
+    }
+    tmp_str[attr_len - 1] = '\0';
 
-  *data = GNUNET_malloc (size);
-  cdata = (struct DelegateEntry *) *data;
-  cdata->subject_key = dele->subject_key;
-  cdata->issuer_key = dele->issuer_key;
-  cdata->expiration = GNUNET_htonll (dele->expiration.abs_value_us);
-  cdata->signature = dele->signature;
-  cdata->issuer_attribute_len = htonl (dele->issuer_attribute_len + 1);
-  if (0 == dele->subject_attribute_len)
-  {
-    cdata->subject_attribute_len = htonl (0);
-  }
-  else
-  {
-    cdata->subject_attribute_len = htonl (dele->subject_attribute_len + 1);
-  }
-  cdata->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
-  cdata->purpose.size =
-    htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
+    *data = GNUNET_malloc (size);
+    cdata = (struct DelegateEntry *) *data;
+    cdata->subject_key = dele->subject_key;
+    cdata->issuer_key = dele->issuer_key;
+    cdata->expiration = GNUNET_htonll (dele->expiration.abs_value_us);
+    cdata->signature = dele->signature;
+    cdata->issuer_attribute_len = htonl (dele->issuer_attribute_len + 1);
+    if (0 == dele->subject_attribute_len)
+    {
+      cdata->subject_attribute_len = htonl (0);
+    }
+    else
+    {
+      cdata->subject_attribute_len = htonl (dele->subject_attribute_len + 1);
+    }
+    cdata->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
+    cdata->purpose.size =
+      htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
 
-  GNUNET_memcpy (&cdata[1], tmp_str, attr_len);
-
+    GNUNET_memcpy (&cdata[1], tmp_str, attr_len);
+  }
   if (GNUNET_OK !=
       GNUNET_CRYPTO_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                  &cdata->purpose,
-                                  &cdata->signature,
-                                  &cdata->issuer_key))
+                                       &cdata->purpose,
+                                       &cdata->signature,
+                                       &cdata->issuer_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Serialize: Invalid delegate\n");
     return 0;
@@ -475,41 +475,42 @@ GNUNET_ABD_delegate_deserialize (const char *data, size_t data_size)
   cdata = (struct DelegateEntry *) data;
   if (GNUNET_OK !=
       GNUNET_CRYPTO_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                  &cdata->purpose,
-                                  &cdata->signature,
-                                  &cdata->issuer_key))
+                                       &cdata->purpose,
+                                       &cdata->signature,
+                                       &cdata->issuer_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deserialize: Invalid delegate\n");
     return NULL;
   }
   attr_combo_str = (char *) &cdata[1];
-  int iss_len = ntohl (cdata->issuer_attribute_len);
-  int sub_len = ntohl (cdata->subject_attribute_len);
-  int attr_combo_len = iss_len + sub_len;
-
-  dele =
-    GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_combo_len);
-
-  dele->issuer_key = cdata->issuer_key;
-  dele->subject_key = cdata->subject_key;
-  GNUNET_memcpy (&dele[1], attr_combo_str, attr_combo_len);
-  dele->signature = cdata->signature;
-
-  // Set the pointers for the attributes
-  dele->issuer_attribute = (char *) &dele[1];
-  dele->issuer_attribute_len = iss_len;
-  dele->subject_attribute_len = sub_len;
-  if (0 == sub_len)
   {
-    dele->subject_attribute = NULL;
-  }
-  else
-  {
-    dele->subject_attribute = (char *) &dele[1] + iss_len;
-  }
+    int iss_len = ntohl (cdata->issuer_attribute_len);
+    int sub_len = ntohl (cdata->subject_attribute_len);
+    int attr_combo_len = iss_len + sub_len;
 
-  dele->expiration.abs_value_us = GNUNET_ntohll (cdata->expiration);
+    dele =
+      GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_combo_len);
 
+    dele->issuer_key = cdata->issuer_key;
+    dele->subject_key = cdata->subject_key;
+    GNUNET_memcpy (&dele[1], attr_combo_str, attr_combo_len);
+    dele->signature = cdata->signature;
+
+    // Set the pointers for the attributes
+    dele->issuer_attribute = (char *) &dele[1];
+    dele->issuer_attribute_len = iss_len;
+    dele->subject_attribute_len = sub_len;
+    if (0 == sub_len)
+    {
+      dele->subject_attribute = NULL;
+    }
+    else
+    {
+      dele->subject_attribute = (char *) &dele[1] + iss_len;
+    }
+
+    dele->expiration.abs_value_us = GNUNET_ntohll (cdata->expiration);
+  }
   return dele;
 }
 

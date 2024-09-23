@@ -307,12 +307,14 @@ GNUNET_REVOCATION_revoke (const struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   h->func = func;
   h->func_cls = func_cls;
-  size_t extra_len = GNUNET_GNSRECORD_proof_get_size (pow);
-  env = GNUNET_MQ_msg_extra (rm,
-                             extra_len,
-                             GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE);
-  rm->pow_size = htonl (extra_len);
-  memcpy (&rm[1], pow, extra_len);
+  {
+    size_t extra_len = GNUNET_GNSRECORD_proof_get_size (pow);
+    env = GNUNET_MQ_msg_extra (rm,
+                               extra_len,
+                               GNUNET_MESSAGE_TYPE_REVOCATION_REVOKE);
+    rm->pow_size = htonl (extra_len);
+    memcpy (&rm[1], pow, extra_len);
+  }
   GNUNET_MQ_send (h->mq,
                   env);
   return h;

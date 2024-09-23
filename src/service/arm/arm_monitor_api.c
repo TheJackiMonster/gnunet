@@ -156,7 +156,7 @@ handle_monitor_notify (void *cls, const struct GNUNET_ARM_StatusMessage *res)
   struct GNUNET_ARM_MonitorHandle *h = cls;
   enum GNUNET_ARM_ServiceMonitorStatus status;
 
-  status = (enum GNUNET_ARM_ServiceMonitorStatus) ntohl (res->status);
+  status = ntohl (res->status);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received notification from ARM for service `%s' with status %d\n",
        (const char *) &res[1],

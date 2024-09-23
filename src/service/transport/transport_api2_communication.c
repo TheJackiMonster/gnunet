@@ -783,8 +783,8 @@ static int
 check_start_burst (void *cls,
                    const struct GNUNET_TRANSPORT_StartBurst *sb)
 {
-  (void) cls;
   const char *addr_str = (const char *) &sb[1];
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_start_burst %s %lu\n",

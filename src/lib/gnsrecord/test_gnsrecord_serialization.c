@@ -59,76 +59,77 @@ run (void *cls,
   res = 0;
 
   len = GNUNET_GNSRECORD_records_get_size (rd_count, src);
-  char rd_ser[len];
-  GNUNET_assert (len ==
-                 GNUNET_GNSRECORD_records_serialize (rd_count,
-                                                     src,
-                                                     len,
-                                                     rd_ser));
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Serialized data len: %u\n",
-              (unsigned int) len);
-
-  GNUNET_assert (rd_ser != NULL);
   {
-    struct GNUNET_GNSRECORD_Data dst[rd_count];
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_GNSRECORD_records_deserialize (len,
-                                                         rd_ser,
-                                                         rd_count,
-                                                         dst));
+    char rd_ser[len];
+    GNUNET_assert (len ==
+                   GNUNET_GNSRECORD_records_serialize (rd_count,
+                                                       src,
+                                                       len,
+                                                       rd_ser));
 
-    GNUNET_assert (dst != NULL);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Serialized data len: %u\n",
+                (unsigned int) len);
 
-    for (c = 0; c < rd_count; c++)
+    GNUNET_assert (rd_ser != NULL);
     {
-      if (src[c].data_size != dst[c].data_size)
-      {
-        GNUNET_break (0);
-        res = 1;
-      }
-      if (src[c].expiration_time != dst[c].expiration_time)
-      {
-        GNUNET_break (0);
-        res = 1;
-      }
-      if (src[c].flags != dst[c].flags)
-      {
-        GNUNET_break (0);
-        res = 1;
-      }
-      if (src[c].record_type != dst[c].record_type)
-      {
-        GNUNET_break (0);
-        res = 1;
-      }
+      struct GNUNET_GNSRECORD_Data dst[rd_count];
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_GNSRECORD_records_deserialize (len,
+                                                           rd_ser,
+                                                           rd_count,
+                                                           dst));
 
-      {
-        size_t data_size = src[c].data_size;
-        char data[data_size];
+      GNUNET_assert (dst != NULL);
 
-        memset (data, 'a', data_size);
-        if (0 != memcmp (data, dst[c].data, data_size))
+      for (c = 0; c < rd_count; c++)
+      {
+        if (src[c].data_size != dst[c].data_size)
         {
           GNUNET_break (0);
           res = 1;
         }
-        if (0 != memcmp (data, src[c].data, data_size))
+        if (src[c].expiration_time != dst[c].expiration_time)
         {
           GNUNET_break (0);
           res = 1;
         }
-        if (0 != memcmp (src[c].data, dst[c].data, src[c].data_size))
+        if (src[c].flags != dst[c].flags)
         {
           GNUNET_break (0);
           res = 1;
+        }
+        if (src[c].record_type != dst[c].record_type)
+        {
+          GNUNET_break (0);
+          res = 1;
+        }
+
+        {
+          size_t data_size = src[c].data_size;
+          char data[data_size];
+
+          memset (data, 'a', data_size);
+          if (0 != memcmp (data, dst[c].data, data_size))
+          {
+            GNUNET_break (0);
+            res = 1;
+          }
+          if (0 != memcmp (data, src[c].data, data_size))
+          {
+            GNUNET_break (0);
+            res = 1;
+          }
+          if (0 != memcmp (src[c].data, dst[c].data, src[c].data_size))
+          {
+            GNUNET_break (0);
+            res = 1;
+          }
         }
       }
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Element [%i]: EQUAL\n", c);
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Element [%i]: EQUAL\n", c);
   }
-
   for (c = 0; c < rd_count; c++)
   {
     GNUNET_free_nz ((void *) src[c].data);
@@ -139,7 +140,7 @@ run (void *cls,
 int
 main (int argcx, char *argvx[])
 {
-  static char *const argv[] = { "test_gnsrecord_serialization",
+  static char *const argv[] = { (char*) "test_gnsrecord_serialization",
                                 NULL };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END

@@ -470,7 +470,6 @@ namestore_postgres_lookup_records (void *cls,
                                    void *iter_cls)
 {
   struct Plugin *plugin = cls;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_string (label),
@@ -478,6 +477,7 @@ namestore_postgres_lookup_records (void *cls,
   };
   struct ParserContext pc;
   enum GNUNET_DB_QueryStatus res;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
 
   if (NULL == zone)
   {
@@ -566,7 +566,6 @@ namestore_postgres_edit_records (void *cls,
                                  void *iter_cls)
 {
   struct Plugin *plugin = cls;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_string (label),
@@ -575,6 +574,7 @@ namestore_postgres_edit_records (void *cls,
   };
   struct ParserContext pc;
   enum GNUNET_DB_QueryStatus res;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
 
   if (NULL == zone)
   {
@@ -687,7 +687,6 @@ namestore_postgres_zone_to_name (void *cls,
                                  void *iter_cls)
 {
   struct Plugin *plugin = cls;
-  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   struct GNUNET_PQ_QueryParam params[] = {
     GNUNET_PQ_query_param_auto_from_type (zone),
     GNUNET_PQ_query_param_auto_from_type (value_zone),
@@ -695,6 +694,7 @@ namestore_postgres_zone_to_name (void *cls,
   };
   enum GNUNET_DB_QueryStatus res;
   struct ParserContext pc;
+  GNUNET_assert (GNUNET_OK == database_prepare (plugin));
 
   pc.iter = iter;
   pc.iter_cls = iter_cls;
@@ -708,6 +708,7 @@ namestore_postgres_zone_to_name (void *cls,
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
+
 
 /**
  *
@@ -725,8 +726,9 @@ namestore_postgres_begin_tx (void *cls)
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+  return GNUNET_PQ_exec_statements (plugin->dbh, ess);
 }
+
 
 /**
  *
@@ -744,8 +746,9 @@ namestore_postgres_commit_tx (void *cls)
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+  return GNUNET_PQ_exec_statements (plugin->dbh, ess);
 }
+
 
 /**
  *
@@ -763,8 +766,9 @@ namestore_postgres_rollback_tx (void *cls)
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
-  return GNUNET_PQ_exec_statements(plugin->dbh, ess);
+  return GNUNET_PQ_exec_statements (plugin->dbh, ess);
 }
+
 
 /**
  * Shutdown database connection and associate data
@@ -779,6 +783,8 @@ database_shutdown (struct Plugin *plugin)
   plugin->dbh = NULL;
 }
 
+
+void *libgnunet_plugin_namestore_postgres_init (void *cls);
 
 /**
  * Entry point for the plugin.
@@ -819,6 +825,9 @@ libgnunet_plugin_namestore_postgres_init (void *cls)
   return api;
 }
 
+
+void *
+libgnunet_plugin_namestore_postgres_done (void *cls);
 
 /**
  * Exit point from the plugin.

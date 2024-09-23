@@ -452,7 +452,8 @@ dns_string_to_value (void *cls,
       typep = strtok (sdup, " ");
       if ((NULL == typep) ||
           ((0 == (cert_rrtype = rfc4398_mnemonic_to_value (typep))) &&
-           ((1 != sscanf (typep, "%u", &cert_rrtype)) || (cert_rrtype > UINT16_MAX))))
+           ((1 != sscanf (typep, "%u", &cert_rrtype)) || (cert_rrtype >
+                                                          UINT16_MAX))))
       {
         GNUNET_free (sdup);
         return GNUNET_SYSERR;
@@ -681,20 +682,23 @@ dns_string_to_value (void *cls,
                     target);
         return GNUNET_SYSERR;
       }
-
-      char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen (target) + 1];
-
-      if (GNUNET_OK !=
-          GNUNET_DNSPARSER_builder_add_uri (uribuf, sizeof(uribuf), &off, &uri))
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Failed to serialize URI record with target `%s'\n"),
-                    target);
-        return GNUNET_SYSERR;
+        char uribuf[sizeof(struct GNUNET_TUN_DnsUriRecord) + strlen (target) + 1
+        ];
+
+        if (GNUNET_OK !=
+            GNUNET_DNSPARSER_builder_add_uri (uribuf, sizeof(uribuf), &off, &uri
+                                              ))
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      _ ("Failed to serialize URI record with target `%s'\n"),
+                      target);
+          return GNUNET_SYSERR;
+        }
+        *data_size = off;
+        *data = GNUNET_malloc (off);
+        GNUNET_memcpy (*data, uribuf, off);
       }
-      *data_size = off;
-      *data = GNUNET_malloc (off);
-      GNUNET_memcpy (*data, uribuf, off);
       return GNUNET_OK;
     }
 
@@ -852,6 +856,7 @@ dns_is_critical (void *cls, uint32_t type)
   return GNUNET_NO;
 }
 
+
 void *
 libgnunet_plugin_gnsrecord_dns_init (void *cls);
 
@@ -874,6 +879,7 @@ libgnunet_plugin_gnsrecord_dns_init (void *cls)
   api->is_critical = &dns_is_critical;
   return api;
 }
+
 
 void *
 libgnunet_plugin_gnsrecord_dns_done (void *cls);

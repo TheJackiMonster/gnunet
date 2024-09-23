@@ -25,9 +25,7 @@
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_protocols.h"
 #include "gnunet_datastore_plugin.h"
-#include "gnunet_testing_lib.h"
 
 /**
  * Number of put operations to perform.
@@ -447,8 +445,8 @@ main (int argc, char *argv[])
   char dir_name[PATH_MAX];
   char cfg_name[PATH_MAX];
   char *const xargv[] = {
-    "test-plugin-datastore",
-    "-c",
+    (char*) "test-plugin-datastore",
+    (char*) "-c",
     cfg_name,
     NULL
   };

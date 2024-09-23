@@ -1,6 +1,5 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
 #include <inttypes.h>
 #include "gnsrecord_crypto.h"
@@ -659,21 +658,23 @@ main ()
       res = 1;
       break;
     }
-    int len = parsehex (tvs[i].rdata, (char*) rdata, 0, 0);
-    tvs[i].expected_rd_count =
-      GNUNET_GNSRECORD_records_deserialize_get_size (len,
-                                                     rdata);
-    GNUNET_assert (tvs[i].expected_rd_count < 2048);
-    if (GNUNET_OK !=
-        GNUNET_GNSRECORD_records_deserialize (len,
-                                              rdata,
-                                              tvs[i].expected_rd_count,
-                                              tvs[i].expected_rd))
     {
-      printf ("FAIL: Deserialization of RDATA failed\n");
-      res = 1;
-      GNUNET_free (rrblock);
-      break;
+      int len = parsehex (tvs[i].rdata, (char*) rdata, 0, 0);
+      tvs[i].expected_rd_count =
+        GNUNET_GNSRECORD_records_deserialize_get_size (len,
+                                                       rdata);
+      GNUNET_assert (tvs[i].expected_rd_count < 2048);
+      if (GNUNET_OK !=
+          GNUNET_GNSRECORD_records_deserialize (len,
+                                                rdata,
+                                                tvs[i].expected_rd_count,
+                                                tvs[i].expected_rd))
+      {
+        printf ("FAIL: Deserialization of RDATA failed\n");
+        res = 1;
+        GNUNET_free (rrblock);
+        break;
+      }
     }
     expire = GNUNET_GNSRECORD_record_get_expiration_time (
       tvs[i].expected_rd_count,

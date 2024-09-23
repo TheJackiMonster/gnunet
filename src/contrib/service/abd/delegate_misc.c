@@ -27,7 +27,6 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_abd_service.h"
 #include "gnunet_signatures.h"
 #include "abd.h"
@@ -77,20 +76,19 @@ GNUNET_ABD_delegate_to_string (
 }
 
 
+#define KEY_LEN_ENC (260 / 5)
+
 struct GNUNET_ABD_Delegate *
 GNUNET_ABD_delegate_from_string (const char *s)
 {
   struct GNUNET_ABD_Delegate *dele;
-  size_t enclen = (sizeof (struct GNUNET_CRYPTO_PublicKey)) * 8;
-  if (enclen % 5 > 0)
-    enclen += 5 - enclen % 5;
-  enclen /= 5; /* 260/5 = 52 */
-  char subject_pkey[enclen + 1];
-  char issuer_pkey[enclen + 1];
+  char subject_pkey[KEY_LEN_ENC + 7];
+  char issuer_pkey[KEY_LEN_ENC + 7];
   char iss_attr[253 + 1];
   // Needs to be initialized, in case of Type 1 credential (A.a <- B)
   char sub_attr[253 + 1] = "";
   char signature[256]; // TODO max payload size
+  int attr_len;
 
   struct GNUNET_CRYPTO_Signature *sig;
   struct GNUNET_TIME_Absolute etime_abs;
@@ -122,7 +120,6 @@ GNUNET_ABD_delegate_from_string (const char *s)
   }
 
   // +1 for \0
-  int attr_len;
   if (strcmp (sub_attr, "") == 0)
   {
     attr_len = strlen (iss_attr) + 1;
@@ -133,40 +130,41 @@ GNUNET_ABD_delegate_from_string (const char *s)
   }
   dele = GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_len);
 
-  char tmp_str[attr_len];
-  GNUNET_memcpy (tmp_str, iss_attr, strlen (iss_attr));
-  if (strcmp (sub_attr, "") != 0)
   {
-    tmp_str[strlen (iss_attr)] = '\0';
-    GNUNET_memcpy (tmp_str + strlen (iss_attr) + 1,
-                   sub_attr,
-                   strlen (sub_attr));
-  }
-  tmp_str[attr_len - 1] = '\0';
-
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_public_key_from_string (subject_pkey,
+    char tmp_str[attr_len];
+    GNUNET_memcpy (tmp_str, iss_attr, strlen (iss_attr));
+    if (strcmp (sub_attr, "") != 0)
+    {
+      tmp_str[strlen (iss_attr)] = '\0';
+      GNUNET_memcpy (tmp_str + strlen (iss_attr) + 1,
+                     sub_attr,
+                     strlen (sub_attr));
+    }
+    tmp_str[attr_len - 1] = '\0';
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_public_key_from_string (subject_pkey,
                                               &dele->subject_key))
-  {
-    GNUNET_free (dele);
-    return NULL;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_public_key_from_string (issuer_pkey,
+    {
+      GNUNET_free (dele);
+      return NULL;
+    }
+    if (GNUNET_SYSERR ==
+        GNUNET_CRYPTO_public_key_from_string (issuer_pkey,
                                               &dele->issuer_key))
-  {
-    GNUNET_free (dele);
-    return NULL;
-  }
-  GNUNET_assert (sizeof (struct GNUNET_CRYPTO_Signature) ==
-                 GNUNET_STRINGS_base64_decode (signature,
-                                               strlen (signature),
-                                               (void **) &sig));
-  dele->signature = *sig;
-  dele->expiration = etime_abs;
-  GNUNET_free (sig);
+    {
+      GNUNET_free (dele);
+      return NULL;
+    }
+    GNUNET_assert (sizeof (struct GNUNET_CRYPTO_Signature) ==
+                   GNUNET_STRINGS_base64_decode (signature,
+                                                 strlen (signature),
+                                                 (void **) &sig));
+    dele->signature = *sig;
+    dele->expiration = etime_abs;
+    GNUNET_free (sig);
 
-  GNUNET_memcpy (&dele[1], tmp_str, attr_len);
+    GNUNET_memcpy (&dele[1], tmp_str, attr_len);
+  }
 
   dele->issuer_attribute = (char *) &dele[1];
   dele->issuer_attribute_len = strlen (iss_attr);
@@ -220,47 +218,48 @@ GNUNET_ABD_delegate_issue (
   }
   size = sizeof (struct DelegateEntry) + attr_len;
 
-  char tmp_str[attr_len];
-  GNUNET_memcpy (tmp_str, iss_attr, strlen (iss_attr));
-  if (NULL != sub_attr)
   {
-    tmp_str[strlen (iss_attr)] = '\0';
-    GNUNET_memcpy (tmp_str + strlen (iss_attr) + 1,
-                   sub_attr,
-                   strlen (sub_attr));
+    char tmp_str[attr_len];
+    GNUNET_memcpy (tmp_str, iss_attr, strlen (iss_attr));
+    if (NULL != sub_attr)
+    {
+      tmp_str[strlen (iss_attr)] = '\0';
+      GNUNET_memcpy (tmp_str + strlen (iss_attr) + 1,
+                     sub_attr,
+                     strlen (sub_attr));
+    }
+    tmp_str[attr_len - 1] = '\0';
+
+    del = GNUNET_malloc (size);
+    del->purpose.size =
+      htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
+    del->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
+    GNUNET_CRYPTO_key_get_public (issuer, &del->issuer_key);
+    del->subject_key = *subject;
+    del->expiration = GNUNET_htonll (expiration->abs_value_us);
+    del->issuer_attribute_len = htonl (strlen (iss_attr) + 1);
+    if (NULL == sub_attr)
+    {
+      del->subject_attribute_len = htonl (0);
+    }
+    else
+    {
+      del->subject_attribute_len = htonl (strlen (sub_attr) + 1);
+    }
+
+    GNUNET_memcpy (&del[1], tmp_str, attr_len);
+    GNUNET_CRYPTO_sign_ (issuer, &del->purpose, &del->signature);
+
+    dele = GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_len);
+    dele->signature = del->signature;
+    dele->expiration = *expiration;
+    GNUNET_CRYPTO_key_get_public (issuer, &dele->issuer_key);
+
+    dele->subject_key = *subject;
+
+    // Copy the combined string at the part in the memory where the struct ends
+    GNUNET_memcpy (&dele[1], tmp_str, attr_len);
   }
-  tmp_str[attr_len - 1] = '\0';
-
-  del = GNUNET_malloc (size);
-  del->purpose.size =
-    htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
-  del->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
-  GNUNET_CRYPTO_key_get_public (issuer, &del->issuer_key);
-  del->subject_key = *subject;
-  del->expiration = GNUNET_htonll (expiration->abs_value_us);
-  del->issuer_attribute_len = htonl (strlen (iss_attr) + 1);
-  if (NULL == sub_attr)
-  {
-    del->subject_attribute_len = htonl (0);
-  }
-  else
-  {
-    del->subject_attribute_len = htonl (strlen (sub_attr) + 1);
-  }
-
-  GNUNET_memcpy (&del[1], tmp_str, attr_len);
-
-  GNUNET_CRYPTO_sign_ (issuer, &del->purpose, &del->signature);
-
-  dele = GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_len);
-  dele->signature = del->signature;
-  dele->expiration = *expiration;
-  GNUNET_CRYPTO_key_get_public (issuer, &dele->issuer_key);
-
-  dele->subject_key = *subject;
-
-  // Copy the combined string at the part in the memory where the struct ends
-  GNUNET_memcpy (&dele[1], tmp_str, attr_len);
 
   dele->issuer_attribute = (char *) &dele[1];
   dele->issuer_attribute_len = strlen (iss_attr);

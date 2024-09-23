@@ -28,7 +28,6 @@
 #include "gnunet_time_lib.h"
 #include "pq.h"
 
-
 /**
  * Function called to convert input argument into SQL parameters.
  *
@@ -732,14 +731,14 @@ qconv_array (
   same_sized = (0 != meta->same_size);
 
 #define RETURN_UNLESS(cond) \
-  do { \
-    if (! (cond)) \
-    { \
-      GNUNET_break ((cond)); \
-      noerror = false; \
-      goto DONE; \
-    } \
-  } while (0)
+        do { \
+          if (! (cond)) \
+          { \
+            GNUNET_break ((cond)); \
+            noerror = false; \
+            goto DONE; \
+          } \
+        } while (0)
 
   /* Calculate sizes and check bounds */
   {
@@ -1764,6 +1763,7 @@ qconv_blinded_sig (void *cls,
   return 1;
 }
 
+
 /**
  * Generate query parameter for a blinded signature of variable size.
  *
@@ -1781,5 +1781,6 @@ GNUNET_PQ_query_param_blinded_sig (
 
   return res;
 }
+
 
 /* end of pq_query_helper.c */

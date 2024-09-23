@@ -56,16 +56,16 @@
  * with the message given by strerror(errno).
  */
 #define LOG_SQLITE(db, level, cmd)                                \
-  do                                                              \
-  {                                                               \
-    GNUNET_log_from (level,                                       \
-                     "sqlite",                                    \
-                     _ ("`%s' failed at %s:%d with error: %s\n"), \
-                     cmd,                                         \
-                     __FILE__,                                    \
-                     __LINE__,                                    \
-                     sqlite3_errmsg (db->dbh));                   \
-  } while (0)
+        do                                                              \
+        {                                                               \
+          GNUNET_log_from (level,                                       \
+                           "sqlite",                                    \
+                           _ ("`%s' failed at %s:%d with error: %s\n"), \
+                           cmd,                                         \
+                           __FILE__,                                    \
+                           __LINE__,                                    \
+                           sqlite3_errmsg (db->dbh));                   \
+        } while (0)
 
 
 /**
@@ -74,22 +74,22 @@
  * with the message given by strerror(errno).
  */
 #define LOG_SQLITE_MSG(db, msg, level, cmd)                       \
-  do                                                              \
-  {                                                               \
-    GNUNET_log_from (level,                                       \
-                     "sqlite",                                    \
-                     _ ("`%s' failed at %s:%d with error: %s\n"), \
-                     cmd,                                         \
-                     __FILE__,                                    \
-                     __LINE__,                                    \
-                     sqlite3_errmsg (db->dbh));                   \
-    GNUNET_asprintf (msg,                                         \
-                     _ ("`%s' failed at %s:%u with error: %s"),   \
-                     cmd,                                         \
-                     __FILE__,                                    \
-                     __LINE__,                                    \
-                     sqlite3_errmsg (db->dbh));                   \
-  } while (0)
+        do                                                              \
+        {                                                               \
+          GNUNET_log_from (level,                                       \
+                           "sqlite",                                    \
+                           _ ("`%s' failed at %s:%d with error: %s\n"), \
+                           cmd,                                         \
+                           __FILE__,                                    \
+                           __LINE__,                                    \
+                           sqlite3_errmsg (db->dbh));                   \
+          GNUNET_asprintf (msg,                                         \
+                           _ ("`%s' failed at %s:%u with error: %s"),   \
+                           cmd,                                         \
+                           __FILE__,                                    \
+                           __LINE__,                                    \
+                           sqlite3_errmsg (db->dbh));                   \
+        } while (0)
 
 
 /**
@@ -249,12 +249,12 @@ create_indices (sqlite3 *dbh)
 #define ENULL &e
 #define ENULL_DEFINED 1
 #define CHECK(a)                                     \
-  if (! (a))                                         \
-  {                                                  \
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", e); \
-    sqlite3_free (e);                                \
-    e = NULL;                                        \
-  }
+        if (! (a))                                         \
+        {                                                  \
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "%s\n", e); \
+          sqlite3_free (e);                                \
+          e = NULL;                                        \
+        }
 #endif
 
 
@@ -374,7 +374,7 @@ database_setup (const struct GNUNET_CONFIGURATION_Handle *cfg,
   create_indices (plugin->dbh);
 
 #define RESULT_COLUMNS \
-  "repl, type, prio, anonLevel, expire, hash, value, _ROWID_"
+        "repl, type, prio, anonLevel, expire, hash, value, _ROWID_"
   if (
     (SQLITE_OK != sq_prepare (plugin->dbh,
                               "UPDATE gn091 "
@@ -644,93 +644,99 @@ sqlite_plugin_put (void *cls,
       GNUNET_free (msg);
       return;
     }
-    int changes = sqlite3_changes (plugin->dbh);
-    GNUNET_SQ_reset (plugin->dbh, plugin->update);
-    if (0 != changes)
     {
-      cont (cont_cls, key, size, GNUNET_NO, NULL);
-      return;
+      int changes = sqlite3_changes (plugin->dbh);
+      GNUNET_SQ_reset (plugin->dbh, plugin->update);
+      if (0 != changes)
+      {
+        cont (cont_cls, key, size, GNUNET_NO, NULL);
+        return;
+      }
     }
   }
 
-  uint64_t rvalue;
-  uint32_t type32 = (uint32_t) type;
-  struct GNUNET_SQ_QueryParam params[] =
-  { GNUNET_SQ_query_param_uint32 (&replication),
-    GNUNET_SQ_query_param_uint32 (&type32),
-    GNUNET_SQ_query_param_uint32 (&priority),
-    GNUNET_SQ_query_param_uint32 (&anonymity),
-    GNUNET_SQ_query_param_absolute_time (&expiration),
-    GNUNET_SQ_query_param_uint64 (&rvalue),
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_auto_from_type (&vhash),
-    GNUNET_SQ_query_param_fixed_size (data, size),
-    GNUNET_SQ_query_param_end };
-  int n;
-  int ret;
-  sqlite3_stmt *stmt;
-
-  if (size > MAX_ITEM_SIZE)
   {
-    cont (cont_cls, key, size, GNUNET_SYSERR, _ ("Data too large"));
-    return;
-  }
-  GNUNET_log_from (
-    GNUNET_ERROR_TYPE_DEBUG,
-    "sqlite",
-    "Storing in database block with type %u/key `%s'/priority %u/expiration in %s (%s).\n",
-    type,
-    GNUNET_h2s (key),
-    priority,
-    GNUNET_STRINGS_relative_time_to_string (GNUNET_TIME_absolute_get_remaining (
-                                              expiration),
-                                            GNUNET_YES),
-    GNUNET_STRINGS_absolute_time_to_string (expiration));
-  stmt = plugin->insertContent;
-  rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
-  if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
-  {
-    cont (cont_cls, key, size, GNUNET_SYSERR, NULL);
-    return;
-  }
-  n = sqlite3_step (stmt);
-  switch (n)
-  {
-  case SQLITE_DONE:
-    if (NULL != plugin->env->duc)
-      plugin->env->duc (plugin->env->cls,
-                        size + GNUNET_DATASTORE_ENTRY_OVERHEAD);
-    GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
-                     "sqlite",
-                     "Stored new entry (%u bytes)\n",
-                     size + GNUNET_DATASTORE_ENTRY_OVERHEAD);
-    ret = GNUNET_OK;
-    break;
+    // FIXME Refactor?
+    uint64_t rvalue;
+    uint32_t type32 = (uint32_t) type;
+    struct GNUNET_SQ_QueryParam params[] =
+    { GNUNET_SQ_query_param_uint32 (&replication),
+      GNUNET_SQ_query_param_uint32 (&type32),
+      GNUNET_SQ_query_param_uint32 (&priority),
+      GNUNET_SQ_query_param_uint32 (&anonymity),
+      GNUNET_SQ_query_param_absolute_time (&expiration),
+      GNUNET_SQ_query_param_uint64 (&rvalue),
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_auto_from_type (&vhash),
+      GNUNET_SQ_query_param_fixed_size (data, size),
+      GNUNET_SQ_query_param_end };
+    int n;
+    int ret;
+    sqlite3_stmt *stmt;
 
-  case SQLITE_BUSY:
-    GNUNET_break (0);
-    LOG_SQLITE_MSG (plugin,
-                    &msg,
-                    GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                    "sqlite3_step");
-    ret = GNUNET_SYSERR;
-    break;
+    if (size > MAX_ITEM_SIZE)
+    {
+      cont (cont_cls, key, size, GNUNET_SYSERR, _ ("Data too large"));
+      return;
+    }
+    GNUNET_log_from (
+      GNUNET_ERROR_TYPE_DEBUG,
+      "sqlite",
+      "Storing in database block with type %u/key `%s'/priority %u/expiration in %s (%s).\n",
+      type,
+      GNUNET_h2s (key),
+      priority,
+      GNUNET_STRINGS_relative_time_to_string (GNUNET_TIME_absolute_get_remaining
+                                              (
+                                                expiration),
+                                              GNUNET_YES),
+      GNUNET_STRINGS_absolute_time_to_string (expiration));
+    stmt = plugin->insertContent;
+    rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
+    if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
+    {
+      cont (cont_cls, key, size, GNUNET_SYSERR, NULL);
+      return;
+    }
+    n = sqlite3_step (stmt);
+    switch (n)
+    {
+    case SQLITE_DONE:
+      if (NULL != plugin->env->duc)
+        plugin->env->duc (plugin->env->cls,
+                          size + GNUNET_DATASTORE_ENTRY_OVERHEAD);
+      GNUNET_log_from (GNUNET_ERROR_TYPE_DEBUG,
+                       "sqlite",
+                       "Stored new entry (%u bytes)\n",
+                       size + GNUNET_DATASTORE_ENTRY_OVERHEAD);
+      ret = GNUNET_OK;
+      break;
 
-  default:
-    LOG_SQLITE_MSG (plugin,
-                    &msg,
-                    GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                    "sqlite3_step");
+    case SQLITE_BUSY:
+      GNUNET_break (0);
+      LOG_SQLITE_MSG (plugin,
+                      &msg,
+                      GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                      "sqlite3_step");
+      ret = GNUNET_SYSERR;
+      break;
+
+    default:
+      LOG_SQLITE_MSG (plugin,
+                      &msg,
+                      GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                      "sqlite3_step");
+      GNUNET_SQ_reset (plugin->dbh, stmt);
+      database_shutdown (plugin);
+      database_setup (plugin->env->cfg, plugin);
+      cont (cont_cls, key, size, GNUNET_SYSERR, msg);
+      GNUNET_free (msg);
+      return;
+    }
     GNUNET_SQ_reset (plugin->dbh, stmt);
-    database_shutdown (plugin);
-    database_setup (plugin->env->cfg, plugin);
-    cont (cont_cls, key, size, GNUNET_SYSERR, msg);
+    cont (cont_cls, key, size, ret, msg);
     GNUNET_free (msg);
-    return;
   }
-  GNUNET_SQ_reset (plugin->dbh, stmt);
-  cont (cont_cls, key, size, ret, msg);
-  GNUNET_free (msg);
 }
 
 
@@ -1209,12 +1215,14 @@ sqlite_plugin_remove_key (void *cls,
     cont (cont_cls, key, size, GNUNET_SYSERR, "sqlite3_step failed");
     return;
   }
-  int changes = sqlite3_changes (plugin->dbh);
-  GNUNET_SQ_reset (plugin->dbh, plugin->remove);
-  if (0 == changes)
   {
-    cont (cont_cls, key, size, GNUNET_NO, NULL);
-    return;
+    int changes = sqlite3_changes (plugin->dbh);
+    GNUNET_SQ_reset (plugin->dbh, plugin->remove);
+    if (0 == changes)
+    {
+      cont (cont_cls, key, size, GNUNET_NO, NULL);
+      return;
+    }
   }
   if (NULL != plugin->env->duc)
     plugin->env->duc (plugin->env->cls,
@@ -1264,7 +1272,7 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
     GNUNET_log_from (
       GNUNET_ERROR_TYPE_WARNING,
       "datastore-sqlite",
-      _("error preparing statement\n"));
+      _ ("error preparing statement\n"));
     return;
   }
   if (SQLITE_ROW == sqlite3_step (stmt))
@@ -1277,7 +1285,7 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
     GNUNET_log_from (
       GNUNET_ERROR_TYPE_WARNING,
       "datastore-sqlite",
-      _("error preparing statement\n"));
+      _ ("error preparing statement\n"));
     return;
   }
   if (SQLITE_ROW != sqlite3_step (stmt))
@@ -1285,7 +1293,7 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
     GNUNET_log_from (
       GNUNET_ERROR_TYPE_WARNING,
       "datastore-sqlite",
-      _("error stepping\n"));
+      _ ("error stepping\n"));
     return;
   }
   page_size = sqlite3_column_int64 (stmt, 0);
@@ -1298,6 +1306,7 @@ sqlite_plugin_estimate_size (void *cls, unsigned long long *estimate)
     (unsigned long long) page_size);
   *estimate = pages * page_size;
 }
+
 
 void *
 libgnunet_plugin_datastore_sqlite_init (void *cls);
@@ -1340,6 +1349,7 @@ libgnunet_plugin_datastore_sqlite_init (void *cls)
                    _ ("Sqlite database running\n"));
   return api;
 }
+
 
 void *
 libgnunet_plugin_datastore_sqlite_done (void *cls);

@@ -161,10 +161,8 @@ handle_auto_result (void *cls,
   struct GNUNET_NAT_AUTO_AutoHandle *ah = cls;
   size_t left;
   struct GNUNET_CONFIGURATION_Handle *cfg;
-  enum GNUNET_NAT_Type type
-    = (enum GNUNET_NAT_Type) ntohl (res->type);
-  enum GNUNET_NAT_StatusCode status
-    = (enum GNUNET_NAT_StatusCode) ntohl (res->status_code);
+  enum GNUNET_NAT_Type type = ntohl (res->type);
+  enum GNUNET_NAT_StatusCode status = ntohl (res->status_code);
 
   left = ntohs (res->header.size) - sizeof(*res);
   cfg = GNUNET_CONFIGURATION_create ();

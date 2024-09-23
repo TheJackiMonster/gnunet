@@ -173,14 +173,16 @@ test_math (struct GNUNET_CRYPTO_EccDlogContext *edc)
       GNUNET_CRYPTO_ecc_add (&ip, &r, &ir);
       GNUNET_CRYPTO_ecc_add (&ir, &jp, &irj);
       GNUNET_CRYPTO_ecc_add (&irj, &r_inv, &sum);
-      int res = GNUNET_CRYPTO_ecc_dlog (edc, &sum);
-      if (i + j != res)
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Got %d, expected %d\n",
-                    res,
-                    i + j);
-        // GNUNET_assert (0);
+        int res = GNUNET_CRYPTO_ecc_dlog (edc, &sum);
+        if (i + j != res)
+        {
+          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                      "Got %d, expected %d\n",
+                      res,
+                      i + j);
+          // GNUNET_assert (0);
+        }
       }
     }
   }

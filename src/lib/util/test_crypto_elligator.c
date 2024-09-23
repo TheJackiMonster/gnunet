@@ -32,13 +32,10 @@ testDirectMap (void)
   struct GNUNET_CRYPTO_ElligatorRepresentative representative = {0};
   memcpy (&representative.r, &repr1, sizeof(repr1));
 
-  bool highYResult;
-
   GNUNET_CRYPTO_ecdhe_elligator_decoding (
     &pointResult,
-    &highYResult,
+    NULL,
     &representative);
-
   if (memcmp (point1, pointResult.q_y, sizeof(point1)) != 0)
   {
     ok = GNUNET_SYSERR;
@@ -72,9 +69,8 @@ testInverseMap (void)
   struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
   memcpy (&pub.q_y,&point1,sizeof(point1));
 
-  bool success = GNUNET_CRYPTO_ecdhe_elligator_encoding (0,&r,
-                                                         &pub);
-  if (success == false)
+  if (! GNUNET_CRYPTO_ecdhe_elligator_encoding (0,&r,
+                                                &pub))
   {
     ok = GNUNET_SYSERR;
   }
@@ -94,11 +90,12 @@ static int
 testGeneratePkScalarMult (void)
 {
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
-  GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
   struct GNUNET_CRYPTO_EcdhePublicKey pubWholeCurve = {0};
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
+  struct GNUNET_CRYPTO_EcdsaPrivateKey clampedPk;
   unsigned char pubPrimeCurve[crypto_scalarmult_SCALARBYTES];
 
+  GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
   if (GNUNET_CRYPTO_ecdhe_elligator_key_get_public (&pk,
                                                     &pubWholeCurve,
                                                     &repr) == -1)
@@ -107,7 +104,6 @@ testGeneratePkScalarMult (void)
   }
   crypto_scalarmult_base (pubPrimeCurve, pk.d);
 
-  struct GNUNET_CRYPTO_EcdsaPrivateKey clampedPk;
   GNUNET_CRYPTO_ecdsa_key_create (&clampedPk);
   crypto_scalarmult_base (pubWholeCurve.q_y, clampedPk.d);
   crypto_scalarmult_base (pubPrimeCurve, clampedPk.d);
@@ -129,9 +125,9 @@ testInverseDirect (void)
   struct GNUNET_CRYPTO_ElligatorRepresentative repr;
   struct GNUNET_CRYPTO_EcdhePublicKey point;
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey pk;
+  struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
   GNUNET_CRYPTO_ecdhe_elligator_key_create (&pk);
 
-  struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
   if (GNUNET_CRYPTO_ecdhe_elligator_key_get_public (&pk, &pub,
                                                     &repr) == -1)
   {
@@ -222,23 +218,23 @@ elligatorKEM ()
   struct GNUNET_CRYPTO_EcdhePrivateKey pk_receiver_hpke;
   struct GNUNET_CRYPTO_PublicKey pub_receiver;
   struct GNUNET_CRYPTO_EcdhePublicKey pub_receiver_hpke;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c_sender;
+  struct GNUNET_ShortHashCode key_material_encaps;
+  struct GNUNET_ShortHashCode key_material_decaps;
   pk_receiver.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   pub_receiver.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   GNUNET_CRYPTO_eddsa_key_create (&pk_receiver.eddsa_key);
   GNUNET_CRYPTO_eddsa_key_get_public (&pk_receiver.eddsa_key,
                                       &pub_receiver.eddsa_key);
 
-  struct GNUNET_CRYPTO_HpkeEncapsulation c_sender;
 
   GNUNET_CRYPTO_hpke_sk_to_x25519 (&pk_receiver, &pk_receiver_hpke);
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&pub_receiver, &pub_receiver_hpke);
   // Sender side
-  struct GNUNET_ShortHashCode key_material_encaps;
   GNUNET_CRYPTO_hpke_elligator_kem_encaps (&pub_receiver_hpke, &c_sender,
                                            &key_material_encaps);
 
   // Receiving side
-  struct GNUNET_ShortHashCode key_material_decaps;
   GNUNET_CRYPTO_hpke_elligator_kem_decaps (&pk_receiver_hpke, &c_sender,
                                            &key_material_decaps);
 

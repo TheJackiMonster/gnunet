@@ -92,6 +92,7 @@ DID_resolve (const char *did,
              void *cls)
 {
   struct GNUNET_CRYPTO_PublicKey pkey;
+  struct DID_resolve_return *cls_gns_lookup_cb;
 
   // did, gns_handle and cont must me set
   if ((did == NULL) || (gns_handle == NULL) || (cont == NULL))
@@ -101,8 +102,7 @@ DID_resolve (const char *did,
     return GNUNET_NO;
 
   // Create closure for lookup callback
-  struct DID_resolve_return *cls_gns_lookup_cb
-    = malloc (sizeof(struct DID_resolve_return));
+  cls_gns_lookup_cb = GNUNET_malloc (sizeof(struct DID_resolve_return));
   cls_gns_lookup_cb->cb = cont;
   cls_gns_lookup_cb->cls = cls;
 
@@ -231,6 +231,7 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
             void *cls)
 {
   struct GNUNET_CRYPTO_PublicKey pkey;
+  struct DID_create_namestore_lookup_closure *cls_name_store_lookup_cb;
 
   // Ego, namestore_handle and cont must be set
   if ((ego == NULL) || (namestore_handle == NULL) || (cont == NULL))
@@ -245,17 +246,13 @@ DID_create (const struct GNUNET_IDENTITY_Ego *ego,
     return GNUNET_NO;
   }
 
-  struct DID_action_return *ret
-    = malloc (sizeof(struct DID_action_return));
-  ret->cb = cont;
-  ret->cls = cls;
-
-  struct DID_create_namestore_lookup_closure *cls_name_store_lookup_cb
-    = malloc (sizeof(struct DID_create_namestore_lookup_closure));
+  cls_name_store_lookup_cb = GNUNET_malloc (sizeof(struct DID_create_namestore_lookup_closure));
+  cls_name_store_lookup_cb->ret = GNUNET_malloc (sizeof(struct DID_action_return));
+  cls_name_store_lookup_cb->ret->cb = cont;
+  cls_name_store_lookup_cb->ret->cls = cls;
   cls_name_store_lookup_cb->did_document = did_document;
   cls_name_store_lookup_cb->expire_time = (*expire_time);
   cls_name_store_lookup_cb->namestore_handle = namestore_handle;
-  cls_name_store_lookup_cb->ret = ret;
 
   // Check if ego already has a DID Document
   GNUNET_NAMESTORE_records_lookup (namestore_handle,

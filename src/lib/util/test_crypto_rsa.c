@@ -64,44 +64,47 @@ main (int argc,
                                                          priv_copy));
   pub = GNUNET_CRYPTO_rsa_private_key_get_public (priv);
 
-  /* Encoding */
-  size_t size;
-  void *enc;
-  enc = NULL;
-  size = GNUNET_CRYPTO_rsa_private_key_encode (priv,
-                                               &enc);
+  {
+    /* Encoding */
+    size_t size;
+    void *enc;
+    enc = NULL;
+    size = GNUNET_CRYPTO_rsa_private_key_encode (priv,
+                                                 &enc);
 
-  /* Decoding */
-  GNUNET_CRYPTO_rsa_private_key_free (priv);
-  priv = NULL;
-  priv = GNUNET_CRYPTO_rsa_private_key_decode (enc,
-                                               size);
-  GNUNET_assert (NULL != priv);
-  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
-                              enc,
-                              size);
-  GNUNET_assert (NULL ==
-                 GNUNET_CRYPTO_rsa_private_key_decode (enc,
-                                                       size));
-  (void) fprintf (stderr,
-                  "The above warning is expected.\n");
-  GNUNET_free (enc);
+    /* Decoding */
+    GNUNET_CRYPTO_rsa_private_key_free (priv);
+    priv = NULL;
+    priv = GNUNET_CRYPTO_rsa_private_key_decode (enc,
+                                                 size);
+    GNUNET_assert (NULL != priv);
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
+                                enc,
+                                size);
+    GNUNET_assert (NULL ==
+                   GNUNET_CRYPTO_rsa_private_key_decode (enc,
+                                                         size));
+    (void) fprintf (stderr,
+                    "The above warning is expected.\n");
+    GNUNET_free (enc);
 
-  /* try ordinary sig first */
-  sig = GNUNET_CRYPTO_rsa_sign_fdh (priv,
-                                    &hash,
-                                    sizeof (hash));
-  sig_copy = GNUNET_CRYPTO_rsa_signature_dup (sig);
-  GNUNET_assert (NULL != sig);
-  GNUNET_assert (0 == GNUNET_CRYPTO_rsa_signature_cmp (sig,
-                                                       sig_copy));
-  pub_copy = GNUNET_CRYPTO_rsa_public_key_dup (pub);
-  GNUNET_assert (NULL != pub_copy);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_rsa_verify (&hash,
-                                           sizeof (hash),
-                                           sig,
-                                           pub_copy));
+    /* try ordinary sig first */
+    sig = GNUNET_CRYPTO_rsa_sign_fdh (priv,
+                                      &hash,
+                                      sizeof (hash));
+    sig_copy = GNUNET_CRYPTO_rsa_signature_dup (sig);
+    GNUNET_assert (NULL != sig);
+    GNUNET_assert (0 == GNUNET_CRYPTO_rsa_signature_cmp (sig,
+                                                         sig_copy));
+    pub_copy = GNUNET_CRYPTO_rsa_public_key_dup (pub);
+    GNUNET_assert (NULL != pub_copy);
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_CRYPTO_rsa_verify (&hash,
+                                             sizeof (hash),
+                                             sig,
+                                             pub_copy));
+  }
+
   {
     void *buf;
     size_t buf_size;
@@ -143,15 +146,17 @@ main (int argc,
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
                               &bsec,
                               sizeof(bsec));
-  struct GNUNET_CRYPTO_RsaBlindedMessage bm;
-  GNUNET_CRYPTO_rsa_blind (&hash,
-                           sizeof (hash),
-                           &bsec,
-                           pub,
-                           &bm);
-  bsig = GNUNET_CRYPTO_rsa_sign_blinded (priv,
-                                         &bm);
-  GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
+  {
+    struct GNUNET_CRYPTO_RsaBlindedMessage bm;
+    GNUNET_CRYPTO_rsa_blind (&hash,
+                             sizeof (hash),
+                             &bsec,
+                             pub,
+                             &bm);
+    bsig = GNUNET_CRYPTO_rsa_sign_blinded (priv,
+                                           &bm);
+    GNUNET_CRYPTO_rsa_blinded_message_free (&bm);
+  }
   sig = GNUNET_CRYPTO_rsa_unblind (bsig,
                                    &bsec,
                                    pub);

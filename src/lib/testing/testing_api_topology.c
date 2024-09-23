@@ -295,8 +295,8 @@ free_subnets_cb (void *cls,
                  const struct GNUNET_ShortHashCode *key,
                  void *value)
 {
-  (void) cls;
   struct GNUNET_TESTING_NetjailSubnet *subnet = value;
+  (void) cls;
 
   GNUNET_CONTAINER_multishortmap_iterate (subnet->peers,
                                           &free_value_cb,
@@ -313,8 +313,8 @@ free_carriers_cb (void *cls,
                   const struct GNUNET_ShortHashCode *key,
                   void *value)
 {
-  (void) cls;
   struct GNUNET_TESTING_NetjailCarrier *carrier = value;
+  (void) cls;
 
   GNUNET_CONTAINER_multishortmap_iterate (carrier->peers,
                                           &free_value_cb,
@@ -608,12 +608,12 @@ struct GNUNET_TESTING_NetjailTopology *
 GNUNET_TESTING_get_topo_from_string_ (const char *input)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
+  struct GNUNET_HashCode hc;
   struct GNUNET_TESTING_NetjailTopology *topology = GNUNET_new (struct
                                                                 GNUNET_TESTING_NetjailTopology);
   topology->backbone_peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO)
   ;
   topology->carriers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
-  struct GNUNET_HashCode hc;
 
   cfg = GNUNET_CONFIGURATION_create ();
   GNUNET_assert (NULL != topology->carriers);

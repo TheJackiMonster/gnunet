@@ -292,6 +292,24 @@ GNUNET_PQ_query_param_array_bytes (
 
 /**
  * Generate query parameter for an array of buffers @a elements,
+ * with sizes @a sizes.
+ *
+ * @param num Number of elements in @a elements
+ * @param elements Continuous array of @a num buffers, each with the same size
+ * @a same_size
+ * @param sizes Sizes in bytes of each element in @a elements
+ * @param db Database context, needed for database-depending encoding of @a
+ * elements
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam GNUNET_PQ_query_param_array_ptrs_bytes(
+    unsigned int num,
+    const void *elements[static num],
+    const size_t *sizes,
+    struct GNUNET_PQ_Context *db);
+
+/**
+ * Generate query parameter for an array of buffers @a elements,
  * each of the same size @a size.
  *
  * @param num Number of elements in @a elements

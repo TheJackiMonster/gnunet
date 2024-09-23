@@ -1543,14 +1543,16 @@ GNUNET_PQ_result_spec_array_bool (
                                             "bool",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1571,14 +1573,16 @@ GNUNET_PQ_result_spec_array_uint16 (
                                             "int2",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1599,14 +1603,16 @@ GNUNET_PQ_result_spec_array_uint32 (
                                             "int4",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1627,14 +1633,14 @@ GNUNET_PQ_result_spec_array_uint64 (
                                             "int8",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {struct GNUNET_PQ_ResultSpec res = {
+     .conv = extract_array_generic,
+     .cleaner = array_cleanup,
+     .dst = (void *) dst,
+     .fname = name,
+     .cls = info
+   };
+   return res;}
 }
 
 
@@ -1655,14 +1661,14 @@ GNUNET_PQ_result_spec_array_abs_time (
                                             "int8",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {struct GNUNET_PQ_ResultSpec res = {
+     .conv = extract_array_generic,
+     .cleaner = array_cleanup,
+     .dst = (void *) dst,
+     .fname = name,
+     .cls = info
+   };
+   return res;}
 }
 
 
@@ -1683,14 +1689,16 @@ GNUNET_PQ_result_spec_array_rel_time (
                                             "int8",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1711,14 +1719,16 @@ GNUNET_PQ_result_spec_array_timestamp (
                                             "int8",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1741,14 +1751,16 @@ GNUNET_PQ_result_spec_array_variable_size (
                                             "bytea",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1771,14 +1783,16 @@ GNUNET_PQ_result_spec_array_fixed_size (
                                             "bytea",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 
@@ -1799,14 +1813,16 @@ GNUNET_PQ_result_spec_array_string (
                                             "text",
                                             &info->oid));
 
-  struct GNUNET_PQ_ResultSpec res = {
-    .conv = extract_array_generic,
-    .cleaner = array_cleanup,
-    .dst = (void *) dst,
-    .fname = name,
-    .cls = info
-  };
-  return res;
+  {
+    struct GNUNET_PQ_ResultSpec res = {
+      .conv = extract_array_generic,
+      .cleaner = array_cleanup,
+      .dst = (void *) dst,
+      .fname = name,
+      .cls = info
+    };
+    return res;
+  }
 }
 
 

@@ -97,7 +97,7 @@ handle_receive_info (void *cls, const struct MonitorNotifyMessage *mon_message)
 
   mh->peer_cb (mh->peer_cb_cls,
                &mon_message->peer,
-               (enum GNUNET_CORE_KxState) ntohl (mon_message->state),
+               ntohl (mon_message->state),
                GNUNET_TIME_absolute_ntoh (mon_message->timeout));
 }
 

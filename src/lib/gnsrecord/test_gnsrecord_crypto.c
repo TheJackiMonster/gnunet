@@ -191,7 +191,7 @@ int
 main (int argc, char *argv[])
 {
   static char *const argvx[] = {
-    "test-gnsrecord-crypto",
+    (char*) "test-gnsrecord-crypto",
     NULL
   };
   static struct GNUNET_GETOPT_CommandLineOption options[] = {

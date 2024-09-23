@@ -245,11 +245,14 @@ handle_communicator_backchannel (void *cls,
     client->tc;
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *other_tc_h;
   struct GNUNET_MessageHeader *msg;
-  msg = (struct GNUNET_MessageHeader *) &bc_msg[1];
-  uint16_t isize = ntohs (msg->size);
-  const char *target_communicator = ((const char *) msg) + isize;
-  struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming *cbi;
   struct GNUNET_MQ_Envelope *env;
+  uint16_t isize;
+  const char *target_communicator;
+  struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming *cbi;
+
+  msg = (struct GNUNET_MessageHeader *) &bc_msg[1];
+  isize = ntohs (msg->size);
+  target_communicator = ((const char *) msg) + isize;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Received backchannel message\n");
@@ -376,9 +379,9 @@ handle_incoming_msg (void *cls,
   struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h =
     client->tc;
   struct GNUNET_MessageHeader *msg;
+  size_t payload_len;
   msg = (struct GNUNET_MessageHeader *) &inc_msg[1];
-  size_t payload_len = ntohs (msg->size) - sizeof (struct
-                                                   GNUNET_MessageHeader);
+  payload_len = ntohs (msg->size) - sizeof (struct GNUNET_MessageHeader);
   if (NULL != tc_h->incoming_msg_cb)
   {
     tc_h->incoming_msg_cb (tc_h->cb_cls,
@@ -1213,19 +1216,23 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_send
   if (last_queue != tc_queue)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Selected sending queue changed to %u with length %lu and MTU %u\n",
-                ntohl (tc_queue->qid), (unsigned long) tc_queue->q_len, tc_queue->mtu);
+                ntohl (tc_queue->qid), (unsigned long) tc_queue->q_len, tc_queue
+                ->mtu);
   GNUNET_assert (NULL != tc_queue);
   last_queue = tc_queue;
   // Uncomment this for alternative 1 of backchannel functionality
   if (tc_queue->q_len != GNUNET_TRANSPORT_QUEUE_LENGTH_UNLIMITED)
     tc_queue->q_len--;
   // Until here for alternative 1
-  static int msg_count = 0;
-  msg_count++;
-  if (msg_count % 100 == 0)
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Sending %u-th (%lu-th for queue) message on queue %u\n",
-                msg_count, (unsigned long) tc_queue->mid, ntohl (tc_queue->qid));
+  {
+    static int msg_count = 0;
+    msg_count++;
+    if (msg_count % 100 == 0)
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Sending %u-th (%lu-th for queue) message on queue %u\n",
+                  msg_count, (unsigned long) tc_queue->mid, ntohl (tc_queue->qid
+                                                                   ));
+  }
   inbox_size = sizeof (struct GNUNET_MessageHeader) + payload_size;
   env = GNUNET_MQ_msg_extra (msg,
                              inbox_size,
