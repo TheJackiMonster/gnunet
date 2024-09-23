@@ -49,7 +49,7 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_HashCode *hash)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Member (%s) joins room (%s).\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Member (%s) joins room (%s).\n",
               GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s (
                 get_srv_room_key (room)));
 
@@ -71,7 +71,7 @@ handle_message_leave (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Member (%s) leaves room (%s).\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Member (%s) leaves room (%s).\n",
               GNUNET_sh2s (&(message->header.sender_id)), GNUNET_h2s (
                 get_srv_room_key (room)));
 

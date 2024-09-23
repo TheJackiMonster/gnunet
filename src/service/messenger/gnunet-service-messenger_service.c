@@ -294,7 +294,7 @@ find_member_session_in_room (void *cls,
     return GNUNET_NO;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Initialitation: Matching member found (%s)!\n",
               GNUNET_sh2s (id));
 

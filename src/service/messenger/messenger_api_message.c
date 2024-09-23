@@ -1302,7 +1302,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
                                        (uint8_t*) data,
                                        NULL))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Decrypting message failed!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decrypting message failed!\n");
 
     goto cleanup;
   }
@@ -1412,7 +1412,7 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
 
   GNUNET_assert (message);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Packing message kind=%u and sender: %s\n",
               message->header.kind, GNUNET_sh2s (&(message->header.sender_id)));
 

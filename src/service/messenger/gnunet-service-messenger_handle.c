@@ -180,7 +180,7 @@ create_handle_member_id (const struct GNUNET_MESSENGER_SrvHandle *handle,
     return GNUNET_NO;
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created a new member id (%s) for room: %s\n", GNUNET_sh2s (
                 random_id),
               GNUNET_h2s (key));
@@ -227,14 +227,14 @@ change_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
   if (0 == GNUNET_memcmp (unique_id, member_id))
     return GNUNET_OK;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Change a member id (%s) for room (%s).\n", GNUNET_sh2s (
                 member_id),
               GNUNET_h2s (key));
 
   GNUNET_memcpy (member_id, unique_id, sizeof(*unique_id));
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Member id changed to (%s).\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Member id changed to (%s).\n",
               GNUNET_sh2s (unique_id));
   return GNUNET_OK;
 }
@@ -531,7 +531,7 @@ skip_message_filter:
     context = get_next_member_session_context (session->member);
   }
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notifying client about message: %s (%s)\n",
               GNUNET_h2s (hash), GNUNET_MESSENGER_name_of_kind (
                 message->header.kind));
@@ -583,7 +583,7 @@ iterate_next_member_ids (void *cls,
   handle = cls;
   next = value;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notifying client about next member id: %s (%s)\n",
               GNUNET_sh2s (&(next->id)), GNUNET_h2s (key));
 

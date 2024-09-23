@@ -227,7 +227,7 @@ callback_room_connect (void *cls,
 
   bind_tunnel (tunnel, channel);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New tunnel in room (%s) established to peer: %s\n",
               GNUNET_h2s (get_srv_room_key (room)), GNUNET_i2s (source));
 
@@ -336,7 +336,7 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
   }
 
   if (room->port)
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Port of room (%s) was opened!\n",
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Port of room (%s) was opened!\n",
                 GNUNET_h2s (get_srv_room_key (room)));
   else
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -744,7 +744,7 @@ delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (0 == GNUNET_memcmp (&forever, &delay))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Deletion is delayed forever: operation is impossible!\n");
     return GNUNET_SYSERR;
   }
@@ -834,7 +834,7 @@ request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
   if (! link)
     goto forward;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Requesting link of message with hash: %s\n",
               GNUNET_h2s (hash));
 
@@ -856,7 +856,7 @@ forward:
 
   if (! message)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Requested message is missing in local storage: %s\n",
                 GNUNET_h2s (hash));
     return GNUNET_NO;

@@ -418,7 +418,7 @@ callback_found_message (void *cls,
     struct GNUNET_MESSENGER_GetMessage *response;
     struct GNUNET_MQ_Envelope *env;
 
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Notifying client about missing message: %s\n",
                 GNUNET_h2s (hash));
 
