@@ -1019,6 +1019,7 @@ do_shutdown (void *cls)
   REST_config_done (config_plugin);
   REST_copying_done (copying_plugin);
   REST_identity_done (identity_plugin);
+  REST_namestore_done (namestore_plugin);
   REST_gns_done (gns_plugin);
 #if HAVE_JOSE
   REST_openid_done (openid_plugin);
