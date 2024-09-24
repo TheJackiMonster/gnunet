@@ -1455,11 +1455,11 @@ issue_ticket (struct TicketIssueHandle *ih)
                                                  ih);
   for (j = 0; j < i; j++)
   {
+    char *ptr = (char*) attrs_record[j].data;
     if (attrs_record[j].record_type
         != GNUNET_GNSRECORD_TYPE_RECLAIM_PRESENTATION)
       continue;
     // Yes, we are allowed to do this because we allocated it above
-    char *ptr = (char*) attrs_record[j].data;
     GNUNET_free (ptr);
   }
   GNUNET_free (tkt_data);

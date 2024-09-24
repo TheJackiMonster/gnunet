@@ -29,7 +29,7 @@
 #include "gnunet_peerstore_plugin.h"
 #include "gnunet_peerstore_service.h"
 #include "gnunet_sq_lib.h"
-#include "../../service/peerstore/peerstore.h"
+#include "gnunet_peerstore_service.h"
 #include <sqlite3.h>
 
 /**
@@ -352,8 +352,6 @@ peerstore_sqlite_iterate_records (void *cls,
       break;
     }
     {
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Returning a matched record.\n");
       struct GNUNET_SQ_ResultSpec rs[] = {
         GNUNET_SQ_result_spec_uint64 (&seq),
         GNUNET_SQ_result_spec_string (&rec.sub_system),
@@ -363,6 +361,8 @@ peerstore_sqlite_iterate_records (void *cls,
         GNUNET_SQ_result_spec_absolute_time (&rec.expiry),
         GNUNET_SQ_result_spec_end
       };
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Returning a matched record.\n");
 
       if (GNUNET_OK !=
           GNUNET_SQ_extract_result (stmt,

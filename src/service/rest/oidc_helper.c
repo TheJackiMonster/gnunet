@@ -360,7 +360,7 @@ OIDC_generate_userinfo (const struct GNUNET_CRYPTO_PublicKey *sub_key,
 }
 
 
-char *
+static char *
 generate_id_token_body (const char *rp_uri,
                         const struct GNUNET_CRYPTO_PublicKey *sub_key,
                         const struct GNUNET_RECLAIM_AttributeList *attrs,
@@ -693,7 +693,7 @@ OIDC_build_authz_code (const struct GNUNET_CRYPTO_PrivateKey *issuer,
 }
 
 
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 check_code_challenge (const char *code_challenge,
                       uint32_t code_challenge_len,
                       const char *code_verifier)

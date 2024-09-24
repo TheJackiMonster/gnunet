@@ -75,7 +75,7 @@ query_gns:
     return -1;
   if (0 == pid)
   {
-    char *argv[] = { "gnunet-gns",
+    const char *argv[] = { "gnunet-gns",
                      "-r", /* Raw output for easier parsing */
                      "-d", /* DNS compatibility (allow IDNA names, no UTF-8) */
                      "-t",
@@ -90,7 +90,7 @@ query_gns:
     if ((0 != close (out[0])) ||
         (STDOUT_FILENO != dup2 (out[1], STDOUT_FILENO)))
       _exit (1);
-    (void) execvp ("gnunet-gns", argv);
+    (void) execvp ("gnunet-gns", (char* const*)argv);
     _exit (1);
   }
   (void) close (out[1]);

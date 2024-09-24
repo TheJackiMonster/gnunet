@@ -198,7 +198,7 @@ open_dev_null (int target_fd,
  */
 static int
 fork_and_exec (const char *file,
-               char *const cmd[])
+               const char *const cmd[])
 {
   int status;
   pid_t pid;
@@ -221,7 +221,7 @@ fork_and_exec (const char *file,
     open_dev_null (0, O_RDONLY);
     (void) close (1);
     open_dev_null (1, O_WRONLY);
-    (void) execv (file, cmd);
+    (void) execv (file, (char *const*)cmd);
     /* can only get here on error */
     fprintf (stderr,
              "exec `%s' failed: %s\n",
@@ -910,12 +910,10 @@ main (int argc, char *const*argv)
   /* Disable rp filtering */
   if (0 == nortsetup)
   {
-    char *const sysctl_args[] = { (char*) "sysctl", (char*) "-w",
-                                  (char*) "net.ipv4.conf.all.rp_filter=0", NULL
-    };
-    char *const sysctl_args2[] = { (char*) "sysctl", (char*) "-w",
-                                   (char*) "net.ipv4.conf.default.rp_filter=0",
-                                   NULL };
+    const char *const sysctl_args[] = { "sysctl", "-w",
+                                  "net.ipv4.conf.all.rp_filter=0", NULL };
+    const char *const sysctl_args2[] = { "sysctl", "-w",
+                                   "net.ipv4.conf.default.rp_filter=0", NULL };
     if ((0 != fork_and_exec (sbin_sysctl, sysctl_args)) ||
         (0 != fork_and_exec (sbin_sysctl, sysctl_args2)))
     {
@@ -978,23 +976,19 @@ main (int argc, char *const*argv)
   {
     r = 8;   /* failed to fully setup routing table */
     {
-      char *const mangle_args[] = {
-        (char*) "iptables", (char*) "-m",
-        (char*) "owner", (char*) "-t", (char*) "mangle",
-        (char*) "-I", (char*) "OUTPUT", (char*) "1", (char*) "-p",
-        (char*) "udp", (char*) "--gid-owner", mygid, (char*) "--dport",
-        (char*) DNS_PORT, (char*) "-j", (char*) "ACCEPT", NULL
+      const char *const mangle_args[] = {
+        "iptables", "-m", "owner", "-t", "mangle", "-I", "OUTPUT", "1", "-p",
+        "udp", "--gid-owner", mygid, "--dport", DNS_PORT, "-j",
+        "ACCEPT", NULL
       };
       if (0 != fork_and_exec (sbin_iptables, mangle_args))
         goto cleanup_rest;
     }
     {
-      char *const mangle_args[] = {
-        (char*) "ip6tables", (char*) "-m", (char*) "owner",
-        (char*) "-t", (char*) "mangle", (char*) "-I", (char*) "OUTPUT",
-        (char*) "1", (char*) "-p", (char*) "udp", (char*) "--gid-owner",
-        mygid, (char*) "--dport", (char*) DNS_PORT, (char*) "-j",
-        (char*) "ACCEPT", NULL
+      const char *const mangle_args[] = {
+        "ip6tables", "-m", "owner", "-t", "mangle", "-I", "OUTPUT", "1", "-p",
+        "udp", "--gid-owner", mygid, "--dport", DNS_PORT, "-j",
+        "ACCEPT", NULL
       };
       if (0 != fork_and_exec (sbin_ip6tables, mangle_args))
         goto cleanup_mangle_1b;
@@ -1002,17 +996,17 @@ main (int argc, char *const*argv)
     /* Mark all of the other DNS traffic using our mark DNS_MARK,
        unless it is on a link-local IPv6 address, which we cannot support. */
     {
-      char *const mark_args[] = {
-        (char*) "iptables", "-t", "mangle", "-I", "OUTPUT", "2", "-p",
-        (char*) "udp", "--dport", DNS_PORT,
-        (char*) "-j", "MARK", "--set-mark", DNS_MARK,
+      const char *const mark_args[] = {
+        "iptables", "-t", "mangle", "-I", "OUTPUT", "2", "-p",
+        "udp", "--dport", DNS_PORT,
+        "-j", "MARK", "--set-mark", DNS_MARK,
         NULL
       };
       if (0 != fork_and_exec (sbin_iptables, mark_args))
         goto cleanup_mangle_1;
     }
     {
-      char *const mark_args[] = {
+      const char *const mark_args[] = {
         "ip6tables", "-t", "mangle", "-I", "OUTPUT", "2", "-p",
         "udp", "--dport", DNS_PORT,
         "!", "-s", "fe80::/10",   /* this line excludes link-local traffic */
@@ -1024,14 +1018,14 @@ main (int argc, char *const*argv)
     }
     /* Forward all marked DNS traffic to our DNS_TABLE */
     {
-      char *const forward_args[] = {
+      const char *const forward_args[] = {
         "ip", "rule", "add", "fwmark", DNS_MARK, "table", DNS_TABLE, NULL
       };
       if (0 != fork_and_exec (sbin_ip, forward_args))
         goto cleanup_mark_2;
     }
     {
-      char *const forward_args[] = {
+      const char *const forward_args[] = {
         "ip", "-6", "rule", "add", "fwmark", DNS_MARK, "table", DNS_TABLE, NULL
       };
       if (0 != fork_and_exec (sbin_ip, forward_args))
@@ -1039,7 +1033,7 @@ main (int argc, char *const*argv)
     }
     /* Finally, add rule in our forwarding table to pass to our virtual interface */
     {
-      char *const route_args[] = {
+      const char *const route_args[] = {
         "ip", "route", "add", "default", "dev", dev,
         "table", DNS_TABLE, NULL
       };
@@ -1047,7 +1041,7 @@ main (int argc, char *const*argv)
         goto cleanup_forward_3;
     }
     {
-      char *const route_args[] = {
+      const char *const route_args[] = {
         "ip", "-6", "route", "add", "default", "dev", dev,
         "table", DNS_TABLE, NULL
       };
@@ -1103,7 +1097,7 @@ main (int argc, char *const*argv)
 cleanup_route_4:
   if (0 == nortsetup)
   {
-    char *const route_clean_args[] = {
+    const char *const route_clean_args[] = {
       "ip", "-6", "route", "del", "default", "dev", dev,
       "table", DNS_TABLE, NULL
     };
@@ -1113,7 +1107,7 @@ cleanup_route_4:
 cleanup_route_4b:
   if (0 == nortsetup)
   {
-    char *const route_clean_args[] = {
+    const char *const route_clean_args[] = {
       "ip", "route", "del", "default", "dev", dev,
       "table", DNS_TABLE, NULL
     };
@@ -1123,7 +1117,7 @@ cleanup_route_4b:
 cleanup_forward_3:
   if (0 == nortsetup)
   {
-    char *const forward_clean_args[] = {
+    const char *const forward_clean_args[] = {
       "ip", "-6", "rule", "del", "fwmark", DNS_MARK, "table", DNS_TABLE, NULL
     };
     if (0 != fork_and_exec (sbin_ip, forward_clean_args))
@@ -1132,7 +1126,7 @@ cleanup_forward_3:
 cleanup_forward_3b:
   if (0 == nortsetup)
   {
-    char *const forward_clean_args[] = {
+    const char *const forward_clean_args[] = {
       "ip", "rule", "del", "fwmark", DNS_MARK, "table", DNS_TABLE, NULL
     };
     if (0 != fork_and_exec (sbin_ip, forward_clean_args))
@@ -1141,7 +1135,7 @@ cleanup_forward_3b:
 cleanup_mark_2:
   if (0 == nortsetup)
   {
-    char *const mark_clean_args[] = {
+    const char *const mark_clean_args[] = {
       "ip6tables", "-t", "mangle", "-D", "OUTPUT", "-p", "udp",
       "--dport", DNS_PORT,
       "!", "-s", "fe80::/10",   /* this line excludes link-local traffic */
@@ -1153,7 +1147,7 @@ cleanup_mark_2:
 cleanup_mark_2b:
   if (0 == nortsetup)
   {
-    char *const mark_clean_args[] = {
+    const char *const mark_clean_args[] = {
       "iptables", "-t", "mangle", "-D", "OUTPUT", "-p", "udp",
       "--dport", DNS_PORT, "-j", "MARK", "--set-mark", DNS_MARK, NULL
     };
@@ -1163,7 +1157,7 @@ cleanup_mark_2b:
 cleanup_mangle_1:
   if (0 == nortsetup)
   {
-    char *const mangle_clean_args[] = {
+    const char *const mangle_clean_args[] = {
       "ip6tables", "-m", "owner", "-t", "mangle", "-D", "OUTPUT", "-p", "udp",
       "--gid-owner", mygid, "--dport", DNS_PORT, "-j", "ACCEPT",
       NULL
@@ -1174,7 +1168,7 @@ cleanup_mangle_1:
 cleanup_mangle_1b:
   if (0 == nortsetup)
   {
-    char *const mangle_clean_args[] = {
+    const char *const mangle_clean_args[] = {
       "iptables", "-m", "owner", "-t", "mangle", "-D", "OUTPUT", "-p", "udp",
       "--gid-owner", mygid, "--dport", DNS_PORT, "-j", "ACCEPT",
       NULL

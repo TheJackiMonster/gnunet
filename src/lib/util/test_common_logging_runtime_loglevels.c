@@ -359,49 +359,49 @@ runone ()
     return;
   }
 
-  putenv ("GNUNET_LOG=");
-  putenv ("GNUNET_FORCE_LOG=");
-  putenv ("GNUNET_FORCE_LOGFILE=");
+  putenv ((char*) "GNUNET_LOG=");
+  putenv ((char*) "GNUNET_FORCE_LOG=");
+  putenv ((char*) "GNUNET_FORCE_LOGFILE=");
   switch (phase)
   {
   case 0:
-    putenv ("GNUNET_LOG=;;;;ERROR");
+    putenv ((char*) "GNUNET_LOG=;;;;ERROR");
     break;
 
   case 1:
-    putenv ("GNUNET_LOG=;;;;WARNING");
+    putenv ((char*) "GNUNET_LOG=;;;;WARNING");
     break;
 
   case 2:
-    putenv ("GNUNET_LOG=;;;;INFO");
+    putenv ((char*) "GNUNET_LOG=;;;;INFO");
     break;
 
   case 3:
-    putenv ("GNUNET_LOG=;;;;DEBUG");
+    putenv ((char*) "GNUNET_LOG=;;;;DEBUG");
     break;
 
   case 4:
-    putenv ("GNUNET_FORCE_LOG=;;;;ERROR");
+    putenv ((char*) "GNUNET_FORCE_LOG=;;;;ERROR");
     break;
 
   case 5:
-    putenv ("GNUNET_FORCE_LOG=;;;;WARNING");
+    putenv ((char*) "GNUNET_FORCE_LOG=;;;;WARNING");
     break;
 
   case 6:
-    putenv ("GNUNET_FORCE_LOG=;;;;INFO");
+    putenv ((char*) "GNUNET_FORCE_LOG=;;;;INFO");
     break;
 
   case 7:
-    putenv ("GNUNET_FORCE_LOG=;;;;DEBUG");
+    putenv ((char*) "GNUNET_FORCE_LOG=;;;;DEBUG");
     break;
 
   case 8:
-    putenv ("GNUNET_LOG=blah;;;;ERROR");
+    putenv ((char*) "GNUNET_LOG=blah;;;;ERROR");
     break;
 
   case 9:
-    putenv ("GNUNET_FORCE_LOG=blah;;;;ERROR");
+    putenv ((char*) "GNUNET_FORCE_LOG=blah;;;;ERROR");
     break;
   }
 
@@ -410,8 +410,8 @@ runone ()
                                   "./test_common_logging_dummy",
                                   "test_common_logging_dummy", NULL);
   GNUNET_assert (NULL != proc);
-  putenv ("GNUNET_FORCE_LOG=");
-  putenv ("GNUNET_LOG=");
+  putenv ((char*) "GNUNET_FORCE_LOG=");
+  putenv ((char*) "GNUNET_LOG=");
 
   /* Close the write end of the read pipe */
   GNUNET_DISK_pipe_close_end (pipe_stdout, GNUNET_DISK_PIPE_END_WRITE);

@@ -26,11 +26,9 @@
 #include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_dns_service.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_namecache_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_gns_service.h"
 #include "gnunet_statistics_service.h"
 #include "gns.h"
 #include "gnunet-service-gns.h"
@@ -476,8 +474,7 @@ handle_lookup (void *cls,
   clh->lookup = GNS_resolver_lookup (&zone,
                                      ntohl (sh_msg->type),
                                      name,
-                                     (enum GNUNET_GNS_LocalOptions) ntohs (
-                                       sh_msg->options),
+                                     ntohs (sh_msg->options),
                                      ntohs (sh_msg->recursion_depth_limit),
                                      &send_lookup_response, clh);
   GNUNET_STATISTICS_update (statistics,

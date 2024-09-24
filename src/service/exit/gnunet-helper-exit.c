@@ -136,7 +136,7 @@ open_dev_null (int target_fd,
  */
 static int
 fork_and_exec (const char *file,
-               char *const cmd[])
+               const char *const cmd[])
 {
   int status;
   pid_t pid;
@@ -159,7 +159,7 @@ fork_and_exec (const char *file,
     open_dev_null (0, O_RDONLY);
     (void) close (1);
     open_dev_null (1, O_WRONLY);
-    (void) execv (file, cmd);
+    (void) execv (file, (char *const *) cmd);
     /* can only get here on error */
     fprintf (stderr,
              "exec `%s' failed: %s\n",
@@ -493,6 +493,7 @@ run (int fd_tun)
 
   /* write refers to reading from stdin, writing to fd_tun */
   int write_open = 1;
+  int r;
 
   while ((1 == read_open) && (1 == write_open))
   {
@@ -527,7 +528,7 @@ run (int fd_tun)
     if (write_open && (NULL != bufin_read))
       FD_SET (fd_tun, &fds_w);
 
-    int r = select (fd_tun + 1, &fds_r, &fds_w, NULL, NULL);
+    r = select (fd_tun + 1, &fds_r, &fds_w, NULL, NULL);
 
     if (-1 == r)
     {
@@ -566,9 +567,9 @@ run (int fd_tun)
         }
         else
         {
-          buftun_read = buftun;
           struct GNUNET_MessageHeader *hdr =
             (struct GNUNET_MessageHeader *) buftun;
+          buftun_read = buftun;
           buftun_size += sizeof(struct GNUNET_MessageHeader);
           hdr->type = htons (GNUNET_MESSAGE_TYPE_VPN_HELPER);
           hdr->size = htons (buftun_size);
@@ -777,7 +778,7 @@ main (int argc, char **argv)
     }
     if (0 != strcmp (argv[2], "-"))
     {
-      char *const sysctl_args[] = {
+      const char *const sysctl_args[] = {
         "sysctl", "-w", "net.ipv6.conf.all.forwarding=1", NULL
       };
       if (0 != fork_and_exec (sbin_sysctl,
@@ -800,18 +801,19 @@ main (int argc, char **argv)
     if (0 != strcmp (argv[2], "-"))
     {
       {
-        char *const sysctl_args[] = {
+        const char *const sysctl_args[] = {
           "sysctl", "-w", "net.ipv4.ip_forward=1", NULL
         };
         if (0 != fork_and_exec (sbin_sysctl,
                                 sysctl_args))
         {
           fprintf (stderr,
-                   "Failed to enable IPv4 forwarding.  Will continue anyway.\n");
+                   "Failed to enable IPv4 forwarding.  Will continue anyway.\n")
+          ;
         }
       }
       {
-        char *const iptables_args[] = {
+        const char *const iptables_args[] = {
           "iptables", "-t", "nat", "-A", "POSTROUTING", "-o", argv[2], "-j",
           "MASQUERADE", NULL
         };
@@ -825,22 +827,24 @@ main (int argc, char **argv)
     }
   }
 
-  uid_t uid = getuid ();
+  {
+    uid_t uid = getuid ();
 #ifdef HAVE_SETRESUID
-  if (0 != setresuid (uid, uid, uid))
-  {
-    fprintf (stderr, "Failed to setresuid: %s\n", strerror (errno));
-    global_ret = 2;
-    goto cleanup;
-  }
+    if (0 != setresuid (uid, uid, uid))
+    {
+      fprintf (stderr, "Failed to setresuid: %s\n", strerror (errno));
+      global_ret = 2;
+      goto cleanup;
+    }
 #else
-  if (0 != (setuid (uid) | seteuid (uid)))
-  {
-    fprintf (stderr, "Failed to setuid: %s\n", strerror (errno));
-    global_ret = 2;
-    goto cleanup;
-  }
+    if (0 != (setuid (uid) | seteuid (uid)))
+    {
+      fprintf (stderr, "Failed to setuid: %s\n", strerror (errno));
+      global_ret = 2;
+      goto cleanup;
+    }
 #endif
+  }
 
   if (SIG_ERR == signal (SIGPIPE, SIG_IGN))
   {

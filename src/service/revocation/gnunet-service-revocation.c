@@ -38,7 +38,7 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "gnunet_block_lib.h"
+#include "gnunet_dht_block_types.h"
 #include "gnunet_protocols.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
@@ -875,8 +875,10 @@ run (void *cls,
   };
   char *fn;
   uint64_t left;
+  ssize_t ksize;
   struct RevokeMessage *rm;
   struct GNUNET_HashCode hc;
+  struct GNUNET_GNSRECORD_PowP *pow;
   const struct GNUNET_CRYPTO_PublicKey *pk;
 
   GNUNET_CRYPTO_hash ("revocation-set-union-application-id",
@@ -978,9 +980,7 @@ run (void *cls,
       GNUNET_free (fn);
       return;
     }
-    struct GNUNET_GNSRECORD_PowP *pow = (struct
-                                         GNUNET_GNSRECORD_PowP *) &rm[1];
-    ssize_t ksize;
+    pow = (struct GNUNET_GNSRECORD_PowP *) &rm[1];
     pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
     ksize = GNUNET_CRYPTO_public_key_get_length (pk);
     if (0 > ksize)
@@ -1044,6 +1044,8 @@ GNUNET_SERVICE_MAIN
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
+void
+GNUNET_REVOCATION_memory_init (void);
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */

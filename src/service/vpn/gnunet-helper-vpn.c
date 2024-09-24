@@ -398,6 +398,7 @@ run (int fd_tun)
   ssize_t bufin_size = 0;
   size_t bufin_rpos = 0;
   unsigned char *bufin_read = NULL;
+  int r;
 
   fd_set fds_w;
   fd_set fds_r;
@@ -441,7 +442,7 @@ run (int fd_tun)
     if (write_open && (NULL != bufin_read))
       FD_SET (fd_tun, &fds_w);
 
-    int r = select (fd_tun + 1, &fds_r, &fds_w, NULL, NULL);
+    r = select (fd_tun + 1, &fds_r, &fds_w, NULL, NULL);
 
     if (-1 == r)
     {
@@ -480,9 +481,9 @@ run (int fd_tun)
         }
         else
         {
-          buftun_read = buftun;
           struct GNUNET_MessageHeader *hdr =
             (struct GNUNET_MessageHeader *) buftun;
+          buftun_read = buftun;
           buftun_size += sizeof(struct GNUNET_MessageHeader);
           hdr->type = htons (GNUNET_MESSAGE_TYPE_VPN_HELPER);
           hdr->size = htons (buftun_size);
@@ -671,15 +672,17 @@ main (int argc, char **argv)
     set_address4 (dev, address, mask);
   }
 
-  uid_t uid = getuid ();
 #ifdef HAVE_SETRESUID
-  if (0 != setresuid (uid, uid, uid))
   {
-    fprintf (stderr,
-             "Failed to setresuid: %s\n",
-             strerror (errno));
-    global_ret = 2;
-    goto cleanup;
+    uid_t uid = getuid ();
+    if (0 != setresuid (uid, uid, uid))
+    {
+      fprintf (stderr,
+               "Failed to setresuid: %s\n",
+               strerror (errno));
+      global_ret = 2;
+      goto cleanup;
+    }
   }
 #else
   if (0 != (setuid (uid) | seteuid (uid)))

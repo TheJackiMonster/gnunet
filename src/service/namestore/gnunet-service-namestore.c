@@ -689,7 +689,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   struct GNUNET_GNSRECORD_Data *nick;
   struct GNUNET_GNSRECORD_Data *res;
   struct GNUNET_GNSRECORD_Data rd_nf[rd_count];
-  struct GNUNET_TIME_Absolute block_exp = GNUNET_TIME_UNIT_ZERO_ABS;;
+  struct GNUNET_TIME_Absolute block_exp;
   unsigned int res_count;
   unsigned int rd_nf_count;
   size_t name_len;
@@ -699,6 +699,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   char *rd_ser;
   char *emsg;
 
+  block_exp = GNUNET_TIME_UNIT_ZERO_ABS;
   nick = get_nick_record (zone_key);
   GNUNET_assert (-1 != GNUNET_GNSRECORD_records_get_size (rd_count, rd));
 

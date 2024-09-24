@@ -782,6 +782,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   struct GNUNET_CRYPTO_PrivateKey pk;
   struct GNUNET_CRYPTO_PrivateKey *pk_ptr;
   int json_unpack_state;
+  int type;
   char term_data[handle->data_size + 1];
 
   if (strlen (GNUNET_REST_API_NS_IDENTITY) != strlen (handle->url))
@@ -820,7 +821,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     json_decref (data_js);
     return;
   }
-  int type = GNUNET_PUBLIC_KEY_TYPE_ECDSA;
+  type = GNUNET_PUBLIC_KEY_TYPE_ECDSA;
   if ((NULL != egotype) && (0 == strcasecmp (egotype, "EDDSA")))
     type = GNUNET_PUBLIC_KEY_TYPE_EDDSA;
   if (NULL == egoname)

@@ -41,6 +41,14 @@
     idx += (sizeof(void*) - idx % sizeof(void*));   /* Align on 32 bit boundary */ \
 } while (0)
 
+enum nss_status
+_nss_gns_gethostbyname2_r (const char *name,
+                           int af,
+                           struct hostent *result,
+                           char *buffer,
+                           size_t buflen,
+                           int *errnop,
+                           int *h_errnop);
 
 /**
  * The gethostbyname hook executed by nsswitch
@@ -185,7 +193,13 @@ finish:
   return status;
 }
 
-
+enum nss_status
+_nss_gns_gethostbyname_r (const char *name,
+                          struct hostent *result,
+                          char *buffer,
+                          size_t buflen,
+                          int *errnop,
+                          int *h_errnop);
 /**
  * The gethostbyname hook executed by nsswitch
  *
@@ -214,7 +228,15 @@ _nss_gns_gethostbyname_r (const char *name,
                                     h_errnop);
 }
 
-
+enum nss_status
+_nss_gns_gethostbyaddr_r (const void*addr,
+                          int len,
+                          int af,
+                          struct hostent *result,
+                          char *buffer,
+                          size_t buflen,
+                          int *errnop,
+                          int *h_errnop);
 /**
  * The gethostbyaddr hook executed by nsswitch
  * We can't do this so we always return NSS_STATUS_UNAVAIL

@@ -41,7 +41,6 @@
 #include "gnunet_dht_service.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_regex_service.h"
 #include "exit.h"
@@ -64,26 +63,26 @@
  * How frequently do we re-announce the regex for the exit?
  */
 #define REGEX_REFRESH_FREQUENCY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 30)
+          GNUNET_TIME_UNIT_MINUTES, 30)
 
 /**
  * How frequently do we re-announce the DNS exit in the DHT?
  */
 #define DHT_PUT_FREQUENCY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 15)
+          GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * How long do we typically sign the DNS exit advertisement for?
  */
 #define DNS_ADVERTISEMENT_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_HOURS, 3)
+          GNUNET_TIME_UNIT_HOURS, 3)
 
 
 /**
  * Generic logging shorthand
  */
 #define LOG(kind, ...)                          \
-  GNUNET_log_from (kind, "exit", __VA_ARGS__);
+        GNUNET_log_from (kind, "exit", __VA_ARGS__);
 
 
 /**
@@ -691,7 +690,8 @@ get_redirect_state (int af,
   /* Mark this connection as freshly used */
   if (NULL == state_key)
     GNUNET_CONTAINER_heap_update_cost (state->specifics.tcp_udp.heap_node,
-                                       GNUNET_TIME_absolute_get ().abs_value_us);
+                                       GNUNET_TIME_absolute_get ().abs_value_us)
+    ;
   return state;
 }
 
@@ -1309,7 +1309,8 @@ setup_state_record (struct ChannelState *state)
   while (NULL !=
          get_redirect_state (state->specifics.tcp_udp.ri.remote_address.af,
                              state->specifics.tcp_udp.ri.remote_address.proto,
-                             &state->specifics.tcp_udp.ri.remote_address.address,
+                             &state->specifics.tcp_udp.ri.remote_address.address
+                             ,
                              state->specifics.tcp_udp.ri.remote_address.port,
                              &state->specifics.tcp_udp.ri.local_address.address,
                              state->specifics.tcp_udp.ri.local_address.port,
@@ -2085,7 +2086,8 @@ handle_icmp_remote (void *cls,
       GNUNET_break_op (0);
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv4 packets dropped (type not allowed)"),
+                                  "# ICMPv4 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -2150,7 +2152,8 @@ handle_icmp_remote (void *cls,
       GNUNET_break_op (0);
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv6 packets dropped (type not allowed)"),
+                                  "# ICMPv6 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -2360,7 +2363,8 @@ handle_icmp_service (void *cls,
       GNUNET_break_op (0);
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv4 packets dropped (type not allowed)"),
+                                  "# ICMPv4 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -2427,7 +2431,8 @@ handle_icmp_service (void *cls,
       GNUNET_break_op (0);
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv6 packets dropped (type not allowed)"),
+                                  "# ICMPv6 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -2730,7 +2735,8 @@ icmp_from_helper (const struct GNUNET_TUN_IcmpHeader *icmp,
     default:
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv4 packets dropped (type not allowed)"),
+                                  "# ICMPv4 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -2771,7 +2777,8 @@ icmp_from_helper (const struct GNUNET_TUN_IcmpHeader *icmp,
     default:
       GNUNET_STATISTICS_update (stats,
                                 gettext_noop (
-                                  "# ICMPv6 packets dropped (type not allowed)"),
+                                  "# ICMPv6 packets dropped (type not allowed)")
+                                ,
                                 1, GNUNET_NO);
       return;
     }
@@ -3358,6 +3365,8 @@ add_services (int proto,
   struct LocalService *serv;
   char *n;
   size_t slen;
+  int local_port;
+  int remote_port;
 
   slen = strlen (name);
   GNUNET_assert (slen >= 8);
@@ -3370,7 +3379,8 @@ add_services (int proto,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ (
-                    "Option `%s' for domain `%s' is not formatted correctly!\n"),
+                    "Option `%s' for domain `%s' is not formatted correctly!\n")
+                  ,
                   redirect,
                   name);
       continue;
@@ -3381,7 +3391,8 @@ add_services (int proto,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ (
-                    "Option `%s' for domain `%s' is not formatted correctly!\n"),
+                    "Option `%s' for domain `%s' is not formatted correctly!\n")
+                  ,
                   redirect,
                   name);
       continue;
@@ -3389,8 +3400,8 @@ add_services (int proto,
     hostport[0] = '\0';
     hostport++;
 
-    int local_port = atoi (redirect);
-    int remote_port = atoi (hostport);
+    local_port = atoi (redirect);
+    remote_port = atoi (hostport);
 
     if (! ((local_port > 0) && (local_port < 65536)))
     {
@@ -3445,7 +3456,8 @@ add_services (int proto,
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     _ (
-                      "No addresses found for hostname `%s' of service `%s'!\n"),
+                      "No addresses found for hostname `%s' of service `%s'!\n")
+                    ,
                     hostname,
                     n);
         GNUNET_free (serv);
@@ -3728,7 +3740,8 @@ advertise_dns_exit ()
   dns_advertisement.purpose.size = htonl (sizeof(struct
                                                  GNUNET_DNS_Advertisement)
                                           - sizeof(struct
-                                                   GNUNET_CRYPTO_EddsaSignature));
+                                                   GNUNET_CRYPTO_EddsaSignature)
+                                          );
   dns_advertisement.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_DNS_RECORD);
   GNUNET_CRYPTO_hash ("dns",
@@ -3940,7 +3953,8 @@ run (void *cls,
     if (GNUNET_YES !=
         GNUNET_OS_check_helper_binary (binary,
                                        GNUNET_YES,
-                                       "gnunet-vpn - - - 169.1.3.7 255.255.255.0"))  // no nat, ipv4 only
+                                       "gnunet-vpn - - - 169.1.3.7 255.255.255.0"))
+    // no nat, ipv4 only
     {
       GNUNET_free (binary);
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
