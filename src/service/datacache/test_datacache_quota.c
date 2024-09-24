@@ -25,7 +25,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_datacache_lib.h"
-#include "gnunet_testing_lib.h"
 
 #define ASSERT(x) do { if (! (x)) { printf ("Error at %s:%d\n", __FILE__, \
                                             __LINE__); goto FAILURE; \
@@ -156,7 +155,7 @@ main (int argc,
       char *argv[])
 {
   char cfg_name[PATH_MAX];
-  char *const xargv[] = {
+  const char *const xargv[] = {
     "test-datacache-quota",
     "-c",
     cfg_name,
@@ -177,7 +176,7 @@ main (int argc,
                    "test_datacache_data_%s.conf",
                    plugin_name);
   if (GNUNET_OK != GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
-                                       xargv,
+                                       (char* const*)xargv,
                                        "test-datacache-quota",
                                        "nohelp",
                                        options,

@@ -445,7 +445,7 @@ sighandler_child_death ()
 static void
 work (void *cls)
 {
-  static char *argv[14];
+  static const char *argv[14];
   static char anon_level[20];
   static char content_prio[20];
   static char repl_level[20];
@@ -484,7 +484,7 @@ work (void *cls)
                                               NULL,
                                               NULL,
                                               "gnunet-publish",
-                                              argv);
+                                              (char * const*)argv);
   if (NULL == publish_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
