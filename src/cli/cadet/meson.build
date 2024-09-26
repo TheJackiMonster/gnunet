@@ -1,6 +1,7 @@
 executable ('gnunet-cadet',
             ['gnunet-cadet.c'],
             dependencies: [libgnunetcadet_dep,
+                           extractor_dep,
                            libgnunetutil_dep,
                            libgnunetcore_dep,
                            libgnunetdht_dep,

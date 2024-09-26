@@ -50,6 +50,7 @@ libgnunet = library('gnunet',
                     gnunet_src,
                     dependencies: [
                       mhd_dep,
+                      extractor_dep,
                       sodium_dep,
                       gcrypt_dep,
                       curl_dep,

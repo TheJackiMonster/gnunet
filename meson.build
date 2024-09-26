@@ -61,9 +61,6 @@ if logging_opt == 'veryverbose'
 endif
 
 
-# FIXME
-cdata.set('extractor', 0)
-
 cdata.set('PKGDATADIRECTORY', get_option('prefix')/get_option('datadir')/'gnunet')
 cdata.set('SYSCONFDIR', get_option('prefix')/get_option('sysconfdir'))
 # Various checks
@@ -203,6 +200,14 @@ if not sodium_dep.found()
             dependencies: sodium_dep).returncode() != 0
     error('libsodium version >=1.0.18 required')
   endif
+endif
+extractor_dep = dependency('libextractor', required : false)
+if not extractor_dep.found()
+  extractor_dep = cc.find_library('extractor', required : false)
+endif
+if extractor_dep.found()
+  add_project_arguments('-DHAVE_LIBEXTRACTOR', language : 'c')
+  add_project_arguments('-DHAVE_EXTRACTOR_H', language : 'c')
 endif
 quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
