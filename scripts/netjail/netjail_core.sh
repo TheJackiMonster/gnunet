@@ -15,7 +15,7 @@ then
 fi
 
 export RESULT=
-export NAMESPACE_NUM=1
+export NAMESPACE_NUM=0
 export INTERFACE_NUM=0
 
 IPT=iptables-nft
