@@ -150,6 +150,7 @@ start_peer_run (void *cls,
     char *main_binary;
     char *args;
     char *prefix;
+    int16_t ret;
 
     GNUNET_assert (
       GNUNET_OK ==
@@ -173,11 +174,11 @@ start_peer_run (void *cls,
     libexec_binary
       = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
 
-    if (GNUNET_SYSERR ==
-        GNUNET_CONFIGURATION_get_value_string (sps->cfg,
-                                               "arm",
-                                               "PREFIX",
-                                               &prefix))
+    ret = GNUNET_CONFIGURATION_get_value_string (sps->cfg,
+                                                 "arm",
+                                                 "PREFIX",
+                                                 &prefix);
+    if ((GNUNET_SYSERR == ret) || (NULL == prefix))
     {
       /* No prefix */
       main_binary = libexec_binary;
