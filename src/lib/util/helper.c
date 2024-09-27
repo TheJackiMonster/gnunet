@@ -328,6 +328,9 @@ helper_read (void *cls)
                 h->binary_name);
     if (NULL != h->exp_cb)
     {
+      // FIXME is this behavior correct/intended?
+      //       the helper is shut down when there's an exception handler,
+      //       otherwise it's restarted?
       h->exp_cb (h->cb_cls);
       GNUNET_HELPER_stop (h, GNUNET_NO);
       return;
@@ -522,6 +525,7 @@ GNUNET_HELPER_destroy (struct GNUNET_HELPER_Handle *h)
     GNUNET_free (h->binary_argv[c]);
   GNUNET_free (h->binary_argv);
   GNUNET_free (h);
+  h = NULL;
 }
 
 
@@ -535,6 +539,7 @@ GNUNET_HELPER_destroy (struct GNUNET_HELPER_Handle *h)
 void
 GNUNET_HELPER_stop (struct GNUNET_HELPER_Handle *h, int soft_kill)
 {
+  GNUNET_assert (NULL !=h);
   h->exp_cb = NULL;
   stop_helper (h, soft_kill);
   GNUNET_HELPER_destroy (h);

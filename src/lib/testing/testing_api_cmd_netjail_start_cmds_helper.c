@@ -344,6 +344,9 @@ exp_cb (void *cls)
 
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Called exp_cb.\n");
+  // TODO find in ns->helpers[] and remove???
+  hs->helper = NULL;
+  hs->finished = GNUNET_YES;
   if (NULL != ns->timeout_task)
   {
     GNUNET_SCHEDULER_cancel (ns->timeout_task);
