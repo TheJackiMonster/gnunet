@@ -525,7 +525,6 @@ GNUNET_HELPER_destroy (struct GNUNET_HELPER_Handle *h)
     GNUNET_free (h->binary_argv[c]);
   GNUNET_free (h->binary_argv);
   GNUNET_free (h);
-  h = NULL;
 }
 
 
