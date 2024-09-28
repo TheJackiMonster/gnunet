@@ -647,8 +647,7 @@ check_incoming_msg (void *cls, const struct OperationRequestMessage *msg)
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  if (listener->operation !=
-      (enum GNUNET_SET_OperationType) ntohl (msg->operation))
+  if (listener->operation != ntohl (msg->operation))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -1041,7 +1040,7 @@ handle_client_create_set (void *cls, const struct GNUNET_SET_CreateMessage *msg)
     GNUNET_SERVICE_client_drop (cs->client);
     return;
   }
-  set->operation = (enum GNUNET_SET_OperationType) ntohl (msg->operation);
+  set->operation = ntohl (msg->operation);
   set->state = set->vt->create ();
   if (NULL == set->state)
   {
@@ -1287,7 +1286,7 @@ handle_client_listen (void *cls, const struct GNUNET_SET_ListenMessage *msg)
   listener->cs = cs;
   cs->listener = listener;
   listener->app_id = msg->app_id;
-  listener->operation = (enum GNUNET_SET_OperationType) ntohl (msg->operation);
+  listener->operation = ntohl (msg->operation);
   GNUNET_CONTAINER_DLL_insert (listener_head, listener_tail, listener);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New listener created (op %u, port %s)\n",

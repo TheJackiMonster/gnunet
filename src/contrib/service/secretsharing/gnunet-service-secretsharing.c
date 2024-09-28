@@ -1422,6 +1422,8 @@ keygen_round2_new_element (void *cls,
   gcry_mpi_t tmp;
   gcry_mpi_t public_key_share;
   gcry_mpi_t preshare;
+  gcry_mpi_t prod;
+  gcry_mpi_t j_to_k;
 
   if (NULL == element)
   {
@@ -1559,9 +1561,7 @@ keygen_round2_new_element (void *cls,
     gcry_mpi_release (presigma);
   }
 
-  gcry_mpi_t prod;
   GNUNET_assert (NULL != (prod = gcry_mpi_new (0)));
-  gcry_mpi_t j_to_k;
   GNUNET_assert (NULL != (j_to_k = gcry_mpi_new (0)));
   // validate that the polynomial sharing matches the additive sharing
   for (j = 0; j < ks->num_peers; j++)

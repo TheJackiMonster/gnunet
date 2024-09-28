@@ -28,13 +28,11 @@
  *   it that way (fine for now)
  */
 #include "platform.h"
-#include "gnunet_constants.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_cadet_service.h"
 #include "gnunet_protocols.h"
 #include "gnunet_applications.h"
 #include "gnunet-service-fs.h"
-#include "gnunet-service-fs_indexing.h"
 #include "gnunet-service-fs_cadet.h"
 
 
@@ -330,7 +328,7 @@ handle_reply (void *cls, const struct CadetReplyMessage *srm)
   struct GNUNET_HashCode query;
 
   msize = ntohs (srm->header.size) - sizeof(struct CadetReplyMessage);
-  type = (enum GNUNET_BLOCK_Type) ntohl (srm->type);
+  type = ntohl (srm->type);
   if (GNUNET_YES !=
       GNUNET_BLOCK_get_key (GSF_block_ctx, type, &srm[1], msize, &query))
   {

@@ -2479,6 +2479,7 @@ handle_union_p2p_strata_estimator (void *cls,
     /* Calculate remote local diff */
     long diff_remote = remote_se->stratas[0]->strata[0]->remote_decoded_count;
     long diff_local = remote_se->stratas[0]->strata[0]->local_decoded_count;
+    uint64_t avg_element_size = 0;
 
     /* Prevent estimations from overshooting max element */
     if (diff_remote + op->remote_element_count > op->byzantine_upper_bound)
@@ -2512,7 +2513,6 @@ handle_union_p2p_strata_estimator (void *cls,
     op->remote_set_diff = diff_remote;
 
     /** Calculate avg element size if not initial sync **/
-    uint64_t avg_element_size = 0;
     if (0 < op->local_element_count)
     {
       op->total_elements_size_local = 0;
@@ -2611,14 +2611,17 @@ handle_union_p2p_strata_estimator (void *cls,
 #if MEASURE_PERFORMANCE
         perf_store.request_full.sent += 1;
 #endif
-        struct TransmitFullMessage *signal_msg;
-        ev = GNUNET_MQ_msg_extra (signal_msg,sizeof(struct TransmitFullMessage),
-                                  GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
-        signal_msg->remote_set_difference = htonl (diff_local);
-        signal_msg->remote_set_size = htonl (op->local_element_count);
-        signal_msg->local_set_difference = htonl (diff_remote);
-        GNUNET_MQ_send (op->mq,
-                        ev);
+        {
+          struct TransmitFullMessage *signal_msg;
+          ev = GNUNET_MQ_msg_extra (signal_msg,sizeof(struct
+                                                      TransmitFullMessage),
+                                    GNUNET_MESSAGE_TYPE_SETU_P2P_REQUEST_FULL);
+          signal_msg->remote_set_difference = htonl (diff_local);
+          signal_msg->remote_set_size = htonl (op->local_element_count);
+          signal_msg->local_set_difference = htonl (diff_remote);
+          GNUNET_MQ_send (op->mq,
+                          ev);
+        }
       }
     }
     else
@@ -2836,11 +2839,12 @@ decode_and_send (struct Operation *op)
                                      diff_ibf->size);
       /** Make ibf estimation size odd reasoning can be found in BSc Thesis of
         * Elias Summermatter (2021) in section 3.11 **/
-      uint32_t ibf_min_size = IBF_MIN_SIZE | 1;
+      {
+        uint32_t ibf_min_size = IBF_MIN_SIZE | 1;
 
-      if (next_size<ibf_min_size)
-        next_size = ibf_min_size;
-
+        if (next_size<ibf_min_size)
+          next_size = ibf_min_size;
+      }
 
       if (next_size <= MAX_IBF_SIZE)
       {
@@ -3653,9 +3657,7 @@ handle_union_p2p_inquiry (void *cls,
     /** Add received inquiries to hashmap for flow control **/
     struct GNUNET_HashContext *hashed_key_context =
       GNUNET_CRYPTO_hash_context_start ();
-    struct GNUNET_HashCode *hashed_key = (struct GNUNET_HashCode*) GNUNET_malloc
-                                         (
-      sizeof(struct GNUNET_HashCode));;
+    struct GNUNET_HashCode *hashed_key = GNUNET_new (struct GNUNET_HashCode);
     enum MESSAGE_CONTROL_FLOW_STATE mcfs = MSG_CFS_RECEIVED;
     GNUNET_CRYPTO_hash_context_read (hashed_key_context,
                                      &ibf_key,

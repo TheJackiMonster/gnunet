@@ -402,7 +402,7 @@ identity_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
     if (GNUNET_OK !=
         GNUNET_CRYPTO_public_key_from_string (issuer_key,
-                                                    &issuer_pkey))
+                                              &issuer_pkey))
     {
       fprintf (stderr,
                _ ("Issuer public key `%s' is not well-formed\n"),
@@ -530,12 +530,12 @@ get_existing_record (void *cls,
 
   GNUNET_assert (NULL != rec_name);
   add_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                           &zone_pkey,
-                                           rec_name,
-                                           rd_count + 1,
-                                           rde,
-                                           &add_continuation,
-                                           &add_qe);
+                                              &zone_pkey,
+                                              rec_name,
+                                              rd_count + 1,
+                                              rde,
+                                              &add_continuation,
+                                              &add_qe);
   GNUNET_free (rdn);
   return;
 }
@@ -564,7 +564,7 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   if (NULL == ego)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _("Ego does not exist!\n"));
+                _ ("Ego does not exist!\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -581,7 +581,7 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     {
       fprintf (stderr,
                "%s is not a valid credential\n", import);
-      GNUNET_SCHEDULER_shutdown();
+      GNUNET_SCHEDULER_shutdown ();
       return;
     }
 
@@ -598,7 +598,8 @@ store_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
     if (strcmp (zone_pubkey_str, subject_pubkey_str) != 0)
     {
       fprintf (stderr,
-               "Import signed delegate does not match this ego's public key.\n");
+               "Import signed delegate does not match this ego's public key.\n")
+      ;
       GNUNET_free (cred);
       GNUNET_SCHEDULER_shutdown ();
       return;
@@ -673,6 +674,9 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   struct GNUNET_ABD_Delegate *dele;
   struct GNUNET_TIME_Absolute etime_abs;
   char *res;
+  char *subject_pubkey_str;
+  char *subject_attr = NULL;
+  char *token;
 
   el = NULL;
 
@@ -694,9 +698,6 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
 
   // If contains a space - split it by the first space only - assume first entry is subject followed by attribute(s)
-  char *subject_pubkey_str;
-  char *subject_attr = NULL;
-  char *token;
 
   // Subject Public Key
   token = strtok (subject, " ");
@@ -720,7 +721,7 @@ sign_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   }
   if (GNUNET_OK !=
       GNUNET_CRYPTO_public_key_from_string (subject_pubkey_str,
-                                                  &subject_pkey))
+                                            &subject_pkey))
   {
     fprintf (stderr,
              "Subject public key `%s' is not well-formed\n",
@@ -885,7 +886,7 @@ run (void *cls,
     return;
   }
   if (GNUNET_OK != GNUNET_CRYPTO_public_key_from_string (subject,
-                                                               &subject_pkey))
+                                                         &subject_pkey))
   {
     fprintf (stderr,
              _ ("Subject public key `%s' is not well-formed\n"),
@@ -904,7 +905,7 @@ run (void *cls,
     }
     if (GNUNET_OK !=
         GNUNET_CRYPTO_public_key_from_string (issuer_key,
-                                                    &issuer_pkey))
+                                              &issuer_pkey))
     {
       fprintf (stderr,
                _ ("Issuer public key `%s' is not well-formed\n"),
@@ -928,54 +929,56 @@ run (void *cls,
     }
 
     // Subject credentials are comma separated
-    char *tmp = GNUNET_strdup (subject_delegate);
-    char *tok = strtok (tmp, ",");
-    if (NULL == tok)
     {
-      fprintf (stderr, "Invalid subject credentials\n");
+      struct GNUNET_ABD_Delegate *delegates;
+      struct GNUNET_ABD_Delegate *dele;
+      char *tmp = GNUNET_strdup (subject_delegate);
+      char *tok = strtok (tmp, ",");
+      int count = 1;
+      int i;
+      if (NULL == tok)
+      {
+        fprintf (stderr, "Invalid subject credentials\n");
+        GNUNET_free (tmp);
+        GNUNET_SCHEDULER_shutdown ();
+        return;
+      }
+      while (NULL != (tok = strtok (NULL, ",")))
+        count++;
+      delegates = GNUNET_malloc (sizeof(*delegates) * count);
       GNUNET_free (tmp);
-      GNUNET_SCHEDULER_shutdown ();
-      return;
-    }
-    int count = 1;
-    int i;
-    while (NULL != (tok = strtok (NULL, ",")))
-      count++;
-    struct GNUNET_ABD_Delegate*delegates =
-      GNUNET_malloc (sizeof(*delegates) * count);
-    struct GNUNET_ABD_Delegate *dele;
-    GNUNET_free (tmp);
-    tmp = GNUNET_strdup (subject_delegate);
-    tok = strtok (tmp, ",");
-    for (i = 0; i < count; i++)
-    {
-      dele = GNUNET_ABD_delegate_from_string (tok);
-      GNUNET_memcpy (&delegates[i],
-                     dele,
-                     sizeof (struct GNUNET_ABD_Delegate));
-      delegates[i].issuer_attribute = GNUNET_strdup (dele->issuer_attribute);
-      tok = strtok (NULL, ",");
-      GNUNET_free (dele);
-    }
+      tmp = GNUNET_strdup (subject_delegate);
+      tok = strtok (tmp, ",");
+      for (i = 0; i < count; i++)
+      {
+        dele = GNUNET_ABD_delegate_from_string (tok);
+        GNUNET_memcpy (&delegates[i],
+                       dele,
+                       sizeof (struct GNUNET_ABD_Delegate));
+        delegates[i].issuer_attribute = GNUNET_strdup (dele->issuer_attribute);
+        tok = strtok (NULL, ",");
+        GNUNET_free (dele);
+      }
 
-    verify_request = GNUNET_ABD_verify (abd,
-                                        &issuer_pkey,
-                                        issuer_attr,
-                                        &subject_pkey,
-                                        count,
-                                        delegates,
-                                        direction,
-                                        &handle_verify_result,
-                                        NULL,
-                                        &handle_intermediate_result,
-                                        NULL);
-    for (i = 0; i < count; i++)
-    {
-      GNUNET_free_nz ((char *) delegates[i].issuer_attribute);
-      delegates[i].issuer_attribute = NULL;
+      verify_request = GNUNET_ABD_verify (abd,
+                                          &issuer_pkey,
+                                          issuer_attr,
+                                          &subject_pkey,
+                                          count,
+                                          delegates,
+                                          direction,
+                                          &handle_verify_result,
+                                          NULL,
+                                          &handle_intermediate_result,
+                                          NULL);
+      for (i = 0; i < count; i++)
+      {
+        GNUNET_free_nz ((char *) delegates[i].issuer_attribute);
+        delegates[i].issuer_attribute = NULL;
+      }
+      GNUNET_free (tmp);
+      GNUNET_free (delegates);
     }
-    GNUNET_free (tmp);
-    GNUNET_free (delegates);
   }
   else
   {
@@ -1010,7 +1013,8 @@ main (int argc, char *const *argv)
      "PKEY",
      gettext_noop (
        "The public key of the subject to lookup the"
-       "credential for, or for issuer side storage: subject and its attributes"),
+       "credential for, or for issuer side storage: subject and its attributes")
+     ,
      &subject),
    GNUNET_GETOPT_option_string (
      'd',

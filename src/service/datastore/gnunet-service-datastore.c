@@ -46,14 +46,14 @@
  * past the expiration date in the database?
  */
 #define MAX_EXPIRE_DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 15)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 15)
 
 /**
  * How fast are we allowed to query the database for deleting
  * expired content? (1 item per second).
  */
 #define MIN_EXPIRE_DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * Name under which we store current space consumption.
@@ -822,20 +822,22 @@ handle_put (void *cls, const struct DataMessage *dm)
                              GNUNET_NO);
     }
   }
-  bool absent =
-    GNUNET_NO == GNUNET_CONTAINER_bloomfilter_test (filter, &dm->key);
-  plugin->api->put (plugin->api->cls,
-                    &dm->key,
-                    absent,
-                    ntohl (dm->size),
-                    &dm[1],
-                    ntohl (dm->type),
-                    ntohl (dm->priority),
-                    ntohl (dm->anonymity),
-                    ntohl (dm->replication),
-                    GNUNET_TIME_absolute_ntoh (dm->expiration),
-                    &put_continuation,
-                    client);
+  {
+    bool absent =
+      GNUNET_NO == GNUNET_CONTAINER_bloomfilter_test (filter, &dm->key);
+    plugin->api->put (plugin->api->cls,
+                      &dm->key,
+                      absent,
+                      ntohl (dm->size),
+                      &dm[1],
+                      ntohl (dm->type),
+                      ntohl (dm->priority),
+                      ntohl (dm->anonymity),
+                      ntohl (dm->replication),
+                      GNUNET_TIME_absolute_ntoh (dm->expiration),
+                      &put_continuation,
+                      client);
+  }
   GNUNET_SERVICE_client_continue (client);
 }
 
@@ -957,7 +959,7 @@ handle_get_zero_anonymity (void *cls, const struct GetZeroAnonymityMessage *msg)
   struct GNUNET_SERVICE_Client *client = cls;
   enum GNUNET_BLOCK_Type type;
 
-  type = (enum GNUNET_BLOCK_Type) ntohl (msg->type);
+  type = ntohl (msg->type);
   if (type == GNUNET_BLOCK_TYPE_ANY)
   {
     GNUNET_break (0);
@@ -1297,7 +1299,8 @@ process_stat_done (void *cls, int success)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ (
-                    "Plugin does not support get_keys function. Please fix!\n"));
+                    "Plugin does not support get_keys function. Please fix!\n"))
+      ;
     }
   }
   begin_service ();

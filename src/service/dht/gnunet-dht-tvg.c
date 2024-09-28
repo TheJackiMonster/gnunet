@@ -69,6 +69,8 @@ run (void *cls,
   struct GNUNET_CRYPTO_EddsaSignature *last_sig;
   struct GNUNET_DHT_PathElement *put_path;
   struct GNUNET_DHT_PathElement pp[NUM_PEERS + 1];
+  enum GNUNET_GenericReturnValue ret;
+  struct GNUNET_CONTAINER_BloomFilter *peer_bf;
   GNUNET_CRYPTO_hash ("testvector", strlen ("testvector"), &key);
 
   for (int i = 0; i < NUM_PEERS; i++)
@@ -86,8 +88,6 @@ run (void *cls,
     GNUNET_print_bytes (&peers_hash[i], sizeof peers_hash[i], 8, 0);
     printf ("\n");
   }
-  enum GNUNET_GenericReturnValue ret;
-  struct GNUNET_CONTAINER_BloomFilter *peer_bf;
 
   peer_bf
     = GNUNET_CONTAINER_bloomfilter_init (NULL,

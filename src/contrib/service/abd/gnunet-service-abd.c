@@ -30,7 +30,6 @@
 #include "abd_serialization.h"
 #include "gnunet_abd_service.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
 #include <gnunet_gns_service.h>
 #include <gnunet_gnsrecord_lib.h>
@@ -821,28 +820,32 @@ forward_resolution (void *cls,
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found: Partial match\n");
         // partial match
-
-        char *trail = partial_match (GNUNET_strdup (current_set->attr_trailer),
-                                     GNUNET_strdup (del->subject_attribute),
-                                     current_set->attr_trailer,
-                                     GNUNET_strdup (del->issuer_attribute));
-
-        // if null: skip this record entry (reasons: mismatch or overmatch, both not relevant)
-        if (NULL == trail)
         {
-          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                      "Entry not relevant, discarding: %s.%s <- %s.%s\n",
-                      GNUNET_CRYPTO_public_key_to_string (
-                        &del->issuer_key),
-                      del->issuer_attribute,
-                      GNUNET_CRYPTO_public_key_to_string (
-                        &del->subject_key),
-                      del->subject_attribute);
-          GNUNET_free (del);
-          continue;
+          char *trail = partial_match (GNUNET_strdup (current_set->attr_trailer)
+                                       ,
+                                       GNUNET_strdup (del->subject_attribute),
+                                       current_set->attr_trailer,
+                                       GNUNET_strdup (del->issuer_attribute));
+
+          // if null: skip this record entry (reasons: mismatch or overmatch, both not relevant)
+          if (NULL == trail)
+          {
+            GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                        "Entry not relevant, discarding: %s.%s <- %s.%s\n",
+                        GNUNET_CRYPTO_public_key_to_string (
+                          &del->issuer_key),
+                        del->issuer_attribute,
+                        GNUNET_CRYPTO_public_key_to_string (
+                          &del->subject_key),
+                        del->subject_attribute);
+            GNUNET_free (del);
+            continue;
+          }
+          else
+          {
+            ds_entry->attr_trailer = trail;
+          }
         }
-        else
-          ds_entry->attr_trailer = trail;
       }
     }
 
@@ -884,16 +887,18 @@ forward_resolution (void *cls,
           GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found: Solution\n");
 
           // Add found solution into delegation_chain
-          struct DelegationSetQueueEntry *tmp_set;
-          for (tmp_set = ds_entry; NULL != tmp_set->parent_queue_entry;
-               tmp_set = tmp_set->parent_queue_entry->parent_set)
           {
-            if (NULL != tmp_set->delegation_chain_entry)
+            struct DelegationSetQueueEntry *tmp_set;
+            for (tmp_set = ds_entry; NULL != tmp_set->parent_queue_entry;
+                 tmp_set = tmp_set->parent_queue_entry->parent_set)
             {
-              vrh->delegation_chain_size++;
-              GNUNET_CONTAINER_DLL_insert (vrh->delegation_chain_head,
-                                           vrh->delegation_chain_tail,
-                                           tmp_set->delegation_chain_entry);
+              if (NULL != tmp_set->delegation_chain_entry)
+              {
+                vrh->delegation_chain_size++;
+                GNUNET_CONTAINER_DLL_insert (vrh->delegation_chain_head,
+                                             vrh->delegation_chain_tail,
+                                             tmp_set->delegation_chain_entry);
+              }
             }
           }
 
@@ -1245,12 +1250,12 @@ backward_resolution (void *cls,
 static int
 delegation_chain_bw_resolution_start (void *cls)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Start Backward Resolution...\n");
 
   struct VerifyRequestHandle *vrh = cls;
   struct DelegationSetQueueEntry *ds_entry;
   struct DelegateRecordEntry *del_entry;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Start Backward Resolution...\n");
   if (0 == vrh->del_chain_size)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "No delegates found\n");
@@ -1325,12 +1330,12 @@ delegation_chain_bw_resolution_start (void *cls)
 static int
 delegation_chain_fw_resolution_start (void *cls)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Start Forward Resolution...\n");
 
   struct VerifyRequestHandle *vrh = cls;
   struct DelegationSetQueueEntry *ds_entry;
   struct DelegateRecordEntry *del_entry;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Start Forward Resolution...\n");
   // set to 0 and increase on each lookup: for fw multiple lookups (may be) started
   vrh->pending_lookups = 0;
 
@@ -1606,7 +1611,8 @@ handle_delegate_collection_cb (void *cls,
     if (0 == (rd[i].flags & GNUNET_GNSRECORD_RF_PRIVATE))
       continue;
     del_entry = GNUNET_new (struct DelegateRecordEntry);
-    del_entry->delegate = GNUNET_ABD_delegate_deserialize (rd[i].data, rd[i].data_size);
+    del_entry->delegate = GNUNET_ABD_delegate_deserialize (rd[i].data, rd[i].
+                                                           data_size);
     if (NULL == del_entry->delegate)
     {
       GNUNET_free (del_entry);

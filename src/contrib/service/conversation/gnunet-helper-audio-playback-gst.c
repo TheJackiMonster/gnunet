@@ -26,8 +26,6 @@
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "conversation.h"
-#include "gnunet_constants.h"
-#include "gnunet_core_service.h"
 
 #include <gst/gst.h>
 #include <gst/audio/gstaudiobasesrc.h>
@@ -100,14 +98,14 @@ ogg_pad_added (GstElement *element,
                gpointer data)
 {
   GstPad *sinkpad;
-  GstElement *decoder = (GstElement *) data;
+  GstElement *decoder_tmp = (GstElement *) data;
 
   /* We can now link this pad with the opus-decoder sink pad */
-  sinkpad = gst_element_get_static_pad (decoder, "sink");
+  sinkpad = gst_element_get_static_pad (decoder_tmp, "sink");
 
   gst_pad_link (pad, sinkpad);
 
-  gst_element_link_many (decoder, conv, resampler, sink, NULL);
+  gst_element_link_many (decoder_tmp, conv, resampler, sink, NULL);
 
   gst_object_unref (sinkpad);
 }

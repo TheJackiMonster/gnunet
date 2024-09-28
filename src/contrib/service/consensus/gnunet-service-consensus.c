@@ -24,12 +24,10 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_block_lib.h"
+#include "gnunet_dht_block_types.h"
 #include "gnunet_protocols.h"
-#include "gnunet_applications.h"
 #include "gnunet_set_service.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_consensus_service.h"
 #include "consensus_protocol.h"
 #include "consensus.h"
 
@@ -1056,27 +1054,30 @@ set_result_cb (void *cls,
                   "P%u: got size marker\n",
                   session->local_peer_idx);
 
-
-      struct ConsensusSizeElement *cse = (void *) consensus_element;
-
-      if (cse->sender_index == other_idx)
       {
-        if (NULL == session->first_sizes_received)
-          session->first_sizes_received = GNUNET_new_array (session->num_peers,
-                                                            uint64_t);
-        session->first_sizes_received[other_idx] = GNUNET_ntohll (cse->size);
+        struct ConsensusSizeElement *cse = (void *) consensus_element;
+        uint64_t *copy;
 
-        uint64_t *copy = GNUNET_memdup (session->first_sizes_received,
-                                        sizeof(uint64_t) * session->num_peers);
-        qsort (copy, session->num_peers, sizeof(uint64_t), cmp_uint64_t);
-        session->lower_bound = copy[session->num_peers / 3 + 1];
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "P%u: lower bound %llu\n",
-                    session->local_peer_idx,
-                    (long long) session->lower_bound);
-        GNUNET_free (copy);
+        if (cse->sender_index == other_idx)
+        {
+          if (NULL == session->first_sizes_received)
+            session->first_sizes_received = GNUNET_new_array (session->num_peers
+                                                              ,
+                                                              uint64_t);
+          session->first_sizes_received[other_idx] = GNUNET_ntohll (cse->size);
+
+          copy = GNUNET_memdup (session->first_sizes_received,
+                                sizeof(uint64_t) * session->num_peers);
+          qsort (copy, session->num_peers, sizeof(uint64_t), cmp_uint64_t);
+          session->lower_bound = copy[session->num_peers / 3 + 1];
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                      "P%u: lower bound %llu\n",
+                      session->local_peer_idx,
+                      (long long) session->lower_bound);
+          GNUNET_free (copy);
+        }
+        return;
       }
-      return;
     }
 
     return;
@@ -2261,22 +2262,24 @@ task_start_reconcile (struct TaskEntry *task)
                 task->key.peer2,
                 debug_str_set_key (&setop->input_set));
 
-    struct GNUNET_SET_Option opts[] = {
-      { GNUNET_SET_OPTION_BYZANTINE, { .num = session->lower_bound } },
-      { GNUNET_SET_OPTION_END },
-    };
+    {
+      struct GNUNET_SET_Option opts[] = {
+        { GNUNET_SET_OPTION_BYZANTINE, { .num = session->lower_bound } },
+        { GNUNET_SET_OPTION_END },
+      };
 
-    // XXX: maybe this should be done while
-    // setting up tasks alreays?
-    setop->op = GNUNET_SET_prepare (&session->peers[task->key.peer2],
-                                    &session->global_id,
-                                    &rcm.header,
-                                    GNUNET_SET_RESULT_SYMMETRIC,
-                                    opts,
-                                    set_result_cb,
-                                    task);
+      // XXX: maybe this should be done while
+      // setting up tasks alreays?
+      setop->op = GNUNET_SET_prepare (&session->peers[task->key.peer2],
+                                      &session->global_id,
+                                      &rcm.header,
+                                      GNUNET_SET_RESULT_SYMMETRIC,
+                                      opts,
+                                      set_result_cb,
+                                      task);
 
-    commit_set (session, task);
+      commit_set (session, task);
+    }
   }
   else if (task->key.peer2 == session->local_peer_idx)
   {
@@ -2713,17 +2716,18 @@ set_listen_cb (void *cls,
   GNUNET_assert (! ((task->key.peer1 == session->local_peer_idx) &&
                     (task->key.peer2 == session->local_peer_idx)));
 
-  struct GNUNET_SET_Option opts[] = {
-    { GNUNET_SET_OPTION_BYZANTINE, { .num = session->lower_bound } },
-    { GNUNET_SET_OPTION_END },
-  };
+  {
+    struct GNUNET_SET_Option opts[] = {
+      { GNUNET_SET_OPTION_BYZANTINE, { .num = session->lower_bound } },
+      { GNUNET_SET_OPTION_END },
+    };
 
-  task->cls.setop.op = GNUNET_SET_accept (request,
-                                          GNUNET_SET_RESULT_SYMMETRIC,
-                                          opts,
-                                          &set_result_cb,
-                                          task);
-
+    task->cls.setop.op = GNUNET_SET_accept (request,
+                                            GNUNET_SET_RESULT_SYMMETRIC,
+                                            opts,
+                                            &set_result_cb,
+                                            task);
+  }
   /* If the task hasn't been started yet,
      we wait for that until we commit. */
 
@@ -3291,7 +3295,8 @@ handle_client_join (void *cls,
               session->local_peer_idx,
               GNUNET_STRINGS_relative_time_to_string (
                 GNUNET_TIME_absolute_get_difference (session->conclude_start,
-                                                     session->conclude_deadline),
+                                                     session->conclude_deadline)
+                ,
                 GNUNET_YES));
 
   session->set_listener
@@ -3311,12 +3316,11 @@ handle_client_join (void *cls,
                                                           GNUNET_NO);
 
   {
-    struct SetEntry *client_set;
+    struct SetEntry *client_set = GNUNET_new (struct SetEntry);
+    struct SetHandle *sh = GNUNET_new (struct SetHandle);
 
-    client_set = GNUNET_new (struct SetEntry);
     client_set->h = GNUNET_SET_create (cfg,
                                        GNUNET_SET_OPERATION_UNION);
-    struct SetHandle *sh = GNUNET_new (struct SetHandle);
     sh->h = client_set->h;
     GNUNET_CONTAINER_DLL_insert (session->set_handles_head,
                                  session->set_handles_tail,

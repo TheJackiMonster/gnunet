@@ -23,11 +23,8 @@
  * @author LRN
  */
 #include "platform.h"
-#include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
 #include "conversation.h"
-#include "gnunet_constants.h"
-#include "gnunet_core_service.h"
 
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
@@ -143,7 +140,7 @@ bus_call (GstBus *bus, GstMessage *msg, gpointer data)
 }
 
 
-void
+static void
 source_child_added (GstChildProxy *child_proxy, GObject *object, gchar *name,
                     gpointer user_data)
 {
