@@ -71,6 +71,8 @@ run (void *cls,
   struct GNUNET_DHT_PathElement pp[NUM_PEERS + 1];
   enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CONTAINER_BloomFilter *peer_bf;
+  struct GNUNET_PeerIdentity trunc_peer_out;
+  bool truncated = false;
   GNUNET_CRYPTO_hash ("testvector", strlen ("testvector"), &key);
 
   for (int i = 0; i < NUM_PEERS; i++)
@@ -98,7 +100,7 @@ run (void *cls,
     ret = GDS_helper_put_message_get_size (
       &msize, &peers[i], ro, &ro, GNUNET_TIME_UNIT_FOREVER_ABS,
       block_data, block_len, pp, put_path_len, &put_path_len,
-      NULL);
+      NULL, &trunc_peer_out, &truncated);
     GNUNET_assert (GNUNET_OK == ret);
     {
 

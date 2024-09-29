@@ -34,16 +34,20 @@
 
 enum GNUNET_GenericReturnValue
 GDS_helper_put_message_get_size (size_t *msize_out,
-                          const struct GNUNET_PeerIdentity *my_identity,
-                          enum GNUNET_DHT_RouteOption ro_in,
-                          enum GNUNET_DHT_RouteOption *ro_out,
-                          struct GNUNET_TIME_Absolute block_expiration_time,
-                          const uint8_t *block_data,
-                          size_t block_data_len,
-                          const struct GNUNET_DHT_PathElement *put_path_in,
-                          unsigned int put_path_len_in,
-                          unsigned int *put_path_len_out,
-                          const struct GNUNET_PeerIdentity *trunc_origin);
+                                 const struct GNUNET_PeerIdentity *my_identity,
+                                 enum GNUNET_DHT_RouteOption ro_in,
+                                 enum GNUNET_DHT_RouteOption *ro_out,
+                                 struct GNUNET_TIME_Absolute
+                                 block_expiration_time,
+                                 const uint8_t *block_data,
+                                 size_t block_data_len,
+                                 const struct GNUNET_DHT_PathElement *
+                                 put_path_in,
+                                 unsigned int put_path_len_in,
+                                 unsigned int *put_path_len_out,
+                                 const struct GNUNET_PeerIdentity *trunc_origin,
+                                 struct GNUNET_PeerIdentity *trunc_peer_out,
+                                 bool *truncated);
 
 
 /**

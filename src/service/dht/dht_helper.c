@@ -45,14 +45,20 @@ GDS_helper_put_message_get_size (size_t *msize_out,
                                  put_path_in,
                                  unsigned int put_path_len_in,
                                  unsigned int *put_path_len_out,
-                                 const struct GNUNET_PeerIdentity *trunc_peer)
+                                 const struct GNUNET_PeerIdentity *trunc_peer,
+                                 struct GNUNET_PeerIdentity *trunc_peer_out,
+                                 bool *truncated)
 {
   size_t msize;
   const struct GNUNET_DHT_PathElement *put_path_out = put_path_in;
-  bool truncated = (0 != (ro_in & GNUNET_DHT_RO_TRUNCATED));
   bool tracking = (0 != (ro_in & GNUNET_DHT_RO_RECORD_ROUTE));
+  *truncated = (0 != (ro_in & GNUNET_DHT_RO_TRUNCATED));
   *put_path_len_out = put_path_len_in;
   *ro_out = ro_in;
+  if (NULL != trunc_peer)
+  {
+    *trunc_peer_out = *trunc_peer;
+  }
 
 #if SANITY_CHECKS > 1
   unsigned int failure_offset;
@@ -63,14 +69,14 @@ GDS_helper_put_message_get_size (size_t *msize_out,
                               block_expiration_time,
                               trunc_peer,
                               put_path_in,
-                              put_path_len_in,
+                              put_path_len_in, bb
                               NULL, 0,    /* get_path */
                               my_identity);
   if (0 != failure_offset)
   {
     GNUNET_break_op (0);
     truncated = true;
-    trunc_peer = &put_path_out[failure_offset - 1].pred;
+    *trunc_peer_out = put_path_out[failure_offset - 1].pred;
     put_path_out = &put_path_out[failure_offset];
     *put_path_len_out = put_path_len_in - failure_offset;
     *ro_out |= GNUNET_DHT_RO_TRUNCATED;
@@ -105,7 +111,7 @@ GDS_helper_put_message_get_size (size_t *msize_out,
     GNUNET_break_op (0 == *put_path_len_out);
     *put_path_len_out = 0;
   }
-  if (truncated)
+  if (*truncated)
     msize += sizeof (struct GNUNET_PeerIdentity);
   if (msize + *put_path_len_out * sizeof(struct GNUNET_DHT_PathElement)
       > GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE)
@@ -116,18 +122,18 @@ GDS_helper_put_message_get_size (size_t *msize_out,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Truncating path that is too large due\n");
     mlen = GNUNET_CONSTANTS_MAX_ENCRYPTED_MESSAGE_SIZE - msize;
-    if (! truncated)
+    if (! *truncated)
     {
       /* We need extra space for the truncation, consider that,
          too! */
-      truncated = true;
+      *truncated = true;
       mlen -= sizeof (struct GNUNET_PeerIdentity);
       msize += sizeof (struct GNUNET_PeerIdentity);
     }
     /* compute maximum length of path we can keep */
     ppl = mlen / sizeof (struct GNUNET_DHT_PathElement);
     GNUNET_assert (*put_path_len_out - ppl > 0);
-    trunc_peer = &put_path_out[*put_path_len_out - ppl - 1].pred;
+    *trunc_peer_out = put_path_out[*put_path_len_out - ppl - 1].pred;
     put_path_out = &put_path_out[*put_path_len_out - ppl];
     *put_path_len_out = ppl;
     *ro_out |= GNUNET_DHT_RO_TRUNCATED;

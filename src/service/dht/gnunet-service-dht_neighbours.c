@@ -1233,6 +1233,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
     = truncated
     ? &bd->trunc_peer
     : NULL;
+  struct GNUNET_PeerIdentity trunc_peer_out;
   enum GNUNET_GenericReturnValue ret;
 
   ret = GDS_helper_put_message_get_size (&msize,
@@ -1242,9 +1243,12 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                                          bd->data, bd->data_size,
                                          put_path, put_path_length,
                                          &put_path_length,
-                                         trunc_peer);
+                                         trunc_peer,
+                                         &trunc_peer_out,
+                                         &truncated);
+  if (truncated)
+    trunc_peer = &trunc_peer_out;
   /* Path may have been truncated by the call above */
-  truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding myself (%s) to PUT bloomfilter for %s with RO(%s/%s)\n",
               GNUNET_i2s (&GDS_my_identity),
