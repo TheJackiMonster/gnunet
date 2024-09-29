@@ -509,35 +509,37 @@ REGEX_INTERNAL_automaton_traverse (const struct REGEX_INTERNAL_Automaton *a,
                                    REGEX_INTERNAL_traverse_action action,
                                    void *action_cls)
 {
-  unsigned int count;
-  int marks[a->state_count];
-  struct REGEX_INTERNAL_State *s;
-
   if ((NULL == a) || (0 == a->state_count))
     return;
 
-
-  for (count = 0, s = a->states_head; NULL != s && count < a->state_count;
-       s = s->next, count++)
   {
-    s->traversal_id = count;
-    marks[s->traversal_id] = GNUNET_NO;
+    unsigned int count;
+    int marks[a->state_count];
+    struct REGEX_INTERNAL_State *s;
+
+
+    for (count = 0, s = a->states_head; NULL != s && count < a->state_count;
+         s = s->next, count++)
+    {
+      s->traversal_id = count;
+      marks[s->traversal_id] = GNUNET_NO;
+    }
+
+    count = 0;
+
+    if (NULL == start)
+      s = a->start;
+    else
+      s = start;
+
+    automaton_state_traverse (s,
+                              marks,
+                              &count,
+                              check,
+                              check_cls,
+                              action,
+                              action_cls);
   }
-
-  count = 0;
-
-  if (NULL == start)
-    s = a->start;
-  else
-    s = start;
-
-  automaton_state_traverse (s,
-                            marks,
-                            &count,
-                            check,
-                            check_cls,
-                            action,
-                            action_cls);
 }
 
 
@@ -1136,8 +1138,8 @@ number_states (void *cls,
 
 
 #define PRIS(a)                                     \
-  ((GNUNET_YES == a.null_flag) ? 6 : (int) a.slen), \
-  ((GNUNET_YES == a.null_flag) ? "(null)" : a.sbuf)
+        ((GNUNET_YES == a.null_flag) ? 6 : (int) a.slen), \
+        ((GNUNET_YES == a.null_flag) ? "(null)" : a.sbuf)
 
 
 /**
