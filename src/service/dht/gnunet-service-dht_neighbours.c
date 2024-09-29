@@ -1225,7 +1225,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
-  enum GNUNET_DHT_RouteOption ro;
+  enum GNUNET_DHT_RouteOption ro = bd->ro;
   unsigned int put_path_length = bd->put_path_length;
   const struct GNUNET_DHT_PathElement *put_path = bd->put_path;
   bool truncated = (0 != (bd->ro & GNUNET_DHT_RO_TRUNCATED));
