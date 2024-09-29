@@ -1080,6 +1080,7 @@ GNUNET_HELLO_parser_to_block (const struct GNUNET_HELLO_Parser *parser,
   }
   bh.pid = parser->pid;
   bh.sig = parser->sig;
+  bh.expiration_time = GNUNET_TIME_absolute_hton (parser->et);
   memcpy (block,
           &bh,
           sizeof (bh));
