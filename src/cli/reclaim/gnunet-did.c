@@ -380,7 +380,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   else
   {
     char *did_tmp = DID_identity_to_did (ego);
-    void *cls_tmp = malloc (strlen (did_tmp) + 1);
+    void *cls_tmp = GNUNET_malloc (strlen (did_tmp) + 1);
     struct GNUNET_TIME_Relative expire_relative;
 
     if (expire == NULL)
@@ -395,6 +395,7 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
       printf ("Failed to read given expiration time\n");
       GNUNET_SCHEDULER_add_now (cleanup, NULL);
       ret = 1;
+      GNUNET_free (cls_tmp);
       return;
     }
 
@@ -410,8 +411,10 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
       printf ("An error occurred while creating the DID.\n");
       ret = 1;
       GNUNET_SCHEDULER_add_now (&cleanup, NULL);
+      GNUNET_free (cls_tmp);
       return;
     }
+    GNUNET_free (cls_tmp);
   }
 }
 
