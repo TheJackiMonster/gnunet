@@ -154,11 +154,16 @@ static struct HostSet *builder;
 static void
 add_cors_headers (struct MHD_Response *resp)
 {
-  MHD_add_response_header (resp, "Access-Control-Allow-Origin", "*");
-  MHD_add_response_header (resp,
-                           "Access-Control-Allow-Methods",
-                           "GET, OPTIONS");
-  MHD_add_response_header (resp, "Access-Control-Max-Age", "86400");
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Origin", "*"));
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp,
+                                          "Access-Control-Allow-Methods",
+                                          "GET, OPTIONS"));
+  GNUNET_assert (MHD_NO !=
+                 MHD_add_response_header (resp, "Access-Control-Max-Age",
+                                          "86400"));
 }
 
 
@@ -211,9 +216,9 @@ finish_response ()
                                               builder->data,
                                               MHD_RESPMEM_MUST_FREE);
   response_json = build_json_response (builder);
-  MHD_add_response_header (response_json,
-                           "Content-Type",
-                           "application/json");
+  GNUNET_assert (MHD_NO != MHD_add_response_header (response_json,
+                                                    "Content-Type",
+                                                    "application/json"));
   add_cors_headers (response);
   if ((NULL == daemon_handle_v4) && (NULL == daemon_handle_v6))
   {
