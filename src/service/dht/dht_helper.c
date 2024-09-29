@@ -49,8 +49,8 @@ GDS_helper_put_message_get_size (size_t *msize_out,
 {
   size_t msize;
   const struct GNUNET_DHT_PathElement *put_path_out = put_path_in;
-  bool truncated = (0 != (*ro_out & GNUNET_DHT_RO_TRUNCATED));
-  bool tracking = (0 != (*ro_out & GNUNET_DHT_RO_RECORD_ROUTE));
+  bool truncated = (0 != (ro_in & GNUNET_DHT_RO_TRUNCATED));
+  bool tracking = (0 != (ro_in & GNUNET_DHT_RO_RECORD_ROUTE));
   *put_path_len_out = put_path_len_in;
   *ro_out = ro_in;
 
