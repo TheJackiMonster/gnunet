@@ -1454,8 +1454,7 @@ extract_array_generic (
             uint32_t sz;
 
             sz = ntohl (*(uint32_t *) ptr);
-            sz += is_string ? 1 : 0;
-            total += sz;
+            total += sz + (is_string ? 1 : 0);
             ptr += sizeof(uint32_t);
             ptr += sz;
 
