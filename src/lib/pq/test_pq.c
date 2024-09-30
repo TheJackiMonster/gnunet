@@ -134,7 +134,7 @@ run_queries (struct GNUNET_PQ_Context *db_)
   struct GNUNET_TIME_Absolute abs_time2;
   struct GNUNET_TIME_Absolute forever = GNUNET_TIME_UNIT_FOREVER_ABS;
   struct GNUNET_TIME_Absolute forever2;
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
   struct GNUNET_HashCode hc2;
   PGresult *result;
   int lret;
