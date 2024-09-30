@@ -683,15 +683,12 @@ static void
 send_ack_cb (void *cls)
 {
   struct AckPending *ap = cls;
-  struct GNUNET_TRANSPORT_CommunicatorHandle *ch = ap->ch;
 
-  if (NULL != ch->ap_head && NULL != ap)
-    GNUNET_CONTAINER_DLL_remove (ch->ap_head, ch->ap_tail, ap);
-  if (NULL != ap)
-  {
-    send_ack (ch, GNUNET_OK, &ap->receiver, ap->mid, ap->qid);
-    GNUNET_free (ap);
-  }
+  GNUNET_assert (NULL != ap);
+  GNUNET_assert (NULL != ap->ch->ap_head);
+  GNUNET_CONTAINER_DLL_remove (ap->ch->ap_head, ap->ch->ap_tail, ap);
+  send_ack (ap->ch, GNUNET_OK, &ap->receiver, ap->mid, ap->qid);
+  GNUNET_free (ap);
 }
 
 
