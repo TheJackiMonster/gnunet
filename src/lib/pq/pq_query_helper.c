@@ -824,7 +824,7 @@ qconv_array (
     for (unsigned int i = 0; i < num; i++)
     {
       size_t sz = same_sized ? meta->same_size : sizes[i];
-      size_t hsz = htonl (sz);
+      uint32_t hsz = htonl (sz);
 
       GNUNET_memcpy (out,
                      &hsz,
