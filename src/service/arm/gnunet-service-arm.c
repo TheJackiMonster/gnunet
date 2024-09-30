@@ -391,7 +391,6 @@ get_server_addresses (const char *service_name,
     else
     {
       GNUNET_break (GNUNET_OK == GNUNET_NETWORK_socket_close (desc));
-      desc = NULL;
     }
   }
 
