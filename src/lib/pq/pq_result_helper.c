@@ -2039,7 +2039,7 @@ extract_blind_sign_priv (void *cls,
     if (NULL == tmp->details.rsa_private_key)
     {
       GNUNET_break (0);
-      GNUNET_free (bpk);
+      GNUNET_free (tmp);
       return GNUNET_SYSERR;
     }
     *bpk = tmp;
