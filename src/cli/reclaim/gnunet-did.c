@@ -385,8 +385,10 @@ create_did_ego_lockup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
     if (expire == NULL)
     {
-      GNUNET_STRINGS_fancy_time_to_relative (
-        DID_DOCUMENT_DEFAULT_EXPIRATION_TIME, &expire_relative);
+      GNUNET_assert (GNUNET_OK ==
+                     GNUNET_STRINGS_fancy_time_to_relative (
+                       DID_DOCUMENT_DEFAULT_EXPIRATION_TIME,
+                       &expire_relative));
     }
     else if (GNUNET_OK != GNUNET_STRINGS_fancy_time_to_relative (expire,
                                                                  &
