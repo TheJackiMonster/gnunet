@@ -214,7 +214,7 @@ stun_read_task (void *cls)
                                           size + 1,
                                           (struct sockaddr *) &sa,
                                           &salen);
-    if (ret != size)
+    if (ret < size)
     {
       GNUNET_break (0);
       GNUNET_SCHEDULER_shutdown ();
