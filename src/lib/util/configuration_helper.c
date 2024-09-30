@@ -121,8 +121,13 @@ GNUNET_CONFIGURATION_config_tool_run (
     /* Re-parse the configuration with diagnostics enabled. */
     ncfg = GNUNET_CONFIGURATION_create ();
     GNUNET_CONFIGURATION_enable_diagnostics (ncfg);
-    GNUNET_CONFIGURATION_load (ncfg,
-                               cfgfile);
+    if (GNUNET_OK != GNUNET_CONFIGURATION_load (ncfg,
+                                                cfgfile))
+    {
+      fprintf (stderr,
+               _("Failed to load config file `%s'"), cfgfile);
+      return;
+    }
     cfg = ncfg;
   }
 
