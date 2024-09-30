@@ -500,7 +500,7 @@ create_subnet_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
                      struct GNUNET_TESTING_NetjailTopology *topology,
                      struct GNUNET_TESTING_NetjailSubnet *subnet)
 {
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
   subnet->peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
   for (int i = 0; i < subnet->number_peers; i++)
@@ -530,7 +530,7 @@ create_subnets (struct GNUNET_CONFIGURATION_Handle *cfg,
                 struct GNUNET_TESTING_NetjailTopology *topology,
                 struct GNUNET_TESTING_NetjailCarrier *carrier)
 {
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
   carrier->subnets = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
   for (int i = 0; i < carrier->number_subnets; i++)
@@ -577,7 +577,7 @@ create_peers (struct GNUNET_CONFIGURATION_Handle *cfg,
               struct GNUNET_TESTING_NetjailTopology *topology,
               struct GNUNET_TESTING_NetjailCarrier *carrier)
 {
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
   carrier->peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
   for (int i = 0; i < carrier->number_peers; i++)
@@ -608,7 +608,7 @@ struct GNUNET_TESTING_NetjailTopology *
 GNUNET_TESTING_get_topo_from_string_ (const char *input)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
   struct GNUNET_TESTING_NetjailTopology *topology = GNUNET_new (struct
                                                                 GNUNET_TESTING_NetjailTopology);
   topology->backbone_peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO)

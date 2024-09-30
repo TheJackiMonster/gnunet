@@ -30,8 +30,6 @@
 #include "gnunet_testing_lib.h"
 #include "testing_api_loop.h"
 #include "testing_api_cmd_batch.h"
-#include "testing_api_topology.h"
-#include "testing_cmds.h"
 
 
 struct SendContext
@@ -207,7 +205,7 @@ GNUNET_TESTING_interpreter_get_command (
   const char *name)
 {
   const struct GNUNET_TESTING_Command *cmd;
-  struct GNUNET_HashCode h_name;
+  struct GNUNET_HashCode h_name = {0};
 
   GNUNET_CRYPTO_hash (name,
                       strlen (name),
@@ -403,7 +401,7 @@ GNUNET_TESTING_interpreter_run_cmd_ (
   cmd->num_tries = 1;
   if (NULL != cmd->name)
   {
-    struct GNUNET_HashCode h_name;
+    struct GNUNET_HashCode h_name = {0};
 
     GNUNET_CRYPTO_hash (cmd->name,
                         strlen (cmd->name),

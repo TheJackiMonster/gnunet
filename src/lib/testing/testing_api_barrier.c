@@ -40,7 +40,7 @@ GNUNET_TESTING_barrier_name_hash_ (
   const char *barrier_name,
   struct GNUNET_ShortHashCode *bkey)
 {
-  struct GNUNET_HashCode hc;
+  struct GNUNET_HashCode hc = {0};
 
   GNUNET_CRYPTO_hash (barrier_name,
                       strlen (barrier_name),
