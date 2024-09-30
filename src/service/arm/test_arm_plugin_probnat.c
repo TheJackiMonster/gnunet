@@ -37,6 +37,7 @@ get_conf_name (const char *my_node_id)
   const char *dash;
 
   dash = strchr (my_node_id, '-');
+  GNUNET_assert (NULL != dash);
   dash++;
 
   if (0 == strcmp ("000000", dash))
