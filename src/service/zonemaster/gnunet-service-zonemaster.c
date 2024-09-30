@@ -1291,7 +1291,6 @@ sign_worker (void *cls)
     GNUNET_assert (0 == pthread_mutex_lock (&sign_results_lock));
     GNUNET_CONTAINER_DLL_insert (sign_results_head, sign_results_tail, job);
     GNUNET_assert (0 == pthread_mutex_unlock (&sign_results_lock));
-    job = NULL;
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Done, notifying main thread through pipe!\n");
     GNUNET_DISK_file_write (fh, "!", 1);
