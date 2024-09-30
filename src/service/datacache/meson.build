@@ -102,8 +102,11 @@ test('test_datacache_quota_sqlite', testdc_quota_sqlite,
 test('test_datacache_heap', testdc_heap,
   suite: 'datacache', workdir: meson.current_build_dir())
 test('test_datacache_quota_heap', testdc_quota_heap,
-  suite: 'datacache', workdir: meson.current_build_dir())
+     suite: 'datacache', workdir: meson.current_build_dir(),
+    is_parallel: false)
 test('test_datacache_postgres', testdc_pq,
-  suite: 'datacache', workdir: meson.current_build_dir())
+  suite: 'datacache', workdir: meson.current_build_dir(),
+    is_parallel: false)
 test('test_datacache_quota_postgres', testdc_quota_pq,
-  suite: 'datacache', workdir: meson.current_build_dir())
+  suite: 'datacache', workdir: meson.current_build_dir(),
+    is_parallel: false)
