@@ -210,7 +210,7 @@ GNUNET_wait_child (struct GNUNET_OS_Process *proc,
   GNUNET_CONTAINER_DLL_insert (cwh_head,
                                cwh_tail,
                                cwh);
-  if (NULL == sig_task)
+  if ((NULL == sig_task) && (NULL != sigpipe))
   {
     sig_task = GNUNET_SCHEDULER_add_read_file (
       GNUNET_TIME_UNIT_FOREVER_REL,
