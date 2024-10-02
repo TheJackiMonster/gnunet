@@ -3727,9 +3727,11 @@ remove_global_addresses (void *cls,
  * Release memory used by @a neighbour.
  *
  * @param neighbour neighbour entry to free
+ * @param drop_link flag to decide whether to drop its virtual link
  */
 static void
-free_neighbour (struct Neighbour *neighbour)
+free_neighbour (struct Neighbour *neighbour,
+                enum GNUNET_GenericReturnValue drop_link)
 {
   struct DistanceVectorHop *dvh;
   struct VirtualLink *vl;
@@ -3769,7 +3771,7 @@ free_neighbour (struct Neighbour *neighbour)
   {
     GNUNET_assert (neighbour == vl->n);
     vl->n = NULL;
-    if (NULL == vl->dv)
+    if ((GNUNET_YES == drop_link) || (NULL == vl->dv))
     {
       cores_send_disconnect_info (&vl->target);
       free_virtual_link (vl);
@@ -4082,7 +4084,7 @@ free_queue (struct Queue *queue)
   }
   if (NULL == neighbour->queue_head)
   {
-    free_neighbour (neighbour);
+    free_neighbour (neighbour, GNUNET_NO);
   }
 }
 
@@ -12772,7 +12774,7 @@ free_neighbour_cb (void *cls,
   (void) cls;
   (void) pid;
   GNUNET_break (0);  // should this ever happen?
-  free_neighbour (neighbour);
+  free_neighbour (neighbour, GNUNET_YES);
 
   return GNUNET_OK;
 }
