@@ -128,9 +128,11 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
   if (GNUNET_YES != contains_list_tunnels (&(room->basement), &peer))
   {
     struct GNUNET_MESSENGER_MessageStore *message_store;
+    struct GNUNET_MESSENGER_MemberStore *member_store;
     struct GNUNET_MESSENGER_ListTunnel *element;
     
     message_store = get_srv_room_message_store (room);
+    member_store = get_srv_room_member_store (room);
     
     for (element = room->basement.head; element; element = element->next)
     {
@@ -146,13 +148,6 @@ recv_message_info (struct GNUNET_MESSENGER_SrvRoom *room,
 
       forward_tunnel_message (tunnel, msg, element->hash);
     }
-  }
-
-  if (GNUNET_YES != contains_list_tunnels (&(room->basement), &peer))
-  {
-    struct GNUNET_MESSENGER_MemberStore *member_store;
-    
-    member_store = get_srv_room_member_store (room);
 
     iterate_store_members (member_store, iterate_forward_members, tunnel);
   }
