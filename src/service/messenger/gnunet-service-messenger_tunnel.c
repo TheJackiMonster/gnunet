@@ -104,17 +104,21 @@ callback_tunnel_disconnect (void *cls,
 
   if (! tunnel)
     return;
+
+  GNUNET_assert (tunnel->room);
+  
+  room = tunnel->room;
+
+  get_tunnel_peer_identity (tunnel, &identity);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, 
+              "Connection dropped to room (%s) from peer: %s\n",
+              GNUNET_h2s (get_srv_room_key (room)), GNUNET_i2s (&identity));
   
   tunnel->channel = NULL;
 
-  GNUNET_assert (tunnel->room);
-
-  room = tunnel->room;
-
   if (! room->host)
     return;
-
-  get_tunnel_peer_identity (tunnel, &identity);
 
   if ((GNUNET_YES != GNUNET_CONTAINER_multipeermap_remove (room->tunnels,
                                                            &identity,
@@ -129,13 +133,19 @@ callback_tunnel_disconnect (void *cls,
   if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
       (GNUNET_NO == room->service->auto_connecting))
     return;
+  
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Search for alternate tunnel for room: %s\n",
+              GNUNET_h2s (get_srv_room_key (room)));
 
   {
     struct GNUNET_MESSENGER_ListTunnel *element;
     element = find_list_tunnels_alternate (&(room->basement), &identity);
 
     if (! element)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "No alternative tunnel was found!\n");
       return;
+    }
 
     GNUNET_PEER_resolve (element->peer, &identity);
   }

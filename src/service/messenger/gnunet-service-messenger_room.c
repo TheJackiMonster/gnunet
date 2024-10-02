@@ -208,6 +208,11 @@ callback_room_connect (void *cls,
   GNUNET_assert ((cls) && (channel) && (source));
 
   room = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, 
+              "New incoming connection to room (%s) from peer: %s\n",
+              GNUNET_h2s (get_srv_room_key (room)), GNUNET_i2s (source));
+
   tunnel = create_tunnel (room, source);
 
   if ((tunnel) &&
@@ -308,6 +313,9 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
 
   if (room->port)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Port of room (%s) was already open!\n",
+                GNUNET_h2s (get_srv_room_key (room)));
+
     if (! handle)
       return GNUNET_YES;
 
@@ -330,6 +338,9 @@ open_srv_room (struct GNUNET_MESSENGER_SrvRoom *room,
     key = get_srv_room_key (room);
 
     convert_messenger_key_to_port (key, &port);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Trying to open CADET port: %s\n",
+                GNUNET_h2s (&port));
+
     room->port = GNUNET_CADET_open_port (cadet, &port, callback_room_connect,
                                         room, NULL, callback_tunnel_disconnect,
                                         handlers);
