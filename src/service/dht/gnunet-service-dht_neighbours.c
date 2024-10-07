@@ -1285,21 +1285,30 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   for (unsigned int i = 0; i < target_count; i++)
   {
     struct PeerInfo *target = targets[i];
+
+    GNUNET_CONTAINER_bloomfilter_add (bf,
+                                      &target->phash);
+  }
+  for (unsigned int i = 0; i < target_count; i++)
+  {
+    struct PeerInfo *target = targets[i];
     struct PeerPutMessage *ppm;
     char buf[msize] GNUNET_ALIGN;
 
     ppm = (struct PeerPutMessage *) buf;
-    GNUNET_break (GNUNET_NO ==
-                  GNUNET_CONTAINER_bloomfilter_test (bf,
-                                                     &target->phash));
-    GNUNET_CONTAINER_bloomfilter_add (bf,
-                                      &target->phash);
-    GDS_helper_make_put_message (ppm, msize, &GDS_my_private_key,
-                                 &target->id, &target->phash, bf,
-                                 &bd->key, ro, bd->type, bd->expiration_time,
+    GDS_helper_make_put_message (ppm, msize,
+                                 &GDS_my_private_key,
+                                 &target->id,
+                                 &target->phash,
+                                 bf,
+                                 &bd->key,
+                                 ro,
+                                 bd->type,
+                                 bd->expiration_time,
                                  bd->data, bd->data_size,
                                  put_path, put_path_length,
-                                 hop_count, desired_replication_level,
+                                 hop_count,
+                                 desired_replication_level,
                                  trunc_peer);
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Routing PUT for %s after %u hops to %s\n",
@@ -1379,6 +1388,14 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     GNUNET_free (targets);
     return GNUNET_NO;
   }
+  /* update BF */
+  for (unsigned int i = 0; i < target_count; i++)
+  {
+    struct PeerInfo *target = targets[i];
+
+    GNUNET_CONTAINER_bloomfilter_add (peer_bf,
+                                      &target->phash);
+  }
   /* forward request */
   for (unsigned int i = 0; i < target_count; i++)
   {
@@ -1392,11 +1409,6 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                 GNUNET_h2s (key),
                 (unsigned int) hop_count,
                 GNUNET_i2s (&target->id));
-    GNUNET_break (GNUNET_NO ==
-                  GNUNET_CONTAINER_bloomfilter_test (peer_bf,
-                                                     &target->phash));
-    GNUNET_CONTAINER_bloomfilter_add (peer_bf,
-                                      &target->phash);
     pgm = (struct PeerGetMessage *) buf;
     pgm->header.type = htons (GNUNET_MESSAGE_TYPE_DHT_P2P_GET);
     pgm->header.size = htons (sizeof (buf));
@@ -1405,9 +1417,6 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
     pgm->hop_count = htons (hop_count + 1);
     pgm->desired_replication_level = htons (desired_replication_level);
     pgm->result_filter_size = htons ((uint16_t) result_filter_size);
-    GNUNET_break (GNUNET_YES ==
-                  GNUNET_CONTAINER_bloomfilter_test (peer_bf,
-                                                     &target->phash));
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CONTAINER_bloomfilter_get_raw_data (peer_bf,
                                                               pgm->bloomfilter,
