@@ -49,7 +49,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
     get_member_session_id (session),
     &(session->context)
     );
-  
+
   {
     struct GNUNET_MESSENGER_ContactStore *store;
 
@@ -187,7 +187,7 @@ iterate_copy_history (void *cls,
   struct GNUNET_MESSENGER_MemberSession *next;
 
   GNUNET_assert ((cls) && (key));
-  
+
   next = cls;
 
   GNUNET_CONTAINER_multihashmap_put (next->history, key, (value? next : NULL),
@@ -213,8 +213,19 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   next = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
 
   if (GNUNET_MESSENGER_KIND_ID == message->header.kind)
+  {
     next->member = add_store_member (session->member->store,
                                      &(message->body.id.id));
+    if (! next->member)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Failed to switch member session to ID: %s\n",
+                  GNUNET_sh2s (&(message->body.id.id)));
+
+      GNUNET_free (next);
+      return NULL;
+    }
+  }
   else
     next->member = session->member;
 
@@ -286,7 +297,7 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 
   clear_list_messages (&(session->messages));
 
-  contact = get_member_session_contact ( session);
+  contact = get_member_session_contact (session);
 
   if ((contact) && (GNUNET_YES == decrease_contact_rc (contact)))
     remove_store_contact (
@@ -757,7 +768,7 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
 
     {
       struct GNUNET_MESSENGER_Member *member;
-      
+
       member = get_store_member (session->member->store, &next_id);
 
       session->next = get_cycle_safe_next_session (
@@ -786,7 +797,7 @@ iterate_save_member_session_history_hentries (void *cls,
   unsigned char ownership;
 
   GNUNET_assert ((cls) && (key));
-  
+
   handle = cls;
   ownership = value? GNUNET_YES : GNUNET_NO;
 

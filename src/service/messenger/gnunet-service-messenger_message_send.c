@@ -49,6 +49,8 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
   struct GNUNET_MESSENGER_MessageStore *message_store;
   struct GNUNET_MESSENGER_ListMessage *element;
 
+  GNUNET_assert ((notify) && (session) && (map));
+
   if (session->prev)
     notify_about_members (notify, session->prev, map, GNUNET_YES);
 
@@ -79,6 +81,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &(element->hash),
                                                         NULL,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
 
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Notification of session message could be duplicated!\n");
@@ -112,21 +115,22 @@ iterate_notify_about_members (void *cls,
   struct GNUNET_MESSENGER_MemberNotify *notify;
 
   GNUNET_assert ((cls) && (session));
-  
-  notify = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
-              GNUNET_sh2s (get_member_session_id (session)));
+  notify = cls;
 
   if ((notify->session == session) || (GNUNET_YES ==
                                        is_member_session_completed (session)))
     return GNUNET_YES;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Notify about member session: %s\n",
+              GNUNET_sh2s (get_member_session_id (session)));
+
   {
     struct GNUNET_CONTAINER_MultiHashMap *map;
     map = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
 
-    notify_about_members (notify, session, map, GNUNET_NO);
+    if (map)
+      notify_about_members (notify, session, map, GNUNET_NO);
 
     GNUNET_CONTAINER_multihashmap_destroy (map);
   }
@@ -151,6 +155,14 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
   member = add_store_member (member_store,
                              &(message->header.sender_id));
 
+  if (! member)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "A member could not join with ID: %s\n",
+                GNUNET_sh2s (&(message->header.sender_id)));
+    goto skip_member_notification;
+  }
+
   session = get_member_session_of (member, message, hash);
 
   if (! session)
@@ -172,7 +184,7 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
                 GNUNET_sh2s (get_member_session_id (session)));
 
     iterate_store_members (get_srv_room_member_store (room),
-                          iterate_notify_about_members, &notify);
+                           iterate_notify_about_members, &notify);
   }
 
 skip_member_notification:
@@ -223,7 +235,7 @@ send_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_OperationStore *operation_store;
-  
+
   operation_store = get_srv_room_operation_store (room);
 
   use_store_operation (
