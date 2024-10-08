@@ -35,7 +35,7 @@ static void
 callback_shutdown_service (void *cls)
 {
   struct GNUNET_MESSENGER_Service *service;
-  
+
   service = cls;
 
   if (service)
@@ -101,10 +101,13 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (service->config,
                                                           GNUNET_MESSENGER_SERVICE_NAME,
                                                           "MESSENGER_MIN_ROUTERS",
-                                                          &(service->min_routers)))
+                                                          &(service->min_routers
+                                                            )))
     service->min_routers = 0;
 
   service->cadet = GNUNET_CADET_connect (service->config);
+  service->statistics = GNUNET_STATISTICS_create (GNUNET_MESSENGER_SERVICE_NAME,
+                                                  service->config);
 
   init_list_handles (&(service->handles));
 
@@ -140,7 +143,6 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
   if (service->shutdown)
   {
     GNUNET_SCHEDULER_cancel (service->shutdown);
-
     service->shutdown = NULL;
   }
 
@@ -155,26 +157,29 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
   if (service->cadet)
   {
     GNUNET_CADET_disconnect (service->cadet);
-
     service->cadet = NULL;
+  }
+
+  if (service->statistics)
+  {
+    GNUNET_STATISTICS_destroy (service->statistics,
+                               GNUNET_YES);
+    service->statistics = NULL;
   }
 
   if (service->dir)
   {
     GNUNET_free (service->dir);
-
     service->dir = NULL;
   }
 
   if (service->peer)
   {
     GNUNET_free (service->peer);
-
     service->peer = NULL;
   }
 
   GNUNET_SERVICE_shutdown (service->service);
-
   GNUNET_free (service);
 }
 
@@ -199,7 +204,13 @@ add_service_handle (struct GNUNET_MESSENGER_Service *service,
   handle = create_srv_handle (service, mq);
 
   if (handle)
+  {
     add_list_handle (&(service->handles), handle);
+    GNUNET_STATISTICS_update (service->statistics,
+                              "# handles connected",
+                              1,
+                              GNUNET_NO);
+  }
 
   return handle;
 }
@@ -215,7 +226,13 @@ remove_service_handle (struct GNUNET_MESSENGER_Service *service,
     return;
 
   if (GNUNET_YES == remove_list_handle (&(service->handles), handle))
+  {
     destroy_srv_handle (handle);
+    GNUNET_STATISTICS_update (service->statistics,
+                              "# handles connected",
+                              -1,
+                              GNUNET_NO);
+  }
 }
 
 
@@ -272,7 +289,7 @@ find_member_session_in_room (void *cls,
   const struct GNUNET_ShortHashCode *id;
 
   GNUNET_assert ((cls) && (session));
-  
+
   init = cls;
 
   if (! public_key)
@@ -340,6 +357,7 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
                    const struct GNUNET_HashCode *key)
 {
   struct GNUNET_MESSENGER_SrvRoom *room;
+  enum GNUNET_GenericReturnValue result;
 
   GNUNET_assert ((service) && (handle) && (key));
 
@@ -348,7 +366,14 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
   if (room)
   {
     initialize_service_handle (handle, room);
-    return open_srv_room (room, handle);
+    result = open_srv_room (room, handle);
+
+    if (GNUNET_YES == result)
+      GNUNET_STATISTICS_update (service->statistics,
+                                "# room openings",
+                                1,
+                                GNUNET_NO);
+    return result;
   }
 
   room = create_srv_room (handle, key);
@@ -358,7 +383,17 @@ open_service_room (struct GNUNET_MESSENGER_Service *service,
       (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (service->rooms,
                                                        key, room,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
+  {
+    GNUNET_STATISTICS_update (service->statistics,
+                              "# room openings",
+                              1,
+                              GNUNET_NO);
+    GNUNET_STATISTICS_set (service->statistics,
+                           "# rooms active",
+                           GNUNET_CONTAINER_multihashmap_size (service->rooms),
+                           GNUNET_NO);
     return GNUNET_YES;
+  }
 
   destroy_srv_room (room, GNUNET_YES);
   return GNUNET_NO;
@@ -382,7 +417,13 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
     initialize_service_handle (handle, room);
 
     if (GNUNET_YES == enter_srv_room_at (room, handle, door))
+    {
+      GNUNET_STATISTICS_update (service->statistics,
+                                "# room entries",
+                                1,
+                                GNUNET_NO);
       return GNUNET_YES;
+    }
     else
       return GNUNET_NO;
   }
@@ -395,6 +436,14 @@ entry_service_room (struct GNUNET_MESSENGER_Service *service,
                                                        key, room,
                                                        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST)))
   {
+    GNUNET_STATISTICS_update (service->statistics,
+                              "# room entries",
+                              1,
+                              GNUNET_NO);
+    GNUNET_STATISTICS_set (service->statistics,
+                           "# rooms active",
+                           GNUNET_CONTAINER_multihashmap_size (service->rooms),
+                           GNUNET_NO);
     return GNUNET_YES;
   }
   else
@@ -445,6 +494,15 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
                                                            room))
     {
       destroy_srv_room (room, deletion);
+      GNUNET_STATISTICS_update (service->statistics,
+                                "# room closings",
+                                1,
+                                GNUNET_NO);
+      GNUNET_STATISTICS_set (service->statistics,
+                             "# rooms active",
+                             GNUNET_CONTAINER_multihashmap_size (service->rooms)
+                             ,
+                             GNUNET_NO);
       return GNUNET_YES;
     }
     else
@@ -459,6 +517,11 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
       send_srv_room_message (room, room->host, create_message_connection (
                                room));
   }
+
+  GNUNET_STATISTICS_update (service->statistics,
+                            "# room closings",
+                            1,
+                            GNUNET_NO);
 
   return GNUNET_YES;
 }
@@ -481,11 +544,16 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
                 message->header.kind));
 
   element = service->handles.head;
-  
+
   while (element)
   {
     notify_srv_handle_message (element->handle, room, session, message, hash,
                                GNUNET_YES);
     element = element->next;
   }
+
+  GNUNET_STATISTICS_update (service->statistics,
+                            "# message notifications",
+                            1,
+                            GNUNET_NO);
 }

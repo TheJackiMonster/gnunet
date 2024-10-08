@@ -126,6 +126,7 @@ gnunet_service_messenger_LDADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(top_builddir)/src/service/cadet/libgnunetcadet.la \
   $(top_builddir)/src/service/identity/libgnunetidentity.la \
+  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
   $(GN_LIBINTL)
 
 #check_PROGRAMS = \

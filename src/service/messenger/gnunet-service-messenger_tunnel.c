@@ -99,22 +99,22 @@ callback_tunnel_disconnect (void *cls,
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
   struct GNUNET_MESSENGER_SrvRoom *room;
   struct GNUNET_PeerIdentity identity;
-  
+
   tunnel = cls;
 
   if (! tunnel)
     return;
 
   GNUNET_assert (tunnel->room);
-  
+
   room = tunnel->room;
 
   get_tunnel_peer_identity (tunnel, &identity);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Connection dropped to room (%s) from peer: %s\n",
               GNUNET_h2s (get_srv_room_key (room)), GNUNET_i2s (&identity));
-  
+
   tunnel->channel = NULL;
 
   if (! room->host)
@@ -127,14 +127,20 @@ callback_tunnel_disconnect (void *cls,
                                                              &identity)))
     return;
 
+  GNUNET_STATISTICS_update (room->service->statistics,
+                            "# tunnels connected",
+                            -1,
+                            GNUNET_NO);
+
   if (GNUNET_YES == contains_list_tunnels (&(room->basement), &identity))
     send_srv_room_message (room, room->host, create_message_miss (&identity));
 
   if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
       (GNUNET_NO == room->service->auto_connecting))
     return;
-  
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Search for alternate tunnel for room: %s\n",
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Search for alternate tunnel for room: %s\n",
               GNUNET_h2s (get_srv_room_key (room)));
 
   {
@@ -143,7 +149,8 @@ callback_tunnel_disconnect (void *cls,
 
     if (! element)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "No alternative tunnel was found!\n");
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "No alternative tunnel was found!\n");
       return;
     }
 
@@ -185,7 +192,7 @@ verify_tunnel_message (struct GNUNET_MESSENGER_SrvRoom *room,
   {
     struct GNUNET_TIME_Absolute timestamp;
     struct GNUNET_TIME_Absolute last;
-    
+
     timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
     last = GNUNET_TIME_absolute_ntoh (previous->header.timestamp);
 
@@ -204,6 +211,7 @@ skip_time_comparison:
   return GNUNET_OK;
 }
 
+
 enum GNUNET_GenericReturnValue
 check_tunnel_message (void *cls,
                       const struct GNUNET_MessageHeader *header)
@@ -215,7 +223,7 @@ check_tunnel_message (void *cls,
   const char *buffer;
 
   GNUNET_assert (header);
-  
+
   tunnel = cls;
 
   if (! tunnel)
@@ -239,7 +247,8 @@ check_tunnel_message (void *cls,
     if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES,
                                       &padding))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Decoding failed!\n");
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Decoding failed!\n")
+      ;
       return GNUNET_SYSERR;
     }
 
@@ -300,7 +309,7 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   const char *buffer;
 
   GNUNET_assert (header);
-  
+
   tunnel = cls;
 
   if (! tunnel)
@@ -323,8 +332,8 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
   {
     enum GNUNET_GenericReturnValue new_message;
     new_message = update_room_message (tunnel->room,
-                                      copy_message (&message),
-                                      &hash);
+                                       copy_message (&message),
+                                       &hash);
 
     if (GNUNET_YES != new_message)
       goto receive_done;
@@ -339,13 +348,16 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
     switch (message.header.kind)
     {
     case GNUNET_MESSENGER_KIND_INFO:
-      forward_message = recv_message_info (tunnel->room, tunnel, &message, &hash);
+      forward_message = recv_message_info (tunnel->room, tunnel, &message, &hash
+                                           );
       break;
     case GNUNET_MESSENGER_KIND_PEER:
-      forward_message = recv_message_peer (tunnel->room, tunnel, &message, &hash);
+      forward_message = recv_message_peer (tunnel->room, tunnel, &message, &hash
+                                           );
       break;
     case GNUNET_MESSENGER_KIND_MISS:
-      forward_message = recv_message_miss (tunnel->room, tunnel, &message, &hash);
+      forward_message = recv_message_miss (tunnel->room, tunnel, &message, &hash
+                                           );
       break;
     case GNUNET_MESSENGER_KIND_REQUEST:
       forward_message = recv_message_request (tunnel->room, tunnel, &message,
@@ -364,6 +376,11 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 
 receive_done:
   cleanup_message (&message);
+
+  GNUNET_STATISTICS_update (tunnel->room->service->statistics,
+                            "# messages received",
+                            1,
+                            GNUNET_NO);
 
   GNUNET_CADET_receive_done (tunnel->channel);
 }
@@ -389,18 +406,27 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
   {
     struct GNUNET_HashCode port;
     struct GNUNET_MQ_MessageHandler handlers[] = { GNUNET_MQ_hd_var_size (
-                                                    tunnel_message,
-                                                    GNUNET_MESSAGE_TYPE_CADET_CLI,
-                                                    struct
-                                                    GNUNET_MessageHeader, NULL),
-                                                  GNUNET_MQ_handler_end () };
-    
+                                                     tunnel_message,
+                                                     GNUNET_MESSAGE_TYPE_CADET_CLI,
+                                                     struct
+                                                     GNUNET_MessageHeader, NULL)
+                                                   ,
+                                                   GNUNET_MQ_handler_end () };
+
     convert_messenger_key_to_port (key, &port);
     tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, &port,
-                                                  NULL,
-                                                  callback_tunnel_disconnect,
-                                                  handlers);
+                                                   NULL,
+                                                   callback_tunnel_disconnect,
+                                                   handlers);
   }
+
+  if (! tunnel->channel)
+    return GNUNET_SYSERR;
+
+  GNUNET_STATISTICS_update (tunnel->room->service->statistics,
+                            "# tunnels connected",
+                            1,
+                            GNUNET_NO);
 
   return GNUNET_YES;
 }
@@ -441,11 +467,18 @@ callback_tunnel_sent (void *cls)
   struct GNUNET_MESSENGER_MessageSent *sent;
 
   GNUNET_assert (cls);
-  
+
   sent = cls;
 
   if (sent->tunnel)
+  {
     update_tunnel_last_message (sent->tunnel, &(sent->hash));
+
+    GNUNET_STATISTICS_update (sent->tunnel->room->service->statistics,
+                              "# messages sent",
+                              1,
+                              GNUNET_NO);
+  }
 
   GNUNET_free (sent);
 }

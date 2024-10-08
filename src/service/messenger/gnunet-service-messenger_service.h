@@ -28,6 +28,7 @@
 
 #include "gnunet_common.h"
 #include "gnunet_configuration_lib.h"
+#include "gnunet_statistics_service.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger_list_handles.h"
@@ -52,6 +53,7 @@ struct GNUNET_MESSENGER_Service
   unsigned long long min_routers;
 
   struct GNUNET_CADET_Handle *cadet;
+  struct GNUNET_STATISTICS_Handle *statistics;
 
   struct GNUNET_MESSENGER_ContactStore contact_store;
 
@@ -202,4 +204,4 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
                         const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash);
 
-#endif //GNUNET_SERVICE_MESSENGER_SERVICE_H
+#endif // GNUNET_SERVICE_MESSENGER_SERVICE_H
