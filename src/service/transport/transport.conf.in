@@ -25,6 +25,7 @@ IMMEDIATE_START = YES
 #PREFIX = valgrind --leak-check=full --track-origins=yes --trace-children=yes --log-file=$GNUNET_TEST_HOME/vg_cupeer1-%p
 BINARY = gnunet-communicator-udp
 BINDTO = 2086
+BINDTO6 = 2086
 DISABLE_V6 = NO
 IMMEDIATE_START = YES
 

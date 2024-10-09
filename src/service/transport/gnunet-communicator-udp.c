@@ -3648,6 +3648,15 @@ create_udp_socket (const char *bindto,
     return NULL;
   }
 
+  if ((AF_UNSPEC != family) && (in->sa_family != family))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Invalid UDP socket address setup with path `%s'\n",
+                bindto);
+    GNUNET_free (in);
+    return NULL;
+  }
+
   sock =
     GNUNET_NETWORK_socket_create (in->sa_family,
                                   SOCK_DGRAM,
@@ -3694,8 +3703,8 @@ create_udp_socket (const char *bindto,
     sto_len = in_len;
   }
   GNUNET_free (in);
-  *out = GNUNET_new (struct sockaddr);
-  memcpy (*out, (struct sockaddr *) &in_sto, sizeof (struct sockaddr));
+  *out = GNUNET_malloc (sto_len);
+  memcpy (*out, (struct sockaddr *) &in_sto, sto_len);
   *out_len = sto_len;
   return sock;
 }
@@ -3720,6 +3729,7 @@ run (void *cls,
 {
   const struct sockaddr_in *v4;
   char *bindto;
+  char *bindto6;
   struct sockaddr *in[2];
   socklen_t in_len[2];
 
@@ -3727,6 +3737,16 @@ run (void *cls,
               "Entering the run method of udp communicator.\n");
 
   cfg = c;
+  disable_v6 = GNUNET_NO;
+  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
+      (GNUNET_YES ==
+       GNUNET_CONFIGURATION_get_value_yesno (cfg,
+                                             COMMUNICATOR_CONFIG_SECTION,
+                                             "DISABLE_V6")))
+  {
+    disable_v6 = GNUNET_YES;
+  }
+
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              COMMUNICATOR_CONFIG_SECTION,
@@ -3739,8 +3759,24 @@ run (void *cls,
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "The udp communicator will bind to %s\n",
+              "The udp communicator will bind to %s for IPv4\n",
               bindto);
+  if ((GNUNET_YES != disable_v6) &&
+      (GNUNET_OK !=
+       GNUNET_CONFIGURATION_get_value_string (cfg,
+                                              COMMUNICATOR_CONFIG_SECTION,
+                                              "BINDTO6",
+                                              &bindto6)))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               COMMUNICATOR_CONFIG_SECTION,
+                               "BINDTO6");
+    return;
+  }
+  else
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "The udp communicator will bind to %s for IPv6\n",
+                bindto6);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_time (cfg,
                                            COMMUNICATOR_CONFIG_SECTION,
@@ -3756,28 +3792,23 @@ run (void *cls,
   {
     rekey_max_bytes = DEFAULT_REKEY_MAX_BYTES;
   }
-  disable_v6 = GNUNET_NO;
-  if ((GNUNET_NO == GNUNET_NETWORK_test_pf (PF_INET6)) ||
-      (GNUNET_YES ==
-       GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                             COMMUNICATOR_CONFIG_SECTION,
-                                             "DISABLE_V6")))
-  {
-    disable_v6 = GNUNET_YES;
-  }
 
   memset (in, 0, sizeof(struct sockaddr*) * 2);
   memset (in_len, 0, sizeof(socklen_t) * 2);
 
   default_v4_sock = create_udp_socket (bindto, AF_INET, &(in[0]), &(in_len[0]));
+  GNUNET_free (bindto);
 
   if (GNUNET_YES != disable_v6)
-    default_v6_sock = create_udp_socket (bindto, AF_INET6, &(in[1]), &(in_len[1]
-                                                                       ));
+  {
+    default_v6_sock = create_udp_socket (bindto6, AF_INET6, &(in[1]), &(in_len[1
+                                                                        ]
+                                                                        ));
+    GNUNET_free (bindto6);
+  }
   else
     default_v6_sock = NULL;
 
-  GNUNET_free (bindto);
   if ((NULL == default_v4_sock) && (NULL == default_v6_sock))
     return;
 
