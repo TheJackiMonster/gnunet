@@ -53,7 +53,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
   {
     struct GNUNET_MESSENGER_ContactStore *store;
 
-    store = get_member_contact_store (session->member->store);
+    store = get_member_contact_store (member->store);
 
     session->contact = get_store_contact (
       store,
@@ -86,6 +86,36 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
 }
 
 
+static struct GNUNET_MESSENGER_MemberStore*
+get_session_member_store (const struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct GNUNET_MESSENGER_Member *member;
+
+  GNUNET_assert (session);
+
+  member = session->member;
+
+  GNUNET_assert (member);
+
+  return member->store;
+}
+
+
+static struct GNUNET_MESSENGER_SrvRoom*
+get_session_room (const struct GNUNET_MESSENGER_MemberSession *session)
+{
+  struct GNUNET_MESSENGER_MemberStore *store;
+
+  GNUNET_assert (session);
+
+  store = get_session_member_store (session);
+
+  GNUNET_assert (store);
+
+  return store->room;
+}
+
+
 static void
 check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 {
@@ -110,7 +140,7 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
   start = &(session->messages.head->hash);
   end = &(session->messages.tail->hash);
 
-  msg_store = get_srv_room_message_store (session->member->store->room);
+  msg_store = get_srv_room_message_store (get_session_room (session));
 
   init_list_messages (&level);
   add_to_list_messages (&level, end);
@@ -159,12 +189,14 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
 completion:
   if (GNUNET_YES == is_member_session_completed (session))
   {
+    struct GNUNET_MESSENGER_MemberStore *member_store;
     struct GNUNET_MESSENGER_ContactStore *store;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Completed session history (%s)\n",
                 GNUNET_sh2s (get_member_session_id (session)));
 
-    store = get_member_contact_store (session->member->store);
+    member_store = get_session_member_store (session);
+    store = get_member_contact_store (member_store);
 
     if ((session->contact) && (GNUNET_YES == decrease_contact_rc (
                                  session->contact)))
@@ -202,6 +234,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
 {
+  struct GNUNET_MESSENGER_MemberStore *store;
   struct GNUNET_MESSENGER_MemberSession *next;
 
   if ((! session) || (! message) || (! hash))
@@ -210,11 +243,12 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_assert ((GNUNET_MESSENGER_KIND_ID == message->header.kind) ||
                  (GNUNET_MESSENGER_KIND_KEY == message->header.kind));
 
+  store = get_session_member_store (session);
   next = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
 
   if (GNUNET_MESSENGER_KIND_ID == message->header.kind)
   {
-    next->member = add_store_member (session->member->store,
+    next->member = add_store_member (store,
                                      &(message->body.id.id));
     if (! next->member)
     {
@@ -243,7 +277,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
     );
 
   update_store_contact (
-    get_member_contact_store (next->member->store),
+    get_member_contact_store (store),
     get_member_session_contact (session),
     get_member_session_context (session),
     get_member_session_context (next),
@@ -289,6 +323,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
 void
 destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 {
+  struct GNUNET_MESSENGER_MemberStore *store;
   struct GNUNET_MESSENGER_Contact *contact;
 
   GNUNET_assert (session);
@@ -297,11 +332,12 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
 
   clear_list_messages (&(session->messages));
 
+  store = get_session_member_store (session);
   contact = get_member_session_contact (session);
 
   if ((contact) && (GNUNET_YES == decrease_contact_rc (contact)))
     remove_store_contact (
-      get_member_contact_store (session->member->store),
+      get_member_contact_store (store),
       contact,
       get_member_session_context (session)
       );
@@ -319,9 +355,11 @@ reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_assert ((session) && (hash));
 
   {
+    struct GNUNET_MESSENGER_MemberStore *member_store;
     struct GNUNET_MESSENGER_ContactStore *store;
 
-    store = get_member_contact_store (session->member->store);
+    member_store = get_session_member_store (session);
+    store = get_member_contact_store (member_store);
     contact = get_store_contact (
       store,
       get_member_session_context (session),
@@ -394,9 +432,13 @@ get_member_session_start (const struct GNUNET_MESSENGER_MemberSession *session)
 const struct GNUNET_HashCode*
 get_member_session_key (const struct GNUNET_MESSENGER_MemberSession *session)
 {
+  const struct GNUNET_MESSENGER_MemberStore *store;
+
   GNUNET_assert ((session) && (session->member));
 
-  return get_member_store_key (session->member->store);
+  store = get_session_member_store (session);
+
+  return get_member_store_key (store);
 }
 
 
@@ -767,9 +809,11 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
       goto destroy_config;
 
     {
+      struct GNUNET_MESSENGER_MemberStore *store;
       struct GNUNET_MESSENGER_Member *member;
 
-      member = get_store_member (session->member->store, &next_id);
+      store = get_session_member_store (session);
+      member = get_store_member (store, &next_id);
 
       session->next = get_cycle_safe_next_session (
         session, member? get_member_session (member, &next_key) : NULL
