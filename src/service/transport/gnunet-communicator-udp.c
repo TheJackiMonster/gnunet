@@ -3761,22 +3761,26 @@ run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "The udp communicator will bind to %s for IPv4\n",
               bindto);
-  if ((GNUNET_YES != disable_v6) &&
-      (GNUNET_OK !=
-       GNUNET_CONFIGURATION_get_value_string (cfg,
-                                              COMMUNICATOR_CONFIG_SECTION,
-                                              "BINDTO6",
-                                              &bindto6)))
+  if (GNUNET_YES != disable_v6)
   {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               COMMUNICATOR_CONFIG_SECTION,
-                               "BINDTO6");
-    return;
-  }
-  else
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               COMMUNICATOR_CONFIG_SECTION,
+                                               "BINDTO6",
+                                               &bindto6))
+    {
+      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                 COMMUNICATOR_CONFIG_SECTION,
+                                 "BINDTO6");
+      return;
+    }
+
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "The udp communicator will bind to %s for IPv6\n",
                 bindto6);
+  }
+  else
+    bindto6 = NULL;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_time (cfg,
                                            COMMUNICATOR_CONFIG_SECTION,
@@ -3796,14 +3800,16 @@ run (void *cls,
   memset (in, 0, sizeof(struct sockaddr*) * 2);
   memset (in_len, 0, sizeof(socklen_t) * 2);
 
-  default_v4_sock = create_udp_socket (bindto, AF_INET, &(in[0]), &(in_len[0]));
+  GNUNET_assert (bindto);
+  default_v4_sock = create_udp_socket (
+    bindto, AF_INET, &(in[0]), &(in_len[0]));
   GNUNET_free (bindto);
 
   if (GNUNET_YES != disable_v6)
   {
-    default_v6_sock = create_udp_socket (bindto6, AF_INET6, &(in[1]), &(in_len[1
-                                                                        ]
-                                                                        ));
+    GNUNET_assert (bindto6);
+    default_v6_sock = create_udp_socket (
+      bindto6, AF_INET6, &(in[1]), &(in_len[1]));
     GNUNET_free (bindto6);
   }
   else
@@ -3815,10 +3821,11 @@ run (void *cls,
   my_port = 0;
   if (NULL != default_v4_sock)
   {
+    GNUNET_assert (in[0]);
     GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_INFO,
                              "transport",
                              "Bound to `%s' sock %p\n",
-                             GNUNET_a2s ((const struct sockaddr *) &(in[0]),
+                             GNUNET_a2s ((const struct sockaddr *) in[0],
                                          in_len[0]),
                              default_v4_sock);
 
@@ -3829,13 +3836,14 @@ run (void *cls,
     inet_ntop (AF_INET, &v4->sin_addr, my_ipv4, in_len[0]);
   }
   if (NULL != default_v6_sock)
+  {
+    GNUNET_assert (in[1]);
     GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_INFO,
                              "transport",
                              "Bound to `%s' sock %p\n",
-                             GNUNET_a2s ((const struct sockaddr *) &(in[1]),
+                             GNUNET_a2s ((const struct sockaddr *) in[1],
                                          in_len[1]),
                              default_v6_sock);
-  {
     my_port = ntohs (((struct sockaddr_in6 *) in[1])->sin6_port);
   }
   stats = GNUNET_STATISTICS_create ("communicator-udp", cfg);
@@ -3860,16 +3868,20 @@ run (void *cls,
   GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
   eddsa_priv_to_hpke_key (my_private_key, &my_x25519_private_key);
   /* start reading */
-  if (default_v4_sock)
+  if (NULL != default_v4_sock)
     read_v4_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                                   default_v4_sock,
                                                   &sock_read,
                                                   default_v4_sock);
-  if (default_v6_sock)
+  else
+    read_v4_task = NULL;
+  if (NULL != default_v6_sock)
     read_v6_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                                   default_v6_sock,
                                                   &sock_read,
                                                   default_v6_sock);
+  else
+    read_v6_task = NULL;
   ch = GNUNET_TRANSPORT_communicator_connect (cfg,
                                               COMMUNICATOR_CONFIG_SECTION,
                                               COMMUNICATOR_ADDRESS_PREFIX,
