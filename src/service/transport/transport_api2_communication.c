@@ -614,7 +614,7 @@ handle_create_queue (void *cls, const struct GNUNET_TRANSPORT_CreateQueue *cq)
   }
   else if (GNUNET_SYSERR == ret)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Address `%s' invalid for this communicator\n",
                 addr);
     env = GNUNET_MQ_msg (cqr, GNUNET_MESSAGE_TYPE_TRANSPORT_QUEUE_CREATE_FAIL);

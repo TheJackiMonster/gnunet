@@ -2187,7 +2187,7 @@ udp_address_to_sockaddr (const char *bindto,
       return in;
     }
   }
-  if ((AF_INET != family) && (GNUNET_YES != disable_v6))
+  if (AF_INET != family)
   {
     /* try IPv6 */
     struct sockaddr_in6 v6;
