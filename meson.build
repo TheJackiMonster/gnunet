@@ -205,7 +205,9 @@ extractor_dep = dependency('libextractor', required : false)
 if not extractor_dep.found()
   extractor_dep = cc.find_library('extractor', required : false)
 endif
+cdata.set('extractor', 0)
 if extractor_dep.found()
+  cdata.set('extractor', 1)
   add_project_arguments('-DHAVE_LIBEXTRACTOR', language : 'c')
   add_project_arguments('-DHAVE_EXTRACTOR_H', language : 'c')
 endif
@@ -508,18 +510,18 @@ summary({'host': host_machine.system(),
   'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
   'ifconfig': ifconfig_bin.found(),
   'iptables': iptables_bin.found()
-  }, section: 'Detected system')
+        }, section: 'Detected system')
 
 if not gnunet_user
   message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
   message('Each user of GNUnet should be added to the \'gnunet\' group')
   if adduser_bin.found() and not gnunet_user
     message('''Create the gnunet user and add users to the gnunetdns group, run:
-      # addgroup gnunetdns
-      # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
-      message('''To add users to the gnunet group, run:
+    # addgroup gnunetdns
+    # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+    message('''To add users to the gnunet group, run:
         # adduser USERNAME gnunet
         for each of your users, replacing \'USERNAME\' with the respective login name.
         Users may have to login again for the changes to take effect.''')
-        endif
-        endif
+  endif
+endif
