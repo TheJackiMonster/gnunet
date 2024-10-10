@@ -2070,7 +2070,7 @@ id_connect_cb (void *cls,
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
                                       ego_tail,
                                       ego_entry);
-    if ((NULL != ego_name_tmp) &&
+    if ((NULL != ego_name) && (NULL != ego_name_tmp) &&
         (0 == strcmp (ego_name, ego_name_tmp)))
       zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
     return;
