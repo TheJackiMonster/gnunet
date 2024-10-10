@@ -17,6 +17,7 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
+#include "platform.h"
 #include "gnunet_error_codes.h"
 #include <stddef.h>
 #include <microhttpd.h>
