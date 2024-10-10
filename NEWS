@@ -1,3 +1,8 @@
+v0.22.1:
+  - Update HELLO files for new bootstrap peer
+  - Fix regression in DHT Bloom filter
+  - Fix long-standing regression in HELLO URI expirations
+
 v0.22.0:
   - New logging API to print/parse hex bytes
   - Added RFC9180 HPKE and associated KEMs
