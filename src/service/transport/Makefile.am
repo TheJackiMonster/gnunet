@@ -186,7 +186,8 @@ gnunet_communicator_http3_LDADD = \
   $(NGTCP_LIBS) \
   $(NGTCP_CRYPTO_LIBS) \
   $(NGHTTP_LIBS) \
-  $(LIBGCRYPT_LIBS)
+  $(LIBGCRYPT_LIBS) \
+  -lgnutls
 endif
 
 #gnunet_transport_SOURCES = \
