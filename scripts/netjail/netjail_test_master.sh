@@ -24,3 +24,4 @@ then
     fi
 fi
 exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; $*"
+#exec unshare -r -nmU bash -c "mount -t tmpfs --make-rshared tmpfs /run/netns; G_SLICE=always_malloc DEBUGINFOD_URLS="https://debuginfod.archlinux.org" valgrind --track-origins=yes $*"

@@ -4,4 +4,5 @@
 NODE=$1
 shift 1
 
-ip netns exec $NODE $@ # valgrind --trace-children=yes $@
+ip netns exec $NODE $@
+#ip netns exec $NODE valgrind --trace-children=yes $@
