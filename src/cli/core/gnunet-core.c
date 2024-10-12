@@ -225,6 +225,11 @@ run (void *cls,
              GNUNET_i2s_full (&my_full_id));
   if (show_conns || monitor_connections)
   {
+    if (monitor_connections)
+    {
+      fprintf (stdout,
+               _ ("Monitoring connections. Press CTRL-C to quit.\n\n"));
+    }
     mh = GNUNET_CORE_monitor_start (cfg, &monitor_cb, NULL);
     if (NULL == mh)
     {
