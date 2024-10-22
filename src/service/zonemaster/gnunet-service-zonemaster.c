@@ -183,6 +183,11 @@ struct RecordPublicationJob
    * When was this PUT initiated?
    */
   struct GNUNET_TIME_Absolute start_date;
+
+  /**
+   * Do we have any public records at all?
+   */
+  int have_public_records;
 };
 
 
@@ -769,6 +774,29 @@ check_zone_namestore_next ()
 }
 
 
+static void
+cleanup_job (struct RecordPublicationJob*job)
+{
+
+  if (NULL == zone_publish_task)
+    check_zone_namestore_next ();
+  if (job_queue_length <= JOB_QUEUE_LIMIT)
+  {
+    if (GNUNET_YES == monitor_halted)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Job queue emptied (%u/%u). Resuming monitor.\n",
+                  job_queue_length,
+                  JOB_QUEUE_LIMIT);
+      GNUNET_NAMESTORE_zone_monitor_next (zmon, 1);
+      monitor_halted = GNUNET_NO;
+    }
+  }
+  job_queue_length--;
+  free_job (job);
+}
+
+
 /**
  * Continuation called from DHT once the PUT operation is done.
  *
@@ -782,21 +810,10 @@ dht_put_continuation (void *cls)
               "PUT complete; Pending jobs: %u\n", job_queue_length - 1);
   /* When we just fall under the limit, trigger monitor/iterator again
    * if halted. We can only safely trigger one, prefer iterator. */
-  if (NULL == zone_publish_task)
-    check_zone_namestore_next ();
-  if (job_queue_length <= JOB_QUEUE_LIMIT)
-  {
-    if (GNUNET_YES == monitor_halted)
-    {
-      GNUNET_NAMESTORE_zone_monitor_next (zmon, 1);
-      monitor_halted = GNUNET_NO;
-    }
-  }
-  job_queue_length--;
   GNUNET_CONTAINER_DLL_remove (dht_jobs_head,
                                dht_jobs_tail,
                                job);
-  free_job (job);
+  cleanup_job (job);
 }
 
 
@@ -865,6 +882,9 @@ dispatch_job (const struct GNUNET_CRYPTO_PrivateKey *key,
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_assert (0 == pthread_mutex_lock (&sign_jobs_lock));
   job = GNUNET_new (struct RecordPublicationJob);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Public record count: %d\n",
+              rd_public_count);
+  job->have_public_records = (rd_public_count > 0);
   job->block = block;
   job->block_size = block_size;
   job->block_priv = block_priv;
@@ -925,33 +945,45 @@ initiate_put_from_pipe_trigger (void *cls)
     GNUNET_GNSRECORD_query_from_private_key (&job->zone,
                                              job->label,
                                              &query);
-    job->ph = GNUNET_DHT_put (dht_handle,
-                              &query,
-                              DHT_GNS_REPLICATION_LEVEL,
-                              GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
-                              GNUNET_BLOCK_TYPE_GNS_NAMERECORD,
-                              job->block_size,
-                              job->block,
-                              job->expire_pub,
-                              &dht_put_continuation,
-                              job);
-    if (NULL == job->ph)
+    // It is possible that the public block size is 0 (no public blocks)
+    // Do not bother with the DHT in that case
+    if (job->have_public_records)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Could not perform DHT PUT, is the DHT running?\n");
-      free_job (job);
-      return;
+      job->ph = GNUNET_DHT_put (dht_handle,
+                                &query,
+                                DHT_GNS_REPLICATION_LEVEL,
+                                GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE,
+                                GNUNET_BLOCK_TYPE_GNS_NAMERECORD,
+                                job->block_size,
+                                job->block,
+                                job->expire_pub,
+                                &dht_put_continuation,
+                                job);
+      if (NULL == job->ph)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Could not perform DHT PUT, is the DHT running?\n");
+        free_job (job);
+        return;
+      }
+      GNUNET_STATISTICS_update (statistics,
+                                "DHT put operations initiated",
+                                1,
+                                GNUNET_NO);
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Storing record(s) for label `%s' in DHT under key %s\n",
+                  job->label,
+                  GNUNET_h2s (&query));
+      refresh_block (job->block_priv);
+      GNUNET_CONTAINER_DLL_insert (dht_jobs_head, dht_jobs_tail, job);
     }
-    GNUNET_STATISTICS_update (statistics,
-                              "DHT put operations initiated",
-                              1,
-                              GNUNET_NO);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Storing record(s) for label `%s' in DHT under key %s\n",
-                job->label,
-                GNUNET_h2s (&query));
-    refresh_block (job->block_priv);
-    GNUNET_CONTAINER_DLL_insert (dht_jobs_head, dht_jobs_tail, job);
+    else
+    {
+      // Private blocks may still be available and must be updated
+      // in the cache
+      refresh_block (job->block_priv);
+      cleanup_job (job);
+    }
   }
 }
 
@@ -1180,6 +1212,9 @@ dispatch_job_monitor (const struct GNUNET_CRYPTO_PrivateKey *key,
   block_size = GNUNET_GNSRECORD_block_get_size (block);
   GNUNET_assert (0 == pthread_mutex_lock (&sign_jobs_lock));
   job = GNUNET_new (struct RecordPublicationJob);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Public record count: %d\n",
+              rd_public_count);
+  job->have_public_records = (rd_public_count > 0);
   job->block = block;
   job->block_size = block_size;
   job->block_priv = block_priv;
@@ -1454,6 +1489,10 @@ run (void *cls,
                              "pthread_create");
         GNUNET_SCHEDULER_shutdown ();
       }
+      GNUNET_STATISTICS_update (statistics,
+                                "Workers running",
+                                1,
+                                GNUNET_NO);
     }
   }
 }

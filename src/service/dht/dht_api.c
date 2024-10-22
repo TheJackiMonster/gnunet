@@ -1094,6 +1094,11 @@ GNUNET_DHT_put (struct GNUNET_DHT_Handle *handle,
   size_t msize;
   struct GNUNET_DHT_PutHandle *ph;
 
+  if (0 == size)
+  {
+    GNUNET_break (0);
+    return NULL;
+  }
   msize = sizeof(struct GNUNET_DHT_ClientPutMessage) + size;
   if ((msize >= GNUNET_MAX_MESSAGE_SIZE) ||
       (size >= GNUNET_MAX_MESSAGE_SIZE))
