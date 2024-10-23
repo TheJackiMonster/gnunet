@@ -69,59 +69,6 @@ GNUNET_xmalloc_ (size_t size,
 }
 
 
-void **
-GNUNET_xnew_array_2d_ (size_t n,
-                       size_t m,
-                       size_t elementSize,
-                       const char *filename,
-                       int linenumber)
-{
-  /* use char pointer internally to avoid void pointer arithmetic warnings */
-  char **ret = GNUNET_xmalloc_ (n * sizeof(void *)     /* 1. dim header */
-                                + n * m * elementSize, /* element data */
-                                filename,
-                                linenumber);
-
-  for (size_t i = 0; i < n; i++)
-    ret[i] = (char *) ret    /* base address */
-             + n * sizeof(void *)  /* skip 1. dim header */
-             + i * m * elementSize; /* skip to 2. dim row header */
-  return (void **) ret;
-}
-
-
-void ***
-GNUNET_xnew_array_3d_ (size_t n,
-                       size_t m,
-                       size_t o,
-                       size_t elementSize,
-                       const char *filename,
-                       int linenumber)
-{
-  /* use char pointer internally to avoid void pointer arithmetic warnings */
-  char ***ret = GNUNET_xmalloc_ (n * sizeof(void **)     /* 1. dim header */
-                                 + n * m * sizeof(void *)    /* 2. dim header */
-                                 + n * m * o * elementSize, /* element data */
-                                 filename,
-                                 linenumber);
-
-  for (size_t i = 0; i < n; i++)
-  {
-    /* need to cast to (char *) temporarily for byte level accuracy */
-    ret[i] = (char **) ((char *) ret   /* base address */
-                        + n * sizeof(void **)  /* skip 1. dim header */
-                        + i * m * sizeof(void *)); /* skip to 2. dim header */
-    for (size_t j = 0; j < m; j++)
-      ret[i][j] = (char *) ret    /* base address */
-                  + n * sizeof(void **)   /* skip 1. dim header */
-                  + n * m * sizeof(void *)   /* skip 2. dim header */
-                  + i * m * o * elementSize   /* skip to 2. dim part */
-                  + j * o * elementSize; /* skip to 3. dim row data */
-  }
-  return (void ***) ret;
-}
-
-
 void *
 GNUNET_xmemdup_ (const void *buf,
                  size_t size,
