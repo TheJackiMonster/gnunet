@@ -1532,7 +1532,8 @@ GNUNET_hex2b (const char *src, void *dst, size_t dstlen, int invert)
   int read_byte;
   int data_len = 0;
 
-  while (sscanf (data, " %02x%n", &read_byte, &off) == 1)
+  while ((data_len < dstlen) &&
+         (sscanf (data, " %02x%n", &read_byte, &off) == 1))
   {
     if (invert)
       buf[dstlen - 1 - data_len++] = read_byte;
@@ -1563,6 +1564,7 @@ GNUNET_print_bytes (const void *buf, size_t buf_len, int fold, int in_be)
   }
   printf ("\n");
 }
+
 
 void
 GNUNET_util_cl_init (void);
