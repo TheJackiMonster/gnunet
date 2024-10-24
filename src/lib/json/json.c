@@ -35,7 +35,13 @@ GNUNET_JSON_parse (const json_t *root,
                    unsigned int *error_line)
 {
   if (NULL == root)
+  {
+    if (NULL != error_json_name)
+      *error_json_name = "root is NULL";
+    if (NULL != error_line)
+      *error_line = 0;
     return GNUNET_SYSERR;
+  }
   for (unsigned int i = 0; NULL != spec[i].parser; i++)
   {
     json_t *pos;
