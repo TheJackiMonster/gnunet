@@ -480,9 +480,6 @@ main (int argc, char *const *argv)
   };
   int r;
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
   GNUNET_log_setup ("gnunet-gns-import", "WARNING", NULL);
   ret = 0;
   r = GNUNET_PROGRAM_run (argc, argv, "gnunet-gns-import",
@@ -490,7 +487,6 @@ main (int argc, char *const *argv)
                             "This program will import some GNS authorities into your GNS namestore."),
                           options,
                           &run, NULL);
-  GNUNET_free_nz ((void *) argv);
   return GNUNET_OK == r ? ret : 1;
 }
 
