@@ -902,7 +902,6 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
     }
     if (NULL != (eq = strchr (line, '=')))
     {
-      size_t i;
 
       if (NULL == section)
       {
@@ -916,7 +915,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       /* tag = value */
       tag = GNUNET_strndup (line, eq - line);
       /* remove tailing whitespace */
-      for (i = strlen (tag) - 1;
+      for (int i = strlen (tag) - 1;
            (i >= 1) && (isspace ((unsigned char) tag[i]));
            i--)
         tag[i] = '\0';
@@ -925,13 +924,12 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       value = eq + 1;
       while (isspace ((unsigned char) value[0]))
         value++;
-      for (i = strlen (value) - 1;
+      for (int i = strlen (value) - 1;
            (i >= 1) && (isspace ((unsigned char) value[i]));
            i--)
         value[i] = '\0';
 
       /* remove quotes */
-      i = 0;
       if ( ('"' == value[0]) &&
            ('"' == value[strlen (value) - 1]) )
       {
@@ -941,7 +939,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
       GNUNET_CONFIGURATION_set_value_string (cfg,
                                              section,
                                              tag,
-                                             &value[i]);
+                                             value);
       if (cfg->diagnostics)
       {
         set_entry_hint (cfg,
