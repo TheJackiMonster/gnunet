@@ -140,10 +140,6 @@ main (int argc,
   };
   int iret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return EXIT_FAILURE;
   if ( (NULL != pd->config_file) &&
        (NULL != pd->user_config_file) )
     cfgfile = GNUNET_CONFIGURATION_default_filename ();
@@ -202,7 +198,6 @@ main (int argc,
     GNUNET_free (prefixdir);
     GNUNET_free (libdir);
     GNUNET_free (cfgfile);
-    GNUNET_free_nz ((void *) argv);
     return 0;
   }
   if (NULL != backend_check)
@@ -216,7 +211,6 @@ main (int argc,
             GNUNET_PLUGIN_test (name)) ? 0 : 77;
     GNUNET_free (name);
     GNUNET_free (cfgfile);
-    GNUNET_free_nz ((void *) argv);
     return iret;
   }
 
@@ -234,7 +228,6 @@ main (int argc,
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Failed to load default configuration, exiting ...\n"));
-        GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
         GNUNET_free (cfgfile);
         return EXIT_FAILURE;
@@ -247,7 +240,6 @@ main (int argc,
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Failed to parse configuration, exiting ...\n"));
-        GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
         GNUNET_free (cfgfile);
         return EXIT_FAILURE;
@@ -261,7 +253,6 @@ main (int argc,
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Unreadable configuration file `%s', exiting ...\n"),
                     cfgfile);
-        GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
         GNUNET_free (cfgfile);
         return EXIT_FAILURE;
@@ -276,7 +267,6 @@ main (int argc,
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     _ ("Malformed configuration file `%s', exiting ...\n"),
                     cfgfile);
-        GNUNET_free_nz ((void *) argv);
         GNUNET_CONFIGURATION_destroy (cfg);
         GNUNET_free (cfgfile);
         return EXIT_FAILURE;
@@ -286,7 +276,6 @@ main (int argc,
                                           &argv[iret],
                                           cfgfile,
                                           cfg);
-    GNUNET_free_nz ((void *) argv);
     GNUNET_CONFIGURATION_config_settings_free (&cs);
     GNUNET_CONFIGURATION_destroy (cfg);
   }

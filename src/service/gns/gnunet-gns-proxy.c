@@ -3882,10 +3882,6 @@ main (int argc,
     "</head><body>cURL fail</body></html>";
   int ret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
   GNUNET_log_setup ("gnunet-gns-proxy",
                     "WARNING",
                     NULL);
@@ -3902,7 +3898,6 @@ main (int argc,
                          options,
                          &run, NULL)) ? 0 : 1;
   MHD_destroy_response (curl_failure_response);
-  GNUNET_free_nz ((char *) argv);
   return ret;
 }
 

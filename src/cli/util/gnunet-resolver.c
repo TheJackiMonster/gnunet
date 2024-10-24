@@ -172,18 +172,12 @@ main (int argc, char *const *argv)
   };
   int ret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
-
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (argc, argv,
                              "gnunet-resolver [hostname]",
                              gettext_noop ("Use built-in GNUnet stub resolver"),
                              options,
                              &run, NULL)) ? 0 : 1;
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

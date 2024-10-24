@@ -489,9 +489,6 @@ main (int argc, char *const *argv)
                                    &file_name),
     GNUNET_GETOPT_OPTION_END };
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
   if (GNUNET_OK !=
       GNUNET_PROGRAM_run (argc,
                           argv,
@@ -501,7 +498,6 @@ main (int argc, char *const *argv)
                           &run,
                           NULL))
     ret = 1;
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

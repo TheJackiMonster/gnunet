@@ -57,10 +57,6 @@ main (int argc,
   char *out;
   size_t out_size;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
   ret = GNUNET_GETOPT_run ("gnunet-base32",
                            options,
                            argc,
@@ -147,7 +143,6 @@ main (int argc,
     }
   }
   GNUNET_free (out);
-  GNUNET_free_nz ((void *) argv);
   return 0;
 }
 

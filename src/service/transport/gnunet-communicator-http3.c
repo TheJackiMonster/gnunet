@@ -3924,9 +3924,6 @@ main (int argc, char *const *argv)
   GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
                            "Starting http3 communicator\n");
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (argc,
                              argv,
@@ -3937,7 +3934,6 @@ main (int argc, char *const *argv)
                              NULL))
         ? 0
         : 1;
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

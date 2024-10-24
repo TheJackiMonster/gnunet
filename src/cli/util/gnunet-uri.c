@@ -166,8 +166,6 @@ main (int argc, char *const *argv)
   struct GNUNET_SIGNAL_Context *shc_chld;
   int ret;
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
   sigpipe = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE);
   GNUNET_assert (sigpipe != NULL);
   shc_chld =
@@ -184,7 +182,6 @@ main (int argc, char *const *argv)
   shc_chld = NULL;
   GNUNET_DISK_pipe_close (sigpipe);
   sigpipe = NULL;
-  GNUNET_free_nz ((void *) argv);
   return ((GNUNET_OK == ret) && (0 == exit_code)) ? 0 : 1;
 }
 

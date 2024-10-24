@@ -1001,10 +1001,6 @@ main (int argc,
   };
   int ret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
   GNUNET_log_setup ("gnunet-dns2gns",
                     "WARNING",
                     NULL);
@@ -1015,7 +1011,6 @@ main (int argc,
                          _ ("GNUnet DNS-to-GNS proxy (a DNS server)"),
                          options,
                          &run, NULL)) ? 0 : 1;
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

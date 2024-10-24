@@ -829,9 +829,6 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
   res = GNUNET_PROGRAM_run (argc,
                             argv,
                             "gnunet-cadet (OPTIONS | PEER_ID SHARED_SECRET)",
@@ -839,8 +836,6 @@ main (int argc, char *const *argv)
                             options,
                             &run,
                             NULL);
-
-  GNUNET_free_nz ((void *) argv);
 
   if (GNUNET_OK == res)
     return 0;

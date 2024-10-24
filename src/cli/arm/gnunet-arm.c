@@ -1036,12 +1036,6 @@ main (int argc, char *const *argv)
   };
   int lret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc,
-                                    argv,
-                                    &argc,
-                                    &argv))
-    return 2;
   if (GNUNET_OK ==
       (lret = GNUNET_PROGRAM_run (
          argc,
@@ -1053,10 +1047,8 @@ main (int argc, char *const *argv)
          &run,
          NULL)))
   {
-    GNUNET_free_nz ((void *) argv);
     return ret;
   }
-  GNUNET_free_nz ((void *) argv);
   return lret;
 }
 

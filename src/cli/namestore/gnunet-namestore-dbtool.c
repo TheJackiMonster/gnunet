@@ -173,11 +173,6 @@ main (int argc, char *const *argv)
   };
   int lret;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
-
   GNUNET_log_setup ("gnunet-namestore-dbtool",
                     "WARNING",
                     NULL);
@@ -191,9 +186,7 @@ main (int argc, char *const *argv)
                                   &run,
                                   NULL)))
   {
-    GNUNET_free_nz ((void *) argv);
     return lret;
   }
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }

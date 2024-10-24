@@ -1853,8 +1853,6 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
   int ret;
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
   if (GNUNET_OK != (ret = GNUNET_PROGRAM_run (argc,
                                               argv,
                                               "gnunet-zoneimport",
@@ -1863,7 +1861,6 @@ main (int argc, char *const *argv)
                                               &run,
                                               NULL)))
     return ret;
-  GNUNET_free_nz ((void *) argv);
   fprintf (stderr,
            "Rejected %u names, had %u cached, did %u lookups, stored %u record sets\n"
            "Found %u records, %u lookups failed, %u/%u pending on shutdown\n",

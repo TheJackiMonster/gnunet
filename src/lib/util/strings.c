@@ -1216,52 +1216,6 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
 }
 
 
-/**
- * Makes a copy of argv that consists of a single memory chunk that can be
- * freed with a single call to GNUNET_free();
- */
-static char *const *
-_make_continuous_arg_copy (int argc,
-                           char *const *argv)
-{
-  size_t argvsize = 0;
-  char **new_argv;
-  char *p;
-
-  for (int i = 0; i < argc; i++)
-  {
-    size_t ail = strlen (argv[i]);
-
-    GNUNET_assert (SIZE_MAX - 1 - sizeof (char *) > argvsize);
-    GNUNET_assert (SIZE_MAX - ail > argvsize + 1 + sizeof (char*));
-    argvsize += strlen (argv[i]) + 1 + sizeof(char *);
-  }
-  new_argv = GNUNET_malloc (argvsize + sizeof(char *));
-  p = (char *) &new_argv[argc + 1];
-  for (int i = 0; i < argc; i++)
-  {
-    new_argv[i] = p;
-    strcpy (p, argv[i]);
-    p += strlen (argv[i]) + 1;
-  }
-  new_argv[argc] = NULL;
-  return (char *const *) new_argv;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_STRINGS_get_utf8_args (int argc,
-                              char *const *argv,
-                              int *u8argc,
-                              char *const **u8argv)
-{
-  char *const *new_argv =
-    (char *const *) _make_continuous_arg_copy (argc, argv);
-  *u8argv = new_argv;
-  *u8argc = argc;
-  return GNUNET_OK;
-}
-
 
 /**
  * Parse the given port policy.  The format is

@@ -1208,8 +1208,6 @@ main (int argc, char *const *argv)
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "fcntl");
   stdin_fh = GNUNET_DISK_get_handle_from_int_fd (0);
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
   ret =
     GNUNET_PROGRAM_run (argc,
                         argv,
@@ -1219,7 +1217,6 @@ main (int argc, char *const *argv)
                         options,
                         &run,
                         NULL);
-  GNUNET_free_nz ((void *) argv);
   if (NULL != cfg)
   {
     GNUNET_CONFIGURATION_destroy (cfg);

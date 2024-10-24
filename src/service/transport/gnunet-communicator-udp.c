@@ -3931,6 +3931,7 @@ run (void *cls,
 }
 
 
-GNUNET_DAEMON_MAIN ("gnunet-communicator-udp", _ ("GNUnet UDP communicator"), &
-                    run)
+GNUNET_DAEMON_MAIN ("gnunet-communicator-udp",
+                    _ ("GNUnet UDP communicator"),
+                    &run)
 /* end of gnunet-communicator-udp.c */

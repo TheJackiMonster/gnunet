@@ -866,10 +866,6 @@ main (int argc, char *const *argv)
 
   remote_port = 0;
   remote_host = NULL;
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
 
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (argc,
@@ -886,7 +882,6 @@ main (int argc, char *const *argv)
                      num_nodes,
                      0);
   GNUNET_free (remote_host);
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

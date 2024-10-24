@@ -284,7 +284,6 @@ run (void *cls,
 int
 main (int argc, char *const *argv)
 {
-  char *u8_argv = NULL;
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_string (
       'k',
@@ -326,10 +325,6 @@ main (int argc, char *const *argv)
   };
 
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (
            argc,
@@ -342,9 +337,6 @@ main (int argc, char *const *argv)
            NULL))
          ? ret
          : 1;
-  // This is ugly, but meh. The GNUNET_STRINGS_get_utf8_args allows us to do this.
-  u8_argv = (char*) argv;
-  GNUNET_free (u8_argv);
   return ret;
 }
 

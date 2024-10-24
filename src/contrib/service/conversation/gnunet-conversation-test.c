@@ -245,11 +245,6 @@ main (int argc,
     GNUNET_GETOPT_OPTION_END
   };
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
-
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (argc, argv,
                              "gnunet-conversation-test",
@@ -257,7 +252,6 @@ main (int argc,
                              options,
                              &run,
                              NULL)) ? ret : 1;
-  GNUNET_free_nz ((void *) argv);
   return ret;
 }
 

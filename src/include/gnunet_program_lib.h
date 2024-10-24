@@ -145,9 +145,6 @@ GNUNET_PROGRAM_monolith_main (int argc,
           struct GNUNET_GETOPT_CommandLineOption options[] = { \
             GNUNET_GETOPT_OPTION_END \
           }; \
-          if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, \
-                                                         &argv)) \
-          return 2; \
           ret =  GNUNET_PROGRAM_run (argc, \
                                      argv, \
                                      daemon_name, \
@@ -155,7 +152,6 @@ GNUNET_PROGRAM_monolith_main (int argc,
                                      options, \
                                      init_cb, \
                                      NULL); \
-          GNUNET_free_nz ((void*) argv); \
           return ret; \
         }
 #else

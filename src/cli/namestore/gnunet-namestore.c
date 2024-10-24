@@ -2259,9 +2259,6 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
 
-  if (GNUNET_OK != GNUNET_STRINGS_get_utf8_args (argc, argv, &argc, &argv))
-    return 2;
-
   is_public = -1;
   is_shadow = -1;
   is_maintenance = -1;
@@ -2275,12 +2272,10 @@ main (int argc, char *const *argv)
                                   &run,
                                   NULL)))
   {
-    GNUNET_free_nz ((void *) argv);
     // FIXME
     // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
     return lret;
   }
-  GNUNET_free_nz ((void *) argv);
   // FIXME
   // GNUNET_CRYPTO_ecdsa_key_clear (&zone_pkey);
   return ret;

@@ -388,11 +388,6 @@ main (int argc, char *const *argv)
   int ret;
   timeout = GNUNET_TIME_UNIT_FOREVER_REL;
 
-  if (GNUNET_OK !=
-      GNUNET_STRINGS_get_utf8_args (argc, argv,
-                                    &argc, &argv))
-    return 2;
-
   GNUNET_log_setup ("gnunet-gns", "WARNING", NULL);
   ret = GNUNET_PROGRAM_run (argc,
                             argv,
@@ -401,7 +396,6 @@ main (int argc, char *const *argv)
                             options,
                             &run,
                             NULL);
-  GNUNET_free_nz ((void *) argv);
   if (GNUNET_OK != ret)
     return 1;
   return global_ret;
