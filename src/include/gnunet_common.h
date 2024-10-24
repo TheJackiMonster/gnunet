@@ -332,29 +332,6 @@ struct GNUNET_MessageHeader
 
 
 /**
- * Answer from service to client about last operation.
- */
-struct GNUNET_OperationResultMessage
-{
-  struct GNUNET_MessageHeader header;
-
-  uint32_t reserved GNUNET_PACKED;
-
-  /**
-   * Operation ID.
-   */
-  uint64_t op_id GNUNET_PACKED;
-
-  /**
-   * Status code for the operation.
-   */
-  uint64_t result_code GNUNET_PACKED;
-
-  /* Followed by data. */
-};
-
-
-/**
  * Identifier for an asynchronous execution context.
  */
 struct GNUNET_AsyncScopeId
