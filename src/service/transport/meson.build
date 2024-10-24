@@ -147,6 +147,7 @@ if quic_dep.found() and get_option('experimental')
 executable ('gnunet-communicator-quic',
             gnunetcommunicatorquic_src,
             dependencies: [libgnunettransportcommunicator_dep,
+                           libgnunettransportapplication_dep,
                            libgnunetpeerstore_dep,
                            libgnunetstatistics_dep,
                            libgnunetnat_dep,
