@@ -7,6 +7,7 @@ gnunetservicetransport_src = ['gnunet-service-transport.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
 gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
 gnunetcommunicatorhttp3_src = ['gnunet-communicator-http3.c']
+gnunetcommunicatorquic_src = ['gnunet-communicator-quic.c']
 gnunetcommunicatorunix_src = ['gnunet-communicator-unix.c']
 
 configure_file(input : 'transport.conf.in',
@@ -144,7 +145,7 @@ executable ('gnunet-communicator-tcp',
             install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 if quic_dep.found() and get_option('experimental')
 executable ('gnunet-communicator-quic',
-            gnunetcommunicatortcp_src,
+            gnunetcommunicatorquic_src,
             dependencies: [libgnunettransportcommunicator_dep,
                            libgnunetpeerstore_dep,
                            libgnunetstatistics_dep,

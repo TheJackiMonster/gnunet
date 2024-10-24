@@ -36,11 +36,8 @@
  */
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_core_service.h"
 #include "quiche.h"
 #include "platform.h"
-#include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_constants.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
@@ -93,11 +90,6 @@ static const struct GNUNET_CONFIGURATION_Handle *cfg;
 /**
  * FIXME undocumented
  */
-static struct GNUNET_TIME_Relative rekey_interval;
-
-/**
- * FIXME undocumented
- */
 static struct GNUNET_NETWORK_Handle *udp_sock;
 
 /**
@@ -124,11 +116,6 @@ static int have_v6_socket;
  * FIXME undocumented
  */
 static uint16_t my_port;
-
-/**
- * FIXME undocumented
- */
-static unsigned long long rekey_max_bytes;
 
 /**
  * FIXME undocumented
@@ -309,6 +296,7 @@ recv_from_streams (struct PeerAddress *peer)
   uint64_t s = 0;
   quiche_stream_iter *readable;
   bool fin;
+  uint64_t err_code;
   ssize_t recv_len;
 
   readable = quiche_conn_readable (peer->conn->conn);
@@ -319,11 +307,13 @@ recv_from_streams (struct PeerAddress *peer)
     fin = false;
     recv_len = quiche_conn_stream_recv (peer->conn->conn, s,
                                         (uint8_t *) stream_buf, buf_size,
-                                        &fin);
+                                        &fin, &err_code);
     if (recv_len < 0)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "error while receiving data from stream %" PRIu64 "\n", s);
+                  "error while receiving data from stream %" PRIu64
+                  "; error_code %" PRIu64 "\n",
+                  s, err_code);
       break;
     }
     /**
@@ -621,6 +611,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   struct PeerAddress *peer = impl_state;
   uint16_t msize = ntohs (msg->size);
   ssize_t send_len;
+  uint64_t err_code;
 
   if (NULL == peer->conn->conn)
   {
@@ -648,11 +639,13 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
   reschedule_peer_timeout (peer);
 
   send_len = quiche_conn_stream_send (peer->conn->conn, 4, (uint8_t *) msg,
-                                      msize, false);
+                                      msize, false, &err_code);
   if (send_len != msize)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "tried to send message and quiche returned %zd", send_len);
+                "tried to send message and quiche returned %zd; error_code %"
+                PRIu64,
+                send_len, err_code);
     return;
   }
   flush_egress (peer->conn);
@@ -988,52 +981,6 @@ notify_cb (void *cls,
 
 
 /**
- * Task run to check #receiver_heap and #sender_heap for timeouts.
- *
- * @param cls unused, NULL
- */
-static void
-check_timeouts (void *cls)
-{
-  // struct GNUNET_TIME_Relative st;
-  // struct GNUNET_TIME_Relative rt;
-  // struct GNUNET_TIME_Relative delay;
-  // struct ReceiverAddress *receiver;
-  // struct SenderAddress *sender;
-
-  // (void) cls;
-  // timeout_task = NULL;
-  // rt = GNUNET_TIME_UNIT_FOREVER_REL;
-  // while (NULL != (receiver = GNUNET_CONTAINER_heap_peek (receivers_heap)))
-  // {
-  //   /* if (GNUNET_YES != receiver->receiver_destroy_called) */
-  //   /* { */
-  //   rt = GNUNET_TIME_absolute_get_remaining (receiver->timeout);
-  //   if (0 != rt.rel_value_us)
-  //     break;
-  //   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-  //               "Receiver timed out\n");
-  //   receiver_destroy (receiver);
-  //   // }
-  // }
-  // st = GNUNET_TIME_UNIT_FOREVER_REL;
-  // while (NULL != (sender = GNUNET_CONTAINER_heap_peek (senders_heap)))
-  // {
-  //   if (GNUNET_YES != sender->sender_destroy_called)
-  //   {
-  //     st = GNUNET_TIME_absolute_get_remaining (sender->timeout);
-  //     if (0 != st.rel_value_us)
-  //       break;
-  //     sender_destroy (sender);
-  //   }
-  // }
-  // delay = GNUNET_TIME_relative_min (rt, st);
-  // if (delay.rel_value_us < GNUNET_TIME_UNIT_FOREVER_REL.rel_value_us)
-  //   timeout_task = GNUNET_SCHEDULER_add_delayed (delay, &check_timeouts, NULL);
-}
-
-
-/**
  * Function called by the transport service to initialize a
  * message queue given address information about another peer.
  * If and when the communication channel is established, the
@@ -1267,7 +1214,6 @@ static void
 sock_read (void *cls)
 {
   struct sockaddr_storage sa;
-  struct sockaddr_in *addr_verify;
   socklen_t salen = sizeof(sa);
   uint8_t buf[UINT16_MAX];
   uint8_t out[MAX_DATAGRAM_SIZE];
@@ -1275,7 +1221,6 @@ sock_read (void *cls)
 
   ssize_t process_pkt;
   struct QUIC_header quic_header;
-  uint8_t new_cid[LOCAL_CONN_ID_LEN];
 
   struct PeerAddress *peer;
   struct GNUNET_HashCode addr_key;
@@ -1337,9 +1282,9 @@ sock_read (void *cls)
      * Note that simply hashing the sockaddr does NOT work because the
      * the struct is not portable.
      */
-    const char *addr_string = sockaddr_to_udpaddr_string ((const struct
-                                                           sockaddr *) &sa,
-                                                          salen);
+    char *addr_string = sockaddr_to_udpaddr_string ((const struct
+                                                     sockaddr *) &sa,
+                                                    salen);
     GNUNET_CRYPTO_hash (addr_string, strlen (addr_string),
                         &addr_key);
     GNUNET_free (addr_string);
@@ -1511,17 +1456,20 @@ sock_read (void *cls)
         peer->is_receiver)
     {
       ssize_t send_len;
+      uint64_t err_code;
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "handshake established with peer, sending our peer id\n");
       send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI,
                                           (const uint8_t *) &my_identity,
                                           sizeof(my_identity),
-                                          false);
+                                          false, &err_code);
       if (0 > send_len)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "failed to write peer identity packet. quiche error: %zd\n",
+                    "failed to write peer identity packet. quiche error: %"
+                    PRIu64 "; len=%zd\n",
+                    err_code,
                     send_len);
         return;
       }
@@ -1731,6 +1679,7 @@ run (void *cls,
                                               &mq_init,
                                               NULL,
                                               &notify_cb,
+                                              NULL,
                                               NULL);
   is = GNUNET_NT_scanner_init ();
   nat = GNUNET_NAT_register (cfg,
