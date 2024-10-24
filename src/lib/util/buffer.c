@@ -266,11 +266,13 @@ GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
                                   const void *data,
                                   size_t data_len)
 {
-  size_t outlen = data_len * 8;
+  size_t outlen;
 
-  if (outlen % 5 > 0)
-    outlen += 5 - outlen % 5;
-  outlen /= 5;
+  GNUNET_assert (data_len <= SIZE_MAX / 8);
+  outlen = data_len * 8;
+
+  // https://bugs.gnunet.org/view.php?id=9279#c23545
+  outlen = (outlen + 4) / 5;
   GNUNET_buffer_ensure_remaining (buf,
                                   outlen);
   GNUNET_assert (NULL !=
