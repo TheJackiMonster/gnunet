@@ -276,6 +276,7 @@ GNUNET_xgrow_ (void **old,
   void *tmp;
   size_t size;
 
+  GNUNET_assert_at (elementSize > 0,  filename, linenumber);
   GNUNET_assert_at (INT_MAX / elementSize > newCount, filename, linenumber);
   size = newCount * elementSize;
   if (0 == size)
