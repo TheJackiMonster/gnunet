@@ -631,7 +631,6 @@ GNUNET_CRYPTO_ecdhe_elligator_key_get_public_norand (
   struct GNUNET_CRYPTO_ElligatorRepresentative *repr)
 {
   struct GNUNET_CRYPTO_EcdhePublicKey pub = {0};
-  // Continue if generate_public_key fails
   if (GNUNET_SYSERR ==
       elligator_generate_public_key (sk, &pub))
     return GNUNET_SYSERR;
