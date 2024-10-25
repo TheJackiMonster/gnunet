@@ -194,7 +194,13 @@ static mp_limb_t d[P_LIMBS];
 
 static mp_size_t scratch_space_length;
 
-// TODO
+/**
+ * This function decodes the byte buffer into
+ * the MPI limb
+ *
+ * @param number decoded number
+ * @param bytes input bytes to decode into number
+ */
 static void
 decode_bytes (mp_limb_t *number, const uint8_t *bytes)
 {
@@ -208,7 +214,13 @@ decode_bytes (mp_limb_t *number, const uint8_t *bytes)
 }
 
 
-// TODO
+/**
+ * This function encodes the MPI limb into
+ * a byte buffer
+ *
+ * @param bytes output bytes
+ * @param number number to encode
+ */
 static void
 encode_bytes (uint8_t *bytes, mp_limb_t *number)
 {
