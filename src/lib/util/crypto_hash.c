@@ -100,10 +100,7 @@ void
 GNUNET_CRYPTO_hash_create_random (enum GNUNET_CRYPTO_Quality mode,
                                   struct GNUNET_HashCode *result)
 {
-  for (ssize_t i = (sizeof(struct GNUNET_HashCode) / sizeof(uint32_t)) - 1;
-       i >= 0;
-       i--)
-    result->bits[i] = GNUNET_CRYPTO_random_u32 (mode, UINT32_MAX);
+  GNUNET_CRYPTO_random_block(mode, result, sizeof (*result));
 }
 
 
