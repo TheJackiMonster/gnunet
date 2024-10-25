@@ -32,7 +32,7 @@ test_common_logging_dummy_LDADD = \
  libgnunetutil.la
 
 gnunet_elligator_tvg_SOURCES = \
-  gnunet-elligator-tvg.c 
+  gnunet-elligator-tvg.c
 gnunet_elligator_tvg_LDADD = \
   libgnunetutil.la \
   -lsodium \
@@ -155,7 +155,7 @@ libgnunetutil_la_LIBADD = \
 
 libgnunetutil_la_LDFLAGS = \
   $(GN_LIB_LDFLAGS) \
-  -version-info 17:0:0
+  -version-info 18:0:0
 
 lib_LTLIBRARIES = libgnunetutil.la
 
