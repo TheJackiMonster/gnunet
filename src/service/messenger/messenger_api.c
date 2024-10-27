@@ -1015,8 +1015,12 @@ dequeue_message_from_room (void *cls)
     link_room_message (room, &other, &hash);
   }
   else
+  {
+    GNUNET_CRYPTO_private_key_clear (&key);
+
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Sending transcript aborted: Encryption failed!\n");
+  }
 
   destroy_message (transcript);
 
