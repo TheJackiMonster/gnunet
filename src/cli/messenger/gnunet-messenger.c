@@ -48,12 +48,13 @@ static void
 delay_shutdown (void *cls)
 {
   read_task = NULL;
-  
+
   if (waiting)
     return;
 
   GNUNET_SCHEDULER_shutdown ();
 }
+
 
 static void
 idle (void *cls);
@@ -80,7 +81,7 @@ on_message (void *cls,
   uint64_t waited;
   const char *sender_name;
   const char *recipient_name;
-  
+
   waited = waiting;
 
   if (GNUNET_YES == talk_mode)
@@ -90,11 +91,11 @@ on_message (void *cls,
       if (flags & GNUNET_MESSENGER_FLAG_SENT)
       {
         waiting = waiting > message->body.talk.length?
-          waiting - message->body.talk.length : 0;
+                  waiting - message->body.talk.length : 0;
       }
       else if ((GNUNET_YES != silence_flag) &&
-               (0 < write (1, message->body.talk.data, 
-                message->body.talk.length)))
+               (0 < write (1, message->body.talk.data,
+                           message->body.talk.length)))
       {
         fflush (stdout);
       }
@@ -125,7 +126,12 @@ on_message (void *cls,
   {
   case GNUNET_MESSENGER_KIND_JOIN:
     {
-      printf ("* '%s' joined the room!\n", sender_name);
+      printf ("* '%s' joins the room!\n", sender_name);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_LEAVE:
+    {
+      printf ("* '%s' leaves the room!\n", sender_name);
       break;
     }
   case GNUNET_MESSENGER_KIND_NAME:
@@ -134,15 +140,47 @@ on_message (void *cls,
               message->body.name.name);
       break;
     }
-  case GNUNET_MESSENGER_KIND_LEAVE:
+  case GNUNET_MESSENGER_KIND_KEY:
     {
-      printf ("* '%s' leaves the room!\n", sender_name);
+      printf ("* '%s' updates key!\n", sender_name);
       break;
     }
   case GNUNET_MESSENGER_KIND_PEER:
     {
-      printf ("* '%s' opened the room on: %s\n", sender_name,
+      printf ("* '%s' opens the room on: %s\n", sender_name,
               GNUNET_i2s_full (&(message->body.peer.peer)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_ID:
+    {
+      printf ("* '%s' changes id to: %s\n", sender_name,
+              GNUNET_sh2s (&(message->body.id.id)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_MISS:
+    {
+      printf ("* '%s' misses peer: %s\n", sender_name,
+              GNUNET_i2s_full (&(message->body.miss.peer)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_MERGE:
+    {
+      printf ("* '%s' merges: ", sender_name);
+      printf ("[%s ->", GNUNET_h2s (&(message->body.merge.previous)));
+      printf (" %s]\n", GNUNET_h2s (hash));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_REQUEST:
+    {
+      printf ("* '%s' requests: [%s]\n", sender_name,
+              GNUNET_h2s (&(message->body.request.hash)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_INVITE:
+    {
+      printf ("* '%s' invites to chat on: %s %s\n", sender_name,
+              GNUNET_i2s_full (&(message->body.invite.door)),
+              GNUNET_h2s_full (&(message->body.invite.key)));
       break;
     }
   case GNUNET_MESSENGER_KIND_TEXT:
@@ -164,7 +202,7 @@ on_message (void *cls,
         printf ("<");
 
       if (message->body.text.text)
-        printf (" '%s' says: \"%s\"\n", sender_name, 
+        printf (" '%s' says: \"%s\"\n", sender_name,
                 message->body.text.text);
       else
         printf (" '%s' mumbles\n", sender_name);
@@ -177,8 +215,67 @@ on_message (void *cls,
       else
         printf ("<");
 
-      printf(" '%s' shares: \"%s\"\n%s\n", sender_name, 
-             message->body.file.name, message->body.file.uri);
+      printf (" '%s' shares: \"%s\"\n%s\n", sender_name,
+              message->body.file.name, message->body.file.uri);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_PRIVATE:
+    {
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+        printf (">");
+      else
+        printf ("<");
+
+      printf (" '%s' whispers\n", sender_name);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_DELETE:
+    {
+      printf ("* '%s' deletes: [%s]\n", sender_name,
+              GNUNET_h2s (&(message->body.deletion.hash)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_CONNECTION:
+    {
+      printf ("* '%s' updates connection details: %u, %x\n",
+              sender_name,
+              message->body.connection.amount,
+              message->body.connection.flags);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_TICKET:
+    {
+      printf ("* '%s' provides ticket: %s\n", sender_name,
+              message->body.ticket.identifier);
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_TAG:
+    {
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+        printf (">");
+      else
+        printf ("<");
+
+      if (message->body.tag.tag)
+        printf (" '%s' tags [%s] with: \"%s\"\n", sender_name,
+                GNUNET_h2s (&(message->body.tag.hash)),
+                message->body.tag.tag);
+      else
+        printf (" '%s' blocks [%s]\n", sender_name,
+                GNUNET_h2s (&(message->body.tag.hash)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+    {
+      printf ("* '%s' subscribes: %s\n", sender_name,
+              GNUNET_sh2s (&(message->body.subscribe.discourse)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_TALK:
+    {
+      printf ("* '%s' talks %u bytes in: %s\n", sender_name,
+              message->body.talk.length,
+              GNUNET_sh2s (&(message->body.talk.discourse)));
       break;
     }
   default:
@@ -192,9 +289,9 @@ on_message (void *cls,
 skip_printing:
   if ((! read_task) && (! waiting) && (waited))
     read_task = GNUNET_SCHEDULER_add_with_priority (
-      GNUNET_SCHEDULER_PRIORITY_IDLE, 
+      GNUNET_SCHEDULER_PRIORITY_IDLE,
       delay_shutdown, NULL);
-  
+
   if ((GNUNET_MESSENGER_KIND_JOIN == message->header.kind) &&
       (flags & GNUNET_MESSENGER_FLAG_SENT))
   {
@@ -222,13 +319,14 @@ skip_printing:
       return;
 
     response.header.kind = GNUNET_MESSENGER_KIND_SUBSCRIBE;
-    response.body.subscribe.flags = GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE;
+    response.body.subscribe.flags =
+      GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE;
     response.body.subscribe.time =
-      GNUNET_TIME_relative_hton (GNUNET_TIME_relative_get_second_());
+      GNUNET_TIME_relative_hton (GNUNET_TIME_relative_get_second_ ());
 
-    memset(&(response.body.subscribe.discourse), 0,
-           sizeof(response.body.subscribe.discourse));
-    
+    memset (&(response.body.subscribe.discourse), 0,
+            sizeof(response.body.subscribe.discourse));
+
     GNUNET_MESSENGER_send_message (room, &response, NULL);
   }
 }
@@ -247,7 +345,7 @@ shutdown_hook (void *cls)
   struct GNUNET_MESSENGER_Room *room;
 
   GNUNET_assert (cls);
-  
+
   room = cls;
 
   if (read_task)
@@ -277,7 +375,7 @@ iterate_send_private_message (void *cls,
   struct GNUNET_MESSENGER_Message *message;
 
   GNUNET_assert ((cls) && (room) && (contact));
-  
+
   message = cls;
 
   if (GNUNET_MESSENGER_contact_get_key (contact))
@@ -323,8 +421,8 @@ read_stdio (void *cls)
     message.body.talk.length = length;
     message.body.talk.data = buffer;
 
-    memset(&(message.body.talk.discourse), 0,
-           sizeof(message.body.talk.discourse));
+    memset (&(message.body.talk.discourse), 0,
+            sizeof(message.body.talk.discourse));
   }
   else
   {
@@ -381,7 +479,7 @@ idle (void *cls)
   struct GNUNET_MESSENGER_Room *room;
 
   GNUNET_assert (cls);
-  
+
   room = cls;
 
   if ((GNUNET_YES != talk_mode) ||
@@ -428,7 +526,7 @@ on_identity (void *cls,
                                                                 &(door_peer.
                                                                   public_key))))
     door = &door_peer;
-  
+
   if ((GNUNET_YES == talk_mode) ||
       (GNUNET_YES == silence_flag))
     goto skip_welcome;
@@ -549,7 +647,8 @@ main (int argc,
                                  &room_key),
     GNUNET_GETOPT_option_flag ('p', "private", "flag to enable private mode",
                                &private_mode),
-    GNUNET_GETOPT_option_flag ('s', "silence", "flag to silence all others to send only",
+    GNUNET_GETOPT_option_flag ('s', "silence",
+                               "flag to silence all others to send only",
                                &silence_flag),
     GNUNET_GETOPT_option_flag ('t', "talk", "flag to enable talk mode",
                                &talk_mode),
