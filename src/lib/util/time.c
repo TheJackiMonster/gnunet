@@ -731,7 +731,7 @@ GNUNET_TIME_timestamp_from_s (uint64_t s_after_epoch)
 uint64_t
 GNUNET_TIME_timestamp_to_s (struct GNUNET_TIME_Timestamp ts)
 {
-  if (GNUNET_TIME_absolute_is_never (ts.abs_value))
+  if (GNUNET_TIME_absolute_is_never (ts.abs_time))
     return UINT64_MAX;
   return ts.abs_time.abs_value_us / GNUNET_TIME_UNIT_SECONDS.rel_value_us;
 }
