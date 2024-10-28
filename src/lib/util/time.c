@@ -218,7 +218,7 @@ GNUNET_TIME_timestamp2s (struct GNUNET_TIME_Timestamp ts)
   struct tm *tp;
 
   if (GNUNET_TIME_absolute_is_never (ts.abs_time))
-    return "end of time";
+    return "never";
   tt = ts.abs_time.abs_value_us / 1000LL / 1000LL;
   tp = localtime (&tt);
   /* This is hacky, but i don't know a way to detect libc character encoding.
@@ -243,7 +243,7 @@ GNUNET_TIME_absolute2s (struct GNUNET_TIME_Absolute t)
   struct tm *tp;
 
   if (GNUNET_TIME_absolute_is_never (t))
-    return "end of time";
+    return "never";
   tt = t.abs_value_us / 1000LL / 1000LL;
   tp = localtime (&tt);
   /* This is hacky, but i don't know a way to detect libc character encoding.
@@ -397,7 +397,7 @@ GNUNET_TIME_absolute_round_down (struct GNUNET_TIME_Absolute at,
   GNUNET_assert (! GNUNET_TIME_relative_is_zero (rt));
   ret.abs_value_us
     = at.abs_value_us
-    - at.abs_value_us % rt.rel_value_us;
+      - at.abs_value_us % rt.rel_value_us;
   return ret;
 }
 
@@ -504,7 +504,7 @@ GNUNET_TIME_relative_multiply (struct GNUNET_TIME_Relative rel,
 
 struct GNUNET_TIME_Relative
 GNUNET_TIME_relative_multiply_double (struct GNUNET_TIME_Relative rel,
-                          double factor)
+                                      double factor)
 {
   struct GNUNET_TIME_Relative out;
   double m;
@@ -731,6 +731,8 @@ GNUNET_TIME_timestamp_from_s (uint64_t s_after_epoch)
 uint64_t
 GNUNET_TIME_timestamp_to_s (struct GNUNET_TIME_Timestamp ts)
 {
+  if (GNUNET_TIME_absolute_is_never (ts.abs_value))
+    return UINT64_MAX;
   return ts.abs_time.abs_value_us / GNUNET_TIME_UNIT_SECONDS.rel_value_us;
 }
 
@@ -928,7 +930,8 @@ GNUNET_TIME_absolute_get_monotonic (
           if (NULL == map)
             GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                         _ (
-                          "Failed to map `%s', cannot assure monotonic time!\n"),
+                          "Failed to map `%s', cannot assure monotonic time!\n")
+                        ,
                         filename);
         }
         else
@@ -978,6 +981,7 @@ GNUNET_TIME_absolute_get_monotonic (
   }
   return now;
 }
+
 
 void
 GNUNET_util_time_fini (void);

@@ -54,6 +54,7 @@ struct GNUNET_TIME_Absolute
 {
   /**
    * The actual value.
+   * UINT64_MAX to represents "never".
    */
   uint64_t abs_value_us;
 };
@@ -64,7 +65,8 @@ struct GNUNET_TIME_Absolute
 struct GNUNET_TIME_Timestamp
 {
   /**
-   * The actual value. Must be a round number of seconds in microseconds.
+   * The actual value. Must be a round number of seconds in microseconds,
+   * or UINT64_MAX to represent "never".
    */
   struct GNUNET_TIME_Absolute abs_time;
 };
@@ -77,6 +79,7 @@ struct GNUNET_TIME_Relative
 {
   /**
    * The actual value.
+   * UINT64_MAX represents "forever".
    */
   uint64_t rel_value_us;
 };
@@ -90,6 +93,7 @@ struct GNUNET_TIME_RelativeNBO
 {
   /**
    * The actual value (in network byte order).
+   * UINT64_MAX represents "forever".
    */
   uint64_t rel_value_us__ GNUNET_PACKED;
 };
@@ -102,6 +106,7 @@ struct GNUNET_TIME_AbsoluteNBO
 {
   /**
    * The actual value (in network byte order).
+   * UINT64_MAX represents "never".
    */
   uint64_t abs_value_us__ GNUNET_PACKED;
 };
@@ -112,7 +117,8 @@ struct GNUNET_TIME_AbsoluteNBO
 struct GNUNET_TIME_TimestampNBO
 {
   /**
-   * The actual value. Must be round number in seconds.
+   * The actual value. Must be round number in seconds *or*
+   * UINT64_MAX to represent "never".
    */
   struct GNUNET_TIME_AbsoluteNBO abs_time_nbo;
 };
@@ -163,53 +169,55 @@ GNUNET_NETWORK_STRUCT_END
  * One day.
  */
 #define GNUNET_TIME_UNIT_DAYS    GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_HOURS, 24)
+          GNUNET_TIME_UNIT_HOURS, 24)
 
 /**
  * One week.
  */
 #define GNUNET_TIME_UNIT_WEEKS   GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_DAYS, 7)
+          GNUNET_TIME_UNIT_DAYS, 7)
 
 /**
  * One month (30 days).
  */
 #define GNUNET_TIME_UNIT_MONTHS  GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_DAYS, 30)
+          GNUNET_TIME_UNIT_DAYS, 30)
 
 /**
  * One year (365 days).
  */
 #define GNUNET_TIME_UNIT_YEARS   GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_DAYS, 365)
+          GNUNET_TIME_UNIT_DAYS, 365)
 
 /**
  * Constant used to specify "forever".  This constant
  * will be treated specially in all time operations.
  */
 #define GNUNET_TIME_UNIT_FOREVER_REL \
-  ((struct GNUNET_TIME_Relative){UINT64_MAX})
+        ((struct GNUNET_TIME_Relative){UINT64_MAX})
 
 /**
  * Constant used to specify "forever".  This constant
  * will be treated specially in all time operations.
  */
 #define GNUNET_TIME_UNIT_FOREVER_ABS \
-  ((struct GNUNET_TIME_Absolute){UINT64_MAX})
+        ((struct GNUNET_TIME_Absolute){UINT64_MAX})
+#define GNUNET_TIME_UNIT_NEVER_ABS \
+        ((struct GNUNET_TIME_Absolute){UINT64_MAX})
 
 /**
  * Constant used to specify "forever".  This constant
  * will be treated specially in all time operations.
  */
 #define GNUNET_TIME_UNIT_FOREVER_TS \
-  ((struct GNUNET_TIME_Timestamp){{UINT64_MAX}})
+        ((struct GNUNET_TIME_Timestamp){{UINT64_MAX}})
 
 
 /**
  * Threshold after which exponential backoff should not increase (15 m).
  */
 #define GNUNET_TIME_STD_EXPONENTIAL_BACKOFF_THRESHOLD \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 15)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 15)
 
 
 /**
@@ -219,9 +227,9 @@ GNUNET_NETWORK_STRUCT_END
  * @param r current backoff time, initially zero
  */
 #define GNUNET_TIME_STD_BACKOFF(r) GNUNET_TIME_relative_min ( \
-    GNUNET_TIME_STD_EXPONENTIAL_BACKOFF_THRESHOLD, \
-    GNUNET_TIME_relative_multiply ( \
-      GNUNET_TIME_relative_max (GNUNET_TIME_UNIT_MILLISECONDS, (r)), 2))
+          GNUNET_TIME_STD_EXPONENTIAL_BACKOFF_THRESHOLD, \
+          GNUNET_TIME_relative_multiply ( \
+            GNUNET_TIME_relative_max (GNUNET_TIME_UNIT_MILLISECONDS, (r)), 2))
 
 
 /**
@@ -411,7 +419,7 @@ GNUNET_TIME_timestamp_get (void);
  * @return true if @a t1 @a op @a t2
  */
 #define GNUNET_TIME_absolute_cmp(t1,op,t2) \
-  ((void) (1 op 2), (t1).abs_value_us op (t2).abs_value_us)
+        ((void) (1 op 2), (t1).abs_value_us op (t2).abs_value_us)
 
 
 /**
@@ -423,7 +431,7 @@ GNUNET_TIME_timestamp_get (void);
  * @return true if @a t1 @a op @a t2
  */
 #define GNUNET_TIME_timestamp_cmp(t1,op,t2) \
-  GNUNET_TIME_absolute_cmp ((t1).abs_time,op,(t2).abs_time)
+        GNUNET_TIME_absolute_cmp ((t1).abs_time,op,(t2).abs_time)
 
 
 /**
@@ -435,7 +443,7 @@ GNUNET_TIME_timestamp_get (void);
  * @return true if @a t1 @a op @a t2
  */
 #define GNUNET_TIME_relative_cmp(t1,op,t2) \
-  ((void) (1 op 2), (t1).rel_value_us op (t2).rel_value_us)
+        ((void) (1 op 2), (t1).rel_value_us op (t2).rel_value_us)
 
 
 /**
