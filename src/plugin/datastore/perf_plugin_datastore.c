@@ -28,7 +28,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_datastore_plugin.h"
 #include "gnunet_testing_lib.h"
-#include <gauger.h>
 
 /**
  * Target datastore size (in bytes).  Realistic sizes are
@@ -157,11 +156,6 @@ do_put (struct CpsRunContext *crc)
                                                      ->end),
                 GNUNET_YES),
               PUT_10);
-      if (PUT_10 > 0)
-        GAUGER (category, "Storing an item",
-                (crc->end.abs_value_us - crc->start.abs_value_us) / 1000LL
-                / PUT_10,
-                "ms/item");
     }
     crc->i++;
     crc->start = GNUNET_TIME_absolute_get ();
@@ -250,11 +244,6 @@ iterate_zeros (void *cls,
                                                    ->end),
               GNUNET_YES),
             bc, crc->cnt);
-    if (crc->cnt > 0)
-      GAUGER (category, "Select random zero-anonymity item",
-              (crc->end.abs_value_us - crc->start.abs_value_us) / 1000LL
-              / crc->cnt,
-              "ms/item");
     memset (hits, 0, sizeof(hits));
     crc->phase++;
     crc->cnt = 0;
@@ -303,11 +292,6 @@ expiration_get (void *cls,
                                                    ->end),
               GNUNET_YES),
             bc, (unsigned int) PUT_10);
-    if (crc->cnt > 0)
-      GAUGER (category, "Selecting and deleting by expiration",
-              (crc->end.abs_value_us - crc->start.abs_value_us) / 1000LL
-              / crc->cnt,
-              "ms/item");
     memset (hits, 0, sizeof(hits));
     if (++crc->iter == ITERATIONS)
       crc->phase++;
@@ -360,11 +344,6 @@ replication_get (void *cls,
                                                    ->end),
               GNUNET_YES),
             bc, (unsigned int) PUT_10);
-    if (crc->cnt > 0)
-      GAUGER (category, "Selecting random item for replication",
-              (crc->end.abs_value_us - crc->start.abs_value_us) / 1000LL
-              / crc->cnt,
-              "ms/item");
     memset (hits, 0, sizeof(hits));
     crc->phase++;
     crc->offset = 0;

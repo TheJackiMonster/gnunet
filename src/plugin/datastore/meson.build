@@ -37,6 +37,15 @@ testds_plugin_sqlite = executable ('test_plugin_datastore_sqlite',
             include_directories: [incdir, configuration_inc],
             install: false)
 
+perfds_plugin_sqlite = executable ('perf_plugin_datastore_sqlite',
+            ['perf_plugin_datastore.c'],
+            dependencies: [
+              libgnunetutil_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+
 testds_plugin_heap = executable ('test_plugin_datastore_heap',
             ['test_plugin_datastore.c'],
             dependencies: [
@@ -52,6 +61,23 @@ testds_plugin_pq = executable ('test_plugin_datastore_postgres',
               ],
             include_directories: [incdir, configuration_inc],
             install: false)
+
+perfds_plugin_heap = executable ('perf_plugin_datastore_heap',
+            ['perf_plugin_datastore.c'],
+            dependencies: [
+              libgnunetutil_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
+perfds_plugin_pq = executable ('perf_plugin_datastore_postgres',
+            ['perf_plugin_datastore.c'],
+            dependencies: [
+              libgnunetutil_dep,
+              ],
+            include_directories: [incdir, configuration_inc],
+            install: false)
+
 
 configure_file(input : 'test_defaults.conf',
                output : 'test_defaults.conf',
@@ -72,4 +98,9 @@ test('test_plugin_datastore_heap', testds_plugin_heap,
   suite: 'datastore', workdir: meson.current_build_dir())
 test('test_plugin_datastore_postgres', testds_plugin_pq,
   suite: 'datastore', workdir: meson.current_build_dir())
-
+test('perf_plugin_datastore_sqlite', perfds_plugin_sqlite,
+  suite: ['datastore', 'perf'], workdir: meson.current_build_dir())
+test('perf_plugin_datastore_heap', perfds_plugin_heap,
+  suite: ['datastore', 'perf'], workdir: meson.current_build_dir())
+test('perf_plugin_datastore_postgres', perfds_plugin_pq,
+  suite: ['datastore', 'perf'], workdir: meson.current_build_dir())
