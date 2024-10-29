@@ -51,6 +51,12 @@ derive_h (const void *pub,
           const char *context,
           struct GNUNET_HashCode *hc)
 {
+  /** NOTE: While (H)KDF calls this value a salt
+   *  it is not necessary for it to be a random value.
+   *  It is more common to use a NULL value here
+   *  (https://www.rfc-editor.org/rfc/rfc8446#section-7.1)
+   *  But it is safe either way (See RFC 5869)
+   */
   static const char *const salt = "key-derivation";
 
   GNUNET_CRYPTO_kdf (hc,
