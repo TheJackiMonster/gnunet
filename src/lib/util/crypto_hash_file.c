@@ -175,8 +175,9 @@ GNUNET_CRYPTO_hash_file (enum GNUNET_SCHEDULER_Priority priority,
   struct GNUNET_CRYPTO_FileHashContext *fhc;
 
   GNUNET_assert (blocksize > 0);
+  GNUNET_assert (blocksize <= (SIZE_MAX - sizeof (*fhc)));
   fhc =
-    GNUNET_malloc (sizeof(struct GNUNET_CRYPTO_FileHashContext) + blocksize);
+    GNUNET_malloc (sizeof(*fhc) + blocksize);
   fhc->callback = callback;
   fhc->callback_cls = callback_cls;
   fhc->buffer = (unsigned char *) &fhc[1];
