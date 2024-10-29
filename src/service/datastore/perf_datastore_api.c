@@ -36,7 +36,6 @@
 #include "gnunet_protocols.h"
 #include "gnunet_datastore_service.h"
 #include "gnunet_testing_lib.h"
-#include <gauger.h>
 
 /**
  * How long until we give up on transmitting the message?
@@ -482,12 +481,6 @@ run_continuation (void *cls)
                      plugin_name);
     if ((crc->i == ITERATIONS) && (stored_ops > 0))
     {
-      GAUGER (gstr,
-              "PUT operation duration",
-              GNUNET_TIME_absolute_get_duration (start_time).rel_value_us
-              / 1000LL
-              / stored_ops,
-              "ms/operation");
       fprintf (stdout,
                "\nPUT performance: %s for %llu operations\n",
                GNUNET_STRINGS_relative_time_to_string (

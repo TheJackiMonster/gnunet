@@ -29,7 +29,6 @@
 #include "gnunet_ats_service.h"
 #include "gnunet_transport_service.h"
 #include "gnunet_transport_hello_service.h"
-#include <gauger.h>
 
 /**
  * Note that this value must not significantly exceed
@@ -152,10 +151,6 @@ do_shutdown (void *cls)
   fprintf (stderr,
            "\nThroughput was %llu kb/s\n",
            total_bytes * 1000000LL / 1024 / delta);
-  GAUGER ("CORE",
-          "Core throughput/s",
-          total_bytes * 1000000LL / 1024 / delta,
-          "kb/s");
   if (NULL != err_task)
   {
     GNUNET_SCHEDULER_cancel (err_task);
