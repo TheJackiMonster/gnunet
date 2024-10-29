@@ -73,26 +73,16 @@ bernd_interop (void)
 }
 
 
-/**
- * Generate a random hashcode.
- */
-static void
-nextHC (struct GNUNET_HashCode *hc)
-{
-  GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK, hc);
-}
-
+static struct GNUNET_HashCode tmp[1000];
 
 static int
 add_iterator (void *cls, struct GNUNET_HashCode *next)
 {
   int *ret = cls;
-  struct GNUNET_HashCode pos;
 
-  if (0 == (*ret)--)
+  if (-1 == *ret)
     return GNUNET_NO;
-  nextHC (&pos);
-  *next = pos;
+  *next = tmp[(*ret)--];
   return GNUNET_YES;
 }
 
@@ -102,7 +92,6 @@ main (int argc, char *argv[])
 {
   struct GNUNET_CONTAINER_BloomFilter *bf;
   struct GNUNET_CONTAINER_BloomFilter *bfi;
-  struct GNUNET_HashCode tmp;
   int i;
   int ok1;
   int ok2;
@@ -118,7 +107,6 @@ main (int argc, char *argv[])
     bernd_interop ();
     return 0;
   }
-  GNUNET_CRYPTO_seed_weak_random (1);
   if (0 == stat (TESTFILE, &sbuf))
     if (0 != unlink (TESTFILE))
       GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "unlink", TESTFILE);
@@ -126,15 +114,13 @@ main (int argc, char *argv[])
 
   for (i = 0; i < 200; i++)
   {
-    nextHC (&tmp);
-    GNUNET_CONTAINER_bloomfilter_add (bf, &tmp);
+    GNUNET_CRYPTO_hash_create_random (GNUNET_CRYPTO_QUALITY_WEAK, &tmp[i]);
+    GNUNET_CONTAINER_bloomfilter_add (bf, &tmp[i]);
   }
-  GNUNET_CRYPTO_seed_weak_random (1);
   ok1 = 0;
   for (i = 0; i < 200; i++)
   {
-    nextHC (&tmp);
-    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp[i]) == GNUNET_YES)
       ok1++;
   }
   if (ok1 != 200)
@@ -158,15 +144,13 @@ main (int argc, char *argv[])
   bfi = GNUNET_CONTAINER_bloomfilter_init (buf, SIZE, K);
   GNUNET_assert (bfi != NULL);
 
-  GNUNET_CRYPTO_seed_weak_random (1);
   ok1 = 0;
   ok2 = 0;
   for (i = 0; i < 200; i++)
   {
-    nextHC (&tmp);
-    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp[i]) == GNUNET_YES)
       ok1++;
-    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp[i]) == GNUNET_YES)
       ok2++;
   }
   if (ok1 != 200)
@@ -189,24 +173,19 @@ main (int argc, char *argv[])
     return -1;
   }
 
-  GNUNET_CRYPTO_seed_weak_random (1);
   for (i = 0; i < 100; i++)
   {
-    nextHC (&tmp);
-    GNUNET_CONTAINER_bloomfilter_remove (bf, &tmp);
-    GNUNET_CONTAINER_bloomfilter_remove (bfi, &tmp);
+    GNUNET_CONTAINER_bloomfilter_remove (bf, &tmp[i]);
+    GNUNET_CONTAINER_bloomfilter_remove (bfi, &tmp[i]);
   }
-
-  GNUNET_CRYPTO_seed_weak_random (1);
 
   ok1 = 0;
   ok2 = 0;
   for (i = 0; i < 200; i++)
   {
-    nextHC (&tmp);
-    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp[i]) == GNUNET_YES)
       ok1++;
-    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp[i]) == GNUNET_YES)
       ok2++;
   }
 
@@ -230,14 +209,11 @@ main (int argc, char *argv[])
     return -1;
   }
 
-  GNUNET_CRYPTO_seed_weak_random (3);
-
   GNUNET_CONTAINER_bloomfilter_clear (bf);
   falseok = 0;
   for (i = 0; i < 1000; i++)
   {
-    nextHC (&tmp);
-    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp[i]) == GNUNET_YES)
       falseok++;
   }
   if (falseok > 0)
@@ -254,23 +230,18 @@ main (int argc, char *argv[])
     return -1;
   }
 
-  GNUNET_CRYPTO_seed_weak_random (2);
   i = 20;
   GNUNET_CONTAINER_bloomfilter_resize (bfi, &add_iterator, &i, SIZE * 2, K);
-
-  GNUNET_CRYPTO_seed_weak_random (2);
   i = 20;
   GNUNET_CONTAINER_bloomfilter_resize (bf, &add_iterator, &i, SIZE * 2, K);
-  GNUNET_CRYPTO_seed_weak_random (2);
 
   ok1 = 0;
   ok2 = 0;
   for (i = 0; i < 20; i++)
   {
-    nextHC (&tmp);
-    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bf, &tmp[i]) == GNUNET_YES)
       ok1++;
-    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp) == GNUNET_YES)
+    if (GNUNET_CONTAINER_bloomfilter_test (bfi, &tmp[i]) == GNUNET_YES)
       ok2++;
   }
 
