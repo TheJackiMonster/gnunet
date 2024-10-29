@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-10-10 09:10+0200\n"
+"POT-Creation-Date: 2024-10-29 20:38+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -242,7 +242,7 @@ msgid "don't let gnunet-service-arm inherit standard error"
 msgstr "no permite heredar la salida de error estándar a «gnunet-service-arm»"
 
 # Miguel: ARM se mantiene en todo el texto, aquí está la traducción.
-#: src/cli/arm/gnunet-arm.c:1051
+#: src/cli/arm/gnunet-arm.c:1045
 msgid "Control services and the Automated Restart Manager (ARM)"
 msgstr ""
 "Servicios de control y el Gestor de Reinicio Automático (ARM en inglés)"
@@ -362,27 +362,34 @@ msgid "Current local peer identity: %s\n"
 msgstr "Se produjo un fallo al procesar la identidad del par «%s»\n"
 
 #: src/cli/core/gnunet-core.c:231
+#, fuzzy, c-format
+msgid ""
+"Monitoring connections. Press CTRL-C to quit.\n"
+"\n"
+msgstr "Ahora solo monitorizando, pulsa CTRL-C para parar.\n"
+
+#: src/cli/core/gnunet-core.c:236
 #, fuzzy
 msgid "Failed to connect to CORE service!\n"
 msgstr "¡Se produjo un fallo al conectar con el servicio DHT!\n"
 
 # Miguel: ¿Quizá continuamente fuese mejor?
-#: src/cli/core/gnunet-core.c:256 src/service/transport/gnunet-transport.c:1389
+#: src/cli/core/gnunet-core.c:261 src/service/transport/gnunet-transport.c:1389
 msgid "provide information about all current connections (continuously)"
 msgstr ""
 "provee información sobre todas las conexiones actuales (de forma continua)"
 
-#: src/cli/core/gnunet-core.c:262
+#: src/cli/core/gnunet-core.c:267
 #, fuzzy
 msgid "Show our current peer identity"
 msgstr "identidad del par"
 
-#: src/cli/core/gnunet-core.c:269
+#: src/cli/core/gnunet-core.c:274
 #, fuzzy
 msgid "Show current connections"
 msgstr "# conexiones activas"
 
-#: src/cli/core/gnunet-core.c:280
+#: src/cli/core/gnunet-core.c:283
 msgid "Print information about connected peers."
 msgstr "Imprime información sobre los pares conectados."
 
@@ -458,7 +465,7 @@ msgstr "# bytes mandados al almacén de datos"
 msgid "File to dump or insert"
 msgstr ""
 
-#: src/cli/datastore/gnunet-datastore.c:499
+#: src/cli/datastore/gnunet-datastore.c:496
 #, fuzzy
 msgid "Manipulate GNUnet datastore"
 msgstr "Manipular ficheros de configuración de GNUnet"
@@ -494,38 +501,38 @@ msgstr "¡Se produjo un fallo al conectar con el servicio DHT!\n"
 msgid "Issuing DHT GET with key"
 msgstr "Enviando un «GET» DHT con clave"
 
-#: src/cli/dht/gnunet-dht-get.c:293 src/cli/dht/gnunet-dht-monitor.c:302
-#: src/cli/dht/gnunet-dht-put.c:201
+#: src/cli/dht/gnunet-dht-get.c:292 src/cli/dht/gnunet-dht-monitor.c:302
+#: src/cli/dht/gnunet-dht-put.c:200
 msgid "the query key"
 msgstr "la clave de búsqueda"
 
-#: src/cli/dht/gnunet-dht-get.c:299
+#: src/cli/dht/gnunet-dht-get.c:298
 msgid "how many parallel requests (replicas) to create"
 msgstr "cuantas peticiones paralelas (réplicas) crear"
 
-#: src/cli/dht/gnunet-dht-get.c:304 src/cli/dht/gnunet-dht-put.c:218
+#: src/cli/dht/gnunet-dht-get.c:303 src/cli/dht/gnunet-dht-put.c:217
 #, fuzzy
 msgid "use DHT's record route option"
 msgstr "opción para usar el demultiplexado de la DHT siempre"
 
-#: src/cli/dht/gnunet-dht-get.c:310 src/cli/dht/gnunet-dht-monitor.c:308
+#: src/cli/dht/gnunet-dht-get.c:309 src/cli/dht/gnunet-dht-monitor.c:308
 msgid "the type of data to look for"
 msgstr "el tipo de datos a buscar"
 
-#: src/cli/dht/gnunet-dht-get.c:316
+#: src/cli/dht/gnunet-dht-get.c:315
 msgid "how long to execute this query before giving up?"
 msgstr "¿cuánto tiempo se debe ejecutar esta consulta antes de abandonar?"
 
-#: src/cli/dht/gnunet-dht-get.c:322 src/cli/dht/gnunet-dht-put.c:207
+#: src/cli/dht/gnunet-dht-get.c:321 src/cli/dht/gnunet-dht-put.c:206
 msgid "use DHT's demultiplex everywhere option"
 msgstr "opción para usar el demultiplexado de la DHT siempre"
 
-#: src/cli/dht/gnunet-dht-get.c:339
+#: src/cli/dht/gnunet-dht-get.c:334
 msgid "Issue a GET request to the GNUnet DHT, prints results."
 msgstr ""
 "Iniciando una peticion «GET» a la DHT de GNUnet, imprimiendo resultados."
 
-#: src/cli/dht/gnunet-dht-hello.c:166
+#: src/cli/dht/gnunet-dht-hello.c:162
 msgid "Obtain HELLO from DHT or provide HELLO to DHT for bootstrapping"
 msgstr ""
 
@@ -537,7 +544,7 @@ msgstr "cuanto tiempo debe ejecutarse el comando de monitorización"
 msgid "be verbose (print progress information)"
 msgstr "ser prolijo (imprime información de progreso)"
 
-#: src/cli/dht/gnunet-dht-monitor.c:336
+#: src/cli/dht/gnunet-dht-monitor.c:333
 msgid "Prints all packets that go through the DHT."
 msgstr "Imprime todos los paquetes que pasan por la DHT."
 
@@ -555,23 +562,23 @@ msgstr "¡No se pudo conectar al servicio %s!\n"
 msgid "Issuing put request for `%s' with data `%s'!\n"
 msgstr "¡Iniciando petición de subida para «%s» con datos «%s»!\n"
 
-#: src/cli/dht/gnunet-dht-put.c:189
+#: src/cli/dht/gnunet-dht-put.c:188
 msgid "the data to insert under the key"
 msgstr "los datos a insertar bajo la clave"
 
-#: src/cli/dht/gnunet-dht-put.c:195
+#: src/cli/dht/gnunet-dht-put.c:194
 msgid "how long to store this entry in the dht (in seconds)"
 msgstr "cuanto tiempo almacenar esta entrada en la DHT (en segundos)"
 
-#: src/cli/dht/gnunet-dht-put.c:213
+#: src/cli/dht/gnunet-dht-put.c:212
 msgid "how many replicas to create"
 msgstr "cuantas réplicas crear"
 
-#: src/cli/dht/gnunet-dht-put.c:224
+#: src/cli/dht/gnunet-dht-put.c:223
 msgid "the type to insert data as"
 msgstr "el tipo de datos a insertar"
 
-#: src/cli/dht/gnunet-dht-put.c:242
+#: src/cli/dht/gnunet-dht-put.c:237
 msgid "Issue a PUT request to the GNUnet DHT insert DATA under KEY."
 msgstr ""
 "Inicianco una petición «PUT» a la DHT de GNUnet para insertar «DATA» bajo "
@@ -632,7 +639,7 @@ msgstr "especificar la prioridad del contenido"
 msgid "set the desired replication LEVEL"
 msgstr "establece el nivel LEVEL deseado de replicación"
 
-#: src/cli/fs/gnunet-auto-share.c:761
+#: src/cli/fs/gnunet-auto-share.c:759
 msgid "Automatically publish files from a directory on GNUnet"
 msgstr "Publicar automáticamente ficheros de un directorio en GNUnet"
 
@@ -665,7 +672,7 @@ msgstr "Se produjo un fallo al leer el directorio «%s»\n"
 msgid "`%s' is not a GNUnet directory\n"
 msgstr "«%s» no es un directorio GNUnet\n"
 
-#: src/cli/fs/gnunet-directory.c:201
+#: src/cli/fs/gnunet-directory.c:198
 msgid "Display contents of a GNUnet directory"
 msgstr "Muestra los contenidos de un directorio GNUnet"
 
@@ -754,7 +761,7 @@ msgstr "establece el número máximo de peticiones de bloque paralelas permitido
 msgid "download a GNUnet directory recursively"
 msgstr "descarga un directorio de GNUnet recursivamente"
 
-#: src/cli/fs/gnunet-download.c:374
+#: src/cli/fs/gnunet-download.c:371
 msgid ""
 "Download files from GNUnet using a GNUnet CHK or LOC URI (gnunet://fs/"
 "chk/...)"
@@ -766,7 +773,7 @@ msgstr ""
 msgid "print a list of all indexed files"
 msgstr "imprimir una lista de todos los ficheros indexados"
 
-#: src/cli/fs/gnunet-fs.c:178
+#: src/cli/fs/gnunet-fs.c:174
 msgid "Special file-sharing operations"
 msgstr "Operaciones especiales de compartición de ficheros"
 
@@ -977,7 +984,7 @@ msgstr ""
 "URI a ser publicada (puede ser usado en vez de pasar un fichero para añadir "
 "claves con el fichero con la URI respectiva)"
 
-#: src/cli/fs/gnunet-publish.c:999
+#: src/cli/fs/gnunet-publish.c:997
 msgid "Publish a file or directory on GNUnet"
 msgstr "Publicar un fichero o un directorio en GNUnet"
 
@@ -1086,7 +1093,7 @@ msgid ""
 "arguments - ignored when these are provided by the user)"
 msgstr ""
 
-#: src/cli/fs/gnunet-search.c:807
+#: src/cli/fs/gnunet-search.c:804
 #, fuzzy
 msgid "Search for files that have been published on GNUnet\n"
 msgstr "Buscar en GNUnet ficheros que han sido publicados en GNUnet"
@@ -1114,7 +1121,7 @@ msgstr "Se debe especificar uno y solo un fichero para desindexar.\n"
 msgid "Could not start unindex operation.\n"
 msgstr "No se pudo empezar la operación de desindexado.\n"
 
-#: src/cli/fs/gnunet-unindex.c:195
+#: src/cli/fs/gnunet-unindex.c:192
 msgid "Unindex a file that was previously indexed with gnunet-publish."
 msgstr "Desindexa un fichero previamente indexado con «gnunet-publish»."
 
@@ -1166,7 +1173,7 @@ msgstr "Sin salida innecesaria"
 msgid "DNS Compatibility: Name is passed in IDNA instead of UTF-8"
 msgstr ""
 
-#: src/cli/gns/gnunet-gns.c:400
+#: src/cli/gns/gnunet-gns.c:395
 #, fuzzy
 msgid "GNUnet GNS resolver tool"
 msgstr "Herramienta de acceso GNUnet GNS"
@@ -1193,7 +1200,7 @@ msgstr ""
 msgid "List all known HELLOs in peerstore"
 msgstr "mostrar todos los pares conocidos"
 
-#: src/cli/hello/gnunet-hello.c:436
+#: src/cli/hello/gnunet-hello.c:434
 msgid "Import/export/print HELLOs."
 msgstr ""
 
@@ -1263,7 +1270,7 @@ msgstr "modo de monitorización"
 msgid "display private keys as well"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:626
+#: src/cli/identity/gnunet-identity.c:622
 msgid "Maintain egos"
 msgstr ""
 
@@ -1303,8 +1310,8 @@ msgstr "nombre del registro a añadir/borrar/mostrar"
 msgid "specifies the public key of the zone to look in"
 msgstr "Especificar el tipo del registro a buscar"
 
-#: src/cli/namecache/gnunet-namecache.c:232
-#: src/cli/namestore/gnunet-namestore.c:2273
+#: src/cli/namecache/gnunet-namecache.c:229
+#: src/cli/namestore/gnunet-namestore.c:2270
 msgid "GNUnet zone manipulation tool"
 msgstr "Herramienta de manipulación de zona de GNUnet"
 
@@ -1326,8 +1333,8 @@ msgstr ""
 msgid "the namestore plugin to work with, e.g. 'sqlite'"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore-dbtool.c:189
-#: src/cli/namestore/gnunet-namestore-zonefile.c:719
+#: src/cli/namestore/gnunet-namestore-dbtool.c:184
+#: src/cli/namestore/gnunet-namestore-zonefile.c:716
 #, fuzzy
 msgid "GNUnet namestore database manipulation tool"
 msgstr "Herramienta de manipulación de zona de GNUnet"
@@ -1701,7 +1708,7 @@ msgstr ""
 msgid "write configuration file (for autoconfiguration)"
 msgstr "¡Ninguna aplicación definida en la configuración!\n"
 
-#: src/cli/nat-auto/gnunet-nat-auto.c:355
+#: src/cli/nat-auto/gnunet-nat-auto.c:353
 #, fuzzy
 msgid "GNUnet NAT traversal autoconfiguration"
 msgstr "Demonio de ayuda en las pruebas de recorrido NAT de GNUnet"
@@ -1729,7 +1736,7 @@ msgstr ""
 msgid "watch for connection reversal requests"
 msgstr "# pares desconectados debido a petición externa"
 
-#: src/cli/nat/gnunet-nat.c:464
+#: src/cli/nat/gnunet-nat.c:462
 #, fuzzy
 msgid "GNUnet NAT traversal autoconfigure daemon"
 msgstr "Demonio de ayuda en las pruebas de recorrido NAT de GNUnet"
@@ -2005,11 +2012,11 @@ msgstr ""
 msgid "number of epochs to calculate for"
 msgstr "número de pares para empezar"
 
-#: src/cli/revocation/gnunet-revocation.c:570
-#: src/contrib/cli/template/gnunet-template.c:75
-#: src/contrib/service/auction/gnunet-auction-info.c:77
-#: src/contrib/service/auction/gnunet-auction-join.c:77
-#: src/contrib/service/conversation/gnunet-conversation-test.c:256
+#: src/cli/revocation/gnunet-revocation.c:567
+#: src/contrib/cli/template/gnunet-template.c:72
+#: src/contrib/service/auction/gnunet-auction-info.c:72
+#: src/contrib/service/auction/gnunet-auction-join.c:72
+#: src/contrib/service/conversation/gnunet-conversation-test.c:251
 msgid "help text"
 msgstr "texto de ayuda"
 
@@ -2099,7 +2106,7 @@ msgstr "conectar a equipo remoto"
 msgid "port for remote host"
 msgstr "puerto del equipo remoto"
 
-#: src/cli/statistics/gnunet-statistics.c:879
+#: src/cli/statistics/gnunet-statistics.c:875
 msgid "Print statistics about GNUnet operations."
 msgstr "Imprime estadísticas acerca de las operaciones de GNUnet."
 
@@ -2141,22 +2148,22 @@ msgid ""
 "Parse main configuration from this command-line argument and not from disk"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:236
+#: src/cli/util/gnunet-config.c:230
 #, fuzzy
 msgid "Failed to load default configuration, exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:249
+#: src/cli/util/gnunet-config.c:242
 #, fuzzy
 msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:262 src/lib/util/program.c:287
+#: src/cli/util/gnunet-config.c:254 src/lib/util/program.c:287
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:277 src/lib/util/program.c:299
+#: src/cli/util/gnunet-config.c:268 src/lib/util/program.c:299
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
@@ -2257,7 +2264,7 @@ msgstr "imprime la clave pública en formato ASCII"
 msgid "print examples of ECC operations (used for compatibility testing)"
 msgstr ""
 
-#: src/cli/util/gnunet-ecc.c:505
+#: src/cli/util/gnunet-ecc.c:502
 msgid "Manipulate GNUnet private ECC key files"
 msgstr "Manipular los ficheros de clave privada ECC de GNUnet"
 
@@ -2345,7 +2352,7 @@ msgstr ""
 msgid "perform a reverse lookup"
 msgstr "realizar una búsqueda inversa"
 
-#: src/cli/util/gnunet-resolver.c:183
+#: src/cli/util/gnunet-resolver.c:178
 #, fuzzy
 msgid "Use built-in GNUnet stub resolver"
 msgstr "Utilizar el resolvedor interno para pruebas de GNUnet"
@@ -2376,7 +2383,7 @@ msgstr ""
 msgid "time to wait between calculations"
 msgstr ""
 
-#: src/cli/util/gnunet-scrypt.c:313
+#: src/cli/util/gnunet-scrypt.c:310
 #, fuzzy
 msgid "Manipulate GNUnet proof of work files"
 msgstr "Manipular los ficheros de clave privada ECC de GNUnet"
@@ -2401,7 +2408,7 @@ msgstr "URI no válida: falla al especificar el subsistema\n"
 msgid "No handler known for subsystem `%s'\n"
 msgstr "No hay un manejador conocido para el subsistema «%s»\n"
 
-#: src/cli/util/gnunet-uri.c:179
+#: src/cli/util/gnunet-uri.c:177
 msgid "Perform default-actions for GNUnet URIs"
 msgstr "Realizar las acciones predeterminadas para URI de GNUnet"
 
@@ -2466,7 +2473,7 @@ msgstr "el servicio es ofrecido vía TCP"
 msgid "service is offered via UDP"
 msgstr "el servicio es ofrecido vía UDP"
 
-#: src/cli/vpn/gnunet-vpn.c:353
+#: src/cli/vpn/gnunet-vpn.c:350
 msgid "Setup tunnels via VPN."
 msgstr "Configurar túneles vía VPN."
 
@@ -2586,7 +2593,7 @@ msgstr ""
 msgid "Indicates that the collect/verify process is done via forward search."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1103
+#: src/contrib/service/abd/gnunet-abd.c:1100
 #, fuzzy
 msgid "GNUnet abd resolver tool"
 msgstr "Herramienta de acceso GNUnet GNS"
@@ -2628,7 +2635,7 @@ msgstr "_Opciones"
 msgid "keep running in foreground until auction completes"
 msgstr ""
 
-#: src/contrib/service/auction/gnunet-auction-create.c:212
+#: src/contrib/service/auction/gnunet-auction-create.c:209
 msgid "create a new auction and start listening for bidders"
 msgstr ""
 
@@ -2917,7 +2924,7 @@ msgstr ""
 msgid "sets the LINE to use for the phone"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1218
+#: src/contrib/service/conversation/gnunet-conversation.c:1216
 msgid "Enables having a conversation with other GNUnet users."
 msgstr ""
 
@@ -3231,7 +3238,7 @@ msgstr ""
 msgid "Mutually exclusive records."
 msgstr ""
 
-#: src/lib/json/json.c:130
+#: src/lib/json/json.c:136
 #, fuzzy, c-format
 msgid "Failed to parse JSON in option `%s': %s (%s)\n"
 msgstr "Se produjo un fallo al procesar «HELLO» en el fichero «%s»\n"
@@ -3391,17 +3398,17 @@ msgstr ""
 "La configuración especifica un valor no válido en la opción «%s» de la "
 "sección «%s»: %s\n"
 
-#: src/lib/util/configuration.c:1080
+#: src/lib/util/configuration.c:1078
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/configuration.c:1744
+#: src/lib/util/configuration.c:1742
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Tiempo de expiración no válido para la operación «%s»\n"
 
-#: src/lib/util/configuration.c:1822
+#: src/lib/util/configuration.c:1820
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -4068,54 +4075,54 @@ msgstr ""
 msgid "Invalid IPv6 address `%s': %s\n"
 msgstr "Dirección IPv6 «%s» no válida: %s\n"
 
-#: src/lib/util/strings.c:1294 src/lib/util/strings.c:1305
+#: src/lib/util/strings.c:1248 src/lib/util/strings.c:1259
 msgid "Port not in range\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1314
+#: src/lib/util/strings.c:1268
 #, fuzzy, c-format
 msgid "Malformed port policy `%s'\n"
 msgstr "Se produjo un fallo al iniciar el servicio «%s»\n"
 
-#: src/lib/util/strings.c:1382 src/lib/util/strings.c:1414
-#: src/lib/util/strings.c:1462 src/lib/util/strings.c:1475
+#: src/lib/util/strings.c:1336 src/lib/util/strings.c:1368
+#: src/lib/util/strings.c:1416 src/lib/util/strings.c:1429
 #, c-format
 msgid "Invalid format for IP: `%s'\n"
 msgstr "Formato no válido para la IP: «%s»\n"
 
-#: src/lib/util/strings.c:1439
+#: src/lib/util/strings.c:1393
 #, c-format
 msgid "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."
 msgstr "Notación de red no válida («/%d» no es válido en IPv4 CIDR)."
 
-#: src/lib/util/strings.c:1484
+#: src/lib/util/strings.c:1438
 #, fuzzy, c-format
 msgid "Invalid format: `%s'\n"
 msgstr "Formato de tiempo no válido «%s»\n"
 
-#: src/lib/util/strings.c:1519
+#: src/lib/util/strings.c:1473
 #, c-format
 msgid "Invalid network notation (does not end with ';': `%s')\n"
 msgstr "Notación de red no válida (no termina con «;»: «%s»)\n"
 
-#: src/lib/util/strings.c:1585
+#: src/lib/util/strings.c:1539
 #, c-format
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Formato «%s» erroneo para máscara de red\n"
 
-#: src/lib/util/strings.c:1620
+#: src/lib/util/strings.c:1574
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Formato «%s» erroneo para red\n"
 
-#: src/lib/util/time.c:903 src/lib/util/time.c:931
+#: src/lib/util/time.c:905 src/lib/util/time.c:933
 #, fuzzy, c-format
 msgid "Failed to map `%s', cannot assure monotonic time!\n"
 msgstr ""
 "Se produjo un fallo al recuperar el espacio de nombres «%s», no se pudo "
 "retomar la operación de publicación.\n"
 
-#: src/lib/util/time.c:939
+#: src/lib/util/time.c:942
 #, c-format
 msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
@@ -4989,7 +4996,7 @@ msgstr ""
 msgid "timeout for DHT PUT and GET requests (default: 1 min)"
 msgstr ""
 
-#: src/service/dht/gnunet_dht_profiler.c:1026
+#: src/service/dht/gnunet_dht_profiler.c:1022
 #, fuzzy
 msgid "Measure quality and performance of the DHT service."
 msgstr "Medir la calidad y rendimiento del servicio NSE."
@@ -4999,7 +5006,7 @@ msgstr "Medir la calidad y rendimiento del servicio NSE."
 msgid "only monitor DNS queries"
 msgstr "sólo monitorizar consultas DNS"
 
-#: src/service/dns/gnunet-dns-monitor.c:404
+#: src/service/dns/gnunet-dns-monitor.c:402
 msgid "Monitor DNS queries."
 msgstr "Monitorizar consultas DNS."
 
@@ -5011,7 +5018,7 @@ msgstr "establece registros de clase A"
 msgid "set AAAA records"
 msgstr "establece registros de clase AAAA"
 
-#: src/service/dns/gnunet-dns-redirector.c:259
+#: src/service/dns/gnunet-dns-redirector.c:256
 msgid "Change DNS replies to point elsewhere."
 msgstr "Cambiar las respuestas DNS apuntando a cualquier otro lado."
 
@@ -5298,7 +5305,7 @@ msgstr "«%s» debe ser instalado con SUID, se niega a arrancar\n"
 msgid "No useful service enabled.  Exiting.\n"
 msgstr "Ningún servicio útil habilitado.  Saliendo.\n"
 
-#: src/service/exit/gnunet-daemon-exit.c:4128
+#: src/service/exit/gnunet-daemon-exit.c:4121
 msgid "Daemon to run to provide an IP exit node for the VPN"
 msgstr "Demonio a ejecutar para obtener un nodo de salida IP para la VPN"
 
@@ -5442,7 +5449,7 @@ msgstr "error interno decodificando árbol"
 msgid "Invalid URI"
 msgstr "URI no válida"
 
-#: src/service/fs/fs_getopt.c:237
+#: src/service/fs/fs_getopt.c:233
 #, c-format
 msgid ""
 "Unknown metadata type in metadata option `%s'.  Using metadata type "
@@ -5722,7 +5729,7 @@ msgstr "¡Ninguna palabra clave especificada!\n"
 msgid "Number of double-quotes not balanced!\n"
 msgstr "¡Número de comillas dobles no balanceado!\n"
 
-#: src/service/fs/gnunet-daemon-fsprofiler.c:668
+#: src/service/fs/gnunet-daemon-fsprofiler.c:666
 msgid "Daemon to use file-sharing to measure its performance."
 msgstr "Demonio para medir el rendimiento de usar compartición de archivos."
 
@@ -5740,7 +5747,7 @@ msgstr ""
 msgid "automatically terminate experiment after DELAY"
 msgstr "termina el experimento automáticamente despues de «DELAY»"
 
-#: src/service/fs/gnunet-fs-profiler.c:237
+#: src/service/fs/gnunet-fs-profiler.c:234
 msgid "run a testbed to measure file-sharing performance"
 msgstr ""
 "ejecuta una batería de pruebas para medir el rendimiento de la compartición "
@@ -6137,7 +6144,7 @@ msgstr "¡Ninguna palabra clave especificada!\n"
 msgid "IP of recursive DNS resolver to use (required)"
 msgstr "IP del resolvedor recursivo DNS a usar (requerido)"
 
-#: src/service/gns/gnunet-dns2gns.c:1015
+#: src/service/gns/gnunet-dns2gns.c:1011
 msgid "GNUnet DNS-to-GNS proxy (a DNS server)"
 msgstr "Pasarela GNUnet DNS-a-GNS (un servidor DNS)"
 
@@ -6154,7 +6161,7 @@ msgstr "¿cuánto tiempo se debe ejecutar? 0 = para siempre"
 msgid "look for GNS2DNS records instead of ANY"
 msgstr ""
 
-#: src/service/gns/gnunet-gns-import.c:490
+#: src/service/gns/gnunet-gns-import.c:487
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
@@ -6269,7 +6276,7 @@ msgstr "fichero pem para usar como autoridad de certificación (CA)"
 msgid "disable use of IPv6"
 msgstr ""
 
-#: src/service/gns/gnunet-gns-proxy.c:3901
+#: src/service/gns/gnunet-gns-proxy.c:3897
 msgid "GNUnet GNS proxy"
 msgstr "Proxy GNUnet GNS"
 
@@ -6279,13 +6286,13 @@ msgid "Properly base32-encoded public key required"
 msgstr "Tipo requerido\n"
 
 #: src/service/gns/gnunet-service-gns.c:553
-#: src/service/zonemaster/gnunet-service-zonemaster.c:1352
+#: src/service/zonemaster/gnunet-service-zonemaster.c:1387
 #, fuzzy
 msgid "Failed to connect to the namecache!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
 #: src/service/gns/gnunet-service-gns.c:572
-#: src/service/zonemaster/gnunet-service-zonemaster.c:1391
+#: src/service/zonemaster/gnunet-service-zonemaster.c:1426
 msgid "Could not connect to DHT!\n"
 msgstr "¡No se pudo conectar a la DHT!\n"
 
@@ -6404,7 +6411,7 @@ msgstr ""
 msgid "provide a hostlist server"
 msgstr "proveer un servidor de listas de máquinas"
 
-#: src/service/hostlist/gnunet-daemon-hostlist.c:393
+#: src/service/hostlist/gnunet-daemon-hostlist.c:390
 msgid "GNUnet hostlist server and client"
 msgstr "Servidor y cliente GNUnet de listas de máquinas"
 
@@ -7022,7 +7029,7 @@ msgstr "# Respuestas DNS (¿demasiado tarde?)"
 msgid "Failed to connect to %s service.  Exiting.\n"
 msgstr "Se produjo un fallo al conectar con el servicio %s.  Saliendo.\n"
 
-#: src/service/pt/gnunet-daemon-pt.c:1314
+#: src/service/pt/gnunet-daemon-pt.c:1309
 msgid "Daemon to run to perform IP protocol translation to GNUnet"
 msgstr ""
 "Demonio a ejecutar para realizar la traducción de protocolo IP a GNUnet"
@@ -7039,7 +7046,7 @@ msgstr ""
 "El servicio %s carece de opciones de configuración de clave (%s).  "
 "Saliendo.\n"
 
-#: src/service/regex/gnunet-daemon-regexprofiler.c:384
+#: src/service/regex/gnunet-daemon-regexprofiler.c:382
 #, fuzzy
 msgid "Daemon to announce regular expressions for the peer using cadet."
 msgstr "Demonio para anunciar expresiones regulares para el par usando mesh."
@@ -7096,7 +7103,7 @@ msgstr "nombre del fichero para escribir las estadísticas"
 msgid "name of file with hosts' names"
 msgstr "nombre del fichero para escribir las estadísticas"
 
-#: src/service/regex/gnunet-regex-profiler.c:1581
+#: src/service/regex/gnunet-regex-profiler.c:1577
 msgid "Profiler for regex"
 msgstr "Perfilador para expresiones regulares."
 
@@ -7209,7 +7216,7 @@ msgstr ""
 msgid "configuration template"
 msgstr "plantilla de configuración"
 
-#: src/service/testbed/gnunet-testbed.c:218
+#: src/service/testbed/gnunet-testbed.c:213
 msgid "Command line tool to access the testing library"
 msgstr ""
 "Herramienta de línea de comandos para acceder a la biblioteca de pruebas"
@@ -7245,12 +7252,12 @@ msgstr ""
 msgid "# HELLO messages received"
 msgstr "# mensajes «HELLO» recibidos"
 
-#: src/service/topology/gnunet-daemon-topology.c:1091
+#: src/service/topology/gnunet-daemon-topology.c:1088
 msgid "GNUnet topology control"
 msgstr ""
 
 #: src/service/transport/gnunet-communicator-http3.c:3871
-#: src/service/transport/gnunet-communicator-quic.c:1717
+#: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
 #: src/service/transport/gnunet-service-transport.c:13026
@@ -7260,22 +7267,22 @@ msgstr ""
 "El servicio de transporte carece de opciones de configuración de clave.  "
 "Saliendo.\n"
 
-#: src/service/transport/gnunet-communicator-http3.c:3934
+#: src/service/transport/gnunet-communicator-http3.c:3931
 #, fuzzy
 msgid "GNUnet HTTP3 communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-quic.c:1787
+#: src/service/transport/gnunet-communicator-quic.c:1733
 #, fuzzy
 msgid "GNUnet QUIC communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-tcp.c:4230
+#: src/service/transport/gnunet-communicator-tcp.c:4226
 #, fuzzy
 msgid "GNUnet TCP communicator"
 msgstr "Configurador Gtk de GNUnet"
 
-#: src/service/transport/gnunet-communicator-udp.c:3934
+#: src/service/transport/gnunet-communicator-udp.c:3935
 #, fuzzy
 msgid "GNUnet UDP communicator"
 msgstr "Configurador Gtk de GNUnet"
@@ -7297,7 +7304,7 @@ msgstr ""
 msgid "Cannot create path to `%s'\n"
 msgstr "Se produjo un fallo al crear la página para «%s»\n"
 
-#: src/service/transport/gnunet-communicator-unix.c:1138
+#: src/service/transport/gnunet-communicator-unix.c:1135
 msgid "GNUnet UNIX domain socket communicator"
 msgstr ""
 
@@ -7460,7 +7467,7 @@ msgstr "# sesiones wlan pendientes"
 msgid "send data for benchmarking to the other peer (until CTRL-C)"
 msgstr "enviar data para prueba a otro par (hasta CTRL-C)"
 
-#: src/service/transport/gnunet-transport.c:1426
+#: src/service/transport/gnunet-transport.c:1423
 msgid "Direct access to transport service."
 msgstr "Acceso directo al servicio de transporte."
 
@@ -7586,12 +7593,12 @@ msgid "IPv4 support disabled as this system does not support IPv4\n"
 msgstr ""
 "El soporte de IPv4 se deshabilita porque este sistema no soporta IPv4\n"
 
-#: src/service/zonemaster/gnunet-service-zonemaster.c:502
+#: src/service/zonemaster/gnunet-service-zonemaster.c:507
 #, fuzzy, c-format
 msgid "Failed to replicate block in namecache: %s\n"
 msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 
-#: src/service/zonemaster/gnunet-service-zonemaster.c:1339
+#: src/service/zonemaster/gnunet-service-zonemaster.c:1374
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 
