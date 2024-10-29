@@ -326,9 +326,10 @@ GNUNET_asprintf (char **buf,
   GNUNET_assert (ret >= 0);
   *buf = GNUNET_malloc (ret + 1);
   va_start (args, format);
-  ret = vsprintf (*buf,
-                  format,
-                  args);
+  ret = vsnprintf (*buf,
+                   ret + 1,
+                   format,
+                   args);
   va_end (args);
   return ret;
 }
