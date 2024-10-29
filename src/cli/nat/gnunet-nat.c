@@ -196,7 +196,7 @@ stun_read_task (void *cls)
                                          &stun_read_task,
                                          NULL);
   size = GNUNET_NETWORK_socket_recvfrom_amount (ls);
-  if (size > 0)
+  if (size < 0)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
