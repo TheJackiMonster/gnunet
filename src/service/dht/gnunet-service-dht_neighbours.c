@@ -1323,7 +1323,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                             "# PUT messages queued for transmission",
                             target_count,
                             GNUNET_NO);
-  return (0 < target_count) ? GNUNET_OK : GNUNET_NO;
+  return GNUNET_OK;
 }
 
 
