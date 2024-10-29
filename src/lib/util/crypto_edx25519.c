@@ -220,7 +220,7 @@ derive_h (
   size_t seedsize,
   struct GNUNET_HashCode *phc)
 {
-    /** NOTE: While (H)KDF calls this value a salt
+  /** NOTE: While (H)KDF calls this value a salt
    *  it is not necessary for it to be a random value.
    *  It is more common to use a NULL value here
    *  (https://www.rfc-editor.org/rfc/rfc8446#section-7.1)
@@ -229,14 +229,14 @@ derive_h (
   static const char *const salt = "edx25519-derivation";
 
   GNUNET_CRYPTO_kdf (/* output*/
-                     phc, sizeof(*phc),
-                     /* salt */
-                     seed, seedsize,
-                     /* ikm */
-                     pub, sizeof(*pub),
-                     /* ctx chunks*/
-                     salt, strlen (salt),
-                     NULL, 0);
+    phc, sizeof(*phc),
+    /* salt */
+    salt, strlen (salt),
+    /* ikm */
+    pub, sizeof(*pub),
+    /* ctx chunks*/
+    seed, seedsize,
+    NULL, 0);
 
 }
 
