@@ -69,6 +69,7 @@ GNUNET_CRYPTO_ecc_dlog_prepare (unsigned int max,
   int K = ((max + (mem - 1)) / mem);
 
   GNUNET_assert (max < INT32_MAX);
+  GNUNET_assert (mem <= UINT32_MAX / 2);
   edc = GNUNET_new (struct GNUNET_CRYPTO_EccDlogContext);
   edc->max = max;
   edc->mem = mem;
