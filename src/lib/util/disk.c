@@ -151,17 +151,17 @@ get_size_rec (void *cls, const char *fn)
   ! (defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS == 64)
   struct stat64 buf;
 
-  if (0 != stat64 (fn, &buf))
+  if (0 != lstat64 (fn, &buf))
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "stat64", fn);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "lstat64", fn);
     return GNUNET_SYSERR;
   }
 #else
   struct stat buf;
 
-  if (0 != stat (fn, &buf))
+  if (0 != lstat (fn, &buf))
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "stat", fn);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "lstat", fn);
     return GNUNET_SYSERR;
   }
 #endif
