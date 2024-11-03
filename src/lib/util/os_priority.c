@@ -360,8 +360,7 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
     GNUNET_DISK_pipe_close (childpipe);
     if ((NULL == childpipe_read) || (NULL == childpipe_write) ||
         (GNUNET_OK != GNUNET_DISK_internal_file_handle_ (childpipe_read,
-                                                         &childpipe_read_fd,
-                                                         sizeof(int))) ||
+                                                         &childpipe_read_fd)) ||
         (-1 == (dup_childpipe_read_fd = dup (childpipe_read_fd))))
     {
       if (NULL != childpipe_read)
@@ -386,14 +385,12 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stdin, GNUNET_DISK_PIPE_END_READ),
-        &fd_stdin_read,
-        sizeof(int)));
+        &fd_stdin_read));
     GNUNET_assert (
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stdin, GNUNET_DISK_PIPE_END_WRITE),
-        &fd_stdin_write,
-        sizeof(int)));
+        &fd_stdin_write));
   }
   if (NULL != pipe_stdout)
   {
@@ -401,14 +398,12 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stdout, GNUNET_DISK_PIPE_END_WRITE),
-        &fd_stdout_write,
-        sizeof(int)));
+        &fd_stdout_write));
     GNUNET_assert (
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stdout, GNUNET_DISK_PIPE_END_READ),
-        &fd_stdout_read,
-        sizeof(int)));
+        &fd_stdout_read));
   }
   if (NULL != pipe_stderr)
   {
@@ -416,14 +411,12 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stderr, GNUNET_DISK_PIPE_END_READ),
-        &fd_stderr_read,
-        sizeof(int)));
+        &fd_stderr_read));
     GNUNET_assert (
       GNUNET_OK ==
       GNUNET_DISK_internal_file_handle_ (
         GNUNET_DISK_pipe_handle (pipe_stderr, GNUNET_DISK_PIPE_END_WRITE),
-        &fd_stderr_write,
-        sizeof(int)));
+        &fd_stderr_write));
   }
   lscp = NULL;
   ls = 0;

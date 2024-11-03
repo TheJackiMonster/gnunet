@@ -35,11 +35,10 @@
  * @internal
  * @param fh GNUnet file descriptor
  * @param dst destination buffer
- * @param dst_len length of @a dst
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
-                                   void *dst, size_t dst_len);
+                                   int *dst);
 
 #endif /* GNUNET_DISK_H_ */

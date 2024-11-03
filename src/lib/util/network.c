@@ -1095,9 +1095,7 @@ GNUNET_NETWORK_fdset_handle_set (struct GNUNET_NETWORK_FDSet *fds,
   int fd;
 
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_DISK_internal_file_handle_ (h,
-                                                    &fd,
-                                                    sizeof(int)));
+                 GNUNET_DISK_internal_file_handle_ (h, &fd));
   FD_SET (fd,
           &fds->sds);
   fds->nsds = GNUNET_MAX (fd + 1,

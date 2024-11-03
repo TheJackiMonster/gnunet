@@ -31,10 +31,10 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-disk", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-disk", syscall)
+        GNUNET_log_from_strerror (kind, "util-disk", syscall)
 
 #define LOG_STRERROR_FILE(kind, syscall, filename) \
-  GNUNET_log_from_strerror_file (kind, "util-disk", syscall, filename)
+        GNUNET_log_from_strerror_file (kind, "util-disk", syscall, filename)
 
 /**
  * Block size for IO for copying files.
@@ -58,7 +58,7 @@
 #ifndef S_ISLNK
 #define _IFMT 0170000 /* type of file */
 #define _IFLNK 0120000 /* symbolic link */
-#define S_ISLNK(m) (((m) & _IFMT) == _IFLNK)
+#define S_ISLNK(m) (((m)&_IFMT) == _IFLNK)
 #endif
 
 
@@ -1180,7 +1180,7 @@ GNUNET_DISK_file_copy (const char *src,
   GNUNET_DISK_file_close (in);
   GNUNET_DISK_file_close (out);
   return GNUNET_OK;
-  FAIL:
+FAIL:
   GNUNET_free (buf);
   GNUNET_DISK_file_close (in);
   GNUNET_DISK_file_close (out);
@@ -1633,14 +1633,11 @@ GNUNET_DISK_pipe_handle (const struct GNUNET_DISK_PipeHandle *p,
 
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
-                                   void *dst,
-                                   size_t dst_len)
+                                   int *dst)
 {
   if (NULL == fh)
     return GNUNET_SYSERR;
-  if (dst_len < sizeof(int))
-    return GNUNET_SYSERR;
-  *((int *) dst) = fh->fd;
+  *dst = fh->fd;
   return GNUNET_OK;
 }
 
