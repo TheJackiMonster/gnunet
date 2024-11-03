@@ -1017,7 +1017,6 @@ GNUNET_DISK_glob (const char *glob_pattern,
 
   if ( (NULL != strrchr (glob_pattern, '+')) ||
        (NULL != strrchr (glob_pattern, '[')) ||
-       (NULL != strrchr (glob_pattern, '+')) ||
        (NULL != strrchr (glob_pattern, '~')) )
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
