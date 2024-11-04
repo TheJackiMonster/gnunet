@@ -1250,6 +1250,9 @@ GNUNET_DISK_file_open (const char *fn,
     }
   }
 
+  // Setting O_CLOEXEC after pipe() may introduce
+  // race conditions: https://bugs.gnunet.org/view.php?id=9311
+  // This is no problem if the platform supports pipe2
   fd = open (expfn,
              oflags
 #if O_CLOEXEC
@@ -1417,7 +1420,11 @@ GNUNET_DISK_pipe (enum GNUNET_DISK_PipeFlags pf)
 {
   int fd[2];
 
+#if HAVE_PIPE2 && O_CLOEXEC
+  if (-1 == pipe2 (fd, O_CLOEXEC))
+#else
   if (-1 == pipe (fd))
+#endif
   {
     int eno = errno;
 
