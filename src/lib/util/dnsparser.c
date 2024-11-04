@@ -556,7 +556,7 @@ GNUNET_DNSPARSER_parse_uri (const char *udp_payload,
   uri->weight = ntohs (uri_bin.weight);
   max_len = udp_payload_length - sizeof(struct GNUNET_TUN_DnsUriRecord);
   len =  GNUNET_asprintf (&(uri->target), "%.*s", max_len,
-                              &udp_payload[*off]);
+                          &udp_payload[*off]);
   (*off) += len;
   if (NULL == uri->target)
   {
@@ -885,7 +885,8 @@ GNUNET_DNSPARSER_duplicate_cert_record (
 {
   struct GNUNET_DNSPARSER_CertRecord *dup = GNUNET_memdup (r, sizeof(*r));
 
-  dup->certificate_data = GNUNET_strdup (r->certificate_data);
+  dup->certificate_data = GNUNET_memdup (r->certificate_data,
+                                         r->certificate_size);
   return dup;
 }
 
