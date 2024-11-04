@@ -790,7 +790,6 @@ GNUNET_DISK_directory_scan (const char *dir_name,
 {
   DIR *dinfo;
   struct dirent *finfo;
-  struct stat istat;
   int count = 0;
   enum GNUNET_GenericReturnValue ret;
   char *name;
@@ -804,27 +803,10 @@ GNUNET_DISK_directory_scan (const char *dir_name,
     return GNUNET_SYSERR;
   while ((strlen (dname) > 0) && (dname[strlen (dname) - 1] == DIR_SEPARATOR))
     dname[strlen (dname) - 1] = '\0';
-  if (0 != stat (dname, &istat))
-  {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "stat", dname);
-    GNUNET_free (dname);
-    return GNUNET_SYSERR;
-  }
-  if (! S_ISDIR (istat.st_mode))
-  {
-    LOG (GNUNET_ERROR_TYPE_WARNING,
-         _ ("Expected `%s' to be a directory!\n"),
-         dir_name);
-    GNUNET_free (dname);
-    return GNUNET_SYSERR;
-  }
-  errno = 0;
   dinfo = opendir (dname);
-  if ((EACCES == errno) || (NULL == dinfo))
+  if (NULL == dinfo)
   {
     LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "opendir", dname);
-    if (NULL != dinfo)
-      closedir (dinfo);
     GNUNET_free (dname);
     return GNUNET_SYSERR;
   }
