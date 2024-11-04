@@ -824,6 +824,11 @@ output_message (enum GNUNET_ErrorType kind,
 {
   static int have_journald = -1;
   struct CustomLogger *pos;
+  char optional_newline = '\n';
+
+  if ((strlen (msg) > 0) &&
+      ('\n' == msg[strlen (msg) - 1]))
+    optional_newline = '\0';
 
   if (-1 == have_journald)
   {
@@ -868,33 +873,37 @@ output_message (enum GNUNET_ErrorType kind,
       skip_log = 0;
       if (have_journald)
         fprintf (GNUNET_stderr,
-                 "(%s) %s %s",
+                 "(%s) %s %s%c",
                  id_buf,
                  GNUNET_error_type_to_string (kind),
-                 msg);
+                 msg,
+                 optional_newline);
       else
         fprintf (GNUNET_stderr,
-                 "%s %s(%s) %s %s",
+                 "%s %s(%s) %s %s%c",
                  datestr,
                  comp,
                  id_buf,
                  GNUNET_error_type_to_string (kind),
-                 msg);
+                 msg,
+                 optional_newline);
     }
     else
     {
       if (have_journald)
         fprintf (GNUNET_stderr,
-                 "%s %s",
+                 "%s %s%c",
                  GNUNET_error_type_to_string (kind),
-                 msg);
+                 msg,
+                 optional_newline);
       else
         fprintf (GNUNET_stderr,
-                 "%s %s %s %s",
+                 "%s %s %s %s%c",
                  datestr,
                  comp,
                  GNUNET_error_type_to_string (kind),
-                 msg);
+                 msg,
+                 optional_newline);
     }
     fflush (GNUNET_stderr);
   }
