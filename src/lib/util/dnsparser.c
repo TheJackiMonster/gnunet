@@ -1255,17 +1255,20 @@ GNUNET_DNSPARSER_builder_add_uri (char *dst,
                                   const struct GNUNET_DNSPARSER_UriRecord *uri)
 {
   struct GNUNET_TUN_DnsUriRecord sd;
+  int written;
+  size_t max_target_len;
 
-  if (*off + sizeof(struct GNUNET_TUN_DnsUriRecord) > dst_len)
+  GNUNET_assert (dst_len > sizeof (sd));
+  GNUNET_assert (*off <= SIZE_MAX - sizeof (sd));
+  max_target_len = dst_len - sizeof (sd) - 1;
+  if (*off + sizeof(sd) > dst_len)
     return GNUNET_NO;
   sd.prio = htons (uri->priority);
   sd.weight = htons (uri->weight);
   GNUNET_memcpy (&dst[*off], &sd, sizeof(sd));
   (*off) += sizeof(sd);
-  strncpy (&dst[*off], uri->target, dst_len - sizeof(struct
-                                                     GNUNET_TUN_DnsUriRecord)
-           - 1);
-  (*off) += strlen (uri->target);
+  written = GNUNET_snprintf (&dst[*off], max_target_len, "%s", uri->target);
+  (*off) += written;
   dst[*off] = '\0';
   return GNUNET_OK;
 }

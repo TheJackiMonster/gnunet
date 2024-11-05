@@ -424,7 +424,8 @@ main (int argc, char *const *argv)
                                "dump-hellos",
                                gettext_noop (
                                  "List all known HELLOs in peerstore"),
-                               &print_hellos),    GNUNET_GETOPT_OPTION_END
+                               &print_hellos),
+    GNUNET_GETOPT_OPTION_END
   };
 
   res = GNUNET_PROGRAM_run (argc,
