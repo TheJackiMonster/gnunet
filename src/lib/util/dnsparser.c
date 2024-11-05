@@ -1145,8 +1145,9 @@ GNUNET_DNSPARSER_builder_add_cert (
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-  if (*off + sizeof(struct GNUNET_TUN_DnsCertRecord) + cert->certificate_size >
-      dst_len)
+  GNUNET_assert (*off <= SIZE_MAX - sizeof (dcert));
+  GNUNET_assert (cert->certificate_size <= SIZE_MAX - *off - sizeof (dcert));
+  if (*off + sizeof(dcert) + cert->certificate_size > dst_len)
     return GNUNET_NO;
   dcert.cert_type = htons ((uint16_t) cert->cert_type);
   dcert.cert_tag = htons ((uint16_t) cert->cert_tag);
