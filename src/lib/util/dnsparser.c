@@ -1221,7 +1221,8 @@ GNUNET_DNSPARSER_builder_add_srv (char *dst,
   struct GNUNET_TUN_DnsSrvRecord sd;
   int ret;
 
-  if (*off + sizeof(struct GNUNET_TUN_DnsSrvRecord) > dst_len)
+  GNUNET_assert (*off <= SIZE_MAX - sizeof (sd));
+  if (*off + sizeof(sd) > dst_len)
     return GNUNET_NO;
   sd.prio = htons (srv->priority);
   sd.weight = htons (srv->weight);
