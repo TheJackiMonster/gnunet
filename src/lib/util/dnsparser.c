@@ -1009,6 +1009,7 @@ GNUNET_DNSPARSER_builder_add_name (char *dst,
     return GNUNET_NO;
   }
   idna_name = idna_start;
+  GNUNET_assert (*off <= SIZE_MAX - strlen (idna_name) - 2);
   start = *off;
   if (start + strlen (idna_name) + 2 > dst_len)
     goto fail;
