@@ -1103,6 +1103,7 @@ GNUNET_DNSPARSER_builder_add_mx (char *dst,
 {
   uint16_t mxpref;
 
+  GNUNET_assert (*off <= SIZE_MAX - sizeof (uint16_t));
   if (*off + sizeof(uint16_t) > dst_len)
     return GNUNET_NO;
   mxpref = htons (mx->preference);
