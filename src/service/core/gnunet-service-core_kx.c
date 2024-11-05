@@ -1652,6 +1652,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                              GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE);
 #if CONG_CRYPTO_ENABLED
   randombytes_buf (ph->nonce, sizeof (ph->nonce));
+  GNUNET_memcpy (em->nonce, ph->nonce, sizeof (ph->nonce));
   GNUNET_assert (0 ==
                  crypto_aead_xchacha20poly1305_ietf_encrypt_detached (
                    (unsigned char*) &em->sequence_number,
