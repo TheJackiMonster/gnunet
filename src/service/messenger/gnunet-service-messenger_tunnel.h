@@ -76,7 +76,7 @@ bind_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
              struct GNUNET_CADET_Channel *channel);
 
 /**
- * Callback for message verification via <i>header</i> in a tunnel that is 
+ * Callback for message verification via <i>header</i> in a tunnel that is
  * provided as a closure from a CADET channel.
  *
  * @param[in,out] cls Closure
@@ -87,7 +87,7 @@ check_tunnel_message (void *cls,
                       const struct GNUNET_MessageHeader *header);
 
 /**
- * Callback for message handling via <i>header</i> in a tunnel that is 
+ * Callback for message handling via <i>header</i> in a tunnel that is
  * provided as a closure from a CADET channel.
  *
  * @param[in,out] cls Closure
@@ -223,4 +223,4 @@ enum GNUNET_GenericReturnValue
 update_tunnel_messenger_version (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                                  uint32_t version);
 
-#endif //GNUNET_SERVICE_MESSENGER_TUNNEL_H
+#endif // GNUNET_SERVICE_MESSENGER_TUNNEL_H

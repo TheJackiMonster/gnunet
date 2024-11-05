@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -55,6 +55,8 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
 
   GNUNET_assert ((config) && (service_handle));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new service!\n");
+
   service = GNUNET_new (struct GNUNET_MESSENGER_Service);
 
   service->config = config;
@@ -94,9 +96,20 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
     GNUNET_MESSENGER_SERVICE_NAME,
     "MESSENGER_AUTO_CONNECTING");
 
-  service->auto_routing = GNUNET_CONFIGURATION_get_value_yesno (service->config,
-                                                                GNUNET_MESSENGER_SERVICE_NAME,
-                                                                "MESSENGER_AUTO_ROUTING");
+  service->auto_routing = GNUNET_CONFIGURATION_get_value_yesno (
+    service->config,
+    GNUNET_MESSENGER_SERVICE_NAME,
+    "MESSENGER_AUTO_ROUTING");
+
+  service->group_keys = GNUNET_CONFIGURATION_get_value_yesno (
+    service->config,
+    GNUNET_MESSENGER_SERVICE_NAME,
+    "MESSENGER_GROUP_KEYS");
+
+  service->local_request = GNUNET_CONFIGURATION_get_value_yesno (
+    service->config,
+    GNUNET_MESSENGER_SERVICE_NAME,
+    "MESSENGER_LOCAL_REQUEST");
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (service->config,
                                                           GNUNET_MESSENGER_SERVICE_NAME,
@@ -180,6 +193,8 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
   }
 
   GNUNET_SERVICE_shutdown (service->service);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free service!\n");
+
   GNUNET_free (service);
 }
 
@@ -511,13 +526,24 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
 
   if (room->host == handle)
   {
+    struct GNUNET_MESSENGER_Message *message;
+
     room->host = member_handle;
 
-    if (room->peer_message)
-      send_srv_room_message (room, room->host, create_message_connection (
-                               room));
+    if (! room->peer_message)
+      goto skip_connection_message;
+
+    message = create_message_connection (room);
+
+    if (! message)
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Sending connection message failed: %s\n",
+                  GNUNET_h2s (&(room->key)));
+    else
+      send_srv_room_message (room, room->host, message);
   }
 
+skip_connection_message:
   GNUNET_STATISTICS_update (service->statistics,
                             "# room closings",
                             1,
@@ -532,24 +558,28 @@ handle_service_message (struct GNUNET_MESSENGER_Service *service,
                         struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_SenderSession *session,
                         const struct GNUNET_MESSENGER_Message *message,
-                        const struct GNUNET_HashCode *hash)
+                        const struct GNUNET_HashCode *hash,
+                        const struct GNUNET_HashCode *epoch,
+                        enum GNUNET_GenericReturnValue recent)
 {
   struct GNUNET_MESSENGER_ListHandle *element;
 
-  GNUNET_assert ((service) && (room) && (session) && (message) && (hash));
+  GNUNET_assert ((service) && (room) && (session) && (message) && (hash) && (
+                   epoch));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notify active clients about message: %s (%s)\n",
               GNUNET_h2s (hash), GNUNET_MESSENGER_name_of_kind (
                 message->header.kind));
 
-  element = service->handles.head;
-
-  while (element)
+  for (element = service->handles.head; element; element = element->next)
   {
+    if (! get_srv_handle_member_id (element->handle,
+                                    get_srv_room_key (room)))
+      continue;
+
     notify_srv_handle_message (element->handle, room, session, message, hash,
-                               GNUNET_YES);
-    element = element->next;
+                               epoch, recent);
   }
 
   GNUNET_STATISTICS_update (service->statistics,

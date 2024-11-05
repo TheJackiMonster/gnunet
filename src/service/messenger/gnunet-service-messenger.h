@@ -54,6 +54,7 @@ struct GNUNET_MESSENGER_RoomMessage
   struct GNUNET_PeerIdentity door;
   struct GNUNET_HashCode key;
   struct GNUNET_HashCode previous;
+  struct GNUNET_HashCode epoch;
 };
 
 /**
@@ -100,7 +101,8 @@ struct GNUNET_MESSENGER_RecvMessage
   struct GNUNET_HashCode sender;
   struct GNUNET_HashCode context;
   struct GNUNET_HashCode hash;
+  struct GNUNET_HashCode epoch;
   uint32_t flags;
 };
 
-#endif //GNUNET_SERVICE_MESSENGER_H
+#endif // GNUNET_SERVICE_MESSENGER_H

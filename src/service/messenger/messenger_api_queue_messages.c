@@ -67,6 +67,7 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_PrivateKey *sender,
+                     const struct GNUNET_HashCode *epoch,
                      struct GNUNET_MESSENGER_Message *message,
                      struct GNUNET_MESSENGER_Message *transcript)
 {
@@ -85,6 +86,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   element->transcript = transcript;
 
   GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
+  GNUNET_memcpy (&(element->epoch), epoch, sizeof (element->epoch));
 
   if (! element->message)
   {
@@ -97,10 +99,10 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   if (GNUNET_MESSENGER_KIND_JOIN == kind)
     GNUNET_CONTAINER_DLL_insert (messages->head, messages->tail, element);
-  else if (GNUNET_MESSENGER_KIND_SUBSCRIBE == kind)
+  else if (GNUNET_MESSENGER_KIND_SUBSCRIBTION == kind)
   {
     struct GNUNET_MESSENGER_QueueMessage *other;
-    
+
     other = messages->head;
     while (other)
     {
@@ -110,7 +112,8 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
       other = other->next;
     }
 
-    GNUNET_CONTAINER_DLL_insert_before (messages->head, messages->tail, other, element);
+    GNUNET_CONTAINER_DLL_insert_before (messages->head, messages->tail, other,
+                                        element);
   }
   else
     GNUNET_CONTAINER_DLL_insert_tail (messages->head, messages->tail, element);
@@ -120,6 +123,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                        struct GNUNET_CRYPTO_PrivateKey *sender,
+                       struct GNUNET_HashCode *epoch,
                        struct GNUNET_MESSENGER_Message **transcript)
 {
   struct GNUNET_MESSENGER_QueueMessage *element;
@@ -147,6 +151,9 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   if (sender)
     GNUNET_memcpy (sender, &(element->sender), sizeof (*sender));
+
+  if (epoch)
+    GNUNET_memcpy (epoch, &(element->epoch), sizeof (*epoch));
 
   GNUNET_free (element);
   return message;

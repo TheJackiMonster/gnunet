@@ -40,6 +40,7 @@ struct GNUNET_MESSENGER_MessageControlQueue
   struct GNUNET_HashCode sender;
   struct GNUNET_HashCode context;
   struct GNUNET_HashCode hash;
+  struct GNUNET_HashCode epoch;
 
   struct GNUNET_MESSENGER_Message *message;
   enum GNUNET_MESSENGER_MessageFlags flags;
@@ -91,6 +92,7 @@ destroy_message_control (struct GNUNET_MESSENGER_MessageControl *control);
  * @param[in] sender Sender hash
  * @param[in] context Context hash
  * @param[in] hash Message hash
+ * @param[in] epoch Epoch hash
  * @param[in] message Message
  * @param[in] flags Message flags
  */
@@ -99,7 +101,8 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                          const struct GNUNET_HashCode *sender,
                          const struct GNUNET_HashCode *context,
                          const struct GNUNET_HashCode *hash,
+                         const struct GNUNET_HashCode *epoch,
                          const struct GNUNET_MESSENGER_Message *message,
                          enum GNUNET_MESSENGER_MessageFlags flags);
 
-#endif //GNUNET_MESSENGER_API_MESSAGE_CONTROL_H
+#endif // GNUNET_MESSENGER_API_MESSAGE_CONTROL_H

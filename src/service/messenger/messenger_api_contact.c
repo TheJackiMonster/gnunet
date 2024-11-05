@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -33,6 +33,9 @@ create_contact (const struct GNUNET_CRYPTO_PublicKey *key,
 
   GNUNET_assert (key);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new contact: %lu\n",
+              unique_id);
+
   contact = GNUNET_new (struct GNUNET_MESSENGER_Contact);
 
   contact->name = NULL;
@@ -52,6 +55,9 @@ destroy_contact (struct GNUNET_MESSENGER_Contact *contact)
 
   if (contact->name)
     GNUNET_free (contact->name);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free contact: %lu\n",
+              contact->id);
 
   GNUNET_free (contact);
 }

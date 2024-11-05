@@ -33,6 +33,10 @@ libgnunetmessenger_la_SOURCES = \
   messenger_api.c messenger_api.h \
   messenger_api_contact.c messenger_api_contact.h \
   messenger_api_contact_store.c messenger_api_contact_store.h \
+  messenger_api_epoch.c messenger_api_epoch.h \
+  messenger_api_epoch_announcement.c messenger_api_epoch_announcement.h \
+  messenger_api_epoch_group.c messenger_api_epoch_group.h \
+  messenger_api_epoch_membership.c messenger_api_epoch_membership.h \
   messenger_api_message.c messenger_api_message.h \
   messenger_api_message_control.c messenger_api_message_control.h \
   messenger_api_message_kind.c messenger_api_message_kind.h \

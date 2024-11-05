@@ -107,8 +107,11 @@ create_message_merge (const struct GNUNET_HashCode *previous)
   if (! message)
     return NULL;
 
-  GNUNET_memcpy (&(message->body.merge.previous), previous, sizeof(struct
-                                                                   GNUNET_HashCode));
+  memset (message->body.merge.epochs, 0,
+          sizeof (struct GNUNET_HashCode) * 2);
+
+  GNUNET_memcpy (&(message->body.merge.previous), previous,
+                 sizeof (struct GNUNET_HashCode));
 
   return message;
 }

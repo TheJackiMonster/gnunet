@@ -184,4 +184,4 @@ void
 save_list_tunnels (struct GNUNET_MESSENGER_ListTunnels *tunnels,
                    const char *path);
 
-#endif //GNUNET_MESSENGER_API_LIST_TUNNELS_H
+#endif // GNUNET_MESSENGER_API_LIST_TUNNELS_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -246,11 +246,9 @@ open_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 {
   GNUNET_assert ((handle) && (key));
 
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (handle->routing,
-                                                      key,
-                                                      NULL,
-                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
-
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+        handle->routing, key, NULL,
+        GNUNET_CONTAINER_MULTIHASHMAPOPTION_REPLACE))
     return GNUNET_NO;
 
   if ((! get_srv_handle_member_id (handle, key)) &&
@@ -325,22 +323,39 @@ void
 sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
                           const struct GNUNET_HashCode *key,
                           const struct GNUNET_HashCode *prev,
-                          struct GNUNET_HashCode *hash)
+                          struct GNUNET_HashCode *hash,
+                          struct GNUNET_HashCode *epoch)
 {
   struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_MESSENGER_MessageStore *store;
 
-  GNUNET_assert ((handle) && (key) && (prev) && (hash));
+  GNUNET_assert ((handle) && (key) && (prev) && (hash) && (epoch));
 
   room = get_service_room (handle->service, key);
 
   if ((! room) || (! get_srv_handle_member_id (handle, key)))
   {
     GNUNET_memcpy (hash, prev, sizeof(*hash));
-    return;
+    goto sync_epoch;
   }
 
   merge_srv_room_last_messages (room, handle);
   get_message_state_chain_hash (&(room->state), hash);
+
+sync_epoch:
+  if (! room)
+  {
+    GNUNET_memcpy (epoch, hash, sizeof(*epoch));
+    return;
+  }
+
+  store = get_srv_room_message_store (room);
+
+  if (! store)
+    return;
+
+  GNUNET_memcpy (epoch, get_store_message_epoch (store, hash),
+                 sizeof(*epoch));
 }
 
 
@@ -391,7 +406,7 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Copying message failed!\n");
       return GNUNET_NO;
     }
-    
+
     return send_srv_room_message (room, handle, msg);
   }
 }
@@ -443,7 +458,7 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
   {
     struct GNUNET_MESSENGER_MemberStore *store;
     struct GNUNET_MESSENGER_Member *member;
-    
+
     store = get_srv_room_member_store (room);
     member = get_store_member (store, id);
 
@@ -458,6 +473,7 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                            const struct GNUNET_MESSENGER_SenderSession *session,
                            const struct GNUNET_MESSENGER_Message *message,
                            const struct GNUNET_HashCode *hash,
+                           const struct GNUNET_HashCode *epoch,
                            enum GNUNET_GenericReturnValue recent)
 {
   const struct GNUNET_HashCode *key;
@@ -468,12 +484,19 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   struct GNUNET_MESSENGER_Subscription *subscription;
   struct GNUNET_HashCode sender;
 
-  GNUNET_assert ((handle) && (room) && (session) && (message) && (hash));
+  GNUNET_assert ((handle) && (room) && (session) && (message) && (hash) && (
+                   epoch));
 
   key = get_srv_room_key (room);
   id = get_srv_handle_member_id (handle, key);
 
-  if ((! handle->mq) || (! id))
+  if (! handle->mq)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Notifying client is missing a message queue!\n");
+    return;
+  }
+  else if (! id)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Notifying client about message requires membership!\n");
@@ -485,7 +508,7 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
   if (GNUNET_MESSENGER_KIND_TALK != message->header.kind)
     goto skip_message_filter;
 
-  timestamp = GNUNET_TIME_absolute_ntoh(message->header.timestamp);
+  timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
   discourse = &(message->body.talk.discourse);
 
   {
@@ -502,18 +525,18 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     if (! member)
       return;
 
-    subscription = get_member_subscription(member, discourse);
+    subscription = get_member_subscription (member, discourse);
   }
-  
+
   if ((! subscription) ||
-      (GNUNET_YES != has_subscription_of_timestamp(subscription, timestamp)))
+      (GNUNET_YES != has_subscription_of_timestamp (subscription, timestamp)))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, 
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Dropping message for client outside of subscription: %s\n",
                 GNUNET_h2s (hash));
     return;
   }
-  
+
 skip_message_filter:
   if (GNUNET_YES == is_peer_message (message))
   {
@@ -545,12 +568,13 @@ skip_message_filter:
     length = get_message_size (message, GNUNET_YES);
 
     env = GNUNET_MQ_msg_extra (msg, length,
-                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
+                               GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_RECV_MESSAGE);
 
     GNUNET_memcpy (&(msg->key), key, sizeof(msg->key));
     GNUNET_memcpy (&(msg->sender), &sender, sizeof(msg->sender));
     GNUNET_memcpy (&(msg->context), context, sizeof(msg->context));
     GNUNET_memcpy (&(msg->hash), hash, sizeof(msg->hash));
+    GNUNET_memcpy (&(msg->epoch), epoch, sizeof(msg->epoch));
 
     msg->flags = (uint32_t) GNUNET_MESSENGER_FLAG_NONE;
 
@@ -591,7 +615,8 @@ iterate_next_member_ids (void *cls,
     struct GNUNET_MESSENGER_MemberMessage *msg;
     struct GNUNET_MQ_Envelope *env;
 
-    env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID);
+    env = GNUNET_MQ_msg (
+      msg, GNUNET_MESSAGE_TYPE_MESSENGER_CONNECTION_MEMBER_ID);
 
     GNUNET_memcpy (&(msg->key), key, sizeof(*key));
     GNUNET_memcpy (&(msg->id), &(next->id), sizeof(next->id));
@@ -635,7 +660,7 @@ notify_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   next = GNUNET_new (struct GNUNET_MESSENGER_NextMemberId);
   key = get_srv_room_key (room);
-  
+
   if (! next)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

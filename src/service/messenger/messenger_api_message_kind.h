@@ -88,7 +88,7 @@ struct GNUNET_MESSENGER_Message*
 create_message_request (const struct GNUNET_HashCode *hash);
 
 /**
- * Creates and allocates a new delete message containing the <i>hash</i> of a message to delete
+ * Creates and allocates a new deletion message containing the <i>hash</i> of a message to delete
  * after a specific <i>delay</i>.
  * (all values are stored as copy)
  *
@@ -97,8 +97,8 @@ create_message_request (const struct GNUNET_HashCode *hash);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_delete (const struct GNUNET_HashCode *hash,
-                       const struct GNUNET_TIME_Relative delay);
+create_message_deletion (const struct GNUNET_HashCode *hash,
+                         const struct GNUNET_TIME_Relative delay);
 
 /**
  * Creates and allocates a new subscribe message for a subscription of a given <i>discourse</i>
@@ -111,8 +111,110 @@ create_message_delete (const struct GNUNET_HashCode *hash,
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_subscribe (const struct GNUNET_ShortHashCode *discourse,
-                          const struct GNUNET_TIME_Relative time,
-                          uint32_t flags);
+create_message_subscribtion (const struct GNUNET_ShortHashCode *discourse,
+                             const struct GNUNET_TIME_Relative time,
+                             uint32_t flags);
 
-#endif //GNUNET_MESSENGER_API_MESSAGE_KIND_H
+/**
+ * Creates and allocates a new announcement message for an announcement of a given epoch
+ * or group under an identifier using a specific <i>private_key</i> and <i>shared_key</i>
+ * until a given <i>timeout</i>.
+ *
+ * @param[in] identifier Epoch identifier
+ * @param[in] private_key Private key
+ * @param[in] shared_key Shared key
+ * @param[in] timeout Timeout
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_announcement (const union GNUNET_MESSENGER_EpochIdentifier *
+                             identifier,
+                             const struct GNUNET_CRYPTO_EcdhePrivateKey *
+                             private_key,
+                             const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                             shared_key,
+                             const struct GNUNET_TIME_Relative timeout);
+
+/**
+ * Creates and allocates a new appeal message for an epoch <i>announcement</i> using
+ * a specific <i>private_key</i> to receive access before a given <i>timeout</i>.
+ *
+ * @param[in] event Hash of announcement event
+ * @param[in] private_key Private key
+ * @param[in] timeout Timeout
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_appeal (const struct GNUNET_HashCode *event,
+                       const struct GNUNET_CRYPTO_EcdhePrivateKey *private_key,
+                       const struct GNUNET_TIME_Relative timeout);
+
+/**
+ * Creates and allocates a new access message to grant access to the <i>shared_key</i>
+ * of an announced epoch or group depending on target <i>event</i> encrypting the
+ * shared key for a specific <i>public_key</i>.
+ *
+ * @param[in] event Hash of appeal or group formation event
+ * @param[in] public_key Public key
+ * @param[in] shared_key Shared key
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_access (const struct GNUNET_HashCode *event,
+                       const struct GNUNET_CRYPTO_EcdhePublicKey *public_key,
+                       const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                       shared_key);
+
+/**
+ * Creates and allocates a new revolution message for an announced epoch or group
+ * selected by its <i>identifier</i> which is using a specific <i>shared_key</i>.
+ *
+ * @param[in] identifier Epoch identifier
+ * @param[in] shared_key Shared key
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_revolution (const union GNUNET_MESSENGER_EpochIdentifier *
+                           identifier,
+                           const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                           shared_key);
+
+/**
+ * Creates and allocates a new group message to propose a group formation between
+ * an <i>initiator</i> subgroup and another <i>partner</i> subgroup until a given
+ * <i>timeout</i> to improve further epoch key exchange.
+ *
+ * @param[in] identifier Group identifier
+ * @param[in] initiator Initiator group identifier
+ * @param[in] partner Partner group identifier
+ * @param[in] timeout Timeout
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_group (const union GNUNET_MESSENGER_EpochIdentifier *identifier,
+                      const struct GNUNET_HashCode *initiator,
+                      const struct GNUNET_HashCode *partner,
+                      const struct GNUNET_TIME_Relative timeout);
+
+/**
+ * Creates and allocates a new authorization message to grant access to the
+ * <i>shared_key</i> of a specific group selected via its <i>identifier</i> following
+ * an announcement or a group formation <i>event</i> encrypting the shared key for a
+ * specific established <i>group_key</i> of selected group.
+ *
+ * @param[in] identifier Group identifier
+ * @param[in] event Hash of announcement or group formation event
+ * @param[in] group_key Established group key
+ * @param[in] shared_key Shared key
+ * @return New message
+ */
+struct GNUNET_MESSENGER_Message*
+create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
+                              identifier,
+                              const struct GNUNET_HashCode *event,
+                              const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                              group_key,
+                              const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                              shared_key);
+
+#endif // GNUNET_MESSENGER_API_MESSAGE_KIND_H

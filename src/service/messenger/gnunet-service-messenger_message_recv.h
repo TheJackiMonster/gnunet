@@ -93,4 +93,4 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
                       const struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_HashCode *hash);
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_RECV_H
+#endif // GNUNET_SERVICE_MESSENGER_MESSAGE_RECV_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,17 +26,22 @@
 #ifndef GNUNET_MESSENGER_API_HANDLE_H
 #define GNUNET_MESSENGER_API_HANDLE_H
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet_messenger_service.h"
+#include "gnunet_namestore_service.h"
 
 #include "messenger_api_contact_store.h"
 
 struct GNUNET_MESSENGER_Handle
 {
-  const struct GNUNET_CONFIGURATION_Handle *cfg;
+  const struct GNUNET_CONFIGURATION_Handle *config;
+
+  enum GNUNET_GenericReturnValue group_keys;
 
   struct GNUNET_MQ_Handle *mq;
+  struct GNUNET_NAMESTORE_Handle *namestore;
 
   GNUNET_MESSENGER_MessageCallback msg_callback;
   void *msg_cls;
@@ -47,6 +52,8 @@ struct GNUNET_MESSENGER_Handle
 
   struct GNUNET_TIME_Relative reconnect_time;
   struct GNUNET_SCHEDULER_Task *reconnect_task;
+
+  struct GNUNET_NAMESTORE_ZoneMonitor *key_monitor;
 
   struct GNUNET_MESSENGER_ContactStore contact_store;
 
@@ -187,4 +194,32 @@ struct GNUNET_MESSENGER_Room*
 get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                  const struct GNUNET_HashCode *key);
 
-#endif //GNUNET_MESSENGER_API_HANDLE_H
+/**
+ * Stores/deletes a <i>shared_key</i> for a given room from a <i>handle</i> identified by its
+ * <i>key</i> in an epoch with certain <i>hash</i> using a specific <i>identifier</i> for this
+ * epoch key.
+ *
+ * @param[in] handle Handle
+ * @param[in] key Room key
+ * @param[in] hash Epoch hash
+ * @param[in] identifier Epoch key identifier
+ * @param[in] shared_key Shared epoch key or NULL
+ * @param[in] flags Epoch key flags
+ * @param[in] cont Continuation status callback or NULL
+ * @param[in] cont_cls Continuation closure or NULL
+ * @param[out] query
+ * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
+ */
+enum GNUNET_GenericReturnValue
+store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
+                        const struct GNUNET_HashCode *key,
+                        const struct GNUNET_HashCode *hash,
+                        const struct GNUNET_ShortHashCode *identifier,
+                        const struct GNUNET_CRYPTO_SymmetricSessionKey *
+                        shared_key,
+                        uint32_t flags,
+                        GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                        void *cont_cls,
+                        struct GNUNET_NAMESTORE_QueueEntry **query);
+
+#endif // GNUNET_MESSENGER_API_HANDLE_H

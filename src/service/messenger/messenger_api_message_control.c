@@ -86,6 +86,7 @@ enqueue_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                          const struct GNUNET_HashCode *sender,
                          const struct GNUNET_HashCode *context,
                          const struct GNUNET_HashCode *hash,
+                         const struct GNUNET_HashCode *epoch,
                          const struct GNUNET_MESSENGER_Message *message,
                          enum GNUNET_MESSENGER_MessageFlags flags)
 {
@@ -105,6 +106,7 @@ enqueue_message_control (struct GNUNET_MESSENGER_MessageControl *control,
   GNUNET_memcpy (&(queue->sender), sender, sizeof (queue->sender));
   GNUNET_memcpy (&(queue->context), context, sizeof (queue->context));
   GNUNET_memcpy (&(queue->hash), hash, sizeof (queue->hash));
+  GNUNET_memcpy (&(queue->epoch), epoch, sizeof (queue->epoch));
 
   queue->message = copy_message (message);
   queue->flags = flags;
@@ -123,16 +125,17 @@ static void
 handle_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                         struct GNUNET_MESSENGER_Contact *contact,
                         const struct GNUNET_HashCode *hash,
+                        const struct GNUNET_HashCode *epoch,
                         const struct GNUNET_MESSENGER_Message *message,
                         enum GNUNET_MESSENGER_MessageFlags flags)
 {
   GNUNET_assert ((control) && (hash) && (message));
 
-  handle_room_message (control->room, contact, message, hash, flags);
+  handle_room_message (control->room, contact, message, hash, epoch, flags);
 
   if ((flags & GNUNET_MESSENGER_FLAG_RECENT) &&
       (! get_message_discourse (message)))
-    update_room_last_message (control->room, hash);
+    update_room_last_message (control->room, hash, epoch);
 
   callback_room_message (control->room, hash);
 }
@@ -178,6 +181,7 @@ task_message_control (void *cls)
   handle_message_control (control,
                           contact,
                           &(queue->hash),
+                          &(queue->epoch),
                           queue->message,
                           queue->flags);
 
@@ -195,13 +199,17 @@ iterate_message_control (void *cls,
   struct GNUNET_MESSENGER_MessageControlQueue *queue;
 
   GNUNET_assert ((key) && (value));
-  
+
   queue = value;
 
   if (queue->task)
     return GNUNET_YES;
 
-  queue->task = GNUNET_SCHEDULER_add_now (task_message_control, queue);
+  queue->task = GNUNET_SCHEDULER_add_with_priority (
+    GNUNET_SCHEDULER_PRIORITY_DEFAULT,
+    task_message_control,
+    queue);
+
   return GNUNET_YES;
 }
 
@@ -211,6 +219,7 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
                          const struct GNUNET_HashCode *sender,
                          const struct GNUNET_HashCode *context,
                          const struct GNUNET_HashCode *hash,
+                         const struct GNUNET_HashCode *epoch,
                          const struct GNUNET_MESSENGER_Message *message,
                          enum GNUNET_MESSENGER_MessageFlags flags)
 {
@@ -233,9 +242,15 @@ process_message_control (struct GNUNET_MESSENGER_MessageControl *control,
   if ((! contact) &&
       (GNUNET_MESSENGER_KIND_JOIN != message->header.kind) &&
       (GNUNET_MESSENGER_KIND_PEER != message->header.kind))
-    enqueue_message_control (control, sender, context, hash, message, flags);
+    enqueue_message_control (control, sender, context, hash, epoch, message,
+                             flags);
   else
-    handle_message_control (control, contact, hash, message, flags);
+  {
+    if ((! contact) && (GNUNET_MESSENGER_KIND_JOIN == message->header.kind))
+      flags |= GNUNET_MESSENGER_FLAG_MEMBER;
+
+    handle_message_control (control, contact, hash, epoch, message, flags);
+  }
 
   map = NULL;
   id = &(message->header.sender_id);

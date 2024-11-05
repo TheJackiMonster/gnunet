@@ -67,4 +67,4 @@ required_connection_between (size_t count,
                              size_t src,
                              size_t dst);
 
-#endif //GNUNET_SERVICE_MESSENGER_BASEMENT_H
+#endif // GNUNET_SERVICE_MESSENGER_BASEMENT_H

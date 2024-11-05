@@ -123,4 +123,4 @@ get_context_from_member (const struct GNUNET_HashCode *key,
                          const struct GNUNET_ShortHashCode *id,
                          struct GNUNET_HashCode *context);
 
-#endif //GNUNET_MESSENGER_API_CONTACT_H
+#endif // GNUNET_MESSENGER_API_CONTACT_H

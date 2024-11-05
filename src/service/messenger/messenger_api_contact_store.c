@@ -49,9 +49,9 @@ iterate_destroy_contacts (void *cls,
   struct GNUNET_MESSENGER_Contact *contact;
 
   GNUNET_assert (value);
-  
+
   contact = value;
-  
+
   destroy_contact (contact);
   return GNUNET_YES;
 }
@@ -83,7 +83,7 @@ select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store,
   struct GNUNET_HashCode anonHash;
 
   GNUNET_assert (hash);
-  
+
   anonymous = get_anonymous_public_key ();
 
   GNUNET_CRYPTO_hash (anonymous, sizeof(*anonymous), &anonHash);
@@ -153,6 +153,8 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
   if (GNUNET_OK == GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
 
+
+
     return contact;
 
   destroy_contact (contact);
@@ -191,6 +193,8 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
 
     if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (map, &hash, contact,
                                                         GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+
+
 
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Updating a contact failed: %s\n",
                   GNUNET_h2s (&hash));

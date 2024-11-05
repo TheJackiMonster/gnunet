@@ -123,4 +123,4 @@ remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context);
 
-#endif //GNUNET_MESSENGER_API_CONTACT_STORE_H
+#endif // GNUNET_MESSENGER_API_CONTACT_STORE_H

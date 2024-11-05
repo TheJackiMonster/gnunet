@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -33,6 +33,8 @@
 #include "gnunet-service-messenger_operation.h"
 #include "gnunet-service-messenger_room.h"
 
+#include "gnunet_common.h"
+#include "gnunet_messenger_service.h"
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_SrvTunnel*
@@ -42,6 +44,9 @@ create_tunnel (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
 
   GNUNET_assert ((room) && (door));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new tunnel: %s\n",
+              GNUNET_i2s (door));
 
   tunnel = GNUNET_new (struct GNUNET_MESSENGER_SrvTunnel);
 
@@ -74,6 +79,8 @@ destroy_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
     GNUNET_free (tunnel->peer_message);
 
   clear_message_state (&(tunnel->state));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free tunnel!\n");
 
   GNUNET_free (tunnel);
 }
@@ -133,7 +140,18 @@ callback_tunnel_disconnect (void *cls,
                             GNUNET_NO);
 
   if (GNUNET_YES == contains_list_tunnels (&(room->basement), &identity))
-    send_srv_room_message (room, room->host, create_message_miss (&identity));
+  {
+    struct GNUNET_MESSENGER_Message *message;
+
+    message = create_message_miss (&identity);
+
+    if (! message)
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Sending miss message about tunnel failed: %s\n",
+                  GNUNET_h2s (&(room->key)));
+    else
+      send_srv_room_message (room, room->host, message);
+  }
 
   if ((0 < GNUNET_CONTAINER_multipeermap_size (room->tunnels)) ||
       (GNUNET_NO == room->service->auto_connecting))
@@ -247,8 +265,8 @@ check_tunnel_message (void *cls,
     if (GNUNET_YES != decode_message (&message, length, buffer, GNUNET_YES,
                                       &padding))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Tunnel error: Decoding failed!\n")
-      ;
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Tunnel error: Decoding failed!\n");
       return GNUNET_SYSERR;
     }
 
@@ -348,20 +366,32 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
     switch (message.header.kind)
     {
     case GNUNET_MESSENGER_KIND_INFO:
-      forward_message = recv_message_info (tunnel->room, tunnel, &message, &hash
-                                           );
+      forward_message = recv_message_info (
+        tunnel->room,
+        tunnel,
+        &message,
+        &hash);
       break;
     case GNUNET_MESSENGER_KIND_PEER:
-      forward_message = recv_message_peer (tunnel->room, tunnel, &message, &hash
-                                           );
+      forward_message = recv_message_peer (
+        tunnel->room,
+        tunnel,
+        &message,
+        &hash);
       break;
     case GNUNET_MESSENGER_KIND_MISS:
-      forward_message = recv_message_miss (tunnel->room, tunnel, &message, &hash
-                                           );
+      forward_message = recv_message_miss (
+        tunnel->room,
+        tunnel,
+        &message,
+        &hash);
       break;
     case GNUNET_MESSENGER_KIND_REQUEST:
-      forward_message = recv_message_request (tunnel->room, tunnel, &message,
-                                              &hash);
+      forward_message = recv_message_request (
+        tunnel->room,
+        tunnel,
+        &message,
+        &hash);
       break;
     default:
       break;
@@ -391,8 +421,7 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 {
   const struct GNUNET_PeerIdentity *door;
   struct GNUNET_CADET_Handle *cadet;
-  const struct GNUNET_HashCode *key;
-
+  union GNUNET_MESSENGER_RoomKey key;
 
   GNUNET_assert (tunnel);
 
@@ -401,7 +430,18 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
 
   door = GNUNET_PEER_resolve2 (tunnel->peer);
   cadet = get_srv_room_cadet (tunnel->room);
-  key = get_srv_room_key (tunnel->room);
+
+  GNUNET_memcpy (
+    &(key.hash),
+    get_srv_room_key (tunnel->room),
+    sizeof (key.hash));
+
+  if ((key.code.feed_bit) && (! key.code.group_bit))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Tunnel to personal room containing private feeds failed!");
+    return GNUNET_SYSERR;
+  }
 
   {
     struct GNUNET_HashCode port;
@@ -413,7 +453,7 @@ connect_tunnel (struct GNUNET_MESSENGER_SrvTunnel *tunnel)
                                                    ,
                                                    GNUNET_MQ_handler_end () };
 
-    convert_messenger_key_to_port (key, &port);
+    convert_messenger_key_to_port (&key, &port);
     tunnel->channel = GNUNET_CADET_channel_create (cadet, tunnel, door, &port,
                                                    NULL,
                                                    callback_tunnel_disconnect,
@@ -508,21 +548,22 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 
 enum GNUNET_GenericReturnValue
 send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                     void *handle,
+                     GNUNET_UNUSED void *handle,
                      struct GNUNET_MESSENGER_Message *message)
 {
   struct GNUNET_HashCode hash;
   struct GNUNET_MQ_Envelope *env;
 
-  GNUNET_assert ((tunnel) && (handle));
+  GNUNET_assert (tunnel);
 
   if (! message)
     return GNUNET_NO;
 
   env = pack_srv_room_message (
-    tunnel->room, (struct GNUNET_MESSENGER_SrvHandle*) handle,
-    message, &hash, GNUNET_MESSENGER_PACK_MODE_ENVELOPE
-    );
+    tunnel->room,
+    message,
+    &hash,
+    GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
 
   destroy_message (message);
 

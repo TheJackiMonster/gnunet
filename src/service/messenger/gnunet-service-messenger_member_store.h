@@ -42,7 +42,8 @@ struct GNUNET_MESSENGER_MemberStore
   struct GNUNET_CONTAINER_MultiShortmap *members;
 };
 
-typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_MemberIteratorCallback) (
+typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_MemberIteratorCallback
+                                        ) (
   void *cls,
   const struct GNUNET_CRYPTO_PublicKey *public_key,
   struct GNUNET_MESSENGER_MemberSession *session);
@@ -155,4 +156,4 @@ iterate_store_members (struct GNUNET_MESSENGER_MemberStore *store,
                        GNUNET_MESSENGER_MemberIteratorCallback it,
                        void *cls);
 
-#endif //GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H
+#endif // GNUNET_SERVICE_MESSENGER_MEMBER_STORE_H

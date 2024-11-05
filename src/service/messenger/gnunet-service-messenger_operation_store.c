@@ -48,7 +48,7 @@ iterate_destroy_operations (void *cls,
   struct GNUNET_MESSENGER_Operation *op;
 
   GNUNET_assert (value);
-  
+
   op = value;
 
   destroy_operation (op);
@@ -78,7 +78,7 @@ callback_scan_for_operations (void *cls,
   struct GNUNET_MESSENGER_Operation *op;
 
   GNUNET_assert ((cls) && (filename));
-  
+
   store = cls;
 
   if (GNUNET_YES != GNUNET_DISK_file_test (filename))

@@ -126,4 +126,4 @@ void
 cancel_store_operation (struct GNUNET_MESSENGER_OperationStore *store,
                         const struct GNUNET_HashCode *hash);
 
-#endif //GNUNET_SERVICE_MESSENGER_OPERATION_STORE_H
+#endif // GNUNET_SERVICE_MESSENGER_OPERATION_STORE_H

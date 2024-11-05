@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -94,9 +94,8 @@ end_operation (void *cls)
 {
   op_task = NULL;
 
-  fprintf (stderr, "Testcase failed (operation: '%s').\n", cls ? (const
-                                                                  char*) cls :
-           "unknown");
+  fprintf (stderr, "Testcase failed (operation: '%s').\n",
+           cls ? (const char*) cls : "unknown");
 
   if (die_task)
     GNUNET_SCHEDULER_cancel (die_task);
@@ -140,11 +139,9 @@ on_iteration (void *cls)
   struct GNUNET_CRYPTO_PublicKey pubkey;
   GNUNET_CRYPTO_key_get_public (&identity, &pubkey);
 
-  if (((! identity_counter) && (key)) || ((identity_counter) && ((! key) ||
-                                                                 (0 !=
-                                                                  GNUNET_memcmp (
-                                                                    key,
-                                                                    &pubkey)))))
+  if (((! identity_counter) && (key)) ||
+      ((identity_counter) && ((! key) ||
+                              (0 != GNUNET_memcmp (key, &pubkey)))))
   {
     op_task = GNUNET_SCHEDULER_add_now (&end_operation, "key");
     return;

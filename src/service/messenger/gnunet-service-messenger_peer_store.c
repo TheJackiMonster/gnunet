@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2023--2024 GNUnet e.V.
+   Copyright (C) 2023--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -54,9 +54,13 @@ iterate_destroy_peers (void *cls, const struct GNUNET_ShortHashCode *id,
   struct GNUNET_MESSENGER_PeerStoreEntry *entry;
 
   GNUNET_assert (value);
-  
+
   entry = value;
-  
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free peer store entry: %s -> %s\n",
+              GNUNET_sh2s (id),
+              GNUNET_i2s (&(entry->peer)));
+
   GNUNET_free (entry);
   return GNUNET_YES;
 }
@@ -96,7 +100,7 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
 
   {
     enum GNUNET_DISK_AccessPermissions permission;
-    
+
     permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
     handle = GNUNET_DISK_file_open (path, GNUNET_DISK_OPEN_READ, permission);
   }
@@ -113,7 +117,6 @@ load_peer_store (struct GNUNET_MESSENGER_PeerStore *store,
 
     if (len != sizeof(peer))
       break;
-
 
     entry = GNUNET_new (struct GNUNET_MESSENGER_PeerStoreEntry);
 
@@ -173,11 +176,12 @@ save_peer_store (const struct GNUNET_MESSENGER_PeerStore *store,
 
   {
     enum GNUNET_DISK_AccessPermissions permission;
-    
+
     permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
     handle = GNUNET_DISK_file_open (
-      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
-      );
+      path,
+      GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE,
+      permission);
   }
 
   if (! handle)
@@ -235,6 +239,10 @@ add_peer_store_entry (struct GNUNET_MESSENGER_PeerStore *store,
 
   GNUNET_assert ((store) && (peer));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Add peer store entry: %s -> %s\n",
+              GNUNET_sh2s (id),
+              GNUNET_i2s (peer));
+
   entry = GNUNET_new (struct GNUNET_MESSENGER_PeerStoreEntry);
 
   if (! entry)
@@ -288,8 +296,8 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
     verify.sender = NULL;
 
     GNUNET_CONTAINER_multishortmap_get_multiple (store->peers,
-                                                &(message->header.sender_id),
-                                                verify_store_peer, &verify);
+                                                 &(message->header.sender_id),
+                                                 verify_store_peer, &verify);
 
     if (verify.sender)
       return verify.sender;
@@ -307,7 +315,7 @@ get_store_peer_of (struct GNUNET_MESSENGER_PeerStore *store,
   }
   else
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Peer message does not contain a peer identity\n");
 
     peer = get_store_service_peer_identity (store);
@@ -400,7 +408,7 @@ update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
     find.match = NULL;
 
     GNUNET_CONTAINER_multishortmap_get_multiple (store->peers, &peer_id,
-                                                find_store_peer, &find);
+                                                 find_store_peer, &find);
 
     if (find.match)
     {

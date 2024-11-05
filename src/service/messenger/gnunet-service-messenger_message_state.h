@@ -63,4 +63,4 @@ void
 save_message_state (const struct GNUNET_MESSENGER_MessageState *state,
                     const char *path);
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STATE_H
+#endif // GNUNET_SERVICE_MESSENGER_MESSAGE_STATE_H

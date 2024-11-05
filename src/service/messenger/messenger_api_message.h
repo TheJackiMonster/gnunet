@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -200,9 +200,23 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
                       const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 /**
+ * Signs the <i>message</i> body via it's own hmac with a specific shared <i>key</i>.
+ * It requires the message to be of a supported kind of message which contains such
+ * an hmac.
+ *
+ * On success the message can be verified via `verify_message_by_key()` afterwards.
+ *
+ * @param[in,out] message Message
+ * @param[in] key Shared key
+ */
+void
+sign_message_by_key (struct GNUNET_MESSENGER_Message *message,
+                     const struct GNUNET_CRYPTO_SymmetricSessionKey *key);
+
+/**
  * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
- * public key. The function returns #GNUNET_OK if the signature was valid, otherwise
- * #GNUNET_SYSERR.
+ * public <i>key</i>. The function returns #GNUNET_OK if the signature was valid,
+ * otherwise #GNUNET_SYSERR.
  *
  * @param[in] message Message
  * @param[in] hash Hash of message
@@ -228,6 +242,18 @@ enum GNUNET_GenericReturnValue
 verify_message_by_peer (const struct GNUNET_MESSENGER_Message *message,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_PeerIdentity *identity);
+
+/**
+ * Verifies the hmac of a given <i>message</i> body with a specific shared <i>key</i>.
+ * The function returns #GNUNET_OK if the signature was valid, otherwise #GNUNET_SYSERR.
+ *
+ * @param[in] message Message
+ * @param[in] key Shared key
+ * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
+ */
+enum GNUNET_GenericReturnValue
+verify_message_by_key (const struct GNUNET_MESSENGER_Message *message,
+                       const struct GNUNET_CRYPTO_SymmetricSessionKey *key);
 
 /**
  * Encrypts a <i>message</i> using a given public <i>key</i> and replaces its body
@@ -268,23 +294,97 @@ transcribe_message (const struct GNUNET_MESSENGER_Message *message,
                     const struct GNUNET_CRYPTO_PublicKey *key);
 
 /**
+ * Encrypts a <i>message</i> using a given shared <i>key</i> from an announcement of an
+ * epoch and replaces its body and kind with the inner encrypted message. The function
+ * returns #GNUNET_YES if the operation succeeded, otherwise #GNUNET_NO.
+ *
+ * @param[in,out] message Message
+ * @param[in] identifier Epoch identifier
+ * @param[in] key Shared secret key
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
+                        const union GNUNET_MESSENGER_EpochIdentifier *identifier
+                        ,
+                        const struct GNUNET_CRYPTO_SymmetricSessionKey *key);
+
+/**
+ * Decrypts a secret <i>message</i> using a given shared <i>key</i> and replaces its body
+ * and kind with the inner encrypted message. The function returns #GNUNET_YES if the
+ * operation succeeded, otherwise #GNUNET_NO.
+ *
+ * @param[in,out] message Message
+ * @param[in] key Shared secret key
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
+                        const struct GNUNET_CRYPTO_SymmetricSessionKey *key);
+
+/**
  * Read the original message from a transcript <i>message</i> and replaces its body
  * and kind with the inner encrypted message. The function returns #GNUNET_YES if the
  * operation succeeded, otherwise #GNUNET_NO.
  *
- * @param[in,out] transcript Message transcript
+ * @param[in,out] message Message transcript
  * @return #GNUNET_YES on success, otherwise #GNUNET_NO
  */
 enum GNUNET_GenericReturnValue
 read_transcript_message (struct GNUNET_MESSENGER_Message *message);
+
+/**
+ * Extracts the shared epoch or group key from an access <i>message</i> using the
+ * private ephemeral <i>key</i> from an epoch and verifies it via the HMAC from the
+ * message body. The function returns #GNUNET_YES if the operation succeeded,
+ * otherwise #GNUNET_NO.
+ *
+ * @param[in] message Access message
+ * @param[in] key Private ephemeral key
+ * @param[out] shared_key Shared key
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+extract_access_message_key (const struct GNUNET_MESSENGER_Message *message,
+                            const struct GNUNET_CRYPTO_EcdhePrivateKey *key,
+                            struct GNUNET_CRYPTO_SymmetricSessionKey *
+                            shared_key);
+
+/**
+ * Extracts the shared epoch or group key from an authorization <i>message</i> using
+ * a previously exchanged shared <i>key</i> and verifies it via the HMAC from the
+ * message body. The function returns #GNUNET_YES if the operation succeeded,
+ * otherwise #GNUNET_NO.
+ *
+ * @param[in] message Access message
+ * @param[in] key Previous shared key
+ * @param[out] shared_key Shared key
+ * @return #GNUNET_YES on success, otherwise #GNUNET_NO
+ */
+enum GNUNET_GenericReturnValue
+extract_authorization_message_key (struct GNUNET_MESSENGER_Message *message,
+                                   const struct
+                                   GNUNET_CRYPTO_SymmetricSessionKey *key,
+                                   struct GNUNET_CRYPTO_SymmetricSessionKey *
+                                   shared_key);
+
+/**
+ * Return the relative timeout of the content from a given <i>message</i>
+ * that controls when a delayed handling action of this message needs
+ * to be processed at least.
+ *
+ * @param[in] message Message
+ * @return Relative timeout of message
+ */
+struct GNUNET_TIME_Relative
+get_message_timeout (const struct GNUNET_MESSENGER_Message *message);
 
 typedef void (*GNUNET_MESSENGER_SignFunction)(
   const void *cls,
   struct GNUNET_MESSENGER_Message *message,
   uint16_t length,
   char *buffer,
-  const struct GNUNET_HashCode *hash
-  );
+  const struct GNUNET_HashCode *hash);
 
 enum GNUNET_MESSENGER_PackMode
 {
@@ -338,6 +438,18 @@ enum GNUNET_GenericReturnValue
 is_service_message (const struct GNUNET_MESSENGER_Message *message);
 
 /**
+ * Returns whether a certain kind of message from storage contains some specific details
+ * that might be required for the overall message graph to function as intended.
+ * The function returns #GNUNET_YES if you may not delete the given <i>message</i> because
+ * of that, otherwise it returns #GNUNET_NO.
+ *
+ * @param[in] message Message
+ * @return #GNUNET_YES if the message contains epoch graph information, #GNUNET_NO otherwise
+ */
+enum GNUNET_GenericReturnValue
+is_epoch_message (const struct GNUNET_MESSENGER_Message *message);
+
+/**
  * Returns whether a specific kind of message should be sent by a client. The function returns
  * #GNUNET_YES or #GNUNET_NO for recommendations and #GNUNET_SYSERR for specific kinds
  * of messages which should not be sent manually at all.
@@ -358,4 +470,4 @@ filter_message_sending (const struct GNUNET_MESSENGER_Message *message);
 const struct GNUNET_ShortHashCode*
 get_message_discourse (const struct GNUNET_MESSENGER_Message *message);
 
-#endif //GNUNET_MESSENGER_API_MESSAGE_H
+#endif // GNUNET_MESSENGER_API_MESSAGE_H

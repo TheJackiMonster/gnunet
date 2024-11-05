@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021, 2023, 2024 GNUnet e.V.
+   Copyright (C) 2021--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -28,6 +28,7 @@
 #include "gnunet-service-messenger_message_kind.h"
 #include "gnunet-service-messenger_operation_store.h"
 #include "gnunet-service-messenger_room.h"
+#include "gnunet_common.h"
 
 struct GNUNET_MESSENGER_Operation*
 create_operation (const struct GNUNET_HashCode *hash)
@@ -35,6 +36,9 @@ create_operation (const struct GNUNET_HashCode *hash)
   struct GNUNET_MESSENGER_Operation *op;
 
   GNUNET_assert (hash);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new operation: %s\n",
+              GNUNET_h2s (hash));
 
   op = GNUNET_new (struct GNUNET_MESSENGER_Operation);
 
@@ -55,6 +59,9 @@ destroy_operation (struct GNUNET_MESSENGER_Operation *op)
 
   if (op->task)
     GNUNET_SCHEDULER_cancel (op->task);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free operation: %s\n",
+              GNUNET_h2s (&(op->hash)));
 
   GNUNET_free (op);
 }
@@ -135,8 +142,7 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
       delay,
       GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
       callback_operation,
-      op
-      );
+      op);
   }
 
   op->store = store;
@@ -226,6 +232,9 @@ callback_operation (void *cls)
 
   cancel_store_operation (store, &hash);
 
+  if (GNUNET_is_zero (&hash))
+    return;
+
   switch (type)
   {
   case GNUNET_MESSENGER_OP_REQUEST:
@@ -245,10 +254,22 @@ callback_operation (void *cls)
     }
   case GNUNET_MESSENGER_OP_MERGE:
     {
+      struct GNUNET_MESSENGER_Message *message;
+
       if (! room->host)
         break;
 
-      send_srv_room_message (room, room->host, create_message_merge (&hash));
+      message = create_message_merge (&hash);
+
+      if (! message)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Merging operation failed: %s\n",
+                    GNUNET_h2s (&(room->key)));
+        break;
+      }
+
+      send_srv_room_message (room, room->host, message);
       break;
     }
   default:
@@ -276,8 +297,7 @@ start_operation (struct GNUNET_MESSENGER_Operation *op,
     delay,
     GNUNET_SCHEDULER_PRIORITY_BACKGROUND,
     callback_operation,
-    op
-    );
+    op);
 
   op->type = type;
   op->timestamp = timestamp;

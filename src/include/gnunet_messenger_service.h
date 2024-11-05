@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -44,9 +44,9 @@ extern "C" {
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.5
+ * Current version of the Messenger: 0.6
  */
-#define GNUNET_MESSENGER_VERSION 0x00000005
+#define GNUNET_MESSENGER_VERSION 0x00000006
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -71,8 +71,37 @@ struct GNUNET_MESSENGER_Contact;
 GNUNET_NETWORK_STRUCT_BEGIN
 
 /**
+ * A room key code specifies an identifier of a room and
+ * its individual properties.
+ *
+ * Size: 64 bytes
+ */
+struct GNUNET_MESSENGER_RoomKeyCode
+{
+  uint8_t public_bit : 1;
+  uint8_t group_bit : 1;
+  uint8_t feed_bit : 1;
+  uint8_t unused_bits : 5;
+  uint8_t bits[sizeof(struct GNUNET_HashCode) - 1];  /* = 63 */
+};
+
+/**
+ * A room key unifies a room key code and its 512bit hash
+ * representation.
+ *
+ * Size: 64 bytes
+ */
+union GNUNET_MESSENGER_RoomKey
+{
+  struct GNUNET_HashCode hash;
+  struct GNUNET_MESSENGER_RoomKeyCode code;
+};
+
+/**
  * A room entry record specifies which peer is hosting a given room and
  * may also specify the key to enter it.
+ *
+ * Record-size: 96 bytes
  */
 struct GNUNET_MESSENGER_RoomEntryRecord
 {
@@ -87,13 +116,11 @@ struct GNUNET_MESSENGER_RoomEntryRecord
   struct GNUNET_HashCode key GNUNET_PACKED;
 };
 
-GNUNET_NETWORK_STRUCT_END
-
-  GNUNET_NETWORK_STRUCT_BEGIN
-
 /**
  * A room details record specifies a custom name for a given room and
  * some additional space for flags.
+ *
+ * Record-size: 260 bytes
  */
 struct GNUNET_MESSENGER_RoomDetailsRecord
 {
@@ -106,6 +133,91 @@ struct GNUNET_MESSENGER_RoomDetailsRecord
    * The flags of the room.
    */
   uint32_t flags;
+};
+
+/**
+ * An epoch identifier code specifies an epoch or group key inside
+ * a room and it provides the information about its group size.
+ *
+ * Size: 32 bytes
+ */
+struct GNUNET_MESSENGER_EpochIdentifierCode
+{
+  uint8_t group_bit : 1;
+  uint8_t level_bits : 7;
+  uint8_t bits[sizeof(struct GNUNET_ShortHashCode) - 1];  /* = 31 */
+};
+
+/**
+ * An epoch identifier unifies an epoch identifier code and its
+ * 256bit hash representation.
+ *
+ * Size: 32 bytes
+ */
+union GNUNET_MESSENGER_EpochIdentifier
+{
+  struct GNUNET_ShortHashCode hash;
+  struct GNUNET_MESSENGER_EpochIdentifierCode code;
+};
+
+/**
+ * A room epoch key record specifies an epoch key for a given room
+ * that can be identified via a given key to enter it and an epoch
+ * identifier.
+ *
+ * Record-size: 228
+ */
+struct GNUNET_MESSENGER_RoomEpochKeyRecord
+{
+  /**
+   * The hash identifying the port of the room.
+   */
+  struct GNUNET_HashCode key GNUNET_PACKED;
+
+  /**
+   * The hash identifying the epoch.
+   */
+  struct GNUNET_HashCode hash GNUNET_PACKED;
+
+  /**
+   * The short hash identifying the epoch or group key.
+   */
+  struct GNUNET_ShortHashCode identifier GNUNET_PACKED;
+
+  /**
+   * The shared epoch or group key in the room.
+   */
+  struct GNUNET_CRYPTO_SymmetricSessionKey shared_key;
+
+  /**
+   * The flags of the epoch or group key.
+   */
+  uint32_t flags;
+};
+
+#define GNUNET_MESSENGER_EPOCH_NONCE_BYTES \
+        sizeof (struct GNUNET_ShortHashCode)
+
+/**
+ * Struct to store a unique epoch nonce for message data encryption.
+ *
+ * Size: 32 bytes
+ */
+struct GNUNET_MESSENGER_EpochNonceData
+{
+  uint8_t nonce[GNUNET_MESSENGER_EPOCH_NONCE_BYTES];
+};
+
+/**
+ * An epoch nonce unifies the epoch nonce data and its
+ * 256bit hash representation.
+ *
+ * Size: 32 bytes
+ */
+union GNUNET_MESSENGER_EpochNonce
+{
+  struct GNUNET_ShortHashCode hash;
+  struct GNUNET_MESSENGER_EpochNonceData data;
 };
 
 GNUNET_NETWORK_STRUCT_END
@@ -186,9 +298,9 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_PRIVATE = 14,
 
   /**
-   * The delete kind. The message contains a #GNUNET_MESSENGER_MessageDelete body.
+   * The deletion kind. The message contains a #GNUNET_MESSENGER_MessageDeletion body.
    */
-  GNUNET_MESSENGER_KIND_DELETE = 15,
+  GNUNET_MESSENGER_KIND_DELETION = 15,
 
   /**
    * The connection kind. The message contains a #GNUNET_MESSENGER_MessageConnection body.
@@ -211,14 +323,49 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_TAG = 19,
 
   /**
-   * The subscribe kind. The message contains a #GNUNET_MESSENGER_MessageSubscribe body.
+   * The subscribtion kind. The message contains a #GNUNET_MESSENGER_MessageSubscribtion body.
    */
-  GNUNET_MESSENGER_KIND_SUBSCRIBE = 20,
+  GNUNET_MESSENGER_KIND_SUBSCRIBTION = 20,
 
   /**
    * The talk kind. The message contains a #GNUNET_MESSENGER_MessageTalk body.
    */
   GNUNET_MESSENGER_KIND_TALK = 21,
+
+  /**
+   * The announcement kind. The message contains a #GNUNET_MESSENGER_MessageAnnouncement body.
+   */
+  GNUNET_MESSENGER_KIND_ANNOUNCEMENT = 22,
+
+  /**
+   * The secret kind. The message contains a #GNUNET_MESSENGER_MessageSecret body.
+   */
+  GNUNET_MESSENGER_KIND_SECRET = 23,
+
+  /**
+   * The appeal kind. The message contains a #GNUNET_MESSENGER_MessageAppeal body.
+   */
+  GNUNET_MESSENGER_KIND_APPEAL = 24,
+
+  /**
+   * The access kind. The message contains a #GNUNET_MESSENGER_MessageAccess body.
+   */
+  GNUNET_MESSENGER_KIND_ACCESS = 25,
+
+  /**
+   * The revolution kind. The message contains a #GNUNET_MESSENGER_MessageRevolution body.
+   */
+  GNUNET_MESSENGER_KIND_REVOLUTION = 26,
+
+  /**
+   * The group kind. The message contains a #GNUNET_MESSENGER_MessageGroup body.
+   */
+  GNUNET_MESSENGER_KIND_GROUP = 27,
+
+  /**
+   * The authorization kind. The message contains a #GNUNET_MESSENGER_MessageAuthorization body.
+   */
+  GNUNET_MESSENGER_KIND_AUTHORIZATION = 28,
 
   /**
    * The unknown kind. The message contains an unknown body.
@@ -231,17 +378,34 @@ enum GNUNET_MESSENGER_MessageKind
 /**
  * Get the name of a message <i>kind</i>.
  *
- * @param kind Kind of a message
+ * @param[in] kind Kind of a message
  * @return Name of that kind
  */
 const char*
 GNUNET_MESSENGER_name_of_kind (enum GNUNET_MESSENGER_MessageKind kind);
 
 /**
+ * Creates a room <i>key</i> from given optional <i>input</i> string using certain
+ * properties for this targeted room.
+ *
+ * @param[out] key Room key
+ * @param[in] input Input string or NULL
+ * @param[in] is_public Public property
+ * @param[in] is_group Group property
+ * @param[in] is_feed Feed property
+ */
+void
+GNUNET_MESSENGER_create_room_key (union GNUNET_MESSENGER_RoomKey *key,
+                                  const char *input,
+                                  enum GNUNET_GenericReturnValue is_public,
+                                  enum GNUNET_GenericReturnValue is_group,
+                                  enum GNUNET_GenericReturnValue is_feed);
+
+/**
  * The header of a #GNUNET_MESSENGER_Message.
  * This allows authentication of the sender, temporal ordering and finding potentially missed messages.
  *
- * Message-header-size: 40+ bytes
+ * Message-header-size: 140+ bytes
  */
 struct GNUNET_MESSENGER_MessageHeader
 {
@@ -275,7 +439,7 @@ struct GNUNET_MESSENGER_MessageHeader
  * An info message body.
  * This allows ensuring member ids are unique and this first message can be verified.
  *
- * Message-body-size: 8+ bytes
+ * Message-body-size: 4 bytes
  */
 struct GNUNET_MESSENGER_MessageInfo
 {
@@ -293,10 +457,15 @@ struct GNUNET_MESSENGER_MessageInfo
  * A join message body.
  * This allows informing others about joining the room with a given key pair.
  *
- * Message-body-size: 4+ bytes
+ * Message-body-size: 68+ bytes
  */
 struct GNUNET_MESSENGER_MessageJoin
 {
+  /**
+   * The previous epoch the message was sent from.
+   */
+  struct GNUNET_HashCode epoch;
+
   /**
    * The senders public key to verify its signatures.
    */
@@ -307,10 +476,14 @@ struct GNUNET_MESSENGER_MessageJoin
  * A leave message body.
  * This allows informing others about leaving the room.
  *
- * Message-body-size: 0 bytes
+ * Message-body-size: 64 bytes
  */
 struct GNUNET_MESSENGER_MessageLeave
 {
+  /**
+   * The previous epoch the message was sent from.
+   */
+  struct GNUNET_HashCode epoch;
 };
 
 /**
@@ -359,7 +532,7 @@ struct GNUNET_MESSENGER_MessagePeer
  * An id message body.
  * This allows replacing the member id with a newly unique generated one.
  *
- * Message-body-size: 8 bytes
+ * Message-body-size: 32 bytes
  */
 struct GNUNET_MESSENGER_MessageId
 {
@@ -387,10 +560,15 @@ struct GNUNET_MESSENGER_MessageMiss
  * A merge message body.
  * This allows merging message history branches together.
  *
- * Message-body-size: 16 bytes
+ * Message-body-size: 192 bytes
  */
 struct GNUNET_MESSENGER_MessageMerge
 {
+  /**
+   * The previous epochs the message was sent from.
+   */
+  struct GNUNET_HashCode epochs[2];
+
   /**
    * The hash of a second previous message.
    */
@@ -401,7 +579,7 @@ struct GNUNET_MESSENGER_MessageMerge
  * A request message body.
  * This allows requesting the content of a specific message which is currently missing.
  *
- * Message-body-size: 16 bytes
+ * Message-body-size: 64 bytes
  */
 struct GNUNET_MESSENGER_MessageRequest
 {
@@ -415,7 +593,7 @@ struct GNUNET_MESSENGER_MessageRequest
  * An invite message body.
  * This allows sharing information about other rooms in form of an invitation.
  *
- * Message-body-size: 48 bytes
+ * Message-body-size: 96 bytes
  */
 struct GNUNET_MESSENGER_MessageInvite
 {
@@ -427,7 +605,7 @@ struct GNUNET_MESSENGER_MessageInvite
   /**
    * The hash identifying the port of the room.
    */
-  struct GNUNET_HashCode key;
+  union GNUNET_MESSENGER_RoomKey key;
 };
 
 /**
@@ -448,7 +626,7 @@ struct GNUNET_MESSENGER_MessageText
  * A file message body.
  * This allows sending necessary details about an uploaded encrypted file to allow access to it.
  *
- * Message-body-size: 335+ bytes
+ * Message-body-size: 383+ bytes
  */
 struct GNUNET_MESSENGER_MessageFile
 {
@@ -477,15 +655,10 @@ struct GNUNET_MESSENGER_MessageFile
  * A private message body.
  * This allows to encapsulate any message to be encrypted for only one specific member to receive in a room.
  *
- * Message-body-size: 32+ bytes
+ * Message-body-size: 0+ bytes
  */
 struct GNUNET_MESSENGER_MessagePrivate
 {
-  /**
-   * The ECDH key to decrypt the message.
-   */
-  struct GNUNET_CRYPTO_EcdhePublicKey key;
-
   /**
    * The length of the encrypted message.
    */
@@ -498,12 +671,12 @@ struct GNUNET_MESSENGER_MessagePrivate
 };
 
 /**
- * A delete message body
+ * A deletion message body
  * This allows deletion of an own previous message with any custom automatic delay.
  *
- * Message-body-size: 24 bytes
+ * Message-body-size: 72 bytes
  */
-struct GNUNET_MESSENGER_MessageDelete
+struct GNUNET_MESSENGER_MessageDeletion
 {
   /**
    * The hash of the message to delete.
@@ -553,7 +726,7 @@ struct GNUNET_MESSENGER_MessageTicket
  * A transcript message body
  * This allows reading the content of a sent private message.
  *
- * Message-body-size: 68+
+ * Message-body-size: 68+ bytes
  */
 struct GNUNET_MESSENGER_MessageTranscript
 {
@@ -582,7 +755,7 @@ struct GNUNET_MESSENGER_MessageTranscript
  * A tag message body
  * This allows tagging a message with a custom tag.
  *
- * Message-body-size: 32+
+ * Message-body-size: 64+ bytes
  */
 struct GNUNET_MESSENGER_MessageTag
 {
@@ -598,15 +771,15 @@ struct GNUNET_MESSENGER_MessageTag
 };
 
 /**
- * A subscribe message body
+ * A subscribtion message body
  * This allows subscribing to a discourse.
  *
- * Message-body-size: 44
+ * Message-body-size: 44 bytes
  */
-struct GNUNET_MESSENGER_MessageSubscribe
+struct GNUNET_MESSENGER_MessageSubscribtion
 {
   /**
-   * The hash of the discourse to subscribe.
+   * The hash of the discourse to subscribtion.
    */
   struct GNUNET_ShortHashCode discourse;
 
@@ -625,7 +798,7 @@ struct GNUNET_MESSENGER_MessageSubscribe
  * A talk message body
  * This allows talking in a discourse.
  *
- * Message-body-size: 34+
+ * Message-body-size: 32+ bytes
  */
 struct GNUNET_MESSENGER_MessageTalk
 {
@@ -643,6 +816,214 @@ struct GNUNET_MESSENGER_MessageTalk
    * The data of the talk message.
    */
   char *data;
+};
+
+/**
+ * An announcement message body
+ * This allows announcing group and epoch keys.
+ *
+ * Message-body-size: 168 bytes
+ */
+struct GNUNET_MESSENGER_MessageAnnouncement
+{
+  /**
+   * The identifier of the announcement in an epoch.
+   */
+  union GNUNET_MESSENGER_EpochIdentifier identifier;
+
+  /**
+   * The public key to appeal access.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey key;
+
+  /**
+   * The nonce of the announcement.
+   */
+  union GNUNET_MESSENGER_EpochNonce nonce;
+
+  /**
+   * The timeout of the announcement.
+   */
+  struct GNUNET_TIME_RelativeNBO timeout;
+
+  /**
+   * The hmac of the announcement.
+   */
+  struct GNUNET_HashCode hmac;
+};
+
+#define GNUNET_MESSENGER_SECRET_IV_BYTES \
+        sizeof (struct GNUNET_CRYPTO_SymmetricInitializationVector)
+
+/**
+ * A secret message body
+ * This allows exchanging encrypted messages.
+ *
+ * Message-body-size: 128+ bytes
+ */
+struct GNUNET_MESSENGER_MessageSecret
+{
+  /**
+   * The identifier of the announcement in an epoch.
+   */
+  union GNUNET_MESSENGER_EpochIdentifier identifier;
+
+  /**
+   * The IV of the secret message.
+   */
+  uint8_t iv[GNUNET_MESSENGER_SECRET_IV_BYTES];
+
+  /**
+   * The hmac of the encrypted message.
+   */
+  struct GNUNET_HashCode hmac;
+
+  /**
+   * The length of the encrypted message.
+   */
+  uint16_t length;
+
+  /**
+   * The data of the encrypted message.
+   */
+  char *data;
+};
+
+/**
+ * An appeal message body
+ * This allows appealing to receive an epoch key.
+ *
+ * Message-body-size: 104 bytes
+ */
+struct GNUNET_MESSENGER_MessageAppeal
+{
+  /**
+   * The hash of the linked announcement message event.
+   */
+  struct GNUNET_HashCode event;
+
+  /**
+   * The public key to receive access.
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey key;
+
+  /**
+   * The timeout of the appeal.
+   */
+  struct GNUNET_TIME_RelativeNBO timeout;
+};
+
+#define GNUNET_MESSENGER_ACCESS_KEY_BYTES \
+        sizeof (struct GNUNET_CRYPTO_SymmetricSessionKey) + \
+        GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES
+
+/**
+ * An access message body
+ * This allows providing access to a group or an epoch key using a public key.
+ *
+ * Message-body-size: 240 bytes
+ */
+struct GNUNET_MESSENGER_MessageAccess
+{
+  /**
+   * The hash of the linked announcement or group message event.
+   */
+  struct GNUNET_HashCode event;
+
+  /**
+   * The encrypted group or epoch key.
+   */
+  uint8_t key[GNUNET_MESSENGER_ACCESS_KEY_BYTES];
+
+  /**
+   * The hmac of the access.
+   */
+  struct GNUNET_HashCode hmac;
+};
+
+/**
+ * A revolution message body
+ * This allows revolutionizing a group or epoch.
+ *
+ * Message-body-size: 128 bytes
+ */
+struct GNUNET_MESSENGER_MessageRevolution
+{
+  /**
+   * The identifier of the announcement in an epoch.
+   */
+  union GNUNET_MESSENGER_EpochIdentifier identifier;
+
+  /**
+   * The nonce of the revolution.
+   */
+  union GNUNET_MESSENGER_EpochNonce nonce;
+
+  /**
+   * The hmac of the revolution.
+   */
+  struct GNUNET_HashCode hmac;
+};
+
+/**
+ * A group message body
+ * This allows forming an epoch group.
+ *
+ * Message-body-size: 168 bytes
+ */
+struct GNUNET_MESSENGER_MessageGroup
+{
+  /**
+   * The identifier of the group in an epoch.
+   */
+  union GNUNET_MESSENGER_EpochIdentifier identifier;
+
+  /**
+   * The hash of the initiator group announcement.
+   */
+  struct GNUNET_HashCode initiator;
+
+  /**
+   * The hash of the partner group announcement.
+   */
+  struct GNUNET_HashCode partner;
+
+  /**
+   * The timeout of the group formation.
+   */
+  struct GNUNET_TIME_RelativeNBO timeout;
+};
+
+#define GNUNET_MESSENGER_AUTHORIZATION_KEY_BYTES \
+        sizeof (struct GNUNET_CRYPTO_SymmetricSessionKey)
+
+/**
+ * An authorization message body
+ * This allows providing access to a group or an epoch key using an established shared key.
+ *
+ * Message-body-size: 224 bytes
+ */
+struct GNUNET_MESSENGER_MessageAuthorization
+{
+  /**
+   * The identifier of the group in an epoch.
+   */
+  union GNUNET_MESSENGER_EpochIdentifier identifier;
+
+  /**
+   * The hash of the linked group message event.
+   */
+  struct GNUNET_HashCode event;
+
+  /**
+   * The encrypted group or epoch key.
+   */
+  uint8_t key[GNUNET_MESSENGER_AUTHORIZATION_KEY_BYTES];
+
+  /**
+   * The hmac of the authorization.
+   */
+  struct GNUNET_HashCode hmac;
 };
 
 /**
@@ -666,13 +1047,20 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageText text;
     struct GNUNET_MESSENGER_MessageFile file;
     struct GNUNET_MESSENGER_MessagePrivate privacy;
-    struct GNUNET_MESSENGER_MessageDelete deletion;
+    struct GNUNET_MESSENGER_MessageDeletion deletion;
     struct GNUNET_MESSENGER_MessageConnection connection;
     struct GNUNET_MESSENGER_MessageTicket ticket;
     struct GNUNET_MESSENGER_MessageTranscript transcript;
     struct GNUNET_MESSENGER_MessageTag tag;
-    struct GNUNET_MESSENGER_MessageSubscribe subscribe;
+    struct GNUNET_MESSENGER_MessageSubscribtion subscribtion;
     struct GNUNET_MESSENGER_MessageTalk talk;
+    struct GNUNET_MESSENGER_MessageAnnouncement announcement;
+    struct GNUNET_MESSENGER_MessageSecret secret;
+    struct GNUNET_MESSENGER_MessageAppeal appeal;
+    struct GNUNET_MESSENGER_MessageAccess access;
+    struct GNUNET_MESSENGER_MessageRevolution revolution;
+    struct GNUNET_MESSENGER_MessageGroup group;
+    struct GNUNET_MESSENGER_MessageAuthorization authorization;
   };
 };
 
@@ -732,6 +1120,16 @@ enum GNUNET_MESSENGER_MessageFlags
    * The delete flag. The flag indicates that the message was deleted by the service.
    */
   GNUNET_MESSENGER_FLAG_DELETE = 32,
+
+  /**
+   * The secret flag. The flag indicates that the message was encrypted as epoch secret.
+   */
+  GNUNET_MESSENGER_FLAG_SECRET = 64,
+
+  /**
+   * The member flag. The flag indicates that the message introduces a new member to the client.
+   */
+  GNUNET_MESSENGER_FLAG_MEMBER = 128,
 };
 
 /**
@@ -771,6 +1169,20 @@ enum GNUNET_MESSENGER_SubscriptionFlags
    * The keep alive flag. The flag indicates that a member keeps a subscription alive implicitly.
    */
   GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE = 2,
+};
+
+enum GNUNET_MESSENGER_EpochFlags
+{
+  /**
+   * The none flag. This flag indicates that the epoch or group key is not affected by
+   * any modifications.
+   */
+  GNUNET_MESSENGER_FLAG_EPOCH_NONE = 0,
+
+  /**
+   * The valid flag. This flag indicates whether an epoch or group key is still valid.
+   */
+  GNUNET_MESSENGER_FLAG_EPOCH_VALID = 1,
 };
 
 /**
@@ -900,7 +1312,7 @@ GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
  */
 struct GNUNET_MESSENGER_Room*
 GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
-                            const struct GNUNET_HashCode *key);
+                            const union GNUNET_MESSENGER_RoomKey *key);
 
 /**
  * Enter a room to send and receive messages through a <b>door</b> opened using #GNUNET_MESSENGER_open_room.
@@ -923,7 +1335,7 @@ GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
 struct GNUNET_MESSENGER_Room*
 GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
                              const struct GNUNET_PeerIdentity *door,
-                             const struct GNUNET_HashCode *key);
+                             const union GNUNET_MESSENGER_RoomKey *key);
 
 /**
  * Close a <i>room</i> which was entered, opened or both in various order and variety. Closing a room will destroy all
@@ -1060,14 +1472,14 @@ GNUNET_MESSENGER_delete_message (struct GNUNET_MESSENGER_Room *room,
                                  const struct GNUNET_TIME_Relative delay);
 
 /**
- * Get the message in a <i>room</i> identified by its <i>hash</i>.
+ * Get the message in a <i>room</i> identified by its <i>hash</i> and requests it if necessary.
  *
- * @param[in] room Room handle
+ * @param[in,out] room Room handle
  * @param[in] hash Hash identifying a message
  * @return Message struct or NULL if no message with that hash is known
  */
 const struct GNUNET_MESSENGER_Message*
-GNUNET_MESSENGER_get_message (const struct GNUNET_MESSENGER_Room *room,
+GNUNET_MESSENGER_get_message (struct GNUNET_MESSENGER_Room *room,
                               const struct GNUNET_HashCode *hash);
 
 /**
@@ -1092,6 +1504,6 @@ GNUNET_MESSENGER_iterate_members (struct GNUNET_MESSENGER_Room *room,
 }
 #endif
 
-#endif //GNUNET_MESSENGER_SERVICE_H
+#endif // GNUNET_MESSENGER_SERVICE_H
 
 /** @} *//* end of group */

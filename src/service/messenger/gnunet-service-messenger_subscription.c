@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2024 GNUnet e.V.
+   Copyright (C) 2024--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -40,6 +40,10 @@ create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
 
   GNUNET_assert ((room) && (member) && (discourse));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new subscription: %s [%s]\n",
+              GNUNET_h2s (&(room->key)),
+              GNUNET_sh2s (discourse));
+
   subscription = GNUNET_new (struct GNUNET_MESSENGER_Subscription);
 
   if (! subscription)
@@ -49,13 +53,17 @@ create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
   subscription->member = member;
   subscription->task = NULL;
 
-  memcpy (&(subscription->discourse), discourse, sizeof (struct GNUNET_ShortHashCode));
+  memcpy (
+    &(subscription->discourse),
+    discourse,
+    sizeof (struct GNUNET_ShortHashCode));
 
   subscription->start = timestamp;
   subscription->end = GNUNET_TIME_absolute_add (timestamp, duration);
 
   return subscription;
 }
+
 
 void
 destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscription)
@@ -65,19 +73,27 @@ destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscription)
   if (subscription->task)
     GNUNET_SCHEDULER_cancel (subscription->task);
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free subscription: %s [%s]\n",
+              GNUNET_h2s (&(subscription->room->key)),
+              GNUNET_sh2s (&(subscription->discourse)));
+
   GNUNET_free (subscription);
 }
 
+
 const struct GNUNET_ShortHashCode*
-get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscription)
+get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *
+                            subscription)
 {
   GNUNET_assert (subscription);
 
   return &(subscription->discourse);
 }
 
+
 enum GNUNET_GenericReturnValue
-has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscription,
+has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *
+                               subscription,
                                struct GNUNET_TIME_Absolute timestamp)
 {
   GNUNET_assert (subscription);
@@ -88,6 +104,7 @@ has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subsc
   else
     return GNUNET_YES;
 }
+
 
 void
 update_subscription (struct GNUNET_MESSENGER_Subscription *subscription,
@@ -109,6 +126,7 @@ update_subscription (struct GNUNET_MESSENGER_Subscription *subscription,
   subscription->end = end;
 }
 
+
 static void
 task_subscription_exit (void *cls)
 {
@@ -129,14 +147,15 @@ task_subscription_exit (void *cls)
 
   room = subscription->room;
 
-  memcpy (&discourse, &(subscription->discourse), 
+  memcpy (&discourse, &(subscription->discourse),
           sizeof (struct GNUNET_ShortHashCode));
-  
+
   remove_member_subscription (member, subscription);
   destroy_subscription (subscription);
 
   cleanup_srv_room_discourse_messages (room, &discourse);
 }
+
 
 void
 update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscription)
@@ -148,10 +167,10 @@ update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscription)
 
   current = GNUNET_TIME_absolute_get ();
   time = GNUNET_TIME_absolute_get_difference (current, subscription->end);
-  
+
   if (subscription->task)
     GNUNET_SCHEDULER_cancel (subscription->task);
-  
-  subscription->task = 
-    GNUNET_SCHEDULER_add_delayed (time, task_subscription_exit, subscription);
+
+  subscription->task = GNUNET_SCHEDULER_add_delayed (
+    time, task_subscription_exit, subscription);
 }

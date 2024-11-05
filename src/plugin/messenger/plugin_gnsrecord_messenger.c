@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2024 GNUnet e.V.
+   Copyright (C) 2021--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -61,10 +61,8 @@ messenger_value_to_string (void *cls,
 
         char *door = GNUNET_CRYPTO_eddsa_public_key_to_string (
           &(record->door.public_key));
-        char *key = GNUNET_STRINGS_data_to_string_alloc (&(record->key),
-                                                         sizeof(struct
-                                                                GNUNET_HashCode)
-                                                         );
+        char *key = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->key), sizeof(struct GNUNET_HashCode));
 
         char *ret;
         GNUNET_asprintf (&ret, "%s-%s", key, door);
@@ -84,13 +82,57 @@ messenger_value_to_string (void *cls,
         const struct GNUNET_MESSENGER_RoomDetailsRecord *record = data;
 
         char *name = GNUNET_strndup (record->name, 256);
-        char *flags = GNUNET_STRINGS_data_to_string_alloc (&(record->flags),
-                                                           sizeof(uint32_t));
+        char *flags = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->flags), sizeof(uint32_t));
 
         char *ret;
         GNUNET_asprintf (&ret, "%s-%s", flags, name);
         GNUNET_free (flags);
         GNUNET_free (name);
+        return ret;
+      }
+    }
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY:
+    {
+      if (data_size != sizeof(struct GNUNET_MESSENGER_RoomEpochKeyRecord))
+      {
+        GNUNET_break_op (0);
+        return NULL;
+      }
+      {
+        const struct GNUNET_MESSENGER_RoomEpochKeyRecord *record = data;
+
+        char *key = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->key),
+          sizeof(struct GNUNET_HashCode));
+        char *hash = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->hash),
+          sizeof(struct GNUNET_HashCode));
+        char *identifier = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->identifier),
+          sizeof(struct GNUNET_ShortHashCode));
+        char *shared_key = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->shared_key),
+          sizeof(struct GNUNET_CRYPTO_SymmetricSessionKey));
+        char *flags = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->flags),
+          sizeof(uint32_t));
+
+        char *ret;
+        GNUNET_asprintf (
+          &ret,
+          "%s-%s-%s-%s-%s",
+          flags,
+          shared_key,
+          identifier,
+          hash,
+          key);
+
+        GNUNET_free (flags);
+        GNUNET_free (shared_key);
+        GNUNET_free (identifier);
+        GNUNET_free (hash);
+        GNUNET_free (key);
         return ret;
       }
     }
@@ -135,15 +177,14 @@ messenger_string_to_value (void *cls,
 
       if ((NULL == (dash = strchr (s, '-'))) ||
           (1 != sscanf (s, "%103s-", key)) ||
-          (GNUNET_OK != GNUNET_CRYPTO_eddsa_public_key_from_string (dash + 1,
-                                                                    strlen (
-                                                                      dash + 1),
-                                                                    &(door.
-                                                                      public_key))))
+          (GNUNET_OK != GNUNET_CRYPTO_eddsa_public_key_from_string (
+             dash + 1, strlen (dash + 1), &(door.public_key))))
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"),
-                    s);
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"),
+          s);
+
         return GNUNET_SYSERR;
       }
       {
@@ -151,16 +192,15 @@ messenger_string_to_value (void *cls,
           struct GNUNET_MESSENGER_RoomEntryRecord
           );
 
-        if (GNUNET_OK != GNUNET_STRINGS_string_to_data (key,
-                                                        strlen (key),
-                                                        &(record->key),
-                                                        sizeof(struct
-                                                               GNUNET_HashCode))
-            )
+        if (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+              key, strlen (key),
+              &(record->key), sizeof(struct GNUNET_HashCode)))
         {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      _ ("Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"),
-                      s);
+          GNUNET_log (
+            GNUNET_ERROR_TYPE_ERROR,
+            _ ("Unable to parse MESSENGER_ROOM_ENTRY record `%s'\n"),
+            s);
+
           GNUNET_free (record);
           return GNUNET_SYSERR;
         }
@@ -180,9 +220,11 @@ messenger_string_to_value (void *cls,
           (1 != sscanf (s, "%7s-", flags)) ||
           (strlen (dash + 1) > 256))
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"),
-                    s);
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"),
+          s);
+
         return GNUNET_SYSERR;
       }
       {
@@ -190,15 +232,15 @@ messenger_string_to_value (void *cls,
           struct GNUNET_MESSENGER_RoomDetailsRecord
           );
 
-        if (GNUNET_OK != GNUNET_STRINGS_string_to_data (flags,
-                                                        strlen (flags),
-                                                        &(record->flags),
-                                                        sizeof(uint32_t)))
+        if (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+              flags, strlen (flags),
+              &(record->flags), sizeof(uint32_t)))
         {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n")
-                      ,
-                      s);
+          GNUNET_log (
+            GNUNET_ERROR_TYPE_ERROR,
+            _ ("Unable to parse MESSENGER_ROOM_DETAILS record `%s'\n"),
+            s);
+
           GNUNET_free (record);
           return GNUNET_SYSERR;
         }
@@ -207,6 +249,111 @@ messenger_string_to_value (void *cls,
 
         *data = record;
         *data_size = sizeof(struct GNUNET_MESSENGER_RoomDetailsRecord);
+        return GNUNET_OK;
+      }
+    }
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY:
+    {
+      char key[104];
+      char hash[104];
+      char identifier[53];
+      char shared_key[104];
+      char flags[8];
+      const char *dash;
+      const char *s0;
+
+      s0 = s;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%7s-", flags)) ||
+          (strlen (dash + 1) > 104))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      s0 = dash + 1;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%103s-", shared_key)) ||
+          (strlen (dash + 1) > 53))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      s0 = dash + 1;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%52s-", identifier)) ||
+          (strlen (dash + 1) > 104))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      s0 = dash + 1;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%103s-", hash)) ||
+          (strlen (dash + 1) > 103))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      GNUNET_memcpy (key, dash + 1, strlen (dash + 1));
+
+      {
+        struct GNUNET_MESSENGER_RoomEpochKeyRecord *record = GNUNET_new (
+          struct GNUNET_MESSENGER_RoomEpochKeyRecord
+          );
+
+        if ((GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               flags, strlen (flags),
+               &(record->flags), sizeof(uint32_t))) ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               shared_key, strlen (shared_key),
+               &(record->shared_key),
+               sizeof(struct GNUNET_CRYPTO_SymmetricSessionKey)))
+            ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               identifier, strlen (identifier),
+               &(record->identifier),
+               sizeof(struct GNUNET_ShortHashCode)))
+            ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               hash, strlen (hash),
+               &(record->hash),
+               sizeof(struct GNUNET_HashCode))) ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               key, strlen (key),
+               &(record->key),
+               sizeof(struct GNUNET_HashCode))))
+        {
+          GNUNET_log (
+            GNUNET_ERROR_TYPE_ERROR,
+            _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+            s);
+
+          GNUNET_free (record);
+          return GNUNET_SYSERR;
+        }
+
+        *data = record;
+        *data_size = sizeof(struct GNUNET_MESSENGER_RoomEpochKeyRecord);
         return GNUNET_OK;
       }
     }
@@ -227,6 +374,8 @@ static struct
 } name_map[] = {
   { "MESSENGER_ROOM_ENTRY", GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_ENTRY },
   { "MESSENGER_ROOM_DETAILS", GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_DETAILS },
+  { "MESSENGER_ROOM_EPOCH_KEY", GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY }
+  ,
   { NULL, UINT32_MAX }
 };
 

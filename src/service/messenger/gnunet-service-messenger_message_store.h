@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2023 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -46,24 +46,31 @@ struct GNUNET_MESSENGER_MessageLink
 
 struct GNUNET_MESSENGER_MessageStore
 {
+  char *directory;
+
   struct GNUNET_DISK_FileHandle *storage_messages;
+  struct GNUNET_SCHEDULER_Task *writing_task;
 
   struct GNUNET_CONTAINER_MultiHashMap *entries;
   struct GNUNET_CONTAINER_MultiHashMap *messages;
   struct GNUNET_CONTAINER_MultiHashMap *links;
   struct GNUNET_CONTAINER_MultiHashMap *discourses;
+  struct GNUNET_CONTAINER_MultiHashMap *epochs;
 
   enum GNUNET_GenericReturnValue rewrite_entries;
   enum GNUNET_GenericReturnValue write_links;
 };
 
 /**
- * Initializes a message <i>store</i> as fully empty.
+ * Initializes a message <i>store</i> as fully empty using
+ * a specific <i>directory</i>.
  *
  * @param[out] store Message store
+ * @param[in] directory Path to a directory
  */
 void
-init_message_store (struct GNUNET_MESSENGER_MessageStore *store);
+init_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+                    const char *directory);
 
 /**
  * Clears a message <i>store</i>, wipes its content and deallocates its memory.
@@ -74,24 +81,31 @@ void
 clear_message_store (struct GNUNET_MESSENGER_MessageStore *store);
 
 /**
- * Loads messages from a <i>directory</i> into a message <i>store</i>.
+ * Moves all storage from a message <i>store</i> from its current
+ * directory to a given <i>directory</i>.
  *
- * @param[out] store Message store
+ * @param[in,out] store Message store
  * @param[in] directory Path to a directory
  */
 void
-load_message_store (struct GNUNET_MESSENGER_MessageStore *store,
+move_message_store (struct GNUNET_MESSENGER_MessageStore *store,
                     const char *directory);
 
 /**
- * Saves messages from a message <i>store</i> into a <i>directory</i>.
+ * Loads messages from its directory into a message <i>store</i>.
  *
- * @param[in] store Message store
- * @param[in] directory Path to a directory
+ * @param[out] store Message store
  */
 void
-save_message_store (struct GNUNET_MESSENGER_MessageStore *store,
-                    const char *directory);
+load_message_store (struct GNUNET_MESSENGER_MessageStore *store);
+
+/**
+ * Saves messages from a message <i>store</i> into its directory.
+ *
+ * @param[in] store Message store
+ */
+void
+save_message_store (struct GNUNET_MESSENGER_MessageStore *store);
 
 /**
  * Checks if a message matching a given <i>hash</i> is stored in a message <i>store</i>.
@@ -141,6 +155,18 @@ get_store_message_link (struct GNUNET_MESSENGER_MessageStore *store,
                         enum GNUNET_GenericReturnValue deleted_only);
 
 /**
+ * Returns the epoch hash of a message from a message <i>store</i> matching a given <i>hash</i>.
+ * If no matching message is found, NULL gets returned.
+ *
+ * @param[in] store Message store
+ * @param[in] hash Hash of message
+ * @return Epoch hash or NULL
+ */
+const struct GNUNET_HashCode*
+get_store_message_epoch (const struct GNUNET_MESSENGER_MessageStore *store,
+                         const struct GNUNET_HashCode *hash);
+
+/**
  * Stores a message into the message store. The result indicates if the operation was successful.
  *
  * @param[in,out] store Message store
@@ -166,7 +192,7 @@ delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
                       const struct GNUNET_HashCode *hash);
 
 /**
- * Cleans up and deletes all discourse messages existing in the message store memory before a 
+ * Cleans up and deletes all discourse messages existing in the message store memory before a
  * certain timestamp.
  *
  * @param[in,out] store Message store
@@ -174,8 +200,11 @@ delete_store_message (struct GNUNET_MESSENGER_MessageStore *store,
  * @param[in] timestamp Timestamp
  */
 void
-cleanup_store_discourse_messages_before (struct GNUNET_MESSENGER_MessageStore *store,
-                                         const struct GNUNET_ShortHashCode *discourse,
-                                         const struct GNUNET_TIME_Absolute timestamp);
+cleanup_store_discourse_messages_before (struct GNUNET_MESSENGER_MessageStore *
+                                         store,
+                                         const struct GNUNET_ShortHashCode *
+                                         discourse,
+                                         const struct GNUNET_TIME_Absolute
+                                         timestamp);
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H
+#endif // GNUNET_SERVICE_MESSENGER_MESSAGE_STORE_H

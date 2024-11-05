@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2024 GNUnet e.V.
+   Copyright (C) 2021--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -39,6 +39,8 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
   if ((! member) || (! pubkey) || (! (member->store)))
     return NULL;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new member session!\n");
+
   session = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
   session->member = member;
 
@@ -47,8 +49,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
   get_context_from_member (
     get_member_session_key (session),
     get_member_session_id (session),
-    &(session->context)
-    );
+    &(session->context));
 
   {
     struct GNUNET_MESSENGER_ContactStore *store;
@@ -58,8 +59,7 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
     session->contact = get_store_contact (
       store,
       get_member_session_context (session),
-      get_member_session_public_key (session)
-      );
+      get_member_session_public_key (session));
   }
 
   if (! (session->contact))
@@ -122,6 +122,7 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
   const struct GNUNET_HashCode *start;
   const struct GNUNET_HashCode *end;
   struct GNUNET_MESSENGER_MessageStore *msg_store;
+  struct GNUNET_CONTAINER_MultiHashMap *completion;
   struct GNUNET_MESSENGER_ListMessages level;
   struct GNUNET_MESSENGER_ListMessages list;
 
@@ -136,11 +137,17 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
     session->completed = GNUNET_YES;
     goto completion;
   }
+  else if (GNUNET_YES == session->completed)
+    goto completion;
 
   start = &(session->messages.head->hash);
   end = &(session->messages.tail->hash);
 
   msg_store = get_srv_room_message_store (get_session_room (session));
+  completion = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
+
+  if (! completion)
+    goto completion;
 
   init_list_messages (&level);
   add_to_list_messages (&level, end);
@@ -156,35 +163,53 @@ check_member_session_completion (struct GNUNET_MESSENGER_MemberSession *session)
       const struct GNUNET_MESSENGER_MessageLink *link;
 
       link = get_store_message_link (
-        msg_store, &(element->hash), GNUNET_NO
-        );
+        msg_store, &(element->hash),
+        GNUNET_NO);
 
       if (! link)
         continue;
 
-      add_to_list_messages (&list, &(link->first));
+      if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains (completion, &(
+                                                                  link->first)))
+      {
+        add_to_list_messages (&list, &(link->first));
+        GNUNET_CONTAINER_multihashmap_put (completion, &(link->first), NULL,
+                                           GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+      }
 
-      if (GNUNET_YES == link->multiple)
+      if ((GNUNET_YES == link->multiple) &&
+          (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains (completion, &(
+                                                                   link->second)
+                                                                 )))
+      {
         add_to_list_messages (&list, &(link->second));
+        GNUNET_CONTAINER_multihashmap_put (completion, &(link->second), NULL,
+                                           GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST);
+      }
     }
 
     clear_list_messages (&level);
 
     for (element = list.head; element; element = element->next)
-      if (GNUNET_YES == check_member_session_history (session, &(element->hash),
+    {
+      if (GNUNET_YES != check_member_session_history (session, &(element->hash),
                                                       GNUNET_YES))
-        break;
+        continue;
 
-    if (element)
-      if (0 != GNUNET_CRYPTO_hash_cmp (&(element->hash), start))
-        add_to_list_messages (&level, &(element->hash));
-      else
+      if (0 == GNUNET_CRYPTO_hash_cmp (&(element->hash), start))
+      {
         session->completed = GNUNET_YES;
-    else
+        break;
+      }
+    }
+
+    if (GNUNET_YES != session->completed)
       copy_list_messages (&level, &list);
 
     clear_list_messages (&list);
   }
+
+  GNUNET_CONTAINER_multihashmap_destroy (completion);
 
 completion:
   if (GNUNET_YES == is_member_session_completed (session))
@@ -203,8 +228,7 @@ completion:
       remove_store_contact (
         store,
         session->contact,
-        get_member_session_context (session)
-        );
+        get_member_session_context (session));
 
     session->contact = NULL;
   }
@@ -243,6 +267,8 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_assert ((GNUNET_MESSENGER_KIND_ID == message->header.kind) ||
                  (GNUNET_MESSENGER_KIND_KEY == message->header.kind));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Switch member session!\n");
+
   store = get_session_member_store (session);
   next = GNUNET_new (struct GNUNET_MESSENGER_MemberSession);
 
@@ -273,16 +299,14 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   get_context_from_member (
     get_member_session_key (next),
     get_member_session_id (next),
-    &(next->context)
-    );
+    &(next->context));
 
   update_store_contact (
     get_member_contact_store (store),
     get_member_session_contact (session),
     get_member_session_context (session),
     get_member_session_context (next),
-    get_member_session_public_key (next)
-    );
+    get_member_session_public_key (next));
 
   next->contact = get_member_session_contact (session);
 
@@ -295,8 +319,8 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   increase_contact_rc (next->contact);
 
   next->history = GNUNET_CONTAINER_multihashmap_create (
-    GNUNET_CONTAINER_multihashmap_size (session->history), GNUNET_NO
-    );
+    GNUNET_CONTAINER_multihashmap_size (session->history),
+    GNUNET_NO);
 
   GNUNET_CONTAINER_multihashmap_iterate (session->history, iterate_copy_history,
                                          next);
@@ -339,9 +363,9 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session)
     remove_store_contact (
       get_member_contact_store (store),
       contact,
-      get_member_session_context (session)
-      );
+      get_member_session_context (session));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free member session!\n");
   GNUNET_free (session);
 }
 
@@ -363,8 +387,7 @@ reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
     contact = get_store_contact (
       store,
       get_member_session_context (session),
-      get_member_session_public_key (session)
-      );
+      get_member_session_public_key (session));
   }
 
   if (! contact)
@@ -750,14 +773,9 @@ get_cycle_safe_next_session (struct GNUNET_MESSENGER_MemberSession *session,
   if (! next)
     return NULL;
 
-  check = next;
-
-  do {
+  for (check = next; check; check = check->next)
     if (check == session)
       return NULL;
-
-    check = check->next;
-  } while (check);
 
   return next;
 }
@@ -816,8 +834,8 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
       member = get_store_member (store, &next_id);
 
       session->next = get_cycle_safe_next_session (
-        session, member? get_member_session (member, &next_key) : NULL
-        );
+        session,
+        member? get_member_session (member, &next_key) : NULL);
     }
 
     if (session->next)
@@ -866,8 +884,9 @@ save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
     permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
 
     handle = GNUNET_DISK_file_open (
-      path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission
-      );
+      path,
+      GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE,
+      permission);
   }
 
   if (! handle)
@@ -878,8 +897,7 @@ save_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_CONTAINER_multihashmap_iterate (
     session->history,
     iterate_save_member_session_history_hentries,
-    handle
-    );
+    handle);
 
   GNUNET_DISK_file_sync (handle);
   GNUNET_DISK_file_close (handle);

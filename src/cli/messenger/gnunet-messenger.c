@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -37,6 +37,7 @@ uint64_t waiting;
 
 struct GNUNET_SCHEDULER_Task *read_task;
 int silence_flag;
+int request_flag;
 int talk_mode;
 
 /**
@@ -103,8 +104,19 @@ on_message (void *cls,
 
     goto skip_printing;
   }
-  else if (GNUNET_YES == silence_flag)
-    goto skip_printing;
+  else
+  {
+    if (GNUNET_YES == request_flag)
+    {
+      if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)
+        GNUNET_MESSENGER_get_message (room, &(message->body.merge.previous));
+
+      GNUNET_MESSENGER_get_message (room, &(message->header.previous));
+    }
+
+    if (GNUNET_YES == silence_flag)
+      goto skip_printing;
+  }
 
   sender_name = GNUNET_MESSENGER_contact_get_name (sender);
   recipient_name = GNUNET_MESSENGER_contact_get_name (recipient);
@@ -121,6 +133,8 @@ on_message (void *cls,
 
   if (flags & GNUNET_MESSENGER_FLAG_PRIVATE)
     printf ("*( '%s' ) ", recipient_name);
+  if (flags & GNUNET_MESSENGER_FLAG_SECRET)
+    printf ("*(~) ");
 
   switch (message->header.kind)
   {
@@ -180,7 +194,7 @@ on_message (void *cls,
     {
       printf ("* '%s' invites to chat on: %s %s\n", sender_name,
               GNUNET_i2s_full (&(message->body.invite.door)),
-              GNUNET_h2s_full (&(message->body.invite.key)));
+              GNUNET_h2s_full (&(message->body.invite.key.hash)));
       break;
     }
   case GNUNET_MESSENGER_KIND_TEXT:
@@ -229,7 +243,7 @@ on_message (void *cls,
       printf (" '%s' whispers\n", sender_name);
       break;
     }
-  case GNUNET_MESSENGER_KIND_DELETE:
+  case GNUNET_MESSENGER_KIND_DELETION:
     {
       printf ("* '%s' deletes: [%s]\n", sender_name,
               GNUNET_h2s (&(message->body.deletion.hash)));
@@ -265,10 +279,10 @@ on_message (void *cls,
                 GNUNET_h2s (&(message->body.tag.hash)));
       break;
     }
-  case GNUNET_MESSENGER_KIND_SUBSCRIBE:
+  case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
     {
       printf ("* '%s' subscribes: %s\n", sender_name,
-              GNUNET_sh2s (&(message->body.subscribe.discourse)));
+              GNUNET_sh2s (&(message->body.subscribtion.discourse)));
       break;
     }
   case GNUNET_MESSENGER_KIND_TALK:
@@ -276,6 +290,61 @@ on_message (void *cls,
       printf ("* '%s' talks %u bytes in: %s\n", sender_name,
               message->body.talk.length,
               GNUNET_sh2s (&(message->body.talk.discourse)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_ANNOUNCEMENT:
+    {
+      printf ("* '%s' announces epoch key [%s]%s\n", sender_name,
+              GNUNET_sh2s (&(message->body.announcement.identifier.hash)),
+              message->body.announcement.identifier.code.group_bit?
+              " of group" : "");
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_SECRET:
+    {
+      if (flags & GNUNET_MESSENGER_FLAG_SENT)
+        printf (">");
+      else
+        printf ("<");
+
+      printf (" '%s' whispers towards: %s\n", sender_name,
+              GNUNET_sh2s (&(message->body.secret.identifier.hash)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_APPEAL:
+    {
+      printf ("* '%s' appeals the epoch key from: %s\n", sender_name,
+              GNUNET_h2s (&(message->body.appeal.event)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_ACCESS:
+    {
+      printf ("* '%s' grants access to: %s\n", sender_name,
+              GNUNET_h2s (&(message->body.access.event)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_REVOLUTION:
+    {
+      printf ("* '%s' revolutionizes the epoch key [%s]%s\n", sender_name,
+              GNUNET_sh2s (&(message->body.revolution.identifier.hash)),
+              message->body.revolution.identifier.code.group_bit?
+              " of group" : "");
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_GROUP:
+    {
+      printf ("* '%s' proposes group [%s] of { %s", sender_name,
+              GNUNET_sh2s (&(message->body.group.identifier.hash)),
+              GNUNET_h2s (&(message->body.group.initiator)));
+      printf (", %s }\n",
+              GNUNET_h2s (&(message->body.group.partner)));
+      break;
+    }
+  case GNUNET_MESSENGER_KIND_AUTHORIZATION:
+    {
+      printf ("* '%s' authorizes group [%s] to: %s\n", sender_name,
+              GNUNET_sh2s (&(message->body.authorization.identifier.hash)),
+              GNUNET_h2s (&(message->body.authorization.event)));
       break;
     }
   default:
@@ -318,14 +387,14 @@ skip_printing:
     if (GNUNET_YES != talk_mode)
       return;
 
-    response.header.kind = GNUNET_MESSENGER_KIND_SUBSCRIBE;
-    response.body.subscribe.flags =
+    response.header.kind = GNUNET_MESSENGER_KIND_SUBSCRIBTION;
+    response.body.subscribtion.flags =
       GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE;
-    response.body.subscribe.time =
+    response.body.subscribtion.time =
       GNUNET_TIME_relative_hton (GNUNET_TIME_relative_get_second_ ());
 
-    memset (&(response.body.subscribe.discourse), 0,
-            sizeof(response.body.subscribe.discourse));
+    memset (&(response.body.subscribtion.discourse), 0,
+            sizeof(response.body.subscribtion.discourse));
 
     GNUNET_MESSENGER_send_message (room, &response, NULL);
   }
@@ -494,6 +563,8 @@ char *door_id;
 char *ego_name;
 char *room_key;
 
+int public_mode;
+
 struct GNUNET_SCHEDULER_Task *shutdown_task;
 
 /**
@@ -506,16 +577,18 @@ static void
 on_identity (void *cls,
              struct GNUNET_MESSENGER_Handle *handle)
 {
-  struct GNUNET_HashCode key;
+  union GNUNET_MESSENGER_RoomKey key;
   struct GNUNET_MESSENGER_Room *room;
   struct GNUNET_PeerIdentity door_peer;
   struct GNUNET_PeerIdentity *door;
   const char *name;
 
-  memset (&key, 0, sizeof(key));
-
-  if (room_key)
-    GNUNET_CRYPTO_hash (room_key, strlen (room_key), &key);
+  GNUNET_MESSENGER_create_room_key (
+    &key,
+    room_key,
+    public_mode? GNUNET_YES : GNUNET_NO,
+    GNUNET_YES,
+    GNUNET_NO);
 
   door = NULL;
 
@@ -650,8 +723,13 @@ main (int argc,
     GNUNET_GETOPT_option_flag ('s', "silence",
                                "flag to silence all others to send only",
                                &silence_flag),
+    GNUNET_GETOPT_option_flag ('R', "request",
+                               "flag to enable requesting older messages",
+                               &request_flag),
     GNUNET_GETOPT_option_flag ('t', "talk", "flag to enable talk mode",
                                &talk_mode),
+    GNUNET_GETOPT_option_flag ('P', "public", "flag to disable forward secrecy",
+                               &public_mode),
     GNUNET_GETOPT_OPTION_END
   };
 

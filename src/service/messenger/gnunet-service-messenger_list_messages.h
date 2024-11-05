@@ -108,4 +108,4 @@ void
 save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages,
                     const char *path);
 
-#endif //GNUNET_SERVICE_MESSENGER_LIST_MESSAGES_H
+#endif // GNUNET_SERVICE_MESSENGER_LIST_MESSAGES_H

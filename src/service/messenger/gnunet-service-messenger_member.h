@@ -38,7 +38,9 @@ struct GNUNET_MESSENGER_Member
   struct GNUNET_CONTAINER_MultiShortmap *subscriptions;
 };
 
-typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_SubscriptionIteratorCallback) (
+typedef enum GNUNET_GenericReturnValue (*
+                                        GNUNET_MESSENGER_SubscriptionIteratorCallback)
+(
   void *cls,
   const struct GNUNET_ShortHashCode *discourse,
   struct GNUNET_MESSENGER_Subscription *subscription);
@@ -212,8 +214,8 @@ get_member_subscription (struct GNUNET_MESSENGER_Member *member,
                          const struct GNUNET_ShortHashCode *discourse);
 
 /**
- * Iterate through all subscriptions of a given <i>member</i> and call the 
- * provided iterator callback with a selected closure. The function will 
+ * Iterate through all subscriptions of a given <i>member</i> and call the
+ * provided iterator callback with a selected closure. The function will
  * return the amount of subscriptions it iterated through.
  *
  * @param[in,out] member Member
@@ -226,4 +228,4 @@ iterate_member_subscriptions (struct GNUNET_MESSENGER_Member *member,
                               GNUNET_MESSENGER_SubscriptionIteratorCallback it,
                               void *cls);
 
-#endif //GNUNET_SERVICE_MESSENGER_MEMBER_H
+#endif // GNUNET_SERVICE_MESSENGER_MEMBER_H

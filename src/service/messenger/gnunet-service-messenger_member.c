@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -37,6 +37,9 @@ create_member (struct GNUNET_MESSENGER_MemberStore *store,
   struct GNUNET_MESSENGER_Member *member;
 
   GNUNET_assert (store);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Create new member: %s\n",
+              GNUNET_sh2s (id));
 
   member = GNUNET_new (struct GNUNET_MESSENGER_Member);
   member->store = store;
@@ -101,6 +104,9 @@ destroy_member (struct GNUNET_MESSENGER_Member *member)
 
   GNUNET_CONTAINER_multihashmap_destroy (member->sessions);
   GNUNET_CONTAINER_multishortmap_destroy (member->subscriptions);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free member: %s\n",
+              GNUNET_sh2s (&(member->id)));
 
   GNUNET_free (member);
 }

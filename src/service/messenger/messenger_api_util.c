@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -32,7 +32,7 @@ static void
 callback_close_channel (void *cls)
 {
   struct GNUNET_CADET_Channel *channel;
-  
+
   channel = cls;
 
   if (channel)
@@ -45,9 +45,11 @@ delayed_disconnect_channel (struct GNUNET_CADET_Channel *channel)
 {
   GNUNET_assert (channel);
 
-  GNUNET_SCHEDULER_add_delayed_with_priority (GNUNET_TIME_relative_get_zero_ (),
-                                              GNUNET_SCHEDULER_PRIORITY_URGENT,
-                                              callback_close_channel, channel);
+  GNUNET_SCHEDULER_add_delayed_with_priority (
+    GNUNET_TIME_relative_get_zero_ (),
+    GNUNET_SCHEDULER_PRIORITY_URGENT,
+    callback_close_channel,
+    channel);
 }
 
 
@@ -107,7 +109,7 @@ get_anonymous_public_key (void)
 
 
 void
-convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
+convert_messenger_key_to_port (const union GNUNET_MESSENGER_RoomKey *key,
                                struct GNUNET_HashCode *port)
 {
   static struct GNUNET_HashCode version;
@@ -123,7 +125,7 @@ convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
     GNUNET_CRYPTO_hash (&version_value, sizeof(version_value), &version);
   }
 
-  GNUNET_CRYPTO_hash_sum (key, &version, port);
+  GNUNET_CRYPTO_hash_sum (&(key->hash), &version, port);
 }
 
 

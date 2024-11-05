@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -48,6 +48,8 @@ struct GNUNET_MESSENGER_Service
 
   enum GNUNET_GenericReturnValue auto_connecting;
   enum GNUNET_GenericReturnValue auto_routing;
+  enum GNUNET_GenericReturnValue group_keys;
+  enum GNUNET_GenericReturnValue local_request;
   unsigned long long min_routers;
 
   struct GNUNET_CADET_Handle *cadet;
@@ -194,12 +196,16 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
  * @param[in] session Sender session
  * @param[in] message Message
  * @param[in] hash Hash of message
+ * @param[in] epoch Hash of epoch
+ * @param[in] recent Whether the message was recently received
  */
 void
 handle_service_message (struct GNUNET_MESSENGER_Service *service,
                         struct GNUNET_MESSENGER_SrvRoom *room,
                         const struct GNUNET_MESSENGER_SenderSession *session,
                         const struct GNUNET_MESSENGER_Message *message,
-                        const struct GNUNET_HashCode *hash);
+                        const struct GNUNET_HashCode *hash,
+                        const struct GNUNET_HashCode *epoch,
+                        enum GNUNET_GenericReturnValue recent);
 
 #endif // GNUNET_SERVICE_MESSENGER_SERVICE_H

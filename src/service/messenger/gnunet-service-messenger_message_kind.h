@@ -83,4 +83,4 @@ struct GNUNET_MESSENGER_Message*
 create_message_connection (const struct GNUNET_MESSENGER_SrvRoom *room);
 
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H
+#endif // GNUNET_SERVICE_MESSENGER_MESSAGE_KIND_H

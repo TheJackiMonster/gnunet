@@ -105,4 +105,4 @@ update_store_peer (struct GNUNET_MESSENGER_PeerStore *store,
                    const struct GNUNET_PeerIdentity *peer,
                    enum GNUNET_GenericReturnValue active);
 
-#endif //GNUNET_SERVICE_MESSENGER_PEER_STORE_H
+#endif // GNUNET_SERVICE_MESSENGER_PEER_STORE_H

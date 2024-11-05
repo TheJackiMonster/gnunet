@@ -380,6 +380,10 @@ src/service/messenger/gnunet-service-messenger_tunnel.c
 src/service/messenger/messenger_api.c
 src/service/messenger/messenger_api_contact.c
 src/service/messenger/messenger_api_contact_store.c
+src/service/messenger/messenger_api_epoch.c
+src/service/messenger/messenger_api_epoch_announcement.c
+src/service/messenger/messenger_api_epoch_group.c
+src/service/messenger/messenger_api_epoch_membership.c
 src/service/messenger/messenger_api_handle.c
 src/service/messenger/messenger_api_list_tunnels.c
 src/service/messenger/messenger_api_message.c

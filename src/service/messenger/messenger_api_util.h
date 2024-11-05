@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,6 +27,7 @@
 #define GNUNET_MESSENGER_API_UTIL_H
 
 #include "gnunet_cadet_service.h"
+#include "gnunet_messenger_service.h"
 #include "gnunet_util_lib.h"
 
 /**
@@ -78,7 +79,7 @@ get_anonymous_public_key (void);
  * @param[out] port CADET service port
  */
 void
-convert_messenger_key_to_port (const struct GNUNET_HashCode *key,
+convert_messenger_key_to_port (const union GNUNET_MESSENGER_RoomKey *key,
                                struct GNUNET_HashCode *port);
 
 /**
@@ -92,4 +93,4 @@ void
 convert_peer_identity_to_id (const struct GNUNET_PeerIdentity *identity,
                              struct GNUNET_ShortHashCode *id);
 
-#endif //GNUNET_MESSENGER_API_UTIL_H
+#endif // GNUNET_MESSENGER_API_UTIL_H

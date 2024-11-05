@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -178,20 +178,22 @@ is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
 
 /**
  * Returns the latest merged hash from a room of a given <i>handle</i> using a specific <i>key</i>
- * and the handles own latest known <i>hash</i> of a message. If the room does not contain other
- * messages being accessible to the handle and older than the provided hash, the function returns
- * the originally provided hash as fallback.
+ * and the handles own latest known <i>hash</i> and <i>epoch</i> of a message. If the room does
+ * not contain other messages being accessible to the handle and older than the provided hash, the
+ * function returns the originally provided hash as fallback.
  *
  * @param[in,out] handle Handle
  * @param[in] key Key of a room
  * @param[in] prev Known hash of a message
  * @param[out] hash Hash of the latest merged message in a room available to the handle
+ * @param[out] epoch Hash of the latest epoch in a room available to the handle
  */
 void
 sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
                           const struct GNUNET_HashCode *key,
                           const struct GNUNET_HashCode *prev,
-                          struct GNUNET_HashCode *hash);
+                          struct GNUNET_HashCode *hash,
+                          struct GNUNET_HashCode *epoch);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> to the room using a specific <i>key</i>.
@@ -214,7 +216,8 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] session Sender session
  * @param[in] message Message
  * @param[in] hash Hash of message
- * @param[in] recent Whether the message was recently handled
+ * @param[in] epoch Hash of epoch
+ * @param[in] recent Whether the message was recently received
  */
 void
 notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
@@ -222,6 +225,7 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                            const struct GNUNET_MESSENGER_SenderSession *session,
                            const struct GNUNET_MESSENGER_Message *message,
                            const struct GNUNET_HashCode *hash,
+                           const struct GNUNET_HashCode *epoch,
                            enum GNUNET_GenericReturnValue recent);
 
 /**
@@ -238,4 +242,4 @@ notify_srv_handle_member_id (struct GNUNET_MESSENGER_SrvHandle *handle,
                              const struct GNUNET_ShortHashCode *member_id,
                              enum GNUNET_GenericReturnValue reset);
 
-#endif //GNUNET_SERVICE_MESSENGER_HANDLE_H
+#endif // GNUNET_SERVICE_MESSENGER_HANDLE_H

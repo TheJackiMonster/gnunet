@@ -163,4 +163,4 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_MESSENGER_Message *message,
                           const struct GNUNET_HashCode *hash);
 
-#endif //GNUNET_SERVICE_MESSENGER_MESSAGE_HANDLE_H
+#endif // GNUNET_SERVICE_MESSENGER_MESSAGE_HANDLE_H

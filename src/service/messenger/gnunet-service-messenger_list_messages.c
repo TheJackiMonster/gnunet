@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -63,6 +63,9 @@ add_to_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
 
   GNUNET_assert ((messages) && (hash));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Add new message to list: %s\n",
+              GNUNET_h2s (hash));
+
   element = GNUNET_new (struct GNUNET_MESSENGER_ListMessage);
 
   GNUNET_memcpy (&(element->hash), hash, sizeof(struct GNUNET_HashCode));
@@ -79,6 +82,8 @@ copy_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
 
   GNUNET_assert ((messages) && (origin));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Copy messages from list!\n");
+
   for (element = origin->head; element; element = element->next)
     add_to_list_messages (messages, &(element->hash));
 }
@@ -91,6 +96,9 @@ remove_from_list_messages (struct GNUNET_MESSENGER_ListMessages *messages,
   struct GNUNET_MESSENGER_ListMessage *element;
 
   GNUNET_assert ((messages) && (hash));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Remove message from list: %s\n",
+              GNUNET_h2s (hash));
 
   for (element = messages->head; element; element = element->next)
     if (0 == GNUNET_CRYPTO_hash_cmp (&(element->hash), hash))
@@ -153,7 +161,7 @@ save_list_messages (const struct GNUNET_MESSENGER_ListMessages *messages,
     enum GNUNET_DISK_AccessPermissions permission;
 
     permission = (GNUNET_DISK_PERM_USER_READ | GNUNET_DISK_PERM_USER_WRITE);
-    
+
     handle = GNUNET_DISK_file_open (
       path, GNUNET_DISK_OPEN_CREATE | GNUNET_DISK_OPEN_WRITE, permission);
   }

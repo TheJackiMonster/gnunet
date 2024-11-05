@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2024 GNUnet e.V.
+   Copyright (C) 2024--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -54,10 +54,12 @@ void
 destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscription);
 
 const struct GNUNET_ShortHashCode*
-get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscription);
+get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *
+                            subscription);
 
 enum GNUNET_GenericReturnValue
-has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscription,
+has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *
+                               subscription,
                                struct GNUNET_TIME_Absolute timestamp);
 
 void
@@ -68,4 +70,4 @@ update_subscription (struct GNUNET_MESSENGER_Subscription *subscription,
 void
 update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscription);
 
-#endif //GNUNET_SERVICE_MESSENGER_SUBSCRIPTION_H
+#endif // GNUNET_SERVICE_MESSENGER_SUBSCRIPTION_H

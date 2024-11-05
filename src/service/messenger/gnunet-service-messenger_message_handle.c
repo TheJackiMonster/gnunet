@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,7 +35,7 @@ handle_member_session_switch (struct GNUNET_MESSENGER_MemberSession *session,
   struct GNUNET_MESSENGER_MemberSession *next;
 
   GNUNET_assert ((session) && (message) && (hash));
-  
+
   next = switch_member_session (session, message, hash);
 
   if (next != session)
@@ -60,8 +60,7 @@ handle_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
     room,
     &(message->body.join.key),
     &(message->header.sender_id),
-    GNUNET_TIME_absolute_ntoh (message->header.timestamp)
-    );
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp));
 }
 
 
@@ -96,7 +95,7 @@ handle_message_peer (struct GNUNET_MESSENGER_SrvRoom *room,
                      const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_PeerStore *store;
-  
+
   store = get_srv_room_peer_store (room);
 
   if (0 == GNUNET_memcmp (session->peer, &(message->body.peer.peer)))
@@ -123,8 +122,7 @@ handle_message_id (struct GNUNET_MESSENGER_SrvRoom *room,
     room,
     get_member_session_public_key (session->member),
     &(message->body.id.id),
-    GNUNET_TIME_absolute_ntoh (message->header.timestamp)
-    );
+    GNUNET_TIME_absolute_ntoh (message->header.timestamp));
 }
 
 
@@ -136,13 +134,13 @@ handle_message_miss (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   struct GNUNET_MESSENGER_PeerStore *store;
   struct GNUNET_MESSENGER_ListTunnel *element;
-  
+
   store = get_srv_room_peer_store (room);
 
   if (0 == GNUNET_memcmp (session->peer, &(message->body.miss.peer)))
     update_store_peer (store, &(message->body.miss.peer), GNUNET_NO);
 
-  element = find_list_tunnels (&(room->basement), 
+  element = find_list_tunnels (&(room->basement),
                                &(message->body.miss.peer), NULL);
 
   if (! element)
@@ -162,14 +160,8 @@ handle_message_delete (struct GNUNET_MESSENGER_SrvRoom *room,
                        const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_TIME_Relative delay;
-  struct GNUNET_TIME_Absolute action;
-  
-  delay = GNUNET_TIME_relative_ntoh (message->body.deletion.delay);
-  action = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
 
-  action = GNUNET_TIME_absolute_add (action, delay);
-  delay = GNUNET_TIME_absolute_get_difference (GNUNET_TIME_absolute_get (),
-                                               action);
+  delay = get_message_timeout (message);
 
   delete_srv_room_message (room, session->member,
                            &(message->body.deletion.hash), delay);
@@ -183,7 +175,7 @@ handle_message_connection (struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_ListTunnel *element;
-  
+
   element = find_list_tunnels (&(room->basement), session->peer, NULL);
 
   if (! element)
@@ -203,10 +195,10 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
   struct GNUNET_MESSENGER_Member *member;
   const struct GNUNET_ShortHashCode *discourse;
   struct GNUNET_MESSENGER_Subscription *subscription;
-  
+
   member = session->member->member;
 
-  discourse = &(message->body.subscribe.discourse);
+  discourse = &(message->body.subscribtion.discourse);
   subscription = get_member_subscription (member, discourse);
 
   {
@@ -214,18 +206,18 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
     struct GNUNET_TIME_Relative duration;
 
     timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
-    duration = GNUNET_TIME_relative_ntoh (message->body.subscribe.time);
+    duration = GNUNET_TIME_relative_ntoh (message->body.subscribtion.time);
 
     if (subscription)
-      update_subscription (subscription, 
-                          timestamp,
-                          duration);
+      update_subscription (subscription,
+                           timestamp,
+                           duration);
     else
     {
       subscription =
-        create_subscription (room, member, discourse, 
-                            timestamp,
-                            duration);
+        create_subscription (room, member, discourse,
+                             timestamp,
+                             duration);
 
       if (! subscription)
         return;

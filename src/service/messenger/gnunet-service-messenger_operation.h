@@ -125,4 +125,4 @@ start_operation (struct GNUNET_MESSENGER_Operation *op,
 enum GNUNET_GenericReturnValue
 stop_operation (struct GNUNET_MESSENGER_Operation *op);
 
-#endif //GNUNET_SERVICE_MESSENGER_OPERATION_H
+#endif // GNUNET_SERVICE_MESSENGER_OPERATION_H

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -162,13 +162,13 @@ handle_room_open (void *cls,
 
   if (GNUNET_YES == open_srv_handle_room (msg_client->handle, &(msg->key)))
   {
-    struct GNUNET_HashCode prev;
+    struct GNUNET_HashCode prev, epoch;
     const struct GNUNET_ShortHashCode *member_id;
     struct GNUNET_MESSENGER_RoomMessage *response;
     struct GNUNET_MQ_Envelope *env;
 
     sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev);
+                              &prev, &epoch);
 
     member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
 
@@ -178,6 +178,7 @@ handle_room_open (void *cls,
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
     GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -214,13 +215,13 @@ handle_room_entry (void *cls,
   if (GNUNET_YES == entry_srv_handle_room (msg_client->handle, &(msg->door),
                                            &(msg->key)))
   {
-    struct GNUNET_HashCode prev;
+    struct GNUNET_HashCode prev, epoch;
     const struct GNUNET_ShortHashCode *member_id;
     struct GNUNET_MESSENGER_RoomMessage *response;
     struct GNUNET_MQ_Envelope *env;
 
     sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev);
+                              &prev, &epoch);
 
     member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
 
@@ -231,6 +232,7 @@ handle_room_entry (void *cls,
     GNUNET_memcpy (&(response->door), &(msg->door), sizeof(response->door));
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
     GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -267,6 +269,7 @@ handle_room_close (void *cls,
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
     GNUNET_memcpy (&(response->previous), &(msg->previous),
                    sizeof(response->previous));
+    GNUNET_memcpy (&(response->epoch), &(msg->epoch), sizeof(response->epoch));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
   else
@@ -291,16 +294,17 @@ handle_room_sync (void *cls,
                 &(msg->key)));
 
   {
-    struct GNUNET_HashCode prev;
+    struct GNUNET_HashCode prev, epoch;
     struct GNUNET_MESSENGER_RoomMessage *response;
     struct GNUNET_MQ_Envelope *env;
 
     sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev);
+                              &prev, &epoch);
 
     env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC);
     GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
     GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
+    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
     GNUNET_MQ_send (msg_client->handle->mq, env);
   }
 
@@ -382,6 +386,10 @@ handle_send_message (void *cls,
     struct GNUNET_MESSENGER_Message message;
     decode_message (&message, msg_length, msg_buffer, GNUNET_YES, NULL);
 
+    if ((GNUNET_YES != msg_client->handle->service->group_keys) &&
+        (GNUNET_MESSENGER_KIND_GROUP == message.header.kind))
+      goto skip_message;
+
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending message: %s to %s (by %s)\n",
                 GNUNET_MESSENGER_name_of_kind (message.header.kind),
                 GNUNET_h2s (key),
@@ -393,6 +401,7 @@ handle_send_message (void *cls,
                   GNUNET_MESSENGER_name_of_kind (message.header.kind),
                   GNUNET_h2s (key));
 
+skip_message:
     cleanup_message (&message);
   }
 
@@ -471,8 +480,20 @@ callback_found_message (void *cls,
     }
   }
 
-  notify_srv_handle_message (msg_client->handle, room, &session, message,
-                             hash, GNUNET_NO);
+  {
+    const struct GNUNET_MESSENGER_MessageStore *message_store;
+    const struct GNUNET_HashCode *epoch;
+
+    message_store = get_srv_room_message_store (room);
+    epoch = get_store_message_epoch (message_store, hash);
+
+    if (GNUNET_NO == msg_client->handle->service->local_request)
+      notify_srv_handle_message (msg_client->handle, room, &session, message,
+                                 hash, epoch, GNUNET_NO);
+    else
+      handle_service_message (msg_client->handle->service, room, &session,
+                              message, hash, epoch, GNUNET_NO);
+  }
 }
 
 
@@ -508,7 +529,6 @@ handle_get_message (void *cls,
   {
     struct GNUNET_MESSENGER_MemberStore *member_store;
     member_store = get_srv_room_member_store (room);
-
 
     member_id = get_srv_handle_member_id (msg_client->handle,
                                           &(msg->key));
@@ -561,6 +581,8 @@ callback_client_connect (void *cls,
 
   GNUNET_assert ((client) && (mq));
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "New client connected to service!\n");
+
   msg_client = GNUNET_new (struct GNUNET_MESSENGER_Client);
 
   msg_client->client = client;
@@ -582,6 +604,8 @@ callback_client_disconnect (void *cls,
   msg_client = internal_cls;
 
   remove_service_handle (messenger, msg_client->handle);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Client disconnected from service!\n");
 
   GNUNET_free (msg_client);
 }
@@ -612,7 +636,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   GNUNET_MESSENGER_SERVICE_NAME,
   GNUNET_SERVICE_OPTION_NONE,
   &run,

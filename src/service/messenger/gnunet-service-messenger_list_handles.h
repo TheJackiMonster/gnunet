@@ -97,4 +97,4 @@ struct GNUNET_MESSENGER_SrvHandle*
 find_list_handle_by_member (const struct GNUNET_MESSENGER_ListHandles *handles,
                             const struct GNUNET_HashCode *key);
 
-#endif //GNUNET_SERVICE_MESSENGER_LIST_HANDLES_H
+#endif // GNUNET_SERVICE_MESSENGER_LIST_HANDLES_H

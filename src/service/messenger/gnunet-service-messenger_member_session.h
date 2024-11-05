@@ -293,4 +293,4 @@ void
 save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
                      const char *directory);
 
-#endif //GNUNET_SERVICE_MESSENGER_MEMBER_SESSION_H
+#endif // GNUNET_SERVICE_MESSENGER_MEMBER_SESSION_H

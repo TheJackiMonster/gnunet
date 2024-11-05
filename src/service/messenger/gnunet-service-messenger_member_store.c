@@ -51,7 +51,7 @@ iterate_destroy_members (void *cls,
   struct GNUNET_MESSENGER_Member *member;
 
   GNUNET_assert (value);
-  
+
   member = value;
 
   destroy_member (member);
@@ -103,7 +103,7 @@ callback_scan_for_members (void *cls,
   struct GNUNET_MESSENGER_MemberStore *store;
 
   GNUNET_assert ((cls) && (filename));
-  
+
   store = cls;
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (filename, GNUNET_YES))
@@ -131,7 +131,7 @@ iterate_load_next_member_sessions (void *cls,
   char *member_dir;
 
   GNUNET_assert ((value) && (id) && (cls));
-  
+
   member = value;
   sync_dir = cls;
 
@@ -157,7 +157,7 @@ iterate_sync_member_contacts (void *cls,
   struct GNUNET_MESSENGER_Member *member;
 
   GNUNET_assert (value);
-  
+
   member = value;
 
   if (! member)
@@ -204,7 +204,7 @@ iterate_save_members (void *cls,
   char *member_dir;
 
   GNUNET_assert ((value) && (id) && (cls));
-  
+
   member = value;
   save_dir = cls;
 

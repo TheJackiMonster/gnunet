@@ -25,6 +25,7 @@
 
 #include "gnunet-service-messenger_message_state.h"
 
+#include "gnunet_common.h"
 #include "messenger_api_message.h"
 
 void
@@ -81,6 +82,7 @@ update_message_state (struct GNUNET_MESSENGER_MessageState *state,
   if ((GNUNET_YES == requested) ||
       (GNUNET_MESSENGER_KIND_INFO == message->header.kind) ||
       (GNUNET_MESSENGER_KIND_REQUEST == message->header.kind) ||
+      (GNUNET_is_zero (hash)) ||
       (get_message_discourse (message)))
     return;
 
@@ -114,7 +116,7 @@ save_message_state (const struct GNUNET_MESSENGER_MessageState *state,
                     const char *path)
 {
   char *last_messages_file;
-  
+
   GNUNET_assert ((state) && (path));
 
   GNUNET_asprintf (&last_messages_file, "%s%s", path, "last_messages.list");

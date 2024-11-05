@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -171,23 +171,21 @@ enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
 /**
  * Packs a <i>message</i> depending on the selected <i>mode</i> into a newly allocated envelope. It will set the
  * timestamp of the message, the sender id and the previous messages hash automatically before packing. The message
- * will be signed by the handles private key.
+ * will be signed by the peers private key if necessary.
  *
  * If the optional <i>hash</i> parameter is a valid pointer, its value will be overridden by the signed messages hash.
  *
  * If <i>mode</i> is set to #GNUNET_MESSENGER_PACK_MODE_ENVELOPE, the function returns a valid envelope to send
  * through a message queue, otherwise NULL.
  *
- * @param[in] room Room
- * @param[in] handle Handle
+ * @param[in,out] room Room
  * @param[in,out] message Message
  * @param[out] hash Hash of message
  * @param[in] mode Packing mode
  * @return New envelope or NULL
  */
 struct GNUNET_MQ_Envelope*
-pack_srv_room_message (const struct GNUNET_MESSENGER_SrvRoom *room,
-                       const struct GNUNET_MESSENGER_SrvHandle *handle,
+pack_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_Message *message,
                        struct GNUNET_HashCode *hash,
                        enum GNUNET_MESSENGER_PackMode mode);
@@ -307,8 +305,7 @@ typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
   void *cls,
   struct GNUNET_MESSENGER_SrvRoom *room,
   const struct GNUNET_MESSENGER_Message *message,
-  const struct GNUNET_HashCode *hash
-  );
+  const struct GNUNET_HashCode *hash);
 
 /**
  * Requests a message from a <i>room</i> identified by a given <i>hash</i>. If the message is found,
@@ -376,7 +373,7 @@ uint32_t
 get_srv_room_connection_flags (const struct GNUNET_MESSENGER_SrvRoom *room);
 
 /**
- * Cleanup discourse messages outside of current subscriptions from a specific <i>discourse</i> of all the 
+ * Cleanup discourse messages outside of current subscriptions from a specific <i>discourse</i> of all the
  * members in a given <i>room</i>.
  *
  * @param[in,out] room Room
@@ -384,7 +381,8 @@ get_srv_room_connection_flags (const struct GNUNET_MESSENGER_SrvRoom *room);
  */
 void
 cleanup_srv_room_discourse_messages (struct GNUNET_MESSENGER_SrvRoom *room,
-                                     const struct GNUNET_ShortHashCode *discourse);
+                                     const struct GNUNET_ShortHashCode *
+                                     discourse);
 
 /**
  * Loads the local configuration for a given <i>room</i> of a service which contains the last messages hash
@@ -412,4 +410,4 @@ save_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
 void
 remove_srv_room (struct GNUNET_MESSENGER_SrvRoom *room);
 
-#endif //GNUNET_SERVICE_MESSENGER_ROOM_H
+#endif // GNUNET_SERVICE_MESSENGER_ROOM_H
