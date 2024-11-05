@@ -1067,10 +1067,9 @@ GNUNET_DNSPARSER_builder_add_query (char *dst,
   int ret;
   struct GNUNET_TUN_DnsQueryLine ql;
 
+  GNUNET_assert (dst_len >= sizeof (ql));
   ret = GNUNET_DNSPARSER_builder_add_name (dst,
-                                           dst_len
-                                           - sizeof(
-                                             struct GNUNET_TUN_DnsQueryLine),
+                                           dst_len - sizeof(ql),
                                            off,
                                            query->name);
   if (ret != GNUNET_OK)
