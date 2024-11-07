@@ -440,7 +440,7 @@ syscalls = [
   'getpeerucred', 'getpeereid', 'setresuid', 'getifaddrs', 'freeifaddrs',
   'getresgid', 'mallinfo2', 'malloc_size', 'malloc_usable_size', 'getrusage',
   'random', 'srandom', 'stat', 'statfs', 'statvfs', 'wait4', 'timegm',
-  'getaddrinfo', 'initgroups', 'gethostbyname', 'pipe2'
+  'getaddrinfo', 'initgroups', 'gethostbyname', 'pipe2', 'renameat2'
 ]
 
 str_syscalls = [

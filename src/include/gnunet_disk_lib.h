@@ -292,8 +292,9 @@ GNUNET_DISK_file_test_read (const char *fil);
  * where NUM is the smallest number that is not used yet.
  *
  * @param fil name of the file to back up
+ * @return the backup file name (must be freed by caller)
  */
-void
+char*
 GNUNET_DISK_file_backup (const char *fil);
 
 

@@ -356,7 +356,7 @@ GNUNET_DISK_mkdtemp (const char *t)
 }
 
 
-void
+char *
 GNUNET_DISK_file_backup (const char *fil)
 {
   size_t slen;
@@ -366,16 +366,37 @@ GNUNET_DISK_file_backup (const char *fil)
   slen = strlen (fil) + 20;
   target = GNUNET_malloc (slen);
   num = 0;
+
+#if HAVE_RENAMEAT2
+  {
+    int fd;
+    do
+    {
+      GNUNET_snprintf (target, slen, "%s.%u~", fil, num++);
+      fd = open (target, O_CREAT | O_EXCL);
+    } while (-1 == fd);
+    if (0 != renameat2 (AT_FDCWD, fil, AT_FDCWD, target, RENAME_EXCHANGE))
+    {
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "renameat2", fil);
+      close (fd);
+      return NULL;
+    }
+    close (fd);
+  }
+#else
   do
   {
     GNUNET_snprintf (target, slen, "%s.%u~", fil, num++);
   }
   while (0 == access (target, F_OK));
   if (0 != rename (fil, target))
+  {
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "rename", fil);
-  GNUNET_free (target);
+    return NULL;
+  }
+#endif
+  return target;
 }
-
 
 char *
 GNUNET_DISK_mktemp (const char *t)
