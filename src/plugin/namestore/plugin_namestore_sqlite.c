@@ -170,11 +170,10 @@ database_prepare (struct Plugin *plugin)
       " ORDER BY uid ASC"
       " LIMIT ?",
       &plugin->iterate_all_zones),
-    GNUNET_SQ_make_prepare ("UPDATE ns098records"
-                            " SET editor_hint=?"
-                            " FROM ns098records AS old_ns098records"
-                            " WHERE ns098records.zone_private_key=? AND ns098records.label=?"
-                            " RETURNING ns098records.uid,ns098records.record_count,ns098records.record_data,ns098records.label,editor_hint ",
+    GNUNET_SQ_make_prepare ("UPDATE ns098records as x"
+                            " SET editor_hint_old=x.editor_hint, editor_hint=?"
+                            " WHERE zone_private_key=? AND label=?"
+                            " RETURNING uid,record_count,record_data,label,editor_hint_old",
                             &plugin->lookup_label),
     GNUNET_SQ_make_prepare ("UPDATE ns098records"
                             " SET editor_hint=?"
@@ -859,7 +858,8 @@ namestore_sqlite_create_tables (void *cls)
                             " record_count INT NOT NULL,"
                             " record_data BLOB NOT NULL,"
                             " label TEXT NOT NULL,"
-                            " editor_hint TEXT NOT NULL"
+                            " editor_hint TEXT NOT NULL,"
+                            " editor_hint_old TEXT"
                             ")"),
     GNUNET_SQ_make_try_execute ("CREATE INDEX ir_pkey_reverse "
                                 "ON ns098records (zone_private_key,pkey)"),

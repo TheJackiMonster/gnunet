@@ -162,6 +162,37 @@ put_record (struct GNUNET_NAMESTORE_PluginFunctions *nsp, int id)
 
 
 static void
+edit_iter (void *cls,
+           uint64_t seq,
+           const char *editor_hint,
+           const struct GNUNET_CRYPTO_PrivateKey *private_key,
+           const char *label,
+           unsigned int rd_count,
+           const struct GNUNET_GNSRECORD_Data *rd)
+{
+  const char* expected_hint = cls;
+  printf ("Expected hint: `%s', got `%s'\n", expected_hint, editor_hint);
+  GNUNET_assert (0 == strcmp (expected_hint, editor_hint));
+}
+
+
+static void
+edit_record (struct GNUNET_NAMESTORE_PluginFunctions *nsp, int id,
+             const char *new_hint, const char* old_hint)
+{
+  struct GNUNET_CRYPTO_PrivateKey zone_private_key;
+  char label[64];
+
+  GNUNET_snprintf (label, sizeof(label), "a%u", (unsigned int) id);
+  memset (&zone_private_key, (id % 241), sizeof(zone_private_key));
+  GNUNET_assert (
+    GNUNET_OK ==
+    nsp->edit_records (nsp->cls, new_hint, &zone_private_key, label, &edit_iter,
+                       (void*) old_hint));
+}
+
+
+static void
 run (void *cls,
      char *const *args,
      const char *cfgfile,
@@ -181,6 +212,9 @@ run (void *cls,
   }
   put_record (nsp, 1);
   get_record (nsp, 1);
+  edit_record(nsp, 1, "hello", "");
+  edit_record(nsp, 1, "world", "hello");
+  edit_record(nsp, 1, "gnunet", "world");
 #ifndef DARWIN // #5582
   unload_plugin (nsp);
 #endif

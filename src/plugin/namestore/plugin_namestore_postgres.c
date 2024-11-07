@@ -144,11 +144,14 @@ database_prepare (struct Plugin *plugin)
                               "SELECT seq,record_count,record_data,label,editor_hint "
                               "FROM namestore.ns098records WHERE zone_private_key=$1 AND label=$2"),
       GNUNET_PQ_make_prepare ("edit_set",
-                              "UPDATE namestore.ns098records"
+                              "UPDATE namestore.ns098records x"
                               " SET editor_hint=$3"
-                              " FROM namestore.ns098records AS old_ns098records"
-                              " WHERE ns098records.zone_private_key=$1 AND ns098records.label=$2"
-                              " RETURNING ns098records.seq,ns098records.record_count,ns098records.record_data,ns098records.label,old_ns098records.editor_hint "),
+                              " FROM ("
+                              " SELECT * FROM namestore.ns098records"
+                              " WHERE ns098records.zone_private_key=$1 AND ns098records.label=$2 FOR UPDATE) y"
+                              " WHERE x.zone_private_key = y.zone_private_key AND"
+                              " x.label = y.label"
+                              " RETURNING x.seq,x.record_count,x.record_data,x.label,y.editor_hint "),
       GNUNET_PQ_make_prepare ("clear_editor_hint",
                               "UPDATE namestore.ns098records"
                               " SET editor_hint=$4"
