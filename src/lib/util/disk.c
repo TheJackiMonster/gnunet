@@ -373,7 +373,8 @@ GNUNET_DISK_file_backup (const char *fil)
     do
     {
       GNUNET_snprintf (target, slen, "%s.%u~", fil, num++);
-      fd = open (target, O_CREAT | O_EXCL);
+      fd = open (target, O_CREAT | O_EXCL,
+                 translate_unix_perms(GNUNET_DISK_PERM_USER_WRITE));
     } while (-1 == fd);
     if (0 != renameat2 (AT_FDCWD, fil, AT_FDCWD, target, RENAME_EXCHANGE))
     {
