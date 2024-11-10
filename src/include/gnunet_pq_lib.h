@@ -132,13 +132,13 @@ GNUNET_PQ_cleanup_query_params_closures (
  * End of query parameter specification.
  */
 #define GNUNET_PQ_query_param_end \
-  {                               \
-    .conv = NULL,                 \
-    .conv_cls = NULL,             \
-    .data = NULL,                 \
-    .size = 0,                    \
-    .num_params = 0               \
-  }
+        {                               \
+          .conv = NULL,                 \
+          .conv_cls = NULL,             \
+          .data = NULL,                 \
+          .size = 0,                    \
+          .num_params = 0               \
+        }
 
 
 /**
@@ -302,11 +302,11 @@ GNUNET_PQ_query_param_array_bytes (
  * elements
  * @return query parameter to use
  */
-struct GNUNET_PQ_QueryParam GNUNET_PQ_query_param_array_ptrs_bytes(
-    unsigned int num,
-    const void *elements[static num],
-    const size_t *sizes,
-    struct GNUNET_PQ_Context *db);
+struct GNUNET_PQ_QueryParam GNUNET_PQ_query_param_array_ptrs_bytes (
+  unsigned int num,
+  const void *elements[static num],
+  const size_t *sizes,
+  struct GNUNET_PQ_Context *db);
 
 /**
  * Generate query parameter for an array of buffers @a elements,
@@ -335,10 +335,10 @@ GNUNET_PQ_query_param_array_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_auto_from_type(num, elements, db) \
-  GNUNET_PQ_query_param_array_bytes_same_size ((num), \
-                                               (elements), \
-                                               sizeof(*(elements)), \
-                                               (db))
+        GNUNET_PQ_query_param_array_bytes_same_size ((num), \
+                                                     (elements), \
+                                                     sizeof(*(elements)), \
+                                                     (db))
 
 /**
  * Generate query parameter for an array of pointers to buffers @a elements,
@@ -369,10 +369,12 @@ GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_array_ptrs_auto_from_type(num, elements, db) \
-  GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
-                                                    (const void **) (elements), \
-                                                    sizeof(*(elements[0])), \
-                                                    (db))
+        GNUNET_PQ_query_param_array_ptrs_bytes_same_size ((num), \
+                                                          (const void **) ( \
+                                                            elements), \
+                                                          sizeof(*(elements[0])) \
+                                                          , \
+                                                          (db))
 
 
 /**
@@ -413,7 +415,7 @@ GNUNET_PQ_query_param_array_ptrs_string (
  * @return query parameter to use
  */
 #define GNUNET_PQ_query_param_auto_from_type(x) \
-  GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
+        GNUNET_PQ_query_param_fixed_size ((x), sizeof(*(x)))
 
 /**
  * Generate query parameter for an array of absolute time stamps (continuous)
@@ -755,17 +757,17 @@ struct GNUNET_PQ_ResultSpec
  * @return array last entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_end         \
-  {                                       \
-    .conv = NULL,                         \
-    .cleaner = NULL,                      \
-    .cls = NULL,                          \
-    .dst = NULL,                          \
-    .dst_size = 0,                        \
-    .fname = NULL,                        \
-    .result_size = NULL,                  \
-    .is_nullable = false,                 \
-    .is_null = NULL                       \
-  }
+        {                                       \
+          .conv = NULL,                         \
+          .cleaner = NULL,                      \
+          .cls = NULL,                          \
+          .dst = NULL,                          \
+          .dst_size = 0,                        \
+          .fname = NULL,                        \
+          .result_size = NULL,                  \
+          .is_nullable = false,                 \
+          .is_null = NULL                       \
+        }
 
 
 /**
@@ -818,7 +820,7 @@ GNUNET_PQ_result_spec_fixed_size (const char *name,
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_from_type(name, dst) \
-  GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
+        GNUNET_PQ_result_spec_fixed_size (name, (dst), sizeof(*(dst)))
 
 
 /**
@@ -1139,12 +1141,12 @@ GNUNET_PQ_result_spec_array_fixed_size (
  * @return array entry for the result specification to use
  */
 #define GNUNET_PQ_result_spec_auto_array_from_type(db, name, num, dst) \
-  GNUNET_PQ_result_spec_array_fixed_size ( \
-    (db), \
-    (name), \
-    sizeof(*(dst)), \
-    (num), \
-    (void *) &(dst))
+        GNUNET_PQ_result_spec_array_fixed_size ( \
+          (db), \
+          (name), \
+          sizeof(*(dst)), \
+          (num), \
+          (void *) &(dst))
 
 
 /**
@@ -1362,9 +1364,9 @@ struct GNUNET_PQ_PreparedStatement
  * Terminator for prepared statement list.
  */
 #define GNUNET_PQ_PREPARED_STATEMENT_END \
-  {                                      \
-    NULL, NULL                           \
-  }
+        {                                      \
+          NULL, NULL                           \
+        }
 
 
 /**
@@ -1434,9 +1436,9 @@ struct GNUNET_PQ_ExecuteStatement
  * Terminator for executable statement list.
  */
 #define GNUNET_PQ_EXECUTE_STATEMENT_END \
-  {                                     \
-    NULL, GNUNET_SYSERR                 \
-  }
+        {                                     \
+          NULL, GNUNET_SYSERR                 \
+        }
 
 
 /**
@@ -1733,17 +1735,19 @@ GNUNET_PQ_get_event_notify_channel (const struct GNUNET_DB_EventHeaderP *es);
 
 
 /**
- * Within the @a db context, run all the SQL files
- * from the @a load_path from 0000-9999.sql (as long
- * as the files exist contiguously).
+ * Within the @a db context, run all the SQL files in the load path
+ * where the name starts with the @a load_suffix and ends with
+ * consecutive numbers from "[0000-9999].sql".
  *
  * @param db database context to use
- * @param load_path where to find the XXXX.sql files
+ * @param load_suffix suffix to append to the load path
+ *         to find the XXXX.sql files, usually "subsystem-".
+ *
  * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
-                   const char *load_path);
+                   const char *load_suffix);
 
 
 /**

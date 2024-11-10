@@ -276,6 +276,7 @@ GNUNET_DISK_handle_invalid (const struct GNUNET_DISK_FileHandle *h);
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_test (const char *fil);
 
+
 /**
  * Check that fil corresponds to a filename and the file has read permissions.
  *
@@ -286,6 +287,7 @@ GNUNET_DISK_file_test (const char *fil);
  */
 enum GNUNET_GenericReturnValue
 GNUNET_DISK_file_test_read (const char *fil);
+
 
 /**
  * Move a file out of the way (create a backup) by renaming it to "orig.NUM~"

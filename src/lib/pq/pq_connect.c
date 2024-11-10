@@ -29,6 +29,180 @@
 
 
 /**
+ * Close connection to @a db and mark it as uninitialized.
+ *
+ * @param[in,out] db connection to close
+ */
+static void
+reset_connection (struct GNUNET_PQ_Context *db)
+{
+  if (NULL == db->conn)
+    return;
+  PQfinish (db->conn);
+  db->conn = NULL;
+  db->prepared_check_patch = false;
+  db->prepared_get_oid_by_name = false;
+}
+
+
+/**
+ * Prepare the "gnunet_pq_check_patch" statement.
+ *
+ * @param[in,out] db database to prepare statement for
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_SYSERR on failure
+ */
+static enum GNUNET_GenericReturnValue
+prepare_check_patch (struct GNUNET_PQ_Context *db)
+{
+  PGresult *res;
+
+  if (db->prepared_check_patch)
+    return GNUNET_OK;
+  res = PQprepare (db->conn,
+                   "gnunet_pq_check_patch",
+                   "SELECT"
+                   " applied_by"
+                   " FROM _v.patches"
+                   " WHERE patch_name = $1"
+                   " LIMIT 1",
+                   1,
+                   NULL);
+  if (PGRES_COMMAND_OK !=
+      PQresultStatus (res))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to run SQL logic to setup database versioning logic: %s/%s\n",
+                PQresultErrorMessage (res),
+                PQerrorMessage (db->conn));
+    PQclear (res);
+    reset_connection (db);
+    return GNUNET_SYSERR;
+  }
+  PQclear (res);
+  db->prepared_check_patch = true;
+  return GNUNET_OK;
+}
+
+
+/**
+ * Prepare the "gnunet_pq_get_oid_by_name" statement.
+ *
+ * @param[in,out] db database to prepare statement for
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_SYSERR on failure
+ */
+static enum GNUNET_GenericReturnValue
+prepare_get_oid_by_name (struct GNUNET_PQ_Context *db)
+{
+  PGresult *res;
+
+  if (db->prepared_get_oid_by_name)
+    return GNUNET_OK;
+  res = PQprepare (db->conn,
+                   "gnunet_pq_get_oid_by_name",
+                   "SELECT"
+                   " typname, oid"
+                   " FROM pg_type"
+                   " WHERE typname = $1"
+                   " LIMIT 1",
+                   1,
+                   NULL);
+  if (PGRES_COMMAND_OK != PQresultStatus (res))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to run SQL statement prepare OID lookups: %s/%s\n",
+                PQresultErrorMessage (res),
+                PQerrorMessage (db->conn));
+    PQclear (res);
+    reset_connection (db);
+    return GNUNET_SYSERR;
+  }
+  PQclear (res);
+  db->prepared_get_oid_by_name = true;
+  return GNUNET_OK;
+}
+
+
+/**
+ * Check if the patch with @a patch_number from the given
+ * @a load_path was already applied on the @a db.
+ *
+ * @param[in] db database to check
+ * @param load_path file system path to database setup files
+ * @param patch_number number of the patch to check
+ * @return #GNUNET_OK if patch is applied
+ *         #GNUNET_NO if patch is not applied
+ *         #GNUNET_SYSERR on internal error (DB failure)
+ */
+static enum GNUNET_GenericReturnValue
+check_patch_applied (struct GNUNET_PQ_Context *db,
+                     const char *load_path,
+                     unsigned int patch_number)
+{
+  const char *load_path_suffix;
+  size_t slen = strlen (load_path) + 10;
+  char patch_name[slen];
+
+  load_path_suffix = strrchr (load_path,
+                              '/');
+  if (NULL == load_path_suffix)
+    load_path_suffix = load_path;
+  else
+    load_path_suffix++; /* skip '/' */
+  GNUNET_snprintf (patch_name,
+                   sizeof (patch_name),
+                   "%s%04u",
+                   load_path_suffix,
+                   patch_number);
+  {
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_string (patch_name),
+      GNUNET_PQ_query_param_end
+    };
+    char *applied_by;
+    struct GNUNET_PQ_ResultSpec rs[] = {
+      GNUNET_PQ_result_spec_string ("applied_by",
+                                    &applied_by),
+      GNUNET_PQ_result_spec_end
+    };
+    enum GNUNET_DB_QueryStatus qs;
+
+    if (GNUNET_OK !=
+        prepare_check_patch (db))
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+    qs = GNUNET_PQ_eval_prepared_singleton_select (db,
+                                                   "gnunet_pq_check_patch",
+                                                   params,
+                                                   rs);
+    switch (qs)
+    {
+    case GNUNET_DB_STATUS_SUCCESS_ONE_RESULT:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Database version %s already applied by %s\n",
+                  patch_name,
+                  applied_by);
+      GNUNET_PQ_cleanup_result (rs);
+      return GNUNET_OK;
+    case GNUNET_DB_STATUS_SUCCESS_NO_RESULTS:
+      return GNUNET_NO;
+    case GNUNET_DB_STATUS_SOFT_ERROR:
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    case GNUNET_DB_STATUS_HARD_ERROR:
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+    GNUNET_assert (0);
+    return GNUNET_SYSERR;
+  }
+}
+
+
+/**
  * Function called by libpq whenever it wants to log something.
  * We already log whenever we care, so this function does nothing
  * and merely exists to silence the libpq logging.
@@ -155,7 +329,7 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
                    db->load_path,
                    buf);
   if (GNUNET_YES !=
-      GNUNET_DISK_file_test (fn))
+      GNUNET_DISK_file_test_read (fn))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "SQL resource `%s' does not exist\n",
@@ -163,6 +337,8 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
     GNUNET_free (fn);
     return GNUNET_NO;
   }
+  if (0 != (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags))
+    return GNUNET_SYSERR;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Applying SQL file `%s' on database %s\n",
               fn,
@@ -222,89 +398,48 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
 
 enum GNUNET_GenericReturnValue
 GNUNET_PQ_run_sql (struct GNUNET_PQ_Context *db,
-                   const char *load_path)
+                   const char *load_suffix)
 {
-  const char *load_path_suffix;
-  size_t slen = strlen (load_path) + 10;
+  size_t slen = strlen (load_suffix) + 10;
+  char patch_name[slen];
 
-  load_path_suffix = strrchr (load_path, '/');
-  if (NULL == load_path_suffix)
-    load_path_suffix = load_path;
-  else
-    load_path_suffix++; /* skip '/' */
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Loading SQL resources from `%s'\n",
-              load_path);
+              load_suffix);
   for (unsigned int i = 1; i<10000; i++)
   {
-    char patch_name[slen];
-    enum GNUNET_DB_QueryStatus qs;
+    enum GNUNET_GenericReturnValue ret;
 
-    /* Check with DB versioning schema if this patch was already applied,
-       if so, skip it. */
+    ret = check_patch_applied (db,
+                               load_suffix,
+                               i);
+    if (GNUNET_SYSERR == ret)
+    {
+      GNUNET_break (0);
+      return GNUNET_SYSERR;
+    }
+    if (GNUNET_OK  == ret)
+      continue; /* patch already applied, skip it */
+
     GNUNET_snprintf (patch_name,
                      sizeof (patch_name),
                      "%s%04u",
-                     load_path_suffix,
+                     load_suffix,
                      i);
-    {
-      char *applied_by;
-      struct GNUNET_PQ_QueryParam params[] = {
-        GNUNET_PQ_query_param_string (patch_name),
-        GNUNET_PQ_query_param_end
-      };
-      struct GNUNET_PQ_ResultSpec rs[] = {
-        GNUNET_PQ_result_spec_string ("applied_by",
-                                      &applied_by),
-        GNUNET_PQ_result_spec_end
-      };
-
-      qs = GNUNET_PQ_eval_prepared_singleton_select (db,
-                                                     "gnunet_pq_check_patch",
-                                                     params,
-                                                     rs);
-      if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT == qs)
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                    "Database version %s already applied by %s, skipping\n",
-                    patch_name,
-                    applied_by);
-        GNUNET_PQ_cleanup_result (rs);
-      }
-      if (GNUNET_DB_STATUS_HARD_ERROR == qs)
-      {
-        GNUNET_break (0);
-        return GNUNET_SYSERR;
-      }
-    }
-    if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT == qs)
-      continue; /* patch already applied, skip it */
-
-    if (0 != (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags))
+    ret = GNUNET_PQ_exec_sql (db,
+                              patch_name);
+    if (GNUNET_NO == ret)
+      break;
+    if ( (GNUNET_SYSERR == ret) &&
+         (0 != (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags)) )
     {
       /* We are only checking, found unapplied patch, bad! */
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Database outdated, patch %s missing. Aborting!\n",
                   patch_name);
+    }
+    if (GNUNET_SYSERR == ret)
       return GNUNET_SYSERR;
-    }
-    else
-    {
-      /* patch not yet applied, run it! */
-      enum GNUNET_GenericReturnValue ret;
-
-      GNUNET_snprintf (patch_name,
-                       sizeof (patch_name),
-                       "%s%04u",
-                       load_path,
-                       i);
-      ret = GNUNET_PQ_exec_sql (db,
-                                patch_name);
-      if (GNUNET_NO == ret)
-        break;
-      if (GNUNET_SYSERR == ret)
-        return GNUNET_SYSERR;
-    }
   }
   return GNUNET_OK;
 }
@@ -389,10 +524,10 @@ GNUNET_PQ_get_oid_by_name (
  * array-datatypes
  *
  * @param db The database context
- * @return GNUNET_OK on success, GNUNET_SYSERR if any of the types couldn't be found
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_SYSERR if any of the types couldn't be found
  */
-static
-enum GNUNET_GenericReturnValue
+static enum GNUNET_GenericReturnValue
 load_initial_oids (struct GNUNET_PQ_Context *db)
 {
   static const char *typnames[] = {
@@ -428,8 +563,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
 {
   GNUNET_PQ_event_reconnect_ (db,
                               -1);
-  if (NULL != db->conn)
-    PQfinish (db->conn);
+  reset_connection (db);
   db->conn = PQconnectdb (db->config_str);
   if ( (NULL == db->conn) ||
        (CONNECTION_OK != PQstatus (db->conn)) )
@@ -441,11 +575,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
                      (NULL != db->conn)
                      ? PQerrorMessage (db->conn)
                      : "PQconnectdb returned NULL");
-    if (NULL != db->conn)
-    {
-      PQfinish (db->conn);
-      db->conn = NULL;
-    }
+    reset_connection (db);
     return;
   }
   PQsetNoticeReceiver (db->conn,
@@ -472,8 +602,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Failed to run statement to check versioning schema. Bad!\n");
       PQclear (res);
-      PQfinish (db->conn);
-      db->conn = NULL;
+      reset_connection (db);
       return;
     }
     if (0 == PQntuples (res))
@@ -485,8 +614,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                     "Versioning schema does not exist yet. Not attempting drop!\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
+        reset_connection (db);
         return;
       }
       ret = GNUNET_PQ_exec_sql (db,
@@ -495,16 +623,14 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Failed to find SQL file to load database versioning logic\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
+        reset_connection (db);
         return;
       }
       if (GNUNET_SYSERR == ret)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                     "Failed to run SQL logic to setup database versioning logic\n");
-        PQfinish (db->conn);
-        db->conn = NULL;
+        reset_connection (db);
         return;
       }
     }
@@ -515,31 +641,9 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   }
 
   /* Prepare statement for OID lookup by name */
-  {
-    PGresult *res;
-
-    res = PQprepare (db->conn,
-                     "gnunet_pq_get_oid_by_name",
-                     "SELECT"
-                     " typname, oid"
-                     " FROM pg_type"
-                     " WHERE typname = $1"
-                     " LIMIT 1",
-                     1,
-                     NULL);
-    if (PGRES_COMMAND_OK != PQresultStatus (res))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Failed to run SQL statement prepare OID lookups: %s/%s\n",
-                  PQresultErrorMessage (res),
-                  PQerrorMessage (db->conn));
-      PQclear (res);
-      PQfinish (db->conn);
-      db->conn = NULL;
-      return;
-    }
-    PQclear (res);
-  }
+  if (GNUNET_OK !=
+      prepare_get_oid_by_name (db))
+    return;
 
   /* Reset the OID-cache and retrieve the OIDs for the supported Array types */
   db->oids.num = 0;
@@ -547,47 +651,26 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to retrieve OID information for array types!\n");
-    PQfinish (db->conn);
-    db->conn = NULL;
+    reset_connection (db);
     return;
   }
 
   if (NULL != db->auto_suffix)
   {
-    PGresult *res;
-
     GNUNET_assert (NULL != db->load_path);
-    res = PQprepare (db->conn,
-                     "gnunet_pq_check_patch",
-                     "SELECT"
-                     " applied_by"
-                     " FROM _v.patches"
-                     " WHERE patch_name = $1"
-                     " LIMIT 1",
-                     1,
-                     NULL);
-    if (PGRES_COMMAND_OK != PQresultStatus (res))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Failed to run SQL logic to setup database versioning logic: %s/%s\n",
-                  PQresultErrorMessage (res),
-                  PQerrorMessage (db->conn));
-      PQclear (res);
-      PQfinish (db->conn);
-      db->conn = NULL;
+    if (GNUNET_OK !=
+        prepare_check_patch (db))
       return;
-    }
-    PQclear (res);
 
     if (GNUNET_SYSERR ==
         GNUNET_PQ_run_sql (db,
                            db->auto_suffix))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Failed to load SQL statements from `%s*'\n",
-                  db->auto_suffix);
-      PQfinish (db->conn);
-      db->conn = NULL;
+      if (0 == (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags))
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Failed to load SQL statements from `%s*'\n",
+                    db->auto_suffix);
+      reset_connection (db);
       return;
     }
   }
@@ -597,8 +680,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
         GNUNET_PQ_exec_statements (db,
                                    db->es)) )
   {
-    PQfinish (db->conn);
-    db->conn = NULL;
+    reset_connection (db);
     return;
   }
   if ( (NULL != db->ps) &&
@@ -606,8 +688,7 @@ GNUNET_PQ_reconnect (struct GNUNET_PQ_Context *db)
         GNUNET_PQ_prepare_statements (db,
                                       db->ps)) )
   {
-    PQfinish (db->conn);
-    db->conn = NULL;
+    reset_connection (db);
     return;
   }
   GNUNET_PQ_event_reconnect_ (db,

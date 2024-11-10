@@ -100,6 +100,16 @@ struct GNUNET_PQ_Context
   enum GNUNET_PQ_Options flags;
 
   /**
+   * Did we prepare the gnunet_pq_check_patch statement?
+   */
+  bool prepared_check_patch;
+
+  /**
+   * Did we prepare the gnunet_pq_get_oid_by_name statement?
+   */
+  bool prepared_get_oid_by_name;
+
+  /**
    * Mapping between array types and Oid's, pre-filled at reconnect.
    * More entries are captured in via GNUNET_PQ_get_oid_by_name.
    */
