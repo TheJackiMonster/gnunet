@@ -1300,13 +1300,14 @@ add_record (char *dst,
   size_t pos;
   struct GNUNET_TUN_DnsRecordLine rl;
 
+  if (dst_len < sizeof(struct GNUNET_TUN_DnsRecordLine))
+    return GNUNET_NO;
   start = *off;
-  ret = GNUNET_DNSPARSER_builder_add_name (dst,
-                                           dst_len
-                                           - sizeof(
-                                             struct GNUNET_TUN_DnsRecordLine),
-                                           off,
-                                           record->name);
+  ret = GNUNET_DNSPARSER_builder_add_name (
+    dst,
+    dst_len - sizeof(struct GNUNET_TUN_DnsRecordLine),
+    off,
+    record->name);
   if (GNUNET_OK != ret)
     return ret;
   /* '*off' is now the position where we will need to write the record line */
@@ -1336,19 +1337,17 @@ add_record (char *dst,
                                              &pos,
                                              record->data.hostname);
     break;
-
   case GNUNET_DNSPARSER_TYPE_SRV:
     ret =
       GNUNET_DNSPARSER_builder_add_srv (dst, dst_len, &pos, record->data.srv);
     break;
-
   case GNUNET_DNSPARSER_TYPE_URI:
     ret =
       GNUNET_DNSPARSER_builder_add_uri (dst, dst_len, &pos, record->data.uri);
     break;
-
   default:
-    if (pos + record->data.raw.data_len > dst_len)
+    if ( (pos + record->data.raw.data_len < pos) ||
+         (pos + record->data.raw.data_len > dst_len) )
     {
       ret = GNUNET_NO;
       break;
