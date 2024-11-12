@@ -143,6 +143,60 @@ void
 GNUNET_REGEX_search_cancel (struct GNUNET_REGEX_Search *s);
 
 
+/**
+ * Create a regex in @a rxstr from the given @a ip and @a port.
+ *
+ * @param ip IPv4 representation.
+ * @param port destination port
+ * @param rxstr generated regex, must be at least #GNUNET_TUN_IPV4_REGEXLEN
+ *              bytes long.
+ */
+void
+GNUNET_REGEX_ipv4toregexsearch (const struct in_addr *ip,
+                              uint16_t port,
+                              char *rxstr);
+
+
+/**
+ * Create a regex in @a rxstr from the given @a ipv6 and @a port.
+ *
+ * @param ipv6 IPv6 representation.
+ * @param port destination port
+ * @param rxstr generated regex, must be at least #GNUNET_TUN_IPV6_REGEXLEN
+ *              bytes long.
+ */
+void
+GNUNET_REGEX_ipv6toregexsearch (const struct in6_addr *ipv6,
+                              uint16_t port,
+                              char *rxstr);
+
+
+/**
+ * Convert an exit policy to a regular expression.  The exit policy
+ * specifies a set of subnets this peer is willing to serve as an
+ * exit for; the resulting regular expression will match the
+ * IPv6 address strings as returned by #GNUNET_REGEX_ipv6toregexsearch.
+ *
+ * @param policy exit policy specification
+ * @return regular expression, NULL on error
+ */
+char *
+GNUNET_REGEX_ipv6policy2regex (const char *policy);
+
+
+/**
+ * Convert an exit policy to a regular expression.  The exit policy
+ * specifies a set of subnets this peer is willing to serve as an
+ * exit for; the resulting regular expression will match the
+ * IPv4 address strings as returned by #GNUNET_REGEX_ipv4toregexsearch.
+ *
+ * @param policy exit policy specification
+ * @return regular expression, NULL on error
+ */
+char *
+GNUNET_REGEX_ipv4policy2regex (const char *policy);
+
+
 #if 0                           /* keep Emacsens' auto-indent happy */
 {
 #endif

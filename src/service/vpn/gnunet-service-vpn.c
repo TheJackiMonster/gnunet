@@ -1502,7 +1502,7 @@ create_channel_to_destination (struct DestinationChannel *dt, int client_af)
     case AF_INET: {
         char address[GNUNET_TUN_IPV4_REGEXLEN];
 
-        GNUNET_TUN_ipv4toregexsearch (&dt->destination->details.exit_destination
+        GNUNET_REGEX_ipv4toregexsearch (&dt->destination->details.exit_destination
                                       .ip.v4,
                                       dt->destination_port,
                                       address);
@@ -1516,7 +1516,7 @@ create_channel_to_destination (struct DestinationChannel *dt, int client_af)
     case AF_INET6: {
         char address[GNUNET_TUN_IPV6_REGEXLEN];
 
-        GNUNET_TUN_ipv6toregexsearch (&dt->destination->details.exit_destination
+        GNUNET_REGEX_ipv6toregexsearch (&dt->destination->details.exit_destination
                                       .ip.v6,
                                       dt->destination_port,
                                       address);

@@ -100,7 +100,6 @@ libgnunetutil_la_SOURCES = \
   peer.c \
   plugin.c \
   program.c \
-  regex.c \
   resolver_api.c resolver.h \
   scheduler.c \
   service.c \
@@ -236,7 +235,6 @@ check_PROGRAMS = \
  test_peer \
  test_plugin \
  test_program \
- test_regex \
  test_scheduler \
  test_scheduler_delay \
  test_scheduler_hogging_cancel \
@@ -277,11 +275,6 @@ test_hexcoder_LDADD = \
 test_tun_SOURCES = \
  test_tun.c
 test_tun_LDADD = \
- libgnunetutil.la
-
-test_regex_SOURCES = \
- test_regex.c
-test_regex_LDADD = \
  libgnunetutil.la
 
 test_os_start_process_SOURCES = \

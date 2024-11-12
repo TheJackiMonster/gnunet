@@ -145,10 +145,10 @@ run (void *cls,
                  inet_pton (AF_INET6,
                             "::1:5",
                             &i6));
-  GNUNET_TUN_ipv4toregexsearch (&i4,
+  GNUNET_REGEX_ipv4toregexsearch (&i4,
                                 8080,
                                 rxstr4);
-  GNUNET_TUN_ipv6toregexsearch (&i6,
+  GNUNET_REGEX_ipv6toregexsearch (&i6,
                                 8686,
                                 rxstr6);
   GNUNET_asprintf (&ss4,
@@ -159,8 +159,8 @@ run (void *cls,
                    "%s%s",
                    GNUNET_APPLICATION_TYPE_EXIT_REGEX_PREFIX,
                    rxstr6);
-  p4r = GNUNET_TUN_ipv4policy2regex ("0.0.0.0/0:!25;");
-  p6r = GNUNET_TUN_ipv6policy2regex ("::/0:!25;");
+  p4r = GNUNET_REGEX_ipv4policy2regex ("0.0.0.0/0:!25;");
+  p6r = GNUNET_REGEX_ipv6policy2regex ("::/0:!25;");
   GNUNET_asprintf (&p4,
                    "%s%s",
                    GNUNET_APPLICATION_TYPE_EXIT_REGEX_PREFIX,

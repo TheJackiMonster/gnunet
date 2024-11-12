@@ -18,13 +18,14 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file tun/test_regex.c
+ * @file regex/test_regex.c
  * @brief simple test for regex.c iptoregex functions
  * @author Maximilian Szengel
  */
 
 #include "platform.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_regex_service.h"
 
 /**
  * 'wildcard', matches all possible values (for HEX encoding).
@@ -48,7 +49,7 @@ test_iptoregex (const char *ipv4,
   char rxv6[GNUNET_TUN_IPV6_REGEXLEN];
 
   GNUNET_assert (1 == inet_pton (AF_INET, ipv4, &a));
-  GNUNET_TUN_ipv4toregexsearch (&a, port, rxv4);
+  GNUNET_REGEX_ipv4toregexsearch (&a, port, rxv4);
 
   if (0 != strcmp (rxv4, expectedv4))
   {
@@ -60,7 +61,7 @@ test_iptoregex (const char *ipv4,
   }
 
   GNUNET_assert (1 == inet_pton (AF_INET6, ipv6, &b));
-  GNUNET_TUN_ipv6toregexsearch (&b, port6, rxv6);
+  GNUNET_REGEX_ipv6toregexsearch (&b, port6, rxv6);
   if (0 != strcmp (rxv6, expectedv6))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -80,7 +81,7 @@ test_policy4toregex (const char *policy,
   int ret;
 
   ret = 0;
-  r = GNUNET_TUN_ipv4policy2regex (policy);
+  r = GNUNET_REGEX_ipv4policy2regex (policy);
   if (NULL == r)
   {
     GNUNET_break (0);
@@ -106,7 +107,7 @@ test_policy6toregex (const char *policy,
   int ret;
 
   ret = 0;
-  r = GNUNET_TUN_ipv6policy2regex (policy);
+  r = GNUNET_REGEX_ipv6policy2regex (policy);
   if (NULL == r)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -138,7 +139,7 @@ main (int argc, char *argv[])
   error = 0;
 
   /* this is just a performance test ... */
-  r = GNUNET_TUN_ipv4policy2regex ("1.2.3.4/16:!25;");
+  r = GNUNET_REGEX_ipv4policy2regex ("1.2.3.4/16:!25;");
   GNUNET_break (NULL != r);
   GNUNET_free (r);
 

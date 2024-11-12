@@ -4032,7 +4032,7 @@ run (void *cls,
                                                &policy))
       regex = NULL;
     else
-      regex = GNUNET_TUN_ipv4policy2regex (policy);
+      regex = GNUNET_REGEX_ipv4policy2regex (policy);
     GNUNET_free (policy);
     if (NULL != regex)
     {
@@ -4072,7 +4072,7 @@ run (void *cls,
                                                &policy))
       regex = NULL;
     else
-      regex = GNUNET_TUN_ipv6policy2regex (policy);
+      regex = GNUNET_REGEX_ipv6policy2regex (policy);
     GNUNET_free (policy);
     if (NULL != regex)
     {

@@ -43,6 +43,7 @@ lib_LTLIBRARIES = \
 libgnunetregex_la_SOURCES = \
   regex_api_announce.c \
   regex_api_search.c \
+  regex.c \
   regex_ipc.h
 libgnunetregex_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la
@@ -75,7 +76,8 @@ gnunet_daemon_regexprofiler_LDADD = -lm \
 gnunet_daemon_regexprofiler_LDFLAGS = \
   $(GN_LIBINTL)
 
-#check_PROGRAMS = \
+check_PROGRAMS = \
+  test_regex
 #  test_regex_integration \
 #  test_regex_eval_api \
 #  test_regex_iterate_api \
@@ -87,6 +89,13 @@ if ENABLE_TEST_RUN
  AM_TESTS_ENVIRONMENT=export GNUNET_PREFIX=$${GNUNET_PREFIX:-@libdir@};export PATH=$${GNUNET_PREFIX:-@prefix@}/bin:$$PATH;unset XDG_DATA_HOME;unset XDG_CONFIG_HOME;
  TESTS = $(check_PROGRAMS)
 endif
+
+test_regex_SOURCES = \
+ test_regex.c
+test_regex_LDADD = \
+ libgnunetregex.la \
+ $(top_builddir)/src/lib/util/libgnunetutil.la
+
 
 test_regex_eval_api_SOURCES = \
   $(REGEX_INTERNAL_TEST) test_regex_eval_api.c

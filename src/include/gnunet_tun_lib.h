@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -59,7 +59,7 @@
 
 
 /**
- * Maximum regex string length for use with #GNUNET_TUN_ipv4toregexsearch.
+ * Maximum regex string length for use with #GNUNET_REGEX_ipv4toregexsearch.
  *
  * 8 bytes for IPv4, 4 bytes for port, 1 byte for "4", 2 bytes for "-",
  * one byte for 0-termination.
@@ -69,7 +69,7 @@
 
 
 /**
- * Maximum regex string length for use with #GNUNET_TUN_ipv6toregexsearch
+ * Maximum regex string length for use with #GNUNET_REGEX_ipv6toregexsearch
  *
  * 32 bytes for IPv4, 4 bytes for port, 1 byte for "4", 2 bytes for "-",
  * one byte for 0-termination.
@@ -873,60 +873,6 @@ void
 GNUNET_TUN_calculate_icmp_checksum (struct GNUNET_TUN_IcmpHeader *icmp,
                                     const void *payload,
                                     uint16_t payload_length);
-
-
-/**
- * Create a regex in @a rxstr from the given @a ip and @a port.
- *
- * @param ip IPv4 representation.
- * @param port destination port
- * @param rxstr generated regex, must be at least #GNUNET_TUN_IPV4_REGEXLEN
- *              bytes long.
- */
-void
-GNUNET_TUN_ipv4toregexsearch (const struct in_addr *ip,
-                              uint16_t port,
-                              char *rxstr);
-
-
-/**
- * Create a regex in @a rxstr from the given @a ipv6 and @a port.
- *
- * @param ipv6 IPv6 representation.
- * @param port destination port
- * @param rxstr generated regex, must be at least #GNUNET_TUN_IPV6_REGEXLEN
- *              bytes long.
- */
-void
-GNUNET_TUN_ipv6toregexsearch (const struct in6_addr *ipv6,
-                              uint16_t port,
-                              char *rxstr);
-
-
-/**
- * Convert an exit policy to a regular expression.  The exit policy
- * specifies a set of subnets this peer is willing to serve as an
- * exit for; the resulting regular expression will match the
- * IPv6 address strings as returned by #GNUNET_TUN_ipv6toregexsearch.
- *
- * @param policy exit policy specification
- * @return regular expression, NULL on error
- */
-char *
-GNUNET_TUN_ipv6policy2regex (const char *policy);
-
-
-/**
- * Convert an exit policy to a regular expression.  The exit policy
- * specifies a set of subnets this peer is willing to serve as an
- * exit for; the resulting regular expression will match the
- * IPv4 address strings as returned by #GNUNET_TUN_ipv4toregexsearch.
- *
- * @param policy exit policy specification
- * @return regular expression, NULL on error
- */
-char *
-GNUNET_TUN_ipv4policy2regex (const char *policy);
 
 
 /**

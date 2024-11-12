@@ -34,7 +34,7 @@
 
 
 void
-GNUNET_TUN_ipv4toregexsearch (const struct in_addr *ip,
+GNUNET_REGEX_ipv4toregexsearch (const struct in_addr *ip,
                               uint16_t port,
                               char *rxstr)
 {
@@ -47,7 +47,7 @@ GNUNET_TUN_ipv4toregexsearch (const struct in_addr *ip,
 
 
 void
-GNUNET_TUN_ipv6toregexsearch (const struct in6_addr *ipv6,
+GNUNET_REGEX_ipv6toregexsearch (const struct in6_addr *ipv6,
                               uint16_t port,
                               char *rxstr)
 {
@@ -679,7 +679,7 @@ ipv6_to_regex (const struct GNUNET_STRINGS_IPv6NetworkPolicy *v6)
 
 
 char *
-GNUNET_TUN_ipv4policy2regex (const char *policy)
+GNUNET_REGEX_ipv4policy2regex (const char *policy)
 {
   struct GNUNET_STRINGS_IPv4NetworkPolicy *np;
   char *reg;
@@ -722,7 +722,7 @@ GNUNET_TUN_ipv4policy2regex (const char *policy)
 
 
 char *
-GNUNET_TUN_ipv6policy2regex (const char *policy)
+GNUNET_REGEX_ipv6policy2regex (const char *policy)
 {
   struct in6_addr zero;
   struct GNUNET_STRINGS_IPv6NetworkPolicy *np;
@@ -737,7 +737,8 @@ GNUNET_TUN_ipv6policy2regex (const char *policy)
   reg = NULL;
   memset (&zero, 0, sizeof(struct in6_addr));
   for (i = 0; (0 == i) || (0 != memcmp (&zero, &np[i].network, sizeof(struct
-                                                                      in6_addr)));
+                                                                      in6_addr))
+                           );
        i++)
   {
     line = ipv6_to_regex (&np[i]);
@@ -765,39 +766,6 @@ GNUNET_TUN_ipv6policy2regex (const char *policy)
   }
   GNUNET_free (np);
   return reg;
-}
-
-
-void
-GNUNET_TUN_service_name_to_hash (const char *service_name,
-                                 struct GNUNET_HashCode *hc)
-{
-  GNUNET_CRYPTO_hash (service_name,
-                      strlen (service_name),
-                      hc);
-}
-
-
-/**
- * Compute the CADET port given a service descriptor
- * (returned from #GNUNET_TUN_service_name_to_hash) and
- * a TCP/UDP port @a ip_port.
- *
- * @param desc service shared secret
- * @param ip_port TCP/UDP port, use 0 for ICMP
- * @param[out] cadet_port CADET port to use
- */
-void
-GNUNET_TUN_compute_service_cadet_port (const struct GNUNET_HashCode *desc,
-                                       uint16_t ip_port,
-                                       struct GNUNET_HashCode *cadet_port)
-{
-  uint16_t be_port = htons (ip_port);
-
-  *cadet_port = *desc;
-  GNUNET_memcpy (cadet_port,
-                 &be_port,
-                 sizeof(uint16_t));
 }
 
 
