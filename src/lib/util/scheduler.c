@@ -19,7 +19,8 @@
  */
 /**
  * @file util/scheduler.c
- * @brief schedule computations using continuation passing style
+ * @brief main event loop we use for most processes, schedules computations 
+ *        based on time or network events with priorities
  * @author Christian Grothoff
  */
 
