@@ -71,6 +71,7 @@ uncrustify.cfg
 .style.yapf
 
 # Prevent cache files from IDEA from being commited
+.autotools
 .cproject
 .project
 .settings/
