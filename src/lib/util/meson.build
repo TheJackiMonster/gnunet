@@ -59,7 +59,6 @@ libgnunetutil_src = ['bandwidth.c',
        'peer.c',
        'plugin.c',
        'program.c',
-       'regex.c',
        'resolver_api.c',
        'resolver.h',
        'scheduler.c',
@@ -517,16 +516,6 @@ testprogram = executable ('test_program',
                           build_by_default: false,
                           install: false)
 test('test_program', testprogram,
-     workdir: meson.current_build_dir(),
-     suite: ['util', 'util-misc'])
-
-testregex = executable ('test_regex',
-                        ['test_regex.c'],
-                        dependencies: [libgnunetutil_dep],
-                        include_directories: [incdir, configuration_inc],
-                        build_by_default: false,
-                        install: false)
-test('test_regex', testregex,
      workdir: meson.current_build_dir(),
      suite: ['util', 'util-misc'])
 

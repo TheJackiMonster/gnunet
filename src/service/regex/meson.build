@@ -1,4 +1,5 @@
 libgnunetregex_src = ['regex_api_announce.c',
+                      'regex.c',
                      'regex_api_search.c']
 gnunetserviceregex_src = ['gnunet-service-regex.c',
                           'regex_internal_dht.c',
@@ -54,4 +55,17 @@ executable ('gnunet-daemon-regexprofiler',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+
+testregex = executable ('test_regex',
+                        ['test_regex.c'],
+                        dependencies: [
+                          libgnunetregex_dep,
+                          libgnunetutil_dep
+                        ],
+                        include_directories: [incdir, configuration_inc],
+                        build_by_default: false,
+                        install: false)
+test('test_regex', testregex,
+     workdir: meson.current_build_dir(),
+     suite: ['regex'])
 
