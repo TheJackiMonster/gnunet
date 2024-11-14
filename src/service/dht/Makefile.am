@@ -45,7 +45,7 @@ endif
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
  dht_helper.c dht_helper.h \
- $(UNDERLAY_PLUGINS)
+ $(UNDERLAY_PLUGINS) \
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
  gnunet-service-dht_neighbours.c gnunet-service-dht_neighbours.h \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h
