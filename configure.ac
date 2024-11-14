@@ -745,11 +745,7 @@ AC_CHECK_HEADER([curl/curl.h],
                                 [AC_MSG_ERROR([cURL must support CURLINFO_TLS_SSL_PTR])],
                                 [[#include <curl/curl.h>]])])
 # libatomic
-AC_SEARCH_LIBS([__atomic_load_8], [atomic],
-               [have_libatomic=1
-                AC_DEFINE([HAVE_LIBATOMIC], [1],
-                          [Define to 1 if libatomic is external])])
-AM_CONDITIONAL([HAVE_LIBATOMIC], [test "x$have_libatomic" = "x1"])
+CHECK_WITH_LIB([atomic], [__atomic_load_8], [], [HAVE_LIBATOMIC])
 
 # check for nss
 AC_CHECK_HEADERS([nss.h], [nss=true], [nss=false])
