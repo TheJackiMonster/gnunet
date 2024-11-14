@@ -385,10 +385,12 @@ shutdown_task (void *cls)
     {
       DHTU_gnunet_done (u->dhtu);
     }
+#ifdef LINUX
     else if (0 == strcmp (u->name, "ip"))
     {
       DHTU_ip_done (u->dhtu);
     }
+#endif
     else
     {
       GNUNET_assert (0);
@@ -464,10 +466,12 @@ load_underlay (void *cls,
   {
     u->dhtu = DHTU_gnunet_init (&u->env);
   }
+#ifdef LINUX
   else if (0 == strcmp (section, "ip"))
   {
     u->dhtu = DHTU_ip_init (&u->env);
   }
+#endif
   if (NULL == u->dhtu)
   {
     GNUNET_free (u);

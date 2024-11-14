@@ -2,12 +2,13 @@ libgnunetdht_src = ['dht_api.c']
 
 gnunetservicedht_src = ['gnunet-service-dht.c',
                         'plugin_dhtu_gnunet.c',
-                        'plugin_dhtu_ip.c',
                         'dht_helper.c',
                         'gnunet-service-dht_datacache.c',
                         'gnunet-service-dht_neighbours.c',
                         'gnunet-service-dht_routing.c']
-
+if host_machine.system() == 'linux'
+  gnunetservicedht_src += 'plugin_dhtu_ip.c'
+endif
 configure_file(input : 'dht.conf.in',
                output : 'dht.conf',
                configuration : cdata,

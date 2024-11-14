@@ -35,11 +35,17 @@ libgnunetdht_la_LDFLAGS = \
 libexec_PROGRAMS = \
  gnunet-service-dht
 
+UNDERLAY_PLUGINS = \
+  plugin_dhtu_gnunet.c plugin_dhtu_gnunet.h
+if LINUX
+UNDERLAY_PLUGINS += \
+ plugin_dhtu_ip.c plugin_dhtu_ip.h
+endif
+
 gnunet_service_dht_SOURCES = \
  gnunet-service-dht.c gnunet-service-dht.h \
- plugin_dhtu_gnunet.h plugin_dhtu_ip.h \
- plugin_dhtu_gnunet.c plugin_dhtu_ip.c \
  dht_helper.c dht_helper.h \
+ $(UNDERLAY_PLUGINS)
  gnunet-service-dht_datacache.c gnunet-service-dht_datacache.h \
  gnunet-service-dht_neighbours.c gnunet-service-dht_neighbours.h \
  gnunet-service-dht_routing.c gnunet-service-dht_routing.h
