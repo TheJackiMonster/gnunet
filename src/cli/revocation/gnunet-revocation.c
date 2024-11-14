@@ -561,13 +561,15 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
-                                          argv,
-                                          "gnunet-revocation",
-                                          gettext_noop ("help text"),
-                                          options,
-                                          &run,
-                                          NULL))
+  ret = (GNUNET_OK ==
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
+                             argv,
+                             "gnunet-revocation",
+                             gettext_noop ("help text"),
+                             options,
+                             &run,
+                             NULL))
         ? ret
         : 1;
   return ret;

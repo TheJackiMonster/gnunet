@@ -149,7 +149,6 @@ enum ZonefileImportState
 };
 
 
-
 /**
  * Task run on shutdown.  Cleans up everything.
  *
@@ -182,6 +181,7 @@ do_shutdown (void *cls)
   if (NULL != parse_task)
     GNUNET_SCHEDULER_cancel (parse_task);
 }
+
 
 static void
 parse (void *cls);
@@ -220,6 +220,7 @@ trim (char *line)
   return ltrimmed;
 }
 
+
 static char*
 next_token (char *token)
 {
@@ -228,6 +229,7 @@ next_token (char *token)
     next++;
   return next;
 }
+
 
 static int
 parse_ttl (char *token, struct GNUNET_TIME_Relative *pttl)
@@ -251,6 +253,7 @@ parse_ttl (char *token, struct GNUNET_TIME_Relative *pttl)
   return GNUNET_OK;
 }
 
+
 static int
 parse_origin (char *token, char *porigin)
 {
@@ -265,6 +268,7 @@ parse_origin (char *token, char *porigin)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Origin is: %s\n", porigin);
   return GNUNET_OK;
 }
+
 
 static void
 origin_create_cb (void *cls, const struct GNUNET_CRYPTO_PrivateKey *pk,
@@ -282,6 +286,7 @@ origin_create_cb (void *cls, const struct GNUNET_CRYPTO_PrivateKey *pk,
   zone_pkey = *pk;
   parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
+
 
 static void
 origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
@@ -303,6 +308,7 @@ origin_lookup_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
   zone_pkey = *GNUNET_IDENTITY_ego_get_private_key (ego);
   parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
+
 
 static void
 add_continuation (void *cls, enum GNUNET_ErrorCode ec)
@@ -330,7 +336,6 @@ add_continuation (void *cls, enum GNUNET_ErrorCode ec)
   }
   parse_task = GNUNET_SCHEDULER_add_now (&parse, NULL);
 }
-
 
 
 /**
@@ -471,7 +476,8 @@ parse (void *cls)
                       rd_count);
           state = ZS_NAME_CHANGED;
         }
-        else {
+        else
+        {
           strcpy (lastname, newname);
         }
       }
@@ -588,12 +594,12 @@ parse (void *cls)
   if (rd_count > 0)
   {
     ns_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                            &zone_pkey,
-                                            lastname,
-                                            rd_count,
-                                            rd,
-                                            &add_continuation,
-                                            NULL);
+                                               &zone_pkey,
+                                               lastname,
+                                               rd_count,
+                                               rd,
+                                               &add_continuation,
+                                               NULL);
     published_sets++;
     published_records += rd_count;
     for (int i = 0; i < rd_count; i++)
@@ -709,7 +715,8 @@ main (int argc, char *const *argv)
 
   GNUNET_log_setup ("gnunet-namestore-dbtool", "WARNING", NULL);
   if (GNUNET_OK !=
-      (lret = GNUNET_PROGRAM_run (argc,
+      (lret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                  argc,
                                   argv,
                                   "gnunet-namestore-zonefile",
                                   _ (

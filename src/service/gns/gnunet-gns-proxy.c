@@ -92,14 +92,14 @@
  * After how long do we clean up unused MHD TLS instances?
  */
 #define MHD_CACHE_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 5)
+          GNUNET_TIME_UNIT_MINUTES, 5)
 
 /**
  * After how long do we clean up Socks5 handles that failed to show any activity
  * with their respective MHD instance?
  */
 #define HTTP_HANDSHAKE_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 15)
+          GNUNET_TIME_UNIT_SECONDS, 15)
 
 
 /**
@@ -110,12 +110,12 @@
  * @param rc return code from curl
  */
 #define LOG_CURL_EASY(level, fun, rc) \
-  GNUNET_log (level, \
-              _ ("%s failed at %s:%d: `%s'\n"), \
-              fun, \
-              __FILE__, \
-              __LINE__, \
-              curl_easy_strerror (rc))
+        GNUNET_log (level, \
+                    _ ("%s failed at %s:%d: `%s'\n"), \
+                    fun, \
+                    __FILE__, \
+                    __LINE__, \
+                    curl_easy_strerror (rc))
 
 
 /* *************** Socks protocol definitions (move to TUN?) ****************** */
@@ -1308,7 +1308,7 @@ curl_check_hdr (void *buffer,
                                  s5r->header_tail,
                                  header);
   }
-  cleanup:
+cleanup:
   GNUNET_free (ndup);
   GNUNET_free (new_cookie_hdr);
   GNUNET_free (new_location);
@@ -3373,7 +3373,8 @@ do_s5r_read (void *cls)
         s5r->gns_lookup = GNUNET_GNS_lookup_with_tld (gns_handle,
                                                       s5r->domain,
                                                       GNUNET_DNSPARSER_TYPE_A,
-                                                      GNUNET_GNS_LO_LOCAL_MASTER /* only cached */,
+                                                      GNUNET_GNS_LO_LOCAL_MASTER /* only cached */
+                                                      ,
                                                       &handle_gns_result,
                                                       s5r);
         break;
@@ -3892,7 +3893,8 @@ main (int argc,
 
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run (argc, argv,
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc, argv,
                          "gnunet-gns-proxy",
                          _ ("GNUnet GNS proxy"),
                          options,

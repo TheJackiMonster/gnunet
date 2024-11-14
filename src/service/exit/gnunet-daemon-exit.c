@@ -3947,7 +3947,9 @@ run (void *cls,
                                              &max_connections))
     max_connections = 1024;
   parse_ip_options ();
-  binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-exit");
+  binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           cfg,
+                                           "gnunet-helper-exit");
   if ((ipv4_exit) || (ipv6_exit))
   {
     if (GNUNET_YES !=
@@ -4088,7 +4090,8 @@ run (void *cls,
       GNUNET_free (prefixed_regex);
     }
   }
-  helper_handle = GNUNET_HELPER_start (GNUNET_NO,
+  helper_handle = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet (),
+                                       GNUNET_NO,
                                        binary,
                                        exit_argv,
                                        &message_token,
@@ -4114,7 +4117,8 @@ main (int argc,
   };
 
   return (GNUNET_OK ==
-          GNUNET_PROGRAM_run (argc,
+          GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                              argc,
                               argv,
                               "gnunet-daemon-exit",
                               gettext_noop (

@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -67,11 +67,13 @@ typedef void *
  * Note that the library must export a symbol called
  * "library_name_init" for the test to succeed.
  *
+ * @param pd project data with library search path
  * @param library_name name of the plugin to test if it is installed
  * @return #GNUNET_YES if the plugin exists, #GNUNET_NO if not
  */
 enum GNUNET_GenericReturnValue
-GNUNET_PLUGIN_test (const char *library_name);
+GNUNET_PLUGIN_test (const struct GNUNET_OS_ProjectData *pd,
+                    const char *library_name);
 
 
 /**
@@ -82,12 +84,14 @@ GNUNET_PLUGIN_test (const char *library_name);
  * "library_name_init" and "library_name_done".  These will be called
  * when the library is loaded and unloaded respectively.
  *
+ * @param pd project data with library search path
  * @param library_name name of the plugin to load
  * @param arg argument to the plugin initialization function
  * @return whatever the initialization function returned, NULL on error
  */
 void *
-GNUNET_PLUGIN_load (const char *library_name,
+GNUNET_PLUGIN_load (const struct GNUNET_OS_ProjectData *pd,
+                    const char *library_name,
                     void *arg);
 
 
@@ -114,38 +118,18 @@ typedef void
  * "basename_ANYTHING_init" and "basename_ANYTHING__done".  These will
  * be called when the library is loaded and unloaded respectively.
  *
+ * @param pd project data with library search path
  * @param basename basename of the plugins to load
  * @param arg argument to the plugin initialization function
  * @param cb function to call for each plugin found
  * @param cb_cls closure for @a cb
  */
 void
-GNUNET_PLUGIN_load_all (const char *basename,
+GNUNET_PLUGIN_load_all (const struct GNUNET_OS_ProjectData *pd,
+                        const char *basename,
                         void *arg,
                         GNUNET_PLUGIN_LoaderCallback cb,
                         void *cb_cls);
-
-
-/**
- * Load all compatible plugins with the given base name while inside the given
- * context (i.e. a specific project data structure.)
- *
- * Note that the library must export symbols called `basename_ANYTHING_init`
- * and `basename_ANYTHING__done`.  These will be called when the library is
- * loaded and unloaded respectively.
- *
- * @param ctx the context used to find the plugins
- * @param basename basename of the plugins to load
- * @param arg argument to the plugin initialization function
- * @param cb function to call for each plugin found
- * @param cb_cls closure for @a cb
- */
-void
-GNUNET_PLUGIN_load_all_in_context (const struct GNUNET_OS_ProjectData *ctx,
-                                   const char *basename,
-                                   void *arg,
-                                   GNUNET_PLUGIN_LoaderCallback cb,
-                                   void *cb_cls);
 
 
 /**

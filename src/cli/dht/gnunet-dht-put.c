@@ -230,6 +230,7 @@ main (int argc, char *const *argv)
   expiration = GNUNET_TIME_UNIT_HOURS;
   ret = (GNUNET_OK ==
          GNUNET_PROGRAM_run (
+           GNUNET_OS_project_data_gnunet (),
            argc,
            argv,
            "gnunet-dht-put",

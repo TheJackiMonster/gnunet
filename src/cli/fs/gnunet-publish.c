@@ -861,11 +861,11 @@ run (void *cls,
   }
   cfg = c;
   fs_handle = GNUNET_FS_start (cfg,
-                         "gnunet-publish",
-                         &progress_cb,
-                         NULL,
-                         GNUNET_FS_FLAGS_NONE,
-                         GNUNET_FS_OPTIONS_END);
+                               "gnunet-publish",
+                               &progress_cb,
+                               NULL,
+                               GNUNET_FS_FLAGS_NONE,
+                               GNUNET_FS_OPTIONS_END);
   if (NULL == fs_handle)
   {
     fprintf (stderr, _ ("Could not initialize `%s' subsystem.\n"), "FS");
@@ -991,7 +991,8 @@ main (int argc, char *const *argv)
 
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run (argc,
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc,
                          argv,
                          "gnunet-publish [OPTIONS] FILENAME",
                          gettext_noop ("Publish a file or directory on GNUnet"),

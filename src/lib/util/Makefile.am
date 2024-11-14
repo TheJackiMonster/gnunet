@@ -50,7 +50,6 @@ libgnunetutil_la_SOURCES = \
   common_logging.c \
   compress.c \
   configuration.c \
-  configuration_helper.c \
   consttime_memcmp.c \
   container_bloomfilter.c \
   container_heap.c \

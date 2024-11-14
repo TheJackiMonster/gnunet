@@ -457,7 +457,8 @@ restart_task (void *cls)
 
 
 struct GNUNET_HELPER_Handle *
-GNUNET_HELPER_start (int with_control_pipe,
+GNUNET_HELPER_start (const struct GNUNET_OS_ProjectData *pd,
+                     int with_control_pipe,
                      const char *binary_name,
                      char *const binary_argv[],
                      GNUNET_MessageTokenizerCallback cb,
@@ -471,7 +472,8 @@ GNUNET_HELPER_start (int with_control_pipe,
   h->with_control_pipe = with_control_pipe;
   /* Lookup in libexec path only if we are starting gnunet helpers */
   if (NULL != strstr (binary_name, "gnunet"))
-    h->binary_name = GNUNET_OS_get_libexec_binary_path (binary_name);
+    h->binary_name = GNUNET_OS_get_libexec_binary_path (pd,
+                                                        binary_name);
   else
     h->binary_name = GNUNET_strdup (binary_name);
   for (c = 0; NULL != binary_argv[c]; c++)

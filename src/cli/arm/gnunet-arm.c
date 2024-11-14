@@ -384,7 +384,8 @@ stop_callback (void *cls,
     GNUNET_asprintf (&msg,
                      "%s",
                      _ (
-                       "Failed to send a stop request to the ARM service: %s\n"));
+                       "Failed to send a stop request to the ARM service: %s\n")
+                     );
     fprintf (stdout, msg, req_string (rs));
     GNUNET_free (msg);
     GNUNET_SCHEDULER_shutdown ();
@@ -676,7 +677,8 @@ list_callback (void *cls,
                  service_info[i].binary);
       break;
     case GNUNET_ARM_SERVICE_STATUS_FAILED:
-      restart_in = GNUNET_TIME_absolute_get_remaining (service_info[i].restart_at);
+      restart_in = GNUNET_TIME_absolute_get_remaining (service_info[i].
+                                                       restart_at);
       fprintf (stdout,
                "%s (binary='%s', status=failed, exit_status=%d, restart_delay='%s')\n",
                service_info[i].name,
@@ -1038,6 +1040,7 @@ main (int argc, char *const *argv)
 
   if (GNUNET_OK ==
       (lret = GNUNET_PROGRAM_run (
+         GNUNET_OS_project_data_gnunet (),
          argc,
          argv,
          "gnunet-arm",

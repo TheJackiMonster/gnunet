@@ -389,7 +389,8 @@ main (int argc, char *const *argv)
   timeout = GNUNET_TIME_UNIT_FOREVER_REL;
 
   GNUNET_log_setup ("gnunet-gns", "WARNING", NULL);
-  ret = GNUNET_PROGRAM_run (argc,
+  ret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-gns",
                             _ ("GNUnet GNS resolver tool"),

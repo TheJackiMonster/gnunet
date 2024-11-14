@@ -140,14 +140,16 @@ struct GNUNET_BLOCK_Context *
 GNUNET_BLOCK_context_create (const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
   struct GNUNET_BLOCK_Context *ctx;
+  const struct GNUNET_OS_ProjectData *pd;
 
   ctx = GNUNET_new (struct GNUNET_BLOCK_Context);
   ctx->cfg = cfg;
-  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
-                                     "libgnunet_plugin_block_",
-                                     (void *) cfg,
-                                     &add_plugin,
-                                     ctx);
+  pd = GNUNET_CONFIGURATION_get_project_data (cfg);
+  GNUNET_PLUGIN_load_all (pd,
+                          "libgnunet_plugin_block_",
+                          (void *) cfg,
+                          &add_plugin,
+                          ctx);
   return ctx;
 }
 

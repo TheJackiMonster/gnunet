@@ -72,6 +72,7 @@ typedef void
  * Run a standard GNUnet command startup sequence (initialize loggers
  * and configuration, parse options).
  *
+ * @param pd project data for the project the program belongs to
  * @param argc number of command line arguments in @a argv
  * @param argv command line arguments
  * @param binaryName our expected name
@@ -87,7 +88,8 @@ typedef void
  *         #GNUNET_OK on success (#a task was invoked)
  */
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_run2 (int argc,
+GNUNET_PROGRAM_run2 (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      const char *binaryName,
                      const char *binaryHelp,
@@ -101,6 +103,7 @@ GNUNET_PROGRAM_run2 (int argc,
  * Run a standard GNUnet command startup sequence (initialize loggers
  * and configuration, parse options).
  *
+ * @param pd project data for the project the program belongs to
  * @param argc number of command line arguments
  * @param argv command line arguments
  * @param binaryName our expected name
@@ -114,7 +117,8 @@ GNUNET_PROGRAM_run2 (int argc,
  *         #GNUNET_OK on success (#a task was invoked)
  */
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_run (int argc,
+GNUNET_PROGRAM_run (const struct GNUNET_OS_ProjectData *pd,
+                    int argc,
                     char *const *argv,
                     const char *binaryName,
                     const char *binaryHelp,
@@ -122,16 +126,23 @@ GNUNET_PROGRAM_run (int argc,
                     GNUNET_PROGRAM_Main task,
                     void *task_cls);
 
+
 enum GNUNET_GenericReturnValue
 GNUNET_DAEMON_register (const char *daemon_name,
                         const char *daemon_desc,
                         GNUNET_PROGRAM_Main task);
 
+
 /**
  * Start all services and daemons in a single process.
+ *
+ * @param pd project data for the project the program belongs to
+ * @param argc number of command line arguments
+ * @param argv command line arguments
  */
 void
-GNUNET_PROGRAM_monolith_main (int argc,
+GNUNET_PROGRAM_monolith_main (const struct GNUNET_OS_ProjectData *pd,
+                              int argc,
                               char *const *argv,
                               struct GNUNET_CONFIGURATION_Handle *cfg);
 
@@ -145,7 +156,8 @@ GNUNET_PROGRAM_monolith_main (int argc,
           struct GNUNET_GETOPT_CommandLineOption options[] = { \
             GNUNET_GETOPT_OPTION_END \
           }; \
-          ret =  GNUNET_PROGRAM_run (argc, \
+          ret =  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (), \
+                                     argc,                             \
                                      argv, \
                                      daemon_name, \
                                      daemon_help, \
@@ -169,9 +181,14 @@ GNUNET_PROGRAM_monolith_main (int argc,
 
 /**
  * Create configuration handle from options and configuration file.
+ *
+ * @param pd project data for the project the program belongs to
+ * @param argc number of command line arguments
+ * @param argv command line arguments
  */
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_conf_and_options (int argc,
+GNUNET_PROGRAM_conf_and_options (const struct GNUNET_OS_ProjectData *pd,
+                                 int argc,
                                  char *const *argv,
                                  struct GNUNET_CONFIGURATION_Handle *cfg);
 
@@ -179,9 +196,14 @@ GNUNET_PROGRAM_conf_and_options (int argc,
 /**
  * Run the mainloop in a monolithic libgnunet.
  * Must be called such that services are actually launched.
+ *
+ * @param pd project data for the project the program belongs to
+ * @param argc number of command line arguments
+ * @param argv command line arguments
  */
 void
-GNUNET_DAEMON_main (int argc,
+GNUNET_DAEMON_main (const struct GNUNET_OS_ProjectData *pd,
+                    int argc,
                     char *const *argv,
                     struct GNUNET_CONFIGURATION_Handle *cfg,
                     enum GNUNET_GenericReturnValue with_scheduler);

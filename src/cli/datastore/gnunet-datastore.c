@@ -490,7 +490,8 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-datastore",
                           gettext_noop ("Manipulate GNUnet datastore"),

@@ -304,7 +304,8 @@ main (int argc, char *const *argv)
 
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run (argc,
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc,
                          argv,
                          "gnunet-scrypt [OPTIONS] prooffile",
                          gettext_noop ("Manipulate GNUnet proof of work files"),

@@ -655,8 +655,12 @@ main (int argc,
     GNUNET_GETOPT_OPTION_END
   };
 
-  return (GNUNET_OK == GNUNET_PROGRAM_run (argc, argv, "gnunet-messenger\0",
-                                           gettext_noop (description), options,
-                                           &run,
-                                           NULL) ? EXIT_SUCCESS : EXIT_FAILURE);
+  return (GNUNET_OK ==
+          GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                              argc,
+                              argv,
+                              "gnunet-messenger\0",
+                              gettext_noop (description), options,
+                              &run,
+                              NULL) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

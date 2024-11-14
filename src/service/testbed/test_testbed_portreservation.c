@@ -89,7 +89,8 @@ main (int argc, char *argv[])
 
   status = GNUNET_SYSERR;
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "test_testbed_new_portreservation",
                           "test case for testing port reservation routines"

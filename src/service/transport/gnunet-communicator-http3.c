@@ -704,7 +704,8 @@ remove_stream (struct Connection *connection, int64_t stream_id)
   if (GNUNET_NO == rv)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "can't remove non-exist pair in connection->streams, stream_id = %"PRIi64"\n",
+                "can't remove non-exist pair in connection->streams, stream_id = %"
+                PRIi64 "\n",
                 stream_id);
     return;
   }
@@ -1997,7 +1998,8 @@ setup_httpconn (struct Connection *connection)
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Bind control stream: %"PRIi64", enc stream: %"PRIi64", dec stream: %"PRIi64"\n",
+              "Bind control stream: %" PRIi64 ", enc stream: %" PRIi64
+              ", dec stream: %" PRIi64 "\n",
               ctrl_stream_id, enc_stream_id, dec_stream_id);
   return GNUNET_NO;
 }
@@ -2102,7 +2104,7 @@ stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                  void *stream_user_data)
 {
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "stream_close id = %"PRIi64"\n",
+              "stream_close id = %" PRIi64 "\n",
               stream_id);
   struct Connection *connection = user_data;
   int rv;
@@ -3925,7 +3927,8 @@ main (int argc, char *const *argv)
                            "transport",
                            "Starting http3 communicator\n");
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-communicator-http3",
                              _ ("GNUnet HTTP3 communicator"),

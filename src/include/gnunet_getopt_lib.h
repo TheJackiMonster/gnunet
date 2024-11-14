@@ -166,10 +166,12 @@ struct GNUNET_GETOPT_CommandLineOption
  * Defining the option to print the command line
  * help text (-h option).
  *
+ * @param pd project data to determine details about the application
  * @param about string with brief description of the application
  */
 struct GNUNET_GETOPT_CommandLineOption
-GNUNET_GETOPT_option_help (const char *about);
+GNUNET_GETOPT_option_help (const struct GNUNET_OS_ProjectData *pd,
+                           const char *about);
 
 
 /**

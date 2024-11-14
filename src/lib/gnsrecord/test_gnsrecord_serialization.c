@@ -147,7 +147,9 @@ main (int argcx, char *argvx[])
   };
 
   res = 1;
-  GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1, argv,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(argv) / sizeof(char *)) - 1,
+                      argv,
                       "test_namestore_record_serialization",
                       "nohelp", options, &run, &res);
   return res;

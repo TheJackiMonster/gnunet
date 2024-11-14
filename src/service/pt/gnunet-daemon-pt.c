@@ -1302,7 +1302,8 @@ main (int argc,
   int ret;
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-daemon-pt",
                              gettext_noop (

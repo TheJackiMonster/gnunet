@@ -1220,7 +1220,8 @@ process_queue (void *cls)
       continue;
     }
     req->op_start_time = GNUNET_TIME_absolute_get ();
-    req->rs = GNUNET_DNSSTUB_resolve (dns_ctx, raw, raw_size, &process_result, req);
+    req->rs = GNUNET_DNSSTUB_resolve (dns_ctx, raw, raw_size, &process_result,
+                                      req);
     GNUNET_assert (NULL != req->rs);
     req->issue_num++;
     lookups++;
@@ -1853,14 +1854,16 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
   int ret;
 
-  if (GNUNET_OK != (ret = GNUNET_PROGRAM_run (argc,
-                                              argv,
-                                              "gnunet-zoneimport",
-                                              "import DNS zone into namestore",
-                                              options,
-                                              &run,
-                                              NULL)))
-    return ret;
+  if (GNUNET_OK !=
+      (ret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                 argc,
+                                 argv,
+                                 "gnunet-zoneimport",
+                                 "import DNS zone into namestore",
+                                 options,
+                                 &run,
+                                 NULL)))
+    return 1;
   fprintf (stderr,
            "Rejected %u names, had %u cached, did %u lookups, stored %u record sets\n"
            "Found %u records, %u lookups failed, %u/%u pending on shutdown\n",

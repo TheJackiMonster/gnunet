@@ -748,7 +748,8 @@ transport_communicator_start (
   };
 
 
-  tc_h->sh = GNUNET_SERVICE_start ("transport",
+  tc_h->sh = GNUNET_SERVICE_start (GNUNET_OS_project_data_gnunet (),
+                                   "transport",
                                    tc_h->cfg,
                                    &connect_cb,
                                    &disconnect_cb,
@@ -846,7 +847,8 @@ communicator_start (
     loprefix = GNUNET_strdup ("");
 
 
-  binary = GNUNET_OS_get_libexec_binary_path (binary_name);
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              binary_name);
   tc_h->c_proc = GNUNET_OS_start_process_s (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                             NULL,
                                             loprefix,
@@ -903,7 +905,8 @@ resolver_start (struct
   char *binary;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "resolver_start\n");
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-resolver");
   tc_h->resolver_proc = GNUNET_OS_start_process (
     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
     | GNUNET_OS_USE_PIPE_CONTROL,
@@ -936,7 +939,8 @@ statistics_start (
 {
   char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-statistics");
   tc_h->stat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                              NULL,
                                              NULL,
@@ -966,7 +970,8 @@ peerstore_start (
 {
   char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-peerstore");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-peerstore");
   tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                            NULL,
                                            NULL,
@@ -997,7 +1002,8 @@ nat_start (
   char *binary;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start\n");
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-nat");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-nat");
   tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                                             | GNUNET_OS_USE_PIPE_CONTROL,
                                             NULL,
@@ -1053,8 +1059,10 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
   tc_h =
     GNUNET_new (struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle);
   tc_h->cfg_filename = GNUNET_strdup (cfg_filename);
-  tc_h->cfg = GNUNET_CONFIGURATION_create ();
-  if ((GNUNET_SYSERR == GNUNET_CONFIGURATION_load (tc_h->cfg, cfg_filename)))
+  tc_h->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
+  if ((GNUNET_SYSERR ==
+       GNUNET_CONFIGURATION_load (tc_h->cfg,
+                                  cfg_filename)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Malformed configuration file `%s', exit ...\n"),

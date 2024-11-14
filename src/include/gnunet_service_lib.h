@@ -176,6 +176,7 @@ typedef void
  *
  * The service must be stopped using #GNUNET_SERVICE_stop().
  *
+ * @param pd project data for the service
  * @param service_name name of the service to run
  * @param cfg configuration to use
  * @param connect_cb function to call whenever a client connects
@@ -187,7 +188,8 @@ typedef void
  * @return NULL on error
  */
 struct GNUNET_SERVICE_Handle *
-GNUNET_SERVICE_start (const char *service_name,
+GNUNET_SERVICE_start (const struct GNUNET_OS_ProjectData *pd,
+                      const char *service_name,
                       const struct GNUNET_CONFIGURATION_Handle *cfg,
                       GNUNET_SERVICE_ConnectHandler connect_cb,
                       GNUNET_SERVICE_DisconnectHandler disconnect_cb,
@@ -231,6 +233,7 @@ GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv);
  * dropped. Additionally, clients can be dropped at any time using
  * #GNUNET_SERVICE_client_drop().
  *
+ * @param pd project data for the service
  * @param argc number of command-line arguments in @a argv
  * @param argv array of command-line arguments
  * @param service_name name of the service to run
@@ -245,7 +248,8 @@ GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv);
  * @return 0 on success, non-zero on error
  */
 int
-GNUNET_SERVICE_run_ (int argc,
+GNUNET_SERVICE_run_ (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      const char *service_name,
                      enum GNUNET_SERVICE_Options options,
@@ -284,6 +288,7 @@ GNUNET_SERVICE_run_ (int argc,
  * dropped. Additionally, clients can be dropped at any time using
  * #GNUNET_SERVICE_client_drop().
  *
+ * @param pd project data for the service
  * @param service_name name of the service to run
  * @param options options controlling shutdown of the service
  * @param service_init_cb function to call once the service is ready
@@ -297,6 +302,7 @@ GNUNET_SERVICE_run_ (int argc,
  */
 int
 GNUNET_SERVICE_register_ (
+  const struct GNUNET_OS_ProjectData *pd,
   const char *service_name,
   enum GNUNET_SERVICE_Options options,
   GNUNET_SERVICE_InitCallback service_init_cb,
@@ -364,7 +370,8 @@ GNUNET_SERVICE_register_ (
  * </code>
  */
 #ifndef HAVE_GNUNET_MONOLITH
-#define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
+#define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, \
+                            connect_cb, \
                             disconnect_cb, cls, ...) \
         int \
         main (int argc, \
@@ -373,7 +380,8 @@ GNUNET_SERVICE_register_ (
           struct GNUNET_MQ_MessageHandler mh[] = { \
             __VA_ARGS__ \
           };                        \
-          return GNUNET_SERVICE_run_ (argc, \
+          return GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (), \
+                                      argc, \
                                       argv, \
                                       service_name, \
                                       service_options, \
@@ -384,7 +392,8 @@ GNUNET_SERVICE_register_ (
                                       mh); \
         }
 #else
-#define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, connect_cb, \
+#define GNUNET_SERVICE_MAIN(pd, service_name, service_options, init_cb, \
+                            connect_cb, \
                             disconnect_cb, cls, ...) \
         static int __attribute__ ((constructor)) \
         init (void) \
@@ -392,7 +401,8 @@ GNUNET_SERVICE_register_ (
           struct GNUNET_MQ_MessageHandler mh[] = { \
             __VA_ARGS__ \
           };                        \
-          return GNUNET_SERVICE_register_ (service_name, \
+          return GNUNET_SERVICE_register_ (pd, \
+                                           service_name,    \
                                            service_options, \
                                            init_cb, \
                                            connect_cb, \
@@ -407,7 +417,8 @@ GNUNET_SERVICE_register_ (
  * Must be called such that services are actually launched.
  */
 void
-GNUNET_SERVICE_main (int argc,
+GNUNET_SERVICE_main (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      struct GNUNET_CONFIGURATION_Handle *cfg,
                      enum GNUNET_GenericReturnValue with_scheduler);
@@ -460,8 +471,8 @@ GNUNET_SERVICE_client_get_mq (struct GNUNET_SERVICE_Client *c);
  * @param c client for which to disable the warning
  */
 void
-GNUNET_SERVICE_client_disable_continue_warning (struct
-                                                GNUNET_SERVICE_Client *c);
+GNUNET_SERVICE_client_disable_continue_warning (
+  struct GNUNET_SERVICE_Client *c);
 
 
 /**

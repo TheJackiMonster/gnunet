@@ -32,7 +32,7 @@
  * How long do we wait at least between requests by default?
  */
 #define DEF_REQUEST_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 1)
+          GNUNET_TIME_UNIT_MILLISECONDS, 1)
 
 /**
  * How long do we wait until we consider a request failed by default?
@@ -598,7 +598,8 @@ main (int argc,
   timeout = DEF_TIMEOUT;
   request_delay = DEF_REQUEST_DELAY;
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-gns-benchmark",
                           "resolve GNS names and measure performance",

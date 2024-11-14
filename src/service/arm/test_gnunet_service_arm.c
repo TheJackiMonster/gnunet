@@ -34,7 +34,7 @@
  * startup (annoying)).
  */
 #define START_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 50)
+          GNUNET_TIME_UNIT_MILLISECONDS, 50)
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
 
@@ -249,7 +249,8 @@ main (int argc, char *av[])
                     "WARNING",
                     NULL);
   GNUNET_break (GNUNET_OK ==
-                GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
+                GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                    (sizeof(argv) / sizeof(char *)) - 1,
                                     argv, "test-gnunet-service-arm",
                                     "nohelp", options,
                                     &run, NULL));

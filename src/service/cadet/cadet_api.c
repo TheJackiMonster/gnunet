@@ -563,7 +563,8 @@ handle_channel_destroy (
  *         #GNUNET_SYSERR otherwise
  */
 static int
-check_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
+check_local_data (void *cls,
+                  const struct GNUNET_CADET_LocalData *message)
 {
   uint16_t size;
 
@@ -585,7 +586,8 @@ check_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
  * @param message A message encapsulating the data
  */
 static void
-handle_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
+handle_local_data (void *cls,
+                   const struct GNUNET_CADET_LocalData *message)
 {
   struct GNUNET_CADET_Handle *h = cls;
   const struct GNUNET_MessageHeader *payload;
@@ -623,7 +625,8 @@ handle_local_data (void *cls, const struct GNUNET_CADET_LocalData *message)
  * @param message Message itself.
  */
 static void
-handle_local_ack (void *cls, const struct GNUNET_CADET_LocalAck *message)
+handle_local_ack (void *cls,
+                  const struct GNUNET_CADET_LocalAck *message)
 {
   struct GNUNET_CADET_Handle *h = cls;
   struct GNUNET_CADET_Channel *ch;
@@ -919,21 +922,30 @@ GNUNET_CADET_connect (const struct GNUNET_CONFIGURATION_Handle *cfg)
  * @param msg AGPL request
  */
 static void
-return_agpl (void *cls, const struct GNUNET_MessageHeader *msg)
+return_agpl (void *cls,
+             const struct GNUNET_MessageHeader *msg)
 {
   struct GNUNET_SERVICE_Client *client = cls;
   struct GNUNET_MQ_Handle *mq;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *res;
   size_t slen;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  /* FIXME: this is a bug, uses always GNUnet PD while we would
+     actually WANT to use the PD of the CADET application here! */
+  const struct GNUNET_OS_ProjectData *pd =
+    GNUNET_OS_project_data_gnunet ();
 
   (void) msg;
   slen = strlen (pd->agpl_url) + 1;
-  env = GNUNET_MQ_msg_extra (res, GNUNET_MESSAGE_TYPE_RESPONSE_AGPL, slen);
-  memcpy (&res[1], GNUNET_AGPL_URL, slen);
+  env = GNUNET_MQ_msg_extra (res,
+                             GNUNET_MESSAGE_TYPE_RESPONSE_AGPL,
+                             slen);
+  memcpy (&res[1],
+          pd->agpl_url,
+          slen);
   mq = GNUNET_SERVICE_client_get_mq (client);
-  GNUNET_MQ_send (mq, env);
+  GNUNET_MQ_send (mq,
+                  env);
   GNUNET_SERVICE_client_continue (client);
 }
 
@@ -960,7 +972,10 @@ GNUNET_CADET_open_port (struct GNUNET_CADET_Handle *h,
                         const struct GNUNET_MQ_MessageHandler *handlers)
 {
   struct GNUNET_CADET_Port *p;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
+  /* FIXME: this is a bug, uses always GNUnet PD while we would
+     actually WANT to use the PD of the CADET application here! */
+  const struct GNUNET_OS_ProjectData *pd =
+    GNUNET_OS_project_data_gnunet ();
 
   GNUNET_assert (NULL != connects);
   GNUNET_assert (NULL != disconnects);

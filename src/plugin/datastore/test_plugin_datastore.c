@@ -402,7 +402,9 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("Loading `%s' datastore plugin\n"),
               name);
   GNUNET_asprintf (&libname, "libgnunet_plugin_datastore_%s", name);
-  if (NULL == (ret = GNUNET_PLUGIN_load (libname, &env)))
+  if (NULL == (ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                         libname,
+                                         &env)))
   {
     fprintf (stderr, "Failed to load plugin `%s'!\n", name);
     GNUNET_free (libname);
@@ -464,8 +466,10 @@ main (int argc, char *argv[])
                     NULL);
   GNUNET_snprintf (cfg_name, sizeof(cfg_name),
                    "test_plugin_datastore_data_%s.conf", plugin_name);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1, xargv,
-                      "test-plugin-datastore", "nohelp", options, &run, NULL);
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(xargv) / sizeof(char *)) - 1, xargv,
+                      "test-plugin-datastore", "nohelp", options,
+                      &run, NULL);
   if ((0 != ok) && (77 != ok))
     fprintf (stderr, "Missed some testcases: %u\n", ok);
   GNUNET_DISK_directory_remove (dir_name);

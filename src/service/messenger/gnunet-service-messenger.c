@@ -22,14 +22,14 @@
  * @file src/messenger/gnunet-service-messenger.c
  * @brief GNUnet MESSENGER service
  */
-
+#include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet-service-messenger.h"
-
 #include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_room.h"
 #include "gnunet-service-messenger_service.h"
-#include "gnunet_common.h"
 #include "messenger_api_message.h"
+
 
 struct GNUNET_MESSENGER_Client
 {
@@ -46,7 +46,7 @@ handle_create (void *cls,
   struct GNUNET_MESSENGER_Client *msg_client;
 
   GNUNET_assert (cls);
-  
+
   msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Handle created\n");
@@ -62,7 +62,7 @@ handle_destroy (void *cls,
   struct GNUNET_MESSENGER_Client *msg_client;
 
   GNUNET_assert (cls);
-  
+
   msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Handle destroyed\n");
@@ -210,7 +210,7 @@ handle_room_entry (void *cls,
   initialize_handle_via_key (msg_client->handle, msg);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Entering room: %s, %s\n", GNUNET_h2s (
-              &(msg->key)), GNUNET_i2s (&(msg->door)));
+                &(msg->key)), GNUNET_i2s (&(msg->door)));
 
   if (GNUNET_YES == entry_srv_handle_room (msg_client->handle, &(msg->door),
                                            &(msg->key)))
@@ -290,7 +290,7 @@ handle_room_sync (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Syncing room: %s\n", GNUNET_h2s (
                 &(msg->key)));
-  
+
   {
     struct GNUNET_HashCode prev;
     struct GNUNET_MESSENGER_RoomMessage *response;
@@ -372,7 +372,7 @@ handle_send_message (void *cls,
   uint16_t msg_length;
 
   GNUNET_assert ((cls) && (msg));
-  
+
   msg_client = cls;
 
   key = &(msg->key);
@@ -388,7 +388,8 @@ handle_send_message (void *cls,
                 GNUNET_h2s (key),
                 GNUNET_sh2s (&(message.header.sender_id)));
 
-    if (GNUNET_YES != send_srv_handle_message (msg_client->handle, key, &message))
+    if (GNUNET_YES != send_srv_handle_message (msg_client->handle, key, &message
+                                               ))
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Sending message failed: %s to %s\n",
                   GNUNET_MESSENGER_name_of_kind (message.header.kind),
                   GNUNET_h2s (key));
@@ -410,7 +411,7 @@ callback_found_message (void *cls,
   struct GNUNET_MESSENGER_SenderSession session;
 
   GNUNET_assert ((cls) && (room) && (hash));
-  
+
   msg_client = cls;
 
   if (! message)
@@ -433,7 +434,7 @@ callback_found_message (void *cls,
   if (GNUNET_YES == is_peer_message (message))
   {
     struct GNUNET_MESSENGER_PeerStore *store;
-    
+
     store = get_srv_room_peer_store (room);
     session.peer = get_store_peer_of (store, message, hash);
 
@@ -449,7 +450,7 @@ callback_found_message (void *cls,
   {
     struct GNUNET_MESSENGER_MemberStore *store;
     struct GNUNET_MESSENGER_Member *member;
-    
+
     store = get_srv_room_member_store (room);
     member = get_store_member_of (store, message);
 
@@ -488,7 +489,7 @@ handle_get_message (void *cls,
   struct GNUNET_MESSENGER_MemberSession *session;
 
   GNUNET_assert ((cls) && (msg));
-  
+
   msg_client = cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Requesting message from room: %s\n",
@@ -509,7 +510,7 @@ handle_get_message (void *cls,
     struct GNUNET_MESSENGER_MemberStore *member_store;
     member_store = get_srv_room_member_store (room);
 
-    
+
     member_id = get_srv_handle_member_id (msg_client->handle,
                                           &(msg->key));
 
@@ -560,7 +561,7 @@ callback_client_connect (void *cls,
   struct GNUNET_MESSENGER_Client *msg_client;
 
   GNUNET_assert ((client) && (mq));
-  
+
   msg_client = GNUNET_new (struct GNUNET_MESSENGER_Client);
 
   msg_client->client = client;
@@ -578,7 +579,7 @@ callback_client_disconnect (void *cls,
   struct GNUNET_MESSENGER_Client *msg_client;
 
   GNUNET_assert (internal_cls);
-  
+
   msg_client = internal_cls;
 
   remove_service_handle (messenger, msg_client->handle);
@@ -600,7 +601,7 @@ run (void *cls,
      struct GNUNET_SERVICE_Handle *service)
 {
   GNUNET_assert ((config) && (service));
-  
+
   messenger = create_service (config, service);
 
   if (! messenger)

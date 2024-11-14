@@ -829,7 +829,8 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  res = GNUNET_PROGRAM_run (argc,
+  res = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-cadet (OPTIONS | PEER_ID SHARED_SECRET)",
                             gettext_noop (helpstr),

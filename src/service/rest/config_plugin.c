@@ -329,9 +329,10 @@ set_cont (struct GNUNET_REST_RequestHandle *con_handle,
                        "%s%s%s",
                        xdg,
                        DIR_SEPARATOR_STR,
-                       GNUNET_OS_project_data_get ()->config_file);
+                       GNUNET_OS_project_data_gnunet ()->config_file);
     else
-      cfg_fn = GNUNET_strdup (GNUNET_OS_project_data_get ()->user_config_file);
+      cfg_fn = GNUNET_strdup (GNUNET_OS_project_data_gnunet ()->user_config_file
+                              );
 
   }
   GNUNET_CONFIGURATION_write (out, cfg_fn);

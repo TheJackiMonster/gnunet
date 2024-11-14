@@ -68,7 +68,9 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("Loading `%s' namecache plugin\n"),
               plugin_name);
   GNUNET_asprintf (&libname, "libgnunet_plugin_namecache_%s", plugin_name);
-  if (NULL == (ret = GNUNET_PLUGIN_load (libname, (void *) cfg)))
+  if (NULL == (ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                         libname,
+                                         (void *) cfg)))
   {
     fprintf (stderr, "Failed to load plugin `%s'!\n", plugin_name);
     GNUNET_free (libname);
@@ -117,17 +119,22 @@ main (int argc, char *argv[])
   GNUNET_snprintf (cfg_name, sizeof(cfg_name), "test_plugin_namecache_%s.conf",
                    plugin_name);
 
-  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir (GNUNET_OS_project_data_gnunet (),
+                             cfg_name,
+                             "GNUNET_TEST_HOME");
 
   GNUNET_log_setup ("test-plugin-namecache",
                     "WARNING",
                     NULL);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1, xargv,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(xargv) / sizeof(char *)) - 1, xargv,
                       "test-plugin-namecache", "nohelp", options, &run, NULL);
 
   if (ok != 0)
     fprintf (stderr, "Missed some testcases: %d\n", ok);
-  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir (GNUNET_OS_project_data_gnunet (),
+                             cfg_name,
+                             "GNUNET_TEST_HOME");
   return ok;
 }
 

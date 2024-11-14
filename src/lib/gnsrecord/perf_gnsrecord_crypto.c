@@ -91,11 +91,11 @@ run (void *cls,
   for (unsigned int i = 0; i < ROUNDS; i++)
   {
     GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_block_create2 (&privkey,
-                                                              expire,
-                                                              s_name,
-                                                              s_rd,
-                                                              RECORDS,
-							      &block));
+                                                                expire,
+                                                                s_name,
+                                                                s_rd,
+                                                                RECORDS,
+                                                                &block));
     GNUNET_GNSRECORD_query_from_private_key (&privkey,
                                              s_name,
                                              &query);
@@ -125,7 +125,8 @@ main (int argc, char *argv[])
   };
 
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run ((sizeof(argvx) / sizeof(char *)) - 1,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          (sizeof(argvx) / sizeof(char *)) - 1,
                           argvx,
                           "perf-gnsrecord-crypto",
                           "nohelp", options,

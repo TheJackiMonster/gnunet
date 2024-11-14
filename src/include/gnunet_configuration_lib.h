@@ -35,7 +35,7 @@
 #ifndef GNUNET_CONFIGURATION_LIB_H
 #define GNUNET_CONFIGURATION_LIB_H
 
-
+#include "gnunet_os_lib.h"
 #include "gnunet_time_lib.h"
 
 #ifdef __cplusplus
@@ -53,10 +53,12 @@ struct GNUNET_CONFIGURATION_Handle;
 
 /**
  * Create a new configuration object.
+ *
+ * @param pd project data to use to determine paths
  * @return fresh configuration object
  */
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_create (void);
+GNUNET_CONFIGURATION_create (const struct GNUNET_OS_ProjectData *pd);
 
 
 /**
@@ -85,7 +87,7 @@ GNUNET_CONFIGURATION_destroy (
  * defaults and then parse the specific configuration file
  * to overwrite the defaults.
  *
- * @param cfg configuration to update
+ * @param[in,out] cfg configuration to update
  * @param filename name of the configuration file, NULL to load defaults
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
@@ -110,27 +112,17 @@ GNUNET_CONFIGURATION_load_from (
 
 
 /**
- * Return GNUnet's default configuration.  A new configuration is allocated
- * each time and it's up to the caller to destroy it when done.  This function
- * returns GNUnet's configuration even when #GNUNET_OS_init has been called
- * with a value different from #GNUNET_OS_project_data_default.
- *
- * @return a freshly allocated configuration
- */
-struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_default (void);
-
-
-/**
  * Return the filename of the default configuration filename
  * that is used when no explicit configuration entry point
  * has been specified.
  *
+ * @param pd project data to use to determine paths
  * @returns NULL if no default configuration file can be located,
  *          a newly allocated string otherwise
  */
 char *
-GNUNET_CONFIGURATION_default_filename (void);
+GNUNET_CONFIGURATION_default_filename (
+  const struct GNUNET_OS_ProjectData *pd);
 
 
 /**
@@ -264,6 +256,7 @@ typedef enum GNUNET_GenericReturnValue
  * @a cb with the resulting configuration object. Then free the
  * configuration object and return the status value from @a cb.
  *
+ * @param pd project data to use to determine paths
  * @param filename configuration to parse, NULL for "default"
  * @param cb function to run
  * @param cb_cls closure for @a cb
@@ -272,6 +265,7 @@ typedef enum GNUNET_GenericReturnValue
  */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_parse_and_run (
+  const struct GNUNET_OS_ProjectData *pd,
   const char *filename,
   GNUNET_CONFIGURATION_Callback cb,
   void *cb_cls);
@@ -285,6 +279,17 @@ GNUNET_CONFIGURATION_parse_and_run (
 void
 GNUNET_CONFIGURATION_enable_diagnostics (
   struct GNUNET_CONFIGURATION_Handle *cfg);
+
+
+/**
+ * Return the project data associated with this configuration.
+ *
+ * @param cfg a configuration
+ * @return associated project data, never NULL
+ */
+const struct GNUNET_OS_ProjectData *
+GNUNET_CONFIGURATION_get_project_data (
+  const struct GNUNET_CONFIGURATION_Handle *cfg);
 
 
 /**

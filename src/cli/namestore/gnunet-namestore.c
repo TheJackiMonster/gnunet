@@ -2264,7 +2264,8 @@ main (int argc, char *const *argv)
   is_maintenance = -1;
   GNUNET_log_setup ("gnunet-namestore", "WARNING", NULL);
   if (GNUNET_OK !=
-      (lret = GNUNET_PROGRAM_run (argc,
+      (lret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                  argc,
                                   argv,
                                   "gnunet-namestore",
                                   _ ("GNUnet zone manipulation tool"),

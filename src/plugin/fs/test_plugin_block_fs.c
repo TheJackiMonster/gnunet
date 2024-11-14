@@ -72,7 +72,7 @@ main (int argc, char *argv[])
   struct GNUNET_CONFIGURATION_Handle *cfg;
 
   GNUNET_log_setup ("test-block", "WARNING", NULL);
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   ctx = GNUNET_BLOCK_context_create (cfg);
   ret = test_fs (ctx);
   GNUNET_BLOCK_context_destroy (ctx);

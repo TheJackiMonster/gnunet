@@ -195,7 +195,8 @@ main (int argc, char *argv_ign[])
   GNUNET_log_setup ("test_statistics_api",
                     "WARNING",
                     NULL);
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-statistics");
   proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -204,7 +205,8 @@ main (int argc, char *argv_ign[])
                              "gnunet-service-statistics",
                              "-c", "test_statistics_api_data.conf", NULL);
   GNUNET_assert (NULL != proc);
-  GNUNET_PROGRAM_run (5, argv,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      5, argv,
                       "test-statistics-api", "nohelp",
                       options, &run,
                       &ok);
@@ -232,7 +234,8 @@ main (int argc, char *argv_ign[])
                              "gnunet-service-statistics",
                              "-c", "test_statistics_api_data.conf",
                              NULL);
-  GNUNET_PROGRAM_run (5, argv,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      5, argv,
                       "test-statistics-api", "nohelp",
                       options,
                       &run_more, &ok);

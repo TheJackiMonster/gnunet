@@ -96,12 +96,13 @@ init ()
   if (GNUNET_YES == initialized)
     return;
   initialized = GNUNET_YES;
-  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
-                                     "libgnunet_plugin_reclaim_attribute_",
-                                     NULL,
-                                     &add_plugin,
-                                     NULL);
+  GNUNET_PLUGIN_load_all (GNUNET_OS_project_data_gnunet (),
+                          "libgnunet_plugin_reclaim_attribute_",
+                          NULL,
+                          &add_plugin,
+                          NULL);
 }
+
 
 void RECLAIM_ATTRIBUTE_fini (void);
 
@@ -112,11 +113,6 @@ void __attribute__ ((destructor))
 RECLAIM_ATTRIBUTE_fini (void)
 {
   struct Plugin *plugin;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
-
-  if (pd != dpd)
-    GNUNET_OS_init (dpd);
 
   for (unsigned int i = 0; i < num_plugins; i++)
   {
@@ -128,13 +124,8 @@ RECLAIM_ATTRIBUTE_fini (void)
     GNUNET_free (plugin);
   }
   GNUNET_free (attr_plugins);
-
-  if (pd != dpd)
-    GNUNET_OS_init (pd);
-
   attr_plugins = NULL;
 }
-
 
 
 /**
@@ -525,7 +516,7 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
     return -1;
   }
   attribute = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
-                        + data_len + name_len + 1);
+                             + data_len + name_len + 1);
   attribute->type = ntohl (attr_ser->attribute_type);
   attribute->flag = ntohl (attr_ser->attribute_flag);
   attribute->id = attr_ser->attribute_id;
@@ -539,7 +530,7 @@ GNUNET_RECLAIM_attribute_deserialize (const char *data, size_t data_size,
 
   write_ptr += name_len + 1;
   GNUNET_memcpy (write_ptr, (char *) &attr_ser[1] + name_len,
-                attribute->data_size);
+                 attribute->data_size);
   *attr = attribute;
   attribute->data = write_ptr;
   return sizeof(struct Attribute) + data_len + name_len;

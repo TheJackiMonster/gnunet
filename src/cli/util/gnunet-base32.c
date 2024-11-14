@@ -41,12 +41,14 @@ main (int argc,
 {
   int decode = 0;
   const struct GNUNET_GETOPT_CommandLineOption options[] = {
-    GNUNET_GETOPT_option_flag ('d',
-                               "decode",
-                               gettext_noop (
-                                 "run decoder modus, otherwise runs as encoder"),
-                               &decode),
-    GNUNET_GETOPT_option_help ("Crockford base32 encoder/decoder"),
+    GNUNET_GETOPT_option_flag (
+      'd',
+      "decode",
+      gettext_noop (
+        "run decoder modus, otherwise runs as encoder"),
+      &decode),
+    GNUNET_GETOPT_option_help (GNUNET_OS_project_data_gnunet (),
+                               "Crockford base32 encoder/decoder"),
     GNUNET_GETOPT_option_version (PACKAGE_VERSION),
     GNUNET_GETOPT_OPTION_END
   };

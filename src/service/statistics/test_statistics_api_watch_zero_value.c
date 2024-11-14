@@ -166,7 +166,8 @@ main (int argc, char *argv_ign[])
   struct GNUNET_OS_Process *proc;
   char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-statistics");
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              "gnunet-service-statistics");
   proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -177,7 +178,8 @@ main (int argc, char *argv_ign[])
   GNUNET_assert (NULL != proc);
   ok = 3;
   ok2 = 1;
-  GNUNET_PROGRAM_run (3, argv, "test-statistics-api", "nohelp", options, &run,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      3, argv, "test-statistics-api", "nohelp", options, &run,
                       NULL);
   if (0 != GNUNET_OS_process_kill (proc, GNUNET_TERM_SIG))
   {

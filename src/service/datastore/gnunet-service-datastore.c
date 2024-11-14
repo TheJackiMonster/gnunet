@@ -1170,10 +1170,14 @@ load_plugin ()
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               _ ("Loading `%s' datastore plugin\n"),
               plugin_name);
-  GNUNET_asprintf (&libname, "libgnunet_plugin_datastore_%s", plugin_name);
+  GNUNET_asprintf (&libname,
+                   "libgnunet_plugin_datastore_%s",
+                   plugin_name);
   ret->short_name = GNUNET_strdup (plugin_name);
   ret->lib_name = libname;
-  ret->api = GNUNET_PLUGIN_load (libname, &ret->env);
+  ret->api = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                 libname,
+                                 &ret->env);
   if (NULL == ret->api)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

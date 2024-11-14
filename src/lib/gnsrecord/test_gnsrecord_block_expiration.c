@@ -77,7 +77,8 @@ run (void *cls, char *const *args, const char *cfgfile,
   GNUNET_assert (expiration_abs.abs_value_us ==
                  GNUNET_GNSRECORD_record_get_expiration_time (2,
                                                               rd,
-							      GNUNET_TIME_UNIT_ZERO_ABS).abs_value_us);
+                                                              GNUNET_TIME_UNIT_ZERO_ABS)
+                 .abs_value_us);
 
   rd[1].expiration_time = expiration_abs_shadow.abs_value_us;
   rd[1].record_type = TEST_RECORD_TYPE;
@@ -91,7 +92,8 @@ run (void *cls, char *const *args, const char *cfgfile,
   GNUNET_assert (expiration_abs_shadow.abs_value_us ==
                  GNUNET_GNSRECORD_record_get_expiration_time (2,
                                                               rd,
-							      GNUNET_TIME_UNIT_ZERO_ABS).abs_value_us);
+                                                              GNUNET_TIME_UNIT_ZERO_ABS)
+                 .abs_value_us);
   GNUNET_free (tmp_data0);
   GNUNET_free (tmp_data1);
   res = 0;
@@ -108,7 +110,8 @@ main (int argc, char *argv[])
   };
 
   res = 1;
-  GNUNET_PROGRAM_run ((sizeof(argvx) / sizeof(char *)) - 1, argvx,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(argvx) / sizeof(char *)) - 1, argvx,
                       "test-namestore-api",
                       "nohelp", options, &run, &res);
   return res;

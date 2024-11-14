@@ -249,7 +249,8 @@ main (int argc, char *argvx[])
                     "WARNING",
                     NULL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
+                 GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                     (sizeof(argv) / sizeof(char *)) - 1,
                                      argv, "test-arm-api", "nohelp", options,
                                      &task, NULL));
   return ok;

@@ -80,7 +80,8 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
   GNUNET_asprintf (&libname,
                    "libgnunet_plugin_peerstore_%s",
                    plugin_name);
-  if (NULL == (ret = GNUNET_PLUGIN_load (libname,
+  if (NULL == (ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                         libname,
                                          (void *) cfg)))
   {
     fprintf (stderr,
@@ -208,7 +209,8 @@ main (int argc, char *argv[])
                    sizeof(cfg_name),
                    "test_plugin_peerstore_%s.conf",
                    plugin_name);
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(xargv) / sizeof(char *)) - 1,
                       xargv,
                       "test-plugin-peerstore",
                       "nohelp",

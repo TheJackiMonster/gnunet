@@ -168,7 +168,8 @@ main (int argc,
   };
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-fs [OPTIONS]",
                              gettext_noop ("Special file-sharing operations"),

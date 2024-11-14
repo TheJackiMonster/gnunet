@@ -334,6 +334,8 @@ handle_helper_init (
   const struct GNUNET_ShortHashCode *bd
     = (const struct GNUNET_ShortHashCode *) &msg[1];
   const char *topo = (const char *) &bd[barrier_count];
+  const struct GNUNET_OS_ProjectData *pd
+    = GNUNET_OS_project_data_gnunet ();
 
   if (NULL != plugin)
   {
@@ -355,7 +357,8 @@ handle_helper_init (
   }
   plugin_name = GNUNET_TESTING_get_plugin_from_topo (njt,
                                                      my_node_id);
-  plugin = GNUNET_PLUGIN_load (plugin_name,
+  plugin = GNUNET_PLUGIN_load (pd,
+                               plugin_name,
                                (void *) my_node_id);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Starting plugin `%s' for node %s\n",
@@ -557,8 +560,11 @@ main (int argc,
     GNUNET_GETOPT_OPTION_END
   };
   enum GNUNET_GenericReturnValue ret;
+  const struct GNUNET_OS_ProjectData *pd
+    = GNUNET_OS_project_data_gnunet ();
 
-  ret = GNUNET_PROGRAM_run (argc,
+  ret = GNUNET_PROGRAM_run (pd,
+                            argc,
                             argv,
                             "gnunet-cmds-helper",
                             "Helper for starting a local interpreter loop",

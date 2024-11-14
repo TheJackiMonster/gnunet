@@ -382,6 +382,7 @@ dns_result_processor (void *cls,
   send_response (request);
 }
 
+
 /**
  * Callback invoked from the VPN service once a redirection is
  * available.  Provides the IP address that can now be used to
@@ -453,7 +454,6 @@ vpn_allocation_cb (void *cls,
   GNUNET_free (vpn_ctx->rd_data);
   GNUNET_free (vpn_ctx);
 }
-
 
 
 /**
@@ -609,7 +609,8 @@ result_processor (void *cls,
                                                             vpn->proto),
                                                           &vpn->peer,
                                                           &vhash,
-                                                          GNUNET_TIME_relative_to_absolute (
+                                                          GNUNET_TIME_relative_to_absolute
+                                                          (
                                                             VPN_TIMEOUT),
                                                           &
                                                           vpn_allocation_cb,
@@ -902,8 +903,8 @@ run (void *cls,
   }
   GNUNET_free (addr_str);
   if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_number (c, "dns2gns",
-                                         "PORT",
-                                         &listen_port))
+                                                          "PORT",
+                                                          &listen_port))
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Listening on %llu\n", listen_port);
 
@@ -1006,7 +1007,8 @@ main (int argc,
                     NULL);
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run (argc, argv,
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc, argv,
                          "gnunet-dns2gns",
                          _ ("GNUnet DNS-to-GNS proxy (a DNS server)"),
                          options,

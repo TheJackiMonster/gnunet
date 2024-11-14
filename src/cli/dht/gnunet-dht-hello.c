@@ -155,6 +155,7 @@ main (int argc,
   enum GNUNET_GenericReturnValue iret;
 
   iret = GNUNET_PROGRAM_run (
+    GNUNET_OS_project_data_gnunet (),
     argc,
     argv,
     "gnunet-dht-hello [URL]",

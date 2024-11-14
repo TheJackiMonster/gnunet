@@ -616,7 +616,8 @@ main (int argc, char *const *argv)
   int res;
 
   global_ret = TIMEOUT_STATUS_CODE; /* timeout */
-  res = GNUNET_PROGRAM_run (argc,
+  res = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-identity",
                             gettext_noop ("Maintain egos"),

@@ -477,7 +477,8 @@ GNUNET_FS_directory_scan_start (const char *filename,
   ds->args[1] = ds->filename_expanded;
   ds->args[2] = ds->ex_arg;
   ds->args[3] = NULL;
-  ds->helper = GNUNET_HELPER_start (GNUNET_NO,
+  ds->helper = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet (),
+                                    GNUNET_NO,
                                     "gnunet-helper-fs-publish",
                                     ds->args,
                                     &process_helper_msgs,

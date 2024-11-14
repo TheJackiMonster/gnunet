@@ -57,12 +57,14 @@ main (int argc, char *argv[])
                     NULL);
   GNUNET_log_skip (1,
                    GNUNET_NO);
-  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_missing",
+  ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                            "libgnunet_plugin_missing",
                             NULL);
   GNUNET_log_skip (0, GNUNET_NO);
   if (NULL != ret)
     return 1;
-  ret = GNUNET_PLUGIN_load ("libgnunet_plugin_utiltest",
+  ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                            "libgnunet_plugin_utiltest",
                             (char*) "in");
   if (NULL == ret)
     return 1;
@@ -77,7 +79,8 @@ main (int argc, char *argv[])
                    "World"))
     return 4;
   free (ret);
-  GNUNET_PLUGIN_load_all ("libgnunet_plugin_utiltes",
+  GNUNET_PLUGIN_load_all (GNUNET_OS_project_data_gnunet (),
+                          "libgnunet_plugin_utiltes",
                           (char*) "in",
                           &test_cb,
                           (char*) "test-closure");

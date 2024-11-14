@@ -170,7 +170,7 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     {
       struct GNUNET_HELLO_Builder *hb;
 
-      hb = GNUNET_HELLO_builder_from_parser(hp);
+      hb = GNUNET_HELLO_builder_from_parser (hp);
       if (GNUNET_NO == binary_output)
       {
         char *url;
@@ -428,7 +428,8 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  res = GNUNET_PROGRAM_run (argc,
+  res = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-hello",
                             gettext_noop (

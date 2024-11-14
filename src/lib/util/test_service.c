@@ -181,7 +181,8 @@ check (const char *sname)
               sname);
   global_ret = 1;
   GNUNET_assert (0 ==
-                 GNUNET_SERVICE_run_ (3,
+                 GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
+                                      3,
                                       argv,
                                       sname,
                                       GNUNET_SERVICE_OPTION_NONE,

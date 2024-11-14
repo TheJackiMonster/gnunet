@@ -180,7 +180,8 @@ main (int argc,
     test_argv[2] = "test_client_unix.conf";
   global_ret = 1;
   if (0 !=
-      GNUNET_SERVICE_run_ (3,
+      GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
+                           3,
                            test_argv,
                            "test_client",
                            GNUNET_SERVICE_OPTION_NONE,

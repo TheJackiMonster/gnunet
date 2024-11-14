@@ -64,7 +64,7 @@ create_unique_cfgs (const char *template,
                 create_cfg_template);
     return 1;
   }
-  cfg_tmpl = GNUNET_CONFIGURATION_create ();
+  cfg_tmpl = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   /* load template */
   if ((create_cfg_template != NULL) &&
@@ -206,7 +206,8 @@ main (int argc, char *const *argv)
 
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run2 (argc,
+     GNUNET_PROGRAM_run2 (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-testing",
                           gettext_noop (

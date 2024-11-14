@@ -143,7 +143,8 @@ sighandler_child_death ()
   GNUNET_break (
     1 ==
     GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (sigpipe,
-                                                     GNUNET_DISK_PIPE_END_WRITE),
+                                                     GNUNET_DISK_PIPE_END_WRITE)
+                            ,
                             &c,
                             sizeof(c)));
   errno = old_errno; /* restore errno */
@@ -170,7 +171,8 @@ main (int argc, char *const *argv)
   GNUNET_assert (sigpipe != NULL);
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD, &sighandler_child_death);
-  ret = GNUNET_PROGRAM_run (argc,
+  ret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-uri URI",
                             gettext_noop (

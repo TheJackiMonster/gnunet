@@ -70,6 +70,7 @@ typedef void
  * restarted when it dies except when it is stopped using GNUNET_HELPER_stop()
  * or when the exp_cb callback is not NULL.
  *
+ * @param pd project data to use to determine paths
  * @param with_control_pipe does the helper support the use of a control pipe for signalling?
  * @param binary_name name of the binary to run
  * @param binary_argv NULL-terminated list of arguments to give when starting the binary (this
@@ -82,7 +83,8 @@ typedef void
  * @return the new Handle, NULL on error
  */
 struct GNUNET_HELPER_Handle *
-GNUNET_HELPER_start (int with_control_pipe,
+GNUNET_HELPER_start (const struct GNUNET_OS_ProjectData *pd,
+                     int with_control_pipe,
                      const char *binary_name,
                      char *const binary_argv[],
                      GNUNET_MessageTokenizerCallback cb,

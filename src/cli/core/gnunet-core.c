@@ -276,7 +276,8 @@ main (int argc, char *const *argv)
       &show_conns),
     GNUNET_GETOPT_OPTION_END };
 
-  res = GNUNET_PROGRAM_run (argc,
+  res = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                            argc,
                             argv,
                             "gnunet-core",
                             gettext_noop (

@@ -1058,8 +1058,12 @@ client_connect_cb (void *cls,
     GNUNET_free (nc);
     return NULL;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loading %s\n", db_lib_name);
-  nc->GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) GSN_cfg);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Loading %s\n",
+              db_lib_name);
+  nc->GSN_database = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                         db_lib_name,
+                                         (void *) GSN_cfg);
   GNUNET_free (database);
   if (NULL == nc->GSN_database)
   {
@@ -1070,7 +1074,9 @@ client_connect_cb (void *cls,
     return NULL;
   }
   nc->db_lib_name = GNUNET_strdup (db_lib_name);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loaded %s\n", db_lib_name);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Loaded %s\n",
+              db_lib_name);
   return nc;
 }
 
@@ -2753,9 +2759,15 @@ run (void *cls,
     GNUNET_SCHEDULER_add_now (&cleanup_task, NULL);
     return;
   }
-  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_namestore_%s", database);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Loading %s\n", db_lib_name);
-  GSN_database = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
+  GNUNET_asprintf (&db_lib_name,
+                   "libgnunet_plugin_namestore_%s",
+                   database);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Loading %s\n",
+              db_lib_name);
+  GSN_database = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                     db_lib_name,
+                                     (void *) cfg);
   GNUNET_free (database);
   if (NULL == GSN_database)
   {

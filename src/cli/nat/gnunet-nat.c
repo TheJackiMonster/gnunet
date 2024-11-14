@@ -456,7 +456,8 @@ main (int argc, char *const argv[])
   };
 
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-nat [options]",
                           _ ("GNUnet NAT traversal autoconfigure daemon"),

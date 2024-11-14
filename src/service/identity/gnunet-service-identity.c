@@ -247,8 +247,8 @@ create_update_message (struct Ego *ego)
   um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
   GNUNET_CRYPTO_write_private_key_to_buffer (&ego->pk,
-                                               ((char*) &um[1]) + name_len,
-                                               key_len);
+                                             ((char*) &um[1]) + name_len,
+                                             key_len);
   return env;
 }
 
@@ -431,8 +431,8 @@ notify_listeners (struct Ego *ego)
   um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
   GNUNET_CRYPTO_write_private_key_to_buffer (&ego->pk,
-                                               ((char*) &um[1]) + name_len,
-                                               key_len);
+                                             ((char*) &um[1]) + name_len,
+                                             key_len);
   GNUNET_notification_context_broadcast (nc, &um->header, GNUNET_NO);
   GNUNET_free (um);
 }
@@ -498,10 +498,10 @@ handle_create_message (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received CREATE message from client\n");
   key_len = ntohs (crm->key_len);
   if ((GNUNET_SYSERR ==
-      GNUNET_CRYPTO_read_private_key_from_buffer (&crm[1],
-                                                    key_len,
-                                                    &private_key,
-                                                    &kb_read)) ||
+       GNUNET_CRYPTO_read_private_key_from_buffer (&crm[1],
+                                                   key_len,
+                                                   &private_key,
+                                                   &kb_read)) ||
       (kb_read != key_len))
   {
     GNUNET_SERVICE_client_drop (client);
@@ -969,7 +969,8 @@ run (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Loading subsystem configuration `%s'\n",
               subsystem_cfg_file);
-  subsystem_cfg = GNUNET_CONFIGURATION_create ();
+  subsystem_cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ())
+  ;
   if ((GNUNET_YES == GNUNET_DISK_file_test (subsystem_cfg_file)) &&
       (GNUNET_OK !=
        GNUNET_CONFIGURATION_parse (subsystem_cfg, subsystem_cfg_file)))

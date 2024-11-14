@@ -34,7 +34,7 @@
  * How long does the receiver take per message?
  */
 #define RECEIVER_THROTTLE GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 1)
+          GNUNET_TIME_UNIT_MILLISECONDS, 1)
 
 static unsigned int received_cnt;
 
@@ -327,7 +327,8 @@ main (int argc, char **argv)
   test1 ();
   test2 ();
   if (0 !=
-      GNUNET_SERVICE_run_ (3,
+      GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
+                           3,
                            test_argv,
                            "test_client",
                            GNUNET_SERVICE_OPTION_NONE,

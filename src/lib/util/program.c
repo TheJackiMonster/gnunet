@@ -129,7 +129,8 @@ cmd_sorter (const void *a1,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_run2 (int argc,
+GNUNET_PROGRAM_run2 (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      const char *binaryName,
                      const char *binaryHelp,
@@ -153,10 +154,10 @@ GNUNET_PROGRAM_run2 (int argc,
   unsigned long long skew_variance;
   long long clock_offset;
   struct GNUNET_CONFIGURATION_Handle *cfg;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   const struct GNUNET_GETOPT_CommandLineOption defoptions[] = {
     GNUNET_GETOPT_option_cfgfile (&cc.cfgfile),
-    GNUNET_GETOPT_option_help (binaryHelp),
+    GNUNET_GETOPT_option_help (pd,
+                               binaryHelp),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
     GNUNET_GETOPT_option_version (pd->version)
@@ -185,9 +186,13 @@ GNUNET_PROGRAM_run2 (int argc,
     for (char *tok = strtok (cargs, " ");
          NULL != tok;
          tok = strtok (NULL, " "))
-      GNUNET_array_append (gargv, gargc, GNUNET_strdup (tok));
+      GNUNET_array_append (gargv,
+                           gargc,
+                           GNUNET_strdup (tok));
     GNUNET_free (cargs);
-    GNUNET_array_append (gargv, gargc, NULL);
+    GNUNET_array_append (gargv,
+                         gargc,
+                         NULL);
     argv = (char *const *) gargv;
     argc = gargc - 1;
   }
@@ -195,18 +200,20 @@ GNUNET_PROGRAM_run2 (int argc,
   loglev = NULL;
   cc.task = task;
   cc.task_cls = task_cls;
-  cc.cfg = cfg = GNUNET_CONFIGURATION_create ();
+  cc.cfg = cfg = GNUNET_CONFIGURATION_create (pd);
   /* prepare */
 #if ENABLE_NLS
   if (NULL != pd->gettext_domain)
   {
     setlocale (LC_ALL, "");
     path = (NULL == pd->gettext_path)
-           ? GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR)
-           : GNUNET_strdup (pd->gettext_path);
+      ? GNUNET_OS_installation_get_path (pd,
+                                         GNUNET_OS_IPK_LOCALEDIR)
+      : GNUNET_strdup (pd->gettext_path);
     if (NULL != path)
     {
-      bindtextdomain (pd->gettext_domain, path);
+      bindtextdomain (pd->gettext_domain,
+                      path);
       GNUNET_free (path);
     }
     textdomain (pd->gettext_domain);
@@ -255,7 +262,7 @@ GNUNET_PROGRAM_run2 (int argc,
          &cmd_sorter);
   loglev = NULL;
   if ((NULL != pd->config_file) && (NULL != pd->user_config_file))
-    cfg_fn = GNUNET_CONFIGURATION_default_filename ();
+    cfg_fn = GNUNET_CONFIGURATION_default_filename (pd);
   else
     cfg_fn = NULL;
   lpfx = GNUNET_strdup (binaryName);
@@ -397,7 +404,8 @@ cleanup:
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_run (int argc,
+GNUNET_PROGRAM_run (const struct GNUNET_OS_ProjectData *pd,
+                    int argc,
                     char *const *argv,
                     const char *binaryName,
                     const char *binaryHelp,
@@ -405,7 +413,8 @@ GNUNET_PROGRAM_run (int argc,
                     GNUNET_PROGRAM_Main task,
                     void *task_cls)
 {
-  return GNUNET_PROGRAM_run2 (argc,
+  return GNUNET_PROGRAM_run2 (pd,
+                              argc,
                               argv,
                               binaryName,
                               binaryHelp,
@@ -417,7 +426,8 @@ GNUNET_PROGRAM_run (int argc,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_PROGRAM_conf_and_options (int argc,
+GNUNET_PROGRAM_conf_and_options (const struct GNUNET_OS_ProjectData *pd,
+                                 int argc,
                                  char *const *argv,
                                  struct GNUNET_CONFIGURATION_Handle *cfg)
 {
@@ -428,7 +438,6 @@ GNUNET_PROGRAM_conf_and_options (int argc,
   const char *xdg;
   int do_daemonize;
   int ret;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   struct GNUNET_GETOPT_CommandLineOption service_options[] = {
     GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
     GNUNET_GETOPT_option_flag ('d',
@@ -436,7 +445,8 @@ GNUNET_PROGRAM_conf_and_options (int argc,
                                gettext_noop (
                                  "do daemonize (detach from terminal)"),
                                &do_daemonize),
-    GNUNET_GETOPT_option_help (NULL),
+    GNUNET_GETOPT_option_help (pd,
+                               NULL),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
     GNUNET_GETOPT_option_version (pd->version),
@@ -479,7 +489,7 @@ GNUNET_PROGRAM_conf_and_options (int argc,
   }
   if (NULL == cfg)
   {
-    cfg = GNUNET_CONFIGURATION_create ();
+    cfg = GNUNET_CONFIGURATION_create (pd);
     if (NULL != opt_cfg_filename)
     {
       if ( (GNUNET_YES !=
@@ -544,34 +554,49 @@ error:
 }
 
 
+struct MonoContext
+{
+  const struct GNUNET_OS_ProjectData *pd;
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+};
+
 static void
 monolith_main (void *cls)
 {
-  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct MonoContext *mc = cls;
 
-  GNUNET_SERVICE_main (0,
+  GNUNET_SERVICE_main (mc->pd,
+                       0,
                        NULL,
-                       cfg,
+                       mc->cfg,
                        GNUNET_NO);
-  GNUNET_DAEMON_main (0,
+  GNUNET_DAEMON_main (mc->pd,
+                      0,
                       NULL,
-                      cfg,
+                      mc->cfg,
                       GNUNET_NO);
 }
 
 
 void
-GNUNET_PROGRAM_monolith_main (int argc,
+GNUNET_PROGRAM_monolith_main (const struct GNUNET_OS_ProjectData *pd,
+                              int argc,
                               char *const *argv,
                               struct GNUNET_CONFIGURATION_Handle *cfg)
 {
+  struct MonoContext mc = {
+    .cfg = cfg,
+    .pd = pd
+  };
 
-  if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
-                                                     argv,
-                                                     cfg))
+  if (GNUNET_YES !=
+      GNUNET_PROGRAM_conf_and_options (pd,
+                                       argc,
+                                       argv,
+                                       cfg))
     return;
   GNUNET_SCHEDULER_run (&monolith_main,
-                        cfg);
+                        &mc);
 }
 
 
@@ -630,7 +655,8 @@ launch_daemons (void *cls)
 
 
 void
-GNUNET_DAEMON_main (int argc,
+GNUNET_DAEMON_main (const struct GNUNET_OS_ProjectData *pd,
+                    int argc,
                     char *const *argv,
                     struct GNUNET_CONFIGURATION_Handle *cfg,
                     enum GNUNET_GenericReturnValue with_scheduler)
@@ -639,9 +665,11 @@ GNUNET_DAEMON_main (int argc,
        "Entering GNUNET_DAEMON_main\n");
   if (GNUNET_YES == with_scheduler)
   {
-    if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
-                                                       argv,
-                                                       cfg))
+    if (GNUNET_YES !=
+        GNUNET_PROGRAM_conf_and_options (pd,
+                                         argc,
+                                         argv,
+                                         cfg))
       return;
     GNUNET_SCHEDULER_run (&launch_daemons,
                           cfg);
@@ -664,7 +692,9 @@ GNUNET_DAEMON_register (const char *daemon_name,
   hle = GNUNET_new (struct DaemonHandleList);
   hle->d = task;
   hle->daemon_name = daemon_name;
-  GNUNET_CONTAINER_DLL_insert (hll_head, hll_tail, hle);
+  GNUNET_CONTAINER_DLL_insert (hll_head,
+                               hll_tail,
+                               hle);
   return GNUNET_OK;
 }
 

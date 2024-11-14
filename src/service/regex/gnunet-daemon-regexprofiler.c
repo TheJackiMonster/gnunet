@@ -376,7 +376,8 @@ main (int argc, char *const *argv)
   };
 
   return (GNUNET_OK ==
-          GNUNET_PROGRAM_run (argc, argv, "regexprofiler",
+          GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                              argc, argv, "regexprofiler",
                               gettext_noop
                               (
                                 "Daemon to announce regular expressions for the peer using cadet."),

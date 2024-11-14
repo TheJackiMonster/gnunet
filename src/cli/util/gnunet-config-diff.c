@@ -1,4 +1,3 @@
-
 #include "platform.h"
 #include <gnunet_util_lib.h>
 
@@ -13,8 +12,8 @@ main (int argc, char **argv)
     fprintf (stderr, "Invoke using `%s DEFAULTS-IN DIFFS'\n", argv[0]);
     return 1;
   }
-  i1 = GNUNET_CONFIGURATION_create ();
-  i2 = GNUNET_CONFIGURATION_create ();
+  i1 = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
+  i2 = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if ((GNUNET_OK != GNUNET_CONFIGURATION_load (i1, argv[1])) ||
       (GNUNET_OK != GNUNET_CONFIGURATION_load (i2, argv[2])))
     return 1;

@@ -144,7 +144,9 @@ netjail_start_run (void *cls,
       GNUNET_TESTING_get_trait_topology_string (topo_cmd,
                                                 &topology_data))
     GNUNET_TESTING_FAIL (is);
-  data_dir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  data_dir = GNUNET_OS_installation_get_path (
+    GNUNET_OS_project_data_gnunet (),
+    GNUNET_OS_IPK_DATADIR);
   GNUNET_asprintf (&script_name,
                    "%s%s",
                    data_dir,

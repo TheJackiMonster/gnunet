@@ -97,7 +97,8 @@ main (int argc, char *argv[])
 
   start_real = time (NULL);
   start = GNUNET_TIME_absolute_get ();
-  GNUNET_PROGRAM_run ((sizeof(argvn) / sizeof(char *)) - 1, argvn,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(argvn) / sizeof(char *)) - 1, argvn,
                       "test-speedup",
                       "nohelp", options, &check, NULL);
 

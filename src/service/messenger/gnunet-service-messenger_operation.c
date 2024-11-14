@@ -75,7 +75,7 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load operation configuration: %s\n",
               path);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     return NULL;
@@ -98,7 +98,8 @@ load_operation (struct GNUNET_MESSENGER_OperationStore *store,
   {
     unsigned long long type_number;
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg, "operation",
-                                                            "type", &type_number))
+                                                            "type", &type_number
+                                                            ))
       switch (type_number)
       {
       case GNUNET_MESSENGER_OP_REQUEST:
@@ -160,7 +161,7 @@ save_operation (const struct GNUNET_MESSENGER_Operation *op,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save operation configuration: %s\n",
               path);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     return;
@@ -211,7 +212,7 @@ callback_operation (void *cls)
   struct GNUNET_HashCode hash;
 
   GNUNET_assert (cls);
-  
+
   op = cls;
   op->task = NULL;
 
@@ -230,25 +231,26 @@ callback_operation (void *cls)
   case GNUNET_MESSENGER_OP_REQUEST:
     break;
   case GNUNET_MESSENGER_OP_DELETE:
-  {
-    if (GNUNET_OK != delete_store_message (get_srv_room_message_store (room),
-                                           &hash))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deletion of message failed! (%s)\n",
-                  GNUNET_h2s (&hash));
+      if (GNUNET_OK != delete_store_message (get_srv_room_message_store (room),
+                                             &hash))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Deletion of message failed! (%s)\n",
+                    GNUNET_h2s (&hash));
+        break;
+      }
+
       break;
     }
-
-    break;
-  }
   case GNUNET_MESSENGER_OP_MERGE:
-  {
-    if (! room->host)
-      break;
+    {
+      if (! room->host)
+        break;
 
-    send_srv_room_message (room, room->host, create_message_merge (&hash));
-    break;
-  }
+      send_srv_room_message (room, room->host, create_message_merge (&hash));
+      break;
+    }
   default:
     break;
   }

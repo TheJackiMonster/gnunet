@@ -53,7 +53,7 @@
  * Generic logging shorthand
  */
 #define LOG(kind, ...)                          \
-  GNUNET_log_from (kind, "dns", __VA_ARGS__);
+        GNUNET_log_from (kind, "dns", __VA_ARGS__);
 
 
 /**
@@ -1111,7 +1111,9 @@ run (void *cls,
                                _ ("need a valid IPv4 or IPv6 address\n"));
     GNUNET_free (dns_exit);
   }
-  binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-dns");
+  binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           cfg,
+                                           "gnunet-helper-dns");
 
   if (GNUNET_YES !=
       GNUNET_OS_check_helper_binary (binary,
@@ -1202,7 +1204,8 @@ run (void *cls,
     helper_argv[6] = GNUNET_strdup ("0");
 
   helper_argv[7] = NULL;
-  hijacker = GNUNET_HELPER_start (GNUNET_NO,
+  hijacker = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet (),
+                                  GNUNET_NO,
                                   binary,
                                   helper_argv,
                                   &process_helper_messages,
@@ -1234,7 +1237,7 @@ GNUNET_SERVICE_MAIN
 
 /* FIXME: this might need a port on systems without 'getresgid' */
 #if HAVE_GETRESGID
-void __attribute__((constructor)) GNUNET_DNS_init(void);
+void __attribute__((constructor)) GNUNET_DNS_init (void);
 
 /**
  * Enable use of SGID capabilities on POSIX

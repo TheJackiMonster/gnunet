@@ -251,7 +251,8 @@ main (int argc, char *const *argv)
   };
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc, argv, "gnunet-dns-redirector",
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc, argv, "gnunet-dns-redirector",
                              gettext_noop
                                ("Change DNS replies to point elsewhere."),
                              options,

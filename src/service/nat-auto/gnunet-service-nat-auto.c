@@ -43,7 +43,7 @@
  * How long do we wait until we forcefully terminate autoconfiguration?
  */
 #define AUTOCONFIG_TIMEOUT GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 5)
+          GNUNET_TIME_UNIT_SECONDS, 5)
 
 
 /**
@@ -306,7 +306,7 @@ handle_autoconfig_request (void *cls,
   ac = GNUNET_new (struct AutoconfigContext);
   ac->status_code = GNUNET_NAT_ERROR_SUCCESS;
   ac->ch = ch;
-  ac->c = GNUNET_CONFIGURATION_create ();
+  ac->c = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_deserialize (ac->c,
                                         (const char *) &message[1],
@@ -468,7 +468,7 @@ GNUNET_SERVICE_MAIN
 #if defined(__linux__) && defined(__GLIBC__)
 #include <malloc.h>
 
-void __attribute__((constructor)) GNUNET_NAT_memory_init(void);
+void __attribute__((constructor)) GNUNET_NAT_memory_init (void);
 
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.

@@ -200,7 +200,8 @@ check_kill ()
   {
     return 1;
   }
-  fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
+  fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                          "gnunet-service-resolver");
   proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -218,9 +219,13 @@ check_kill ()
   }
   sleep (1);  /* give process time to start, so we actually use the pipe-kill mechanism! */
   GNUNET_free (fn);
-  if (0 != GNUNET_OS_process_kill (proc, GNUNET_TERM_SIG))
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
-  GNUNET_assert (GNUNET_OK == GNUNET_OS_process_wait (proc));
+  if (0 !=
+      GNUNET_OS_process_kill (proc,
+                              GNUNET_TERM_SIG))
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_OS_process_wait (proc));
   GNUNET_OS_process_destroy (proc);
   proc = NULL;
   GNUNET_DISK_pipe_close (hello_pipe_stdout);
@@ -243,7 +248,8 @@ check_instant_kill ()
   {
     return 1;
   }
-  fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
+  fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                          "gnunet-service-resolver");
   proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -259,10 +265,12 @@ check_instant_kill ()
   if (0 != GNUNET_OS_process_kill (proc,
                                    GNUNET_TERM_SIG))
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
   }
   GNUNET_free (fn);
-  GNUNET_assert (GNUNET_OK == GNUNET_OS_process_wait (proc));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_OS_process_wait (proc));
   GNUNET_OS_process_destroy (proc);
   proc = NULL;
   GNUNET_DISK_pipe_close (hello_pipe_stdout);
@@ -271,18 +279,33 @@ check_instant_kill ()
 }
 
 
+/**
+ * Signal handler called for SIGPIPE.
+ */
+static void
+sighandler_pipe (void)
+{
+  return;
+}
+
+
 int
 main (int argc, char *argv[])
 {
   int ret;
+  struct GNUNET_SIGNAL_Context *shc_pipe;
 
   GNUNET_log_setup ("test-os-start-process",
                     "WARNING",
                     NULL);
+
+  shc_pipe = GNUNET_SIGNAL_handler_install (SIGPIPE,
+                                            &sighandler_pipe);
   ret = 0;
   ret |= check_run ();
   ret |= check_kill ();
   ret |= check_instant_kill ();
+  GNUNET_SIGNAL_handler_uninstall (shc_pipe);
   return ret;
 }
 

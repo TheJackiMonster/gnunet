@@ -49,7 +49,9 @@ print_version (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
 
   (void) option;
   (void) value;
-  printf ("%s v%s\n", ctx->binaryName, version);
+  printf ("%s v%s\n",
+          ctx->binaryName,
+          version);
   return GNUNET_NO;
 }
 
@@ -91,7 +93,8 @@ format_help (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
              const char *option,
              const char *value)
 {
-  const char *about = scls;
+  const struct GNUNET_OS_ProjectData *pd = scls;
+  const char *about = NULL;
   size_t slen;
   unsigned int i;
   int j;
@@ -100,19 +103,25 @@ format_help (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
   char *scp;
   const char *trans;
   const struct GNUNET_GETOPT_CommandLineOption *opt;
-  const struct GNUNET_OS_ProjectData *pd;
 
   (void) option;
   (void) value;
+  opt = ctx->allOptions;
+  for (i=0; NULL != opt[i].description; i++)
+  {
+    /* we hacked the about argument into our own argumentHelp! */
+    if ('h' == opt[i].shortName)
+      about = opt[i].argumentHelp;
+  }
   if (NULL != about)
   {
-    printf ("%s\n%s\n", ctx->binaryOptions, gettext (about));
+    printf ("%s\n%s\n",
+            ctx->binaryOptions,
+            gettext (about));
     printf (_ (
               "Arguments mandatory for long options are also mandatory for short options.\n"));
   }
-  i = 0;
-  opt = ctx->allOptions;
-  while (NULL != opt[i].description)
+  for (i=0; NULL != opt[i].description; i++)
   {
     if (opt[i].shortName == '\0')
       printf ("      ");
@@ -120,7 +129,8 @@ format_help (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
       printf ("  -%c, ", opt[i].shortName);
     printf ("--%s", opt[i].name);
     slen = 8 + strlen (opt[i].name);
-    if (NULL != opt[i].argumentHelp)
+    if ( (NULL != opt[i].argumentHelp) &&
+         ('h' != opt[i].shortName) )
     {
       printf ("=%s", opt[i].argumentHelp);
       slen += 1 + strlen (opt[i].argumentHelp);
@@ -172,9 +182,7 @@ OUTER:
       printf ("%s\n", &trans[p]);
     if (strlen (trans) == 0)
       printf ("\n");
-    i++;
   }
-  pd = GNUNET_OS_project_data_get ();
   printf ("\n"
           "Report bugs to %s.\n"
           "Home page: %s\n",
@@ -189,16 +197,18 @@ OUTER:
 
 
 struct GNUNET_GETOPT_CommandLineOption
-GNUNET_GETOPT_option_help (const char *about)
+GNUNET_GETOPT_option_help (const struct GNUNET_OS_ProjectData *pd,
+                           const char *about)
 {
   struct GNUNET_GETOPT_CommandLineOption clo = {
     .shortName = 'h',
     .name = "help",
+    .argumentHelp = about,
     .description = gettext_noop (
       "print this help"),
     .option_exclusive = 1,
-    .processor = format_help,
-    .scls = (void *) about
+    .processor = &format_help,
+    .scls = (void *) pd,
   };
 
   return clo;
@@ -951,7 +961,8 @@ set_base32 (struct GNUNET_GETOPT_CommandLineProcessorContext *ctx,
     fprintf (
       stderr,
       _ (
-        "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"),
+        "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n")
+      ,
       option);
     return GNUNET_SYSERR;
   }

@@ -99,7 +99,9 @@ run (void *cls,
   GNUNET_asprintf (&db_lib_name,
                    "libgnunet_plugin_namestore_%s",
                    pluginname);
-  plugin = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
+  plugin = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                               db_lib_name,
+                               (void *) cfg);
   if (NULL == plugin)
   {
     fprintf (stderr,
@@ -177,7 +179,8 @@ main (int argc, char *const *argv)
                     "WARNING",
                     NULL);
   if (GNUNET_OK !=
-      (lret = GNUNET_PROGRAM_run (argc,
+      (lret = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                  argc,
                                   argv,
                                   "gnunet-namestore-dbtool",
                                   _ (

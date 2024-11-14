@@ -721,11 +721,13 @@ GNUNET_DISK_directory_remove (const char *filename);
  * Remove the directory given under @a option in
  * section [PATHS] in configuration under @a cfg_filename
  *
+ * @param pd project data to use to determine paths
  * @param cfg_filename configuration file to parse
  * @param option option with the dir name to purge
  */
 void
-GNUNET_DISK_purge_cfg_dir (const char *cfg_filename,
+GNUNET_DISK_purge_cfg_dir (const struct GNUNET_OS_ProjectData *pd,
+                           const char *cfg_filename,
                            const char *option);
 
 

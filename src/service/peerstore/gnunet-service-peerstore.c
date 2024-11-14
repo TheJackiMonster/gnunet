@@ -1216,8 +1216,12 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_asprintf (&db_lib_name, "libgnunet_plugin_peerstore_%s", database);
-  db = GNUNET_PLUGIN_load (db_lib_name, (void *) cfg);
+  GNUNET_asprintf (&db_lib_name,
+                   "libgnunet_plugin_peerstore_%s",
+                   database);
+  db = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                           db_lib_name,
+                           (void *) cfg);
   GNUNET_free (database);
   if (NULL == db)
   {
@@ -1236,7 +1240,8 @@ run (void *cls,
     use_included = GNUNET_NO;
   if (GNUNET_YES == use_included)
   {
-    ip = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+    ip = GNUNET_OS_installation_get_path (GNUNET_OS_project_data_gnunet (),
+                                          GNUNET_OS_IPK_DATADIR);
     GNUNET_asprintf (&peerdir, "%shellos", ip);
     GNUNET_free (ip);
 

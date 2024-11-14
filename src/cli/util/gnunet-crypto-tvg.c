@@ -1594,7 +1594,8 @@ main (int argc,
                                    "INFO",
                                    NULL));
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc, argv,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc, argv,
                           "gnunet-crypto-tvg",
                           "Generate test vectors for cryptographic operations",
                           options,

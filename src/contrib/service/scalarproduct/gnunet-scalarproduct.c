@@ -322,7 +322,8 @@ run (void *cls,
                                                              &peer_id,
                                                              elements,
                                                              element_count,
-                                                             &requester_callback,
+                                                             &requester_callback
+                                                             ,
                                                              NULL)))) ||
       ((NULL == input_peer_id) &&
        (NULL == (computation
@@ -389,7 +390,8 @@ main (int argc, char *const *argv)
   };
 
   return (GNUNET_OK ==
-          GNUNET_PROGRAM_run (argc,
+          GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                              argc,
                               argv,
                               "gnunet-scalarproduct",
                               gettext_noop (

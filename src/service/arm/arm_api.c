@@ -711,7 +711,8 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                                "CONFIG",
                                                &config))
     config = NULL;
-  binary = GNUNET_OS_get_libexec_binary_path (cbinary);
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                              cbinary);
   GNUNET_asprintf (&quotedbinary,
                    "\"%s\"",
                    binary);

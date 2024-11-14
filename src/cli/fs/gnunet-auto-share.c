@@ -430,7 +430,8 @@ sighandler_child_death ()
   GNUNET_break (
     1 ==
     GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (sigpipe,
-                                                     GNUNET_DISK_PIPE_END_WRITE),
+                                                     GNUNET_DISK_PIPE_END_WRITE)
+                            ,
                             &c,
                             sizeof(c)));
   errno = old_errno; /* restore errno */
@@ -484,7 +485,7 @@ work (void *cls)
                                               NULL,
                                               NULL,
                                               "gnunet-publish",
-                                              (char * const*)argv);
+                                              (char * const*) argv);
   if (NULL == publish_proc)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -715,7 +716,8 @@ main (int argc, char *const *argv)
       'd',
       "disable-creation-time",
       gettext_noop (
-        "disable adding the creation time to the metadata of the uploaded file"),
+        "disable adding the creation time to the metadata of the uploaded file")
+      ,
       &do_disable_creation_time),
 
     GNUNET_GETOPT_option_flag (
@@ -753,6 +755,7 @@ main (int argc, char *const *argv)
   ok =
     (GNUNET_OK ==
      GNUNET_PROGRAM_run (
+       GNUNET_OS_project_data_gnunet (),
        argc,
        argv,
        "gnunet-auto-share [OPTIONS] FILENAME",

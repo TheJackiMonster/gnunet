@@ -165,7 +165,7 @@ handle_auto_result (void *cls,
   enum GNUNET_NAT_StatusCode status = ntohl (res->status_code);
 
   left = ntohs (res->header.size) - sizeof(*res);
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_deserialize (cfg,
                                         (const char *) &res[1],

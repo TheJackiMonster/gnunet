@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2016 GNUnet e.V.
+     Copyright (C) 2016, 2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -120,6 +120,11 @@ struct GNUNET_SERVICE_Handle
   const struct GNUNET_CONFIGURATION_Handle *cfg;
 
   /**
+   * Project data of this service.
+   */
+  const struct GNUNET_OS_ProjectData *pd;
+
+  /**
    * Name of our service.
    */
   const char *service_name;
@@ -173,7 +178,6 @@ struct GNUNET_SERVICE_Handle
    * Closure for @e task.
    */
   void *task_cls;
-
 
   /**
    * IPv4 addresses that are not allowed to connect.
@@ -1464,11 +1468,13 @@ open_listen_socket (const struct sockaddr *server_addr,
  * - REJECT_FROM  (disallow allow connections from specified IPv4 subnets)
  * - REJECT_FROM6 (disallow allow connections from specified IPv6 subnets)
  *
+ * @param pd project data to use for the service
  * @param sh service context to initialize
  * @return #GNUNET_OK if configuration succeeded
  */
 static enum GNUNET_GenericReturnValue
-setup_service (struct GNUNET_SERVICE_Handle *sh)
+setup_service (const struct GNUNET_OS_ProjectData *pd,
+               struct GNUNET_SERVICE_Handle *sh)
 {
   int tolerant;
   struct GNUNET_NETWORK_Handle **csocks = NULL;
@@ -1852,27 +1858,30 @@ return_agpl (void *cls,
              const struct GNUNET_MessageHeader *msg)
 {
   struct GNUNET_SERVICE_Client *client = cls;
+  const struct GNUNET_OS_ProjectData *pd = client->sh->pd;
   struct GNUNET_MQ_Handle *mq;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_MessageHeader *res;
   size_t slen;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
 
   (void) msg;
   slen = strlen (pd->agpl_url) + 1;
   env = GNUNET_MQ_msg_extra (res,
-                             GNUNET_MESSAGE_TYPE_RESPONSE_AGPL, slen);
+                             GNUNET_MESSAGE_TYPE_RESPONSE_AGPL,
+                             slen);
   memcpy (&res[1],
           GNUNET_AGPL_URL,
           slen);
   mq = GNUNET_SERVICE_client_get_mq (client);
-  GNUNET_MQ_send (mq, env);
+  GNUNET_MQ_send (mq,
+                  env);
   GNUNET_SERVICE_client_continue (client);
 }
 
 
 struct GNUNET_SERVICE_Handle *
-GNUNET_SERVICE_start (const char *service_name,
+GNUNET_SERVICE_start (const struct GNUNET_OS_ProjectData *pd,
+                      const char *service_name,
                       const struct GNUNET_CONFIGURATION_Handle *cfg,
                       GNUNET_SERVICE_ConnectHandler connect_cb,
                       GNUNET_SERVICE_DisconnectHandler disconnect_cb,
@@ -1882,6 +1891,7 @@ GNUNET_SERVICE_start (const char *service_name,
   struct GNUNET_SERVICE_Handle *sh;
 
   sh = GNUNET_new (struct GNUNET_SERVICE_Handle);
+  sh->pd = pd;
   sh->service_name = service_name;
   sh->cfg = cfg;
   sh->connect_cb = connect_cb;
@@ -1890,7 +1900,9 @@ GNUNET_SERVICE_start (const char *service_name,
   sh->handlers = GNUNET_MQ_copy_handlers2 (handlers,
                                            &return_agpl,
                                            NULL);
-  if (GNUNET_OK != setup_service (sh))
+  if (GNUNET_OK !=
+      setup_service (pd,
+                     sh))
   {
     GNUNET_free (sh->handlers);
     GNUNET_free (sh);
@@ -1962,7 +1974,8 @@ GNUNET_SERVICE_stop (struct GNUNET_SERVICE_Handle *srv)
 
 
 int
-GNUNET_SERVICE_run_ (int argc,
+GNUNET_SERVICE_run_ (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      const char *service_name,
                      enum GNUNET_SERVICE_Options options,
@@ -1989,7 +2002,6 @@ GNUNET_SERVICE_run_ (int argc,
   struct GNUNET_CONFIGURATION_Handle *cfg;
   int ret;
   int err;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   struct GNUNET_GETOPT_CommandLineOption service_options[] = {
     GNUNET_GETOPT_option_cfgfile (&opt_cfg_filename),
     GNUNET_GETOPT_option_flag ('d',
@@ -1997,7 +2009,8 @@ GNUNET_SERVICE_run_ (int argc,
                                gettext_noop (
                                  "do daemonize (detach from terminal)"),
                                &do_daemonize),
-    GNUNET_GETOPT_option_help (NULL),
+    GNUNET_GETOPT_option_help (pd,
+                               NULL),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
     GNUNET_GETOPT_option_version (pd->version),
@@ -2015,16 +2028,19 @@ GNUNET_SERVICE_run_ (int argc,
                      pd->config_file);
   else
     cfg_filename = GNUNET_strdup (pd->user_config_file);
+  sh.pd = pd;
   sh.ready_confirm_fd = -1;
   sh.options = options;
-  sh.cfg = cfg = GNUNET_CONFIGURATION_create ();
+  sh.cfg = cfg = GNUNET_CONFIGURATION_create (pd);
   sh.service_init_cb = service_init_cb;
   sh.connect_cb = connect_cb;
   sh.disconnect_cb = disconnect_cb;
   sh.cb_cls = cls;
   sh.handlers = (NULL == pd->agpl_url)
                 ? GNUNET_MQ_copy_handlers (handlers)
-                : GNUNET_MQ_copy_handlers2 (handlers, &return_agpl, NULL);
+                : GNUNET_MQ_copy_handlers2 (handlers,
+                                            &return_agpl,
+                                            NULL);
   sh.service_name = service_name;
   /* setup subsystems */
   loglev = NULL;
@@ -2035,9 +2051,10 @@ GNUNET_SERVICE_run_ (int argc,
   if (NULL != pd->gettext_domain)
   {
     setlocale (LC_ALL, "");
-    path = (NULL == pd->gettext_path) ?
-           GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR) :
-           GNUNET_strdup (pd->gettext_path);
+    path = (NULL == pd->gettext_path)
+      ? GNUNET_OS_installation_get_path (pd,
+                                         GNUNET_OS_IPK_LOCALEDIR)
+      : GNUNET_strdup (pd->gettext_path);
     if (NULL != path)
     {
       bindtextdomain (pd->gettext_domain, path);
@@ -2102,10 +2119,13 @@ GNUNET_SERVICE_run_ (int argc,
       }
     }
   }
-  if (GNUNET_OK != setup_service (&sh))
+  if (GNUNET_OK !=
+      setup_service (pd,
+                     &sh))
     goto shutdown;
   if ( (1 == do_daemonize) &&
-       (GNUNET_OK != detach_terminal (&sh)) )
+       (GNUNET_OK !=
+        detach_terminal (&sh)) )
   {
     GNUNET_break (0);
     goto shutdown;
@@ -2186,7 +2206,8 @@ static struct ServiceHandleList *hll_tail;
 
 
 int
-GNUNET_SERVICE_register_ (const char *service_name,
+GNUNET_SERVICE_register_ (const struct GNUNET_OS_ProjectData *pd,
+                          const char *service_name,
                           enum GNUNET_SERVICE_Options options,
                           GNUNET_SERVICE_InitCallback service_init_cb,
                           GNUNET_SERVICE_ConnectHandler connect_cb,
@@ -2196,8 +2217,8 @@ GNUNET_SERVICE_register_ (const char *service_name,
 {
   struct ServiceHandleList *hle;
   struct GNUNET_SERVICE_Handle *sh = GNUNET_new (struct GNUNET_SERVICE_Handle);
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
 
+  sh->pd = pd;
   sh->ready_confirm_fd = -1;
   sh->options = options;
   sh->service_init_cb = service_init_cb;
@@ -2244,19 +2265,31 @@ do_registered_services_shutdown (void *cls)
 }
 
 
+struct LaunchContext
+{
+  struct GNUNET_CONFIGURATION_Handle *cfg;
+  const struct GNUNET_OS_ProjectData *pd;
+};
+
+
 static void
 launch_registered_services (void *cls)
 {
-  struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+  struct LaunchContext *lc = cls;
+  struct GNUNET_CONFIGURATION_Handle *cfg = lc->cfg;
+  const struct GNUNET_OS_ProjectData *pd = lc->pd;
 
   for (struct ServiceHandleList *shl = hll_head;
        NULL != shl;
        shl = shl->next)
   {
     shl->sh->cfg = cfg;
-    if (GNUNET_OK != setup_service (shl->sh))
+    if (GNUNET_OK !=
+        setup_service (pd,
+                       shl->sh))
       continue;
-    if (GNUNET_OK != set_user_id (shl->sh))
+    if (GNUNET_OK !=
+        set_user_id (shl->sh))
       continue;
     GNUNET_SCHEDULER_add_now (&service_main,
                               shl->sh);
@@ -2267,27 +2300,35 @@ launch_registered_services (void *cls)
 
 
 void
-GNUNET_SERVICE_main (int argc,
+GNUNET_SERVICE_main (const struct GNUNET_OS_ProjectData *pd,
+                     int argc,
                      char *const *argv,
                      struct GNUNET_CONFIGURATION_Handle *cfg,
                      enum GNUNET_GenericReturnValue with_scheduler)
 {
+  struct LaunchContext lc = {
+    .pd = pd,
+    .cfg = cfg
+  };
+
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Entering GNUNET_SERVICE_main\n");
   if (GNUNET_YES == with_scheduler)
   {
-    if (GNUNET_YES != GNUNET_PROGRAM_conf_and_options (argc,
-                                                       argv,
-                                                       cfg))
+    if (GNUNET_YES !=
+        GNUNET_PROGRAM_conf_and_options (pd,
+                                         argc,
+                                         argv,
+                                         cfg))
       return;
     GNUNET_SCHEDULER_run (&launch_registered_services,
-                          cfg);
+                          &lc);
   }
   else
-    launch_registered_services (cfg);
-
-  GNUNET_RESOLVER_connect (cfg);
-
+  {
+    launch_registered_services (&lc);
+    GNUNET_RESOLVER_connect (cfg);
+  }
 }
 
 

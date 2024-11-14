@@ -4220,7 +4220,8 @@ main (int argc, char *const *argv)
               "Starting tcp communicator\n");
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-communicator-tcp",
                              _ ("GNUnet TCP communicator"),

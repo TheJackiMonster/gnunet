@@ -1174,7 +1174,8 @@ main (int argc,
                      "test_communicator_%s_%s_peer%u.conf",
                      communicator_name, test_mode, i + 1);
     cfg_peers_name[i] = cfg_peer;
-    cfg_peers[i] = GNUNET_CONFIGURATION_create ();
+    cfg_peers[i] = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ()
+                                                );
     if (GNUNET_YES ==
         GNUNET_DISK_file_test (cfg_peers_name[i]))
     {

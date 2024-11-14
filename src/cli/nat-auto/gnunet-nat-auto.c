@@ -199,7 +199,7 @@ auto_config_cb (void *cls,
     struct GNUNET_CONFIGURATION_Handle *def_cfg;
 
     GNUNET_CONFIGURATION_set_value_string (new_cfg, "ARM", "CONFIG", NULL);
-    def_cfg = GNUNET_CONFIGURATION_create ();
+    def_cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
     GNUNET_break (GNUNET_OK == GNUNET_CONFIGURATION_load (def_cfg, NULL));
     if (GNUNET_OK !=
         GNUNET_CONFIGURATION_write_diffs (def_cfg, new_cfg, cfg_file))
@@ -347,7 +347,8 @@ main (int argc, char *const argv[])
     GNUNET_GETOPT_OPTION_END };
 
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-nat-auto [options]",
                           _ ("GNUnet NAT traversal autoconfiguration"),

@@ -112,7 +112,7 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
   ssize_t key_len;
 
   GNUNET_CRYPTO_key_get_public (id_priv,
-                                  &id_pub);
+                                &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_CRYPTO_public_key_get_length (
                                    &id_pub),
@@ -129,10 +129,10 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
   fprintf (stdout, "\n");
   pow = GNUNET_malloc (GNUNET_MAX_POW_SIZE);
   GNUNET_GNSRECORD_pow_init (id_priv,
-                              pow);
+                             pow);
   ph = GNUNET_GNSRECORD_pow_start (pow,
-                                    TEST_EPOCHS,
-                                    TEST_DIFFICULTY);
+                                   TEST_EPOCHS,
+                                   TEST_DIFFICULTY);
   fprintf (stdout, "Difficulty (%d base difficulty + %d epochs): %d\n\n",
            TEST_DIFFICULTY,
            TEST_EPOCHS,
@@ -154,8 +154,8 @@ run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
   exp = GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_YEARS,
                                        TEST_EPOCHS);
   GNUNET_assert (GNUNET_OK == GNUNET_GNSRECORD_check_pow (pow,
-                                                           TEST_DIFFICULTY,
-                                                           exp));
+                                                          TEST_DIFFICULTY,
+                                                          exp));
   fprintf (stdout, "Proof:\n");
   print_bytes (pow,
                GNUNET_GNSRECORD_proof_get_size (pow),
@@ -217,7 +217,8 @@ main (int argc,
                                    "INFO",
                                    NULL));
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc, argv,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc, argv,
                           "gnunet-revocation-tvg",
                           "Generate test vectors for revocation",
                           options,

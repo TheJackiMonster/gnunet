@@ -133,7 +133,7 @@ start_peer_run (void *cls,
         system_cmd,
         &sps->system))
     GNUNET_TESTING_FAIL (is);
-  sps->cfg = GNUNET_CONFIGURATION_create ();
+  sps->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_load (sps->cfg,
                                  sps->cfgname))
@@ -172,7 +172,8 @@ start_peer_run (void *cls,
     }
 
     libexec_binary
-      = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
+      = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           "gnunet-service-arm");
 
     ret = GNUNET_CONFIGURATION_get_value_string (sps->cfg,
                                                  "arm",

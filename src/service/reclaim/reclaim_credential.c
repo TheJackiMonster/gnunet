@@ -95,11 +95,11 @@ init ()
   if (GNUNET_YES == initialized)
     return;
   initialized = GNUNET_YES;
-  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
-                                     "libgnunet_plugin_reclaim_credential_",
-                                     NULL,
-                                     &add_plugin,
-                                     NULL);
+  GNUNET_PLUGIN_load_all (GNUNET_OS_project_data_gnunet (),
+                          "libgnunet_plugin_reclaim_credential_",
+                          NULL,
+                          &add_plugin,
+                          NULL);
 }
 
 
@@ -113,11 +113,6 @@ void __attribute__ ((destructor))
 RECLAIM_CREDENTIAL_fini (void)
 {
   struct Plugin *plugin;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
-
-  if (pd != dpd)
-    GNUNET_OS_init (dpd);
 
   for (unsigned int i = 0; i < num_plugins; i++)
   {
@@ -129,10 +124,6 @@ RECLAIM_CREDENTIAL_fini (void)
     GNUNET_free (plugin);
   }
   GNUNET_free (credential_plugins);
-
-  if (pd != dpd)
-    GNUNET_OS_init (pd);
-
   credential_plugins = NULL;
 }
 

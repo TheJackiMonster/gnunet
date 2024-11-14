@@ -495,7 +495,8 @@ main (int argc, char *const *argv)
 
   list_keys_count = UINT32_MAX;
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-ecc [OPTIONS] keyfile [VANITY_PREFIX]",
                              gettext_noop (

@@ -107,24 +107,28 @@ main (int argc, char *argv[])
                     "WARNING",
                     NULL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run (7, argvx,
+                 GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                     7, argvx,
                                      "test_program",
                                      "A test",
                                      options1,
                                      &runner, &ok));
 
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run (7, argvx,
+                 GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                     7, argvx,
                                      "test_program", "A test",
                                      options2,
                                      &runner, &ok));
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run (7, argvx,
+                 GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                     7, argvx,
                                      "test_program", "A test",
                                      options3,
                                      &runner, &ok));
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_PROGRAM_run (7, argvx,
+                 GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                     7, argvx,
                                      "test_program", "A test",
                                      options4,
                                      &runner, &ok));

@@ -344,13 +344,15 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
   ret =
-    (GNUNET_OK == GNUNET_PROGRAM_run (argc,
-                                      argv,
-                                      "gnunet-vpn",
-                                      gettext_noop ("Setup tunnels via VPN."),
-                                      options,
-                                      &run,
-                                      NULL))
+    (GNUNET_OK ==
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc,
+                         argv,
+                         "gnunet-vpn",
+                         gettext_noop ("Setup tunnels via VPN."),
+                         options,
+                         &run,
+                         NULL))
     ? ret
     : 1;
   return ret;

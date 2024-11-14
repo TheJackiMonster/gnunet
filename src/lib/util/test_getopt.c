@@ -98,8 +98,11 @@ testAbout ()
     (char*) "-h",
     NULL
   };
-  const struct GNUNET_GETOPT_CommandLineOption aboutoptionlist[] =
-  { GNUNET_GETOPT_option_help ("Testing"), GNUNET_GETOPT_OPTION_END };
+  const struct GNUNET_GETOPT_CommandLineOption aboutoptionlist[] = {
+    GNUNET_GETOPT_option_help (GNUNET_OS_project_data_gnunet (),
+                               "Testing"),
+    GNUNET_GETOPT_OPTION_END
+  };
 
   if (0 != GNUNET_GETOPT_run ("test_getopt", aboutoptionlist, 2, myargv))
   {

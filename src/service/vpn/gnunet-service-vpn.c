@@ -1502,10 +1502,11 @@ create_channel_to_destination (struct DestinationChannel *dt, int client_af)
     case AF_INET: {
         char address[GNUNET_TUN_IPV4_REGEXLEN];
 
-        GNUNET_REGEX_ipv4toregexsearch (&dt->destination->details.exit_destination
-                                      .ip.v4,
-                                      dt->destination_port,
-                                      address);
+        GNUNET_REGEX_ipv4toregexsearch (&dt->destination->details.
+                                        exit_destination
+                                        .ip.v4,
+                                        dt->destination_port,
+                                        address);
         GNUNET_asprintf (&policy,
                          "%s%s",
                          GNUNET_APPLICATION_TYPE_EXIT_REGEX_PREFIX,
@@ -1516,10 +1517,11 @@ create_channel_to_destination (struct DestinationChannel *dt, int client_af)
     case AF_INET6: {
         char address[GNUNET_TUN_IPV6_REGEXLEN];
 
-        GNUNET_REGEX_ipv6toregexsearch (&dt->destination->details.exit_destination
-                                      .ip.v6,
-                                      dt->destination_port,
-                                      address);
+        GNUNET_REGEX_ipv6toregexsearch (&dt->destination->details.
+                                        exit_destination
+                                        .ip.v6,
+                                        dt->destination_port,
+                                        address);
         GNUNET_asprintf (&policy,
                          "%s%s",
                          GNUNET_APPLICATION_TYPE_EXIT_REGEX_PREFIX,
@@ -2407,7 +2409,8 @@ allocate_v4_address (struct in_addr *v4)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ (
-                    "Failed to find unallocated IPv4 address in VPN's range\n"));
+                    "Failed to find unallocated IPv4 address in VPN's range\n"))
+      ;
       return GNUNET_SYSERR;
     }
     /* Pick random IPv4 address within the subnet, except 'addr' or 'mask' itself */
@@ -2459,7 +2462,8 @@ allocate_v6_address (struct in6_addr *v6)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   _ (
-                    "Failed to find unallocated IPv6 address in VPN's range\n"));
+                    "Failed to find unallocated IPv6 address in VPN's range\n"))
+      ;
       return GNUNET_SYSERR;
     }
     for (i = 0; i < 16; i++)
@@ -2940,7 +2944,9 @@ run (void *cls,
   char *binary;
 
   cfg = cfg_;
-  binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-vpn");
+  binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           cfg,
+                                           "gnunet-helper-vpn");
 
   if (GNUNET_YES !=
       GNUNET_OS_check_helper_binary (
@@ -3012,21 +3018,25 @@ run (void *cls,
     }
     vpn_argv[2] = ipv6addr;
     ipv6prefix_s = NULL;
-    if (GNUNET_SYSERR == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                                "VPN",
-                                                                "IPV6PREFIX",
-                                                                &ipv6prefix_s))
+    if (GNUNET_SYSERR ==
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               "VPN",
+                                               "IPV6PREFIX",
+                                               &ipv6prefix_s))
     {
-      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR, "VPN", "IPV6PREFIX");
+      GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                 "VPN",
+                                 "IPV6PREFIX");
       GNUNET_SCHEDULER_shutdown ();
       GNUNET_free (ipv6prefix_s);
       return;
     }
     vpn_argv[3] = ipv6prefix_s;
-    if ((GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
-                                                             "VPN",
-                                                             "IPV6PREFIX",
-                                                             &ipv6prefix)) ||
+    if ((GNUNET_OK !=
+         GNUNET_CONFIGURATION_get_value_number (cfg,
+                                                "VPN",
+                                                "IPV6PREFIX",
+                                                &ipv6prefix)) ||
         (ipv6prefix >= 127))
     {
       GNUNET_log_config_invalid (GNUNET_ERROR_TYPE_ERROR,
@@ -3049,10 +3059,11 @@ run (void *cls,
   if (GNUNET_OK == GNUNET_NETWORK_test_pf (PF_INET))
   {
     ipv4addr = NULL;
-    if (((GNUNET_SYSERR == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                                  "vpn",
-                                                                  "IPV4ADDR",
-                                                                  &ipv4addr)) ||
+    if (((GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                 "vpn",
+                                                 "IPV4ADDR",
+                                                 &ipv4addr)) ||
          (1 != inet_pton (AF_INET, ipv4addr, &v4))))
     {
       GNUNET_log_config_invalid (GNUNET_ERROR_TYPE_ERROR,
@@ -3066,10 +3077,11 @@ run (void *cls,
     }
     vpn_argv[4] = ipv4addr;
     ipv4mask = NULL;
-    if (((GNUNET_SYSERR == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                                  "vpn",
-                                                                  "IPV4MASK",
-                                                                  &ipv4mask)) ||
+    if (((GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                 "vpn",
+                                                 "IPV4MASK",
+                                                 &ipv4mask)) ||
          (1 != inet_pton (AF_INET, ipv4mask, &v4))))
     {
       GNUNET_log_config_invalid (GNUNET_ERROR_TYPE_ERROR,
@@ -3095,7 +3107,8 @@ run (void *cls,
 
   cadet_handle = GNUNET_CADET_connect (cfg_);
   // FIXME never opens ports???
-  helper_handle = GNUNET_HELPER_start (GNUNET_NO,
+  helper_handle = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet (),
+                                       GNUNET_NO,
                                        binary,
                                        vpn_argv,
                                        &message_token,

@@ -890,7 +890,9 @@ start_process (struct ServiceList *sl,
                 sl->name,
                 sl->binary,
                 sl->config);
-    binary = GNUNET_OS_get_libexec_binary_path (sl->binary);
+    binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet ()
+                                                ,
+                                                sl->binary);
     GNUNET_asprintf (&quotedbinary,
                      "\"%s\"",
                      binary);
@@ -2248,7 +2250,8 @@ main (int argc, char *const *argv)
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD,
                                    &sighandler_child_death);
-  if (0 != GNUNET_SERVICE_run_ (argc,
+  if (0 != GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
+                                argc,
                                 argv,
                                 "arm",
                                 GNUNET_SERVICE_OPTION_MANUAL_SHUTDOWN

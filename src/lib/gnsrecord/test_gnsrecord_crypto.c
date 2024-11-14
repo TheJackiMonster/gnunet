@@ -101,11 +101,11 @@ test_with_type (struct GNUNET_CRYPTO_PrivateKey *privkey)
   struct GNUNET_HashCode query_priv;
   struct GNUNET_HashCode query_block;
   struct GNUNET_TIME_Absolute expire = GNUNET_TIME_UNIT_FOREVER_ABS;
-  char* tmp_data;
+  char*tmp_data;
 
   /* get public key */
   GNUNET_CRYPTO_key_get_public (privkey,
-                                  &pubkey);
+                                &pubkey);
 
   /* test query derivation */
   GNUNET_GNSRECORD_query_from_private_key (privkey,
@@ -146,7 +146,7 @@ test_with_type (struct GNUNET_CRYPTO_PrivateKey *privkey)
   for (int i = 0; i < RECORDS; i++)
   {
     tmp_data = (char*) s_rd[i].data;
-    GNUNET_free(tmp_data);
+    GNUNET_free (tmp_data);
   }
   GNUNET_free (s_rd);
   GNUNET_free (block);
@@ -199,7 +199,8 @@ main (int argc, char *argv[])
   };
 
   res = 1;
-  GNUNET_PROGRAM_run ((sizeof(argvx) / sizeof(char *)) - 1,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(argvx) / sizeof(char *)) - 1,
                       argvx,
                       "test-gnsrecord-crypto",
                       "nohelp", options,

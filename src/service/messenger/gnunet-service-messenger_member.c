@@ -81,7 +81,7 @@ iterate_destroy_subscription (void *cls,
   struct GNUNET_MESSENGER_Subscription *subscription;
 
   GNUNET_assert (value);
-  
+
   subscription = value;
 
   destroy_subscription (subscription);
@@ -98,7 +98,7 @@ destroy_member (struct GNUNET_MESSENGER_Member *member)
                                          iterate_destroy_session, NULL);
   GNUNET_CONTAINER_multishortmap_iterate (member->subscriptions,
                                           iterate_destroy_subscription, NULL);
-  
+
   GNUNET_CONTAINER_multihashmap_destroy (member->sessions);
   GNUNET_CONTAINER_multishortmap_destroy (member->subscriptions);
 
@@ -122,7 +122,7 @@ callback_scan_for_sessions (void *cls,
   struct GNUNET_MESSENGER_Member *member;
 
   GNUNET_assert ((cls) && (filename));
-  
+
   member = cls;
 
   if (GNUNET_YES == GNUNET_DISK_directory_test (filename, GNUNET_YES))
@@ -159,7 +159,7 @@ load_member (struct GNUNET_MESSENGER_MemberStore *store,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Load member configuration: %s\n",
               config_file);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     goto free_config;
@@ -205,7 +205,7 @@ iterate_load_next_session (void *cls,
   char *load_dir;
 
   GNUNET_assert ((cls) && (key));
-  
+
   sessions_directory = cls;
 
   GNUNET_asprintf (&load_dir, "%s%s%c", sessions_directory, GNUNET_h2s (key),
@@ -215,7 +215,7 @@ iterate_load_next_session (void *cls,
     struct GNUNET_MESSENGER_MemberSession *session;
 
     GNUNET_assert (value);
-    
+
     session = value;
 
     if (GNUNET_YES == GNUNET_DISK_directory_test (load_dir, GNUNET_YES))
@@ -253,7 +253,7 @@ iterate_save_session (void *cls,
   char *save_dir;
 
   GNUNET_assert ((cls) && (key));
-  
+
   sessions_directory = cls;
 
   GNUNET_asprintf (&save_dir, "%s%s%c", sessions_directory, GNUNET_h2s (key),
@@ -263,7 +263,7 @@ iterate_save_session (void *cls,
     struct GNUNET_MESSENGER_MemberSession *session;
 
     GNUNET_assert (value);
-    
+
     session = value;
 
     if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
@@ -291,7 +291,7 @@ save_member (struct GNUNET_MESSENGER_Member *member,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Save member configuration: %s\n",
               config_file);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     goto free_config;
@@ -319,7 +319,7 @@ free_config:
     if ((GNUNET_YES == GNUNET_DISK_directory_test (save_dir, GNUNET_NO)) ||
         (GNUNET_OK == GNUNET_DISK_directory_create (save_dir)))
       GNUNET_CONTAINER_multihashmap_iterate (member->sessions,
-                                            iterate_save_session, save_dir);
+                                             iterate_save_session, save_dir);
 
     GNUNET_free (save_dir);
   }
@@ -350,7 +350,7 @@ iterate_sync_session_contact (void *cls,
   struct GNUNET_MESSENGER_MemberSession *session;
 
   GNUNET_assert (value);
-  
+
   session = value;
 
   if (session->next)
@@ -421,7 +421,7 @@ try_member_session (struct GNUNET_MESSENGER_Member *member,
   struct GNUNET_MESSENGER_MemberSession *session;
 
   GNUNET_assert ((member) && (public_key));
-  
+
   session = get_member_session (member, public_key);
 
   if (session)
@@ -456,7 +456,7 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member,
 
     search.match = NULL;
     GNUNET_CONTAINER_multihashmap_iterate (member->sessions,
-                                          iterate_search_session, &search);
+                                           iterate_search_session, &search);
 
     return search.match;
   }
@@ -537,7 +537,7 @@ iterate_member_sessions (struct GNUNET_MESSENGER_Member *member,
                          void *cls)
 {
   struct GNUNET_MESSENGER_ClosureIterateSessions iterate;
-  
+
   GNUNET_assert ((member) && (member->sessions) && (it));
 
   iterate.it = it;
@@ -557,7 +557,7 @@ add_member_subscription (struct GNUNET_MESSENGER_Member *member,
 
   GNUNET_assert ((member) && (member->subscriptions) && (subscription));
 
-  discourse = get_subscription_discourse(subscription);
+  discourse = get_subscription_discourse (subscription);
 
   if (GNUNET_OK != GNUNET_CONTAINER_multishortmap_put (
         member->subscriptions, discourse, subscription,
@@ -576,9 +576,10 @@ remove_member_subscription (struct GNUNET_MESSENGER_Member *member,
 
   GNUNET_assert ((member) && (member->subscriptions) && (subscription));
 
-  discourse = get_subscription_discourse(subscription);
+  discourse = get_subscription_discourse (subscription);
 
-  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (member->subscriptions,
+  if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (member->subscriptions
+                                                           ,
                                                            discourse,
                                                            subscription))
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -605,6 +606,8 @@ iterate_member_subscriptions (struct GNUNET_MESSENGER_Member *member,
   GNUNET_assert ((member) && (member->subscriptions) && (it));
 
   return GNUNET_CONTAINER_multishortmap_iterate (member->subscriptions,
-                                                 (GNUNET_CONTAINER_ShortmapIterator) it,
+                                                 (
+                                                   GNUNET_CONTAINER_ShortmapIterator)
+                                                 it,
                                                  cls);
 }

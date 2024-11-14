@@ -26,10 +26,8 @@
 #ifndef GNUNET_SERVICE_MESSENGER_SERVICE_H
 #define GNUNET_SERVICE_MESSENGER_SERVICE_H
 
-#include "gnunet_common.h"
-#include "gnunet_configuration_lib.h"
-#include "gnunet_statistics_service.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_statistics_service.h"
 
 #include "gnunet-service-messenger_list_handles.h"
 #include "gnunet-service-messenger_sender_session.h"

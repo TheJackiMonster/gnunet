@@ -594,7 +594,8 @@ run (void *cls,
 
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, NULL);
 
-  datadir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  datadir = GNUNET_OS_installation_get_path (GNUNET_OS_project_data_gnunet (),
+                                             GNUNET_OS_IPK_DATADIR);
   GNUNET_assert (NULL != datadir);
 
   GNUNET_asprintf (&tex_file_full,
@@ -682,7 +683,8 @@ main (int argc, char *const *argv)
   };
 
   return ((GNUNET_OK ==
-           GNUNET_PROGRAM_run (argc,
+           GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                               argc,
                                argv,
                                "gnunet-bcd",
                                _ ("GNUnet HTTP server to create business cards")

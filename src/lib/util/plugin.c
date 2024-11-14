@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2002-2013 GNUnet e.V.
+     Copyright (C) 2002-2013, 2024 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -23,8 +23,6 @@
  * @brief Methods to access plugins
  * @author Christian Grothoff
  */
-
-
 #include "platform.h"
 #include <ltdl.h>
 #include "gnunet_util_lib.h"
@@ -59,11 +57,6 @@ struct PluginList
 static int initialized;
 
 /**
- * Libtool search path before we started.
- */
-static char *old_dlsearchpath;
-
-/**
  * List of plugins we have loaded.
  */
 static struct PluginList *plugins;
@@ -76,9 +69,6 @@ static void
 plugin_init (void)
 {
   int err;
-  const char *opath;
-  char *path;
-  char *cpath;
 
   err = lt_dlinit ();
   if (err > 0)
@@ -87,28 +77,6 @@ plugin_init (void)
              _ ("Initialization of plugin mechanism failed: %s!\n"),
              lt_dlerror ());
     return;
-  }
-  opath = lt_dlgetsearchpath ();
-  if (NULL != opath)
-    old_dlsearchpath = GNUNET_strdup (opath);
-  path = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
-  if (NULL != path)
-  {
-    if (NULL != opath)
-    {
-      GNUNET_asprintf (&cpath,
-                       "%s:%s",
-                       opath,
-                       path);
-      lt_dlsetsearchpath (cpath);
-      GNUNET_free (path);
-      GNUNET_free (cpath);
-    }
-    else
-    {
-      lt_dlsetsearchpath (path);
-      GNUNET_free (path);
-    }
   }
 }
 
@@ -119,12 +87,6 @@ plugin_init (void)
 static void
 plugin_fini (void)
 {
-  lt_dlsetsearchpath (old_dlsearchpath);
-  if (NULL != old_dlsearchpath)
-  {
-    GNUNET_free (old_dlsearchpath);
-    old_dlsearchpath = NULL;
-  }
   if (NULL == getenv ("VALGRINDING_PLUGINS"))
     lt_dlexit ();
 }
@@ -164,8 +126,51 @@ resolve_function (struct PluginList *plug,
 }
 
 
+/**
+ * Open library @a library_name using search path from @a pd.
+ *
+ * @param pd program data with paths
+ * @param library_name name of plugin to load
+ * @return NULL on error, otherwise library handle
+ */
+static void *
+open_library (const struct GNUNET_OS_ProjectData *pd,
+              const char *library_name)
+{
+  void *libhandle;
+  const char *opath;
+  char *path;
+  char *cpath;
+
+  opath = lt_dlgetsearchpath ();
+  path = GNUNET_OS_installation_get_path (pd,
+                                          GNUNET_OS_IPK_LIBDIR);
+  if (NULL != path)
+  {
+    if (NULL != opath)
+    {
+      GNUNET_asprintf (&cpath,
+                       "%s:%s",
+                       opath,
+                       path);
+      lt_dlsetsearchpath (cpath);
+      GNUNET_free (cpath);
+    }
+    else
+    {
+      lt_dlsetsearchpath (path);
+    }
+  }
+  GNUNET_free (path);
+  libhandle = lt_dlopenext (library_name);
+  lt_dlsetsearchpath (opath);
+  return libhandle;
+}
+
+
 enum GNUNET_GenericReturnValue
-GNUNET_PLUGIN_test (const char *library_name)
+GNUNET_PLUGIN_test (const struct GNUNET_OS_ProjectData *pd,
+                    const char *library_name)
 {
   void *libhandle;
   GNUNET_PLUGIN_Callback init;
@@ -176,9 +181,17 @@ GNUNET_PLUGIN_test (const char *library_name)
     initialized = GNUNET_YES;
     plugin_init ();
   }
-  libhandle = lt_dlopenext (library_name);
+  libhandle = open_library (pd,
+                            library_name);
   if (NULL == libhandle)
+  {
+    if (NULL == plugins)
+    {
+      plugin_fini ();
+      initialized = GNUNET_NO;
+    }
     return GNUNET_NO;
+  }
   plug.handle = libhandle;
   plug.name = (char *) library_name;
   init = resolve_function (&plug,
@@ -187,15 +200,26 @@ GNUNET_PLUGIN_test (const char *library_name)
   {
     GNUNET_break (0);
     lt_dlclose (libhandle);
+    if (NULL == plugins)
+    {
+      plugin_fini ();
+      initialized = GNUNET_NO;
+    }
     return GNUNET_NO;
   }
   lt_dlclose (libhandle);
+  if (NULL == plugins)
+  {
+    plugin_fini ();
+    initialized = GNUNET_NO;
+  }
   return GNUNET_YES;
 }
 
 
 void *
-GNUNET_PLUGIN_load (const char *library_name,
+GNUNET_PLUGIN_load (const struct GNUNET_OS_ProjectData *pd,
+                    const char *library_name,
                     void *arg)
 {
   void *libhandle;
@@ -208,7 +232,8 @@ GNUNET_PLUGIN_load (const char *library_name,
     initialized = GNUNET_YES;
     plugin_init ();
   }
-  libhandle = lt_dlopenext (library_name);
+  libhandle = open_library (pd,
+                            library_name);
   if (NULL == libhandle)
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -216,6 +241,11 @@ GNUNET_PLUGIN_load (const char *library_name,
          "lt_dlopenext",
          library_name,
          lt_dlerror ());
+    if (NULL == plugins)
+    {
+      plugin_fini ();
+      initialized = GNUNET_NO;
+    }
     return NULL;
   }
   plug = GNUNET_new (struct PluginList);
@@ -232,6 +262,11 @@ GNUNET_PLUGIN_load (const char *library_name,
     GNUNET_free (plug->name);
     plugins = plug->next;
     GNUNET_free (plug);
+    if (NULL == plugins)
+    {
+      plugin_fini ();
+      initialized = GNUNET_NO;
+    }
     return NULL;
   }
   return ret;
@@ -286,6 +321,12 @@ GNUNET_PLUGIN_unload (const char *library_name,
  */
 struct LoadAllContext
 {
+
+  /**
+   * Project data to determine load paths.
+   */
+  const struct GNUNET_OS_ProjectData *pd;
+
   /**
    * Prefix the plugin names we find have to match.
    */
@@ -317,7 +358,7 @@ struct LoadAllContext
  * @param filename name of a plugin library to check
  * @return #GNUNET_OK (continue loading)
  */
-static int
+static enum GNUNET_GenericReturnValue
 find_libraries (void *cls,
                 const char *filename)
 {
@@ -344,7 +385,8 @@ find_libraries (void *cls,
   basename = GNUNET_strdup (libname);
   if (NULL != (dot = strstr (basename, ".")))
     *dot = '\0';
-  lib_ret = GNUNET_PLUGIN_load (basename,
+  lib_ret = GNUNET_PLUGIN_load (lac->pd,
+                                basename,
                                 lac->arg);
   if (NULL != lib_ret)
     lac->cb (lac->cb_cls,
@@ -356,47 +398,33 @@ find_libraries (void *cls,
 
 
 void
-GNUNET_PLUGIN_load_all (const char *basename,
+GNUNET_PLUGIN_load_all (const struct GNUNET_OS_ProjectData *pd,
+                        const char *basename,
                         void *arg,
                         GNUNET_PLUGIN_LoaderCallback cb,
                         void *cb_cls)
 {
-  struct LoadAllContext lac;
+  struct LoadAllContext lac = {
+    .pd = pd,
+    .basename = basename,
+    .arg = arg,
+    .cb = cb,
+    .cb_cls = cb_cls
+  };
   char *path;
 
-  path = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+  path = GNUNET_OS_installation_get_path (pd,
+                                          GNUNET_OS_IPK_LIBDIR);
   if (NULL == path)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Could not determine plugin installation path.\n"));
     return;
   }
-  lac.basename = basename;
-  lac.arg = arg;
-  lac.cb = cb;
-  lac.cb_cls = cb_cls;
   GNUNET_DISK_directory_scan (path,
                               &find_libraries,
                               &lac);
   GNUNET_free (path);
-}
-
-
-void
-GNUNET_PLUGIN_load_all_in_context (const struct GNUNET_OS_ProjectData *ctx,
-                                   const char *basename,
-                                   void *arg,
-                                   GNUNET_PLUGIN_LoaderCallback cb,
-                                   void *cb_cls)
-{
-  const struct GNUNET_OS_ProjectData *cpd = GNUNET_OS_project_data_get ();
-
-  GNUNET_OS_init (ctx);
-  GNUNET_PLUGIN_load_all (basename,
-                          arg,
-                          cb,
-                          cb_cls);
-  GNUNET_OS_init (cpd);
 }
 
 

@@ -1129,7 +1129,8 @@ main (int argc, char *const *argv)
   int ret;
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-communicator-unix",
                              _ ("GNUnet UNIX domain socket communicator"),

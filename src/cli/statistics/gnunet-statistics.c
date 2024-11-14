@@ -621,7 +621,8 @@ iter_check_config (void *cls,
   {
     /* Found the config - stop iteration successfully */
     GNUNET_array_grow (nodes, num_nodes, num_nodes + 1);
-    nodes[num_nodes - 1].conf = GNUNET_CONFIGURATION_create ();
+    nodes[num_nodes - 1].conf = GNUNET_CONFIGURATION_create (
+      GNUNET_OS_project_data_gnunet ());
     nodes[num_nodes - 1].index_node = num_nodes - 1;
     if (GNUNET_OK !=
         GNUNET_CONFIGURATION_load (nodes[num_nodes - 1].conf, filename))
@@ -868,7 +869,8 @@ main (int argc, char *const *argv)
   remote_host = NULL;
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc,
                              argv,
                              "gnunet-statistics [options [value]]",
                              gettext_noop (

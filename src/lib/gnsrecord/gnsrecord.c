@@ -99,16 +99,17 @@ init ()
   if (1 == once)
     return;
   once = 1;
-
-  GNUNET_PLUGIN_load_all_in_context (GNUNET_OS_project_data_default (),
-                                     "libgnunet_plugin_gnsrecord_",
-                                     NULL,
-                                     &add_plugin,
-                                     NULL);
+  GNUNET_PLUGIN_load_all (GNUNET_OS_project_data_gnunet (),
+                          "libgnunet_plugin_gnsrecord_",
+                          NULL,
+                          &add_plugin,
+                          NULL);
 }
+
 
 void
 GNSRECORD_fini (void);
+
 
 /**
  * Dual function to #init().
@@ -117,11 +118,6 @@ void __attribute__ ((destructor))
 GNSRECORD_fini (void)
 {
   struct Plugin *plugin;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
-
-  if (pd != dpd)
-    GNUNET_OS_init (dpd);
 
   for (unsigned int i = 0; i < num_plugins; i++)
   {
@@ -133,10 +129,6 @@ GNSRECORD_fini (void)
     GNUNET_free (plugin);
   }
   GNUNET_free (gns_plugins);
-
-  if (pd != dpd)
-    GNUNET_OS_init (pd);
-
   gns_plugins = NULL;
   once = 0;
   num_plugins = 0;

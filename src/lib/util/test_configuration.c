@@ -179,7 +179,8 @@ editConfiguration (struct GNUNET_CONFIGURATION_Handle *cfg_,
   struct DiffsCBData diffsCB;
 
   initDiffsCBData (&diffsCB);
-  diffsCB.cfgDiffs = GNUNET_CONFIGURATION_create ();
+  diffsCB.cfgDiffs = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet
+                                                    ());
 
   switch (option)
   {
@@ -240,7 +241,7 @@ checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_, int option)
 
   initDiffsCBData (&cbData);
 
-  cfg_new = GNUNET_CONFIGURATION_create ();
+  cfg_new = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   /* load defaults */
   GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_load (cfg_new, NULL));
 
@@ -258,8 +259,10 @@ checkDiffs (struct GNUNET_CONFIGURATION_Handle *cfg_, int option)
   GNUNET_CONFIGURATION_destroy (cfg_new);
 
   /* Compare the dumped configuration with modifications done */
-  cfg_new = GNUNET_CONFIGURATION_create ();
-  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg_new, diffsFileName));
+  cfg_new = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONFIGURATION_parse (cfg_new,
+                                             diffsFileName));
   if (0 != remove (diffsFileName))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_WARNING, "remove",
                               diffsFileName);
@@ -493,7 +496,7 @@ main (int argc, char *argv[])
   char *c;
 
   GNUNET_log_setup ("test_configuration", "WARNING", NULL);
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   GNUNET_assert (cfg != NULL);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_parse (cfg, "test_configuration_data.conf"))
@@ -519,9 +522,10 @@ main (int argc, char *argv[])
   GNUNET_CONFIGURATION_destroy (cfg);
   GNUNET_assert (0 == unlink ("/tmp/gnunet-test.conf"));
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_load (cfg, "test_configuration_data.conf"))
+      GNUNET_CONFIGURATION_load (cfg,
+                                 "test_configuration_data.conf"))
   {
     GNUNET_break (0);
     GNUNET_CONFIGURATION_destroy (cfg);
@@ -546,8 +550,10 @@ main (int argc, char *argv[])
   GNUNET_CONFIGURATION_destroy (cfg);
 
   /* Testing configuration diffs */
-  cfg_default = GNUNET_CONFIGURATION_create ();
-  if (GNUNET_OK != GNUNET_CONFIGURATION_load (cfg_default, NULL))
+  cfg_default = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_load (cfg_default,
+                                 NULL))
   {
     GNUNET_break (0);
     GNUNET_CONFIGURATION_destroy (cfg_default);

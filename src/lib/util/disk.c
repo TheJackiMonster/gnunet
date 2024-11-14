@@ -374,7 +374,7 @@ GNUNET_DISK_file_backup (const char *fil)
     {
       GNUNET_snprintf (target, slen, "%s.%u~", fil, num++);
       fd = open (target, O_CREAT | O_EXCL,
-                 translate_unix_perms(GNUNET_DISK_PERM_USER_WRITE));
+                 translate_unix_perms (GNUNET_DISK_PERM_USER_WRITE));
     } while (-1 == fd);
     if (0 != renameat2 (AT_FDCWD, fil, AT_FDCWD, target, RENAME_EXCHANGE))
     {
@@ -398,6 +398,7 @@ GNUNET_DISK_file_backup (const char *fil)
 #endif
   return target;
 }
+
 
 char *
 GNUNET_DISK_mktemp (const char *t)
@@ -687,8 +688,9 @@ GNUNET_DISK_file_write (const struct GNUNET_DISK_FileHandle *h,
     errno = EINVAL;
     return GNUNET_SYSERR;
   }
-
-  return write (h->fd, buffer, n);
+  return write (h->fd,
+                buffer,
+                n);
 }
 
 
@@ -1639,14 +1641,22 @@ purge_cfg_dir (void *cls,
   char *tmpname;
 
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg, "PATHS", option, &tmpname))
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               "PATHS",
+                                               option,
+                                               &tmpname))
   {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR, "PATHS", option);
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               "PATHS",
+                               option);
     return GNUNET_NO;
   }
-  if (GNUNET_SYSERR == GNUNET_DISK_directory_remove (tmpname))
+  if (GNUNET_SYSERR ==
+      GNUNET_DISK_directory_remove (tmpname))
   {
-    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "remove", tmpname);
+    GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                              "remove",
+                              tmpname);
     GNUNET_free (tmpname);
     return GNUNET_OK;
   }
@@ -1656,11 +1666,13 @@ purge_cfg_dir (void *cls,
 
 
 void
-GNUNET_DISK_purge_cfg_dir (const char *cfg_filename,
+GNUNET_DISK_purge_cfg_dir (const struct GNUNET_OS_ProjectData *pd,
+                           const char *cfg_filename,
                            const char *option)
 {
   GNUNET_break (GNUNET_OK ==
-                GNUNET_CONFIGURATION_parse_and_run (cfg_filename,
+                GNUNET_CONFIGURATION_parse_and_run (pd,
+                                                    cfg_filename,
                                                     &purge_cfg_dir,
                                                     (void *) option));
 }

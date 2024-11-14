@@ -35,7 +35,7 @@
 
 
 #define GNUNET_SEARCH_log(kind, ...) \
-  GNUNET_log_from (kind, "gnunet-search", __VA_ARGS__)
+        GNUNET_log_from (kind, "gnunet-search", __VA_ARGS__)
 
 
 /*  The default settings that we use for the printed output  */
@@ -176,7 +176,7 @@ print_escape_sequence (const char *const esc)
   default: printf ("\\%c", *cursor); return cursor + 1;
   }
 
-  maybe_codepoint:
+maybe_codepoint:
   if (probe < 256)
     putchar (probe);
   else
@@ -227,7 +227,7 @@ item_printer (void *const cls,
   next_spec = strchr (cursor, '%');
   next_esc = strchr (cursor, '\\');
 
-  parse_format:
+parse_format:
 
   /*  If an escape sequence exists before the next format specifier...  */
   if (next_esc && (! next_spec || next_esc < next_spec))
@@ -305,7 +305,7 @@ print_search_result (const char *const filename,
   char *placeholder;
   struct GNUNET_SEARCH_MetadataPrinterInfo info;
 
-  parse_format:
+parse_format:
   /*  If an escape sequence exists before the next format specifier...  */
   if (next_esc && (! next_spec || next_esc < next_spec))
   {
@@ -329,7 +329,7 @@ print_search_result (const char *const filename,
     case 'a':
       info.flags = METADATA_PRINTER_FLAG_NONE;
 
-      iterate_meta:
+iterate_meta:
       info.counter = 0;
       GNUNET_FS_meta_data_iterate (metadata, &item_printer, &info);
       break;
@@ -413,7 +413,7 @@ print_search_result (const char *const filename,
     case '%': putchar ('%'); break;
     case '\0': putchar ('%'); return;
 
-      not_a_specifier:
+not_a_specifier:
     default: printf ("%%%c", *next_spec); break;
     }
     cursor = next_spec + 1;
@@ -798,7 +798,8 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
   if (GNUNET_SYSERR ==
-      GNUNET_PROGRAM_run (argc,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
                           argv,
                           "gnunet-search [OPTIONS] KEYWORD1 KEYWORD2 ...",
                           gettext_noop ("Search for files that have been "

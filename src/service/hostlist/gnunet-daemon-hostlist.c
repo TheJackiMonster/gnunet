@@ -385,7 +385,8 @@ main (int argc, char *const *argv)
   GNUNET_log_setup ("hostlist", "WARNING", NULL);
   ret =
     (GNUNET_OK ==
-     GNUNET_PROGRAM_run (argc, argv,
+     GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                         argc, argv,
                          "hostlist",
                          _ ("GNUnet hostlist server and client"),
                          options,

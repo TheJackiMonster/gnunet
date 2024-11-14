@@ -172,7 +172,8 @@ nat_server_read (void *cls)
     /* should we restart gnunet-helper-nat-server? */
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ (
-                  "gnunet-helper-nat-server generated malformed address `%s'\n"),
+                  "gnunet-helper-nat-server generated malformed address `%s'\n")
+                ,
                 mybuf);
     h->server_read_task =
       GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
@@ -212,8 +213,13 @@ restart_nat_server (void *cls)
   GNUNET_assert (NULL !=
                  inet_ntop (AF_INET, &h->internal_address, ia, sizeof(ia)));
   /* Start the server process */
-  binary = GNUNET_OS_get_suid_binary_path (h->cfg, "gnunet-helper-nat-server");
-  if (GNUNET_YES != GNUNET_OS_check_helper_binary (binary, GNUNET_YES, ia))
+  binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           h->cfg,
+                                           "gnunet-helper-nat-server");
+  if (GNUNET_YES !=
+      GNUNET_OS_check_helper_binary (binary,
+                                     GNUNET_YES,
+                                     ia))
   {
     /* move instantly to max delay, as this is unlikely to be fixed */
     h->server_retry_delay = GNUNET_TIME_STD_EXPONENTIAL_BACKOFF_THRESHOLD;
@@ -366,7 +372,9 @@ GN_request_connection_reversal (const struct in_addr *internal_address,
               intv4,
               remv4,
               internal_port);
-  binary = GNUNET_OS_get_suid_binary_path (cfg, "gnunet-helper-nat-client");
+  binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
+                                           cfg,
+                                           "gnunet-helper-nat-client");
   proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
                                   NULL,
                                   NULL,

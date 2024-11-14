@@ -296,7 +296,8 @@ main (int argc, char **argv)
     GNUNET_GETOPT_OPTION_END
   };
 
-  GNUNET_PROGRAM_run2 (argc,
+  GNUNET_PROGRAM_run2 (GNUNET_OS_project_data_gnunet (),
+                       argc,
                        argv,
                        "gnunet-consensus-ibf",
                        "help",

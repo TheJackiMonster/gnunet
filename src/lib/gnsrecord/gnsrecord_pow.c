@@ -17,12 +17,11 @@
 
      SPDX-License-Identifier: AGPL3.0-or-later
  */
-
-
 /**
  * @brief API for proof of work
  * @author Martin Schanzenbach
  */
+#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_gnsrecord_lib.h"

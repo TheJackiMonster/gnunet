@@ -345,7 +345,8 @@ run (void *cls,
   GNUNET_asprintf (&db_lib_name,
                    "libgnunet_plugin_namecache_%s",
                    database);
-  GSN_database = GNUNET_PLUGIN_load (db_lib_name,
+  GSN_database = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                     db_lib_name,
                                      (void *) GSN_cfg);
   GNUNET_free (database);
   if (NULL == GSN_database)

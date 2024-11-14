@@ -240,7 +240,7 @@ main (int argc, char *argv[])
   {
     struct GNUNET_CONFIGURATION_Handle *cfg;
 
-    cfg = GNUNET_CONFIGURATION_create ();
+    cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
     last = GNUNET_TIME_absolute_get_monotonic (cfg);
     now = GNUNET_TIME_absolute_get_monotonic (cfg);
     GNUNET_assert (now.abs_value_us > last.abs_value_us);

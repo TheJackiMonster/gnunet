@@ -212,7 +212,7 @@ display_record (const struct GNUNET_DNSPARSER_Record *record)
       format = tmp;
     }
     break;
-  
+
   case GNUNET_DNSPARSER_TYPE_URI:
     if (NULL == record->data.uri)
       format = "<invalid>";
@@ -397,7 +397,8 @@ main (int argc, char *const *argv)
   };
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc, argv, "gnunet-dns-monitor",
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc, argv, "gnunet-dns-monitor",
                              gettext_noop
                                ("Monitor DNS queries."), options,
                              &run, NULL)) ? ret : 1;

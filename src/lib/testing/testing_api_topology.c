@@ -29,8 +29,8 @@
  * @author Christian Grothoff
  *
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 #include "testing_api_topology.h"
@@ -611,11 +611,14 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
   struct GNUNET_HashCode hc = {0};
   struct GNUNET_TESTING_NetjailTopology *topology = GNUNET_new (struct
                                                                 GNUNET_TESTING_NetjailTopology);
-  topology->backbone_peers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO)
-  ;
-  topology->carriers = GNUNET_CONTAINER_multishortmap_create (1,GNUNET_NO);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  topology->backbone_peers
+    = GNUNET_CONTAINER_multishortmap_create (1,
+                                             GNUNET_NO);
+  topology->carriers
+    = GNUNET_CONTAINER_multishortmap_create (1,
+                                             GNUNET_NO);
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   GNUNET_assert (NULL != topology->carriers);
 
   if (GNUNET_OK !=
@@ -629,11 +632,11 @@ GNUNET_TESTING_get_topo_from_string_ (const char *input)
     GNUNET_CONFIGURATION_destroy (cfg);
     return NULL;
   }
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_number (cfg,
-                                                          "DEFAULTS",
-                                                          "SUBNETS",
-                                                          &(topology->
-                                                            default_subnets)))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_number (cfg,
+                                             "DEFAULTS",
+                                             "SUBNETS",
+                                             &topology->default_subnets))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "Missing default SUBNETS!\n");

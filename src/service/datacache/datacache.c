@@ -32,7 +32,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "datacache", __VA_ARGS__)
 
 #define LOG_STRERROR_FILE(kind, op, fn) \
-  GNUNET_log_from_strerror_file (kind, "datacache", op, fn)
+        GNUNET_log_from_strerror_file (kind, "datacache", op, fn)
 
 /**
  * Internal state of the datacache library.
@@ -133,7 +133,6 @@ GNUNET_DATACACHE_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
   struct GNUNET_DATACACHE_Handle *ret;
   char *libname;
   char *name;
-  const struct GNUNET_OS_ProjectData *pd;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_size (cfg,
@@ -206,26 +205,16 @@ GNUNET_DATACACHE_create (const struct GNUNET_CONFIGURATION_Handle *cfg,
   ret->short_name = name;
   ret->lib_name = libname;
   /* Load the plugin within GNUnet's default context */
-  pd = GNUNET_OS_project_data_get ();
-  GNUNET_OS_init (GNUNET_OS_project_data_default ());
-  ret->api = GNUNET_PLUGIN_load (libname,
+  ret->api = GNUNET_PLUGIN_load (GNUNET_CONFIGURATION_get_project_data (cfg),
+                                 libname,
                                  &ret->env);
-  GNUNET_OS_init (pd);
   if (NULL == ret->api)
   {
-    /* Try to load the plugin within the application's context
-       This normally happens when the application is not GNUnet itself but a
-       third party; inside GNUnet this is effectively a double failure. */
-    ret->api = GNUNET_PLUGIN_load (libname,
-                                   &ret->env);
-    if (NULL == ret->api)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "Failed to load datacache plugin for `%s'\n",
-           name);
-      GNUNET_DATACACHE_destroy (ret);
-      return NULL;
-    }
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Failed to load datacache plugin for `%s'\n",
+         name);
+    GNUNET_DATACACHE_destroy (ret);
+    return NULL;
   }
   return ret;
 }

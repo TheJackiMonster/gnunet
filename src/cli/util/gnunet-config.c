@@ -23,7 +23,6 @@
  * @brief tool to access and manipulate GNUnet configuration files
  * @author Christian Grothoff
  */
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
@@ -77,18 +76,19 @@ int
 main (int argc,
       char *const *argv)
 {
+  const struct GNUNET_OS_ProjectData *pd
+    = GNUNET_OS_project_data_gnunet ();
   struct GNUNET_CONFIGURATION_ConfigSettings cs = {
     .api_version = GNUNET_UTIL_VERSION,
     .global_ret = EXIT_SUCCESS
   };
-  const struct GNUNET_OS_ProjectData *pd
-    = GNUNET_OS_project_data_get ();
   char *cfgfile = NULL;
   char *loglev = NULL;
   char *logfile = NULL;
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_cfgfile (&cfgfile),
-    GNUNET_GETOPT_option_help ("gnunet-config [OPTIONS]"),
+    GNUNET_GETOPT_option_help (pd,
+                               "gnunet-config [OPTIONS]"),
     GNUNET_GETOPT_option_loglevel (&loglev),
     GNUNET_GETOPT_option_logfile (&logfile),
     GNUNET_GETOPT_option_version (pd->version),
@@ -142,7 +142,7 @@ main (int argc,
 
   if ( (NULL != pd->config_file) &&
        (NULL != pd->user_config_file) )
-    cfgfile = GNUNET_CONFIGURATION_default_filename ();
+    cfgfile = GNUNET_CONFIGURATION_default_filename (pd);
   iret = GNUNET_GETOPT_run ("gnunet-config",
                             options,
                             argc,
@@ -180,8 +180,10 @@ main (int argc,
   }
   if (1 == cflags || 1 == libs || 1 == prefix)
   {
-    char *prefixdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
-    char *libdir = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+    char *prefixdir = GNUNET_OS_installation_get_path (pd,
+                                                       GNUNET_OS_IPK_PREFIX);
+    char *libdir = GNUNET_OS_installation_get_path (pd,
+                                                    GNUNET_OS_IPK_LIBDIR);
 
     if (1 == cflags)
     {
@@ -208,7 +210,8 @@ main (int argc,
                      "libgnunet_plugin_%s",
                      backend_check);
     iret = (GNUNET_OK ==
-            GNUNET_PLUGIN_test (name)) ? 0 : 77;
+            GNUNET_PLUGIN_test (pd,
+                                name)) ? 0 : 77;
     GNUNET_free (name);
     GNUNET_free (cfgfile);
     return iret;
@@ -217,7 +220,7 @@ main (int argc,
   {
     struct GNUNET_CONFIGURATION_Handle *cfg;
 
-    cfg = GNUNET_CONFIGURATION_create ();
+    cfg = GNUNET_CONFIGURATION_create (pd);
 
     if (NULL != ram_config)
     {

@@ -58,7 +58,7 @@
  * decremented by 1/16th.
  */
 #define COVER_AGE_FREQUENCY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 5)
+          GNUNET_TIME_UNIT_SECONDS, 5)
 
 /**
  * Collect an instance number of statistics?  May cause excessive IPC.
@@ -1224,7 +1224,8 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
   anon_p2p_off = (GNUNET_YES ==
                   GNUNET_CONFIGURATION_get_value_yesno (GSF_cfg,
                                                         "fs",
-                                                        "DISABLE_ANON_TRANSFER"));
+                                                        "DISABLE_ANON_TRANSFER")
+                  );
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (GSF_cfg,
@@ -1321,7 +1322,7 @@ run (void *cls,
   }
   GSF_rt_entry_lifetime = GNUNET_LOAD_value_init (GNUNET_TIME_UNIT_FOREVER_REL);
   GSF_stats = GNUNET_STATISTICS_create ("fs", cfg);
-  block_cfg = GNUNET_CONFIGURATION_create ();
+  block_cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   GSF_block_ctx = GNUNET_BLOCK_context_create (block_cfg);
   GNUNET_assert (NULL != GSF_block_ctx);
   GSF_dht = GNUNET_DHT_connect (cfg, FS_DHT_HT_SIZE);

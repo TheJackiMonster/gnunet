@@ -163,6 +163,11 @@ struct GNUNET_CONFIGURATION_Handle
   struct ConfigFile *loaded_files_tail;
 
   /**
+   * Project data for this configuration object.
+   */
+  const struct GNUNET_OS_ProjectData *pd;
+
+  /**
    * Current nesting level of file loading.
    */
   unsigned int current_nest_level;
@@ -219,15 +224,17 @@ GNUNET_CONFIGURATION_enable_diagnostics (
 
 
 struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_create ()
+GNUNET_CONFIGURATION_create (const struct GNUNET_OS_ProjectData *pd)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
   char *p;
 
   cfg = GNUNET_new (struct GNUNET_CONFIGURATION_Handle);
+  cfg->pd = pd;
   /* make certain values from the project data available
      as PATHS */
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_DATADIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -236,7 +243,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_LIBDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -245,7 +253,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_BINDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_BINDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -254,7 +263,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_PREFIX);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_PREFIX);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -263,7 +273,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LOCALEDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_LOCALEDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -272,7 +283,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_ICONDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_ICONDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -281,7 +293,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DOCDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_DOCDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -290,7 +303,8 @@ GNUNET_CONFIGURATION_create ()
                                            p);
     GNUNET_free (p);
   }
-  p = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_LIBEXECDIR);
+  p = GNUNET_OS_installation_get_path (pd,
+                                       GNUNET_OS_IPK_LIBEXECDIR);
   if (NULL != p)
   {
     GNUNET_CONFIGURATION_set_value_string (cfg,
@@ -326,14 +340,15 @@ GNUNET_CONFIGURATION_destroy (struct GNUNET_CONFIGURATION_Handle *cfg)
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CONFIGURATION_parse_and_run (const char *filename,
+GNUNET_CONFIGURATION_parse_and_run (const struct GNUNET_OS_ProjectData *pd,
+                                    const char *filename,
                                     GNUNET_CONFIGURATION_Callback cb,
                                     void *cb_cls)
 {
   struct GNUNET_CONFIGURATION_Handle *cfg;
   enum GNUNET_GenericReturnValue ret;
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (pd);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_load (cfg,
                                  filename))
@@ -342,7 +357,8 @@ GNUNET_CONFIGURATION_parse_and_run (const char *filename,
     GNUNET_CONFIGURATION_destroy (cfg);
     return GNUNET_SYSERR;
   }
-  ret = cb (cb_cls, cfg);
+  ret = cb (cb_cls,
+            cfg);
   GNUNET_CONFIGURATION_destroy (cfg);
   return ret;
 }
@@ -582,7 +598,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       goto cleanup;
     }
 
-    other_cfg = GNUNET_CONFIGURATION_create ();
+    other_cfg = GNUNET_CONFIGURATION_create (cfg->pd);
     other_cfg->restrict_section = restrict_section;
     inner_ret = GNUNET_CONFIGURATION_parse (other_cfg,
                                             inline_path);
@@ -593,7 +609,8 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
       goto cleanup;
     }
 
-    cs = find_section (other_cfg, restrict_section);
+    cs = find_section (other_cfg,
+                       restrict_section);
     if (NULL == cs)
     {
       LOG (GNUNET_ERROR_TYPE_INFO,
@@ -1537,7 +1554,7 @@ GNUNET_CONFIGURATION_dup (
 {
   struct GNUNET_CONFIGURATION_Handle *ret;
 
-  ret = GNUNET_CONFIGURATION_create ();
+  ret = GNUNET_CONFIGURATION_create (cfg->pd);
   GNUNET_CONFIGURATION_iterate (cfg,
                                 &copy_entry,
                                 ret);
@@ -1582,9 +1599,12 @@ GNUNET_CONFIGURATION_get_diff (
 {
   struct DiffHandle diffHandle;
 
-  diffHandle.cfgDiff = GNUNET_CONFIGURATION_create ();
+  GNUNET_break (cfg_default->pd == cfg_new->pd);
+  diffHandle.cfgDiff = GNUNET_CONFIGURATION_create (cfg_new->pd);
   diffHandle.cfg_default = cfg_default;
-  GNUNET_CONFIGURATION_iterate (cfg_new, &compare_entries, &diffHandle);
+  GNUNET_CONFIGURATION_iterate (cfg_new,
+                                &compare_entries,
+                                &diffHandle);
   return diffHandle.cfgDiff;
 }
 
@@ -2400,7 +2420,8 @@ GNUNET_CONFIGURATION_load_from (
   enum GNUNET_GenericReturnValue fun_ret;
 
   if (GNUNET_SYSERR ==
-      GNUNET_DISK_directory_scan (defaults_d, &collect_files_cb,
+      GNUNET_DISK_directory_scan (defaults_d,
+                                  &collect_files_cb,
                                   &files_context))
     return GNUNET_SYSERR; /* no configuration at all found */
   qsort (files_context.files,
@@ -2416,11 +2437,14 @@ GNUNET_CONFIGURATION_load_from (
     ext = strrchr (filename, '.');
     if ((NULL == ext) || (0 != strcmp (ext, ".conf")))
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Skipping file `%s'\n", filename);
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Skipping file `%s'\n",
+                  filename);
       fun_ret = GNUNET_OK;
       goto cleanup;
     }
-    fun_ret = GNUNET_CONFIGURATION_parse (cfg, filename);
+    fun_ret = GNUNET_CONFIGURATION_parse (cfg,
+                                          filename);
     if (fun_ret != GNUNET_OK)
       break;
   }
@@ -2438,10 +2462,10 @@ cleanup:
 
 
 char *
-GNUNET_CONFIGURATION_default_filename (void)
+GNUNET_CONFIGURATION_default_filename (
+  const struct GNUNET_OS_ProjectData *pd)
 {
   char *cfg_fn;
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
   const char *xdg = getenv ("XDG_CONFIG_HOME");
 
   if (NULL != xdg)
@@ -2463,7 +2487,8 @@ GNUNET_CONFIGURATION_default_filename (void)
   GNUNET_asprintf (&cfg_fn,
                    "/etc/%s",
                    pd->config_file);
-  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+  if (GNUNET_OK ==
+      GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
   GNUNET_free (cfg_fn);
 
@@ -2471,7 +2496,8 @@ GNUNET_CONFIGURATION_default_filename (void)
                    "/etc/%s/%s",
                    pd->project_dirname,
                    pd->config_file);
-  if (GNUNET_OK == GNUNET_DISK_file_test_read (cfg_fn))
+  if (GNUNET_OK ==
+      GNUNET_DISK_file_test_read (cfg_fn))
     return cfg_fn;
 
   GNUNET_free (cfg_fn);
@@ -2479,86 +2505,6 @@ GNUNET_CONFIGURATION_default_filename (void)
 }
 
 
-struct GNUNET_CONFIGURATION_Handle *
-GNUNET_CONFIGURATION_default (void)
-{
-  const struct GNUNET_OS_ProjectData *pd = GNUNET_OS_project_data_get ();
-  const struct GNUNET_OS_ProjectData *dpd = GNUNET_OS_project_data_default ();
-  const char *xdg = getenv ("XDG_CONFIG_HOME");
-  char *cfgname = NULL;
-  struct GNUNET_CONFIGURATION_Handle *cfg;
-
-  /* Makes sure function implicitly looking at the installation directory (for
-     example GNUNET_CONFIGURATION_load further down) use GNUnet's environment
-     instead of the caller's.  It's done at the start to make sure as many
-     functions as possible are directed to the proper paths. */
-  GNUNET_OS_init (dpd);
-
-  cfg = GNUNET_CONFIGURATION_create ();
-
-  /* First, try user configuration. */
-  if (NULL != xdg)
-    GNUNET_asprintf (&cfgname,
-                     "%s/%s",
-                     xdg,
-                     dpd->config_file);
-  else
-    cfgname = GNUNET_strdup (dpd->user_config_file);
-
-  /* If user config doesn't exist, try in
-     /etc/<projdir>/<cfgfile> and /etc/<cfgfile> */
-  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
-  {
-    GNUNET_free (cfgname);
-    GNUNET_asprintf (&cfgname,
-                     "/etc/%s",
-                     dpd->config_file);
-  }
-  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
-  {
-    GNUNET_free (cfgname);
-    GNUNET_asprintf (&cfgname,
-                     "/etc/%s/%s",
-                     dpd->project_dirname,
-                     dpd->config_file);
-  }
-  if (GNUNET_OK != GNUNET_DISK_file_test (cfgname))
-  {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "Unable to top-level configuration file.\n");
-    GNUNET_OS_init (pd);
-    GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_free (cfgname);
-    return NULL;
-  }
-
-  /* We found a configuration file that looks good, try to load it. */
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Loading top-level configuration from '%s'\n",
-       cfgname);
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_load (cfg, cfgname))
-  {
-    GNUNET_OS_init (pd);
-    GNUNET_CONFIGURATION_destroy (cfg);
-    GNUNET_free (cfgname);
-    return NULL;
-  }
-  GNUNET_free (cfgname);
-  GNUNET_OS_init (pd);
-  return cfg;
-}
-
-
-/**
- * Load configuration (starts with defaults, then loads
- * system-specific configuration).
- *
- * @param cfg configuration to update
- * @param filename name of the configuration file, NULL to load defaults
- * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
- */
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_load (
   struct GNUNET_CONFIGURATION_Handle *cfg,
@@ -2580,7 +2526,7 @@ GNUNET_CONFIGURATION_load (
     cfg->main_filename = GNUNET_strdup (filename);
   }
 
-  base_config_varname = GNUNET_OS_project_data_get ()->base_config_varname;
+  base_config_varname = cfg->pd->base_config_varname;
 
   if ((NULL != base_config_varname)
       && (NULL != (baseconfig = getenv (base_config_varname))))
@@ -2591,7 +2537,8 @@ GNUNET_CONFIGURATION_load (
   {
     char *ipath;
 
-    ipath = GNUNET_OS_installation_get_path (GNUNET_OS_IPK_DATADIR);
+    ipath = GNUNET_OS_installation_get_path (cfg->pd,
+                                             GNUNET_OS_IPK_DATADIR);
     if (NULL == ipath)
     {
       GNUNET_break (0);
@@ -2606,6 +2553,7 @@ GNUNET_CONFIGURATION_load (
 
   {
     char *dname = GNUNET_STRINGS_filename_expand (baseconfig);
+
     GNUNET_free (baseconfig);
 
     if ((GNUNET_YES ==
@@ -2644,6 +2592,294 @@ GNUNET_CONFIGURATION_load (
                                            "DEFAULTCONFIG",
                                            filename);
   return GNUNET_OK;
+}
+
+
+/**
+ * Print each option in a given section as a filename.
+ *
+ * @param cls closure
+ * @param section name of the section
+ * @param option name of the option
+ * @param value value of the option
+ */
+static void
+print_filename_option (void *cls,
+                       const char *section,
+                       const char *option,
+                       const char *value)
+{
+  const struct GNUNET_CONFIGURATION_Handle *cfg = cls;
+
+  char *value_fn;
+  char *fn;
+
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                          section,
+                                                          option,
+                                                          &value_fn));
+  fn = GNUNET_STRINGS_filename_expand (value_fn);
+  if (NULL == fn)
+    fn = value_fn;
+  else
+    GNUNET_free (value_fn);
+  fprintf (stdout,
+           "%s = %s\n",
+           option,
+           fn);
+  GNUNET_free (fn);
+}
+
+
+/**
+ * Print each option in a given section.
+ *
+ * @param cls closure
+ * @param section name of the section
+ * @param option name of the option
+ * @param value value of the option
+ */
+static void
+print_option (void *cls,
+              const char *section,
+              const char *option,
+              const char *value)
+{
+  (void) cls;
+  (void) section;
+
+  fprintf (stdout,
+           "%s = %s\n",
+           option,
+           value);
+}
+
+
+/**
+ * Print out given section name.
+ *
+ * @param cls unused
+ * @param section a section in the configuration file
+ */
+static void
+print_section_name (void *cls,
+                    const char *section)
+{
+  (void) cls;
+  fprintf (stdout,
+           "%s\n",
+           section);
+}
+
+
+void
+GNUNET_CONFIGURATION_config_tool_run (
+  void *cls,
+  char *const *args,
+  const char *cfgfile,
+  const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  struct GNUNET_CONFIGURATION_ConfigSettings *cs = cls;
+  struct GNUNET_CONFIGURATION_Handle *out = NULL;
+  struct GNUNET_CONFIGURATION_Handle *ncfg = NULL;
+
+  (void) args;
+  if (cs->diagnostics)
+  {
+    /* Re-parse the configuration with diagnostics enabled. */
+    ncfg = GNUNET_CONFIGURATION_create (cfg->pd);
+    GNUNET_CONFIGURATION_enable_diagnostics (ncfg);
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_load (ncfg,
+                                   cfgfile))
+    {
+      fprintf (stderr,
+               _ ("Failed to load config file `%s'"),
+               cfgfile);
+      return;
+    }
+    cfg = ncfg;
+  }
+
+  if (cs->full)
+    cs->rewrite = GNUNET_YES;
+  if (cs->list_sections)
+  {
+    fprintf (stderr,
+             _ ("The following sections are available:\n"));
+    GNUNET_CONFIGURATION_iterate_sections (cfg,
+                                           &print_section_name,
+                                           NULL);
+    return;
+  }
+  if ( (! cs->rewrite) &&
+       (NULL == cs->section) )
+  {
+    char *serialization;
+
+    if (! cs->diagnostics)
+    {
+      fprintf (stderr,
+               _ ("%s, %s or %s argument is required\n"),
+               "--section",
+               "--list-sections",
+               "--diagnostics");
+      cs->global_ret = EXIT_INVALIDARGUMENT;
+      return;
+    }
+    serialization = GNUNET_CONFIGURATION_serialize_diagnostics (cfg);
+    fprintf (stdout,
+             "%s",
+             serialization);
+    GNUNET_free (serialization);
+  }
+  else if ( (NULL != cs->section) &&
+            (NULL == cs->value) )
+  {
+    if (NULL == cs->option)
+    {
+      GNUNET_CONFIGURATION_iterate_section_values (
+        cfg,
+        cs->section,
+        cs->is_filename
+        ? &print_filename_option
+        : &print_option,
+        (void *) cfg);
+    }
+    else
+    {
+      char *value;
+
+      if (cs->is_filename)
+      {
+        if (GNUNET_OK !=
+            GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                                     cs->section,
+                                                     cs->option,
+                                                     &value))
+        {
+          GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                     cs->section,
+                                     cs->option);
+          cs->global_ret = EXIT_NOTCONFIGURED;
+          return;
+        }
+      }
+      else
+      {
+        if (GNUNET_OK !=
+            GNUNET_CONFIGURATION_get_value_string (cfg,
+                                                   cs->section,
+                                                   cs->option,
+                                                   &value))
+        {
+          GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                                     cs->section,
+                                     cs->option);
+          cs->global_ret = EXIT_NOTCONFIGURED;
+          return;
+        }
+      }
+      fprintf (stdout,
+               "%s\n",
+               value);
+      GNUNET_free (value);
+    }
+  }
+  else if (NULL != cs->section)
+  {
+    if (NULL == cs->option)
+    {
+      fprintf (stderr,
+               _ ("--option argument required to set value\n"));
+      cs->global_ret = EXIT_INVALIDARGUMENT;
+      return;
+    }
+    out = GNUNET_CONFIGURATION_dup (cfg);
+    GNUNET_CONFIGURATION_set_value_string (out,
+                                           cs->section,
+                                           cs->option,
+                                           cs->value);
+    cs->rewrite = GNUNET_YES;
+  }
+  if (cs->rewrite)
+  {
+    char *cfg_fn = NULL;
+
+    if (NULL == out)
+      out = GNUNET_CONFIGURATION_dup (cfg);
+
+    if (NULL == cfgfile)
+    {
+      const char *xdg = getenv ("XDG_CONFIG_HOME");
+
+      if (NULL != xdg)
+        GNUNET_asprintf (&cfg_fn,
+                         "%s%s%s",
+                         xdg,
+                         DIR_SEPARATOR_STR,
+                         cfg->pd->config_file);
+      else
+        cfg_fn = GNUNET_strdup (cfg->pd->user_config_file);
+      cfgfile = cfg_fn;
+    }
+
+    if (! cs->full)
+    {
+      struct GNUNET_CONFIGURATION_Handle *def;
+
+      def = GNUNET_CONFIGURATION_create (cfg->pd);
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_load (def,
+                                     NULL))
+      {
+        fprintf (stderr,
+                 _ ("failed to load configuration defaults"));
+        cs->global_ret = 1;
+        GNUNET_CONFIGURATION_destroy (def);
+        GNUNET_CONFIGURATION_destroy (out);
+        GNUNET_free (cfg_fn);
+        return;
+      }
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_write_diffs (def,
+                                            out,
+                                            cfgfile))
+        cs->global_ret = 2;
+      GNUNET_CONFIGURATION_destroy (def);
+    }
+    else
+    {
+      if (GNUNET_OK !=
+          GNUNET_CONFIGURATION_write (out,
+                                      cfgfile))
+        cs->global_ret = 2;
+    }
+    GNUNET_free (cfg_fn);
+  }
+  if (NULL != out)
+    GNUNET_CONFIGURATION_destroy (out);
+  if (NULL != ncfg)
+    GNUNET_CONFIGURATION_destroy (ncfg);
+}
+
+
+void
+GNUNET_CONFIGURATION_config_settings_free (
+  struct GNUNET_CONFIGURATION_ConfigSettings *cs)
+{
+  GNUNET_free (cs->option);
+  GNUNET_free (cs->section);
+  GNUNET_free (cs->value);
+}
+
+
+const struct GNUNET_OS_ProjectData *
+GNUNET_CONFIGURATION_get_project_data (
+  const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  return cfg->pd;
 }
 
 

@@ -72,7 +72,9 @@ load_plugin (const struct GNUNET_CONFIGURATION_Handle *cfg)
   GNUNET_asprintf (&libname,
                    "libgnunet_plugin_namestore_%s",
                    plugin_name);
-  if (NULL == (ret = GNUNET_PLUGIN_load (libname, (void *) cfg)))
+  if (NULL == (ret = GNUNET_PLUGIN_load (GNUNET_OS_project_data_gnunet (),
+                                         libname,
+                                         (void *) cfg)))
   {
     fprintf (stderr,
              "Failed to load plugin `%s'!\n",
@@ -170,7 +172,7 @@ edit_iter (void *cls,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
 {
-  const char* expected_hint = cls;
+  const char*expected_hint = cls;
   printf ("Expected hint: `%s', got `%s'\n", expected_hint, editor_hint);
   GNUNET_assert (0 == strcmp (expected_hint, editor_hint));
 }
@@ -178,7 +180,7 @@ edit_iter (void *cls,
 
 static void
 edit_record (struct GNUNET_NAMESTORE_PluginFunctions *nsp, int id,
-             const char *new_hint, const char* old_hint)
+             const char *new_hint, const char*old_hint)
 {
   struct GNUNET_CRYPTO_PrivateKey zone_private_key;
   char label[64];
@@ -212,9 +214,9 @@ run (void *cls,
   }
   put_record (nsp, 1);
   get_record (nsp, 1);
-  edit_record(nsp, 1, "hello", "");
-  edit_record(nsp, 1, "world", "hello");
-  edit_record(nsp, 1, "gnunet", "world");
+  edit_record (nsp, 1, "hello", "");
+  edit_record (nsp, 1, "world", "hello");
+  edit_record (nsp, 1, "gnunet", "world");
 #ifndef DARWIN // #5582
   unload_plugin (nsp);
 #endif
@@ -240,15 +242,20 @@ main (int argc, char *argv[])
                    sizeof(cfg_name),
                    "test_plugin_namestore_%s.conf",
                    plugin_name);
-  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TMP");
-  GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+  GNUNET_DISK_purge_cfg_dir (GNUNET_OS_project_data_gnunet (),
+                             cfg_name,
+                             "GNUNET_TMP");
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(xargv) / sizeof(char *)) - 1,
                       xargv,
                       "test-plugin-namestore",
                       "nohelp",
                       options,
                       &run,
                       NULL);
-  GNUNET_DISK_purge_cfg_dir (cfg_name, "GNUNET_TMP");
+  GNUNET_DISK_purge_cfg_dir (GNUNET_OS_project_data_gnunet (),
+                             cfg_name,
+                             "GNUNET_TMP");
   if (ok != 0)
     fprintf (stderr, "Missed some testcases: %d\n", ok);
   return ok;

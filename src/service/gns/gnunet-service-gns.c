@@ -23,8 +23,8 @@
  * @author Martin Schanzenbach
  * @author Christian Grothoff
  */
-#include "gnunet_common.h"
 #include "platform.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_namecache_service.h"
@@ -435,9 +435,9 @@ handle_lookup (void *cls,
   clh->request_id = sh_msg->id;
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_public_key_from_buffer (&sh_msg[1],
-                                                    key_len,
-                                                    &zone,
-                                                    &read)) ||
+                                                  key_len,
+                                                  &zone,
+                                                  &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -514,7 +514,8 @@ read_service_conf (void *cls,
                                section,
                                option,
                                _ (
-                                 "Properly base32-encoded public key required"));
+                                 "Properly base32-encoded public key required"))
+    ;
     return;
   }
   tld = GNUNET_new (struct GNS_TopLevelDomain);

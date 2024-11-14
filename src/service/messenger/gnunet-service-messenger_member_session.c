@@ -671,7 +671,7 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Load session configuration of member: %s\n", config_file);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     goto free_config;
@@ -781,7 +781,7 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Load next session configuration of member: %s\n", config_file);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     goto free_config;
@@ -901,7 +901,7 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Save session configuration of member: %s\n", config_file);
 
-  cfg = GNUNET_CONFIGURATION_create ();
+  cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
 
   if (! cfg)
     goto free_config;

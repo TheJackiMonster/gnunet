@@ -223,13 +223,15 @@ main (int argc, char *const *argv)
     GNUNET_GETOPT_OPTION_END };
 
   GNUNET_log_setup ("gnunet-namecache", "WARNING", NULL);
-  if (GNUNET_OK != GNUNET_PROGRAM_run (argc,
-                                       argv,
-                                       "gnunet-namecache",
-                                       _ ("GNUnet zone manipulation tool"),
-                                       options,
-                                       &run,
-                                       NULL))
+  if (GNUNET_OK !=
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc,
+                          argv,
+                          "gnunet-namecache",
+                          _ ("GNUnet zone manipulation tool"),
+                          options,
+                          &run,
+                          NULL))
   {
     return 1;
   }

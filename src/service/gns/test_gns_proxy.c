@@ -471,14 +471,14 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Using `%s' as CA\n",
-              cafile_srv);
   char cert[MAX_PEM_SIZE];
   char key[MAX_PEM_SIZE];
   size_t key_buf_size;
   size_t cert_buf_size;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Using `%s' as CA\n",
+              cafile_srv);
   gnutls_global_init ();
   gnutls_x509_crt_init (&proxy_cert);
   gnutls_x509_privkey_init (&proxy_key);
@@ -558,11 +558,13 @@ main (int argc, char *const *argv)
   GNUNET_log_setup ("gnunet-gns-proxy-test",
                     "WARNING",
                     NULL);
-  if (GNUNET_OK != GNUNET_PROGRAM_run (argc, argv,
-                                       "gnunet-gns-proxy-test",
-                                       _ ("GNUnet GNS proxy test"),
-                                       options,
-                                       &run, NULL))
+  if (GNUNET_OK !=
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          argc, argv,
+                          "gnunet-gns-proxy-test",
+                          _ ("GNUnet GNS proxy test"),
+                          options,
+                          &run, NULL))
     return 1;
   return global_ret;
 }

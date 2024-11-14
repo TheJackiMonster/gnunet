@@ -389,7 +389,8 @@ check ()
 
   /* Running ARM  and running the do_nothing task */
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                          (sizeof(argv) / sizeof(char *)) - 1,
                           argv,
                           "test-exponential-backoff",
                           "nohelp",
@@ -416,7 +417,7 @@ init (void)
   char pwd[PATH_MAX];
   char *binary;
 
-  cfg_ = GNUNET_CONFIGURATION_create ();
+  cfg_ = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_parse (cfg_,
                                   "test_arm_api_data.conf"))

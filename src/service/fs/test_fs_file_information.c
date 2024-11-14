@@ -153,7 +153,8 @@ main (int argc, char *argv[])
   GNUNET_log_setup ("test_fs_file_information",
                     "WARNING",
                     NULL);
-  GNUNET_PROGRAM_run ((sizeof(argvx) / sizeof(char *)) - 1, argvx,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                      (sizeof(argvx) / sizeof(char *)) - 1, argvx,
                       "test-fs-file_information", "nohelp", options, &run,
                       NULL);
   return 0;

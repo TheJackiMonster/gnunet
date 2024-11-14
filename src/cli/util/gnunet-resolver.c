@@ -173,7 +173,8 @@ main (int argc, char *const *argv)
   int ret;
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc, argv,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                             argc, argv,
                              "gnunet-resolver [hostname]",
                              gettext_noop ("Use built-in GNUnet stub resolver"),
                              options,
