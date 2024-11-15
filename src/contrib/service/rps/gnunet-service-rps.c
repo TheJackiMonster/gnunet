@@ -4983,7 +4983,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("rps",
+(GNUNET_OS_project_data_gnunet(),
+ "rps",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

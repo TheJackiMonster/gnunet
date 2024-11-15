@@ -204,7 +204,8 @@ main (int argc, char *const *argv)
   };
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc, argv,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                             argc, argv,
                              "gnunet-auction-create",
                              gettext_noop ("create a new auction and "
                                            "start listening for bidders"),

@@ -282,7 +282,8 @@ main (int argc, char *const *argv)
   };
 
   return (GNUNET_OK ==
-          GNUNET_PROGRAM_run (argc,
+          GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                              argc,
                               argv,
                               "gnunet-rps [NUMBER_OF_PEERS]",
                               gettext_noop
