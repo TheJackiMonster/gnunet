@@ -32,14 +32,12 @@
  * - channel: logical link between two clients, on the same or different peers.
  *            have properties like reliability.
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "cadet.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet-service-cadet.h"
 #include "gnunet-service-cadet_channel.h"
-#include "gnunet-service-cadet_connection.h"
 #include "gnunet-service-cadet_core.h"
 #include "gnunet-service-cadet_dht.h"
 #include "gnunet-service-cadet_hello.h"
@@ -1325,7 +1323,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("cadet",
+(GNUNET_OS_project_data_gnunet(),
+ "cadet",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

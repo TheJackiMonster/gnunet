@@ -25,7 +25,6 @@
  */
 #include "platform.h"
 #include <float.h>
-#include "gnunet_constants.h"
 #include "gnunet_core_service.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_datastore_service.h"
@@ -1347,7 +1346,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("fs",
+(GNUNET_OS_project_data_gnunet(),
+ "fs",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

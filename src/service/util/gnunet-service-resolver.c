@@ -1349,6 +1349,7 @@ disconnect_cb (void *cls, struct GNUNET_SERVICE_Client *c, void *internal_cls)
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "resolver",
   GNUNET_SERVICE_OPTION_NONE,
   &init_cb,

@@ -246,7 +246,8 @@ main (int argc,
   };
 
   ret = (GNUNET_OK ==
-         GNUNET_PROGRAM_run (argc, argv,
+         GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                             argc, argv,
                              "gnunet-conversation-test",
                              gettext_noop ("help text"),
                              options,

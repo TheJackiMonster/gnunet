@@ -1631,7 +1631,8 @@ GDS_CLIENTS_stop (void)
  */
 #define GDS_DHT_SERVICE_INIT(name, run)          \
         GNUNET_SERVICE_MAIN \
-          (name, \
+        (GNUNET_OS_project_data_gnunet(), \
+         name,                            \
           GNUNET_SERVICE_OPTION_NONE, \
           run, \
           &client_connect_cb, \

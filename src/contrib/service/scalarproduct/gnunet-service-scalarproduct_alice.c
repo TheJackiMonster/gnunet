@@ -27,9 +27,7 @@
 #include <limits.h>
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"
-#include "gnunet_core_service.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_applications.h"
 #include "gnunet_protocols.h"
 #include "gnunet_scalarproduct_service.h"
 #include "gnunet_seti_service.h"
@@ -1367,6 +1365,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "scalarproduct-alice",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

@@ -452,7 +452,8 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("nat-auto",
+(GNUNET_OS_project_data_gnunet(),
+ "nat-auto",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

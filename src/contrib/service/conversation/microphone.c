@@ -27,6 +27,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+
 #include "gnunet_microphone_lib.h"
 #include "conversation.h"
 
@@ -107,7 +108,8 @@ enable (void *cls,
 
   mic->rdc = rdc;
   mic->rdc_cls = rdc_cls;
-  mic->record_helper = GNUNET_HELPER_start (GNUNET_NO,
+  mic->record_helper = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet(),
+                                            GNUNET_NO,
                                             "gnunet-helper-audio-record",
                                             record_helper_argv,
                                             &process_record_messages,

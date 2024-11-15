@@ -35,10 +35,8 @@
  *   basically, open port & try different methods.
  */
 #include "platform.h"
-#include <math.h>
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
-#include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_resolver_service.h"
 #include "gnunet_nat_service.h"
@@ -2110,7 +2108,8 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("nat",
+(GNUNET_OS_project_data_gnunet(),
+ "nat",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

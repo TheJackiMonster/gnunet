@@ -32,10 +32,8 @@
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_identity_service.h"
 #include "identity.h"
 
 
@@ -1000,6 +998,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "identity",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

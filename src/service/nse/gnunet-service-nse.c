@@ -38,12 +38,10 @@
 #include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
-#include "gnunet_constants.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
-#include "gnunet_nse_service.h"
 #if ENABLE_NSE_HISTOGRAM
 #include "gnunet_testbed_logger_service.h"
 #endif
@@ -1553,7 +1551,8 @@ client_disconnect_cb (void *cls,
 /**
  * Define "main" method using service macro.
  */
-GNUNET_SERVICE_MAIN ("nse",
+GNUNET_SERVICE_MAIN (GNUNET_OS_project_data_gnunet(),
+                     "nse",
                      GNUNET_SERVICE_OPTION_NONE,
                      &run,
                      &client_connect_cb,

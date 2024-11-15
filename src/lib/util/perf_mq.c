@@ -24,8 +24,6 @@
  * @author Florian Dold
  * @author Christian Grothoff
  */
-
-#include "platform.h"
 #include "gnunet_util_lib.h"
 
 #define NUM_TRANSMISSIONS 1000000
@@ -278,7 +276,8 @@ main (int argc, char **argv)
                     NULL);
   start = GNUNET_TIME_absolute_get ();
   if (0 !=
-      GNUNET_SERVICE_run_ (3,
+      GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet(),
+                           3,
                            test_argv,
                            "test_client",
                            GNUNET_SERVICE_OPTION_NONE,

@@ -370,7 +370,7 @@ GNUNET_SERVICE_register_ (
  * </code>
  */
 #ifndef HAVE_GNUNET_MONOLITH
-#define GNUNET_SERVICE_MAIN(service_name, service_options, init_cb, \
+#define GNUNET_SERVICE_MAIN(pd, service_name, service_options, init_cb,  \
                             connect_cb, \
                             disconnect_cb, cls, ...) \
         int \
@@ -380,7 +380,7 @@ GNUNET_SERVICE_register_ (
           struct GNUNET_MQ_MessageHandler mh[] = { \
             __VA_ARGS__ \
           };                        \
-          return GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (), \
+          return GNUNET_SERVICE_run_ (pd, \
                                       argc, \
                                       argv, \
                                       service_name, \

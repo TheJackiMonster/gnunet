@@ -2397,7 +2397,8 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("secretsharing",
+(GNUNET_OS_project_data_gnunet(),
+ "secretsharing",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

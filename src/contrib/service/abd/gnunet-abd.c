@@ -1094,7 +1094,8 @@ main (int argc, char *const *argv)
 
   timeout = GNUNET_TIME_UNIT_FOREVER_REL;
   GNUNET_log_setup ("gnunet-abd", "WARNING", NULL);
-  if (GNUNET_OK != GNUNET_PROGRAM_run (argc,
+  if (GNUNET_OK != GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                                       argc,
                                        argv,
                                        "gnunet-abd",
                                        _ ("GNUnet abd resolver tool"),

@@ -24,7 +24,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "gnunet_arm_service.h"
+
 #include "gnunet_core_service.h"
 #include "gnunet_util_lib.h"
 
@@ -115,8 +115,9 @@ setup_peer (struct PeerContext *p,
 {
   char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
-  p->cfg = GNUNET_CONFIGURATION_create ();
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet(),
+                                              "gnunet-service-arm");
+  p->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet());
   p->arm_proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -212,14 +213,17 @@ check ()
   };
 
   GNUNET_DISK_purge_cfg_dir
-    ("test_core_api_peer1.conf",
+    (GNUNET_OS_project_data_gnunet(),
+    "test_core_api_peer1.conf",
     "GNUNET_TEST_HOME");
   GNUNET_DISK_purge_cfg_dir
-    ("test_core_api_peer2.conf",
+    (GNUNET_OS_project_data_gnunet(),
+    "test_core_api_peer2.conf",
     "GNUNET_TEST_HOME");
 
   ok = 1;
-  GNUNET_PROGRAM_run ((sizeof(argv) / sizeof(char *)) - 1,
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                      (sizeof(argv) / sizeof(char *)) - 1,
                       argv,
                       "test-core-api-start-only",
                       "nohelp",
@@ -245,10 +249,12 @@ main (int argc,
                     NULL);
   ret = check ();
   GNUNET_DISK_purge_cfg_dir
-    ("test_core_api_peer1.conf",
+    (GNUNET_OS_project_data_gnunet(),
+    "test_core_api_peer1.conf",
     "GNUNET_TEST_HOME");
   GNUNET_DISK_purge_cfg_dir
-    ("test_core_api_peer2.conf",
+    (GNUNET_OS_project_data_gnunet(),
+     "test_core_api_peer2.conf",
     "GNUNET_TEST_HOME");
   return ret;
 }

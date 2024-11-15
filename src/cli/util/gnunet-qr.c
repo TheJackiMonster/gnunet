@@ -606,7 +606,8 @@ main (int argc, char *const *argv)
   };
 
   enum GNUNET_GenericReturnValue ret =
-    GNUNET_PROGRAM_run (argc,
+    GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                        argc,
                         argv,
                         "gnunet-qr",
                         gettext_noop ("Scan a QR code and import the URI read"),

@@ -3553,6 +3553,7 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "consensus",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

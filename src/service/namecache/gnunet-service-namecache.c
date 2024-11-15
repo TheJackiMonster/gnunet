@@ -24,12 +24,9 @@
  * @author Matthias Wachs
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_namecache_service.h"
 #include "gnunet_namecache_plugin.h"
-#include "gnunet_signatures.h"
 #include "namecache.h"
 
 #define LOG_STRERROR_FILE(kind, syscall, \
@@ -371,7 +368,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("namecache",
+(GNUNET_OS_project_data_gnunet(),
+ "namecache",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

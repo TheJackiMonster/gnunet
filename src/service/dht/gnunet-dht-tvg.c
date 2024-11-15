@@ -157,7 +157,8 @@ main (int argc,
   // gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
   // gcry_control (GCRYCTL_SET_VERBOSITY, 99);
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (argc, argv,
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                          argc, argv,
                           "gnunet-dht-tvg",
                           "Generate test vectors for R5N",
                           options,

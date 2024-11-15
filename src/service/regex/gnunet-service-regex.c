@@ -24,7 +24,6 @@
  *        lookup capabilities by regex
  * @author Christian Grothoff
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "regex_internal_lib.h"
 #include "regex_ipc.h"
@@ -388,7 +387,8 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("regex",
+(GNUNET_OS_project_data_gnunet(),
+ "regex",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

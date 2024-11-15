@@ -1269,6 +1269,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "peerstore", GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, &client_connect_cb,
   &client_disconnect_cb, NULL,
   GNUNET_MQ_hd_var_size (store, GNUNET_MESSAGE_TYPE_PEERSTORE_STORE,

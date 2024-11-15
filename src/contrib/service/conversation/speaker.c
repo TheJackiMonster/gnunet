@@ -26,6 +26,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+
 #include "gnunet_speaker_lib.h"
 #include "conversation.h"
 
@@ -62,7 +63,8 @@ enable (void *cls)
     NULL
   };
 
-  spe->playback_helper = GNUNET_HELPER_start (GNUNET_NO,
+  spe->playback_helper = GNUNET_HELPER_start (GNUNET_OS_project_data_gnunet(),
+                                              GNUNET_NO,
                                               "gnunet-helper-audio-playback",
                                               playback_helper_argv,
                                               NULL,

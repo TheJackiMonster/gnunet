@@ -1502,7 +1502,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-  ("zonemaster",
+(GNUNET_OS_project_data_gnunet(),
+ "zonemaster",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   NULL,

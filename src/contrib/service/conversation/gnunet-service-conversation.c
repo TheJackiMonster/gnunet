@@ -27,11 +27,8 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
-#include "gnunet_applications.h"
-#include "gnunet_constants.h"
 #include "gnunet_signatures.h"
 #include "gnunet_cadet_service.h"
-#include "gnunet_conversation_service.h"
 #include "conversation.h"
 
 
@@ -1421,6 +1418,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "conversation",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

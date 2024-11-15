@@ -22,7 +22,6 @@
  * @brief Test for the datacache implementations.
  * @author Nils Durner
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_datacache_lib.h"
 
@@ -186,7 +185,8 @@ main (int argc, char *argv[])
                    sizeof(cfg_name),
                    "test_datacache_data_%s.conf",
                    plugin_name);
-  if (GNUNET_OK != GNUNET_PROGRAM_run ((sizeof(xargv) / sizeof(char *)) - 1,
+  if (GNUNET_OK != GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+                                       (sizeof(xargv) / sizeof(char *)) - 1,
                                        (char *const*) xargv,
                                        "test-datacache",
                                        "nohelp",

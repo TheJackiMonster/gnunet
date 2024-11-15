@@ -22,7 +22,6 @@
  * @file src/reclaim/gnunet-service-reclaim.c
  * @brief reclaim Service
  */
-#include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet-service-reclaim_tickets.h"
 #include "gnunet_gnsrecord_lib.h"
@@ -2711,6 +2710,7 @@ client_connect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
+  GNUNET_OS_project_data_gnunet(),
   "reclaim",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
