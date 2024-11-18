@@ -110,7 +110,6 @@ src/lib/gnsrecord/gnsrecord_pow.c
 src/lib/gnsrecord/gnsrecord_serialization.c
 src/lib/gnsrecord/gnunet-gnsrecord-tvg.c
 src/lib/gnsrecord/json_gnsrecord.c
-src/lib/hello/hello-ng.c
 src/lib/hello/hello-uri.c
 src/lib/json/json.c
 src/lib/json/json_generator.c
@@ -159,7 +158,6 @@ src/lib/util/common_endian.c
 src/lib/util/common_logging.c
 src/lib/util/compress.c
 src/lib/util/configuration.c
-src/lib/util/configuration_helper.c
 src/lib/util/consttime_memcmp.c
 src/lib/util/container_bloomfilter.c
 src/lib/util/container_heap.c
@@ -211,7 +209,6 @@ src/lib/util/peer.c
 src/lib/util/plugin.c
 src/lib/util/proc_compat.c
 src/lib/util/program.c
-src/lib/util/regex.c
 src/lib/util/resolver_api.c
 src/lib/util/scheduler.c
 src/lib/util/service.c
@@ -434,6 +431,7 @@ src/service/regex/gnunet-daemon-regexprofiler.c
 src/service/regex/gnunet-regex-profiler.c
 src/service/regex/gnunet-service-regex.c
 src/service/regex/perf-regex.c
+src/service/regex/regex.c
 src/service/regex/regex_api_announce.c
 src/service/regex/regex_api_search.c
 src/service/regex/regex_internal.c
