@@ -824,11 +824,11 @@ output_message (enum GNUNET_ErrorType kind,
 {
   static int have_journald = -1;
   struct CustomLogger *pos;
-  char optional_newline = '\n';
+  char *optional_newline = "\n";
 
   if ((strlen (msg) > 0) &&
       ('\n' == msg[strlen (msg) - 1]))
-    optional_newline = '\0';
+    optional_newline = "";
 
   if (-1 == have_journald)
   {
@@ -855,7 +855,7 @@ output_message (enum GNUNET_ErrorType kind,
        * this way if the output is going to logfiles or robots
        * instead.
        */
-      fprintf (GNUNET_stderr, "* %s", msg);
+      fprintf (GNUNET_stderr, "* %s%s", msg, optional_newline);
     }
     else if (GNUNET_YES == current_async_scope.have_scope)
     {
@@ -873,14 +873,14 @@ output_message (enum GNUNET_ErrorType kind,
       skip_log = 0;
       if (have_journald)
         fprintf (GNUNET_stderr,
-                 "(%s) %s %s%c",
+                 "(%s) %s %s%s",
                  id_buf,
                  GNUNET_error_type_to_string (kind),
                  msg,
                  optional_newline);
       else
         fprintf (GNUNET_stderr,
-                 "%s %s(%s) %s %s%c",
+                 "%s %s(%s) %s %s%s",
                  datestr,
                  comp,
                  id_buf,
@@ -892,13 +892,13 @@ output_message (enum GNUNET_ErrorType kind,
     {
       if (have_journald)
         fprintf (GNUNET_stderr,
-                 "%s %s%c",
+                 "%s %s%s",
                  GNUNET_error_type_to_string (kind),
                  msg,
                  optional_newline);
       else
         fprintf (GNUNET_stderr,
-                 "%s %s %s %s%c",
+                 "%s %s %s %s%s",
                  datestr,
                  comp,
                  GNUNET_error_type_to_string (kind),
