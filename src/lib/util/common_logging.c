@@ -824,7 +824,7 @@ output_message (enum GNUNET_ErrorType kind,
 {
   static int have_journald = -1;
   struct CustomLogger *pos;
-  char *optional_newline = "\n";
+  const char *optional_newline = "\n";
 
   if ((strlen (msg) > 0) &&
       ('\n' == msg[strlen (msg) - 1]))
