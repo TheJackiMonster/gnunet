@@ -38,8 +38,6 @@
  * @defgroup mq  MQ library
  * General-purpose message queue
  *
- * @see [Documentation](https://gnunet.org/message-queue-api)
- *
  * @{
  */
 #ifndef GNUNET_MQ_LIB_H
