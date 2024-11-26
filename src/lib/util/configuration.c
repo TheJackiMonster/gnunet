@@ -618,7 +618,7 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
            "does not contain section '%s'.\n",
            inline_path,
            restrict_section);
-      /* Inlined onfiguration is accessible but doesn't contain any values.
+      /* Inlined configuration is accessible but doesn't contain any values.
          We treat this as if the inlined section was empty, and do not
          consider it an error. */
       fun_ret = GNUNET_OK;
