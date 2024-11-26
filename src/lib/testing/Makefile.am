@@ -93,3 +93,5 @@ libgnunet_test_testing_plugin_ping_la_LIBADD = \
   libgnunettesting.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(LTLIBINTL)
+libgnunet_test_testing_plugin_ping_la_LDFLAGS = \
+  $(GN_PLUGIN_LDFLAGS)

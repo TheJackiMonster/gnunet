@@ -24,7 +24,6 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_util_lib.h"
 #include "gnunet_testing_lib.h"
 
 GNUNET_TESTING_MAKE_PLUGIN (
