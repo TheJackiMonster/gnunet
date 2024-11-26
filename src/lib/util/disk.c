@@ -370,19 +370,33 @@ GNUNET_DISK_file_backup (const char *fil)
 #if HAVE_RENAMEAT2
   {
     int fd;
+
     do
     {
-      GNUNET_snprintf (target, slen, "%s.%u~", fil, num++);
-      fd = open (target, O_CREAT | O_EXCL,
+      GNUNET_snprintf (target,
+                       slen,
+                       "%s.%u~",
+                       fil,
+                       num++);
+      fd = open (target,
+                 O_CREAT | O_EXCL,
                  translate_unix_perms (GNUNET_DISK_PERM_USER_WRITE));
     } while (-1 == fd);
-    if (0 != renameat2 (AT_FDCWD, fil, AT_FDCWD, target, RENAME_EXCHANGE))
+    if (0 != renameat2 (AT_FDCWD,
+                        fil,
+                        AT_FDCWD,
+                        target,
+                        RENAME_EXCHANGE))
     {
-      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "renameat2", fil);
-      close (fd);
+      GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
+                                "renameat2",
+                                fil);
+      GNUNET_break (0 ==
+                    close (fd));
       return NULL;
     }
-    close (fd);
+    GNUNET_break (0 ==
+                  close (fd));
   }
 #else
   do
@@ -672,7 +686,8 @@ GNUNET_DISK_fn_read (const char *fn,
     return GNUNET_SYSERR;
   ret = GNUNET_DISK_file_read (fh, result, len);
   eno = errno;
-  GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_close (fh));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_DISK_file_close (fh));
   errno = eno;
   return ret;
 }
@@ -1154,13 +1169,17 @@ GNUNET_DISK_file_copy (const char *src,
     pos += len;
   }
   GNUNET_free (buf);
-  GNUNET_DISK_file_close (in);
-  GNUNET_DISK_file_close (out);
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_DISK_file_close (in));
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_DISK_file_close (out));
   return GNUNET_OK;
 FAIL:
   GNUNET_free (buf);
-  GNUNET_DISK_file_close (in);
-  GNUNET_DISK_file_close (out);
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_DISK_file_close (in));
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_DISK_file_close (out));
   return GNUNET_SYSERR;
 }
 
