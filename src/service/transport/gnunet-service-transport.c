@@ -3572,41 +3572,38 @@ static void
 free_dv_route (struct DistanceVector *dv)
 {
   struct DistanceVectorHop *dvh;
+  struct VirtualLink *vl;
 
   while (NULL != (dvh = dv->dv_head))
     free_distance_vector_hop (dvh);
-  if (NULL == dv->dv_head)
+
+  GNUNET_assert (
+    GNUNET_YES ==
+    GNUNET_CONTAINER_multipeermap_remove (dv_routes, &dv->target, dv));
+  if (NULL != (vl = dv->vl))
   {
-    struct VirtualLink *vl;
-
-    GNUNET_assert (
-      GNUNET_YES ==
-      GNUNET_CONTAINER_multipeermap_remove (dv_routes, &dv->target, dv));
-    if (NULL != (vl = dv->vl))
+    GNUNET_assert (dv == vl->dv);
+    vl->dv = NULL;
+    if (NULL == vl->n)
     {
-      GNUNET_assert (dv == vl->dv);
-      vl->dv = NULL;
-      if (NULL == vl->n)
-      {
-        cores_send_disconnect_info (&dv->target);
-        free_virtual_link (vl);
-      }
-      else
-      {
-        GNUNET_SCHEDULER_cancel (vl->visibility_task);
-        vl->visibility_task = GNUNET_SCHEDULER_add_now (&check_link_down, vl);
-      }
-      dv->vl = NULL;
+      cores_send_disconnect_info (&dv->target);
+      free_virtual_link (vl);
     }
-
-    if (NULL != dv->timeout_task)
+    else
     {
-      GNUNET_SCHEDULER_cancel (dv->timeout_task);
-      dv->timeout_task = NULL;
+      GNUNET_SCHEDULER_cancel (vl->visibility_task);
+      vl->visibility_task = GNUNET_SCHEDULER_add_now (&check_link_down, vl);
     }
-    GNUNET_free (dv->km);
-    GNUNET_free (dv);
+    dv->vl = NULL;
   }
+
+  if (NULL != dv->timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (dv->timeout_task);
+    dv->timeout_task = NULL;
+  }
+  GNUNET_free (dv->km);
+  GNUNET_free (dv);
 }
 
 
@@ -13064,7 +13061,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "transport",
   GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN,
   &run,
