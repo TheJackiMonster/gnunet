@@ -32,7 +32,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-common-endian", __VA_ARGS__)
 
 
-#ifndef htonbe64
+#ifndef htobe64
 uint64_t
 GNUNET_htonll (uint64_t n)
 {

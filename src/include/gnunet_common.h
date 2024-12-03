@@ -920,6 +920,7 @@ GNUNET_print_bytes (const void *buf,
                     size_t buf_len,
                     int fold,
                     int in_be);
+
 /**
  * @ingroup logging
  * Convert error type to string.
@@ -1155,7 +1156,7 @@ GNUNET_error_type_to_string (enum GNUNET_ErrorType kind);
 
 /* ************************* endianness conversion ****************** */
 
-#ifdef htonbe64
+#ifdef htobe64
 
 #define GNUNET_htonll(n) htobe64 (n)
 
