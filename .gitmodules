@@ -1,6 +1,3 @@
-[submodule "src/gana"]
-	path = contrib/gana
-	url = git://git.gnunet.org/gana.git
 [submodule "src/handbook"]
 	path = contrib/handbook
 	url = git://git.gnunet.org/gnunet-handbook.git
