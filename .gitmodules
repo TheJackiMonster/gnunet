@@ -1,3 +1,0 @@
-[submodule "src/handbook"]
-	path = contrib/handbook
-	url = git://git.gnunet.org/gnunet-handbook.git
