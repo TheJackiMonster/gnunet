@@ -21,8 +21,7 @@ EXTRA_DIST = \
 	grephdr.sh \
 	grepsrc.sh \
 	pogen.sh \
-	rename.sh \
-	sphinx_update.sh
+	rename.sh
 
 install-data-hook:
 	chmod o+x '$(DESTDIR)$(pkgdatadir)/nat_node_test.sh'

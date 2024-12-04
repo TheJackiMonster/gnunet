@@ -15,8 +15,7 @@ binfiles = [
   'grepsrc.sh',
   'pogen.sh',
   'rename.sh',
-  'gana_update.sh',
-  'sphinx_update.sh',
+  'gana_update.sh'
   ]
 
 foreach f : binfiles
