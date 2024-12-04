@@ -70,6 +70,7 @@ gana_update()
        cp gnunet-error-codes/gnunet_error_codes.h $GNUNET_SRC_ROOT/src/include && \
        cp gnunet-error-codes/gnunet_error_codes.c $GNUNET_SRC_ROOT/src/lib/util || exit 1
     echo "GANA finished"
+    cd $GNUNET_SRC_ROOT
 }
 
 trap cleanup EXIT
