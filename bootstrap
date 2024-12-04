@@ -111,11 +111,6 @@ install_hooks()
   ln -fs $(pwd)/contrib/conf/commit-msg .git/hooks/commit-msg 2> /dev/null
 }
 
-create_handbook()
-{
-    . "scripts/sphinx_update.sh" || exit 1
-}
-
 pogen()
 {
     . "scripts/pogen.sh" || exit 1
@@ -132,7 +127,6 @@ main()
     submodules
     check_uncrustify
     check_yapf
-    create_handbook
     update_gana
     if [ "$1" = "meson" ]; then
       echo "Skipping autoreconf"

@@ -1,0 +1,4 @@
+[submodule "doc/handbook"]
+	path = doc/handbook
+	url = git://git.gnunet.org/gnunet-handbook.git
+	branch = prebuilt
