@@ -1244,6 +1244,62 @@ GNUNET_CONFIGURATION_serialize (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
+/**
+ * Dump an os installation path
+ * to a buffer.
+ *
+ * @param cfg configuration
+ * @param buf buffer to write to
+ * @param ipk which path to print
+ */
+static void
+dump_os_ipk (
+  const struct GNUNET_CONFIGURATION_Handle *cfg,
+  struct GNUNET_Buffer *buf,
+  enum GNUNET_OS_InstallationPathKind ipk)
+{
+  char *v = GNUNET_OS_installation_get_path (cfg->pd,
+                                             GNUNET_OS_IPK_DATADIR);
+  const char *ipkname;
+  switch (ipk)
+  {
+  case GNUNET_OS_IPK_DATADIR:
+    ipkname = "IPK_DATADIR";
+    break;
+  case GNUNET_OS_IPK_BINDIR:
+    ipkname = "IPK_BINDIR";
+    break;
+  case GNUNET_OS_IPK_LIBDIR:
+    ipkname = "IPK_LIBDIR";
+    break;
+  case GNUNET_OS_IPK_PREFIX:
+    ipkname = "IPK_PREFIX";
+  case GNUNET_OS_IPK_LOCALEDIR:
+    ipkname = "IPK_LOCALEDIR";
+    break;
+  case GNUNET_OS_IPK_ICONDIR:
+    ipkname = "IPK_ICONDIR";
+  case GNUNET_OS_IPK_DOCDIR:
+    ipkname = "IPK_DOCDIR";
+    break;
+  case GNUNET_OS_IPK_LIBEXECDIR:
+    ipkname = "IPK_LIBEXECDIR";
+    break;
+  case GNUNET_OS_IPK_SELF_PREFIX:
+    ipkname = "IPK_SELF_PREFIX";
+    break;
+  default:
+    ipkname = "??";
+    break;
+  }
+  GNUNET_buffer_write_fstr (buf,
+                            "# %s = %s\n",
+                            ipkname,
+                            v);
+  GNUNET_free (v);
+}
+
+
 char *
 GNUNET_CONFIGURATION_serialize_diagnostics (
   const struct GNUNET_CONFIGURATION_Handle *cfg)
@@ -1287,6 +1343,20 @@ GNUNET_CONFIGURATION_serialize_diagnostics (
     GNUNET_buffer_write_str (&buf,
                              "\n");
   }
+
+  GNUNET_buffer_write_fstr (&buf,
+                            "#\n# Installation paths:\n");
+
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_DATADIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_LIBDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_BINDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_PREFIX);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_LOCALEDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_ICONDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_DOCDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_LIBEXECDIR);
+  dump_os_ipk (cfg, &buf, GNUNET_OS_IPK_SELF_PREFIX);
+
 
   GNUNET_buffer_write_fstr (&buf,
                             "#\n\n");
