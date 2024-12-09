@@ -376,6 +376,20 @@ GNUNET_CONFIGURATION_get_value_number (
   const char *option,
   unsigned long long *number);
 
+/**
+ * Set a configuration value that should be a float.
+ * Note that this possibly truncates your float value.
+ *
+ * @param cfg configuration to update
+ * @param section section of interest
+ * @param option option of interest
+ * @param number value to set
+ */
+void
+GNUNET_CONFIGURATION_set_value_float (struct GNUNET_CONFIGURATION_Handle *cfg,
+                                       const char *section,
+                                       const char *option,
+                                       float number);
 
 /**
  * Get a configuration value that should be a floating point number.

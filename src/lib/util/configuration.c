@@ -1711,6 +1711,29 @@ GNUNET_CONFIGURATION_get_value_number (
   return GNUNET_OK;
 }
 
+void
+GNUNET_CONFIGURATION_set_value_float (struct GNUNET_CONFIGURATION_Handle *cfg,
+                                       const char *section,
+                                       const char *option,
+                                       float number)
+{
+  char s[64];
+
+  // TODO FIXME note that this truncates the float
+  // #9246
+  const locale_t cl = newlocale(0, "C", (locale_t)0);
+  locale_t old_locale = uselocale(cl);
+  GNUNET_snprintf (s,
+                   64,
+                   "%f",
+                   number);
+  uselocale(old_locale);
+  GNUNET_CONFIGURATION_set_value_string (cfg,
+                                         section,
+                                         option,
+                                         s);
+}
+
 
 enum GNUNET_GenericReturnValue
 GNUNET_CONFIGURATION_get_value_float (
@@ -1728,11 +1751,15 @@ GNUNET_CONFIGURATION_get_value_float (
     return GNUNET_NO;
   if (NULL == e->val)
     return GNUNET_NO;
+  // #9246
+  const locale_t cl = newlocale(0, "C", (locale_t)0);
+  locale_t old_locale = uselocale(cl);
   if (1 != sscanf (e->val,
                    "%f%1s",
                    number,
                    dummy))
     return GNUNET_SYSERR;
+  uselocale(old_locale);
   return GNUNET_OK;
 }
 
