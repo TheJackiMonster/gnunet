@@ -28,7 +28,7 @@
 #ifndef GNUNET_SERVICE_RECLAIM_TICKETS_H
 #define GNUNET_SERVICE_RECLAIM_TICKETS_H
 
-#include "platform.h"
+#include "reclaim.h"
 
 #include "gnunet_util_lib.h"
 
@@ -40,7 +40,6 @@
 #include "gnunet_reclaim_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_statistics_service.h"
-#include "reclaim.h"
 
 /**
  * Ticket iterator

@@ -24,9 +24,10 @@
  *        lookup capabilities by regex
  * @author Christian Grothoff
  */
-#include "gnunet_util_lib.h"
 #include "regex_internal_lib.h"
 #include "regex_ipc.h"
+
+#include "gnunet_util_lib.h"
 
 
 /**

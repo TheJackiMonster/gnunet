@@ -27,9 +27,9 @@
  */
 #ifndef RECLAIM_H
 #define RECLAIM_H
+#include "platform.h"
 
 #include "gnunet_common.h"
-#include "gnunet_identity_service.h"
 
 GNUNET_NETWORK_STRUCT_BEGIN
 

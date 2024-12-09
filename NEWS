@@ -1,3 +1,9 @@
+v0.23.0:
+  - Add GNUNET_CONFIGURATION_set_value_float
+  - util: Float configuration values are no longer locale-dependent, but instead must always be in LC_NUMERIC=C format
+  - GNUNET_DISK_internal_file_handle_ changed to always return int
+  - Reworkd ProjectData handling; Now required as input for various API calls.
+
 v0.22.2:
   - GNUNET_STRINGS_get_utf8_args removed.
   - Removed unsafe and unused functions for 2d/3d array allocation.

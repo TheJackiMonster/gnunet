@@ -32,12 +32,13 @@
  * @file src/did/gnunet-did.c
  * @brief DID Method Wrapper
  */
+#include "did_core.h"
+
 #include "gnunet_util_lib.h"
 #include "gnunet_namestore_service.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_gns_service.h"
 #include "gnunet_gnsrecord_lib.h"
-#include "did_core.h"
 
 #define GNUNET_DID_DEFAULT_DID_DOCUMENT_EXPIRATION_TIME "1d"
 

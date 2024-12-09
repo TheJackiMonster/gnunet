@@ -32,8 +32,9 @@
  * - channel: logical link between two clients, on the same or different peers.
  *            have properties like reliability.
  */
-#include "gnunet_util_lib.h"
 #include "cadet.h"
+
+#include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet-service-cadet.h"

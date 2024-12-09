@@ -22,13 +22,14 @@
  * @file src/reclaim/gnunet-service-reclaim.c
  * @brief reclaim Service
  */
-#include "gnunet_util_lib.h"
+#include "reclaim.h"
+
 #include "gnunet-service-reclaim_tickets.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_gnsrecord_lib.h"
 #include "gnunet_protocols.h"
 #include "gnunet_reclaim_lib.h"
 #include "gnunet_reclaim_service.h"
-#include "reclaim.h"
 
 
 /**
