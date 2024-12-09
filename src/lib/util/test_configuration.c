@@ -349,31 +349,35 @@ testConfig ()
   GNUNET_free (c);
 
   // This only works if we have this locale.
-  setlocale(LC_NUMERIC, "de_DE");
-  GNUNET_CONFIGURATION_set_value_string (cfg, "NUMBERS", "FLOAT_TEST_INVALID", "1,23");
-  if (GNUNET_SYSERR !=
-      GNUNET_CONFIGURATION_get_value_float (cfg, "NUMBERS", "FLOAT_TEST_INVALID", &f))
+  if (NULL != setlocale (LC_NUMERIC, "de_DE"))
   {
-    printf ("Parsed: %f\n", f);
-    GNUNET_break (0);
-    return 6;
-  }
-  GNUNET_CONFIGURATION_set_value_float (cfg, "NUMBERS", "FLOAT_TEST", 1.23);
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (cfg, "NUMBERS", "FLOAT_TEST", &c))
-  {
-    GNUNET_break (0);
-    return 6;
-  }
-  if (0 != strncmp (c, "1.23", 4))
-  {
-    printf ("%s\n", c);
+    GNUNET_CONFIGURATION_set_value_string (cfg, "NUMBERS", "FLOAT_TEST_INVALID",
+                                           "1,23");
+    if (GNUNET_SYSERR !=
+        GNUNET_CONFIGURATION_get_value_float (cfg, "NUMBERS",
+                                              "FLOAT_TEST_INVALID", &f))
+    {
+      printf ("Parsed: %f\n", f);
+      GNUNET_break (0);
+      return 6;
+    }
+    GNUNET_CONFIGURATION_set_value_float (cfg, "NUMBERS", "FLOAT_TEST", 1.23);
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_string (cfg, "NUMBERS", "FLOAT_TEST", &c)
+        )
+    {
+      GNUNET_break (0);
+      return 6;
+    }
+    if (0 != strncmp (c, "1.23", 4))
+    {
+      printf ("%s\n", c);
+      GNUNET_free (c);
+      GNUNET_break (0);
+      return 7;
+    }
     GNUNET_free (c);
-    GNUNET_break (0);
-    return 7;
   }
-  GNUNET_free (c);
-
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg, "last", "test", &c))
   {
