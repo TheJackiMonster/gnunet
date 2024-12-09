@@ -1259,7 +1259,7 @@ dump_os_ipk (
   enum GNUNET_OS_InstallationPathKind ipk)
 {
   char *v = GNUNET_OS_installation_get_path (cfg->pd,
-                                             GNUNET_OS_IPK_DATADIR);
+                                             ipk);
   const char *ipkname;
   switch (ipk)
   {
@@ -1781,23 +1781,24 @@ GNUNET_CONFIGURATION_get_value_number (
   return GNUNET_OK;
 }
 
+
 void
 GNUNET_CONFIGURATION_set_value_float (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       float number)
+                                      const char *section,
+                                      const char *option,
+                                      float number)
 {
   char s[64];
 
   // TODO FIXME note that this truncates the float
   // #9369
-  const locale_t cl = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
-  locale_t old_locale = uselocale(cl);
+  const locale_t cl = newlocale (LC_NUMERIC_MASK, "C", (locale_t) 0);
+  locale_t old_locale = uselocale (cl);
   GNUNET_snprintf (s,
                    64,
                    "%f",
                    number);
-  uselocale(old_locale);
+  uselocale (old_locale);
   GNUNET_CONFIGURATION_set_value_string (cfg,
                                          section,
                                          option,
@@ -1822,14 +1823,14 @@ GNUNET_CONFIGURATION_get_value_float (
   if (NULL == e->val)
     return GNUNET_NO;
   // #9369
-  const locale_t cl = newlocale(LC_NUMERIC_MASK, "C", (locale_t)0);
-  locale_t old_locale = uselocale(cl);
+  const locale_t cl = newlocale (LC_NUMERIC_MASK, "C", (locale_t) 0);
+  locale_t old_locale = uselocale (cl);
   if (1 != sscanf (e->val,
                    "%f%1s",
                    number,
                    dummy))
     return GNUNET_SYSERR;
-  uselocale(old_locale);
+  uselocale (old_locale);
   return GNUNET_OK;
 }
 
