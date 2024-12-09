@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-19 11:38+0100\n"
+"Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
+"POT-Creation-Date: 2024-12-09 16:46+0100\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -287,7 +287,6 @@ msgstr "Skriv ut information om GNUnets motparter."
 msgid "Provide information about all tunnels"
 msgstr "Skriv ut information om GNUnets motparter."
 
-#. should never happen, as we immediately send the key
 #: src/cli/core/gnunet-core.c:116
 #, fuzzy
 msgid "fresh connection"
@@ -330,17 +329,17 @@ msgstr "Okänt fel"
 msgid "%24s: %-30s %4s (timeout in %6s)\n"
 msgstr ""
 
-#: src/cli/core/gnunet-core.c:184 src/cli/hello/gnunet-hello.c:273
+#: src/cli/core/gnunet-core.c:184 src/cli/hello/gnunet-hello.c:274
 #, fuzzy, c-format
 msgid "Invalid command line argument `%s'\n"
 msgstr "Ogiltiga kommandoradsargument:\n"
 
-#: src/cli/core/gnunet-core.c:189 src/cli/hello/gnunet-hello.c:280
+#: src/cli/core/gnunet-core.c:189 src/cli/hello/gnunet-hello.c:281
 #, fuzzy
 msgid "No argument given.\n"
 msgstr "# byte mottogs via TCP"
 
-#: src/cli/core/gnunet-core.c:203 src/cli/hello/gnunet-hello.c:294
+#: src/cli/core/gnunet-core.c:203 src/cli/hello/gnunet-hello.c:295
 #: src/service/core/gnunet-service-core.c:926
 #, fuzzy
 msgid "Core service is lacking HOSTKEY configuration setting.  Exiting.\n"
@@ -1142,27 +1141,27 @@ msgstr ""
 msgid "GNUnet GNS resolver tool"
 msgstr "Spåra GNUnets nätverkstopologi."
 
-#: src/cli/hello/gnunet-hello.c:406
+#: src/cli/hello/gnunet-hello.c:407
 msgid "Print a HELLO for our peer identity"
 msgstr ""
 
-#: src/cli/hello/gnunet-hello.c:411
+#: src/cli/hello/gnunet-hello.c:412
 msgid "Output HELLO in binary format. Use with `--export'."
 msgstr ""
 
-#: src/cli/hello/gnunet-hello.c:415
+#: src/cli/hello/gnunet-hello.c:416
 msgid "Import a HELLO"
 msgstr ""
 
-#: src/cli/hello/gnunet-hello.c:421
+#: src/cli/hello/gnunet-hello.c:422
 msgid "Expiration time to set for exported hello. (Default: 1 day)"
 msgstr ""
 
-#: src/cli/hello/gnunet-hello.c:426
+#: src/cli/hello/gnunet-hello.c:427
 msgid "List all known HELLOs in peerstore"
 msgstr ""
 
-#: src/cli/hello/gnunet-hello.c:436
+#: src/cli/hello/gnunet-hello.c:437
 msgid "Import/export/print HELLOs."
 msgstr ""
 
@@ -1417,7 +1416,6 @@ msgstr ""
 msgid "%s\n"
 msgstr ""
 
-#. nothing more to be done
 #: src/cli/namestore/gnunet-namestore.c:1446
 #, c-format
 msgid "No options given\n"
@@ -1707,43 +1705,43 @@ msgstr ""
 msgid "Show network size estimates from NSE service."
 msgstr "# byte mottogs via TCP"
 
-#: src/cli/reclaim/gnunet-did.c:606
+#: src/cli/reclaim/gnunet-did.c:607
 msgid "Create a DID Document and display its DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:611
+#: src/cli/reclaim/gnunet-did.c:612
 msgid "Get the DID Document associated with the given DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:616
+#: src/cli/reclaim/gnunet-did.c:617
 msgid "Remove the DID"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:620
+#: src/cli/reclaim/gnunet-did.c:621
 msgid "Replace the DID Document."
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:624
+#: src/cli/reclaim/gnunet-did.c:625
 msgid "Show the DID for a given ego"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:628
+#: src/cli/reclaim/gnunet-did.c:629
 msgid "Show egos with DIDs"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:634
+#: src/cli/reclaim/gnunet-did.c:635
 msgid "The Decentralized Identity (DID)"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:640
+#: src/cli/reclaim/gnunet-did.c:641
 msgid "The DID Document to store in GNUNET"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:645
+#: src/cli/reclaim/gnunet-did.c:646
 msgid "The name of the EGO"
 msgstr ""
 
-#: src/cli/reclaim/gnunet-did.c:651
+#: src/cli/reclaim/gnunet-did.c:652
 msgid "The time until the DID Document is going to expire (e.g. 5d)"
 msgstr ""
 
@@ -3351,39 +3349,39 @@ msgstr "Konfigurationsfil \"%s\" hittades inte.  Kör \"gnunet-setup -d\"!\n"
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/lib/util/configuration.c:1762
+#: src/lib/util/configuration.c:1789
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
 
-#: src/lib/util/configuration.c:1840
+#: src/lib/util/configuration.c:1867
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2698
+#: src/lib/util/configuration.c:2725
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/lib/util/configuration.c:2710
+#: src/lib/util/configuration.c:2737
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2724
+#: src/lib/util/configuration.c:2751
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "%s: flagga \"%s\" är tvetydig\n"
 
-#: src/lib/util/configuration.c:2795
+#: src/lib/util/configuration.c:2822
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2838
+#: src/lib/util/configuration.c:2865
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
@@ -3395,30 +3393,6 @@ msgid ""
 "%llu)\n"
 msgstr ""
 
-#. *
-#. * Log an error message at log-level 'level' that indicates
-#. * a failure of the command 'cmd' with the message given
-#. * by gcry_strerror(rc).
-#.
-#. *
-#. * Log an error message at log-level @a level that indicates
-#. * a failure of the command @a cmd with the error from the database @a db
-#. *
-#. * @param db database handle
-#. * @param level log level
-#. * @param cmd failed command
-#.
-#. *
-#. * Execute SQL statement.
-#. *
-#. * @param db database handle
-#. * @param cmd SQL command to execute
-#.
-#. *
-#. * Log an error message at log-level 'level' that indicates
-#. * a failure of the command 'cmd' on file 'filename'
-#. * with the message given by strerror(errno).
-#.
 #: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
@@ -3462,7 +3436,7 @@ msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "\"%s\" misslyckades vid %s:%d med fel: \"%s\".\n"
 
-#: src/lib/util/disk.c:1200 src/lib/util/service.c:1665
+#: src/lib/util/disk.c:1219 src/lib/util/service.c:1665
 #, fuzzy, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "Kan inte öppna konfigurationsfil \"%s\".\n"
@@ -3522,7 +3496,6 @@ msgstr "%s: okänd flagga \"--%s\"\n"
 msgid "%s: unrecognized option `%c%s'\n"
 msgstr "%s: okänd flagga \"%c%s\"\n"
 
-#. 1003.2 specifies the format of this message.
 #: src/lib/util/getopt.c:681
 #, c-format
 msgid "%s: illegal option -- %c\n"
@@ -3656,98 +3629,98 @@ msgstr "Du måste skicka med ett nummer till flaggan \"%s\".\n"
 msgid "Argument `%s' malformed. Expected base32 (Crockford) encoded value.\n"
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:60
+#: src/lib/util/gnunet_error_codes.c:59
 msgid "No error (success)."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:66
+#: src/lib/util/gnunet_error_codes.c:65
 #, fuzzy
 msgid "Unknown and unspecified error."
 msgstr "Okänt fel"
 
-#: src/lib/util/gnunet_error_codes.c:72
+#: src/lib/util/gnunet_error_codes.c:71
 #, fuzzy
 msgid "Communication with service failed."
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/lib/util/gnunet_error_codes.c:78
+#: src/lib/util/gnunet_error_codes.c:77
 #, fuzzy
 msgid "Ego not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:84
+#: src/lib/util/gnunet_error_codes.c:83
 msgid "Identifier already in use for another ego."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:90
+#: src/lib/util/gnunet_error_codes.c:89
 msgid "The given ego is invalid or malformed."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:96
+#: src/lib/util/gnunet_error_codes.c:95
 #, fuzzy
 msgid "Unknown namestore error."
 msgstr "Okänt fel"
 
-#: src/lib/util/gnunet_error_codes.c:102 src/lib/util/gnunet_error_codes.c:120
+#: src/lib/util/gnunet_error_codes.c:101 src/lib/util/gnunet_error_codes.c:119
 #, fuzzy
 msgid "Zone iteration failed."
 msgstr "# sessionsnycklar accepterade"
 
-#: src/lib/util/gnunet_error_codes.c:108
+#: src/lib/util/gnunet_error_codes.c:107
 #, fuzzy
 msgid "Zone not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:114
+#: src/lib/util/gnunet_error_codes.c:113
 #, fuzzy
 msgid "Record not found."
 msgstr "Kommando \"%s\" hittades inte!\n"
 
-#: src/lib/util/gnunet_error_codes.c:126
+#: src/lib/util/gnunet_error_codes.c:125
 msgid "Zone does not contain any records."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:132
+#: src/lib/util/gnunet_error_codes.c:131
 #, fuzzy
 msgid "Failed to lookup record."
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/lib/util/gnunet_error_codes.c:138
+#: src/lib/util/gnunet_error_codes.c:137
 #, fuzzy
 msgid "No records given."
 msgstr "Skriv ut information om GNUnets motparter."
 
-#: src/lib/util/gnunet_error_codes.c:144
+#: src/lib/util/gnunet_error_codes.c:143
 msgid "Record data invalid."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:150
+#: src/lib/util/gnunet_error_codes.c:149
 msgid "No label given."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:156
+#: src/lib/util/gnunet_error_codes.c:155
 #, fuzzy
 msgid "No results given."
 msgstr "# byte mottogs via TCP"
 
-#: src/lib/util/gnunet_error_codes.c:162
+#: src/lib/util/gnunet_error_codes.c:161
 msgid "Record already exists."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:168
+#: src/lib/util/gnunet_error_codes.c:167
 msgid "Record size exceeds maximum limit."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:174
+#: src/lib/util/gnunet_error_codes.c:173
 msgid "There was an error in the database backend."
 msgstr ""
 
-#: src/lib/util/gnunet_error_codes.c:180
+#: src/lib/util/gnunet_error_codes.c:179
 #, fuzzy
 msgid "Failed to store the given records."
 msgstr "Misslyckades att starta samling.\n"
 
-#: src/lib/util/gnunet_error_codes.c:186
+#: src/lib/util/gnunet_error_codes.c:185
 msgid "Label invalid or malformed."
 msgstr ""
 
@@ -4382,17 +4355,14 @@ msgstr "Startade samling \"%s\".\n"
 msgid "Restarting service `%s'.\n"
 msgstr "Startade samling \"%s\".\n"
 
-#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1782
 msgid "exit"
 msgstr ""
 
-#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1787
 msgid "signal"
 msgstr ""
 
-#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1792
 #, fuzzy
 msgid "unknown"
@@ -6034,13 +6004,6 @@ msgstr ""
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
-#. *
-#. * Log curl error.
-#. *
-#. * @param level log level
-#. * @param fun name of curl_easy-function that gave the error
-#. * @param rc return code from curl
-#.
 #: src/service/gns/gnunet-gns-proxy.c:114
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:807
@@ -7108,7 +7071,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13026
+#: src/service/transport/gnunet-service-transport.c:13023
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
