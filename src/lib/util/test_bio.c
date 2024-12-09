@@ -77,12 +77,11 @@ test_normal_rw (void)
   GNUNET_free (rString);
   {
     char *newname = GNUNET_DISK_file_backup (filename);
+    GNUNET_assert (NULL != newname);
     GNUNET_assert (GNUNET_OK == GNUNET_DISK_file_test (newname));
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_DISK_directory_remove (newname));
   }
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_DISK_directory_remove (filename));
   GNUNET_free (filename);
 
   /* I/O on buffer */
