@@ -80,8 +80,8 @@ configure_file(input : 'util.conf',
 
 libgnunetutil = library('gnunetutil',
         libgnunetutil_src,
-        soversion: '17',
-        version: '17.0.0',
+        soversion: '18',
+        version: '18.0.0',
         dependencies: [
           lgmp_dep,
           mhd_dep,
