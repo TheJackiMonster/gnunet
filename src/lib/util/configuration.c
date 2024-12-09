@@ -1720,7 +1720,7 @@ GNUNET_CONFIGURATION_set_value_float (struct GNUNET_CONFIGURATION_Handle *cfg,
   char s[64];
 
   // TODO FIXME note that this truncates the float
-  // #9246
+  // #9369
   const locale_t cl = newlocale(0, "C", (locale_t)0);
   locale_t old_locale = uselocale(cl);
   GNUNET_snprintf (s,
@@ -1751,7 +1751,7 @@ GNUNET_CONFIGURATION_get_value_float (
     return GNUNET_NO;
   if (NULL == e->val)
     return GNUNET_NO;
-  // #9246
+  // #9369
   const locale_t cl = newlocale(0, "C", (locale_t)0);
   locale_t old_locale = uselocale(cl);
   if (1 != sscanf (e->val,
