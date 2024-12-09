@@ -124,6 +124,7 @@
 #include <dlfcn.h>
 #include <semaphore.h>
 #include <net/if.h>
+#include <xlocale.h>
 #endif
 #if defined(__linux__) || defined(GNU)
 #include <net/if.h>
