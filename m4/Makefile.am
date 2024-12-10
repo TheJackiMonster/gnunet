@@ -1,5 +1,5 @@
 # This Makefile.am is in the public domain
-EXTRA_DIST = build-to-host.m4 host-cpu-c-abi.m4 glibc2.m4 intl.m4 intldir.m4 lock.m4 visibility.m4 \
+EXTRA_DIST = host-cpu-c-abi.m4 build-to-host.m4 host-cpu-c-abi.m4 glibc2.m4 intl.m4 intldir.m4 lock.m4 visibility.m4 \
 ax_compare_version.m4 \
 ax_lib_postgresql.m4 \
 absolute-header.m4 \

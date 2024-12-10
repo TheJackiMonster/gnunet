@@ -1021,7 +1021,7 @@ AS_IF([test "x$build_target" = "xfreebsd"],
 
 # check for gettext
 AM_GNU_GETTEXT([external])
-AM_GNU_GETTEXT_VERSION([0.22.5])
+AM_GNU_GETTEXT_VERSION([0.21])
 
 # check for stantard typedefs, structures and compiler characteristics
 AC_TYPE_PID_T
