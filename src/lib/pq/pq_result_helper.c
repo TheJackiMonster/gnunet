@@ -1943,15 +1943,18 @@ clean_blind_sign_pub (void *cls,
   struct GNUNET_CRYPTO_BlindSignPublicKey **pub = rd;
 
   (void) cls;
-  GNUNET_CRYPTO_blind_sign_pub_decref (*pub);
-  *pub = NULL;
+  if (NULL != *pub)
+  {
+    GNUNET_CRYPTO_blind_sign_pub_decref (*pub);
+    *pub = NULL;
+  }
 }
 
 
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_blind_sign_pub (const char *name,
-                                      struct GNUNET_CRYPTO_BlindSignPublicKey **
-                                      pub)
+GNUNET_PQ_result_spec_blind_sign_pub (
+  const char *name,
+  struct GNUNET_CRYPTO_BlindSignPublicKey **pub)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_pub,
@@ -2076,15 +2079,18 @@ clean_blind_sign_priv (void *cls,
   struct GNUNET_CRYPTO_BlindSignPrivateKey **priv = rd;
 
   (void) cls;
-  GNUNET_CRYPTO_blind_sign_priv_decref (*priv);
-  *priv = NULL;
+  if (NULL != *priv)
+  {
+    GNUNET_CRYPTO_blind_sign_priv_decref (*priv);
+    *priv = NULL;
+  }
 }
 
 
 struct GNUNET_PQ_ResultSpec
-GNUNET_PQ_result_spec_blind_sign_priv (const char *name,
-                                       struct GNUNET_CRYPTO_BlindSignPrivateKey
-                                       **priv)
+GNUNET_PQ_result_spec_blind_sign_priv (
+  const char *name,
+  struct GNUNET_CRYPTO_BlindSignPrivateKey **priv)
 {
   struct GNUNET_PQ_ResultSpec res = {
     .conv = &extract_blind_sign_priv,
