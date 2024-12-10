@@ -127,7 +127,7 @@ main()
     submodules
     check_uncrustify
     check_yapf
-    update_gana
+    # update_gana
     if [ "$1" = "meson" ]; then
       echo "Skipping autoreconf"
     else
