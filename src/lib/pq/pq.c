@@ -79,6 +79,9 @@ GNUNET_PQ_exec_prepared (struct GNUNET_PQ_Context *db,
       {
         for (off = 0; off < soff; off++)
           GNUNET_free (scratch[off]);
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Conversion at index %u failed\n",
+                    i);
         return NULL;
       }
       soff += ret;
