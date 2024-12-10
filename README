@@ -89,7 +89,7 @@ Direct dependencies of GNUnet:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Bash                              (for some scripts)
-- gettext
+- gettext            >= 0.21
 - gnutls             >= 3.2.12      (highly recommended a gnutls
                                      linked against libunbound)
 - libcurl            >= 7.85.0      (ideally built against gnutls)
