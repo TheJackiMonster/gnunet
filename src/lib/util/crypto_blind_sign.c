@@ -76,8 +76,8 @@ GNUNET_CRYPTO_blind_sign_priv_decref (
 
 
 void
-GNUNET_CRYPTO_blind_sign_pub_decref (struct
-                                     GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
+GNUNET_CRYPTO_blind_sign_pub_decref (
+  struct GNUNET_CRYPTO_BlindSignPublicKey *bsign_pub)
 {
   GNUNET_assert (bsign_pub->rc > 0);
   bsign_pub->rc--;
@@ -104,8 +104,8 @@ GNUNET_CRYPTO_blind_sign_pub_decref (struct
 
 
 void
-GNUNET_CRYPTO_unblinded_sig_decref (struct
-                                    GNUNET_CRYPTO_UnblindedSignature *ub_sig)
+GNUNET_CRYPTO_unblinded_sig_decref (
+  struct GNUNET_CRYPTO_UnblindedSignature *ub_sig)
 {
   GNUNET_assert (ub_sig->rc > 0);
   ub_sig->rc--;
@@ -299,8 +299,9 @@ GNUNET_CRYPTO_blind_sig_cmp (
     GNUNET_break (0);
     return 0;
   case GNUNET_CRYPTO_BSA_RSA:
-    return GNUNET_CRYPTO_rsa_signature_cmp (sig1->details.blinded_rsa_signature,
-                                            sig2->details.blinded_rsa_signature);
+    return GNUNET_CRYPTO_rsa_signature_cmp (
+      sig1->details.blinded_rsa_signature,
+      sig2->details.blinded_rsa_signature);
   case GNUNET_CRYPTO_BSA_CS:
     return GNUNET_memcmp (&sig1->details.blinded_cs_answer,
                           &sig2->details.blinded_cs_answer);
