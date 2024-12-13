@@ -1,6 +1,6 @@
-gnunet (0.23.0) unstable; urgency=low
+gnunet (0.22.3) unstable; urgency=low
 
-  * Package for GNUnet v0.23.
+  * Package for GNUnet v0.22.3.
 
  -- Christian Grothoff <grothoff@gnu.org>  Fri, 13 Dec 2024 21:50:12 +0100
 
