@@ -494,6 +494,8 @@ subdir('doc')
 subdir('contrib')
 subdir('data')
 
+meson.add_dist_script('meson-dist-script')
+
 gnunet_prefix = get_option('prefix')/get_option('libdir')
 
 add_test_setup('default', env: ['GNUNET_PREFIX='+gnunet_prefix], exclude_suites: ['perf'], is_default: true)
