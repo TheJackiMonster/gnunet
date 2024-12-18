@@ -36,3 +36,12 @@ executable ('gnunet-cmds-helper',
             include_directories: [incdir, configuration_inc],
             install: true,
             install_dir: get_option('libdir')/'gnunet'/'libexec')
+
+executable ('gnunet-testing-netjail-launcher',
+            ['gnunet-testing-netjail-launcher.c'],
+            dependencies: [libgnunettesting_dep,
+                           libgnunetutil_dep,
+                           ],
+            include_directories: [incdir, configuration_inc],
+            install: true,
+            install_dir: get_option('bindir'))
