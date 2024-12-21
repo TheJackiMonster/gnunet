@@ -12894,8 +12894,6 @@ do_shutdown (void *cls)
   }
   GNUNET_CONTAINER_multishortmap_destroy (dvlearn_map);
   dvlearn_map = NULL;
-  GNUNET_CONTAINER_heap_destroy (validation_heap);
-  validation_heap = NULL;
   GNUNET_CONTAINER_multipeermap_iterate (dv_routes, &free_dv_routes_cb, NULL);
   GNUNET_CONTAINER_multipeermap_destroy (dv_routes);
   dv_routes = NULL;
@@ -12940,6 +12938,8 @@ do_shutdown (void *cls)
                                          NULL);
   GNUNET_CONTAINER_multipeermap_destroy (validation_map);
   validation_map = NULL;
+  GNUNET_CONTAINER_heap_destroy (validation_heap);
+  validation_heap = NULL;
   GNUNET_CONTAINER_multihashmap_destroy (revalidation_map);
   revalidation_map = NULL;
   while (NULL != ir_head)
