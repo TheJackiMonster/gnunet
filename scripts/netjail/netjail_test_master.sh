@@ -12,8 +12,8 @@ then
         exit 77
     fi
 else
-    echo -e "Error during test setup: The kernel lacks the parameter 'kernel.unprivileged_userns_clone'\n"
-    exit 77
+    echo -e "The kernel lacks the parameter 'kernel.unprivileged_userns_clone'. Usually this means user namespaces are always allowed.\n"
+    #exit 77
 fi
 if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ];
 then
