@@ -27,6 +27,17 @@ lib_LTLIBRARIES = \
   libgnunettransportmonitor.la \
   $(TESTING_LIBS)
 
+libgnunet_test_transport_plugin_simple_send_la_SOURCES = \
+  test_transport_plugin_simple_send.c
+libgnunet_test_transport_plugin_simple_send_la_LIBADD = \
+  $(top_builddir)/src/service/arm/libgnunettestingarm.la \
+  $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
+  $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
+  $(top_builddir)/src/service/arm/libgnunetarm.la \
+  $(top_builddir)/src/lib/util/libgnunetutil.la \
+  $(LTLIBINTL)
+
 libgnunettestingtransport_la_SOURCES = \
   testing_transport_traits.c transport-testing-cmds.h \
   transport-testing-communicator.c transport-testing-communicator.h 
@@ -210,13 +221,7 @@ gnunet_service_transport_LDADD = \
   $(GN_LIBINTL)
 
 plugin_LTLIBRARIES = \
-  #libgnunet_test_transport_plugin_cmd_nat_mapping.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_performance.la \
-  libgnunet_test_transport_plugin_cmd_nat_upnp.la \
-  libgnunet_test_transport_plugin_cmd_simple_send.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_broadcast.la \
-  libgnunet_test_transport_plugin_cmd_simple_send_dv.la \
-  libgnunet_test_transport_plugin_cmd_udp_backchannel.la
+	libgnunet_test_transport_plugin_simple_send.la
 
 #libgnunet_test_transport_plugin_cmd_nat_mapping_la_SOURCES = \
 # test_transport_plugin_cmd_nat_mapping.c
