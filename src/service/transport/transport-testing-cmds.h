@@ -196,9 +196,7 @@ struct GNUNET_TESTING_Command
 GNUNET_TRANSPORT_cmd_send_simple (const char *label,
                                   const char *start_peer_label,
                                   const char *create_label,
-                                  uint32_t num,
-                                  struct GNUNET_TESTING_NetjailTopology *
-                                  topology);
+                                  uint32_t num);
 
 /**
  *

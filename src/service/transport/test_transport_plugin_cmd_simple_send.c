@@ -24,13 +24,10 @@
  * @author t3sserakt
  */
 #include "platform.h"
-#include "gnunet_testing_barrier.h"
-#include "gnunet_testing_netjail_lib.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_transport_application_service.h"
 #include "transport-testing2.h"
 #include "transport-testing-cmds.h"
-#include "gnunet_testing_barrier.h"
 
 /**
  * Generic logging shortcut

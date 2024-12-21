@@ -27,6 +27,7 @@
 #include "gnunet_testing_lib.h"
 #include "gnunet_testing_arm_lib.h"
 #include "gnunet_testing_testbed_lib.h"
+#include "transport-testing-cmds.h"
 
 #define MY_CONF_PREFIX "test_transport_simple_send"
 
@@ -36,21 +37,24 @@ get_conf_name (const char *my_node_id)
   const char *conf_name;
   const char *dash;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Getting conf for id %s\n",
+              my_node_id);
   dash = strchr (my_node_id, '-');
   GNUNET_assert (NULL != dash);
   dash++;
 
   if (0 == strcmp ("000000", dash))
-    conf_name = MY_CONF_PREFIX"_host.conf";
+    conf_name = MY_CONF_PREFIX "_host.conf";
   else if (0 == strcmp ("000003", dash))
-    conf_name = MY_CONF_PREFIX"_peer1.conf";
-  else if (0 == strcmp ("000006", dash))
-    conf_name = MY_CONF_PREFIX"_peer1.conf";
+    conf_name = MY_CONF_PREFIX "_peer1.conf";
+  else if (0 == strcmp ("000004", dash))
+    conf_name = MY_CONF_PREFIX "_peer1.conf";
   else
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Getting conf for id %s failed \n",
-              my_node_id);
+                "Getting conf for id %s failed \n",
+                my_node_id);
     GNUNET_assert (0);
   }
 
@@ -59,6 +63,7 @@ get_conf_name (const char *my_node_id)
               conf_name);
   return conf_name;
 }
+
 
 GNUNET_TESTING_MAKE_PLUGIN (
   libgnunet_test_transport,
@@ -72,10 +77,11 @@ GNUNET_TESTING_MAKE_PLUGIN (
                               GNUNET_OS_PROCESS_EXITED,
                               0,
                               "sleep",
-                              "3000",
+                              "3",
                               NULL),
+  GNUNET_TRANSPORT_cmd_send_simple ("send", "start", "system", 10),
   GNUNET_TESTING_cmd_stop_peer ("stop",
                                 "start")
   )
 
-/* end of test_plugin_transport_simple_send.c */
+  /* end of test_plugin_transport_simple_send.c */

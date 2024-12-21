@@ -30,6 +30,7 @@ lib_LTLIBRARIES = \
 libgnunet_test_transport_plugin_simple_send_la_SOURCES = \
   test_transport_plugin_simple_send.c
 libgnunet_test_transport_plugin_simple_send_la_LIBADD = \
+  libgnunettestingtransport.la \
   $(top_builddir)/src/service/arm/libgnunettestingarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/testbed/libgnunettestbed.la \
@@ -40,10 +41,10 @@ libgnunet_test_transport_plugin_simple_send_la_LIBADD = \
 
 libgnunettestingtransport_la_SOURCES = \
   testing_transport_traits.c transport-testing-cmds.h \
-  transport-testing-communicator.c transport-testing-communicator.h 
+  transport-testing-communicator.c transport-testing-communicator.h \
+  testing_transport_cmd_send_simple.c
 #  transport_api_cmd_connecting_peers.c \
 #  transport_api_cmd_backchannel_check.c \
-#  transport_api_cmd_send_simple.c \
 #  transport_api_cmd_send_simple_performance.c \
 #  transport-testing2.c transport-testing2.h \
 #  transport-testing-cmds.h \
@@ -57,6 +58,8 @@ libgnunettestingtransport_la_LIBADD = \
   $(top_builddir)/src/service/testbed/libgnunettestbed.la \
   $(top_builddir)/src/service/arm/libgnunetarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
+  $(top_builddir)/src/service/testbed/libgnunettestbed.la \
+  $(top_builddir)/src/service/testbed/libgnunettestingtestbed.la \
   $(top_builddir)/src/lib/hello/libgnunethello.la \
   $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la
