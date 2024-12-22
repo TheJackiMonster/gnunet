@@ -19,7 +19,7 @@
  */
 
 /**
- * @file service/transport/test_plugin_transport_simple_send.c
+ * @file service/transport/plugin_testing_transport_simple_send.c
  * @brief a plugin to test simple sending of message.
  * @author schanzen
  */
@@ -66,7 +66,7 @@ get_conf_name (const char *my_node_id)
 
 
 GNUNET_TESTING_MAKE_PLUGIN (
-  libgnunet_test_transport,
+  transport,
   simple_send,
   GNUNET_TESTBED_cmd_system_create ("system",
                                     my_node_id),

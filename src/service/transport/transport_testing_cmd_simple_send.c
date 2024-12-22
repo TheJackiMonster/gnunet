@@ -19,8 +19,8 @@
  */
 
 /**
- * @file testing_api_cmd_start_peer.c
- * @brief cmd to start a peer.
+ * @file src/service/transport/transport_testing_cmd_simple_send.c
+ * @brief Testing command to send a simple message.
  * @author t3sserakt
  */
 #include "platform.h"

@@ -783,7 +783,7 @@ GNUNET_TESTING_make_plugin (
 
 #define GNUNET_TESTING_MAKE_PLUGIN(prefix,name,...)            \
         void *                                                 \
-        prefix ## _plugin_ ## name ## _init (void *cls) { \
+          libgnunet_plugin_testing_ ## prefix ## _ ## name ## _init (void *cls) { \
           const char *my_node_id = cls; (void) my_node_id;     \
           struct GNUNET_TESTING_Command commands[] = {         \
             __VA_ARGS__,                                       \
@@ -792,7 +792,7 @@ GNUNET_TESTING_make_plugin (
           return GNUNET_TESTING_make_plugin (commands);        \
         }                                                      \
         void *                                                 \
-        prefix ## _plugin_ ## name ## _done (void *cls) {      \
+        libgnunet_plugin_testing_ ## prefix ## _ ## name ## _done (void *cls) { \
           struct GNUNET_TESTING_PluginFunctions *api = cls;    \
           GNUNET_free (api);                                   \
           return NULL;                                         \

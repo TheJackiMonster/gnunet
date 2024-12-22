@@ -27,9 +27,9 @@ lib_LTLIBRARIES = \
   libgnunettransportmonitor.la \
   $(TESTING_LIBS)
 
-libgnunet_test_transport_plugin_simple_send_la_SOURCES = \
-  test_transport_plugin_simple_send.c
-libgnunet_test_transport_plugin_simple_send_la_LIBADD = \
+libgnunet_plugin_testing_transport_simple_send_la_SOURCES = \
+  plugin_testing_transport_simple_send.c
+libgnunet_plugin_testing_transport_simple_send_la_LIBADD = \
   libgnunettestingtransport.la \
   $(top_builddir)/src/service/arm/libgnunettestingarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
@@ -42,7 +42,7 @@ libgnunet_test_transport_plugin_simple_send_la_LIBADD = \
 libgnunettestingtransport_la_SOURCES = \
   testing_transport_traits.c transport-testing-cmds.h \
   transport-testing-communicator.c transport-testing-communicator.h \
-  testing_transport_cmd_send_simple.c
+  transport_testing_cmd_simple_send.c
 #  transport_api_cmd_connecting_peers.c \
 #  transport_api_cmd_backchannel_check.c \
 #  transport_api_cmd_send_simple_performance.c \
@@ -224,7 +224,7 @@ gnunet_service_transport_LDADD = \
   $(GN_LIBINTL)
 
 plugin_LTLIBRARIES = \
-	libgnunet_test_transport_plugin_simple_send.la
+	libgnunet_plugin_testing_transport_simple_send.la
 
 #libgnunet_test_transport_plugin_cmd_nat_mapping_la_SOURCES = \
 # test_transport_plugin_cmd_nat_mapping.c
@@ -274,24 +274,8 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LIBADD = \
 libgnunet_test_transport_plugin_cmd_udp_backchannel_la_LDFLAGS = \
   $(GN_PLUGIN_LDFLAGS)
 
-libgnunet_test_transport_plugin_cmd_simple_send_la_SOURCES = \
- test_transport_plugin_cmd_simple_send.c
-libgnunet_test_transport_plugin_cmd_simple_send_la_LIBADD = \
-  libgnunettestingtransport.la \
-  libgnunettransportapplication.la \
-  libgnunettransportcore.la \
-  $(top_builddir)/src/lib/testing/libgnunettesting.la \
-  $(top_builddir)/src/service/peerstore/libgnunetpeerstore.la \
-  $(top_builddir)/src/service/statistics/libgnunetstatistics.la \
-  $(top_builddir)/src/lib/hello/libgnunethello.la \
-  $(top_builddir)/src/service/arm/libgnunetarm.la \
-  $(top_builddir)/src/lib/util/libgnunetutil.la \
-  $(LTLIBINTL)
-libgnunet_test_transport_plugin_cmd_simple_send_la_LDFLAGS = \
-  $(GN_PLUGIN_LDFLAGS)
-
 libgnunet_test_transport_plugin_cmd_simple_send_performance_la_SOURCES = \
- test_transport_plugin_cmd_simple_send_performance.c
+ test_transport_plugin_cmdsimple_send_performance.c
 libgnunet_test_transport_plugin_cmd_simple_send_performance_la_LIBADD = \
   libgnunettestingtransport.la \
   libgnunettransportapplication.la \
