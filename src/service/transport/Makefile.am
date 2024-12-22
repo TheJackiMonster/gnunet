@@ -69,7 +69,7 @@ libgnunettestingtransport_la_LDFLAGS = \
   -version-info 0:0:0
 
 libgnunettransportapplication_la_SOURCES = \
-  transport_api2_application.c
+  transport_api_application.c
 libgnunettransportapplication_la_LIBADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(LTLIBINTL)
@@ -79,7 +79,7 @@ libgnunettransportapplication_la_LDFLAGS = \
 
 
 libgnunettransportcore_la_SOURCES = \
-  transport_api2_core.c
+  transport_api_core.c
 libgnunettransportcore_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
@@ -88,7 +88,7 @@ libgnunettransportcore_la_LDFLAGS = \
   -version-info 0:0:0
 
 libgnunettransportcommunicator_la_SOURCES = \
-  transport_api2_communication.c
+  transport_api_communication.c
 libgnunettransportcommunicator_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
@@ -98,7 +98,7 @@ libgnunettransportcommunicator_la_LDFLAGS = \
 
 
 libgnunettransportmonitor_la_SOURCES = \
-  transport_api2_monitor.c
+  transport_api_monitor.c
 libgnunettransportmonitor_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
   $(GN_LIBINTL)
@@ -361,9 +361,9 @@ test_communicator_bidirect_tcp_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
-test_transport_api2_tcp_SOURCES = \
- test_transport_api2.c
-test_transport_api2_tcp_LDADD = \
+test_transport_api_tcp_SOURCES = \
+ test_transport_api.c
+test_transport_api_tcp_LDADD = \
  $(top_builddir)/src/lib/hello/libgnunethello.la \
  $(top_builddir)/src/lib/util/libgnunetutil.la  \
  libgnunettestingtransport.la
@@ -392,8 +392,6 @@ test_transport_api_tcp_nat_peer1.conf\
 test_transport_api_tcp_nat_peer2.conf\
 test_transport_api_tcp_peer1.conf\
 test_transport_api_tcp_peer2.conf\
-test_transport_api2_tcp_peer1.conf\
-test_transport_api2_tcp_peer2.conf\
 test_transport_api_udp_nat_peer1.conf\
 test_transport_api_udp_nat_peer2.conf\
 test_transport_api_udp_peer1.conf\

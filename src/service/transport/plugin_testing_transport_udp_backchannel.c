@@ -253,7 +253,7 @@ libgnunet_test_transport_plugin_cmd_udp_backchannel_init (void *cls)
     write_message);
 
   GNUNET_asprintf (&ts->cfgname,
-                   "test_transport_api2_tcp_node1.conf");
+                   "test_transport_api_tcp_node1.conf");
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "plugin cfgname: %s\n",
