@@ -1,7 +1,7 @@
-libgnunettransportapplication_src = ['transport_api2_application.c']
-libgnunettransportcore_src = ['transport_api2_core.c']
-libgnunettransportcommunicator_src = ['transport_api2_communication.c']
-libgnunettransportmonitor_src = ['transport_api2_monitor.c']
+libgnunettransportapplication_src = ['transport_api_application.c']
+libgnunettransportcore_src = ['transport_api_core.c']
+libgnunettransportcommunicator_src = ['transport_api_communication.c']
+libgnunettransportmonitor_src = ['transport_api_monitor.c']
 
 gnunetservicetransport_src = ['gnunet-service-transport.c']
 gnunetcommunicatortcp_src = ['gnunet-communicator-tcp.c']
