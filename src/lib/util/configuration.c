@@ -681,7 +681,7 @@ find_entry (const struct GNUNET_CONFIGURATION_Handle *cfg,
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Section '%s' is marked as inaccessible, because the configuration "
-         " file that contains the section can't be read.  Attempts to use "
+         "file that contains the section can't be read.  Attempts to use "
          "option '%s' will fail.\n",
          section,
          key);
@@ -1514,7 +1514,6 @@ GNUNET_CONFIGURATION_iterate_section_values (
   void *iter_cls)
 {
   struct ConfigSection *spos;
-  struct ConfigEntry *epos;
 
   spos = cfg->sections;
   while ((spos != NULL) && (0 != strcasecmp (spos->name, section)))
@@ -1525,13 +1524,18 @@ GNUNET_CONFIGURATION_iterate_section_values (
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Section '%s' is marked as inaccessible, because the configuration "
-         " file that contains the section can't be read.\n",
+         "file that contains the section can't be read.\n",
          section);
     return;
   }
-  for (epos = spos->entries; NULL != epos; epos = epos->next)
+  for (struct ConfigEntry *epos = spos->entries;
+       NULL != epos;
+       epos = epos->next)
     if (NULL != epos->val)
-      iter (iter_cls, spos->name, epos->key, epos->val);
+      iter (iter_cls,
+            spos->name,
+            epos->key,
+            epos->val);
 }
 
 
@@ -1549,7 +1553,9 @@ GNUNET_CONFIGURATION_iterate_sections (
   {
     spos = next;
     next = spos->next;
-    iter (iter_cls, spos->name);
+    if (! spos->inaccessible)
+      iter (iter_cls,
+            spos->name);
   }
 }
 
@@ -1566,7 +1572,8 @@ GNUNET_CONFIGURATION_remove_section (struct GNUNET_CONFIGURATION_Handle *cfg,
   spos = cfg->sections;
   while (NULL != spos)
   {
-    if (0 == strcasecmp (section, spos->name))
+    if (0 == strcasecmp (section,
+                         spos->name))
     {
       if (NULL == prev)
         cfg->sections = spos->next;
