@@ -61,7 +61,7 @@ get_conf_name (const char *my_node_id)
 }
 
 GNUNET_TESTING_MAKE_PLUGIN (
-  libgnunet_test_arm,
+  arm,
   probnat,
   GNUNET_TESTBED_cmd_system_create ("system",
                                     my_node_id),

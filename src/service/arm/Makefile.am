@@ -101,11 +101,11 @@ EXTRA_DIST = \
   test_arm_api_data.conf
 
 plugin_LTLIBRARIES = \
-  libgnunet_test_arm_plugin_probnat.la
+  libgnunet_plugin_testing_arm_probnat.la
 
-libgnunet_test_arm_plugin_probnat_la_SOURCES = \
- test_arm_plugin_probnat.c
-libgnunet_test_arm_plugin_probnat_la_LIBADD = \
+libgnunet_plugin_testing_arm_probnat_la_SOURCES = \
+ plugin_testing_arm_probnat.c
+libgnunet_plugin_testing_arm_probnat_la_LIBADD = \
   libgnunettestingarm.la \
   $(top_builddir)/src/lib/testing/libgnunettesting.la \
   $(top_builddir)/src/service/testbed/libgnunettestbed.la \
