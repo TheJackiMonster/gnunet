@@ -137,7 +137,7 @@ main()
         return $ret
       fi
     fi
-    pogen
+    #pogen
     if test -d .git
     then
         install_hooks
