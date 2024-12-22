@@ -449,8 +449,12 @@ GNUNET_TESTING_get_address (
 
 /**
  * Get the global plugin name form the topology file
+ *
+ * @param njt the netjail topology.
+ * @param my_node_id the node ID.
+ * @return the name of the plugin to use.
  */
-char *
+const char *
 GNUNET_TESTING_get_plugin_from_topo (
   struct GNUNET_TESTING_NetjailTopology *njt,
   const char *my_node_id);

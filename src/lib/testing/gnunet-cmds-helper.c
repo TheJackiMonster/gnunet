@@ -175,6 +175,7 @@ do_shutdown_later (void *cls)
   {
     GNUNET_PLUGIN_unload (plugin_name,
                           plugin);
+    GNUNET_free (plugin_name);
     plugin = NULL;
   }
   if (NULL != njt)
@@ -355,8 +356,9 @@ handle_helper_init (
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  plugin_name = GNUNET_TESTING_get_plugin_from_topo (njt,
-                                                     my_node_id);
+  GNUNET_asprintf (&plugin_name, "libgnunet_plugin_testing_%s",
+                   GNUNET_TESTING_get_plugin_from_topo (njt,
+                                                        my_node_id));
   plugin = GNUNET_PLUGIN_load (pd,
                                plugin_name,
                                (void *) my_node_id);

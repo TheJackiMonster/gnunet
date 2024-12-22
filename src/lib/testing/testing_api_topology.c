@@ -465,7 +465,7 @@ GNUNET_TESTING_get_additional_connects (unsigned int num,
 }
 
 
-char *
+const char *
 GNUNET_TESTING_get_plugin_from_topo (
   struct GNUNET_TESTING_NetjailTopology *njt,
   const char *my_node_id)
