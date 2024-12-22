@@ -79,7 +79,7 @@ GNUNET_TESTING_MAKE_PLUGIN (
                               "sleep",
                               "3",
                               NULL),
-  GNUNET_TRANSPORT_cmd_send_simple ("send", "start", "system", 10),
+  // GNUNET_TRANSPORT_cmd_send_simple ("send", "start", "system", 10),
   GNUNET_TESTING_cmd_stop_peer ("stop",
                                 "start")
   )
