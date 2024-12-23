@@ -18,6 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
+ * FIXME CANDIDATE FOR DELETION. Keep header with structs!
  * @file transport-testing.c
  * @brief testing lib for transport service
  * @author Matthias Wachs

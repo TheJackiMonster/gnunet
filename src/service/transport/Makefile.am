@@ -42,11 +42,11 @@ libgnunet_plugin_testing_transport_simple_send_la_LIBADD = \
 libgnunettestingtransport_la_SOURCES = \
   testing_transport_traits.c transport-testing-cmds.h \
   transport-testing-communicator.c transport-testing-communicator.h \
+  transport-testing2.h \
   transport_testing_cmd_simple_send.c
 #  transport_api_cmd_connecting_peers.c \
 #  transport_api_cmd_backchannel_check.c \
 #  transport_api_cmd_send_simple_performance.c \
-#  transport-testing2.c transport-testing2.h \
 #  transport-testing-cmds.h \
 #  transport-testing-filenames2.c \
 #  transport-testing-loggers2.c \
