@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 
 libgnunetjson_la_LDFLAGS = \
   $(GN_LIBINTL) \
-  -version-info 0:0:0 \
+  -version-info 1:0:1 \
   -no-undefined
 libgnunetjson_la_CFLAGS = \
   $(MHD_CFLAGS) \

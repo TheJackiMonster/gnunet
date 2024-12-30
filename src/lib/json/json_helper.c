@@ -34,8 +34,6 @@ GNUNET_JSON_spec_end ()
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = NULL,
-    .cleaner = NULL,
-    .cls = NULL
   };
 
   return ret;
@@ -120,12 +118,9 @@ GNUNET_JSON_spec_fixed (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_fixed_data,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = obj,
     .ptr_size = size,
-    .size_ptr = NULL
   };
 
   return ret;
@@ -184,12 +179,9 @@ GNUNET_JSON_spec_fixed64 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_fixed64_data,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = obj,
     .ptr_size = size,
-    .size_ptr = NULL
   };
 
   return ret;
@@ -262,10 +254,8 @@ GNUNET_JSON_spec_varsize (const char *name,
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_variable_data,
     .cleaner = &clean_variable_data,
-    .cls = NULL,
     .field = name,
     .ptr = obj,
-    .ptr_size = 0,
     .size_ptr = size
   };
 
@@ -318,6 +308,48 @@ GNUNET_JSON_spec_string (const char *name,
 
 
 /**
+ * Parse given JSON object to string, and make a copy.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_string_copy (void *cls,
+                   json_t *root,
+                   struct GNUNET_JSON_Specification *spec)
+{
+  const char *str;
+
+  (void) cls;
+  str = json_string_value (root);
+  if (NULL == str)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *((char **) spec->ptr) = GNUNET_strdup (str);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_string_copy (const char *name,
+                              char **strptr)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_string_copy,
+    .field = name,
+    .ptr = strptr
+  };
+
+  *strptr = NULL;
+  return ret;
+}
+
+
+/**
  * Parse given JSON object to a JSON object. (Yes, trivial.)
  *
  * @param cls closure, NULL
@@ -335,8 +367,7 @@ parse_json (void *cls,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
-  json_incref (root);
-  *(json_t **) spec->ptr = root;
+  *(json_t **) spec->ptr = json_incref (root);
   return GNUNET_OK;
 }
 
@@ -368,11 +399,8 @@ GNUNET_JSON_spec_json (const char *name,
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_json,
     .cleaner = &clean_json,
-    .cls = NULL,
     .field = name,
     .ptr = jsonp,
-    .ptr_size = 0,
-    .size_ptr = NULL
   };
 
   *jsonp = NULL;
@@ -411,11 +439,49 @@ GNUNET_JSON_spec_object_const (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_object_const,
-    .cls = NULL,
     .field = name,
     .ptr = jsonp,
-    .ptr_size = 0,
-    .size_ptr = NULL
+  };
+
+  *jsonp = NULL;
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to a JSON object and increment the reference counter.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_object_copy (void *cls,
+                   json_t *root,
+                   struct GNUNET_JSON_Specification *spec)
+{
+  if (NULL == root)
+    return GNUNET_OK;
+  if (! json_is_object (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *((json_t **) spec->ptr) = json_incref (root);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_object_copy (const char *name,
+                              const json_t **jsonp)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_object_copy,
+    .cls = &clean_json,
+    .field = name,
+    .ptr = jsonp,
   };
 
   *jsonp = NULL;
@@ -454,11 +520,49 @@ GNUNET_JSON_spec_array_const (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_array_const,
-    .cls = NULL,
     .field = name,
-    .ptr = jsonp,
-    .ptr_size = 0,
-    .size_ptr = NULL
+    .ptr = jsonp
+  };
+
+  *jsonp = NULL;
+  return ret;
+}
+
+
+/**
+ * Parse given JSON to a JSON array and increment the reference counter.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_array_copy (void *cls,
+                  json_t *root,
+                  struct GNUNET_JSON_Specification *spec)
+{
+  if (NULL == root)
+    return GNUNET_OK;
+  if (! json_is_array (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *((json_t **) spec->ptr) = json_incref (root);
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_array_copy (const char *name,
+                             const json_t **jsonp)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_array_copy,
+    .cleaner = &clean_json,
+    .field = name,
+    .ptr = jsonp
   };
 
   *jsonp = NULL;
@@ -502,12 +606,9 @@ GNUNET_JSON_spec_bool (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_bool,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = b,
     .ptr_size = sizeof(bool),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -545,12 +646,9 @@ GNUNET_JSON_spec_double (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_double,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = f,
     .ptr_size = sizeof(double),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -595,12 +693,9 @@ GNUNET_JSON_spec_uint8 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_u8,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = u8,
     .ptr_size = sizeof(uint8_t),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -645,12 +740,9 @@ GNUNET_JSON_spec_uint16 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_u16,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = u16,
     .ptr_size = sizeof(uint16_t),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -695,12 +787,103 @@ GNUNET_JSON_spec_uint32 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_u32,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = u32,
     .ptr_size = sizeof(uint32_t),
-    .size_ptr = NULL
+  };
+
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to an unsigned int.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_ui (void *cls,
+          json_t *root,
+          struct GNUNET_JSON_Specification *spec)
+{
+  json_int_t val;
+  unsigned int *up = spec->ptr;
+
+  if (! json_is_integer (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  val = json_integer_value (root);
+  if ((0 > val) || (val > UINT_MAX))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *up = (unsigned int) val;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_uint (const char *name,
+                       unsigned int *ui)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_ui,
+    .field = name,
+    .ptr = ui,
+    .ptr_size = sizeof(unsigned int),
+  };
+
+  return ret;
+}
+
+
+/**
+ * Parse given JSON object to an unsigned long long.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_ull (void *cls,
+           json_t *root,
+           struct GNUNET_JSON_Specification *spec)
+{
+  json_int_t val;
+  unsigned long long *up = spec->ptr;
+
+  if (! json_is_integer (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  val = json_integer_value (root);
+  if ((0 > val) || (val > ULONG_LONG_MAX))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  *up = (unsigned long long) val;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_ull (const char *name,
+                      unsigned long long *ull)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_ull,
+    .field = name,
+    .ptr = ull,
+    .ptr_size = sizeof(unsigned long long),
   };
 
   return ret;
@@ -740,12 +923,9 @@ GNUNET_JSON_spec_uint64 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_u64,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = u64,
     .ptr_size = sizeof(uint64_t),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -785,12 +965,9 @@ GNUNET_JSON_spec_int64 (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_i64,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = i64,
     .ptr_size = sizeof(int64_t),
-    .size_ptr = NULL
   };
 
   return ret;
@@ -1192,12 +1369,9 @@ GNUNET_JSON_spec_boolean (const char *name,
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_boolean,
-    .cleaner = NULL,
-    .cls = NULL,
     .field = name,
     .ptr = boolean,
     .ptr_size = sizeof(int),
-    .size_ptr = NULL
   };
 
   return ret;

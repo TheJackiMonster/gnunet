@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016, 2020 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2020, 2024 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -128,7 +128,7 @@ struct GNUNET_JSON_Specification
  * entry in @a spec is returned in @a error_line.
  *
  * @param root the JSON node to start the navigation at.
- * @param spec parse specification array
+ * @param[in,out] spec parse specification array
  * @param[out] error_json_name which JSON field was problematic
  * @param[out] error_line which index into @a spec did we encounter an error
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
@@ -150,7 +150,7 @@ GNUNET_JSON_parse (const json_t *root,
  * code to free the heap (not always #GNUNET_free(), depends
  * on the data type!) on the returned heap-allocated data itself.
  *
- * @param spec specification of the parse operation
+ * @param[in,out] spec specification of the parse operation
  */
 void
 GNUNET_JSON_parse_free (struct GNUNET_JSON_Specification *spec);
@@ -252,6 +252,17 @@ GNUNET_JSON_spec_string (const char *name,
 
 
 /**
+ * The expected field stores a string.
+ *
+ * @param name name of the JSON field
+ * @param strptr where to store a pointer to the field
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_string_copy (const char *name,
+                              char **strptr);
+
+
+/**
  * JSON object or array. Reference counter is
  * incremented.
  *
@@ -261,6 +272,28 @@ GNUNET_JSON_spec_string (const char *name,
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_json (const char *name,
                        json_t **jsonp);
+
+
+/**
+ * JSON object, reference counter not incremented.
+ *
+ * @param name name of the JSON field
+ * @param[out] jsonp where to store the JSON found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_object_copy (const char *name,
+                              const json_t **jsonp);
+
+
+/**
+ * JSON array, reference counter not incremented.
+ *
+ * @param name name of the JSON field
+ * @param[out] jsonp where to store the JSON found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_array_copy (const char *name,
+                             const json_t **jsonp);
 
 
 /**
@@ -338,6 +371,17 @@ GNUNET_JSON_spec_uint16 (const char *name,
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint32 (const char *name,
                          uint32_t *u32);
+
+
+/**
+ * Unsigned integer.
+ *
+ * @param name name of the JSON field
+ * @param[out] ui where to store the integer found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_uint (const char *name,
+                       unsigned int *ui);
 
 
 /**
@@ -448,9 +492,9 @@ GNUNET_JSON_spec_blinded_message (const char *name,
  * @param sig where to store the blinded signature found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_blinded_signature (const char *field,
-                                    struct GNUNET_CRYPTO_BlindedSignature **
-                                    b_sig);
+GNUNET_JSON_spec_blinded_signature (
+  const char *field,
+  struct GNUNET_CRYPTO_BlindedSignature **b_sig);
 
 
 /**
@@ -460,9 +504,9 @@ GNUNET_JSON_spec_blinded_signature (const char *field,
  * @param sig where to store the unblinded signature found under @a name
  */
 struct GNUNET_JSON_Specification
-GNUNET_JSON_spec_unblinded_signature (const char *field,
-                                      struct GNUNET_CRYPTO_UnblindedSignature **
-                                      ub_sig);
+GNUNET_JSON_spec_unblinded_signature (
+  const char *field,
+  struct GNUNET_CRYPTO_UnblindedSignature **ub_sig);
 
 
 /* ****************** Generic generator interface ******************* */
@@ -1010,9 +1054,9 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_unblinded_signature (const char *name,
-                                      const struct
-                                      GNUNET_CRYPTO_UnblindedSignature *sig);
+GNUNET_JSON_pack_unblinded_signature (
+  const char *name,
+  const struct GNUNET_CRYPTO_UnblindedSignature *sig);
 
 
 /**
@@ -1024,9 +1068,9 @@ GNUNET_JSON_pack_unblinded_signature (const char *name,
  * @return json pack specification
  */
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_blinded_message (const char *name,
-                                  const struct GNUNET_CRYPTO_BlindedMessage *msg
-                                  );
+GNUNET_JSON_pack_blinded_message (
+  const char *name,
+  const struct GNUNET_CRYPTO_BlindedMessage *msg);
 
 
 /**
