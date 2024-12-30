@@ -516,7 +516,7 @@ parse_array_const (void *cls,
 
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_array_const (const char *name,
-                              json_t **jsonp)
+                              const json_t **jsonp)
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_array_const,
@@ -556,7 +556,7 @@ parse_array_copy (void *cls,
 
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_array_copy (const char *name,
-                             const json_t **jsonp)
+                             json_t **jsonp)
 {
   struct GNUNET_JSON_Specification ret = {
     .parser = &parse_array_copy,
