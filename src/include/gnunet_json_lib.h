@@ -282,7 +282,7 @@ GNUNET_JSON_spec_json (const char *name,
  */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_object_copy (const char *name,
-                              const json_t **jsonp);
+                              json_t **jsonp);
 
 
 /**
@@ -293,7 +293,7 @@ GNUNET_JSON_spec_object_copy (const char *name,
  */
 struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_array_copy (const char *name,
-                             const json_t **jsonp);
+                             json_t **jsonp);
 
 
 /**
