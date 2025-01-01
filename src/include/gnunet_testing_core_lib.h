@@ -65,7 +65,7 @@ struct GNUNET_TESTING_ConnectPeersState
   /**
    * The testing system of this node.
    */
-  const struct GNUNET_TESTING_System *tl_system;
+  const struct GNUNET_TESTBED_System *tl_system;
 
   // Label of the cmd which started the test system.
   const char *create_label;
