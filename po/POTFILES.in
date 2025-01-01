@@ -485,6 +485,8 @@ src/service/transport/plugin_testing_transport_simple_send_broadcast.c
 src/service/transport/plugin_testing_transport_simple_send_dv.c
 src/service/transport/plugin_testing_transport_simple_send_performance.c
 src/service/transport/plugin_testing_transport_udp_backchannel.c
+src/service/transport/testing_cmd_transport_connect_peers.c
+src/service/transport/testing_cmd_transport_send_simple.c
 src/service/transport/testing_transport_traits.c
 src/service/transport/transport-testing-communicator.c
 src/service/transport/transport-testing-filenames2.c
@@ -502,7 +504,6 @@ src/service/transport/transport_api_cmd_stop_peer.c
 src/service/transport/transport_api_communication.c
 src/service/transport/transport_api_core.c
 src/service/transport/transport_api_monitor.c
-src/service/transport/transport_testing_cmd_simple_send.c
 src/service/util/gnunet-service-resolver.c
 src/service/vpn/gnunet-helper-vpn.c
 src/service/vpn/gnunet-service-vpn.c
