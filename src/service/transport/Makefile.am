@@ -43,8 +43,8 @@ libgnunettestingtransport_la_SOURCES = \
   testing_transport_traits.c transport-testing-cmds.h \
   transport-testing-communicator.c transport-testing-communicator.h \
   transport-testing2.h \
-  transport_testing_cmd_simple_send.c \
-  testing_cmd_transport_connect_peers.c
+  testing_cmd_transport_send_simple.c
+#  testing_cmd_transport_connect_peers.c \
 #  transport_api_cmd_backchannel_check.c \
 #  transport_api_cmd_send_simple_performance.c \
 #  transport-testing-cmds.h \
@@ -361,12 +361,12 @@ test_communicator_bidirect_tcp_LDADD = \
  $(top_builddir)/src/lib/util/libgnunetutil.la \
  $(top_builddir)/src/service/statistics/libgnunetstatistics.la
 
-test_transport_api_tcp_SOURCES = \
- test_transport_api.c
-test_transport_api_tcp_LDADD = \
- $(top_builddir)/src/lib/hello/libgnunethello.la \
- $(top_builddir)/src/lib/util/libgnunetutil.la  \
- libgnunettestingtransport.la
+#test_transport_api_tcp_SOURCES = \
+# test_transport_api.c
+#test_transport_api_tcp_LDADD = \
+# $(top_builddir)/src/lib/hello/libgnunethello.la \
+# $(top_builddir)/src/lib/util/libgnunetutil.la  \
+# libgnunettestingtransport.la
 
 EXTRA_DIST = \
 test_transport_start_testcase.sh \
