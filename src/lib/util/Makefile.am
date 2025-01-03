@@ -111,14 +111,10 @@ libgnunetutil_la_SOURCES = \
   proc_compat.c \
 	gnunet_error_codes.c
 
-if HAVE_LIBATOMIC
 if DARWIN
-	LIBATOMIC=
+  LIBATOMIC=
 else
   LIBATOMIC= -latomic
-endif
-else
-  LIBATOMIC=
 endif
 
 if HAVE_LIBIDN
