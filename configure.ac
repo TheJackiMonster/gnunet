@@ -744,8 +744,6 @@ AC_CHECK_HEADER([curl/curl.h],
                                 [],
                                 [AC_MSG_ERROR([cURL must support CURLINFO_TLS_SSL_PTR])],
                                 [[#include <curl/curl.h>]])])
-# libatomic
-CHECK_WITH_LIB([atomic], [__atomic_load_8], [], [HAVE_LIBATOMIC])
 
 # check for nss
 AC_CHECK_HEADERS([nss.h], [nss=true], [nss=false])
