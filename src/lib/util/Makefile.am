@@ -111,12 +111,6 @@ libgnunetutil_la_SOURCES = \
   proc_compat.c \
 	gnunet_error_codes.c
 
-if DARWIN
-  LIBATOMIC=
-else
-  LIBATOMIC= -latomic
-endif
-
 if HAVE_LIBIDN
   LIBIDN= -lidn
 else
@@ -134,7 +128,6 @@ libgnunetutil_la_CFLAGS = \
   ${MHD_CFLAGS}
 libgnunetutil_la_LIBADD = \
   $(GCLIBADD) $(WINLIB) \
-  $(LIBATOMIC) \
   $(LIBGCRYPT_LIBS) \
   $(LTLIBICONV) \
   $(LTLIBINTL) \

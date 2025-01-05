@@ -93,7 +93,8 @@ libgnunetutil = library('gnunetutil',
           sqlite_dep,
           unistr_dep,
           ltdl_dep,
-          idn_dep
+          idn_dep,
+          atomic_dep
         ],
         include_directories: [incdir, configuration_inc],
         install: true,

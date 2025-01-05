@@ -865,7 +865,7 @@ parse_ull (void *cls,
     return GNUNET_SYSERR;
   }
   val = json_integer_value (root);
-  if ((0 > val) || (val > ULONG_LONG_MAX))
+  if ((0 > val) || (val > ULLONG_MAX))
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;

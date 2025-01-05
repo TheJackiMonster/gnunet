@@ -405,10 +405,8 @@ if not tun_found and cc.check_header('net/tun/if_tun.h')
   endif
 endif
 
-# NSS
-if cc.check_header('nss.h')
-  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
-endif
+# Check for optional libatomic
+atomic_dep = cc.find_library('atomic', required : false)
 
 # GNUTLS DANE
 if cc.check_header('gnutls/dane.h')

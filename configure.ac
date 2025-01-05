@@ -756,6 +756,9 @@ AS_IF([test "x$nss" = "xfalse"],
           AC_MSG_WARN([NSS plugin will not be built])],
          [[#include <nss.h>]])])
 
+# libatomic
+AC_SEARCH_LIBS([__atomic_load_8], [atomic])
+
 # test for kvm and kstat (for CPU stats under BSD/Solaris)
 AC_CHECK_LIB([kvm], [kvm_open])
 AC_CHECK_LIB([kstat], [kstat_open])
