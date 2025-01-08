@@ -1121,18 +1121,6 @@ AS_IF([test "x$enable_benchmarks" = "xyes"],
 AM_CONDITIONAL([ENABLE_BENCHMARK], [test "x$enable_benchmarks" = "xyes"])
 AM_CONDITIONAL([HAVE_BENCHMARKS], [test "x$enable_benchmarks" = "xyes"])
 
-# check if ports should be opened for Java services
-AC_ARG_ENABLE([javaports],
-  [AS_HELP_STRING([--enable-javaports],
-     [use non-zero ports for services with Java bindings (default is no)])],
-  [enable_java_ports=${enableval}],
-  [enable_java_ports="no"])
-
-AS_IF([test "x$enable_java_ports" = "xyes"],
-  [JAVAPORT=""],
-  [JAVAPORT="$UNIXONLY"])
-AC_SUBST([JAVAPORT])
-
 # check if experimental code should be compiled (or at least attempted to)
 AC_ARG_ENABLE([experimental],
   [AS_HELP_STRING([--enable-experimental],

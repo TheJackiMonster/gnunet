@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -3205,7 +3205,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "\"%s\" misslyckades för fil \"%s\" vid %s:%d med fel: %s\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
@@ -3349,39 +3349,39 @@ msgstr "Konfigurationsfil \"%s\" hittades inte.  Kör \"gnunet-setup -d\"!\n"
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Konfigurationsfil \"%s\" skapad.\n"
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "%s: flagga \"%s\" är tvetydig\n"
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
@@ -7270,7 +7270,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Misslyckades att ansluta till gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 

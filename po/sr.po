@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -3228,7 +3228,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "„%s“ није успело да реши метод '%s' са грешком: %s\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
@@ -3372,11 +3372,11 @@ msgstr ""
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 msgid "Not a valid relative time specification"
 msgstr ""
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3385,27 +3385,27 @@ msgstr ""
 "Вредност подешавања '%s' за '%s' у одељку '%s' није ус купу исправних "
 "избора\n"
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "аргумент „--section“ је потребан\n"
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr "аргумент „--option“ је потребан за постављање вредности\n"
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Нисам успео да учитам подешавање за „%s“\n"
@@ -7274,7 +7274,7 @@ msgstr "шаље податке за оцењивање другим парња�
 msgid "Direct access to transport service."
 msgstr "Непосредан приступ услузи преноса."
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -7825,8 +7825,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: the maximum number of links a node can have\n"
 #~ "\t m: the number of links a node should have while joining the network\n"
 #~ "\t filename: the path of the file which contains topology information\n"
-#~ "NOTE: the format of the above file is described here: https://www.gnunet."
-#~ "org/content/topology-file-format\n"
+#~ "NOTE: the format of the above file is described here: https://"
+#~ "www.gnunet.org/content/topology-file-format\n"
 #~ msgstr ""
 #~ "Ствара СКуЛајт3 базу података која представља дати основни размештај.\n"
 #~ "Коришћење: gnunet-underlay-topology [ОПЦИЈЕ] db-filename TOPO "
@@ -7847,8 +7847,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: највећи број веза које чвор може да има\n"
 #~ "\t m: број веза које чвор треба да има приликом придруживања мрежи\n"
 #~ "\t filename: путања датотеке која садржи податке о размештају\n"
-#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://www."
-#~ "gnunet.org/content/topology-file-format\n"
+#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://"
+#~ "www.gnunet.org/content/topology-file-format\n"
 
 #~ msgid "Daemon to log latency values of connections to neighbours"
 #~ msgstr "Демон за дневничење вредности кашњења веза са суседима"
@@ -8982,8 +8982,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ msgstr "Нисам успео да поставим основни его: %s\n"
 
 #~ msgid ""
-#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with -"
-#~ "e)"
+#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with "
+#~ "-e)"
 #~ msgstr ""
 #~ "поставља основни идентитет на ЕГО за подсистем ПОДСИСТЕМ (користите "
 #~ "заједно са -e)"
@@ -9816,8 +9816,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 
 #~ msgid ""
 #~ "Ego for `gns-short' not found. This is not really fatal, but i'll pretend "
-#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-import."
-#~ "sh?\n"
+#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-"
+#~ "import.sh?\n"
 #~ msgstr ""
 #~ "Нисам нашао „gns-short“. То и није баш кобно, али ћу се ја претварати да "
 #~ "јесте и одбићу да обавим претраживање.  Да ли сте покренули „gnunet-gns-"

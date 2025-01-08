@@ -1,7 +1,6 @@
 [cadet]
 IMMEDIATE_START = YES
 START_ON_DEMAND = @START_ON_DEMAND@
-@JAVAPORT@PORT = 2096
 HOSTNAME = localhost
 BINARY = gnunet-service-cadet
 # PREFIX = valgrind --leak-check=yes

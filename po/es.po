@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -3257,7 +3257,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "«%s» falló al resolver el método «%s» con error: %s\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
@@ -3403,12 +3403,12 @@ msgstr ""
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Tiempo de expiración no válido para la operación «%s»\n"
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3417,27 +3417,27 @@ msgstr ""
 "El valor de configuración «%s» para «%s» de la sección «%s» no está dentro "
 "de las opciones legales\n"
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "el parámetro --section es necesario\n"
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr "el parámetro --option es necesario para establecer un valor\n"
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Se produjo un fallo al cargar la configuración de %s\n"
@@ -7457,7 +7457,7 @@ msgstr "enviar data para prueba a otro par (hasta CTRL-C)"
 msgid "Direct access to transport service."
 msgstr "Acceso directo al servicio de transporte."
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -14924,11 +14924,10 @@ msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 #~ "activando la opción \"Mostrar todas las opciones\" en el menú de "
 #~ "\"Opciones\".\n"
 #~ "\n"
-#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,"
-#~ "·you·can·still·view·the·help·of·a·grayed-out·option.\n"
+#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,·you·can·still·view·the·help·of·a·grayed-"
+#~ "out·option.\n"
 #~ "\n"
-#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,"
-#~ "·which·you·can·then·match·by·examining·other·options."
+#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,·which·you·can·then·match·by·examining·other·options."
 
 #~ msgid ""
 #~ "Configuration file not found. Please run GNUnet Setup (Client "

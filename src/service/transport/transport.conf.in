@@ -1,6 +1,5 @@
 [transport]
 START_ON_DEMAND = @START_ON_DEMAND@
-@JAVAPORT@PORT = 2091
 HOSTNAME = localhost
 BINARY = gnunet-service-transport
 # PREFIX = valgrind

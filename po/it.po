@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2019-10-16 11:00+0200\n"
 "Last-Translator: Sebastiano Pistore <sebastianopistore.info@protonmail.ch>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -3117,7 +3117,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
@@ -3260,38 +3260,38 @@ msgstr ""
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 msgid "Not a valid relative time specification"
 msgstr ""
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, c-format
 msgid "failed to load configuration defaults"
 msgstr ""
@@ -7006,7 +7006,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr ""
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 

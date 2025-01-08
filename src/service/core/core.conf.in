@@ -1,6 +1,5 @@
 [core]
 START_ON_DEMAND = @START_ON_DEMAND@
-@JAVAPORT@PORT = 2092
 HOSTNAME = localhost
 BINARY = gnunet-service-core
 ACCEPT_FROM = 127.0.0.1;

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -3228,7 +3228,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "« %s » không giải quyết được phương pháp « %s », với lỗi: %s\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "Không thể lưu tập tin cấu hình « %s »:"
@@ -3373,12 +3373,12 @@ msgstr ""
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Không thể lưu tập tin cấu hình « %s »:"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Giá trị cấu hình « %s » cho « %s » trong phần « %s » nên là con số\n"
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3387,27 +3387,27 @@ msgstr ""
 "Giá trị cấu hình « %s » cho « %s » trong phần « %s » không phải nằm trong "
 "tập hợp các sự chọn được phép\n"
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Không thể lưu tập tin cấu hình « %s »:"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "đặt tên hiệu cần dùng (cần thiết)"
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Không thể lưu tập tin cấu hình « %s »:"
@@ -7326,7 +7326,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "Lỗi kết nối đến gnunetd.\n"
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -10862,8 +10862,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ msgstr "Chỉ có thể đặt một tùy chọn trong mỗi cuộc gọi.\n"
 
 #~ msgid ""
-#~ "Invalid syntax, argument to 'set' must have the format SECTION:"
-#~ "OPTION=VALUE.\n"
+#~ "Invalid syntax, argument to 'set' must have the format "
+#~ "SECTION:OPTION=VALUE.\n"
 #~ msgstr ""
 #~ "Cú pháp sai, đối số tới « set » phải theo định dạng:\n"
 #~ "PHẦN:TÙY_CHỌN­=GIÁ_TRỊ\n"
@@ -11693,8 +11693,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ msgstr ""
 #~ "tải xuống một thư mục GNUnet đã được tải về trước. Cần thiết ghi rõ tên "
 #~ "tập tin của một tập tin đã có, thay cho địa chỉ URI. Việc tải về sẽ chỉ "
-#~ "tải về các tập tin cấp đầu của thư mục, nếu không cũng đưa ra tùy chọn « -"
-#~ "R »."
+#~ "tải về các tập tin cấp đầu của thư mục, nếu không cũng đưa ra tùy chọn "
+#~ "« -R »."
 
 #~ msgid "Download files from GNUnet."
 #~ msgstr "Tải tập tin xuống GNUnet."
@@ -12410,8 +12410,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ "always welcome.  Users should just be aware that alpha features may not "
 #~ "meet the normal level of reliability or it may fail to work in some "
 #~ "special cases.  Bug reports are usually welcomed by the developers, but "
-#~ "please read the documents <file://README> and <http://gnunet.org/faq."
-#~ "php3> and use <https://gnunet.org/mantis/> for how to report problems."
+#~ "please read the documents <file://README> and <http://gnunet.org/"
+#~ "faq.php3> and use <https://gnunet.org/mantis/> for how to report problems."
 #~ msgstr ""
 #~ "Nếu EXPERIMENTAL (thực nghiệm) được đặt thành NO (không) thì không hiển "
 #~ "thị tùy chọn về mã vẫn thực nghiệm. Chưa chắc thì đặt NO.\n"
@@ -13502,10 +13502,10 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ "những thư viện trích bổ sung. Định dạng là « [[-]tên_thư_viện[:"
 #~ "[-]tên_thư_viện]*] ».\n"
 #~ "\n"
-#~ "Mặc định là dùng tên tập tin, và ngắt từ lớn ở dấu cách, dấu gạch dưới v."
-#~ "v. Đây nên ổn cho phần lớn người dùng. Dấu gạch nối « - » đằng trước một "
-#~ "tên thư viện có ngụ ý nó nên được thực hiện cuối cùng, thích hợp chỉ cho "
-#~ "split-library."
+#~ "Mặc định là dùng tên tập tin, và ngắt từ lớn ở dấu cách, dấu gạch dưới "
+#~ "v.v. Đây nên ổn cho phần lớn người dùng. Dấu gạch nối « - » đằng trước "
+#~ "một tên thư viện có ngụ ý nó nên được thực hiện cuối cùng, thích hợp chỉ "
+#~ "cho split-library."
 
 #~ msgid "How many entries should the URI DB table have?"
 #~ msgstr "Bảng DB URI nên chứa bao nhiêu mục nhập?"

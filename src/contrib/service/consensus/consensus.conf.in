@@ -1,6 +1,5 @@
 [consensus]
 START_ON_DEMAND = @START_ON_DEMAND@
-@JAVAPORT@PORT = 2103
 HOSTNAME = localhost
 BINARY = gnunet-service-consensus
 ACCEPT_FROM = 127.0.0.1;

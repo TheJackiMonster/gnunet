@@ -4,7 +4,6 @@ IMMEDIATE_START = YES
 HOSTNAME = localhost
 BINARY = gnunet-service-gns
 UNIXPATH = $GNUNET_RUNTIME_DIR/gnunet-service-gns.sock
-@JAVAPORT@PORT = 2102
 
 # Do we require users that want to access GNS to run this process
 # (usually not a good idea)

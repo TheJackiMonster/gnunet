@@ -1,7 +1,6 @@
 [messenger]
 START_ON_DEMAND = @START_ON_DEMAND@
 RUN_PER_USER = YES
-@JAVAPORT@PORT = 2125
 HOSTNAME = localhost
 BINARY = gnunet-service-messenger
 ACCEPT_FROM = 127.0.0.1;

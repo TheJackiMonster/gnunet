@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2024-12-09 16:46+0100\n"
+"POT-Creation-Date: 2025-01-08 13:47+0100\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -3163,7 +3163,7 @@ msgstr ""
 msgid "Failed to reset sqlite statement with error: %s\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/lib/testing/testing_api_topology.c:631
+#: src/lib/testing/testing_api_topology.c:609
 #, fuzzy
 msgid "Failed to parse configuration.\n"
 msgstr "解析配置文件“%s”失败\n"
@@ -3306,39 +3306,39 @@ msgstr "配置不满足配置规范文件“%s”的约束！\n"
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/lib/util/configuration.c:1789
+#: src/lib/util/configuration.c:1873
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "配置文件“%s”已写入。\n"
 
-#: src/lib/util/configuration.c:1867
+#: src/lib/util/configuration.c:1951
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
 "choices\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2725
+#: src/lib/util/configuration.c:2809
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/lib/util/configuration.c:2737
+#: src/lib/util/configuration.c:2821
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2751
+#: src/lib/util/configuration.c:2835
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "设置要使用的昵称(必须)"
 
-#: src/lib/util/configuration.c:2822
+#: src/lib/util/configuration.c:2906
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2865
+#: src/lib/util/configuration.c:2949
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "解析配置文件“%s”失败\n"
@@ -7112,7 +7112,7 @@ msgstr ""
 msgid "Direct access to transport service."
 msgstr "初始化“%s”服务失败。\n"
 
-#: src/service/transport/transport_api2_communication.c:775
+#: src/service/transport/transport_api_communication.c:775
 msgid "Dropped backchanel message: handler not provided by communicator\n"
 msgstr ""
 
@@ -9161,8 +9161,8 @@ msgstr "初始化“%s”服务失败。\n"
 #~ msgstr "每次调用只能设置一个选项。\n"
 
 #~ msgid ""
-#~ "Invalid syntax, argument to 'set' must have the format SECTION:"
-#~ "OPTION=VALUE.\n"
+#~ "Invalid syntax, argument to 'set' must have the format "
+#~ "SECTION:OPTION=VALUE.\n"
 #~ msgstr "语法无效，“set”的参数必须为 SECTION:OPTION=VALUE 的格式。\n"
 
 #~ msgid "Can only display one option per invocation.\n"
