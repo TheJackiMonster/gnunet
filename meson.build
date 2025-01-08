@@ -406,7 +406,10 @@ if not tun_found and cc.check_header('net/tun/if_tun.h')
 endif
 
 # Check for optional libatomic
-atomic_dep = cc.find_library('atomic', required : false)
+atomic_dep = dependency('', required: false)
+if cc.has_function('__atomic_load_8') == false
+  atomic_dep = cc.find_library('atomic', required : true)
+endif
 
 # GNUTLS DANE
 if cc.check_header('gnutls/dane.h')
