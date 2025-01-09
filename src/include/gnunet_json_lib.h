@@ -724,7 +724,9 @@ typedef json_t *
 struct GNUNET_JSON_PackSpec
 {
   /**
-   * Name of the field to pack.
+   * Name of the field to pack. If (and only if) @e object contains an actual
+   * JSON object, NULL will pack the keys in the top level of the resulting
+   * JSON object rather than under a field.
    */
   const char *field_name;
 
@@ -740,6 +742,11 @@ struct GNUNET_JSON_PackSpec
    * the generated object) and not be serialized at all.
    */
   bool allow_null;
+
+  /**
+   * True if last element in the spec array.
+   */
+  bool final;
 };
 
 
@@ -856,7 +863,8 @@ GNUNET_JSON_pack_int64 (const char *name,
  * JSON object where the reference is taken over by
  * the packer.
  *
- * @param name name of the field to add to the object
+ * @param name name of the field to add to the object, if NULL, the keys of
+ *        @a o will be placed in the top level of the resulting object
  * @param o object to steal
  * @return json pack specification
  */
@@ -870,7 +878,8 @@ GNUNET_JSON_pack_object_steal (const char *name,
  * reference counter is incremented by the packer.  Note that a deep copy is
  * not performed.
  *
- * @param name name of the field to add to the object
+ * @param name name of the field to add to the object, if NULL, the keys of
+ *        @a o will be placed in the top level of the resulting object
  * @param o object to increment reference counter of
  * @return json pack specification
  */

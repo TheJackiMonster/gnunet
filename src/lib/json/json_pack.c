@@ -39,7 +39,7 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
   ret = json_object ();
   GNUNET_assert (NULL != ret);
   for (unsigned int i = 0;
-       NULL != spec[i].field_name;
+       ! spec[i].final;
        i++)
   {
     if (NULL == spec[i].object)
@@ -54,10 +54,16 @@ GNUNET_JSON_pack_ (struct GNUNET_JSON_PackSpec spec[])
     }
     else
     {
-      GNUNET_assert (0 ==
-                     json_object_set_new (ret,
-                                          spec[i].field_name,
-                                          spec[i].object));
+      if (NULL == spec[i].field_name)
+        GNUNET_assert (0 ==
+                       json_object_update_new (ret,
+                                               spec[i].object));
+      else
+        GNUNET_assert (0 ==
+                       json_object_set_new (ret,
+                                            spec[i].field_name,
+                                            spec[i].object));
+
       spec[i].object = NULL;
     }
   }
@@ -69,7 +75,7 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_end_ (void)
 {
   struct GNUNET_JSON_PackSpec ps = {
-    .field_name = NULL
+    .final = true
   };
 
   return ps;
@@ -88,6 +94,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_bool (const char *name,
                        bool b)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_boolean (b)
@@ -101,11 +109,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_double (const char *name,
                          double f)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_real (f)
   };
-
   return ps;
 }
 
@@ -114,6 +123,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_string (const char *name,
                          const char *s)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_string (s)
@@ -127,6 +138,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_uint64 (const char *name,
                          uint64_t num)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_integer ((json_int_t) num)
@@ -145,6 +158,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_int64 (const char *name,
                         int64_t num)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_integer ((json_int_t) num)
@@ -210,6 +225,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_array_steal (const char *name,
                               json_t *a)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = a
@@ -232,6 +249,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_array_incref (const char *name,
                                json_t *a)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = a
@@ -256,6 +275,8 @@ GNUNET_JSON_pack_data_varsize (const char *name,
                                const void *blob,
                                size_t blob_size)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = (NULL != blob)
@@ -273,6 +294,8 @@ GNUNET_JSON_pack_data64_varsize (const char *name,
                                  const void *blob,
                                  size_t blob_size)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = (NULL != blob)
@@ -289,6 +312,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_timestamp (const char *name,
                             struct GNUNET_TIME_Timestamp t)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name
   };
@@ -319,6 +344,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_time_rel (const char *name,
                            struct GNUNET_TIME_Relative rt)
 {
+  GNUNET_assert (NULL != name);
+
   json_t *json;
 
   json = GNUNET_JSON_from_time_rel (rt);
@@ -341,6 +368,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_public_key (const char *name,
                                  const struct GNUNET_CRYPTO_RsaPublicKey *pk)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = GNUNET_JSON_from_rsa_public_key (pk)
@@ -354,6 +383,8 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_signature (const char *name,
                                 const struct GNUNET_CRYPTO_RsaSignature *sig)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = GNUNET_JSON_from_rsa_signature (sig)
@@ -365,8 +396,11 @@ GNUNET_JSON_pack_rsa_signature (const char *name,
 
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_unblinded_signature (const char *name,
-                                      const struct GNUNET_CRYPTO_UnblindedSignature *sig)
+                                      const struct
+                                      GNUNET_CRYPTO_UnblindedSignature *sig)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name
   };
@@ -402,8 +436,11 @@ GNUNET_JSON_pack_unblinded_signature (const char *name,
 
 struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_blinded_message (const char *name,
-                                  const struct GNUNET_CRYPTO_BlindedMessage *msg)
+                                  const struct GNUNET_CRYPTO_BlindedMessage *msg
+                                  )
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
   };
@@ -446,6 +483,8 @@ GNUNET_JSON_pack_blinded_sig (
   const char *name,
   const struct GNUNET_CRYPTO_BlindedSignature *sig)
 {
+  GNUNET_assert (NULL != name);
+
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
   };
@@ -476,5 +515,6 @@ GNUNET_JSON_pack_blinded_sig (
   GNUNET_assert (0);
   return ps;
 }
+
 
 /* end of json_pack.c */
