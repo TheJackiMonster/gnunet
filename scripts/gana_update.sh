@@ -6,9 +6,9 @@ if [ ! -f $GNUNET_SRC_ROOT/scripts/gana_update.sh ]; then
   exit 1
 fi
 
-COMMITISH=""
+COMMIT_HASH=""
 if [ ! -z $1 ]; then
-  COMMITISH=$1
+  COMMIT_HASH=$1
 fi
 
 cleanup() {
@@ -40,8 +40,8 @@ gana_update()
     cd $GANA_TMP || exit 1
     git clone git://git.gnunet.org/gana.git
     cd gana || exit 1
-    if [ ! -z $COMMITISH ]; then
-      git checkout $COMMITISH || exit 1
+    if [ ! -z "${COMMIT_HASH}" ]; then
+      git checkout "${COMMIT_HASH}" || exit 1
     fi
     # GNS
     echo "Updating GNS record types"
