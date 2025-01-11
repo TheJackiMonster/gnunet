@@ -136,7 +136,8 @@ GNUNET_HELPER_destroy (struct GNUNET_HELPER_Handle *h);
  *          stdin; #GNUNET_NO to signal termination by sending SIGTERM to helper
  */
 void
-GNUNET_HELPER_stop (struct GNUNET_HELPER_Handle *h, int soft_kill);
+GNUNET_HELPER_stop (struct GNUNET_HELPER_Handle *h,
+                    int soft_kill);
 
 
 /**
