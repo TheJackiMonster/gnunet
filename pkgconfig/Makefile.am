@@ -11,6 +11,7 @@ pcfiles = \
        gnunetdns.pc \
        gnunetfs.pc \
        gnunetgns.pc \
+       gnunetgnsrecord.pc \
        gnunethello.pc \
        gnunetidentity.pc \
        gnunetjson.pc \
@@ -50,6 +51,7 @@ EXTRA_DIST = \
        gnunetdns.pc.in \
        gnunetfs.pc.in \
        gnunetgns.pc.in \
+       gnunetgnsrecord.pc.in \
        gnunethello.pc.in \
        gnunetidentity.pc.in \
        gnunetjson.pc.in \

@@ -3,10 +3,10 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: GNUnet GNS
-Description: Provides API to access the GNU Name System
+Name: GNUnet GNS record library
+Description: Provides API to handle GNS records
 URL: http://gnunet.org
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lgnunetgns
+Libs: -L${libdir} -lgnunetgnsrecord
 Cflags: -I${includedir}

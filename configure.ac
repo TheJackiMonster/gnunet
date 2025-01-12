@@ -1389,6 +1389,7 @@ pkgconfig/gnunetdht.pc
 pkgconfig/gnunetdns.pc
 pkgconfig/gnunetfs.pc
 pkgconfig/gnunetgns.pc
+pkgconfig/gnunetgnsrecord.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
 pkgconfig/gnunetjson.pc
