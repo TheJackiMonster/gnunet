@@ -137,6 +137,7 @@ libgnunetutil_la_LIBADD = \
   -lunistring \
   -lsodium \
   -lgmp \
+  $(ATOMICLIB) \
   $(XLIB) \
   $(PTHREAD)
 

@@ -757,7 +757,12 @@ AS_IF([test "x$nss" = "xfalse"],
          [[#include <nss.h>]])])
 
 # libatomic
-AC_SEARCH_LIBS([__atomic_load_8], [atomic])
+AC_SEARCH_LIBS([__atomic_load_8], [atomic], [
+  AS_IF([test x$ac_cv_search___atomic_load_8 != "xnone required"],
+    [ATOMICLIB=$ac_cv_search___atomic_load_8], [ATOMICLIB=])
+  AC_SUBST([ATOMICLIB])
+  ], [AC_MSG_ERROR([No library found that provides __atomic_load_8()])
+])
 
 # test for kvm and kstat (for CPU stats under BSD/Solaris)
 AC_CHECK_LIB([kvm], [kvm_open])
