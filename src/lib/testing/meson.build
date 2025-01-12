@@ -17,8 +17,8 @@ libgnunettesting_src = [
 
 libgnunettesting = library('gnunettesting',
         libgnunettesting_src,
-        soversion: '1',
-        version: '1.1.0',
+        soversion: '3',
+        version: '3.0.0',
         dependencies: [libgnunetutil_dep,
                        m_dep],
         include_directories: [incdir, configuration_inc],
