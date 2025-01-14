@@ -94,13 +94,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_bool (const char *name,
                        bool b)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_boolean (b)
   };
 
+  GNUNET_assert (NULL != name);
   return ps;
 }
 
@@ -109,12 +108,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_double (const char *name,
                          double f)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_real (f)
   };
+
+  GNUNET_assert (NULL != name);
   return ps;
 }
 
@@ -123,13 +122,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_string (const char *name,
                          const char *s)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_string (s)
   };
 
+  GNUNET_assert (NULL != name);
   return ps;
 }
 
@@ -138,13 +136,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_uint64 (const char *name,
                          uint64_t num)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_integer ((json_int_t) num)
   };
 
+  GNUNET_assert (NULL != name);
 #if JSON_INTEGER_IS_LONG_LONG
   GNUNET_assert (num <= LLONG_MAX);
 #else
@@ -158,13 +155,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_int64 (const char *name,
                         int64_t num)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = json_integer ((json_int_t) num)
   };
 
+  GNUNET_assert (NULL != name);
 #if JSON_INTEGER_IS_LONG_LONG
   GNUNET_assert (num <= LLONG_MAX);
   GNUNET_assert (num >= LLONG_MIN);
@@ -225,13 +221,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_array_steal (const char *name,
                               json_t *a)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = a
   };
 
+  GNUNET_assert (NULL != name);
   if (NULL == a)
     return ps;
   if (! json_is_array (a))
@@ -249,13 +244,12 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_array_incref (const char *name,
                                json_t *a)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = a
   };
 
+  GNUNET_assert (NULL != name);
   if (NULL == a)
     return ps;
   (void) json_incref (a);
@@ -275,8 +269,6 @@ GNUNET_JSON_pack_data_varsize (const char *name,
                                const void *blob,
                                size_t blob_size)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = (NULL != blob)
@@ -285,6 +277,7 @@ GNUNET_JSON_pack_data_varsize (const char *name,
     : NULL
   };
 
+  GNUNET_assert (NULL != name);
   return ps;
 }
 
@@ -294,8 +287,6 @@ GNUNET_JSON_pack_data64_varsize (const char *name,
                                  const void *blob,
                                  size_t blob_size)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = (NULL != blob)
@@ -304,6 +295,7 @@ GNUNET_JSON_pack_data64_varsize (const char *name,
     : NULL
   };
 
+  GNUNET_assert (NULL != name);
   return ps;
 }
 
@@ -312,12 +304,11 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_timestamp (const char *name,
                             struct GNUNET_TIME_Timestamp t)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name
   };
 
+  GNUNET_assert (NULL != name);
   if (! GNUNET_TIME_absolute_is_zero (t.abs_time))
   {
     ps.object = GNUNET_JSON_from_timestamp (t);
@@ -344,10 +335,9 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_time_rel (const char *name,
                            struct GNUNET_TIME_Relative rt)
 {
-  GNUNET_assert (NULL != name);
-
   json_t *json;
 
+  GNUNET_assert (NULL != name);
   json = GNUNET_JSON_from_time_rel (rt);
   GNUNET_assert (NULL != json);
   return GNUNET_JSON_pack_object_steal (name,
@@ -368,8 +358,6 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_public_key (const char *name,
                                  const struct GNUNET_CRYPTO_RsaPublicKey *pk)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = GNUNET_JSON_from_rsa_public_key (pk)
@@ -383,8 +371,6 @@ struct GNUNET_JSON_PackSpec
 GNUNET_JSON_pack_rsa_signature (const char *name,
                                 const struct GNUNET_CRYPTO_RsaSignature *sig)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
     .object = GNUNET_JSON_from_rsa_signature (sig)
@@ -399,8 +385,6 @@ GNUNET_JSON_pack_unblinded_signature (const char *name,
                                       const struct
                                       GNUNET_CRYPTO_UnblindedSignature *sig)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name
   };
@@ -435,12 +419,10 @@ GNUNET_JSON_pack_unblinded_signature (const char *name,
 
 
 struct GNUNET_JSON_PackSpec
-GNUNET_JSON_pack_blinded_message (const char *name,
-                                  const struct GNUNET_CRYPTO_BlindedMessage *msg
-                                  )
+GNUNET_JSON_pack_blinded_message (
+  const char *name,
+  const struct GNUNET_CRYPTO_BlindedMessage *msg)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
   };
@@ -483,8 +465,6 @@ GNUNET_JSON_pack_blinded_sig (
   const char *name,
   const struct GNUNET_CRYPTO_BlindedSignature *sig)
 {
-  GNUNET_assert (NULL != name);
-
   struct GNUNET_JSON_PackSpec ps = {
     .field_name = name,
   };
