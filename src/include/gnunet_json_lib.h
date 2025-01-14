@@ -383,6 +383,16 @@ struct GNUNET_JSON_Specification
 GNUNET_JSON_spec_uint (const char *name,
                        unsigned int *ui);
 
+/**
+ * Unsigned long long.
+ *
+ * @param name name of the JSON field
+ * @param[out] ull where to store the unsigned long long found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_ull (const char *name,
+                      unsigned long long *ull);
+
 
 /**
  * 64-bit integer.
