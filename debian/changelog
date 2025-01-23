@@ -1,3 +1,9 @@
+gnunet (0.23.2~rc.1) unstable; urgency=low
+
+  * Pre-release package for GNUnet v0.23.2.
+
+ -- Florian Dold <dold@taler.net>  Thu, 23 Jan 2025 20:03:40 +0100
+
 gnunet (0.23.1) unstable; urgency=low
 
   * Package for GNUnet v0.23.1.
