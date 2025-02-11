@@ -188,12 +188,9 @@ do_notify (void *cls,
 void
 GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 {
-  static bool in_poll;
   PGnotify *n;
   unsigned int cnt = 0;
 
-  if (in_poll)
-    return;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "PG poll job active\n");
   if (1 !=
@@ -207,7 +204,6 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
     GNUNET_PQ_reconnect (db);
     return;
   }
-  in_poll = true;
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -263,7 +259,6 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "PG poll job finishes after %u events\n",
               cnt);
-  in_poll = false;
 }
 
 
@@ -282,8 +277,7 @@ do_scheduler_notify (void *cls)
   if (NULL == db->rfd)
     GNUNET_PQ_reconnect (db);
   GNUNET_PQ_event_do_poll (db);
-  if (NULL != db->event_task)
-    return;
+  GNUNET_assert (NULL == db->event_task);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Resubscribing\n");
   if (NULL == db->rfd)
@@ -583,8 +577,15 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   }
   PQclear (result);
   /* Make sure we do not miss this notification in case it was
-     for *us*, we need to trigger polling here. */
-  GNUNET_PQ_event_do_poll (db);
+     for *us*, we need to trigger polling here.
+     Just waiting for the db socket to be readable won't work,
+     as postgres only queues notifications we triggered for
+     ourselves in an internal data structure. */
+  if (NULL != db->event_task)
+    GNUNET_SCHEDULER_cancel (db->event_task);
+  db->event_task
+    = GNUNET_SCHEDULER_add_now (&do_scheduler_notify,
+                                db);
 }
 
 
