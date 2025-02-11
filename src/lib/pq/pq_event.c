@@ -188,9 +188,12 @@ do_notify (void *cls,
 void
 GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
 {
+  static bool in_poll;
   PGnotify *n;
   unsigned int cnt = 0;
 
+  if (in_poll)
+    return;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "PG poll job active\n");
   if (1 !=
@@ -204,6 +207,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
     GNUNET_PQ_reconnect (db);
     return;
   }
+  in_poll = true;
   while (NULL != (n = PQnotifies (db->conn)))
   {
     struct GNUNET_ShortHashCode sh;
@@ -259,6 +263,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "PG poll job finishes after %u events\n",
               cnt);
+  in_poll = false;
 }
 
 
