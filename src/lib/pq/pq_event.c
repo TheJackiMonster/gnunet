@@ -582,6 +582,8 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
                      PQerrorMessage (db->conn));
   }
   PQclear (result);
+  /* Make sure we do not miss this notification in case it was
+     for *us*, we need to trigger polling here. */
   GNUNET_PQ_event_do_poll (db);
 }
 
