@@ -769,6 +769,11 @@ GNUNET_PQ_disconnect (struct GNUNET_PQ_Context *db)
   GNUNET_assert (0 ==
                  GNUNET_CONTAINER_multishortmap_size (db->channel_map));
   GNUNET_CONTAINER_multishortmap_destroy (db->channel_map);
+  if (NULL != db->poller_task)
+  {
+    GNUNET_SCHEDULER_cancel (db->poller_task);
+    db->poller_task = NULL;
+  }
   GNUNET_free (db->es);
   GNUNET_free (db->ps);
   GNUNET_free (db->load_path);

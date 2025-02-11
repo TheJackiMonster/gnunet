@@ -80,6 +80,12 @@ struct GNUNET_PQ_Context
   struct GNUNET_CONTAINER_MultiShortmap *channel_map;
 
   /**
+   * Task responsible for polling events directly after
+   * having posted an event.
+   */
+  struct GNUNET_SCHEDULER_Task *poller_task;
+
+  /**
    * Task responsible for processing events.
    */
   struct GNUNET_SCHEDULER_Task *event_task;

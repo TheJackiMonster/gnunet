@@ -302,6 +302,23 @@ do_scheduler_notify (void *cls)
 
 
 /**
+ * The GNUnet scheduler notifies us that we need to
+ * trigger the DB event poller directly after having
+ * posted an event.
+ *
+ * @param cls a `struct GNUNET_PQ_Context *`
+ */
+static void
+do_poll (void *cls)
+{
+  struct GNUNET_PQ_Context *db = cls;
+
+  db->poller_task = NULL;
+  GNUNET_PQ_event_do_poll (db);
+}
+
+
+/**
  * Function called when the Postgres FD changes and we need
  * to update the scheduler event loop task.
  *
@@ -581,11 +598,12 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
      Just waiting for the db socket to be readable won't work,
      as postgres only queues notifications we triggered for
      ourselves in an internal data structure. */
-  if (NULL != db->event_task)
-    GNUNET_SCHEDULER_cancel (db->event_task);
-  db->event_task
-    = GNUNET_SCHEDULER_add_now (&do_scheduler_notify,
-                                db);
+  if (NULL == db->poller_task)
+  {
+    db->poller_task
+      = GNUNET_SCHEDULER_add_now (&do_poll,
+                                  db);
+  }
 }
 
 
