@@ -1,4 +1,3 @@
-## EXPERIMENTAL --- WORK IN PROGRESS --- USE AT YOUR OWN PERIL --- ##
 project('gnunet', 'c', license: 'AGPLv3',
         meson_version: '>=1.0.0',
         version: run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip())
