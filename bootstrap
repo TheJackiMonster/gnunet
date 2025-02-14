@@ -127,10 +127,10 @@ main()
     submodules
     check_uncrustify
     check_yapf
+    echo "Please note that we have changed our default build system to meson"
+    echo "If you want to build using autotools, pass 'autotools' to the bootstrap command"
     # update_gana
-    if [ "$1" = "meson" ]; then
-      echo "Skipping autoreconf"
-    else
+    if [ "$1" = "autotools" ]; then
       check_libtool; ret=$?
       if [ $ret -ne 0 ]; then
         echo 'Error with checking for libtool'

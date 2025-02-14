@@ -3,21 +3,15 @@ project('gnunet', 'c', license: 'AGPLv3',
         meson_version: '>=1.0.0',
         version: run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip())
 
+version = run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip()
 add_project_arguments('-D_GNU_SOURCE', language : 'c')
 
 cc = meson.get_compiler('c')
 incdir = include_directories('src/include')
-cdata = configuration_data()
+private_config = configuration_data()
 
 # Version
 gnunet_version = run_command('sh', 'scripts/get_version.sh', check: true).stdout().strip()
-cdata.set('gnunet_version', gnunet_version)
-r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
-cdata.set('gnunet_major_version', r.stdout().strip())
-r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
-cdata.set('gnunet_minor_version', r.stdout().strip())
-r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
-cdata.set('gnunet_micro_version', r.stdout().strip())
 
 pkgcfgdir = get_option('datadir')/'gnunet'/'config.d'
 docdir = get_option('datadir')/'doc'/'gnunet'
@@ -42,10 +36,7 @@ endif
 
 
 # TODO: Set to true to build a single libgnunet
-cdata.set('enable_experimental', get_option('experimental'))
-if get_option('experimental')
-  add_project_arguments('-DHAVE_EXPERIMENTAL', language: 'c')
-endif
+private_config.set10('HAVE_EXPERIMENTAL', get_option('experimental'))
 logging_opt = get_option('logging')
 if logging_opt == 'yes'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
@@ -62,17 +53,15 @@ if logging_opt == 'veryverbose'
 endif
 
 
-cdata.set('PKGDATADIRECTORY', get_option('prefix')/get_option('datadir')/'gnunet')
-cdata.set('SYSCONFDIR', get_option('prefix')/get_option('sysconfdir'))
 # Various checks
 if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
-  cdata.set('HAVE_SOCKADDR_IN_SIN_LEN', 1)
+  private_config.set('HAVE_SOCKADDR_IN_SIN_LEN', 1)
 endif
 if cc.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
-  cdata.set('HAVE_SOCKADDR_UN_SUN_LEN', 1)
+  private_config.set('HAVE_SOCKADDR_UN_SUN_LEN', 1)
 endif
 if cc.has_member ('struct tm', 'tm_gmtoff', prefix : ['#include <time.h>'])
-  cdata.set('HAVE_TM_GMTOFF', 1)
+  private_config.set('HAVE_TM_GMTOFF', 1)
 endif
 
 # TODO:
@@ -86,10 +75,10 @@ gettext_package = 'gnunet'
 add_project_arguments('-DGETTEXT_PACKAGE=' + gettext_package, language: 'c')
 subdir('po')
 
-# FIXME lots still missing
-cdata.set_quoted('PACKAGE_VERSION', '0.21.0')
-cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
-cdata.set_quoted('VCS_VERSION', 'mesonbuild')
+private_config.set_quoted('PACKAGE_VERSION', version)
+private_config.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+private_config.set_quoted('VCS_VERSION', 'mesonbuild')
+private_config.set_quoted('PACKAGE_BUGREPORT', 'bug-gnunet@gnu.org')
 add_project_arguments('-DHAVE_CONFIG_H', language : 'c')
 
 # Linker settings
@@ -102,25 +91,22 @@ if cc.has_argument('-Wno-tautological-constant-out-of-range-compare')
   add_project_arguments('-Wno-tautological-constant-out-of-range-compare', language : 'c')
 endif
 
-# FIXME static here, were dynamic in configure.ac
-cdata.set('UNIXONLY', '#')
-cdata.set('JAVAPORT', '#')
-cdata.set('START_ON_DEMAND', 'YES')
 
-
-cdata.set_quoted('build_target', host_machine.system())
+private_config.set_quoted('build_target', host_machine.system())
 if host_machine.system() == 'linux'
-  add_project_arguments('-DLINUX', language : 'c')
+  private_config.set('LINUX', 1)
   add_project_link_arguments(['-Wl,--unresolved-symbols=report-all'], language : 'c')
-  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
-endif
-if host_machine.system() == 'darwin'
-  cdata.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+  private_config.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
+elif host_machine.system() == 'darwin'
+  private_config.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
+  private_config.set('LINUX', 1)
   add_project_arguments('-DDARWIN', language : 'c')
   add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
   add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
   add_project_arguments('-fno-common', language : 'c')
   add_project_link_arguments (['-Wl,-no_fixup_chains'], language: 'c')
+else
+  private_config.set('OTHEROS', 1)
 endif
 
 
@@ -206,12 +192,8 @@ extractor_dep = dependency('libextractor', required : false)
 if not extractor_dep.found()
   extractor_dep = cc.find_library('extractor', required : false)
 endif
-cdata.set('extractor', 0)
-if extractor_dep.found()
-  cdata.set('extractor', 1)
-  cdata.set('HAVE_EXTRACTOR', 1)
-  cdata.set('HAVE_EXTRACTOR_H', 1)
-endif
+private_config.set10('HAVE_EXTRACTOR', extractor_dep.found())
+private_config.set10('HAVE_EXTRACTOR_H', extractor_dep.found())
 quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
   quic_dep = cc.find_library('quiche', required : false)
@@ -237,61 +219,71 @@ if not idn_dep.found()
   idn_dep = cc.find_library('idn2', required : false)
 endif
 if idn_dep.found()
-  add_project_arguments('-DHAVE_LIBIDN2', language : 'c')
-  add_project_arguments('-DHAVE_IDN2_H', language : 'c')
+  private_config.set('HAVE_LIBIDN2', 1)
+  private_config.set('HAVE_IDN2_H', 1)
 else
   idn_dep = dependency('libidn', required : false)
   if not idn_dep.found()
     idn_dep = cc.find_library('idn', required : true)
-    add_project_arguments('-DHAVE_LIBIDN', language : 'c')
-    add_project_arguments('-DHAVE_IDN_H', language : 'c')
+    private_config.set('HAVE_LIBIDN', 1)
+    private_config.set('HAVE_IDN_H', 1)
   endif
 endif
 pthread_dep = cc.find_library('pthread', required : false)
 if pthread_dep.found()
-  add_project_arguments('-DHAVE_PTHREAD', language : 'c')
+  private_config.set('HAVE_PTHREAD', 1)
 endif
 
 m_dep = cc.find_library('m', required : false)
 if m_dep.found()
-  add_project_arguments('-DHAVE_LIBM', language : 'c')
+  private_config.set('HAVE_LIBM', 1)
 endif
 
 sock_dep = cc.find_library('socket', required : false)
 if sock_dep.found()
-  add_project_arguments('-DHAVE_LIBSOCKET', language : 'c')
+  private_config.set('HAVE_LIBSOCKET', 1)
 endif
 
 gopt_bin = find_program('getopt', '/usr/bin/getopt', required : false)
 if gopt_bin.found()
-  add_project_arguments('-DHAVE_GETOPT_BINARY='+gopt_bin.full_path(), language : 'c')
+  private_config.set_quoted('HAVE_GETOPT_BINARY', gopt_bin.full_path())
+endif
+
+upnpc_bin = find_program('upnpc', '/usr/bin/upnpc', required: false)
+if upnpc_bin.found()
+  private_config.set_quoted('UPNPC', upnpc_bin.full_path())
 endif
 
 ifconfig_bin = find_program('ifconfig', '/usr/sbin/ifconfig', required : false)
 if ifconfig_bin.found()
-  cdata.set_quoted('IFCONFIG', ifconfig_bin.full_path())
+  private_config.set_quoted('IFCONFIG', ifconfig_bin.full_path())
 endif
 
 ip_bin = find_program('ip', '/usr/sbin/ip', required : false)
 if ip_bin.found()
-  cdata.set_quoted('PATH_TO_IP', ip_bin.full_path())
+  private_config.set_quoted('PATH_TO_IP', ip_bin.full_path())
 endif
 
 iptables_bin = find_program('iptables', '/usr/sbin/iptables', required : false)
 if iptables_bin.found()
-  cdata.set_quoted('IPTABLES', iptables_bin.full_path())
+  private_config.set_quoted('IPTABLES', iptables_bin.full_path())
 endif
+ip6tables_bin = find_program('ip6tables', '/usr/sbin/ip6tables', required : false)
+if ip6tables_bin.found()
+  private_config.set_quoted('IP6TABLES', ip6tables_bin.full_path())
+endif
+
 
 adduser_bin = find_program('adduser', '/usr/sbin/adduser', required : false)
 
 pkgc_bin = find_program('pkg-config', '/usr/bin/pkg-config', required : false)
 if pkgc_bin.found()
-  add_project_arguments('-DHAVE_PKG_CONFIG', language : 'c')
+  private_config.set('HAVE_PKG_CONFIG', 1)
 endif
 
 ssh_bin = find_program('ssh', '/usr/bin/ssh', required : false)
 if ssh_bin.found()
-  add_project_arguments('-DHAVE_SSH_BINARY', language : 'c')
+  private_config.set('HAVE_SSH_BINARY', 1)
 endif
 
 # FIXME we are not doing anything with this right now
@@ -305,22 +297,21 @@ if not pq_dep.found()
   pq_dep = cc.find_library('pq', required : false)
 endif
 if pq_dep.found()
-  add_project_arguments('-DHAVE_POSTGRESQL', language : 'c')
-  cdata.set('HAVE_POSTGRESQL', 1)
+  private_config.set('HAVE_POSTGRESQL', 1)
 endif
 zbar_dep = dependency('libzbar', required : false)
 if not zbar_dep.found()
   zbar_dep = cc.find_library('zbar', required : false)
 endif
 if zbar_dep.found()
-  cdata.set('HAVE_ZBAR', 1)
+  private_config.set('HAVE_ZBAR', 1)
 endif
 jose_dep = dependency('libjose', required : false)
 if not jose_dep.found()
   jose_dep = cc.find_library('jose', required : false)
 endif
 if jose_dep.found()
-  cdata.set('HAVE_JOSE', 1)
+  private_config.set('HAVE_JOSE', 1)
 endif
 
 ## FIXME conversation: pulse/gst detection in configure.ac was obviously
@@ -360,7 +351,7 @@ elif gst_dep.found() and gst_app_dep.found() and gst_audio_dep.found()
 endif
 ## END conversation
 
-add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
+private_config.set_quoted('NEED_LIBGCRYPT_VERSION', '1.6.0')
 
 # NSS
 have_nss = false
@@ -372,25 +363,25 @@ endif
 tun_found = false
 if cc.check_header('if_tun.h')
   if cc.has_header_symbol('if_tun.h', 'struct in6_ifreq')
-    add_project_arguments('-DIF_TUN_HDR="if_tun.h"', language : 'c')
+    private_config.set_quoted('IF_TUN_HDR', 'if_tun.h')
     tun_found = true
   endif
 endif
 if not tun_found and cc.check_header('linux/if_tun.h')
   if cc.has_header_symbol('linux/if_tun.h', 'struct in6_ifreq')
-    add_project_arguments('-DIF_TUN_HDR="linux/if_tun.h"', language : 'c')
+    private_config.set_quoted('IF_TUN_HDR', 'linux/if_tun.h')
     tun_found = true
   endif
 endif
 if not tun_found and cc.check_header('net/if_tun.h')
   if cc.has_header_symbol('net/if_tun.h', 'struct in6_ifreq')
-    add_project_arguments('-DIF_TUN_HDR="net/if_tun.h"', language : 'c')
+    private_config.set_quoted('IF_TUN_HDR', 'net/if_tun.h')
     tun_found = true
   endif
 endif
 if not tun_found and cc.check_header('net/tun/if_tun.h')
   if cc.has_header_symbol('net/tun/if_tun.h', 'struct in6_ifreq')
-    add_project_arguments('-DIF_TUN_HDR="net/tun/if_tun.h"', language : 'c')
+    private_config.set_quoted('IF_TUN_HDR', 'net/tun/if_tun.h')
     tun_found = true
   endif
 endif
@@ -407,7 +398,7 @@ if cc.check_header('gnutls/dane.h')
     prefix: '#include <gnutls/dane.h>',
     dependencies: gnutls_dep)
     # FIXME unused in code
-    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+    private_config.set('HAVE_GNUTLS_DANE', 1)
   endif
 endif
 curl_ssl_check ='''#include <curl/curl.h>
@@ -418,9 +409,9 @@ curl_ssl_check ='''#include <curl/curl.h>
 
 result = cc.run(curl_ssl_check, name : 'cURL gnutls check',
   dependencies: curl_dep)
-cdata.set('curl_gnutls', 0)
+private_config.set('curl_gnutls', 0)
 if result.returncode() == 0
-  cdata.set('curl_gnutls', 1)
+  private_config.set('curl_gnutls', 1)
 endif
 
 if cc.has_function('getloadavg') == false
@@ -465,7 +456,7 @@ check_syscalls = [
 foreach f : check_syscalls
   if cc.has_function(f.get(0), prefix : f.get(1))
     define = 'HAVE_' + f.get(0).underscorify().to_upper()
-    cdata.set(define, 1)
+    private_config.set(define, 1)
   endif
 endforeach
 
@@ -518,14 +509,30 @@ foreach h : check_headers
   if cc.check_header(h)
     define = 'HAVE_' + h.underscorify().to_upper()
     message(define)
-    cdata.set(define, 1)
+    private_config.set(define, 1)
   endif
 endforeach
 
-configure_file(#input: 'gnunet_private_config.h.in',
+configure_file(
   output : 'gnunet_private_config.h',
-  configuration : cdata)
+  configuration : private_config)
 configuration_inc = include_directories('.')
+
+cdata = configuration_data()
+cdata.merge_from(private_config)
+
+# FIXME static here, were dynamic in configure.ac
+cdata.set('START_ON_DEMAND', 'YES')
+cdata.set('gnunet_version', gnunet_version)
+r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
+cdata.set('gnunet_major_version', r.stdout().strip())
+r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
+cdata.set('gnunet_minor_version', r.stdout().strip())
+r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
+cdata.set('gnunet_micro_version', r.stdout().strip())
+cdata.set('PKGDATADIRECTORY', get_option('prefix')/get_option('datadir')/'gnunet')
+cdata.set('SYSCONFDIR', get_option('prefix')/get_option('sysconfdir'))
+cdata.set('UNIXONLY', '#') # FIXME unclear if required still...
 
 pkg = import('pkgconfig')
 
@@ -547,9 +554,9 @@ summary({'host': host_machine.system(),
   'compiler': cc.get_id(),
   'libdir': get_option('libdir'),
   'datadir': get_option('datadir'),
-  'default interface': cdata.get('GNUNET_DEFAULT_INTERFACE'),
+  'default interface': private_config.get('GNUNET_DEFAULT_INTERFACE'),
   'PostgreSQL': pq_dep.found(),
-  'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
+  'curl w/ gnutls': (private_config.get('curl_gnutls') == 1),
   'ifconfig': ifconfig_bin.found(),
   'iptables': iptables_bin.found()
   }, section: 'Detected system')
@@ -558,12 +565,17 @@ if not gnunet_user
   message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
   message('Each user of GNUnet should be added to the \'gnunet\' group')
   if adduser_bin.found() and not gnunet_user
-    message('''Create the gnunet user and add users to the gnunetdns group, run:
+    message(
+      '''Create the gnunet user and add users to the gnunetdns group, run:
       # addgroup gnunetdns
-      # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
-      message('''To add users to the gnunet group, run:
-        # adduser USERNAME gnunet
-        for each of your users, replacing \'USERNAME\' with the respective login name.
-        Users may have to login again for the changes to take effect.''')
-        endif
-        endif
+      # adduser --system --disabled-login --home /var/lib/gnunet gnunet
+    '''
+    )
+    message(
+      '''
+    To add users to the gnunet group, run:
+      # adduser USERNAME gnunet
+    for each of your users, replacing \'USERNAME\' with the respective login name.
+    Users may have to login again for the changes to take effect.''')
+  endif
+endif

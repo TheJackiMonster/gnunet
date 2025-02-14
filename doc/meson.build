@@ -1,2 +1,4 @@
 subdir('handbook')
-subdir('man')
+if false == get_option('exclude-manpages')
+  subdir('man')
+endif

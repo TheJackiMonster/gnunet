@@ -74,8 +74,7 @@ Build tools for compiling GNUnet from source:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - gcc or clang
-- autoconf           >= 2.69        (building from git)
-- automake           >= 1.11.1      (building from git)
+- meson              >= 1.0.0
 - recutils           >= 1.0         (building from git)
 - libtool            >= 2.2
 - makeinfo           >= 4.8
@@ -305,8 +304,8 @@ recent MS Windows system as it officially spies on its users (according
 to its T&C), defying some of the purposes of GNUnet.
 
 Note that some functions of GNUnet require "root" access.  GNUnet will
-install (tiny) SUID binaries for those functions is you run "make
-install" as root.  If you do not, GNUnet will still work, but some
+install (tiny) SUID binaries for those functions is you install as root.
+If you do not, GNUnet will still work, but some
 functionality will not be available (including certain forms of NAT
 traversal).
 
@@ -325,12 +324,12 @@ Then you can start the actual GNUnet compilation process with:
 $ export GNUNET_PREFIX=/usr/local/lib # or other directory of your choice
 # addgroup gnunetdns
 # adduser --system --home "/var/lib/gnunet" --group gnunet --shell /bin/sh
-# ./configure --prefix=$GNUNET_PREFIX/.. --with-extractor=$LE_PREFIX
-$ make
+# meson setup -Dprefix=$GNUNET_PREFIX/.. -C $BUILDDIR
+$ meson compile -C $BUILDDIR
 
 And finally install GNUnet with:
 
-# make install
+# meson install -C $BUILDDIR
 
 Complete the process by either adjusting one of our example service files
 in 'contrib/services' or by running:
@@ -380,18 +379,6 @@ Similarly, if you want to use the GNUnet Name System and did NOT run
 GNUnet's 'make install' process with privileged rights, the libraries will be
 installed to "$GNUNET_PREFIX" and you will have to move them to "/lib/"
 manually.
-
-Notes on compiling from Git
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, if you are compiling the code from git, you have to
-run "sh ./bootstrap" before running "./configure".  If you receive an error during
-the running of "sh ./bootstrap" that looks like "macro `AM_PATH_GTK'
-not found in library", you may need to run aclocal by hand with the -I
-option, pointing to your aclocal m4 macros, i.e.
-
-$ aclocal -I /usr/local/share/aclocal
-
 
 Configuration
 =============
@@ -506,14 +493,12 @@ Before running any testcases, you must complete the installation.
 
 Quick summary:
 
-$ ./configure --prefix=$SOMEWHERE
-$ make
-$ make install
+$ meson setup -Dprefix=$SOMEWHERE $BUILDDIR
+$ meson compile -C $BUILDDIR
+$ make install -C $BUILDDIR
 $ export $GNUNET_PREFIX=$SOMEWHERE
-$ make check
+$ meson test -C $BUILDDIR
 
-Some of the testcases require python >= 3.4, and the python module
-"pexpect" to be installed.
 If any testcases fail to pass on your system, run
 "contrib/scripts/gnunet-bugreport" (in the repository) or "gnunet-bugreport"
 when you already have GNUnet installed and report its output together with

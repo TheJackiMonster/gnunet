@@ -78,7 +78,7 @@ testVersion ()
     (char*) "-v", NULL
   };
   const struct GNUNET_GETOPT_CommandLineOption versionoptionlist[] =
-  { GNUNET_GETOPT_option_version (PACKAGE_VERSION " " VCS_VERSION),
+  { GNUNET_GETOPT_option_version (PACKAGE_VERSION),
     GNUNET_GETOPT_OPTION_END };
 
   if (0 != GNUNET_GETOPT_run ("test_getopt", versionoptionlist, 2, myargv))
