@@ -66,13 +66,13 @@ cdata.set('PKGDATADIRECTORY', get_option('prefix')/get_option('datadir')/'gnunet
 cdata.set('SYSCONFDIR', get_option('prefix')/get_option('sysconfdir'))
 # Various checks
 if cc.has_member ('struct sockaddr_in', 'sin_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <netinet/in.h>'])
-  add_project_arguments('-DHAVE_SOCKADDR_IN_SIN_LEN', language: 'c')
+  cdata.set('HAVE_SOCKADDR_IN_SIN_LEN', 1)
 endif
 if cc.has_member ('struct sockaddr_un', 'sun_len', prefix : ['#include <sys/types.h>', '#include <sys/socket.h>', '#include <sys/un.h>'])
-  add_project_arguments('-DHAVE_SOCKADDR_UN_SUN_LEN', language: 'c')
+  cdata.set('HAVE_SOCKADDR_UN_SUN_LEN', 1)
 endif
 if cc.has_member ('struct tm', 'tm_gmtoff', prefix : ['#include <time.h>'])
-  add_project_arguments('-DHAVE_TM_GMTOFF', language: 'c')
+  cdata.set('HAVE_TM_GMTOFF', 1)
 endif
 
 # TODO:
@@ -209,8 +209,8 @@ endif
 cdata.set('extractor', 0)
 if extractor_dep.found()
   cdata.set('extractor', 1)
-  add_project_arguments('-DHAVE_LIBEXTRACTOR', language : 'c')
-  add_project_arguments('-DHAVE_EXTRACTOR_H', language : 'c')
+  cdata.set('HAVE_EXTRACTOR', 1)
+  cdata.set('HAVE_EXTRACTOR_H', 1)
 endif
 quic_dep = dependency('libquiche', required : false)
 if not quic_dep.found()
@@ -306,46 +306,38 @@ if not pq_dep.found()
 endif
 if pq_dep.found()
   add_project_arguments('-DHAVE_POSTGRESQL', language : 'c')
+  cdata.set('HAVE_POSTGRESQL', 1)
 endif
 zbar_dep = dependency('libzbar', required : false)
 if not zbar_dep.found()
   zbar_dep = cc.find_library('zbar', required : false)
 endif
 if zbar_dep.found()
-  add_project_arguments('-DHAVE_ZBAR', language : 'c')
+  cdata.set('HAVE_ZBAR', 1)
 endif
 jose_dep = dependency('libjose', required : false)
 if not jose_dep.found()
   jose_dep = cc.find_library('jose', required : false)
 endif
 if jose_dep.found()
-  add_project_arguments('-DHAVE_JOSE', language : 'c')
+  cdata.set('HAVE_JOSE', 1)
 endif
 
-## FIXME conversation: pulse/gst detection in configure.ac obviously
+## FIXME conversation: pulse/gst detection in configure.ac was obviously
 ## broken. Needs reconsideration. No idea for now.
 pulse_dep = dependency('libpulse', required : false)
 if not pulse_dep.found()
   pulse_dep = cc.find_library('pulse', required : false)
-endif
-if pulse_dep.found()
-  add_project_arguments('-DHAVE_PULSE', language : 'c')
 endif
 
 opus_dep = dependency('libopus', required : false)
 if not opus_dep.found()
   opus_dep = cc.find_library('opus', required : false)
 endif
-if opus_dep.found()
-  add_project_arguments('-DHAVE_OPUS', language : 'c')
-endif
 
 ogg_dep = dependency('libogg', required : false)
 if not ogg_dep.found()
   ogg_dep = cc.find_library('ogg', required : false)
-endif
-if ogg_dep.found()
-  add_project_arguments('-DHAVE_OGG', language : 'c')
 endif
 gst_dep = dependency('gstreamer-1.0', required : false)
 if not gst_dep.found()
@@ -364,7 +356,6 @@ conversation_backend = 'none'
 if pulse_dep.found() and opus_dep.found() and ogg_dep.found()
   conversation_backend = 'pulse'
 elif gst_dep.found() and gst_app_dep.found() and gst_audio_dep.found()
-    add_project_arguments('-DHAVE_GST', language : 'c')
     conversation_backend = 'gst'
 endif
 ## END conversation
@@ -375,7 +366,6 @@ add_project_arguments('-DNEED_LIBGCRYPT_VERSION="1.6.0"', language : 'c')
 have_nss = false
 if cc.check_header('nss.h')
   have_nss = true
-  add_project_arguments('-DHAVE_GLIBCNSS', language : 'c')
 endif
 
 # TUN
@@ -416,8 +406,9 @@ if cc.check_header('gnutls/dane.h')
   if cc.has_function('dane_verify_crt_raw',
     prefix: '#include <gnutls/dane.h>',
     dependencies: gnutls_dep)
-  add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
-endif
+    # FIXME unused in code
+    add_project_arguments('-DHAVE_GNUTLS_DANE', language : 'c')
+  endif
 endif
 curl_ssl_check ='''#include <curl/curl.h>
   int main(int argc, char **argv) {
@@ -436,49 +427,98 @@ if cc.has_function('getloadavg') == false
   error('getloadadv missing')
 endif
 
-syscalls = [
-  'memset_s', 'explicit_bzero', 'atoll', 'stat64',
-  'mremap', 'getrlimit', 'setrlimit', 'gethostbyname2',
-  'getpeerucred', 'getpeereid', 'setresuid', 'getifaddrs', 'freeifaddrs',
-  'getresgid', 'mallinfo2', 'malloc_size', 'malloc_usable_size', 'getrusage',
-  'random', 'srandom', 'stat', 'statfs', 'statvfs', 'wait4', 'timegm',
-  'getaddrinfo', 'initgroups', 'gethostbyname', 'pipe2', 'renameat2'
+check_syscalls = [
+  ['atoll', '#include<stdlib.h>'],
+  ['explicit_bzero', '#include<strings.h>'],
+  ['freeifaddrs', '#include<ifaddrs.h>'],
+  ['getaddrinfo', '#include<netdb.h>'],
+  ['gethostbyname', '#include<netdb.h>'],
+  ['gethostbyname2', '#include<netdb.h>'],
+  ['getifaddrs', '#include<ifaddrs.h>'],
+  ['getpeereid', '#include<unistd.h>'],
+  ['getpeerucred', '#include<unistd.h>'],
+  ['getresgid', '#include<unistd.h>'],
+  ['getrlimit', '#include<sys/resource.h>'],
+  ['getrusage', '#include<sys/resource.h>'],
+  ['initgroups', '#include<unistd.h>'],
+  ['mallinfo2', ''],
+  ['malloc_size', ''],
+  ['malloc_usable_size', ''],
+  ['memset_s', '#include<string.h>'],
+  ['mremap', ''],
+  ['pipe2', ''],
+  ['random', ''],
+  ['renameat2', ''],
+  ['setresuid', ''],
+  ['setrlimit', ''],
+  ['srandom', ''],
+  ['stat', ''],
+  ['stat64', ''],
+  ['statfs', ''],
+  ['statvfs', ''],
+  ['strndup', '#include <string.h>'],
+  ['strnlen', '#include <string.h>'],
+  ['timegm', ''],
+  ['wait4', '']
 ]
 
-str_syscalls = [
-  'strnlen', 'strndup',
-]
-
-foreach f : syscalls
-  if cc.has_function(f)
-    define = 'HAVE_' + f.underscorify().to_upper()
+foreach f : check_syscalls
+  if cc.has_function(f.get(0), prefix : f.get(1))
+    define = 'HAVE_' + f.get(0).underscorify().to_upper()
     cdata.set(define, 1)
   endif
 endforeach
 
-foreach f : str_syscalls
-  if cc.has_function(f, prefix : '#include <string.h>')
-    define = 'HAVE_' + f.underscorify().to_upper()
-    cdata.set(define, 1)
-  endif
-endforeach
 
-
-headers = [
-  'stdatomic.h', 'malloc.h', 'malloc/malloc.h', 'malloc/malloc_np.h',
-  'langinfo.h', 'sys/param.h', 'sys/mount.h', 'sys/statvfs.h',
-  'sys/select.h', 'sockLib.h', 'sys/mman.h', 'sys/msg.h', 'sys/vfs.h',
-  'arpa/inet.h', 'libintl.h', 'netdb.h', 'netinet/in.h', 'sys/ioctl.h',
-  'sys/socket.h', 'sys/time.h', 'sys/sysinfo.h', 'sys/file.h', 'sys/resource.h',
-  'ifaddrs.h', 'mach/mach.h', 'sys/timeb.h', 'argz.h', 'ucred.h', 'sys/ucred.h',
-  'endian.h', 'sys/endian.h', 'execinfo.h', 'byteswap.h', 'sys/types.h'
+check_headers = [
+  'arpa/inet.h',
+  'byteswap.h',
+  'dirent.h',
+  'dlfcn.h',
+  'endian.h',
+  'execinfo.h',
+  'fcntl.h',
+  'ifaddrs.h',
+  'langinfo.h',
+  'libintl.h',
+  'ltdl.h',
+  'mach/mach.h',
+  'malloc.h',
+  'malloc/malloc.h',
+  'malloc/malloc_np.h',
+  'math.h',
+  'netdb.h',
+  'netinet/in.h',
+  'netinet/in_systm.h',
+  'netinet/ip.h',
+  'signal.h',
+  'stdatomic.h',
+  'sys/endian.h',
+  'sys/file.h',
+  'sys/ioctl.h',
+  'sys/mman.h',
+  'sys/mount.h',
+  'sys/msg.h',
+  'sys/param.h',
+  'sys/resource.h',
+  'sys/select.h',
+  'sys/socket.h',
+  'sys/statvfs.h',
+  'sys/sysinfo.h',
+  'sys/time.h',
+  'sys/timeb.h',
+  'sys/types.h',
+  'sys/ucred.h',
+  'sys/vfs.h',
+  'ucred.h',
+  'vfork.h'
 ]
 
-foreach h : headers
+foreach h : check_headers
   if cc.check_header(h)
-    define = '-DHAVE_' + h.underscorify().to_upper()
+    define = 'HAVE_' + h.underscorify().to_upper()
     message(define)
-    add_project_arguments(define, language : 'c')
+    cdata.set(define, 1)
   endif
 endforeach
 
@@ -512,18 +552,18 @@ summary({'host': host_machine.system(),
   'curl w/ gnutls': (cdata.get('curl_gnutls') == 1),
   'ifconfig': ifconfig_bin.found(),
   'iptables': iptables_bin.found()
-        }, section: 'Detected system')
+  }, section: 'Detected system')
 
 if not gnunet_user
   message('Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'')
   message('Each user of GNUnet should be added to the \'gnunet\' group')
   if adduser_bin.found() and not gnunet_user
     message('''Create the gnunet user and add users to the gnunetdns group, run:
-    # addgroup gnunetdns
-    # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
-    message('''To add users to the gnunet group, run:
+      # addgroup gnunetdns
+      # adduser --system --disabled-login --home /var/lib/gnunet gnunet''')
+      message('''To add users to the gnunet group, run:
         # adduser USERNAME gnunet
         for each of your users, replacing \'USERNAME\' with the respective login name.
         Users may have to login again for the changes to take effect.''')
-  endif
-endif
+        endif
+        endif
