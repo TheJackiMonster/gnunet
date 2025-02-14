@@ -43,7 +43,7 @@
 #define GNUNET_MICRO_VERSION @gnunet_micro_version@
 
 /* Set to 1 is this is an experimental build */
-#define GNUNET_EXPERIMENTAL @HAVE_EXPERIMENTAL@
+#define GNUNET_EXPERIMENTAL @enable_experimental@
 
 /* Set to 1 if GnuTLS has DANE support */
 #define GNUNET_CURL_GNUTLS @curl_gnutls@
@@ -53,6 +53,6 @@
  * libextractor, which means that callers to the API must use also use
  * libextractor.
  */
-#define GNUNET_FS_EXTRACTOR_ENABLED @HAVE_EXTRACTOR@
+#define GNUNET_FS_EXTRACTOR_ENABLED @extractor@
 
 #endif

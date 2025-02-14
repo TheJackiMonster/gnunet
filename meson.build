@@ -529,6 +529,8 @@ r = run_command('sh', 'scripts/get_version.sh', '--minor', check: true)
 cdata.set('gnunet_minor_version', r.stdout().strip())
 r = run_command('sh', 'scripts/get_version.sh', '--micro', check: true)
 cdata.set('gnunet_micro_version', r.stdout().strip())
+cdata.set10('enable_experimental', get_option('experimental'))
+cdata.set10('extractor', extractor_dep.found())
 cdata.set('PKGDATADIRECTORY', get_option('prefix')/get_option('datadir')/'gnunet')
 cdata.set('SYSCONFDIR', get_option('prefix')/get_option('sysconfdir'))
 cdata.set('UNIXONLY', '#') # FIXME unclear if required still...
