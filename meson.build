@@ -37,6 +37,7 @@ endif
 # TODO: Set to true to build a single libgnunet
 private_config.set10('HAVE_EXPERIMENTAL', get_option('experimental'))
 private_config.set10('ENABLE_MALICIOUS', get_option('malicious'))
+private_config.set10('ENABLE_POISONING', get_option('poisoning'))
 
 # FIXME: This is not really used anywhere
 private_config.set10('ENABLE_BENCHMARK', get_option('benchmarks'))
