@@ -3,5 +3,10 @@ option('monolith', type : 'boolean', value : false, description: 'Build a single
 option('testbed', type : 'boolean', value : false, description: 'Build the testbed')
 option('exclude-manpages', type : 'boolean', value : false, description: 'Do not install manpages')
 option('experimental', type : 'boolean', value : false, description: 'Build experimental components')
-option('logging', type : 'string', value: 'yes', description: 'Log setting. Can be set to "yes" (logging, default), "no" (no logging), "verbose" (extra logging"), veryverbose (even more logging)')
+option('malicious', type : 'boolean', value : false, description: 'Enable malicous code paths')
+option('benchmarks', type : 'boolean', value : false, description: 'Enable benchmarking')
+option('nse-histogram', type : 'boolean', value : false, description: 'Enable NSE histogram')
+option('disable-autostart', type : 'boolean', value : false, description: 'Do not start peer services by default')
+option('heap-statistics', type : 'boolean', value : false, description: 'Expensive heap statistics')
+option('logging', type : 'string', value: 'yes', description: 'Log setting. Can be set to "yes" (logging, default), "no" (no logging), "verbose" (extra logging"), "veryverbose" (even more logging)')
 

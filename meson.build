@@ -36,6 +36,13 @@ endif
 
 # TODO: Set to true to build a single libgnunet
 private_config.set10('HAVE_EXPERIMENTAL', get_option('experimental'))
+private_config.set10('ENABLE_MALICIOUS', get_option('malicious'))
+
+# FIXME: This is not really used anywhere
+private_config.set10('ENABLE_BENCHMARK', get_option('benchmarks'))
+private_config.set10('HAVE_BENCHMARKS', get_option('benchmarks'))
+
+private_config.set10('ENABLE_NSE_HISTOGRAM', get_option('nse-histogram'))
 logging_opt = get_option('logging')
 if logging_opt == 'yes'
   add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
@@ -520,8 +527,10 @@ configuration_inc = include_directories('.')
 cdata = configuration_data()
 cdata.merge_from(private_config)
 
-# FIXME static here, were dynamic in configure.ac
 cdata.set('START_ON_DEMAND', 'YES')
+if get_option('disable-autostart')
+  cdata.set('START_ON_DEMAND', 'NO')
+endif
 cdata.set('gnunet_version', gnunet_version)
 r = run_command('sh', 'scripts/get_version.sh', '--major', check: true)
 cdata.set('gnunet_major_version', r.stdout().strip())
