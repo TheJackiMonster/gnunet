@@ -6,7 +6,6 @@ RUN apt-get update -yqq
 RUN apt-get upgrade -yqq
 RUN apt-get install -yqq \
            git \
-           autoconf \
            libextractor-dev \
            libjansson-dev \
            libgcrypt-dev \
@@ -14,16 +13,15 @@ RUN apt-get install -yqq \
            libpq-dev \
            libmicrohttpd-dev \
            pkg-config \
-           libtool \
            recutils \
-           make \
+           meson \
            python3-sphinx \
            python3-sphinx-book-theme \
            python3-sphinx-multiversion \
            python3-sphinx-rtd-theme \
            texinfo \
-           autopoint \
            curl \
+	   libsqlite3-dev \
            libcurl4-openssl-dev \
            libsodium-dev \
            libidn11-dev \
