@@ -29,7 +29,6 @@
 
 #include "gnunet_util_lib.h"
 #include <jansson.h>
-#include <microhttpd.h>
 
 /* ****************** Generic parser interface ******************* */
 
