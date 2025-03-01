@@ -1,6 +1,7 @@
 usr/lib/*/libgnunetarm.so.*
 usr/lib/*/libgnunetcurl.so.*
 usr/lib/*/libgnunetjson.so.*
+usr/lib/*/libgnunetmhd.so.*
 usr/lib/*/libgnunetpq.so.*
 usr/lib/*/libgnunetsq.so.*
 usr/lib/*/libgnunetrest.so.*
