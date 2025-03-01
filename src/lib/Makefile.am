@@ -6,6 +6,7 @@ SUBDIRS = \
 	util \
 	curl \
 	json \
+	mhd \
 	sq \
 	$(POSTGRES_DIR) \
 	hello \

@@ -18,15 +18,16 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file json/json_mhd.c
+ * @file mhd/mhd_upload.c
  * @brief functions to parse JSON snippets we receive via MHD
  * @author Florian Dold
  * @author Benedikt Mueller
  * @author Christian Grothoff
  */
 #include "platform.h"
-#include "gnunet_json_lib.h"
+#include "gnunet_mhd_lib.h"
 #include <zlib.h>
+#include <jansson.h>
 
 
 /**
@@ -152,7 +153,7 @@ buffer_append (struct Buffer *buf,
  * @param buf input data to inflate
  * @return result code indicating the status of the operation
  */
-static enum GNUNET_JSON_PostResult
+static enum GNUNET_MHD_PostResult
 inflate_data (struct Buffer *buf)
 {
   z_stream z;
@@ -172,11 +173,11 @@ inflate_data (struct Buffer *buf)
   {
   case Z_MEM_ERROR:
     GNUNET_break (0);
-    return GNUNET_JSON_PR_OUT_OF_MEMORY;
+    return GNUNET_MHD_PR_OUT_OF_MEMORY;
 
   case Z_STREAM_ERROR:
     GNUNET_break_op (0);
-    return GNUNET_JSON_PR_JSON_INVALID;
+    return GNUNET_MHD_PR_JSON_INVALID;
 
   case Z_OK:
     break;
@@ -190,22 +191,22 @@ inflate_data (struct Buffer *buf)
       GNUNET_break_op (0);
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
-      return GNUNET_JSON_PR_JSON_INVALID;
+      return GNUNET_MHD_PR_JSON_INVALID;
     case Z_MEM_ERROR:
       GNUNET_break (0);
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
-      return GNUNET_JSON_PR_OUT_OF_MEMORY;
+      return GNUNET_MHD_PR_OUT_OF_MEMORY;
     case Z_DATA_ERROR:
       GNUNET_break_op (0);
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
-      return GNUNET_JSON_PR_JSON_INVALID;
+      return GNUNET_MHD_PR_JSON_INVALID;
     case Z_NEED_DICT:
       GNUNET_break_op (0);
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
-      return GNUNET_JSON_PR_JSON_INVALID;
+      return GNUNET_MHD_PR_JSON_INVALID;
     case Z_OK:
       if ((0 < z.avail_out) && (0 == z.avail_in))
       {
@@ -213,7 +214,7 @@ inflate_data (struct Buffer *buf)
         GNUNET_break (0);
         GNUNET_break (Z_OK == inflateEnd (&z));
         GNUNET_free (tmp);
-        return GNUNET_JSON_PR_JSON_INVALID;
+        return GNUNET_MHD_PR_JSON_INVALID;
       }
       if (0 < z.avail_out)
         continue;     /* just call it again */
@@ -224,7 +225,7 @@ inflate_data (struct Buffer *buf)
         GNUNET_break (0);
         GNUNET_break (Z_OK == inflateEnd (&z));
         GNUNET_free (tmp);
-        return GNUNET_JSON_PR_OUT_OF_MEMORY;
+        return GNUNET_MHD_PR_OUT_OF_MEMORY;
       }
       if (tmp_size * 2 < tmp_size)
         tmp_size = buf->max;
@@ -240,7 +241,7 @@ inflate_data (struct Buffer *buf)
       buf->alloc = tmp_size;
       buf->fill = z.total_out;
       GNUNET_break (Z_OK == inflateEnd (&z));
-      return GNUNET_JSON_PR_SUCCESS;     /* at least for now */
+      return GNUNET_MHD_PR_SUCCESS;     /* at least for now */
     }
   }   /* while (1) */
 }
@@ -251,7 +252,7 @@ inflate_data (struct Buffer *buf)
  * realizes an MHD POST processor that will (incrementally) process
  * JSON data uploaded to the HTTP server.  It will store the required
  * state in the @a con_cls, which must be cleaned up using
- * #GNUNET_JSON_post_parser_callback().
+ * #GNUNET_MHD_post_parser_callback().
  *
  * @param buffer_max maximum allowed size for the buffer
  * @param connection MHD connection handle (for meta data about the upload)
@@ -261,13 +262,13 @@ inflate_data (struct Buffer *buf)
  * @param json the JSON object for a completed request
  * @return result code indicating the status of the operation
  */
-enum GNUNET_JSON_PostResult
-GNUNET_JSON_post_parser (size_t buffer_max,
-                         struct MHD_Connection *connection,
-                         void **con_cls,
-                         const char *upload_data,
-                         size_t *upload_data_size,
-                         json_t **json)
+enum GNUNET_MHD_PostResult
+GNUNET_MHD_post_parser (size_t buffer_max,
+                        struct MHD_Connection *connection,
+                        void **con_cls,
+                        const char *upload_data,
+                        size_t *upload_data_size,
+                        json_t **json)
 {
   struct Buffer *r = *con_cls;
   const char *ce;
@@ -287,12 +288,12 @@ GNUNET_JSON_post_parser (size_t buffer_max,
       *con_cls = NULL;
       buffer_deinit (r);
       GNUNET_free (r);
-      return GNUNET_JSON_PR_OUT_OF_MEMORY;
+      return GNUNET_MHD_PR_OUT_OF_MEMORY;
     }
     /* everything OK, wait for more POST data */
     *upload_data_size = 0;
     *con_cls = r;
-    return GNUNET_JSON_PR_CONTINUE;
+    return GNUNET_MHD_PR_CONTINUE;
   }
   if (0 != *upload_data_size)
   {
@@ -305,11 +306,11 @@ GNUNET_JSON_post_parser (size_t buffer_max,
       *con_cls = NULL;
       buffer_deinit (r);
       GNUNET_free (r);
-      return GNUNET_JSON_PR_REQUEST_TOO_LARGE;
+      return GNUNET_MHD_PR_REQUEST_TOO_LARGE;
     }
     /* everything OK, wait for more POST data */
     *upload_data_size = 0;
-    return GNUNET_JSON_PR_CONTINUE;
+    return GNUNET_MHD_PR_CONTINUE;
   }
 
   /* We have seen the whole request. */
@@ -319,7 +320,7 @@ GNUNET_JSON_post_parser (size_t buffer_max,
   if ((NULL != ce) && (0 == strcasecmp ("deflate", ce)))
   {
     ret = inflate_data (r);
-    if (GNUNET_JSON_PR_SUCCESS != ret)
+    if (GNUNET_MHD_PR_SUCCESS != ret)
     {
       buffer_deinit (r);
       GNUNET_free (r);
@@ -345,14 +346,14 @@ GNUNET_JSON_post_parser (size_t buffer_max,
       buffer_deinit (r);
       GNUNET_free (r);
       *con_cls = NULL;
-      return GNUNET_JSON_PR_JSON_INVALID;
+      return GNUNET_MHD_PR_JSON_INVALID;
     }
   }
   buffer_deinit (r);
   GNUNET_free (r);
   *con_cls = NULL;
 
-  return GNUNET_JSON_PR_SUCCESS;
+  return GNUNET_MHD_PR_SUCCESS;
 }
 
 
@@ -361,10 +362,10 @@ GNUNET_JSON_post_parser (size_t buffer_max,
  * to clean up our state.
  *
  * @param con_cls value as it was left by
- *        #GNUNET_JSON_post_parser(), to be cleaned up
+ *        #GNUNET_MHD_post_parser(), to be cleaned up
  */
 void
-GNUNET_JSON_post_parser_cleanup (void *con_cls)
+GNUNET_MHD_post_parser_cleanup (void *con_cls)
 {
   struct Buffer *r = con_cls;
 
@@ -376,4 +377,4 @@ GNUNET_JSON_post_parser_cleanup (void *con_cls)
 }
 
 
-/* end of mhd_json.c */
+/* end of mhd_upload.c */

@@ -1268,6 +1268,7 @@ src/lib/block/Makefile
 src/lib/curl/Makefile
 src/lib/gnsrecord/Makefile
 src/lib/json/Makefile
+src/lib/mhd/Makefile
 src/lib/pq/Makefile
 src/lib/sq/Makefile
 src/lib/testing/Makefile
@@ -1410,6 +1411,7 @@ pkgconfig/gnunetgnsrecord.pc
 pkgconfig/gnunethello.pc
 pkgconfig/gnunetidentity.pc
 pkgconfig/gnunetjson.pc
+pkgconfig/gnunetmhd.pc
 pkgconfig/gnunetmessenger.pc
 pkgconfig/gnunetmicrophone.pc
 pkgconfig/gnunetnamestore.pc

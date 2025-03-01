@@ -7,37 +7,38 @@ if USE_COVERAGE
 endif
 
 lib_LTLIBRARIES = \
-  libgnunetjson.la
+  libgnunetmhd.la
 
-libgnunetjson_la_LDFLAGS = \
+libgnunetmhd_la_LDFLAGS = \
   $(GN_LIBINTL) \
-  -version-info 3:0:0 \
+  -version-info 0:0:0 \
   -no-undefined
-libgnunetjson_la_CFLAGS = \
+libgnunetmhd_la_CFLAGS = \
   $(MHD_CFLAGS) \
   $(AM_CFLAGS)
-libgnunetjson_la_SOURCES = \
-  json.c \
-  json_generator.c \
-  json_helper.c \
-  json_pack.c
-libgnunetjson_la_LIBADD = \
+libgnunetmhd_la_SOURCES = \
+  mhd_upload.c
+libgnunetmhd_la_LIBADD = \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
+  -lmicrohttpd \
   -ljansson \
   $(MHD_LIBS) \
   $(XLIB) \
   $(Z_LIBS)
 
 check_PROGRAMS = \
-  test_json
+  test_mhd
 
 TESTS = \
   $(check_PROGRAMS)
 
-test_json_SOURCES = \
-  test_json.c
-test_json_CFLAGS = $(MHD_CFLAGS) $(AM_CFLAGS)
-test_json_LDADD = \
+test_json_mhd_SOURCES = \
+  test_mhd.c
+test_json_mhd_LDADD = \
   libgnunetjson.la \
   $(top_builddir)/src/lib/util/libgnunetutil.la \
-  -ljansson
+  -lmicrohttpd \
+  -ljansson \
+  $(Z_LIBS) \
+  @LIBCURL@
+test_json_mhd_CFLAGS = $(MHD_CFLAGS) @LIBCURL_CPPFLAGS@ $(AM_CFLAGS)

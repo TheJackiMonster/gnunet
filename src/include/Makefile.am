@@ -62,6 +62,7 @@ gnunetinclude_HEADERS = \
   gnunet_reclaim_plugin.h \
   gnunet_reclaim_service.h \
   gnunet_json_lib.h \
+  gnunet_mhd_lib.h \
   gnunet_load_lib.h \
   gnunet_cadet_service.h \
   gnunet_messenger_service.h \

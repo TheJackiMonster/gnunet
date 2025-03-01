@@ -19,13 +19,13 @@
  */
 
 /**
- * @file json/test_json_mhd.c
+ * @file mhd/test_mhd.c
  * @brief Tests for JSON MHD integration functions
  * @author Christian Grothoff <christian@grothoff.org>
  */
 #include "platform.h"
 #include "gnunet_util_lib.h"
-#include "gnunet_json_lib.h"
+#include "gnunet_mhd_lib.h"
 #include "gnunet_curl_lib.h"
 #include "gnunet_mhd_compat.h"
 #include <zlib.h>
@@ -52,15 +52,15 @@ access_handler_cb (void *cls,
   struct MHD_Response *resp;
 
   json = NULL;
-  ret = GNUNET_JSON_post_parser (MAX_SIZE,
-                                 connection,
-                                 con_cls,
-                                 upload_data,
-                                 upload_data_size,
-                                 &json);
+  ret = GNUNET_MHD_post_parser (MAX_SIZE,
+                                connection,
+                                con_cls,
+                                upload_data,
+                                upload_data_size,
+                                &json);
   switch (ret)
   {
-  case GNUNET_JSON_PR_SUCCESS:
+  case GNUNET_MHD_PR_SUCCESS:
     if (json_equal (bigj, json))
     {
       global_ret = 0;
@@ -71,25 +71,26 @@ access_handler_cb (void *cls,
       global_ret = 6;
     }
     json_decref (json);
-    resp = MHD_create_response_from_buffer (3, (void*) "OK\n", MHD_RESPMEM_PERSISTENT);
+    resp = MHD_create_response_from_buffer (3, (void*) "OK\n",
+                                            MHD_RESPMEM_PERSISTENT);
     ret = MHD_queue_response (connection, MHD_HTTP_OK, resp);
     MHD_destroy_response (resp);
     return ret;
 
-  case GNUNET_JSON_PR_CONTINUE:
+  case GNUNET_MHD_PR_CONTINUE:
     return MHD_YES;
 
-  case GNUNET_JSON_PR_OUT_OF_MEMORY:
+  case GNUNET_MHD_PR_OUT_OF_MEMORY:
     GNUNET_break (0);
     global_ret = 3;
     break;
 
-  case GNUNET_JSON_PR_REQUEST_TOO_LARGE:
+  case GNUNET_MHD_PR_REQUEST_TOO_LARGE:
     GNUNET_break (0);
     global_ret = 4;
     break;
 
-  case GNUNET_JSON_PR_JSON_INVALID:
+  case GNUNET_MHD_PR_JSON_INVALID:
     GNUNET_break (0);
     global_ret = 5;
     break;
