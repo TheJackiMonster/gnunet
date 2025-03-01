@@ -927,6 +927,23 @@ AC_DEFINE_UNQUOTED([HAVE_MHD], [$libmhd],
                    [Define to 1 if libmicrohttpd is available])
 AM_CONDITIONAL([HAVE_REST], [true])
 
+
+# check for libmicrohttpd2
+AC_ARG_WITH([microhttpd2],
+  [AS_HELP_STRING([--with-microhttpd2=PFX],
+                  [base of libmicrohttpd2 installation])],
+  [SAVE_PKG_PATH="$PKG_CONFIG_PATH"
+   PKG_CONFIG_PATH="${withval}/lib/pkgconfig"
+   export PKG_CONFIG_PATH
+   PKG_CHECK_MODULES([MHD], [libmicrohttpd2 >= 2.0.0], [libmhd2=1], [libmhd2=0])
+   PKG_CONFIG_PATH="$SAVE_PKG_PATH"],
+  [PKG_CHECK_MODULES([MHD], [libmicrohttpd2 >= 2.0.0], [libmhd2=1], [libmhd2=0])])
+
+AM_CONDITIONAL([HAVE_MHD2], [test "x$libmhd2" = "x1"])
+AC_DEFINE_UNQUOTED([HAVE_MHD2], [$libmhd2],
+                   [Define to 1 if libmicrohttpd2 is available])
+
+
 # check for ngtcp2
 AC_ARG_WITH([ngtcp2],
   [AS_HELP_STRING([--with-ngtcp2=PFX],

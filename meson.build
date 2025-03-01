@@ -161,6 +161,10 @@ mhd_dep = dependency('libmicrohttpd', required : false)
 if not mhd_dep.found()
   mhd_dep = cc.find_library('microhttpd', required : true)
 endif
+mhd2_dep = dependency('libmicrohttpd2', required : false)
+if not mhd2_dep.found()
+  mhd_dep2 = cc.find_library('microhttpd2', required : false)
+endif
 json_dep = dependency('jansson', required : false)
 if not json_dep.found()
   json_dep = cc.find_library('jansson', required : true)
