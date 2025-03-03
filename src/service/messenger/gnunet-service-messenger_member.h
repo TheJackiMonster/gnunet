@@ -41,7 +41,7 @@ struct GNUNET_MESSENGER_Member
 typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_SubscriptionIteratorCallback) (
   void *cls,
   const struct GNUNET_ShortHashCode *discourse,
-  struct GNUNET_MESSENGER_Subscription *subscribtion);
+  struct GNUNET_MESSENGER_Subscription *subscription);
 
 /**
  * Creates and allocates a new member of a <i>room</i> with an optionally defined or

@@ -712,7 +712,7 @@ struct GNUNET_TRANSPORT_MonitorStart
   struct GNUNET_MessageHeader header;
 
   /**
-   * #GNUNET_YES for one-shot montoring, #GNUNET_NO for continuous monitoring.
+   * #GNUNET_YES for one-shot monitoring, #GNUNET_NO for continuous monitoring.
    */
   uint32_t one_shot;
 

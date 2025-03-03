@@ -2840,7 +2840,7 @@ mq_send_d (struct GNUNET_MQ_Handle *mq,
     }
     if (0 < ss->sequence_used)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Trying to send UDPBox with shared secrect %s sequence_used %u and ss->sequence_allowed %u\n",
+                  "Trying to send UDPBox with shared secret %s sequence_used %u and ss->sequence_allowed %u\n",
                   GNUNET_sh2s (&ss->master),
                   ss->sequence_used,
                   ss->sequence_allowed);

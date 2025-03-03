@@ -51,21 +51,21 @@ create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_TIME_Relative duration);
 
 void
-destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion);
+destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscription);
 
 const struct GNUNET_ShortHashCode*
-get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscribtion);
+get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscription);
 
 enum GNUNET_GenericReturnValue
-has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscribtion,
+has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscription,
                                struct GNUNET_TIME_Absolute timestamp);
 
 void
-update_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion,
+update_subscription (struct GNUNET_MESSENGER_Subscription *subscription,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration);
 
 void
-update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscribtion);
+update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscription);
 
 #endif //GNUNET_SERVICE_MESSENGER_SUBSCRIPTION_H

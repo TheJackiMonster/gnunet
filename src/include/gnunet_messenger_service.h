@@ -752,13 +752,13 @@ enum GNUNET_MESSENGER_ConnectionFlags
 };
 
 /**
- * Enum for the different supported flags used to specify subscribtion handling.
+ * Enum for the different supported flags used to specify subscription handling.
  * Compatible flags can be OR'ed together.
  */
 enum GNUNET_MESSENGER_SubscriptionFlags
 {
   /**
-   * The none flag. The flag indicates that the subscribtion is not affected by any modifications.
+   * The none flag. The flag indicates that the subscription is not affected by any modifications.
    */
   GNUNET_MESSENGER_FLAG_SUBSCRIPTION_NONE = 0,
 

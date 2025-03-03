@@ -2626,7 +2626,7 @@ handle_error (struct Connection *connection)
   /* if we are the client side */
   if (GNUNET_YES == connection->is_initiator)
   {
-    /* this will send CONNECTION_CLOSE immedietly and don't wait */
+    /* this will send CONNECTION_CLOSE immediately and don't wait */
     start_closing_period (connection);
     connection_destroy (connection);
     return GNUNET_SYSERR;

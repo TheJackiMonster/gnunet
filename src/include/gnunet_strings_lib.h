@@ -760,7 +760,7 @@ struct GNUNET_STRINGS_IPv6NetworkPolicy
  *
  * @param routeListX a string specifying the IPv4 subnets
  * @return the converted list, terminated with all zeros;
- *         NULL if the synatx is flawed
+ *         NULL if the syntax is flawed
  */
 struct GNUNET_STRINGS_IPv4NetworkPolicy *
 GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX);
@@ -775,7 +775,7 @@ GNUNET_STRINGS_parse_ipv4_policy (const char *routeListX);
  * Note that the netmask is mandatory if ports are specified.
  *
  * @param routeListX a string specifying the policy
- * @return the converted list, 0-terminated, NULL if the synatx is flawed
+ * @return the converted list, 0-terminated, NULL if the syntax is flawed
  */
 struct GNUNET_STRINGS_IPv6NetworkPolicy *
 GNUNET_STRINGS_parse_ipv6_policy (const char *routeListX);

@@ -1228,20 +1228,20 @@ iterate_member_for_subscription (void *cls,
 {
   struct GNUNET_MESSENGER_MemberSubscriptionIteration *it;
   struct GNUNET_MESSENGER_Member *member;
-  struct GNUNET_MESSENGER_Subscription *subscribtion;
+  struct GNUNET_MESSENGER_Subscription *subscription;
 
   GNUNET_assert ((cls) && (session));
 
   it = cls;
   member = session->member;
 
-  subscribtion = get_member_subscription (member, it->discourse);
+  subscription = get_member_subscription (member, it->discourse);
   
-  if (! subscribtion)
+  if (! subscription)
     return GNUNET_YES;
 
-  if (GNUNET_TIME_absolute_cmp (subscribtion->start, <, it->start))
-    it->start = subscribtion->start;
+  if (GNUNET_TIME_absolute_cmp (subscription->start, <, it->start))
+    it->start = subscription->start;
 
   return GNUNET_YES;
 }

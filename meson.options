@@ -3,7 +3,7 @@ option('monolith', type : 'boolean', value : false, description: 'Build a single
 option('testbed', type : 'boolean', value : false, description: 'Build the testbed')
 option('exclude-manpages', type : 'boolean', value : false, description: 'Do not install manpages')
 option('experimental', type : 'boolean', value : false, description: 'Build experimental components')
-option('malicious', type : 'boolean', value : false, description: 'Enable malicous code paths')
+option('malicious', type : 'boolean', value : false, description: 'Enable malicious code paths')
 option('benchmarks', type : 'boolean', value : false, description: 'Enable benchmarking')
 option('poisoning', type : 'boolean', value : false, description: 'Enable poisoning of freed memory (for debugging)')
 option('nse-histogram', type : 'boolean', value : false, description: 'Enable NSE histogram')

@@ -306,7 +306,7 @@ struct GNUNET_TESTING_NetjailSubnetPeer
 };
 
 /**
- * Toplogy of our netjail setup.
+ * Topology of our netjail setup.
  */
 struct GNUNET_TESTING_NetjailTopology
 {

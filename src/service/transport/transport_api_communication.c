@@ -1084,7 +1084,7 @@ GNUNET_TRANSPORT_communicator_mq_del (struct GNUNET_TRANSPORT_QueueHandle *qh)
  * @param ch connection to transport service
  * @param address our address in human-readable format, 0-terminated, UTF-8
  * @param nt which network type does the address belong to?
- * @param expiration when does the communicator forsee this address expiring?
+ * @param expiration when does the communicator foresee this address expiring?
  */
 struct GNUNET_TRANSPORT_AddressIdentifier *
 GNUNET_TRANSPORT_communicator_address_add (

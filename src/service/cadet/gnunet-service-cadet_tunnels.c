@@ -1092,7 +1092,7 @@ store_skipped_key (struct CadetTunnelAxolotl *ax,
  *
  * @param ax key material to use
  * @param HKr Header key.
- * @param Np Received meesage number.
+ * @param Np Received message number.
  * @return #GNUNET_OK if keys were stored.
  *         #GNUNET_SYSERR if an error occurred (@a Np not expected).
  */
