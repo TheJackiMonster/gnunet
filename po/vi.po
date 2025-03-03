@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
-"Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2025-01-08 13:47+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-03 12:58+0100\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -294,6 +294,7 @@ msgstr "In ra thông tin về các đồng đẳng GNUnet."
 msgid "Provide information about all tunnels"
 msgstr "In ra thông tin về các đồng đẳng GNUnet."
 
+#. should never happen, as we immediately send the key
 #: src/cli/core/gnunet-core.c:116
 #, fuzzy
 msgid "fresh connection"
@@ -1440,6 +1441,7 @@ msgstr ""
 msgid "%s\n"
 msgstr ""
 
+#. nothing more to be done
 #: src/cli/namestore/gnunet-namestore.c:1446
 #, fuzzy, c-format
 msgid "No options given\n"
@@ -3419,6 +3421,30 @@ msgid ""
 "%llu)\n"
 msgstr ""
 
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' with the message given
+#. * by gcry_strerror(rc).
+#.
+#. *
+#. * Log an error message at log-level @a level that indicates
+#. * a failure of the command @a cmd with the error from the database @a db
+#. *
+#. * @param db database handle
+#. * @param level log level
+#. * @param cmd failed command
+#.
+#. *
+#. * Execute SQL statement.
+#. *
+#. * @param db database handle
+#. * @param cmd SQL command to execute
+#.
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' on file 'filename'
+#. * with the message given by strerror(errno).
+#.
 #: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
@@ -3522,6 +3548,7 @@ msgstr "%s: không nhận ra tùy chọn « --%s »\n"
 msgid "%s: unrecognized option `%c%s'\n"
 msgstr "%s: không nhận ra tùy chọn « %c%s »\n"
 
+#. 1003.2 specifies the format of this message.
 #: src/lib/util/getopt.c:681
 #, c-format
 msgid "%s: illegal option -- %c\n"
@@ -4391,14 +4418,17 @@ msgstr "Đang bắt đầu tài lên « %s ».\n"
 msgid "Restarting service `%s'.\n"
 msgstr "Đang nạp và khởi động dùng « %s ».\n"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1782
 msgid "exit"
 msgstr ""
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1787
 msgid "signal"
 msgstr ""
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1792
 #, fuzzy
 msgid "unknown"
@@ -6052,6 +6082,13 @@ msgstr ""
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
+#. *
+#. * Log curl error.
+#. *
+#. * @param level log level
+#. * @param fun name of curl_easy-function that gave the error
+#. * @param rc return code from curl
+#.
 #: src/service/gns/gnunet-gns-proxy.c:114
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:807

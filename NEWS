@@ -1,3 +1,7 @@
+v0.24.0:
+  - Meson is new default build system
+  - JSON: split off libgnunetmhd from libgnunetjson, renaming various GNUNET_JSON_-symbols to GNUNET_MHD_-. Removes dependency of libgnunetjson on libmicrohttpd
+
 v0.23.0:
   - Add GNUNET_CONFIGURATION_set_value_float
   - util: Float configuration values are no longer locale-dependent, but instead must always be in LC_NUMERIC=C format

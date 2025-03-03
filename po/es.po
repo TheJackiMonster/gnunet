@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
-"Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2025-01-08 13:47+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-03 12:58+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -295,6 +295,7 @@ msgstr "proveer información acerca de un túnel en particular"
 msgid "Provide information about all tunnels"
 msgstr "proveer información acerca de un túnel en particular"
 
+#. should never happen, as we immediately send the key
 #: src/cli/core/gnunet-core.c:116
 #, fuzzy
 msgid "fresh connection"
@@ -1456,6 +1457,7 @@ msgstr ""
 msgid "%s\n"
 msgstr ""
 
+#. nothing more to be done
 #: src/cli/namestore/gnunet-namestore.c:1446
 #, c-format
 msgid "No options given\n"
@@ -3451,6 +3453,30 @@ msgstr ""
 "El tamaño del fichero en disco es incorrecto para este «Bloom filter» "
 "(esperado %llu, tiene %llu)\n"
 
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' with the message given
+#. * by gcry_strerror(rc).
+#.
+#. *
+#. * Log an error message at log-level @a level that indicates
+#. * a failure of the command @a cmd with the error from the database @a db
+#. *
+#. * @param db database handle
+#. * @param level log level
+#. * @param cmd failed command
+#.
+#. *
+#. * Execute SQL statement.
+#. *
+#. * @param db database handle
+#. * @param cmd SQL command to execute
+#.
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' on file 'filename'
+#. * with the message given by strerror(errno).
+#.
 #: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
@@ -3556,6 +3582,7 @@ msgstr "%s: opción no reconocida «--%s»\n"
 msgid "%s: unrecognized option `%c%s'\n"
 msgstr "%s: opción no reconocida «%c%s»\n"
 
+#. 1003.2 specifies the format of this message.
 #: src/lib/util/getopt.c:681
 #, c-format
 msgid "%s: illegal option -- %c\n"
@@ -4478,14 +4505,17 @@ msgstr "Preparando para parar «%s»\n"
 msgid "Restarting service `%s'.\n"
 msgstr "Reiniciando el servicio «%s»\n"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1782
 msgid "exit"
 msgstr "salida"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1787
 msgid "signal"
 msgstr "señal"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1792
 msgid "unknown"
 msgstr "desconocido"
@@ -6146,6 +6176,13 @@ msgstr ""
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr ""
 
+#. *
+#. * Log curl error.
+#. *
+#. * @param level log level
+#. * @param fun name of curl_easy-function that gave the error
+#. * @param rc return code from curl
+#.
 #: src/service/gns/gnunet-gns-proxy.c:114
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:807

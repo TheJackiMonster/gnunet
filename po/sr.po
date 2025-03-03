@@ -5,8 +5,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
-"Report-Msgid-Bugs-To: gnunet-developers@mail.gnu.org\n"
-"POT-Creation-Date: 2025-01-08 13:47+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-03 12:58+0100\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -286,6 +286,7 @@ msgstr "обезбеђује податке о свим парњацима"
 msgid "Provide information about all tunnels"
 msgstr "обезбеђује податке о свим тунелима"
 
+#. should never happen, as we immediately send the key
 #: src/cli/core/gnunet-core.c:116
 #, fuzzy
 msgid "fresh connection"
@@ -1433,6 +1434,7 @@ msgstr ""
 msgid "%s\n"
 msgstr ""
 
+#. nothing more to be done
 #: src/cli/namestore/gnunet-namestore.c:1446
 #, c-format
 msgid "No options given\n"
@@ -3419,6 +3421,30 @@ msgstr ""
 "Величина датотеке на диску није тачна за овај Блум филтер (желим %llu, имам "
 "%llu)\n"
 
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' with the message given
+#. * by gcry_strerror(rc).
+#.
+#. *
+#. * Log an error message at log-level @a level that indicates
+#. * a failure of the command @a cmd with the error from the database @a db
+#. *
+#. * @param db database handle
+#. * @param level log level
+#. * @param cmd failed command
+#.
+#. *
+#. * Execute SQL statement.
+#. *
+#. * @param db database handle
+#. * @param cmd SQL command to execute
+#.
+#. *
+#. * Log an error message at log-level 'level' that indicates
+#. * a failure of the command 'cmd' on file 'filename'
+#. * with the message given by strerror(errno).
+#.
 #: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
@@ -3521,6 +3547,7 @@ msgstr "%s: непрепозната опција „--%s“\n"
 msgid "%s: unrecognized option `%c%s'\n"
 msgstr "%s: непрепозната опција „%c%s“\n"
 
+#. 1003.2 specifies the format of this message.
 #: src/lib/util/getopt.c:681
 #, c-format
 msgid "%s: illegal option -- %c\n"
@@ -4401,14 +4428,17 @@ msgstr "Припремам се да зауставим „%s“\n"
 msgid "Restarting service `%s'.\n"
 msgstr "Поново покрећем услугу „%s“.\n"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1782
 msgid "exit"
 msgstr "излази"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1787
 msgid "signal"
 msgstr "сигнал"
 
+#. process termination method
 #: src/service/arm/gnunet-service-arm.c:1792
 msgid "unknown"
 msgstr "непознато"
@@ -6026,6 +6056,13 @@ msgstr ""
 msgid "This program will import some GNS authorities into your GNS namestore."
 msgstr "Овај програм ће увести неке ГНС ауторитете у ваш ГНС смештај назива."
 
+#. *
+#. * Log curl error.
+#. *
+#. * @param level log level
+#. * @param fun name of curl_easy-function that gave the error
+#. * @param rc return code from curl
+#.
 #: src/service/gns/gnunet-gns-proxy.c:114
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:579
 #: src/service/hostlist/gnunet-daemon-hostlist_client.c:807

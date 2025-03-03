@@ -114,7 +114,6 @@ src/lib/hello/hello-uri.c
 src/lib/json/json.c
 src/lib/json/json_generator.c
 src/lib/json/json_helper.c
-src/lib/json/json_mhd.c
 src/lib/json/json_pack.c
 src/lib/pq/pq.c
 src/lib/pq/pq_connect.c

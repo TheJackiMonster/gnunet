@@ -106,7 +106,7 @@ if host_machine.system() == 'linux'
   private_config.set_quoted('GNUNET_DEFAULT_INTERFACE', 'eth0')
 elif host_machine.system() == 'darwin'
   private_config.set_quoted('GNUNET_DEFAULT_INTERFACE', 'en0')
-  private_config.set('LINUX', 1)
+  private_config.set('DARWIN', 1)
   add_project_arguments('-DDARWIN', language : 'c')
   add_project_arguments('-D_APPLE_C_SOURCE', language : 'c')
   add_project_arguments('-D__APPLE_USE_RFC_3542', language : 'c')
