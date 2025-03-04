@@ -136,7 +136,7 @@ shutdown_task (void *cls)
 
 
 /**
- * Announce a previously announced regex re-using cached data.
+ * Announce a previously announced regex reusing cached data.
  *
  * @param cls Closure (regex to announce if needed).
  */

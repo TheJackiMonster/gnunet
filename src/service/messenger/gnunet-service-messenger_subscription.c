@@ -36,122 +36,122 @@ create_subscription (struct GNUNET_MESSENGER_SrvRoom *room,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration)
 {
-  struct GNUNET_MESSENGER_Subscription *subscribtion;
+  struct GNUNET_MESSENGER_Subscription *subscription;
 
   GNUNET_assert ((room) && (member) && (discourse));
 
-  subscribtion = GNUNET_new (struct GNUNET_MESSENGER_Subscription);
+  subscription = GNUNET_new (struct GNUNET_MESSENGER_Subscription);
 
-  if (! subscribtion)
+  if (! subscription)
     return NULL;
 
-  subscribtion->room = room;
-  subscribtion->member = member;
-  subscribtion->task = NULL;
+  subscription->room = room;
+  subscription->member = member;
+  subscription->task = NULL;
 
-  memcpy (&(subscribtion->discourse), discourse, sizeof (struct GNUNET_ShortHashCode));
+  memcpy (&(subscription->discourse), discourse, sizeof (struct GNUNET_ShortHashCode));
 
-  subscribtion->start = timestamp;
-  subscribtion->end = GNUNET_TIME_absolute_add (timestamp, duration);
+  subscription->start = timestamp;
+  subscription->end = GNUNET_TIME_absolute_add (timestamp, duration);
 
-  return subscribtion;
+  return subscription;
 }
 
 void
-destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion)
+destroy_subscription (struct GNUNET_MESSENGER_Subscription *subscription)
 {
-  GNUNET_assert (subscribtion);
+  GNUNET_assert (subscription);
 
-  if (subscribtion->task)
-    GNUNET_SCHEDULER_cancel (subscribtion->task);
+  if (subscription->task)
+    GNUNET_SCHEDULER_cancel (subscription->task);
 
-  GNUNET_free (subscribtion);
+  GNUNET_free (subscription);
 }
 
 const struct GNUNET_ShortHashCode*
-get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscribtion)
+get_subscription_discourse (const struct GNUNET_MESSENGER_Subscription *subscription)
 {
-  GNUNET_assert (subscribtion);
+  GNUNET_assert (subscription);
 
-  return &(subscribtion->discourse);
+  return &(subscription->discourse);
 }
 
 enum GNUNET_GenericReturnValue
-has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscribtion,
+has_subscription_of_timestamp (const struct GNUNET_MESSENGER_Subscription *subscription,
                                struct GNUNET_TIME_Absolute timestamp)
 {
-  GNUNET_assert (subscribtion);
+  GNUNET_assert (subscription);
 
-  if ((GNUNET_TIME_absolute_cmp (timestamp, <, subscribtion->start)) ||
-      (GNUNET_TIME_absolute_cmp (timestamp, >, subscribtion->end)))
+  if ((GNUNET_TIME_absolute_cmp (timestamp, <, subscription->start)) ||
+      (GNUNET_TIME_absolute_cmp (timestamp, >, subscription->end)))
     return GNUNET_NO;
   else
     return GNUNET_YES;
 }
 
 void
-update_subscription (struct GNUNET_MESSENGER_Subscription *subscribtion,
+update_subscription (struct GNUNET_MESSENGER_Subscription *subscription,
                      struct GNUNET_TIME_Absolute timestamp,
                      struct GNUNET_TIME_Relative duration)
 {
   struct GNUNET_TIME_Absolute end;
 
-  GNUNET_assert (subscribtion);
+  GNUNET_assert (subscription);
 
   end = GNUNET_TIME_absolute_add (timestamp, duration);
 
-  if (GNUNET_TIME_absolute_cmp (end, <, subscribtion->start))
+  if (GNUNET_TIME_absolute_cmp (end, <, subscription->start))
     return;
 
-  if (GNUNET_TIME_absolute_cmp (timestamp, <, subscribtion->start))
-    subscribtion->start = timestamp;
+  if (GNUNET_TIME_absolute_cmp (timestamp, <, subscription->start))
+    subscription->start = timestamp;
 
-  subscribtion->end = end;
+  subscription->end = end;
 }
 
 static void
 task_subscription_exit (void *cls)
 {
-  struct GNUNET_MESSENGER_Subscription *subscribtion;
+  struct GNUNET_MESSENGER_Subscription *subscription;
   struct GNUNET_MESSENGER_Member *member;
   struct GNUNET_MESSENGER_SrvRoom *room;
   struct GNUNET_ShortHashCode discourse;
 
   GNUNET_assert (cls);
 
-  subscribtion = cls;
-  member = subscribtion->member;
+  subscription = cls;
+  member = subscription->member;
 
-  subscribtion->task = NULL;
+  subscription->task = NULL;
 
   if (! member)
     return;
 
-  room = subscribtion->room;
+  room = subscription->room;
 
-  memcpy (&discourse, &(subscribtion->discourse), 
+  memcpy (&discourse, &(subscription->discourse), 
           sizeof (struct GNUNET_ShortHashCode));
   
-  remove_member_subscription (member, subscribtion);
-  destroy_subscription (subscribtion);
+  remove_member_subscription (member, subscription);
+  destroy_subscription (subscription);
 
   cleanup_srv_room_discourse_messages (room, &discourse);
 }
 
 void
-update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscribtion)
+update_subscription_timing (struct GNUNET_MESSENGER_Subscription *subscription)
 {
   struct GNUNET_TIME_Absolute current;
   struct GNUNET_TIME_Relative time;
 
-  GNUNET_assert (subscribtion);
+  GNUNET_assert (subscription);
 
   current = GNUNET_TIME_absolute_get ();
-  time = GNUNET_TIME_absolute_get_difference (current, subscribtion->end);
+  time = GNUNET_TIME_absolute_get_difference (current, subscription->end);
   
-  if (subscribtion->task)
-    GNUNET_SCHEDULER_cancel (subscribtion->task);
+  if (subscription->task)
+    GNUNET_SCHEDULER_cancel (subscription->task);
   
-  subscribtion->task = 
-    GNUNET_SCHEDULER_add_delayed (time, task_subscription_exit, subscribtion);
+  subscription->task = 
+    GNUNET_SCHEDULER_add_delayed (time, task_subscription_exit, subscription);
 }

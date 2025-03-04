@@ -77,7 +77,7 @@ reconnect (struct GNUNET_TRANSPORT_MonitorContext *mc);
 
 
 /**
- * Send message to the transport service about our montoring
+ * Send message to the transport service about our monitoring
  * desire.
  *
  * @param ai address to delete

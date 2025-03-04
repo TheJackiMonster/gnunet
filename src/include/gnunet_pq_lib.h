@@ -1228,7 +1228,7 @@ GNUNET_PQ_extract_result (PGresult *result,
  * Free all memory that was allocated in @a rs during
  * #GNUNET_PQ_extract_result().
  *
- * @param rs reult specification to clean up
+ * @param rs result specification to clean up
  */
 void
 GNUNET_PQ_cleanup_result (struct GNUNET_PQ_ResultSpec *rs);

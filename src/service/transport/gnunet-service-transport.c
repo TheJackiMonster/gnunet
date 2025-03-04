@@ -797,7 +797,7 @@ struct TransportDVBoxMessage
   struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_key;
 
   /**
-   * We use an IV here as the @e ephemeral_key is re-used for
+   * We use an IV here as the @e ephemeral_key is reused for
    * #EPHEMERAL_VALIDITY time to avoid re-signing it all the time.
    * Intermediaries must not change this value.
    */
