@@ -1,9 +1,12 @@
 #!/bin/bash
 set -exuo pipefail
 
-./bootstrap meson
-meson setup --wipe -Dlogging=verbose \
-	    build
+MESON_BUILD_DIR=./build
 
-meson compile -C build
-meson install -C build
+rm -rf ${MESON_BUILD_DIR}
+./bootstrap meson
+meson setup -Dlogging=verbose \
+	    ${MESON_BUILD_DIR}
+
+meson compile -C ${MESON_BUILD_DIR}
+meson install -C ${MESON_BUILD_DIR}
