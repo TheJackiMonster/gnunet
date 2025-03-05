@@ -607,6 +607,15 @@ GNUNET_PQ_query_param_uint64 (const uint64_t *x);
 
 
 /**
+ * Generate query parameter for an int16_t in host byte order.
+ *
+ * @param x pointer to the query parameter to pass
+ * @return query parameter to use
+ */
+struct GNUNET_PQ_QueryParam
+GNUNET_PQ_query_param_int16 (const int16_t *x);
+
+/**
  * Generate query parameter for an int64_t in host byte order.
  *
  * @param x pointer to the query parameter to pass
@@ -965,6 +974,18 @@ GNUNET_PQ_result_spec_uint32 (const char *name,
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_uint64 (const char *name,
                               uint64_t *u64);
+
+
+/**
+ * int16_t expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] i16 where to store the result
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_int16 (const char *name,
+                             int16_t *i16);
 
 
 /**

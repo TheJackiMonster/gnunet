@@ -933,6 +933,48 @@ GNUNET_JSON_spec_uint64 (const char *name,
 
 
 /**
+ * Parse given JSON object to a int16_t.
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_i16 (void *cls,
+           json_t *root,
+           struct GNUNET_JSON_Specification *spec)
+{
+  json_int_t val;
+  int16_t *up = spec->ptr;
+
+  if (! json_is_integer (root))
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  val = json_integer_value (root);
+  *up = (int16_t) val;
+  return GNUNET_OK;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_int16 (const char *name,
+                        int16_t *i16)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_i16,
+    .field = name,
+    .ptr = i16,
+    .ptr_size = sizeof(int16_t),
+  };
+
+  return ret;
+}
+
+
+/**
  * Parse given JSON object to a int64_t.
  *
  * @param cls closure, NULL

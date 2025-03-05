@@ -404,6 +404,16 @@ GNUNET_JSON_spec_uint64 (const char *name,
 
 
 /**
+ * 16-bit signed integer.
+ *
+ * @param name name of the JSON field
+ * @param[out] i16 where to store the integer found under @a name
+ */
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_int16 (const char *name,
+                        int16_t *i16);
+
+/**
  * 64-bit signed integer.
  *
  * @param name name of the JSON field
