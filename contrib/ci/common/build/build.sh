@@ -2,7 +2,7 @@
 set -exuo pipefail
 
 ./bootstrap meson
-meson setup -Dlogging=verbose \
+meson setup --wipe -Dlogging=verbose \
 	    build
 
 meson compile -C build
