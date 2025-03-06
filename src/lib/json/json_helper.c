@@ -954,6 +954,12 @@ parse_i16 (void *cls,
     return GNUNET_SYSERR;
   }
   val = json_integer_value (root);
+  if ( (val < INT16_MIN) ||
+       (val > INT16_MAX) )
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
   *up = (int16_t) val;
   return GNUNET_OK;
 }
