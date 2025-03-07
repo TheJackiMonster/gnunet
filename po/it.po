@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2019-10-16 11:00+0200\n"
 "Last-Translator: Sebastiano Pistore <sebastianopistore.info@protonmail.ch>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -4442,34 +4442,34 @@ msgstr ""
 msgid "# rekey operations confirmed via PONG"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 msgid "# DATA message dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 msgid "# sessions terminated by key expiration"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 msgid "# bytes dropped (duplicates)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 msgid "# bytes dropped (out of sequence)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 msgid "# bytes dropped (ancient message)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 msgid "# bytes of payload decrypted"
 msgstr ""
 

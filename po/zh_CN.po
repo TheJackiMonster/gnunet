@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -4501,34 +4501,34 @@ msgstr ""
 msgid "# rekey operations confirmed via PONG"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 msgid "# DATA message dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 msgid "# sessions terminated by key expiration"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 msgid "# bytes dropped (duplicates)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 msgid "# bytes dropped (out of sequence)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 msgid "# bytes dropped (ancient message)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 msgid "# bytes of payload decrypted"
 msgstr ""
 
@@ -9198,8 +9198,8 @@ msgstr "初始化“%s”服务失败。\n"
 #~ msgstr "每次调用只能设置一个选项。\n"
 
 #~ msgid ""
-#~ "Invalid syntax, argument to 'set' must have the format "
-#~ "SECTION:OPTION=VALUE.\n"
+#~ "Invalid syntax, argument to 'set' must have the format SECTION:"
+#~ "OPTION=VALUE.\n"
 #~ msgstr "语法无效，“set”的参数必须为 SECTION:OPTION=VALUE 的格式。\n"
 
 #~ msgid "Can only display one option per invocation.\n"

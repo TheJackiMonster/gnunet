@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -4676,36 +4676,36 @@ msgstr "# bytes recibidos vía TCP"
 msgid "# rekey operations confirmed via PONG"
 msgstr "# operaciones de cambio de clave confirmadas vía PONG"
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 #, fuzzy
 msgid "# DATA message dropped (out of order)"
 msgstr "# bytes omitidos (fuera de secuencia)"
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 #, fuzzy
 msgid "# sessions terminated by key expiration"
 msgstr "# sesiones terminadas por plazo de expiración"
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 msgid "# bytes dropped (duplicates)"
 msgstr "# bytes omitidos (duplicados)"
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 msgid "# bytes dropped (out of sequence)"
 msgstr "# bytes omitidos (fuera de secuencia)"
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 msgid "# bytes dropped (ancient message)"
 msgstr "# bytes omitidos (mensaje antiguo)"
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 msgid "# bytes of payload decrypted"
 msgstr "# bytes de «payload» descifrados"
 
@@ -14961,10 +14961,11 @@ msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 #~ "activando la opción \"Mostrar todas las opciones\" en el menú de "
 #~ "\"Opciones\".\n"
 #~ "\n"
-#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,·you·can·still·view·the·help·of·a·grayed-"
-#~ "out·option.\n"
+#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,"
+#~ "·you·can·still·view·the·help·of·a·grayed-out·option.\n"
 #~ "\n"
-#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,·which·you·can·then·match·by·examining·other·options."
+#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,"
+#~ "·which·you·can·then·match·by·examining·other·options."
 
 #~ msgid ""
 #~ "Configuration file not found. Please run GNUnet Setup (Client "

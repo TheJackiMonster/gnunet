@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -4549,37 +4549,37 @@ msgstr "# Bytes empfangen über TCP"
 msgid "# rekey operations confirmed via PONG"
 msgstr "# Knotenankündigungen empfangen"
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 msgid "# DATA message dropped (out of order)"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 msgid "# sessions terminated by key expiration"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 #, fuzzy
 msgid "# bytes dropped (duplicates)"
 msgstr "# Bytes verworfen von TCP (ausgehend)"
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 #, fuzzy
 msgid "# bytes dropped (out of sequence)"
 msgstr "# Bytes verworfen von TCP (ausgehend)"
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 #, fuzzy
 msgid "# bytes dropped (ancient message)"
 msgstr "# Bytes verworfen von TCP (ausgehend)"
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 #, fuzzy
 msgid "# bytes of payload decrypted"
 msgstr "# Bytes entschlüsselt"

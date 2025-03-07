@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -4598,35 +4598,35 @@ msgstr "# временски истеци су спречени путем ПО�
 msgid "# rekey operations confirmed via PONG"
 msgstr "# операције рекључа су потврђене путем ПОНГ-а"
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 msgid "# DATA message dropped (out of order)"
 msgstr "# ПОДАТАКА порука је одбачена (ван поретка)"
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 "Сесија за парњака „%s“ је пала услед истека кључа (није требало да се деси)\n"
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 msgid "# sessions terminated by key expiration"
 msgstr "# сесије су окончане истеком кључа"
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 msgid "# bytes dropped (duplicates)"
 msgstr "# бајтови одбачени (удвострученост)"
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 msgid "# bytes dropped (out of sequence)"
 msgstr "# бајтови одбачени (ван низа)"
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 msgid "# bytes dropped (ancient message)"
 msgstr "# бајтови одбачени (стара порука)"
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 msgid "# bytes of payload decrypted"
 msgstr "# бајтови утовара су дешифровани"
 
@@ -7862,8 +7862,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: the maximum number of links a node can have\n"
 #~ "\t m: the number of links a node should have while joining the network\n"
 #~ "\t filename: the path of the file which contains topology information\n"
-#~ "NOTE: the format of the above file is described here: https://"
-#~ "www.gnunet.org/content/topology-file-format\n"
+#~ "NOTE: the format of the above file is described here: https://www.gnunet."
+#~ "org/content/topology-file-format\n"
 #~ msgstr ""
 #~ "Ствара СКуЛајт3 базу података која представља дати основни размештај.\n"
 #~ "Коришћење: gnunet-underlay-topology [ОПЦИЈЕ] db-filename TOPO "
@@ -7884,8 +7884,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: највећи број веза које чвор може да има\n"
 #~ "\t m: број веза које чвор треба да има приликом придруживања мрежи\n"
 #~ "\t filename: путања датотеке која садржи податке о размештају\n"
-#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://"
-#~ "www.gnunet.org/content/topology-file-format\n"
+#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://www."
+#~ "gnunet.org/content/topology-file-format\n"
 
 #~ msgid "Daemon to log latency values of connections to neighbours"
 #~ msgstr "Демон за дневничење вредности кашњења веза са суседима"
@@ -9019,8 +9019,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ msgstr "Нисам успео да поставим основни его: %s\n"
 
 #~ msgid ""
-#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with "
-#~ "-e)"
+#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with -"
+#~ "e)"
 #~ msgstr ""
 #~ "поставља основни идентитет на ЕГО за подсистем ПОДСИСТЕМ (користите "
 #~ "заједно са -e)"
@@ -9853,8 +9853,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 
 #~ msgid ""
 #~ "Ego for `gns-short' not found. This is not really fatal, but i'll pretend "
-#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-"
-#~ "import.sh?\n"
+#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-import."
+#~ "sh?\n"
 #~ msgstr ""
 #~ "Нисам нашао „gns-short“. То и није баш кобно, али ћу се ја претварати да "
 #~ "јесте и одбићу да обавим претраживање.  Да ли сте покренули „gnunet-gns-"

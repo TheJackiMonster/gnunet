@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.8.0a\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 12:58+0100\n"
+"POT-Creation-Date: 2025-03-07 16:34+0100\n"
 "PO-Revision-Date: 2008-09-10 22:05+0930\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
@@ -4600,39 +4600,39 @@ msgstr "# các byte đã nhận qua TCP"
 msgid "# rekey operations confirmed via PONG"
 msgstr "# Các quảng cáo đồng đẳng được xác nhận qua PONG"
 
-#: src/service/core/gnunet-service-core_kx.c:1755
+#: src/service/core/gnunet-service-core_kx.c:1756
 #, fuzzy
 msgid "# DATA message dropped (out of order)"
 msgstr "# các byte loại bỏ bởi UDP (đi ra)"
 
-#: src/service/core/gnunet-service-core_kx.c:1767
+#: src/service/core/gnunet-service-core_kx.c:1768
 #, c-format
 msgid ""
 "Session to peer `%s' went down due to key expiration (should not happen)\n"
 msgstr ""
 
-#: src/service/core/gnunet-service-core_kx.c:1771
+#: src/service/core/gnunet-service-core_kx.c:1772
 #, fuzzy
 msgid "# sessions terminated by key expiration"
 msgstr "# các byte loại đi bởi TCP (đi ra)"
 
-#: src/service/core/gnunet-service-core_kx.c:1875
-#: src/service/core/gnunet-service-core_kx.c:1904
+#: src/service/core/gnunet-service-core_kx.c:1876
+#: src/service/core/gnunet-service-core_kx.c:1905
 #, fuzzy
 msgid "# bytes dropped (duplicates)"
 msgstr "# các byte loại bỏ bởi UDP (đi ra)"
 
-#: src/service/core/gnunet-service-core_kx.c:1889
+#: src/service/core/gnunet-service-core_kx.c:1890
 #, fuzzy
 msgid "# bytes dropped (out of sequence)"
 msgstr "# các byte loại bỏ bởi UDP (đi ra)"
 
-#: src/service/core/gnunet-service-core_kx.c:1936
+#: src/service/core/gnunet-service-core_kx.c:1937
 #, fuzzy
 msgid "# bytes dropped (ancient message)"
 msgstr "# các byte loại bỏ bởi UDP (đi ra)"
 
-#: src/service/core/gnunet-service-core_kx.c:1946
+#: src/service/core/gnunet-service-core_kx.c:1947
 #, fuzzy
 msgid "# bytes of payload decrypted"
 msgstr "# các byte đã giải mã"
@@ -10899,8 +10899,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ msgstr "Chỉ có thể đặt một tùy chọn trong mỗi cuộc gọi.\n"
 
 #~ msgid ""
-#~ "Invalid syntax, argument to 'set' must have the format "
-#~ "SECTION:OPTION=VALUE.\n"
+#~ "Invalid syntax, argument to 'set' must have the format SECTION:"
+#~ "OPTION=VALUE.\n"
 #~ msgstr ""
 #~ "Cú pháp sai, đối số tới « set » phải theo định dạng:\n"
 #~ "PHẦN:TÙY_CHỌN­=GIÁ_TRỊ\n"
@@ -11730,8 +11730,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ msgstr ""
 #~ "tải xuống một thư mục GNUnet đã được tải về trước. Cần thiết ghi rõ tên "
 #~ "tập tin của một tập tin đã có, thay cho địa chỉ URI. Việc tải về sẽ chỉ "
-#~ "tải về các tập tin cấp đầu của thư mục, nếu không cũng đưa ra tùy chọn "
-#~ "« -R »."
+#~ "tải về các tập tin cấp đầu của thư mục, nếu không cũng đưa ra tùy chọn « -"
+#~ "R »."
 
 #~ msgid "Download files from GNUnet."
 #~ msgstr "Tải tập tin xuống GNUnet."
@@ -12447,8 +12447,8 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ "always welcome.  Users should just be aware that alpha features may not "
 #~ "meet the normal level of reliability or it may fail to work in some "
 #~ "special cases.  Bug reports are usually welcomed by the developers, but "
-#~ "please read the documents <file://README> and <http://gnunet.org/"
-#~ "faq.php3> and use <https://gnunet.org/mantis/> for how to report problems."
+#~ "please read the documents <file://README> and <http://gnunet.org/faq."
+#~ "php3> and use <https://gnunet.org/mantis/> for how to report problems."
 #~ msgstr ""
 #~ "Nếu EXPERIMENTAL (thực nghiệm) được đặt thành NO (không) thì không hiển "
 #~ "thị tùy chọn về mã vẫn thực nghiệm. Chưa chắc thì đặt NO.\n"
@@ -13539,10 +13539,10 @@ msgstr "Không kết nối được đến trình nền gnunetd."
 #~ "những thư viện trích bổ sung. Định dạng là « [[-]tên_thư_viện[:"
 #~ "[-]tên_thư_viện]*] ».\n"
 #~ "\n"
-#~ "Mặc định là dùng tên tập tin, và ngắt từ lớn ở dấu cách, dấu gạch dưới "
-#~ "v.v. Đây nên ổn cho phần lớn người dùng. Dấu gạch nối « - » đằng trước "
-#~ "một tên thư viện có ngụ ý nó nên được thực hiện cuối cùng, thích hợp chỉ "
-#~ "cho split-library."
+#~ "Mặc định là dùng tên tập tin, và ngắt từ lớn ở dấu cách, dấu gạch dưới v."
+#~ "v. Đây nên ổn cho phần lớn người dùng. Dấu gạch nối « - » đằng trước một "
+#~ "tên thư viện có ngụ ý nó nên được thực hiện cuối cùng, thích hợp chỉ cho "
+#~ "split-library."
 
 #~ msgid "How many entries should the URI DB table have?"
 #~ msgstr "Bảng DB URI nên chứa bao nhiêu mục nhập?"
