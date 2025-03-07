@@ -24,8 +24,7 @@ libgnunetdatastore = library('gnunetdatastore',
     libgnunetdatacache_dep],
   include_directories: [incdir, configuration_inc],
   install: true,
-  install_dir: get_option('libdir'),
-  install_rpath: get_option('libdir'))
+  install_dir: get_option('libdir'))
 libgnunetdatastore_dep = declare_dependency(link_with : libgnunetdatastore)
 pkg.generate(libgnunetdatastore, url: 'https://www.gnunet.org',
   description : 'Management API for the datastore for persistent storage to disk')
