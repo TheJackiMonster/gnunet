@@ -33,6 +33,26 @@ executable ('gnunet-service-arm',
   install: true,
   install_dir: get_option('libdir') / 'gnunet' / 'libexec')
 
+libgnunettestingarm = library('gnunettestingarm',
+  [
+    'testing_arm_cmd_start_peer.c',
+    'testing_arm_cmd_stop_peer.c',
+    'testing_arm_traits.c'
+  ],
+  soversion: solibversions['libgnunettestingarm']['soversion'],
+  version: solibversions['libgnunettestingarm']['version'],
+  dependencies: [libgnunetutil_dep,
+                 libgnunetarm_dep,
+                 libgnunettesting_dep,
+                 libgnunettestingtestbed_dep,
+                 libgnunettestbed_dep,
+                ],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
+libgnunettestingarm_dep = declare_dependency(link_with : libgnunettestingarm)
+
 mockservice = executable ('mockup-service',
   ['mockup-service.c'],
   dependencies: [libgnunetarm_dep, libgnunetutil_dep],

@@ -564,7 +564,9 @@ libltversions = [
   ['libgnunettesting', '3:0:0'],
   ['libgnunettestingarm', '0:0:0'],
   ['libgnunetcoretesting', '0:0:0'], # FIXME why is nameing scheme wrong here?
+  ['libgnunettestbed', '0:0:0'],
   ['libgnunettestingmessenger', '0:0:0'],
+  ['libgnunettestingtestbed', '0:0:0'],
   ['libgnunettestingtransport', '0:0:0'],
   ['libgnunettransportapplication', '0:0:0'],
   ['libgnunettransportcore', '0:0:0'],
