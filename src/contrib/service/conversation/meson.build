@@ -62,6 +62,7 @@ pkg.generate(libgnunetconversation, url: 'https://www.gnunet.org',
 
 shared_module('gnunet_plugin_gnsrecord_conversation',
         ['plugin_gnsrecord_conversation.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
         dependencies: [libgnunetutil_dep,
                        libgnunetconversation_dep,
                        libgnunetgns_dep,

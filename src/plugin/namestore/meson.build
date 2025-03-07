@@ -1,14 +1,15 @@
 libgnunetpluginnamestore_sqlite_src = ['plugin_namestore_sqlite.c']
 
 shared_module('gnunet_plugin_namestore_sqlite',
-        libgnunetpluginnamestore_sqlite_src,
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetsq_dep,
-                       sqlite_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir')/'gnunet')
+  libgnunetpluginnamestore_sqlite_src,
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetgnsrecord_dep,
+                 libgnunetsq_dep,
+                 sqlite_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir')/'gnunet')
 
 configure_file(copy: true,
                input: 'test_plugin_namestore_sqlite.conf',
@@ -29,13 +30,14 @@ configure_file(input : 'namestore-drop.sql',
 if pq_dep.found()
   shared_module('gnunet_plugin_namestore_postgres',
           ['plugin_namestore_postgres.c'],
-          dependencies: [libgnunetutil_dep,
-                         libgnunetgnsrecord_dep,
-                         libgnunetpq_dep,
-                         pq_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir')/'gnunet')
+    install_rpath: get_option('prefix') / get_option('libdir'),
+    dependencies: [libgnunetutil_dep,
+                   libgnunetgnsrecord_dep,
+                   libgnunetpq_dep,
+                   pq_dep],
+    include_directories: [incdir, configuration_inc],
+    install: true,
+    install_dir: get_option('libdir')/'gnunet')
 configure_file(copy: true,
                input: 'test_plugin_namestore_postgres.conf',
                output: 'test_plugin_namestore_postgres.conf')

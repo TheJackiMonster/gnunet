@@ -25,8 +25,9 @@ endif
 
 libgnunetgns = library('gnunetgns',
   libgnunetgns_src,
-  soversion: '0',
-  version: '0.0.0',
+  soversion: solibversions['libgnunetgns']['soversion'],
+  version: solibversions['libgnunetgns']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
   dependencies: [libgnunetutil_dep,
     libgnunetgnsrecord_dep,
     libgnunetidentity_dep],

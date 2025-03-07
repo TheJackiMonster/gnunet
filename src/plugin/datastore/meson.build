@@ -3,30 +3,33 @@ install_data ('datastore-0001.sql',
                install_dir: get_option('datadir')/'gnunet'/'sql')
 
 shared_module('gnunet_plugin_datastore_sqlite',
-        ['plugin_datastore_sqlite.c'],
-        dependencies: [libgnunetutil_dep,
-                       sqlite_dep,
-                       libgnunetsq_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir')/'gnunet')
+  ['plugin_datastore_sqlite.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 sqlite_dep,
+                 libgnunetsq_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir')/'gnunet')
 
 shared_module('gnunet_plugin_datastore_heap',
-        ['plugin_datastore_heap.c'],
-        dependencies: [libgnunetutil_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir')/'gnunet')
+  ['plugin_datastore_heap.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir')/'gnunet')
 
 if pq_dep.found()
   shared_module('gnunet_plugin_datastore_postgres',
-          ['plugin_datastore_postgres.c'],
-          dependencies: [libgnunetutil_dep,
-                         pq_dep,
-                         libgnunetpq_dep],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          install_dir: get_option('libdir')/'gnunet')
+    ['plugin_datastore_postgres.c'],
+    install_rpath: get_option('prefix') / get_option('libdir'),
+    dependencies: [libgnunetutil_dep,
+                   pq_dep,
+                   libgnunetpq_dep],
+    include_directories: [incdir, configuration_inc],
+    install: true,
+    install_dir: get_option('libdir')/'gnunet')
 endif
 
 testds_plugin_sqlite = executable ('test_plugin_datastore_sqlite',

@@ -494,11 +494,12 @@ test('test_peer', testpeer,
      suite: ['util', 'util-misc'])
 
 testplugin_plug = shared_module ('gnunet_plugin_utiltest',
-                                 ['test_plugin_plug.c'],
-                                 dependencies: [libgnunetutil_dep],
-                                 include_directories: [incdir, configuration_inc],
-                                 build_by_default: false,
-                                 install: false)
+  ['test_plugin_plug.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep],
+  include_directories: [incdir, configuration_inc],
+  build_by_default: false,
+  install: false)
 testplugin = executable ('test_plugin',
                          ['test_plugin.c'],
                          dependencies: [libgnunetutil_dep],

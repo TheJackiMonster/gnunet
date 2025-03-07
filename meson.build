@@ -538,6 +538,7 @@ libltversions = [
   ['libgnunetdid', '0:0:0'],
   ['libgnunetdns', '0:0:0'],
   ['libgnunetfs', '3:1:1'],
+  ['libgnunetgns', '0:0:0'],
   ['libgnunetgnsrecord', '0:0:0'],
   ['libgnunetgnsrecordjson', '0:0:0'],
   ['libgnunethello', '1:0:1'],

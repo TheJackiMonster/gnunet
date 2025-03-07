@@ -26,6 +26,7 @@ pkg.generate(libgnunetset, url: 'https://www.gnunet.org',
 libgnunetset_dep = declare_dependency(link_with : libgnunetset)
 shared_module('gnunet_plugin_block_set_test',
               ['plugin_block_set_test.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
               dependencies: libgnunetutil_dep,
               include_directories: [incdir, configuration_inc],
               install:true,

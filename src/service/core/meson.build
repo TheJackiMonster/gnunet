@@ -53,21 +53,22 @@ libgnunetcoretesting = library('gnunetcoretesting',
 libgnunetcoretesting_dep = declare_dependency(link_with : libgnunetcoretesting)
 
 shared_module('gnunet_test_core_plugin_cmd_just_run',
-        ['test_core_plugin_cmd_just_run.c'],
-        dependencies: [libgnunetutil_dep,
-                       libgnunettesting_dep,
-                       libgnunetcoretesting_dep,
-                       libgnunettestingtransport_dep,
-                       libgnunettransportcore_dep,
-                       libgnunettransportapplication_dep,
-                       libgnunettesting_dep,
-                       libgnunetpeerstore_dep,
-                       libgnunetstatistics_dep,
-                       libgnunethello_dep,
-                       libgnunetarm_dep
-                       ],
-        include_directories: [incdir, configuration_inc],
-        install: false)
+  ['test_core_plugin_cmd_just_run.c'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunettesting_dep,
+                 libgnunetcoretesting_dep,
+                 libgnunettestingtransport_dep,
+                 libgnunettransportcore_dep,
+                 libgnunettransportapplication_dep,
+                 libgnunettesting_dep,
+                 libgnunetpeerstore_dep,
+                 libgnunetstatistics_dep,
+                 libgnunethello_dep,
+                 libgnunetarm_dep
+                 ],
+  include_directories: [incdir, configuration_inc],
+  install: false)
 
 endif
 
