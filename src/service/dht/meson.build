@@ -28,13 +28,14 @@ if get_option('monolith')
 endif
 
 libgnunetdht = library('gnunetdht',
-        libgnunetdht_src,
-        soversion: '4',
-        version: '4.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetdht_src,
+  soversion: solibversions['libgnunetdht']['soversion'],
+  version: solibversions['libgnunetdht']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetdht_dep = declare_dependency(link_with : libgnunetdht)
 pkg.generate(libgnunetdht, url: 'https://www.gnunet.org',
            description : 'Provides API for the R5N distributed hash table')

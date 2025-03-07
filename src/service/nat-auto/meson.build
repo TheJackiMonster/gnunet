@@ -16,13 +16,14 @@ if get_option('monolith')
 endif
 
 libgnunetnatauto = library('gnunetnatauto',
-        libgnunetnatauto_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep, libgnunetnat_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetnatauto_src,
+  soversion: solibversions['libgnunetnatauto']['soversion'],
+  version: solibversions['libgnunetnatauto']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, libgnunetnat_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnatauto_dep = declare_dependency(link_with : libgnunetnatauto)
 
 executable ('gnunet-service-nat-auto',

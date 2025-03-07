@@ -6,15 +6,16 @@ libgnunetgnsrecord_src = ['gnsrecord.c',
 libgnunetgnsrecordjson_src = ['json_gnsrecord.c']
 
 libgnunetgnsrecord = library('gnunetgnsrecord',
-        libgnunetgnsrecord_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       sodium_dep,
-                       gcrypt_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetgnsrecord_src,
+  soversion: solibversions['libgnunetgnsrecord']['soversion'],
+  version: solibversions['libgnunetgnsrecord']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 sodium_dep,
+                 gcrypt_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetgnsrecord_dep = declare_dependency(link_with : libgnunetgnsrecord)
 pkg.generate(libgnunetgnsrecord, url: 'https://www.gnunet.org',
              description : 'Provides API for manipulating GNS records')
@@ -26,13 +27,14 @@ executable ('gnunet-gnsrecord-tvg',
             install: false)
 
 libgnunetgnsrecordjson = library('gnunetgnsrecordjson',
-        libgnunetgnsrecordjson_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep, json_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetgnsrecordjson_src,
+  soversion: solibversions['libgnunetgnsrecordjson']['soversion'],
+  version: solibversions['libgnunetgnsrecordjson']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep, json_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetgnsrecordjson_dep = declare_dependency(link_with : libgnunetgnsrecordjson)
 
 testgnsrecrd_perf_crypto = executable ('perf_gnsrecord_crypto',

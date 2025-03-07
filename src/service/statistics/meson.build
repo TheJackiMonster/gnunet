@@ -16,13 +16,14 @@ if get_option('monolith')
 endif
 
 libgnunetstatistics = library('gnunetstatistics',
-        libgnunetstatistics_src,
-        soversion: '2',
-        version: '2.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetstatistics_src,
+  soversion: solibversions['libgnunetstatistics']['soversion'],
+  version: solibversions['libgnunetstatistics']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetstatistics_dep = declare_dependency(link_with : libgnunetstatistics)
 pkg.generate(libgnunetstatistics, url: 'https://www.gnunet.org',
              description : 'Provides API of GNUnet statistics service')

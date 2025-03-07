@@ -19,12 +19,13 @@ endif
 
 libgnunetvpn = library('gnunetvpn',
         libgnunetvpn_src,
-        soversion: '0',
-        version: '0.0.0',
+        soversion: solibversions['libgnunetvpn']['soversion'],
+        version: solibversions['libgnunetvpn']['version'],
         dependencies: libgnunetutil_dep,
         include_directories: [incdir, configuration_inc],
         install: true,
-        install_dir: get_option('libdir'))
+        install_dir: get_option('libdir'),
+        install_rpath: get_option('prefix') / get_option('libdir'))
 pkg.generate(libgnunetvpn, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the VPN service')
 libgnunetvpn_dep = declare_dependency(link_with : libgnunetvpn)

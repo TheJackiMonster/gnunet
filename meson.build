@@ -524,6 +524,68 @@ foreach h : check_headers
   endif
 endforeach
 
+libltversions = [
+  ['libgnunetarm', '2:0:0'],
+  ['libgnunetblock', '0:0:0'],
+  ['libgnunetblockgroup', '0:0:0'],
+  ['libgnunetcadet', '7:0:0'],
+  ['libgnunetconversation', '0:0:0'],
+  ['libgnunetcore', '0:1:0'],
+  ['libgnunetcurl', '0:0:0'],
+  ['libgnunetdatacache', '0:1:0'],
+  ['libgnunetdatastore', '1:0:0'],
+  ['libgnunetdht', '4:0:0'],
+  ['libgnunetdid', '0:0:0'],
+  ['libgnunetdns', '0:0:0'],
+  ['libgnunetfs', '3:1:1'],
+  ['libgnunetgnsrecord', '0:0:0'],
+  ['libgnunetgnsrecordjson', '0:0:0'],
+  ['libgnunethello', '1:0:1'],
+  ['libgnunetidentity', '1:0:0'],
+  ['libgnunetjson', '3:0:0'],
+  ['libgnunetmessenger', '0:0:0'],
+  ['libgnunetmhd', '0:0:0'],
+  ['libgnunetmicrophone', '0:0:0'],
+  ['libgnunetnamecache', '0:0:0'],
+  ['libgnunetnamestore', '0:1:0'],
+  ['libgnunetnatauto', '0:0:0'],
+  ['libgnunetnat', '2:0:0'],
+  ['libgnunetnse', '0:0:0'],
+  ['libgnunetpq', '8:0:3'],
+  ['libgnunetreclaim', '0:0:0'],
+  ['libgnunetregex', '3:1:0'],
+  ['libgnunetregexblock', '1:0:0'],
+  ['libgnunetrest', '0:0:0'],
+  ['libgnunetrevocation', '0:0:0'],
+  ['libgnunetrps', '0:0:0'],
+  ['libgnunetspeaker', '0:0:0'],
+  ['libgnunetsq', '0:0:0'],
+  ['libgnunetstatistics', '2:0:0'],
+  ['libgnunettesting', '3:0:0'],
+  ['libgnunettestingarm', '0:0:0'],
+  ['libgnunetcoretesting', '0:0:0'], # FIXME why is nameing scheme wrong here?
+  ['libgnunettestingmessenger', '0:0:0'],
+  ['libgnunettestingtransport', '0:0:0'],
+  ['libgnunettransportapplication', '0:0:0'],
+  ['libgnunettransportcore', '0:0:0'],
+  ['libgnunettransportcommunicator', '0:0:0'],
+  ['libgnunettransportmonitor', '0:0:0'],
+  ['libgnunetutil', '18:0:0'],
+  ['libgnunetvpn', '0:0:0'],
+]
+
+solibversions = {}
+
+foreach libversion : libltversions
+  ltversion = libversion[1].split(':')
+  current = ltversion[0].to_int()
+  revision = ltversion[1].to_int()
+  age = ltversion[2].to_int()
+  soversion_str = '@0@'.format(current - age)
+  ltversion_str = '@0@.@1@.@2@'.format(current - age, age, revision)
+  solibversions = solibversions + {libversion[0]: {'soversion': soversion_str, 'version': ltversion_str}}
+endforeach
+
 configure_file(
   output : 'gnunet_private_config.h',
   configuration : private_config)

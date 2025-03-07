@@ -13,13 +13,14 @@ if get_option('monolith')
 endif
 
 libgnunetdatacache = library('gnunetdatacache',
-        libgnunetdatacache_src,
-        soversion: '0',
-        version: '0.0.1',
-        dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetdatacache_src,
+  soversion: solibversions['libgnunetdatacache']['soversion'],
+  version: solibversions['libgnunetdatacache']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetdatacache_dep = declare_dependency(link_with : libgnunetdatacache)
 pkg.generate(libgnunetdatacache, url: 'https://www.gnunet.org',
              description : 'Provides datacache API for temporary storage to disk')

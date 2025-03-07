@@ -8,13 +8,14 @@ libgnunetpq_src = ['pq.c',
                    'pq_result_helper.c']
 
 libgnunetpq = library('gnunetpq',
-        libgnunetpq_src,
-        soversion: '8',
-        version: '8.0.3',
-        dependencies: [libgnunetutil_dep, pq_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetpq_src,
+  soversion: solibversions['libgnunetpq']['soversion'],
+  version: solibversions['libgnunetpq']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, pq_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetpq_dep = declare_dependency(link_with : libgnunetpq)
 
 configure_file(input : 'versioning.sql',

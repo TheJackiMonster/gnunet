@@ -21,31 +21,33 @@ if get_option('monolith')
 endif
 
 libgnunetreclaim = library('gnunetreclaim',
-        libgnunetreclaim_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetreclaim_src,
+  soversion: solibversions['libgnunetreclaim']['soversion'],
+  version: solibversions['libgnunetreclaim']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetreclaim_dep = declare_dependency(link_with : libgnunetreclaim)
 pkg.generate(libgnunetreclaim, url: 'https://www.gnunet.org',
              description : 'Provides API to access reclaimID')
 
 libgnunetdid = library('gnunetdid',
-        libgnunetdid_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetnamestore_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetgns_dep,
-                       json_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetdid_src,
+  soversion: solibversions['libgnunetdid']['soversion'],
+  version: solibversions['libgnunetdid']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetnamestore_dep,
+                 libgnunetgnsrecord_dep,
+                 libgnunetgns_dep,
+                 json_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetdid_dep = declare_dependency(link_with : libgnunetdid)
 pkg.generate(libgnunetdid, url: 'https://www.gnunet.org',
              description : 'Provides API to manipulate DID')

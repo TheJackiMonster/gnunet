@@ -24,15 +24,16 @@ if get_option('monolith')
 endif
 
 libgnunetrps = library('gnunetrps',
-        libgnunetrps_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetnse_dep,
-                       m_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetrps_src,
+  soversion: solibversions['libgnunetrps']['soversion'],
+  version: solibversions['libgnunetrps']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetnse_dep,
+                 m_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetrps_dep = declare_dependency(link_with : libgnunetrps)
 pkg.generate(libgnunetrps, url: 'https://www.gnunet.org',
              description : 'Peer Sampling Service')

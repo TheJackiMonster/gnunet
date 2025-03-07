@@ -41,17 +41,18 @@ if get_option('monolith')
 endif
 
 libgnunetfs = library('gnunetfs',
-        libgnunetfs_src,
-        soversion: '2',
-        version: '2.1.1',
-        dependencies: [libgnunetutil_dep,
-                       extractor_dep,
-                       libgnunetdatastore_dep,
-                       libgnunetstatistics_dep,
-                       unistr_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetfs_src,
+  soversion: solibversions['libgnunetfs']['soversion'],
+  version: solibversions['libgnunetfs']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 extractor_dep,
+                 libgnunetdatastore_dep,
+                 libgnunetstatistics_dep,
+                 unistr_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetfs_dep = declare_dependency(link_with : libgnunetfs)
 pkg.generate(libgnunetfs, url: 'https://www.gnunet.org',
              description : 'Provides API for GNUnet File-Sharing service')

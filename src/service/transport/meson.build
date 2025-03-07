@@ -9,7 +9,6 @@ gnunetcommunicatorudp_src = ['gnunet-communicator-udp.c']
 gnunetcommunicatorhttp3_src = ['gnunet-communicator-http3.c']
 gnunetcommunicatorquic_src = ['gnunet-communicator-quic.c']
 gnunetcommunicatorunix_src = ['gnunet-communicator-unix.c']
-
 configure_file(input : 'transport.conf.in',
                output : 'transport.conf',
                configuration : cdata,
@@ -30,69 +29,74 @@ if get_option('monolith')
 endif
 
 libgnunettransportapplication = library('gnunettransportapplication',
-                                        libgnunettransportapplication_src,
-                                        soversion: '0',
-                                        version: '0.0.0',
-                                        dependencies: libgnunetutil_dep,
-                                        include_directories: [incdir, configuration_inc],
-                                        install: true,
-                                        install_dir: get_option('libdir'))
+  libgnunettransportapplication_src,
+  soversion: solibversions['libgnunettransportapplication']['soversion'],
+  version: solibversions['libgnunettransportapplication']['version'],
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
 pkg.generate(libgnunettransportapplication, url: 'https://www.gnunet.org',
              description : 'Provides application APIs for accessing the transport service')
 libgnunettransportapplication_dep = declare_dependency(link_with : libgnunettransportapplication)
 
 libgnunettransportcore = library('gnunettransportcore',
-                                 libgnunettransportcore_src,
-                                 soversion: '0',
-                                 version: '0.0.0',
-                                 dependencies: libgnunetutil_dep,
-                                 include_directories: [incdir, configuration_inc],
-                                 install: true,
-                                 install_dir: get_option('libdir'))
+  libgnunettransportcore_src,
+  soversion: solibversions['libgnunettransportcore']['soversion'],
+  version: solibversions['libgnunettransportcore']['version'],
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
 pkg.generate(libgnunettransportcore, url: 'https://www.gnunet.org',
              description : 'Provides core API for accessing the transport service')
 libgnunettransportcore_dep = declare_dependency(link_with : libgnunettransportcore)
 
 libgnunettransportcommunicator = library('gnunettransportcommunicator',
-                                         libgnunettransportcommunicator_src,
-                                         soversion: '0',
-                                         version: '0.0.0',
-                                         dependencies: libgnunetutil_dep,
-                                         include_directories: [incdir, configuration_inc],
-                                         install: true,
-                                         install_dir: get_option('libdir'))
+  libgnunettransportcommunicator_src,
+  soversion: solibversions['libgnunettransportcommunicator']['soversion'],
+  version: solibversions['libgnunettransportcommunicator']['version'],
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
 pkg.generate(libgnunettransportcommunicator, url: 'https://www.gnunet.org',
              description : 'Provides communicator API for accessing the transport service')
 libgnunettransportcommunicator_dep = declare_dependency(link_with : libgnunettransportcommunicator)
 
 libgnunettransportmonitor = library('gnunettransportmonitor',
-                                    libgnunettransportmonitor_src,
-                                    soversion: '0',
-                                    version: '0.0.0',
-                                    dependencies: libgnunetutil_dep,
-                                    include_directories: [incdir, configuration_inc],
-                                    install: true,
-                                    install_dir: get_option('libdir'))
+  libgnunettransportmonitor_src,
+  soversion: solibversions['libgnunettransportmonitor']['soversion'],
+  version: solibversions['libgnunettransportmonitor']['version'],
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
 pkg.generate(libgnunettransportmonitor, url: 'https://www.gnunet.org',
              description : 'Provides monitor API for accessing the transport service')
 libgnunettransportmonitor_dep = declare_dependency(link_with : libgnunettransportmonitor)
 
 libgnunettestingtransport = library('gnunettestingtransport',
-                                     [
-                                       'testing_transport_traits.c',
-                                       'transport-testing-communicator.c'
-                                     ],
-                                     soversion: '0',
-                                     version: '0.0.0',
-                                     dependencies: [libgnunetutil_dep,
-                                                    libgnunettransportcore_dep,
-                                                    libgnunettransportapplication_dep,
-                                                    libgnunetpeerstore_dep,
-                                                    libgnunettesting_dep,
-                                                    libgnunethello_dep],
-                                     include_directories: [incdir, configuration_inc],
-                                     install: true,
-                                     install_dir: get_option('libdir'))
+  [
+    'testing_transport_traits.c',
+    'transport-testing-communicator.c'
+  ],
+  soversion: solibversions['libgnunettestingtransport']['soversion'],
+  version: solibversions['libgnunettestingtransport']['version'],
+  dependencies: [libgnunetutil_dep,
+                 libgnunettransportcore_dep,
+                 libgnunettransportapplication_dep,
+                 libgnunetpeerstore_dep,
+                 libgnunettesting_dep,
+                 libgnunethello_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'),
+  install_rpath: get_option('prefix') / get_option('libdir'))
 libgnunettestingtransport_dep = declare_dependency(link_with : libgnunettestingtransport)
 
 executable ('gnunet-service-transport',

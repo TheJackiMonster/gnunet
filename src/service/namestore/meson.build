@@ -16,15 +16,16 @@ if get_option('monolith')
 endif
 
 libgnunetnamestore = library('gnunetnamestore',
-        libgnunetnamestore_src,
-        soversion: '0',
-        version: '0.0.1',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetnamestore_src,
+  soversion: solibversions['libgnunetnamestore']['soversion'],
+  version: solibversions['libgnunetnamestore']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetgnsrecord_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnamestore_dep = declare_dependency(link_with : libgnunetnamestore)
 pkg.generate(libgnunetnamestore, url: 'https://www.gnunet.org',
              description : 'Provides API for storing GNS records to a database')

@@ -15,9 +15,10 @@ configure_file(input : 'arm.conf.in',
 
 libgnunetarm = library('gnunetarm',
   libgnunetarm_src,
+  soversion: solibversions['libgnunetarm']['soversion'],
+  version: solibversions['libgnunetarm']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
   dependencies: libgnunetutil_dep,
-  version: '2.0.0',
-  soversion: '2',
   include_directories: [incdir, configuration_inc],
   install: true,
   install_dir: get_option('libdir'))

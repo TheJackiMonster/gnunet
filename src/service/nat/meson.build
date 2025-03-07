@@ -22,25 +22,27 @@ if get_option('monolith')
 endif
 
 libgnunetnat = library('gnunetnat',
-        libgnunetnat_src,
-        soversion: '2',
-        version: '2.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetnat_src,
+  soversion: solibversions['libgnunetnat']['soversion'],
+  version: solibversions['libgnunetnat']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
 pkg.generate(libgnunetnat, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the NAT service')
 libgnunetnat = library('gnunetnatnew',
-        ['nat_api.c',
-          'nat_api_stun.c'],
-        soversion: '2',
-        version: '2.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  ['nat_api.c',
+    'nat_api_stun.c'],
+  soversion: solibversions['libgnunetnat']['soversion'],
+  version: solibversions['libgnunetnat']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnat_dep = declare_dependency(link_with : libgnunetnat)
 
 executable ('gnunet-service-nat',

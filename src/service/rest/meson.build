@@ -29,13 +29,14 @@ endif
 
 
 libgnunetrest = library('gnunetrest',
-        libgnunetrest_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep, mhd_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetrest_src,
+  soversion: solibversions['libgnunetrest']['soversion'],
+  version: solibversions['libgnunetrest']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, mhd_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 pkg.generate(libgnunetrest, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the REST service')
 libgnunetrest_dep = declare_dependency(link_with : libgnunetrest)

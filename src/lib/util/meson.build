@@ -79,26 +79,27 @@ configure_file(input : 'util.conf',
                install_dir: pkgcfgdir)
 
 libgnunetutil = library('gnunetutil',
-        libgnunetutil_src,
-        soversion: '18',
-        version: '18.0.0',
-        dependencies: [
-          lgmp_dep,
-          mhd_dep,
-          sodium_dep,
-          gcrypt_dep,
-          curl_dep,
-          json_dep,
-          zlib_dep,
-          sqlite_dep,
-          unistr_dep,
-          ltdl_dep,
-          idn_dep,
-          atomic_dep
-        ],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetutil_src,
+  soversion: solibversions['libgnunetutil']['soversion'],
+  version: solibversions['libgnunetutil']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [
+    lgmp_dep,
+    mhd_dep,
+    sodium_dep,
+    gcrypt_dep,
+    curl_dep,
+    json_dep,
+    zlib_dep,
+    sqlite_dep,
+    unistr_dep,
+    ltdl_dep,
+    idn_dep,
+    atomic_dep
+  ],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetutil_dep = declare_dependency(link_with : libgnunetutil)
 pkg.generate(libgnunetutil, url: 'https://www.gnunet.org',
              description : 'Provides miscellaneous utility functions and API for GNUnet')

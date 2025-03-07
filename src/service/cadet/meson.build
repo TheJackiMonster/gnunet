@@ -30,13 +30,14 @@ if get_option('monolith')
 endif
 
 libgnunetcadet = library('gnunetcadet',
-          libgnunetcadet_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          soversion: '7',
-          version: '7.0.0',
-          install_dir: get_option('libdir'))
+  libgnunetcadet_src,
+  soversion: solibversions['libgnunetcadet']['soversion'],
+  version: solibversions['libgnunetcadet']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetcadet_dep = declare_dependency(link_with : libgnunetcadet)
 pkg.generate(libgnunetcadet, url: 'https://www.gnunet.org',
              description : 'API for multicast and multi-hop routing between GNUnet peers')

@@ -46,15 +46,16 @@ if get_option('monolith')
 endif
 
 libgnunetmessenger = library('gnunetmessenger',
-        libgnunetmessenger_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetcadet_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetmessenger_src,
+  soversion: solibversions['libgnunetmessenger']['soversion'],
+  version: solibversions['libgnunetmessenger']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetcadet_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetmessenger_dep = declare_dependency(link_with : libgnunetmessenger)
 pkg.generate(libgnunetmessenger, url: 'https://www.gnunet.org',
              description : 'Provides API to access the GNUnet Messenger subsystem')

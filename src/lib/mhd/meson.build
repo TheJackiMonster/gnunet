@@ -1,13 +1,14 @@
 libgnunetmhd_src = ['mhd_upload.c']
 
 libgnunetmhd = library('gnunetmhd',
-        libgnunetmhd_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep, mhd_dep, json_dep, zlib_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetmhd_src,
+  soversion: solibversions['libgnunetmhd']['soversion'],
+  version: solibversions['libgnunetmhd']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, mhd_dep, json_dep, zlib_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetmhd_dep = declare_dependency(link_with : libgnunetmhd)
 pkg.generate(libgnunetmhd, url: 'https://www.gnunet.org',
              description : 'Library for MHD upload parsing')

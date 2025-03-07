@@ -16,13 +16,14 @@ if get_option('monolith')
 endif
 
 libgnunetnse = library('gnunetnse',
-        libgnunetnse_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetnse_src,
+  soversion: solibversions['libgnunetnse']['soversion'],
+  version: solibversions['libgnunetnse']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnse_dep = declare_dependency(link_with : libgnunetnse)
 pkg.generate(libgnunetnse, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the NSE service')

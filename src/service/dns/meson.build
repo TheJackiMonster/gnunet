@@ -17,13 +17,14 @@ if get_option('monolith')
 endif
 
 libgnunetdns = library('gnunetdns',
-        libgnunetdns_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetdns_src,
+  soversion: solibversions['libgnunetdns']['soversion'],
+  version: solibversions['libgnunetdns']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetdns_dep = declare_dependency(link_with : libgnunetdns)
 pkg.generate(libgnunetdns, url: 'https://www.gnunet.org',
              description : 'Provides API to access GNUnet\'s DNS service (to intercept and manipulate DNS queries)')

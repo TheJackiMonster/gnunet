@@ -19,13 +19,14 @@ if get_option('monolith')
 endif
 
 libgnunetregex = library('gnunetregex',
-        libgnunetregex_src,
-        soversion: '3',
-        version: '3.0.1',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetregex_src,
+  soversion: solibversions['libgnunetregex']['soversion'],
+  version: solibversions['libgnunetregex']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 pkg.generate(libgnunetregex, url: 'https://www.gnunet.org',
              description : 'Provides API for accessing the regex service')
 libgnunetregex_dep = declare_dependency(link_with : libgnunetregex)

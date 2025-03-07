@@ -16,15 +16,16 @@ if get_option('monolith')
 endif
 
 libgnunetrevocation = library('gnunetrevocation',
-        libgnunetrevocation_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetrevocation_src,
+  soversion: solibversions['libgnunetrevocation']['soversion'],
+  version: solibversions['libgnunetrevocation']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetgnsrecord_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetrevocation_dep = declare_dependency(link_with : libgnunetrevocation)
 pkg.generate(libgnunetrevocation, url: 'https://www.gnunet.org',
              description : 'Provides API to perform key revocation in GNUnet')

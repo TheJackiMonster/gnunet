@@ -18,13 +18,14 @@ if get_option('monolith')
 endif
 
 libgnunetidentity = library('gnunetidentity',
-        libgnunetidentity_src,
-        soversion: '1',
-        version: '1.0.0',
-        dependencies: [libgnunetutil_dep, sodium_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetidentity_src,
+  soversion: solibversions['libgnunetidentity']['soversion'],
+  version: solibversions['libgnunetidentity']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep, sodium_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetidentity_dep = declare_dependency(link_with : libgnunetidentity)
 pkg.generate(libgnunetidentity, url: 'https://www.gnunet.org',
              description : 'API to access and organize private keys of the user egos')

@@ -16,14 +16,15 @@ libgnunettesting_src = [
                         ]
 
 libgnunettesting = library('gnunettesting',
-        libgnunettesting_src,
-        soversion: '3',
-        version: '3.0.0',
-        dependencies: [libgnunetutil_dep,
-                       m_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunettesting_src,
+  soversion: solibversions['libgnunettesting']['soversion'],
+  version: solibversions['libgnunettesting']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 m_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunettesting_dep = declare_dependency(link_with : libgnunettesting)
 pkg.generate(libgnunettesting, url: 'https://www.gnunet.org',
              description : 'Provides API for gnunet testing')

@@ -1,13 +1,14 @@
 libgnunethello_src = ['hello-uri.c']
 
 libgnunethello = library('gnunethello',
-        libgnunethello_src,
-        soversion: '0',
-        version: '0.1.0',
-        dependencies: libgnunetutil_dep,
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunethello_src,
+  soversion: solibversions['libgnunethello']['soversion'],
+  version: solibversions['libgnunethello']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunethello_dep = declare_dependency(link_with : libgnunethello)
 pkg.generate(libgnunethello, url: 'https://www.gnunet.org',
              description : 'Helper library for handling GNUnet HELLO messages')

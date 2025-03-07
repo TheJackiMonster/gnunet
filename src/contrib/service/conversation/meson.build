@@ -18,41 +18,44 @@ if get_option('monolith')
 endif
 
 libgnunetmicrophone = library('gnunetmicrophone',
-        ['microphone.c'],
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  ['microphone.c'],
+  soversion: solibversions['libgnunetmicrophone']['soversion'],
+  version: solibversions['libgnunetmicrophone']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetmicrophone_dep = declare_dependency(link_with : libgnunetmicrophone)
 pkg.generate(libgnunetmicrophone, url: 'https://www.gnunet.org',
              description : 'Provides API to access to microphone')
 
 libgnunetspeaker = library('gnunetspeaker',
-        ['speaker.c'],
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  ['speaker.c'],
+  soversion: solibversions['libgnunetspeaker']['soversion'],
+  version: solibversions['libgnunetspeaker']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetspeaker_dep = declare_dependency(link_with : libgnunetspeaker)
 pkg.generate(libgnunetspeaker, url: 'https://www.gnunet.org',
              description : 'Provides API to access to speaker')
 
 libgnunetconversation = library('gnunetconversation',
-        libgnunetconversation_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep,
-                       libgnunetgns_dep,
-                       libgnunetnamestore_dep,
-                       libgnunetidentity_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetconversation_src,
+  soversion: solibversions['libgnunetconversation']['soversion'],
+  version: solibversions['libgnunetconversation']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetgnsrecord_dep,
+                 libgnunetgns_dep,
+                 libgnunetnamestore_dep,
+                 libgnunetidentity_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetconversation_dep = declare_dependency(link_with : libgnunetconversation)
 pkg.generate(libgnunetconversation, url: 'https://www.gnunet.org',
              description : 'Provides API to access to conversation')

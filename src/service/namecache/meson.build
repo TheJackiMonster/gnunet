@@ -17,14 +17,15 @@ if get_option('monolith')
 endif
 
 libgnunetnamecache = library('gnunetnamecache',
-        libgnunetnamecache_src,
-        soversion: '0',
-        version: '0.0.0',
-        dependencies: [libgnunetutil_dep,
-                       libgnunetgnsrecord_dep],
-        include_directories: [incdir, configuration_inc],
-        install: true,
-        install_dir: get_option('libdir'))
+  libgnunetnamecache_src,
+  soversion: solibversions['libgnunetnamecache']['soversion'],
+  version: solibversions['libgnunetnamecache']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [libgnunetutil_dep,
+                 libgnunetgnsrecord_dep],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetnamecache_dep = declare_dependency(link_with : libgnunetnamecache)
 pkg.generate(libgnunetnamecache, url: 'https://www.gnunet.org',
              description : 'Provides API for storing GNS records to a cache')

@@ -20,13 +20,14 @@ if get_option('monolith')
 endif
 
 libgnunetcore = library('gnunetcore',
-          libgnunetcore_src,
-          dependencies: libgnunetutil_dep,
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          soversion: '0',
-          version: '0.0.1',
-          install_dir: get_option('libdir'))
+  libgnunetcore_src,
+  soversion: solibversions['libgnunetcore']['soversion'],
+  version: solibversions['libgnunetcore']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: libgnunetutil_dep,
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetcore_dep = declare_dependency(link_with : libgnunetcore)
 pkg.generate(libgnunetcore, url: 'https://www.gnunet.org',
              description : 'Provides API for (encrypted) P2P communication')
@@ -34,20 +35,21 @@ pkg.generate(libgnunetcore, url: 'https://www.gnunet.org',
 if false
 
 libgnunetcoretesting = library('gnunetcoretesting',
-          ['testing_core_cmd_connecting_peers.c'],
-          dependencies: [
-            libgnunetutil_dep,
-            libgnunettestingtransport_dep,
-            libgnunettesting_dep,
-            libgnunetarm_dep,
-            libgnunettransportapplication_dep,
-            libgnunettransportcore_dep,
-          ],
-          include_directories: [incdir, configuration_inc],
-          install: true,
-          soversion: '0',
-          version: '0.0.0',
-          install_dir: get_option('libdir'))
+  ['testing_core_cmd_connecting_peers.c'],
+  soversion: solibversions['libgnunetcoretesting']['soversion'],
+  version: solibversions['libgnunetcoretesting']['version'],
+  install_rpath: get_option('prefix') / get_option('libdir'),
+  dependencies: [
+    libgnunetutil_dep,
+    libgnunettestingtransport_dep,
+    libgnunettesting_dep,
+    libgnunetarm_dep,
+    libgnunettransportapplication_dep,
+    libgnunettransportcore_dep,
+  ],
+  include_directories: [incdir, configuration_inc],
+  install: true,
+  install_dir: get_option('libdir'))
 libgnunetcoretesting_dep = declare_dependency(link_with : libgnunetcoretesting)
 
 shared_module('gnunet_test_core_plugin_cmd_just_run',
