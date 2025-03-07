@@ -6,6 +6,6 @@ subdir('abd')
 subdir('rps')
 subdir('scalarproduct')
 if conversation_backend != 'none'
-  subdir('conversation')
+    subdir('conversation')
 endif
 subdir('secretsharing')
