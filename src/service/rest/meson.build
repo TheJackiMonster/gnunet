@@ -36,7 +36,7 @@ libgnunetrest = library(
     libgnunetrest_src,
     soversion: solibversions['libgnunetrest']['soversion'],
     version: solibversions['libgnunetrest']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, mhd_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -52,7 +52,7 @@ libgnunetrest_dep = declare_dependency(link_with: libgnunetrest)
 executable(
     'gnunet-rest-server',
     gnunetservicerest_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetrest_dep,
         libgnunetutil_dep,

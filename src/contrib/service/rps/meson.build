@@ -34,7 +34,7 @@ libgnunetrps = library(
     libgnunetrps_src,
     soversion: solibversions['libgnunetrps']['soversion'],
     version: solibversions['libgnunetrps']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetnse_dep, m_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -50,7 +50,7 @@ pkg.generate(
 executable(
     'gnunet-service-rps',
     gnunetservicerps_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetrps_dep,
         libgnunetutil_dep,
@@ -69,7 +69,7 @@ executable(
 executable(
     'gnunet-rps',
     'gnunet-rps.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetrps_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,

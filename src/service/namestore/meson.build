@@ -22,7 +22,7 @@ libgnunetnamestore = library(
     libgnunetnamestore_src,
     soversion: solibversions['libgnunetnamestore']['soversion'],
     version: solibversions['libgnunetnamestore']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -42,7 +42,7 @@ pkg.generate(
 executable(
     'gnunet-service-namestore',
     gnunetservicenamestore_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamestore_dep,
         libgnunetutil_dep,

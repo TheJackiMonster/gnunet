@@ -1,7 +1,7 @@
 executable(
     'gnunet-hello',
     ['gnunet-hello.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunethello_dep,

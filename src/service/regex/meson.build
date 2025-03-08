@@ -25,7 +25,7 @@ libgnunetregex = library(
     libgnunetregex_src,
     soversion: solibversions['libgnunetregex']['soversion'],
     version: solibversions['libgnunetregex']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -41,7 +41,7 @@ libgnunetregex_dep = declare_dependency(link_with: libgnunetregex)
 executable(
     'gnunet-service-regex',
     gnunetserviceregex_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetregex_dep,
         libgnunetutil_dep,
@@ -64,7 +64,7 @@ executable(
         'regex_test_graph.c',
         'regex_test_random.c',
     ],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetregex_dep,
         libgnunetutil_dep,
@@ -81,7 +81,7 @@ executable(
 testregex = executable(
     'test_regex',
     ['test_regex.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetregex_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     build_by_default: false,

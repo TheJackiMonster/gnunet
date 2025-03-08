@@ -36,7 +36,7 @@ libgnunetset_dep = declare_dependency(link_with: libgnunetset)
 shared_module(
     'gnunet_plugin_block_set_test',
     ['plugin_block_set_test.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -45,7 +45,7 @@ shared_module(
 executable(
     'gnunet-service-set',
     gnunetserviceset_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetset_dep,
         libgnunetutil_dep,

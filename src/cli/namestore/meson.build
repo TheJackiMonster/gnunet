@@ -1,7 +1,7 @@
 executable(
     'gnunet-namestore',
     ['gnunet-namestore.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamestore_dep,
         libgnunetutil_dep,
@@ -15,7 +15,7 @@ executable(
 executable(
     'gnunet-namestore-dbtool',
     ['gnunet-namestore-dbtool.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamestore_dep,
         libgnunetutil_dep,
@@ -29,7 +29,7 @@ executable(
 executable(
     'gnunet-namestore-zonefile',
     ['gnunet-namestore-zonefile.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamestore_dep,
         libgnunetutil_dep,
@@ -43,7 +43,7 @@ executable(
 executable(
     'gnunet-zoneimport',
     ['gnunet-zoneimport.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamestore_dep,
         libgnunetutil_dep,

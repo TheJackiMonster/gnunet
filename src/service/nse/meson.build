@@ -22,7 +22,7 @@ libgnunetnse = library(
     libgnunetnse_src,
     soversion: solibversions['libgnunetnse']['soversion'],
     version: solibversions['libgnunetnse']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -38,7 +38,7 @@ pkg.generate(
 executable(
     'gnunet-service-nse',
     gnunetservicense_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnse_dep,
         libgnunetutil_dep,

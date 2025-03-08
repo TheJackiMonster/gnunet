@@ -23,7 +23,7 @@ libgnunetdns = library(
     libgnunetdns_src,
     soversion: solibversions['libgnunetdns']['soversion'],
     version: solibversions['libgnunetdns']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -39,7 +39,7 @@ pkg.generate(
 executable(
     'gnunet-service-dns',
     gnunetservicedns_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetstatistics_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -48,7 +48,7 @@ executable(
 executable(
     'gnunet-dns-monitor',
     gnunetdnsmonitor_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
     include_directories: [incdir, configuration_inc],
     install: false,
@@ -57,7 +57,7 @@ executable(
 executable(
     'gnunet-dns-redirector',
     gnunetdnsredirector_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
     include_directories: [incdir, configuration_inc],
     install: false,
@@ -67,7 +67,7 @@ if host_machine.system() == 'linux'
     executable(
         'gnunet-helper-dns',
         ['gnunet-helper-dns.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [libgnunetdns_dep, libgnunetutil_dep, libgnunetdns_dep],
         include_directories: [incdir, configuration_inc],
         install: true,

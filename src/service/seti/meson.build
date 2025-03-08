@@ -44,7 +44,7 @@ libgnunetseti_dep = declare_dependency(link_with: libgnunetseti)
 executable(
     'gnunet-service-seti',
     gnunetserviceseti_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetseti_dep,
         libgnunetutil_dep,

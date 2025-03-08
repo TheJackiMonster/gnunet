@@ -56,7 +56,7 @@ libgnunetmessenger = library(
     libgnunetmessenger_src,
     soversion: solibversions['libgnunetmessenger']['soversion'],
     version: solibversions['libgnunetmessenger']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetcadet_dep, libgnunetidentity_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -72,7 +72,7 @@ pkg.generate(
 executable(
     'gnunet-service-messenger',
     gnunetservicemessenger_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetmessenger_dep,
         libgnunetutil_dep,

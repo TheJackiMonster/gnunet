@@ -34,7 +34,7 @@ libgnunetgns = library(
     libgnunetgns_src,
     soversion: solibversions['libgnunetgns']['soversion'],
     version: solibversions['libgnunetgns']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -54,7 +54,7 @@ pkg.generate(
 executable(
     'gnunet-gns-proxy',
     gnunetgnsproxy_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetgns_dep,
         libgnunetutil_dep,
@@ -72,7 +72,7 @@ executable(
 executable(
     'gnunet-service-gns',
     gnunetservicegns_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetgns_dep,
         libgnunetutil_dep,
@@ -96,7 +96,7 @@ executable(
 executable(
     'gnunet-bcd',
     ['gnunet-bcd.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetgns_dep,
         libgnunetutil_dep,
@@ -120,7 +120,7 @@ executable(
 executable(
     'gnunet-dns2gns',
     ['gnunet-dns2gns.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetgns_dep,
         libgnunetutil_dep,

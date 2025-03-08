@@ -5,7 +5,7 @@ libgnunethello = library(
     libgnunethello_src,
     soversion: solibversions['libgnunethello']['soversion'],
     version: solibversions['libgnunethello']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,

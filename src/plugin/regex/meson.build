@@ -5,7 +5,7 @@ libgnunetregexblock = library(
     libgnunetregexblock_src,
     soversion: solibversions['libgnunetregexblock']['soversion'],
     version: solibversions['libgnunetregexblock']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -16,7 +16,7 @@ libgnunetregexblock_dep = declare_dependency(link_with: libgnunetregexblock)
 shared_module(
     'gnunet_plugin_block_regex',
     ['plugin_block_regex.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetregexblock_dep,

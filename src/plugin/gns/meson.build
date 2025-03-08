@@ -1,7 +1,7 @@
 shared_module(
     'gnunet_plugin_gnsrecord_gns',
     ['plugin_gnsrecord_gns.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -10,7 +10,7 @@ shared_module(
 shared_module(
     'gnunet_plugin_block_gns',
     ['plugin_block_gns.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,

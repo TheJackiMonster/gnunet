@@ -87,7 +87,7 @@ libgnunetutil = library(
     libgnunetutil_src,
     soversion: solibversions['libgnunetutil']['soversion'],
     version: solibversions['libgnunetutil']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         lgmp_dep,
         mhd_dep,
@@ -701,7 +701,7 @@ test(
 testplugin_plug = shared_module(
     'gnunet_plugin_utiltest',
     ['test_plugin_plug.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     build_by_default: false,

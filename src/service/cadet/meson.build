@@ -40,7 +40,7 @@ libgnunetcadet = library(
     libgnunetcadet_src,
     soversion: solibversions['libgnunetcadet']['soversion'],
     version: solibversions['libgnunetcadet']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -56,7 +56,7 @@ pkg.generate(
 executable(
     'gnunet-service-cadet',
     gnunetservicecadet_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetcadet_dep,
         libgnunetutil_dep,

@@ -51,7 +51,7 @@ libgnunetfs = library(
     libgnunetfs_src,
     soversion: solibversions['libgnunetfs']['soversion'],
     version: solibversions['libgnunetfs']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         extractor_dep,
@@ -73,7 +73,7 @@ pkg.generate(
 executable(
     'gnunet-service-fs',
     gnunetservicefs_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetfs_dep,
         libgnunetutil_dep,
@@ -94,7 +94,7 @@ executable(
 executable(
     'gnunet-helper-fs-publish',
     ['gnunet-helper-fs-publish.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetfs_dep,
         extractor_dep,

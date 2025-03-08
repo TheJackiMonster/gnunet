@@ -36,7 +36,7 @@ pkg.generate(
 executable(
     'gnunet-service-abd',
     gnunetserviceabd_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetabd_dep,
         libgnunetutil_dep,
@@ -53,7 +53,7 @@ executable(
 executable(
     'gnunet-abd',
     'gnunet-abd.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetabd_dep,
         libgnunetidentity_dep,

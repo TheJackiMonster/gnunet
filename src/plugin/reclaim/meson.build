@@ -1,7 +1,7 @@
 shared_module(
     'gnunet_plugin_gnsrecord_reclaim',
     ['plugin_gnsrecord_reclaim.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -11,7 +11,7 @@ shared_module(
 shared_module(
     'gnunet_plugin_reclaim_attribute_basic',
     ['plugin_reclaim_attribute_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetjson_dep, libgnunetutil_dep, json_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -24,7 +24,7 @@ shared_module(
         '../../service/reclaim/reclaim_attribute.c',
         '../../service/reclaim/reclaim_credential.c',
     ],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetjson_dep, libgnunetutil_dep, json_dep],
     include_directories: [incdir, configuration_inc],
     install: true,

@@ -18,7 +18,7 @@ endif
 executable(
     'gnunet-service-resolver',
     gnunetserviceresolver_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -28,7 +28,7 @@ executable(
 testresolverapi = executable(
     'test_resolver_api',
     ['test_resolver_api.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: false,

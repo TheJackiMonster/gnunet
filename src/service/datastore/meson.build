@@ -21,7 +21,7 @@ libgnunetdatastore = library(
     libgnunetdatastore_src,
     soversion: solibversions['libgnunetdatastore']['soversion'],
     version: solibversions['libgnunetdatastore']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetstatistics_dep,
@@ -41,7 +41,7 @@ pkg.generate(
 executable(
     'gnunet-service-datastore',
     gnunetservicedatastore_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetdatastore_dep,
         libgnunetutil_dep,

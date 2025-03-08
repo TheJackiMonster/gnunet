@@ -38,7 +38,7 @@ libgnunetdht = library(
     libgnunetdht_src,
     soversion: solibversions['libgnunetdht']['soversion'],
     version: solibversions['libgnunetdht']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -54,7 +54,7 @@ pkg.generate(
 executable(
     'gnunet-service-dht',
     gnunetservicedht_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetdht_dep,
         libgnunetutil_dep,

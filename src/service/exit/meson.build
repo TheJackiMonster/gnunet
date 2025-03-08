@@ -11,7 +11,7 @@ if host_machine.system() == 'linux'
     executable(
         'gnunet-helper-exit',
         ['gnunet-helper-exit.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         include_directories: [incdir, configuration_inc],
         install: true,
         install_dir: get_option('libdir') / 'gnunet' / 'libexec',
@@ -21,7 +21,7 @@ endif
 executable(
     'gnunet-daemon-exit',
     ['gnunet-daemon-exit.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetdht_dep,
         libgnunetutil_dep,

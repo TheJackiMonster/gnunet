@@ -1,7 +1,7 @@
 executable(
     'gnunet-vpn',
     ['gnunet-vpn.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetvpn_dep,
         libgnunetutil_dep,

@@ -47,7 +47,7 @@ libgnunetsetu_dep = declare_dependency(link_with: libgnunetsetu)
 executable(
     'gnunet-service-setu',
     gnunetservicesetu_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetsetu_dep,
         libgnunetutil_dep,

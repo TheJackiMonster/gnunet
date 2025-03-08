@@ -5,7 +5,7 @@ libgnunettestbed = library(
     libgnunettestbed_src,
     soversion: solibversions['libgnunettestbed']['soversion'],
     version: solibversions['libgnunettestbed']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -21,7 +21,7 @@ libgnunettestbed_dep = declare_dependency(link_with: libgnunettestbed)
 executable(
     'gnunet-testbed',
     'gnunet-testbed.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunettestbed_dep,
         libgnunetutil_dep,
@@ -45,7 +45,7 @@ libgnunettestingtestbed = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 libgnunettestingtestbed_dep = declare_dependency(
     link_with: libgnunettestingtestbed,

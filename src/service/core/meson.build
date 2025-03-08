@@ -27,7 +27,7 @@ libgnunetcore = library(
     libgnunetcore_src,
     soversion: solibversions['libgnunetcore']['soversion'],
     version: solibversions['libgnunetcore']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -47,7 +47,7 @@ if false
         ['testing_core_cmd_connecting_peers.c'],
         soversion: solibversions['libgnunetcoretesting']['soversion'],
         version: solibversions['libgnunetcoretesting']['version'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunettestingtransport_dep,
@@ -67,7 +67,7 @@ if false
     shared_module(
         'gnunet_test_core_plugin_cmd_just_run',
         ['test_core_plugin_cmd_just_run.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunettesting_dep,
@@ -90,7 +90,7 @@ endif
 executable(
     'gnunet-service-core',
     gnunetservicecore_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetcore_dep,
         libgnunetutil_dep,

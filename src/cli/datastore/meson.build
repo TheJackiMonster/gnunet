@@ -1,7 +1,7 @@
 executable(
     'gnunet-datastore',
     ['gnunet-datastore.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetdatastore_dep,
         libgnunetutil_dep,

@@ -18,7 +18,7 @@ endif
 executable(
     'gnunet-service-zonemaster',
     gnunetservicezonemaster_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetdht_dep,

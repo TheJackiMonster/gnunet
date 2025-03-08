@@ -44,7 +44,7 @@ libgnunetscalarproduct_dep = declare_dependency(
 executable(
     'gnunet-scalarproduct',
     ['gnunet-scalarproduct.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetscalarproduct_dep,
         libgnunetutil_dep,
@@ -62,7 +62,7 @@ executable(
 executable(
     'gnunet-service-scalarproduct-alice',
     gnunetservicescalarproducta_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetscalarproduct_dep,
         libgnunetutil_dep,
@@ -80,7 +80,7 @@ executable(
 executable(
     'gnunet-service-scalarproduct-bob',
     gnunetservicescalarproductb_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetscalarproduct_dep,
         libgnunetutil_dep,
@@ -98,7 +98,7 @@ executable(
 executable(
     'gnunet-service-scalarproduct-ecc-alice',
     gnunetservicescalarproductecca_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetscalarproduct_dep,
         libgnunetutil_dep,
@@ -117,7 +117,7 @@ executable(
 executable(
     'gnunet-service-scalarproduct-ecc-bob',
     gnunetservicescalarproducteccb_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetscalarproduct_dep,
         libgnunetutil_dep,

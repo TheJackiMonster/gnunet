@@ -10,7 +10,7 @@ configure_file(
 executable(
     'gnunet-daemon-pt',
     ['gnunet-daemon-pt.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetdns_dep,
         libgnunetutil_dep,

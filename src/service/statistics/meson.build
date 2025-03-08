@@ -22,7 +22,7 @@ libgnunetstatistics = library(
     libgnunetstatistics_src,
     soversion: solibversions['libgnunetstatistics']['soversion'],
     version: solibversions['libgnunetstatistics']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -38,7 +38,7 @@ pkg.generate(
 executable(
     'gnunet-service-statistics',
     gnunetservicestatistics_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetstatistics_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,

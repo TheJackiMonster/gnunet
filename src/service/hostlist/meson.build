@@ -16,7 +16,7 @@ configure_file(
 executable(
     'gnunet-daemon-hostlist',
     gnunetdaemonhostlist_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         json_dep,

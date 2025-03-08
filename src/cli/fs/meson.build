@@ -1,7 +1,7 @@
 executable(
     'gnunet-search',
     'gnunet-search.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, extractor_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -10,7 +10,7 @@ executable(
 executable(
     'gnunet-unindex',
     'gnunet-unindex.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -19,7 +19,7 @@ executable(
 executable(
     'gnunet-auto-share',
     'gnunet-auto-share.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -28,7 +28,7 @@ executable(
 executable(
     'gnunet-directory',
     'gnunet-directory.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, extractor_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -37,7 +37,7 @@ executable(
 executable(
     'gnunet-download',
     'gnunet-download.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -46,7 +46,7 @@ executable(
 executable(
     'gnunet-fs',
     'gnunet-fs.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetfs_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -55,7 +55,7 @@ executable(
 executable(
     'gnunet-publish',
     'gnunet-publish.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetfs_dep,
         extractor_dep,

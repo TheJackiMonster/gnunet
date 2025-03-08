@@ -30,7 +30,7 @@ libgnunetreclaim = library(
     libgnunetreclaim_src,
     soversion: solibversions['libgnunetreclaim']['soversion'],
     version: solibversions['libgnunetreclaim']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetidentity_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -48,7 +48,7 @@ libgnunetdid = library(
     libgnunetdid_src,
     soversion: solibversions['libgnunetdid']['soversion'],
     version: solibversions['libgnunetdid']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetnamestore_dep,
@@ -71,7 +71,7 @@ pkg.generate(
 executable(
     'gnunet-service-reclaim',
     gnunetservicereclaim_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetreclaim_dep,
         libgnunetutil_dep,

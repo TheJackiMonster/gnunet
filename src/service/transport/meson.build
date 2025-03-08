@@ -41,7 +41,7 @@ libgnunettransportapplication = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 pkg.generate(
     libgnunettransportapplication,
@@ -61,7 +61,7 @@ libgnunettransportcore = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 pkg.generate(
     libgnunettransportcore,
@@ -81,7 +81,7 @@ libgnunettransportcommunicator = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 pkg.generate(
     libgnunettransportcommunicator,
@@ -101,7 +101,7 @@ libgnunettransportmonitor = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 pkg.generate(
     libgnunettransportmonitor,
@@ -128,7 +128,7 @@ libgnunettestingtransport = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 libgnunettestingtransport_dep = declare_dependency(
     link_with: libgnunettestingtransport,
@@ -137,7 +137,7 @@ libgnunettestingtransport_dep = declare_dependency(
 executable(
     'gnunet-service-transport',
     gnunetservicetransport_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunettransportcommunicator_dep,
         libgnunetpeerstore_dep,
@@ -156,7 +156,7 @@ executable(
 executable(
     'gnunet-communicator-unix',
     gnunetcommunicatorunix_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunettransportcommunicator_dep,
         libgnunetpeerstore_dep,
@@ -172,7 +172,7 @@ executable(
 executable(
     'gnunet-communicator-udp',
     gnunetcommunicatorudp_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunettransportcommunicator_dep,
         libgnunettransportapplication_dep,
@@ -189,7 +189,7 @@ executable(
 executable(
     'gnunet-communicator-tcp',
     gnunetcommunicatortcp_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunettransportcommunicator_dep,
         libgnunetpeerstore_dep,
@@ -206,7 +206,7 @@ if quic_dep.found() and get_option('experimental')
     executable(
         'gnunet-communicator-quic',
         gnunetcommunicatorquic_src,
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunettransportcommunicator_dep,
             libgnunettransportapplication_dep,
@@ -226,7 +226,7 @@ if http3_enabled
     executable(
         'gnunet-communicator-http3',
         gnunetcommunicatorhttp3_src,
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunettransportcommunicator_dep,
             libgnunetpeerstore_dep,
@@ -424,7 +424,7 @@ configure_file(
 testcommunicator_basic_unix = executable(
     'test_communicator_basic-unix',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -443,7 +443,7 @@ testcommunicator_basic_unix = executable(
 testcommunicator_basic_tcp = executable(
     'test_communicator_basic-tcp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -462,7 +462,7 @@ testcommunicator_basic_tcp = executable(
 testcommunicator_basic_udp = executable(
     'test_communicator_basic-udp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -482,7 +482,7 @@ if quic_dep.found() and get_option('experimental')
     testcommunicator_basic_quic = executable(
         'test_communicator_basic-quic',
         ['test_communicator_basic.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunettransportapplication_dep,
@@ -503,7 +503,7 @@ if http3_enabled
     testcommunicator_basic_http3 = executable(
         'test_communicator_basic-http3',
         ['test_communicator_basic.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunettransportapplication_dep,
@@ -524,7 +524,7 @@ endif
 testcommunicator_rekey_tcp = executable(
     'test_communicator_rekey-tcp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -544,7 +544,7 @@ testcommunicator_rekey_tcp = executable(
 testcommunicator_rekey_udp = executable(
     'test_communicator_rekey-udp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -564,7 +564,7 @@ testcommunicator_rekey_udp = executable(
 testcommunicator_backchannel_udp = executable(
     'test_communicator_backchannel-udp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,
@@ -584,7 +584,7 @@ testcommunicator_backchannel_udp = executable(
 testcommunicator_bidirect_tcp = executable(
     'test_communicator_bidirect-tcp',
     ['test_communicator_basic.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunettransportapplication_dep,

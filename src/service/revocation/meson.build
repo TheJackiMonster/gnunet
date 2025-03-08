@@ -22,7 +22,7 @@ libgnunetrevocation = library(
     libgnunetrevocation_src,
     soversion: solibversions['libgnunetrevocation']['soversion'],
     version: solibversions['libgnunetrevocation']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -42,7 +42,7 @@ pkg.generate(
 executable(
     'gnunet-service-revocation',
     gnunetservicerevocation_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetrevocation_dep,
         libgnunetutil_dep,

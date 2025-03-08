@@ -1,7 +1,7 @@
 executable(
     'gnunet-namecache',
     gnunetnamecache_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnamecache_dep,
         libgnunetutil_dep,

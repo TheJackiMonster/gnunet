@@ -24,7 +24,7 @@ libgnunetmicrophone = library(
     ['microphone.c'],
     soversion: solibversions['libgnunetmicrophone']['soversion'],
     version: solibversions['libgnunetmicrophone']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -42,7 +42,7 @@ libgnunetspeaker = library(
     ['speaker.c'],
     soversion: solibversions['libgnunetspeaker']['soversion'],
     version: solibversions['libgnunetspeaker']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -60,7 +60,7 @@ libgnunetconversation = library(
     libgnunetconversation_src,
     soversion: solibversions['libgnunetconversation']['soversion'],
     version: solibversions['libgnunetconversation']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -82,7 +82,7 @@ pkg.generate(
 shared_module(
     'gnunet_plugin_gnsrecord_conversation',
     ['plugin_gnsrecord_conversation.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetconversation_dep,
@@ -98,7 +98,7 @@ shared_module(
 executable(
     'gnunet-conversation',
     'gnunet-conversation.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconversation_dep,
         libgnunetgns_dep,
@@ -117,7 +117,7 @@ executable(
 executable(
     'gnunet-conversation-test',
     'gnunet-conversation-test.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconversation_dep,
         libgnunetspeaker_dep,
@@ -132,7 +132,7 @@ executable(
 executable(
     'gnunet-service-conversation',
     gnunetserviceconversation_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconversation_dep,
         libgnunetutil_dep,
@@ -156,7 +156,7 @@ endif
 executable(
     'gnunet-helper-audio-record',
     helperrecord_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconversation_dep,
         libgnunetutil_dep,
@@ -177,7 +177,7 @@ executable(
 executable(
     'gnunet-helper-audio-playback',
     helperplayback_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconversation_dep,
         libgnunetutil_dep,

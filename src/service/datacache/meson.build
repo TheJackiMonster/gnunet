@@ -19,7 +19,7 @@ libgnunetdatacache = library(
     libgnunetdatacache_src,
     soversion: solibversions['libgnunetdatacache']['soversion'],
     version: solibversions['libgnunetdatacache']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetstatistics_dep],
     include_directories: [incdir, configuration_inc],
     install: true,

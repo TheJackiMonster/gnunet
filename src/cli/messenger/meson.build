@@ -1,7 +1,7 @@
 executable(
     'gnunet-messenger',
     'gnunet-messenger.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetmessenger_dep,
         libgnunetidentity_dep,

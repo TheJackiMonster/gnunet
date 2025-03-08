@@ -1,7 +1,7 @@
 shared_module(
     'gnunet_plugin_namecache_sqlite',
     ['plugin_namecache_sqlite.c'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -17,7 +17,7 @@ if pq_dep.found()
     shared_module(
         'gnunet_plugin_namecache_postgres',
         ['plugin_namecache_postgres.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunetgnsrecord_dep,

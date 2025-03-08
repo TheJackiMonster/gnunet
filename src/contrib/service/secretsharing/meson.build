@@ -47,7 +47,7 @@ pkg.generate(
 executable(
     'gnunet-service-secretsharing',
     gnunetservicesecretsharing_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetsecretsharing_dep,
         libgnunetutil_dep,

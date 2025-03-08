@@ -3,7 +3,7 @@ libgnunetpluginnamestore_sqlite_src = ['plugin_namestore_sqlite.c']
 shared_module(
     'gnunet_plugin_namestore_sqlite',
     libgnunetpluginnamestore_sqlite_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetutil_dep,
         libgnunetgnsrecord_dep,
@@ -41,7 +41,7 @@ if pq_dep.found()
     shared_module(
         'gnunet_plugin_namestore_postgres',
         ['plugin_namestore_postgres.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [
             libgnunetutil_dep,
             libgnunetgnsrecord_dep,

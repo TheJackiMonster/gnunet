@@ -22,7 +22,7 @@ libgnunetconsensus = shared_library(
     libgnunetconsensus_src,
     soversion: '0',
     version: '0.0.0',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -48,7 +48,7 @@ shared_module(
 executable(
     'gnunet-service-consensus',
     gnunetserviceconsensus_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetconsensus_dep,
         libgnunetutil_dep,

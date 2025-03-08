@@ -1,7 +1,7 @@
 executable(
     'gnunet-reclaim',
     'gnunet-reclaim.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetreclaim_dep,
         libgnunetidentity_dep,
@@ -14,7 +14,7 @@ executable(
 executable(
     'gnunet-did',
     'gnunet-did.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetreclaim_dep,
         libgnunetdid_dep,

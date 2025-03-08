@@ -19,7 +19,7 @@ libgnunetarm = library(
     libgnunetarm_src,
     soversion: solibversions['libgnunetarm']['soversion'],
     version: solibversions['libgnunetarm']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: libgnunetutil_dep,
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -35,7 +35,7 @@ libgnunetarm_dep = declare_dependency(link_with: libgnunetarm)
 executable(
     'gnunet-service-arm',
     gnunetservicearm_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetarm_dep, libgnunetutil_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -61,7 +61,7 @@ libgnunettestingarm = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 libgnunettestingarm_dep = declare_dependency(link_with: libgnunettestingarm)
 

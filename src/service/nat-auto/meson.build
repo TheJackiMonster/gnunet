@@ -21,7 +21,7 @@ libgnunetnatauto = library(
     libgnunetnatauto_src,
     soversion: solibversions['libgnunetnatauto']['soversion'],
     version: solibversions['libgnunetnatauto']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, libgnunetnat_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -32,7 +32,7 @@ libgnunetnatauto_dep = declare_dependency(link_with: libgnunetnatauto)
 executable(
     'gnunet-service-nat-auto',
     gnunetservicenatauto_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetnatauto_dep,
         libgnunetutil_dep,

@@ -16,7 +16,7 @@ install_data('openssl.cnf', install_dir: get_option('datadir') / 'gnunet')
 executable(
     'gnunet-gns',
     'gnunet-gns.c',
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetgns_dep,
         libgnunetgnsrecord_dep,

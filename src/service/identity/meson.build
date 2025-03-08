@@ -26,7 +26,7 @@ libgnunetidentity = library(
     libgnunetidentity_src,
     soversion: solibversions['libgnunetidentity']['soversion'],
     version: solibversions['libgnunetidentity']['version'],
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [libgnunetutil_dep, sodium_dep],
     include_directories: [incdir, configuration_inc],
     install: true,
@@ -42,7 +42,7 @@ pkg.generate(
 executable(
     'gnunet-service-identity',
     gnunetserviceidentity_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetidentity_dep,
         libgnunetutil_dep,

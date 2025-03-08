@@ -41,7 +41,7 @@ libgnunetpeerstore_dep = declare_dependency(link_with: libgnunetpeerstore)
 executable(
     'gnunet-service-peerstore',
     gnunetservicepeerstore_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetpeerstore_dep,
         libgnunetutil_dep,

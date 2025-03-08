@@ -28,7 +28,7 @@ libgnunetvpn = library(
     include_directories: [incdir, configuration_inc],
     install: true,
     install_dir: get_option('libdir'),
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
 )
 pkg.generate(
     libgnunetvpn,
@@ -40,7 +40,7 @@ libgnunetvpn_dep = declare_dependency(link_with: libgnunetvpn)
 executable(
     'gnunet-service-vpn',
     gnunetservicevpn_src,
-    install_rpath: get_option('prefix') / get_option('libdir'),
+    install_rpath: rpath_option,
     dependencies: [
         libgnunetvpn_dep,
         libgnunetutil_dep,
@@ -58,7 +58,7 @@ if host_machine.system() == 'linux'
     executable(
         'gnunet-helper-vpn',
         ['gnunet-helper-vpn.c'],
-        install_rpath: get_option('prefix') / get_option('libdir'),
+        install_rpath: rpath_option,
         dependencies: [libgnunetvpn_dep, libgnunetutil_dep],
         include_directories: [incdir, configuration_inc, exitdir],
         install: true,
