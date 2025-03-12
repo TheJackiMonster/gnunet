@@ -14,6 +14,9 @@ override_dh_auto_build-indep:
 override_dh_auto_test:
 # Disabling test suite, incomplete
 
+override_dh_autoreconf:
+# Disabling autotools reconf since we use meson.
+
 override_dh_auto_install-arch:
 	dh_auto_install
 
