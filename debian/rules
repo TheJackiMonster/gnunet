@@ -5,7 +5,7 @@ SHELL := sh -e
 include /usr/share/dpkg/architecture.mk
 
 %:
-	dh ${@}
+	dh ${@} --buildsystem=meson
 
 override_dh_auto_configure-arch:
 	dh_auto_configure --buildsystem=meson -- --Dinstall-rpath=false $(shell dpkg-buildflags --export=cmdline)
