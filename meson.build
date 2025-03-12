@@ -32,14 +32,23 @@ gnunet_user = false
 getent_bin = find_program('getent', '/usr/bin/getent', required: false)
 if getent_bin.found()
     gnunet_user = true
-    if run_command('getent', 'passwd', 'gnunet', check: false).returncode() != 0
+    if run_command(getent_bin, 'passwd', 'gnunet', check: false).returncode() != 0
         gnunet_user = false
     endif
-    if run_command('getent', 'group', 'gnunet', check: false).returncode() != 0
+    if run_command(getent_bin, 'group', 'gnunet', check: false).returncode() != 0
         gnunet_user = false
     endif
-    if run_command('getent', 'group', 'gnunetdns', check: false).returncode() != 0
+    if run_command(getent_bin, 'group', 'gnunetdns', check: false).returncode() != 0
         gnunet_user = false
+    endif
+endif
+if host_machine.system() == 'darwin'
+    id_bin = find_program('id', '/usr/bin/id', required: false)
+    if id_bin.found()
+        gnunet_user = true
+        if run_command(id_bin, 'gnunet', check: false).returncode() != 0
+            gnunet_user = false
+        endif
     endif
 endif
 
@@ -451,7 +460,7 @@ if cc.check_header('gnutls/dane.h')
         prefix: '#include <gnutls/dane.h>',
         dependencies: gnutls_dep,
     )
-# FIXME unused in code
+        # FIXME unused in code
         private_config.set('HAVE_GNUTLS_DANE', 1)
     endif
 endif
@@ -704,10 +713,10 @@ summary(
 )
 
 if not gnunet_user
-    message(
+    warning(
         'Please make sure NOW to create a user and group \'gnunet\' and additionally a group \'gnunetdns\'. Make sure that \'/var/lib/gnunet\' is owned (and writable) by user \'gnunet\'',
     )
-    message('Each user of GNUnet should be added to the \'gnunet\' group')
+    warning('Each user of GNUnet should be added to the \'gnunet\' group')
     if adduser_bin.found() and not gnunet_user
         message(
             '''Create the gnunet user and add users to the gnunetdns group, run:
