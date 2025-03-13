@@ -11,6 +11,8 @@ add_project_arguments('-D_GNU_SOURCE', language: 'c')
 
 cc = meson.get_compiler('c')
 incdir = include_directories('src/include')
+
+# Used to populate gnunet_private_config.h
 private_config = configuration_data()
 
 # Version
@@ -649,6 +651,7 @@ endforeach
 configure_file(output: 'gnunet_private_config.h', configuration: private_config)
 configuration_inc = include_directories('.')
 
+# Used to populate configuration file and script templates
 cdata = configuration_data()
 cdata.merge_from(private_config)
 
@@ -703,13 +706,22 @@ summary(
         'compiler': cc.get_id(),
         'libdir': get_option('libdir'),
         'datadir': get_option('datadir'),
-        'default interface': private_config.get('GNUNET_DEFAULT_INTERFACE'),
-        'PostgreSQL': pq_dep.found(),
-        'curl w/ gnutls': (private_config.get('curl_gnutls') == 1),
-        'ifconfig': ifconfig_bin.found(),
-        'iptables': iptables_bin.found(),
+        'default network interface': private_config.get('GNUNET_DEFAULT_INTERFACE'),
     },
     section: 'Detected system',
+)
+
+summary(
+    {
+        'experimental': get_option('experimental'),
+        'PostgreSQL': pq_dep.found(),
+        'curl w/ gnutls': (private_config.get('curl_gnutls') == 1),
+        'conversion': conversation_backend,
+        'http3': http3_enabled,
+        'quic': quic_dep.found(),
+        'TUN/TAP': tun_found,
+    },
+    section: 'Optional features',
 )
 
 if not gnunet_user
