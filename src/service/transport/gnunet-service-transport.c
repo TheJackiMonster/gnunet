@@ -11447,7 +11447,8 @@ handle_send_message_ack (void *cls,
  * @param cls the client
  */
 static void
-handle_burst_finished ()
+handle_burst_finished (void *cls,
+                       const struct GNUNET_TRANSPORT_BurstFinished *bf)
 {
   burst_running = GNUNET_NO;
 }
