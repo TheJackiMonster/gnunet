@@ -93,7 +93,7 @@ test(
     'perf_gnsrecord_crypto',
     testgnsrecrd_perf_crypto,
     workdir: meson.current_build_dir(),
-    suite: ['gnsrecord', 'perf'],
+    suite: ['perf'],
 )
 test(
     'test_gnsrecord_crypto',

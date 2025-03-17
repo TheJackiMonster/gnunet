@@ -128,7 +128,7 @@ if false
     test(
         'perf_peerstore_api_store',
         testpeerstore_api_perf,
-        suite: 'peerstore',
+        suite: 'perf',
         workdir: meson.current_build_dir(),
     )
 

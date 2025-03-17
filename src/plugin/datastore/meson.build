@@ -128,18 +128,18 @@ test(
 test(
     'perf_plugin_datastore_sqlite',
     perfds_plugin_sqlite,
-    suite: ['datastore', 'perf'],
+    suite: ['perf'],
     workdir: meson.current_build_dir(),
 )
 test(
     'perf_plugin_datastore_heap',
     perfds_plugin_heap,
-    suite: ['datastore', 'perf'],
+    suite: ['perf'],
     workdir: meson.current_build_dir(),
 )
 test(
     'perf_plugin_datastore_postgres',
     perfds_plugin_pq,
-    suite: ['datastore', 'perf'],
+    suite: ['perf'],
     workdir: meson.current_build_dir(),
 )

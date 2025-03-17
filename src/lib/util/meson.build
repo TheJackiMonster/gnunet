@@ -960,5 +960,5 @@ foreach t : testutil_perf
         build_by_default: false,
         install: false,
     )
-    test(t, testbin, suite: ['util', 'perf'], workdir: meson.current_build_dir())
+    test(t, testbin, suite: ['perf'], workdir: meson.current_build_dir())
 endforeach
