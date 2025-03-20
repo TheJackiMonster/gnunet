@@ -531,7 +531,7 @@ __attribute__ ((format (printf, 3, 4)));
               GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
                                           (comp),                             \
                                           __FILE__,                           \
-                                          __FUNCTION__,                       \
+                                          __func__,                       \
                                           __LINE__);                          \
             if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
             {                                                                   \
@@ -557,7 +557,7 @@ __attribute__ ((format (printf, 3, 4)));
               GNUNET_get_log_call_status ((kind) & (~GNUNET_ERROR_TYPE_BULK), \
                                           NULL,                               \
                                           __FILE__,                           \
-                                          __FUNCTION__,                       \
+                                          __func__,                       \
                                           __LINE__);                          \
             if (GN_UNLIKELY (GNUNET_get_log_skip () > 0))                       \
             {                                                                   \
