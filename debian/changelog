@@ -1,3 +1,9 @@
+gnunet (0.24.0) unstable; urgency=low
+
+  * Package for GNUnet v0.24.0.
+
+ -- Christian Grothoff <grothoff@gnu.org>  Fri, 4 Apr 2025 06:51:13 +0200
+
 gnunet (0.23.2~rc.1) unstable; urgency=low
 
   * Pre-release package for GNUnet v0.23.2.
