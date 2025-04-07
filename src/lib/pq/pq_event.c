@@ -277,7 +277,13 @@ do_scheduler_notify (void *cls)
   if (NULL == db->rfd)
     GNUNET_PQ_reconnect (db);
   GNUNET_PQ_event_do_poll (db);
-  GNUNET_assert (NULL == db->event_task);
+  if (NULL != db->event_task)
+  {
+    /* GNUNET_PQ_reconnect() above could have actually
+       created another event_task, stop it */
+    GNUNET_SCHEDULER_cancel (db->event_task);
+    db->event_task = NULL;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Resubscribing\n");
   if (NULL == db->rfd)
