@@ -327,9 +327,18 @@ $ export GNUNET_PREFIX=/usr/local/lib # or other directory of your choice
 # meson setup -Dprefix=$GNUNET_PREFIX/.. -C $BUILDDIR
 $ meson compile -C $BUILDDIR
 
+You can alternatively also use the configure script and Makefile:
+
+$ ./configure --prefix=$GNUNET_PREFIX/..
+$ make
+
 And finally install GNUnet with:
 
 # meson install -C $BUILDDIR
+
+or
+
+# make install
 
 Complete the process by either adjusting one of our example service files
 in 'contrib/services' or by running:
