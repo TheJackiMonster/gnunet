@@ -1,0 +1,22 @@
+# Build the program in the local tree
+.PHONY: all
+all:
+	$(NINJA) -C $(mesonbuilddir)
+
+
+# Install the program
+.PHONY: install
+install: all
+	$(MESON) install -C $(mesonbuilddir)
+
+# Remove files created during 'all'
+.PHONY: clean
+clean:
+	$(NINJA) -C $(mesonbuilddir) -t clean
+	$(RM) -r $(mesonbuilddir)
+
+# Remove files created during 'install'
+.PHONY: uninstall
+uninstall:
+	$(NINJA) uninstall -C $(mesonbuilddir)
+
