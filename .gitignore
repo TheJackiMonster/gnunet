@@ -7,7 +7,9 @@
 # Unignore all dirs
 !*/
 
+# Unignore configure script and meson dist script
 !meson-dist-script
+!configure
 
 *~
 \#*\#
@@ -30,7 +32,6 @@ gnunet-*.tar.gz
 .svn/
 build
 Makefile
-Makefile.in
 compile_commands.json
 aclocal.m4
 autom4te.cache/
@@ -40,7 +41,6 @@ config.guess
 config.log
 config.status
 config.sub
-configure
 .version
 contrib/vendored/
 depcomp
