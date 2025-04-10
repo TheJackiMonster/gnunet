@@ -2,7 +2,7 @@
 
 pkg_name="gnunet"
 pkg_default_features=""
-pkg_optional_features="experimental"
+pkg_optional_features="experimental monolith testbed exclude-manpages malicious benchmarks poisoning nse-histogram disable-autostart install-rpath heap-statistics logging"
 pkg_optional_dependencies=""
 
 # DO NOT EDIT BELOW THIS LINE
@@ -64,14 +64,18 @@ while [ "$#" -gt "0" ]; do
 		--enable-*)
 			for feat in $pkg_optional_features $pkg_default_features; do
 				if [ "--enable-$feat" = "$arg" ] && [ -z "$argparam" ]; then
-					eval "enable_$feat=yes"
+					eval "enable_$feat=true"
 				elif [ "--enable-$feat" = "$arg" ]; then
-					eval "enable_$feat=\"$argparam\""
+          if [ "$argparam" = "yes" ]; then
+					  eval "enable_$feat=\"true\""
+          else
+					  eval "enable_$feat=\"$argparam\""
+          fi
 				fi
 			done
 			;;
 		--disable-*)
-			argsave="--enable-${arg#--disable-}=no $argsave"
+			argsave="--enable-${arg#--disable-}=false $argsave"
 			;;
 		--with-*)
 			for dep in $pkg_optional_dependencies; do
@@ -112,10 +116,11 @@ for util in $standard_utils; do
 	esac
 done
 for feat in $pkg_optional_features; do
-	eval "enable_$feat=\${enable_$feat:-no}"
+  ft=$(echo $feat | tr - _)
+	eval "enable_$ft=\${enable_$ft:-false}"
 done
 for feat in $pkg_default_features; do
-	eval "enable_$feat=\${enable_$feat:-yes}"
+	eval "enable_$feat=\${enable_$feat:-true}"
 done
 for feat in $pkg_optional_dependencies; do
 	eval "with_$feat=\${with_$feat:-no}"
@@ -175,8 +180,11 @@ for var in $standard_utils $standard_flags $standard_vars; do
 done
 echo >> Makefile
 
+mesonfeatopts=""
 for feat in $pkg_optional_features $pkg_default_features; do
-	eval "echo \"enable_$feat=\${enable_$feat}\" >> Makefile"
+  ft=$(echo $feat | tr - _)
+	eval "echo \"enable_$ft=\${enable_$ft}\" >> Makefile"
+  eval "mesonfeatopts=\"$mesonfeatopts -D$feat=\${enable_$ft}\""
 done
 for dep in $pkg_optional_dependencies; do
 	eval "echo \"with_$dep=\${with_$dep}\" >> Makefile"
@@ -211,6 +219,25 @@ default_target install-strip <<EOF
 	\$(MAKE) INSTALL_PROGRAM='\$(INSTALL_PROGRAM) -s' \\
 		INSTALL_SCRIPT='\$(INSTALL_SCRIPT)' install
 EOF
+
+mesondiropts=""
+for dr in $standard_dirs; do
+  if [ $dr = "srcdir" ]; then
+    continue
+  fi
+  eval "vn=\${var_$dr}"
+  if [ ! -z $vn ]; then
+    eval "mesondiropts=\"$mesondiropts -D$dr=\${var_$dr}\""
+  fi
+done
+
+${MESON} setup \
+	-Ddefault_library=shared \
+  $mesondiropts \
+  $mesonfeatopts \
+	${var_mesonbuilddir:-build}
+
+
 
 # Done
 echo "Package $pkg_name configured successfully."

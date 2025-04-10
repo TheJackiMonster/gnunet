@@ -721,7 +721,7 @@ summary(
         'quic': quic_dep.found(),
         'TUN/TAP': tun_found,
     },
-    section: 'Optional features',
+    section: 'Detected features',
 )
 
 if not gnunet_user

@@ -1,6 +1,6 @@
 # Build the program in the local tree
 .PHONY: all
-all: $(mesonbuilddir)
+all:
 	$(NINJA) -C $(mesonbuilddir)
 
 # Install the program
@@ -29,18 +29,30 @@ dist:
 check:
 	$(MESON) test -C $(mesonbuilddir)
 
-.PHONY: $(mesonbuilddir)
-$(mesonbuilddir):
-	$(MESON) setup \
-		-Ddefault_library=shared \
-		-Dprefix=${prefix} \
-		-Dbindir=${bindir} \
-		-Ddatadir=${datadir} \
-		-Dincludedir=${includedir} \
-		-Dinfodir=${infodir} \
-		-Dlibdir=${libdir} \
-		-Dlocaledir=${localedir} \
-		${mesonbuilddir}
+#.PHONY: $(mesonbuilddir)
+#$(mesonbuilddir):
+#	$(MESON) setup \
+#		-Ddefault_library=shared \
+#		-Dprefix=${prefix} \
+#		-Dbindir=${bindir} \
+#		-Ddatadir=${datadir} \
+#		-Dincludedir=${includedir} \
+#		-Dinfodir=${infodir} \
+#		-Dlibdir=${libdir} \
+#		-Dlocaledir=${localedir} \
+#		-Dexperimental=${enable_experimental} \
+#		-Dmonolith=${enable_monolith} \
+#		-Dtestbed=${enable_testbed} \
+#		-Dexclude-manpages=${enable_exclude_manpages} \
+#		-Dmalicious=${enable_malicious} \
+#		-Dbenchmarks=${enable_benchmarks} \
+#		-Dpoisoning=${enable_poisoning} \
+#		-Dnse-histogram=${enable_nse_histogram} \
+#		-Ddisable-autostart=${enable_disable_autostart} \
+#		-Dinstall-rpath=${enable_install_rpath} \
+#		-Dheap-statistics=${enable_heap_statistics} \
+#		-Dlogging=${enable_logging} \
+#		${mesonbuilddir}
 
 
 
