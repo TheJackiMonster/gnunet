@@ -318,7 +318,7 @@ GNUNET_PROGRAM_run2 (const struct GNUNET_OS_ProjectData *pd,
           GNUNET_DISK_file_test (cfg_fn)) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  _ ("Unreadable configuration file `%s'. Exiting ...\n"),
+                  _ ("Unreadable configuration file `%s', exiting ...\n"),
                   cfg_fn);
       ret = GNUNET_SYSERR;
       GNUNET_free (allopts);

@@ -248,7 +248,7 @@ main (int argc,
         return EXIT_FAILURE;
       }
     }
-    else
+    else if (NULL != cfgfile)
     {
       if (GNUNET_YES !=
           GNUNET_DISK_file_test (cfgfile))
@@ -272,6 +272,20 @@ main (int argc,
                     cfgfile);
         GNUNET_CONFIGURATION_destroy (cfg);
         GNUNET_free (cfgfile);
+        return EXIT_FAILURE;
+      }
+    }
+    else if (! no_defaults)
+    {
+      /* cfgfile is NULL, so only load defaults */
+      if (GNUNET_SYSERR ==
+          GNUNET_CONFIGURATION_load (cfg,
+                                     NULL))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    _ ("Malformed configuration file `%s', exiting ...\n"),
+                    cfgfile);
+        GNUNET_CONFIGURATION_destroy (cfg);
         return EXIT_FAILURE;
       }
     }
