@@ -6,7 +6,7 @@ pkg_optional_features="experimental"
 pkg_optional_dependencies=""
 
 # DO NOT EDIT BELOW THIS LINE
-standard_dirs="prefix exec_prefix bindir sbindir libexecdir sysconfdir sharedstatedir localstatedir runstatedir libdir includedir oldincludedir datarootdir datadir infodir localedir mandir docdir htmldir dvidir pdfdir psdir srcdir"
+standard_dirs="prefix exec_prefix bindir sbindir libexecdir sysconfdir sharedstatedir localstatedir runstatedir libdir includedir oldincludedir datarootdir datadir infodir localedir mandir docdir htmldir dvidir pdfdir psdir srcdir mesonbuilddir"
 standard_utils="AR AS BISON CC CXX CPP FLEX INSTALL LD LDCONFIG LEX MAKE MAKEINFO RANLIB TEXI2DVI YACC CHGRP CHMOD CHOWN MKNOD RM NINJA MESON"
 standard_flags="ARFLAGS BISONFLAGS CFLAGS CXXFLAGS CPPFLAGS FLEXFLAGS INSTALLFLAGS LDFLAGS LDCONFIGFLAGS LFLAGS MAKEFLAGS MAKEINFOFLAGS RANLIBFLAGS TEXI2DVIFLAGS YACCFLAGS CHGRPFLAGS CHMODFLAGS CHOWNFLAGS MKNODFLAGS"
 standard_vars="INSTALL_DATA INSTALL_PROGRAM INSTALL_SCRIPT"
@@ -103,7 +103,7 @@ done
 # Set default values
 for util in $standard_utils; do
 	case "$util" in
-		"CPP") eval "$util=\"\${${util}:-\\\$(CC) -E}\"" ;;
+		CPP) eval "$util=\"\${${util}:-\\\$(CC) -E}\"" ;;
 		CXX) eval "$util=\"\${${util}:-g++}\"" ;;
 		RM)  eval "$util=\"\${${util}:-rm -f}\"" ;;
 		MESON)  eval "$util=\"\${${util}:-meson}\"" ;;
@@ -165,21 +165,10 @@ mandir = ${var_mandir:-\$(datarootdir)/man}
 manext = .1
 EOF
 
-if [ -d $var_mesonbuilddir ]; then
-  echo "$var_mesonbuilddir already exists, deleting..."
-  $RM -r $var_mesonbuilddir
+if [ -d ${var_mesonbuilddir:-build} ]; then
+  echo "${var_mesonbuilddir:-build} already exists, deleting with"
+  $RM -r ${var_mesonbuilddir:-build} || exit 1
 fi
-
-$MESON setup \
-  -Ddefault_library=shared \
-  -Dprefix=${var_prefix:-/usr/local} \
-  -Dbindir=${var_bindir:-bin} \
-  -Ddatadir=${var_bindir:-share} \
-  -Dincludedir=${var_bindir:-include} \
-  -Dinfodir=${var_bindir:-share/info} \
-  -Dlibdir=${var_bindir:-lib} \
-  -Dlocaledir=${var_bindir:-share/locale} \
-  ${var_mesonbuilddir:-build}
 
 for var in $standard_utils $standard_flags $standard_vars; do
 	eval "echo \"${var} = \$${var}\" >> Makefile"
@@ -205,13 +194,13 @@ default_target() {
 	echo >> Makefile
 }
 
-default_target Makefile <<EOF
-	./config.status
-EOF
-for format in html dvi pdf ps; do
-	default_target "$format" </dev/null
-	default_target "install-$format" "$format" </dev/null
-done
+#default_target Makefile <<EOF
+#	./config.status
+#EOF
+#for format in html dvi pdf ps; do
+#	default_target "$format" </dev/null
+#	default_target "install-$format" "$format" </dev/null
+#done
 default_target check </dev/null
 default_target mostlyclean clean </dev/null
 default_target distclean clean <<EOF

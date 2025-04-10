@@ -1,8 +1,7 @@
 # Build the program in the local tree
 .PHONY: all
-all:
+all: $(mesonbuilddir)
 	$(NINJA) -C $(mesonbuilddir)
-
 
 # Install the program
 .PHONY: install
@@ -19,4 +18,30 @@ clean:
 .PHONY: uninstall
 uninstall:
 	$(NINJA) uninstall -C $(mesonbuilddir)
+
+# Make tarball
+.PHONY: dist
+dist:
+	$(MESON) dist -C $(mesonbuilddir) --formats gztar
+
+# Run tests
+.PHONY: check
+check:
+	$(MESON) test -C $(mesonbuilddir)
+
+.PHONY: $(mesonbuilddir)
+$(mesonbuilddir):
+	$(MESON) setup \
+		-Ddefault_library=shared \
+		-Dprefix=${prefix} \
+		-Dbindir=${bindir} \
+		-Ddatadir=${datadir} \
+		-Dincludedir=${includedir} \
+		-Dinfodir=${infodir} \
+		-Dlibdir=${libdir} \
+		-Dlocaledir=${localedir} \
+		${mesonbuilddir}
+
+
+
 
