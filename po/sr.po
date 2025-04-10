@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -2125,11 +2125,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
@@ -3835,11 +3837,6 @@ msgstr "„%s“ није успело за библиотеку '%s' са гр�
 #: src/lib/util/plugin.c:421
 msgid "Could not determine plugin installation path.\n"
 msgstr "Не могу да одредим путању инсталирања прикључка.\n"
-
-#: src/lib/util/program.c:321
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
-msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
 #: src/lib/util/program.c:336
 #, fuzzy
@@ -7116,7 +7113,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "Услузи преноса недостају поставке подешавања кључа. Излазим.\n"
 
@@ -7435,6 +7432,10 @@ msgstr "Нисам успео да реплицирам блок у остави
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1374
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
+
+#, fuzzy, c-format
+#~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
+#~ msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
 #, c-format
 #~ msgid "Expected `%s' to be a directory!\n"

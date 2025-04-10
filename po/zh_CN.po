@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2011-07-09 12:12+0800\n"
 "Last-Translator: Wylmer Wang <wantinghard@gmail.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -2086,11 +2086,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "解析配置文件“%s”失败\n"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "解析配置文件“%s”失败\n"
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "解析配置文件“%s”失败\n"
@@ -3757,11 +3759,6 @@ msgstr ""
 #, fuzzy
 msgid "Could not determine plugin installation path.\n"
 msgstr "无法确定用户界面定义文件。"
-
-#: src/lib/util/program.c:321
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
-msgstr "解析配置文件“%s”失败\n"
 
 #: src/lib/util/program.c:336
 #, fuzzy
@@ -6953,7 +6950,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "立即保存配置？"
@@ -7273,6 +7270,10 @@ msgstr "发送消息失败。\n"
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "初始化“%s”服务失败。\n"
+
+#, fuzzy, c-format
+#~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
+#~ msgstr "解析配置文件“%s”失败\n"
 
 #, c-format
 #~ msgid "Expected `%s' to be a directory!\n"

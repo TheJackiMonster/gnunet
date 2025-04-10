@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GNUnet 0.7.0b\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2006-01-21 17:16+0100\n"
 "Last-Translator: Daniel Nylander <po@danielnylander.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -2115,11 +2115,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "Kunde inte spara konfigurationsfil \"%s\":"
@@ -3806,11 +3808,6 @@ msgstr "\"%s\" misslyckades vid %s:%d med fel: %s\n"
 #, fuzzy
 msgid "Could not determine plugin installation path.\n"
 msgstr "Kunde inte fastställa min publika IPv6-adress.\n"
-
-#: src/lib/util/program.c:321
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
-msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
 #: src/lib/util/program.c:336
 #, fuzzy
@@ -7108,7 +7105,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 #, fuzzy
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr "GNUnet-konfiguration"
@@ -7437,6 +7434,10 @@ msgstr "Misslyckades att läsa kompislista från \"%s\"\n"
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Misslyckades att ansluta till gnunetd.\n"
+
+#, fuzzy, c-format
+#~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
+#~ msgstr "Kunde inte spara konfigurationsfil \"%s\":"
 
 #, fuzzy, c-format
 #~ msgid "Expected `%s' to be a directory!\n"

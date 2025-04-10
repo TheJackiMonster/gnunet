@@ -1,3 +1,6 @@
+v0.24.1:
+  - Fix crash in libgnunetpq when Postgresql database was restarted
+
 v0.24.0:
   - Meson is new default build system
   - JSON: split off libgnunetmhd from libgnunetjson, renaming various GNUNET_JSON_-symbols to GNUNET_MHD_-. Removes dependency of libgnunetjson on libmicrohttpd

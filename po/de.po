@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2015-03-08 16:16+0100\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <translation-team-de@lists.sourceforge.net>\n"
@@ -2107,11 +2107,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Fehler beim Speichern der Konfigurationsdatei `%s':"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Konfigurationsdatei `%s' wurde erzeugt.\n"
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "Konfigurationsdatei `%s' wurde erzeugt.\n"
@@ -3793,11 +3795,6 @@ msgstr "`%s' fehlgeschlagen für die Bibliothek `%s'. Ort: %s:%d. Fehler: %s\n"
 #, fuzzy
 msgid "Could not determine plugin installation path.\n"
 msgstr "Öffentliche IP-Adresse konnte nicht ermittelt werden.\n"
-
-#: src/lib/util/program.c:321
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
-msgstr "Konfigurationsdatei `%s' wurde erzeugt.\n"
 
 #: src/lib/util/program.c:336
 #, fuzzy
@@ -7079,7 +7076,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 
@@ -7398,6 +7395,10 @@ msgstr ""
 #, fuzzy
 msgid "Failed to connect to the namestore!\n"
 msgstr "Es konnte keine Verbindung mit gnunetd hergestellt werden.\n"
+
+#, fuzzy, c-format
+#~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
+#~ msgstr "Konfigurationsdatei `%s' wurde erzeugt.\n"
 
 #, fuzzy, c-format
 #~ msgid "Expected `%s' to be a directory!\n"

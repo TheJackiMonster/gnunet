@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -2052,11 +2052,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Résolution de « %s » échouée\n"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr ""
@@ -3707,11 +3709,6 @@ msgstr ""
 
 #: src/lib/util/plugin.c:421
 msgid "Could not determine plugin installation path.\n"
-msgstr ""
-
-#: src/lib/util/program.c:321
-#, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
 msgstr ""
 
 #: src/lib/util/program.c:336
@@ -6829,7 +6826,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 

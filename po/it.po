@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-07 16:34+0100\n"
+"POT-Creation-Date: 2025-04-10 17:00+0200\n"
 "PO-Revision-Date: 2019-10-16 11:00+0200\n"
 "Last-Translator: Sebastiano Pistore <sebastianopistore.info@protonmail.ch>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -2052,11 +2052,13 @@ msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
 #: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
-#: src/cli/util/gnunet-config.c:271 src/lib/util/program.c:306
+#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
@@ -3708,11 +3710,6 @@ msgstr ""
 #: src/lib/util/plugin.c:421
 msgid "Could not determine plugin installation path.\n"
 msgstr ""
-
-#: src/lib/util/program.c:321
-#, fuzzy, c-format
-msgid "Unreadable configuration file `%s'. Exiting ...\n"
-msgstr "Impossibile avviare il servizio ' %s'\n"
 
 #: src/lib/util/program.c:336
 #, fuzzy
@@ -6855,7 +6852,7 @@ msgstr ""
 #: src/service/transport/gnunet-communicator-quic.c:1665
 #: src/service/transport/gnunet-communicator-tcp.c:3870
 #: src/service/transport/gnunet-communicator-udp.c:3864
-#: src/service/transport/gnunet-service-transport.c:13023
+#: src/service/transport/gnunet-service-transport.c:13024
 msgid "Transport service is lacking key configuration settings. Exiting.\n"
 msgstr ""
 
@@ -7165,6 +7162,10 @@ msgstr ""
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1374
 msgid "Failed to connect to the namestore!\n"
 msgstr ""
+
+#, fuzzy, c-format
+#~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
+#~ msgstr "Impossibile avviare il servizio ' %s'\n"
 
 #, c-format
 #~ msgid "Failed to start service `%s'\n"
