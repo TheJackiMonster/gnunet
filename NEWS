@@ -1,5 +1,6 @@
 v0.24.1:
   - Fix crash in libgnunetpq when Postgresql database was restarted
+  - Add configure and make functionality for new meson build (https://www.gnu.org/prep/standards/html_node/Configuration.html)
 
 v0.24.0:
   - Meson is new default build system
