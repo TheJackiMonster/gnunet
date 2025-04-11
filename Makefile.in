@@ -12,7 +12,6 @@ install: all
 .PHONY: clean
 clean:
 	$(NINJA) -C $(mesonbuilddir) -t clean
-	$(RM) -r $(mesonbuilddir)
 
 # Remove files created during 'install'
 .PHONY: uninstall
@@ -28,3 +27,6 @@ dist:
 .PHONY: check
 check:
 	$(MESON) test -C $(mesonbuilddir)
+
+Makefile::
+	./config.status

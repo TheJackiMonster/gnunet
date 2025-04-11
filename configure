@@ -205,10 +205,10 @@ default_target() {
 #default_target Makefile <<EOF
 #	./config.status
 #EOF
-#for format in html dvi pdf ps; do
-#	default_target "$format" </dev/null
-#	default_target "install-$format" "$format" </dev/null
-#done
+for format in html dvi pdf ps; do
+	default_target "$format" </dev/null
+	default_target "install-$format" "$format" </dev/null
+done
 default_target check </dev/null
 default_target mostlyclean clean </dev/null
 default_target distclean clean <<EOF
@@ -237,9 +237,6 @@ ${MESON} setup \
   $mesonfeatopts \
 	${var_mesonbuilddir:-build} \
 	${var_srcdir:-build}
-
-
-
 
 # Done
 echo "Package $pkg_name configured successfully."
