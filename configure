@@ -235,7 +235,9 @@ ${MESON} setup \
 	-Ddefault_library=shared \
   $mesondiropts \
   $mesonfeatopts \
-	${var_mesonbuilddir:-build}
+	${var_mesonbuilddir:-build} \
+	${var_srcdir:-build}
+
 
 
 
