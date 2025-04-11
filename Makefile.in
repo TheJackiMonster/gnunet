@@ -28,5 +28,5 @@ dist:
 check:
 	$(MESON) test -C $(mesonbuilddir)
 
-Makefile::
+Makefile: Makefile.in
 	./config.status
