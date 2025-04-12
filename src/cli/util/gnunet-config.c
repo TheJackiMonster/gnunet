@@ -149,7 +149,6 @@ main (int argc,
                             argv);
   if (GNUNET_SYSERR == iret)
   {
-    GNUNET_free_nz ((void *) argv);
     GNUNET_free (cfgfile);
     GNUNET_free (loglev);
     GNUNET_free (logfile);
@@ -160,7 +159,6 @@ main (int argc,
                         loglev,
                         logfile))
   {
-    GNUNET_free_nz ((void *) argv);
     GNUNET_free (cfgfile);
     GNUNET_free (loglev);
     GNUNET_free (logfile);
@@ -170,7 +168,6 @@ main (int argc,
   GNUNET_free (logfile);
   if (1 == is_experimental)
   {
-    GNUNET_free_nz ((void *) argv);
     GNUNET_free (cfgfile);
 #ifdef GNUNET_EXPERIMENTAL
     return 0;
