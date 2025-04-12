@@ -1027,8 +1027,8 @@ mylog (enum GNUNET_ErrorType kind,
     offset = GNUNET_TIME_get_offset ();
     if (offset > 0)
     {
-      timeofday.tv_sec += offset / 1000LL;
-      timeofday.tv_usec += (offset % 1000LL) * 1000LL;
+      timeofday.tv_sec += offset / 1000LL / 1000LL;
+      timeofday.tv_usec += (offset % 1000000LL) * 1000000LL;
       if (timeofday.tv_usec > 1000000LL)
       {
         timeofday.tv_usec -= 1000000LL;
@@ -1037,14 +1037,14 @@ mylog (enum GNUNET_ErrorType kind,
     }
     else
     {
-      timeofday.tv_sec += offset / 1000LL;
-      if (timeofday.tv_usec > -(offset % 1000LL) * 1000LL)
+      timeofday.tv_sec += offset / 1000LL / 1000LL;
+      if (timeofday.tv_usec > -(offset % 1000000LL) * 1000000LL)
       {
-        timeofday.tv_usec += (offset % 1000LL) * 1000LL;
+        timeofday.tv_usec += (offset % 1000000LL) * 1000000LL;
       }
       else
       {
-        timeofday.tv_usec += 1000000LL + (offset % 1000LL) * 1000LL;
+        timeofday.tv_usec += 1000000LL + (offset % 1000000LL) * 1000000LL;
         timeofday.tv_sec--;
       }
     }
