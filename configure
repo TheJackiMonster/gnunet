@@ -238,7 +238,7 @@ ${MESON} setup \
   $mesondiropts \
   $mesonfeatopts \
 	${var_mesonbuilddir:-build} \
-	${var_srcdir:-build}
+	${var_srcdir}
 
 # Done
 echo "Package $pkg_name configured successfully."
