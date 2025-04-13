@@ -28,6 +28,11 @@ libgnunetnatauto = library(
     install_dir: get_option('libdir'),
 )
 libgnunetnatauto_dep = declare_dependency(link_with: libgnunetnatauto)
+pkg.generate(
+    libgnunetnatauto,
+    url: 'https://www.gnunet.org',
+    description: 'Provides core API for accessing the nat-auto service',
+)
 
 executable(
     'gnunet-service-nat-auto',

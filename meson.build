@@ -67,17 +67,17 @@ private_config.set10('HAVE_BENCHMARKS', get_option('benchmarks'))
 private_config.set10('ENABLE_NSE_HISTOGRAM', get_option('nse-histogram'))
 logging_opt = get_option('logging')
 if logging_opt == 'yes'
-    add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+    add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=0', language: 'c')
 endif
 if logging_opt == 'no'
-    add_project_arguments('-DGNUNET_EXTRA_LOGGING=0', language: 'c')
+    add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=0', language: 'c')
     add_project_arguments('-DGNUNET_CULL_LOGGING=1', language: 'c')
 endif
 if logging_opt == 'verbose'
-    add_project_arguments('-DGNUNET_EXTRA_LOGGING=1', language: 'c')
+    add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=1', language: 'c')
 endif
 if logging_opt == 'veryverbose'
-    add_project_arguments('-DGNUNET_EXTRA_LOGGING=2', language: 'c')
+    add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=2', language: 'c')
 endif
 
 
@@ -683,6 +683,8 @@ subdir('doc')
 subdir('contrib')
 subdir('data')
 
+run_target('doxygen',
+  command : 'scripts/doxygen.meson.sh')
 meson.add_dist_script('meson-dist-script')
 
 gnunet_prefix = get_option('prefix') / get_option('libdir')

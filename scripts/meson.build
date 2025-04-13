@@ -23,3 +23,4 @@ binfiles = [
 foreach f : binfiles
     configure_file(input: f, output: f, copy: true)
 endforeach
+
