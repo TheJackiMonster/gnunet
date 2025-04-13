@@ -684,7 +684,8 @@ subdir('contrib')
 subdir('data')
 
 run_target('doxygen',
-  command : 'scripts/doxygen.meson.sh')
+  command : 'scripts/doxygen.meson.sh',
+  env: {'PACKAGE_VERSION': version})
 meson.add_dist_script('meson-dist-script')
 
 gnunet_prefix = get_option('prefix') / get_option('libdir')

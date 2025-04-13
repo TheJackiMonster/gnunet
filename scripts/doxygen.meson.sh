@@ -12,6 +12,7 @@ if ! existence doxygen; then
   exit 1
 fi
 cd "${MESON_SOURCE_ROOT}/doc/doxygen"
+echo "PROJECT_NUMBER = ${PACKAGE_VERSION}" > version.doxy
 doxygen gnunet.doxy || exit 1
 
 echo "Doxygen files generated into ${MESON_SOURCE_ROOT}/doc/doxygen!"
