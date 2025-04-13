@@ -41,12 +41,14 @@ while [ "$#" -gt "0" ]; do
 			General options:
 
 			<variable>=<value>       Overrides default utils and flags, e.g. CC=gcc
-			--srcdir=<directory>     Source directory, by default . and .. are searched
-			--<stddir>=<directory>   Overrides standard directories, e.g. --prefix=/usr
-
-			Options specific to $pkg_name:
-			
 			EOF
+      echo ""
+      echo "Directory variables:"
+			for sdir in $standard_dirs; do
+				echo "--$sdir=<directory>"
+			done
+      echo ""
+      echo "Options specific to $pkg_name:"
 			for feat in $pkg_optional_features; do
 				echo "--enable-$feat[=arg]"
 			done
