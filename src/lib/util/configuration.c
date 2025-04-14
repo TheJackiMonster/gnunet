@@ -418,9 +418,10 @@ find_section (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   if (NULL == cfg)
     return NULL;
-
   pos = cfg->sections;
-  while ((pos != NULL) && (0 != strcasecmp (section, pos->name)))
+  while ( (NULL != pos) &&
+          (0 != strcasecmp (section,
+                            pos->name)) )
     pos = pos->next;
   return pos;
 }
@@ -507,14 +508,19 @@ handle_inline (struct GNUNET_CONFIGURATION_Handle *cfg,
          "processing config glob '%s'\n",
          inline_path);
 
-    nret = GNUNET_DISK_glob (inline_path, collect_files_cb, &igc);
+    nret = GNUNET_DISK_glob (inline_path,
+                             &collect_files_cb,
+                             &igc);
     if (-1 == nret)
     {
       fun_ret = GNUNET_SYSERR;
       goto cleanup;
     }
     GNUNET_assert (nret == igc.files_length);
-    qsort (igc.files, igc.files_length, sizeof (char *), pstrcmp);
+    qsort (igc.files,
+           igc.files_length,
+           sizeof (char *),
+           &pstrcmp);
     for (int i = 0; i < nret; i++)
     {
       if (GNUNET_OK !=
@@ -998,7 +1004,9 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   ssize_t sret;
 
   fn = GNUNET_STRINGS_filename_expand (filename);
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "Asked to parse config file `%s'\n", fn);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Asked to parse config file `%s'\n",
+       fn);
   if (NULL == fn)
     return GNUNET_SYSERR;
 
@@ -1016,9 +1024,11 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
       if (cf->level >= lvl)
         continue;
       lvl = cf->level;
-      if ( (NULL == cf->source_filename) || (NULL == filename))
+      if ( (NULL == cf->source_filename) ||
+           (NULL == filename) )
         continue;
-      if (0 == strcmp (cf->source_filename, filename))
+      if (0 == strcmp (cf->source_filename,
+                       filename))
       {
         if (NULL == parent)
         {
@@ -1072,7 +1082,9 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   fs = fs64;
   mem = GNUNET_malloc (fs);
-  sret = GNUNET_DISK_fn_read (fn, mem, fs);
+  sret = GNUNET_DISK_fn_read (fn,
+                              mem,
+                              fs);
   if ((sret < 0) || (fs != (size_t) sret))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
@@ -2387,7 +2399,8 @@ escape_name (const char *value)
  * @return #GNUNET_OK if the names do not match, #GNUNET_SYSERR if they do
  */
 static enum GNUNET_GenericReturnValue
-test_match (void *cls, const char *fn)
+test_match (void *cls,
+            const char *fn)
 {
   const char *of = cls;
 
@@ -2538,7 +2551,7 @@ GNUNET_CONFIGURATION_load_from (
   qsort (files_context.files,
          files_context.files_length,
          sizeof (char *),
-         pstrcmp);
+         &pstrcmp);
   for (unsigned int i = 0; i < files_context.files_length; i++)
   {
     char *ext;
@@ -2546,13 +2559,15 @@ GNUNET_CONFIGURATION_load_from (
 
     /* Examine file extension */
     ext = strrchr (filename, '.');
-    if ((NULL == ext) || (0 != strcmp (ext, ".conf")))
+    if ( (NULL == ext) ||
+         (0 != strcmp (ext,
+                       ".conf")) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Skipping file `%s'\n",
                   filename);
       fun_ret = GNUNET_OK;
-      goto cleanup;
+      continue;
     }
     fun_ret = GNUNET_CONFIGURATION_parse (cfg,
                                           filename);

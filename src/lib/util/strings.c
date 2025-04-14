@@ -508,7 +508,7 @@ GNUNET_STRINGS_filename_expand (const char *fil)
   char *fm;
   const char *fil_ptr;
 
-  if (fil == NULL)
+  if (NULL == fil)
     return NULL;
 
   if (fil[0] == DIR_SEPARATOR)
@@ -540,12 +540,14 @@ GNUNET_STRINGS_filename_expand (const char *fil)
     while (1)
     {
       buffer = GNUNET_malloc (len);
-      if (getcwd (buffer, len) != NULL)
+      if (NULL != getcwd (buffer,
+                          len))
       {
         fm = buffer;
         break;
       }
-      if ((errno == ERANGE) && (len < 1024 * 1024 * 4))
+      if ( (errno == ERANGE) &&
+           (len < 1024 * 1024 * 4) )
       {
         len *= 2;
         GNUNET_free (buffer);
@@ -554,20 +556,22 @@ GNUNET_STRINGS_filename_expand (const char *fil)
       GNUNET_free (buffer);
       break;
     }
-    if (fm == NULL)
+    if (NULL == fm)
     {
-      LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING, "getcwd");
+      LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
+                    "getcwd");
       buffer = getenv ("PWD");    /* alternative */
       if (buffer != NULL)
         fm = GNUNET_strdup (buffer);
     }
-    if (fm == NULL)
+    if (NULL == fm)
       fm = GNUNET_strdup ("./");  /* give up */
   }
   GNUNET_asprintf (&buffer,
                    "%s%s%s",
                    fm,
-                   (fm[strlen (fm) - 1] == DIR_SEPARATOR) ? ""
+                   (fm[strlen (fm) - 1] == DIR_SEPARATOR)
+                   ? ""
                    : DIR_SEPARATOR_STR,
                    fil_ptr);
   GNUNET_free (fm);
@@ -1214,7 +1218,6 @@ GNUNET_STRINGS_parse_socket_addr (const char *addr,
     return sizeof(struct sockaddr_in);
   }
 }
-
 
 
 /**

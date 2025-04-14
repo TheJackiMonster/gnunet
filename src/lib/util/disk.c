@@ -175,7 +175,10 @@ get_size_rec (void *cls, const char *fn)
   if ((S_ISDIR (buf.st_mode)) && (0 == access (fn, X_OK)) &&
       ((! S_ISLNK (buf.st_mode)) || (gfsd->include_sym_links == GNUNET_YES)))
   {
-    if (GNUNET_SYSERR == GNUNET_DISK_directory_scan (fn, &get_size_rec, gfsd))
+    if (GNUNET_SYSERR ==
+        GNUNET_DISK_directory_scan (fn,
+                                    &get_size_rec,
+                                    gfsd))
       return GNUNET_SYSERR;
   }
   return GNUNET_OK;
@@ -840,12 +843,15 @@ GNUNET_DISK_directory_scan (const char *dir_name,
   dname = GNUNET_STRINGS_filename_expand (dir_name);
   if (NULL == dname)
     return GNUNET_SYSERR;
-  while ((strlen (dname) > 0) && (dname[strlen (dname) - 1] == DIR_SEPARATOR))
+  while ( (strlen (dname) > 0) &&
+          (dname[strlen (dname) - 1] == DIR_SEPARATOR) )
     dname[strlen (dname) - 1] = '\0';
   dinfo = opendir (dname);
   if (NULL == dinfo)
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "opendir", dname);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING,
+                       "opendir",
+                       dname);
     GNUNET_free (dname);
     return GNUNET_SYSERR;
   }
@@ -873,11 +879,13 @@ GNUNET_DISK_directory_scan (const char *dir_name,
                        n_size,
                        "%s%s%s",
                        dname,
-                       (0 == strcmp (dname, DIR_SEPARATOR_STR))
+                       (0 == strcmp (dname,
+                                     DIR_SEPARATOR_STR))
                        ? ""
                        : DIR_SEPARATOR_STR,
                        finfo->d_name);
-      ret = callback (callback_cls, name);
+      ret = callback (callback_cls,
+                      name);
       if (GNUNET_OK != ret)
       {
         closedir (dinfo);
@@ -1100,15 +1108,21 @@ GNUNET_DISK_directory_remove (const char *filename)
         GNUNET_DISK_directory_test (filename,
                                     GNUNET_YES)) )
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "rmdir", filename);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING,
+                       "rmdir",
+                       filename);
     return GNUNET_SYSERR;
   }
   if (GNUNET_SYSERR ==
-      GNUNET_DISK_directory_scan (filename, &remove_helper, NULL))
+      GNUNET_DISK_directory_scan (filename,
+                                  &remove_helper,
+                                  NULL))
     return GNUNET_SYSERR;
   if (0 != rmdir (filename))
   {
-    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING, "rmdir", filename);
+    LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_WARNING,
+                       "rmdir",
+                       filename);
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;
