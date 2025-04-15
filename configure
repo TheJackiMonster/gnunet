@@ -65,13 +65,14 @@ while [ "$#" -gt "0" ]; do
 			;;
 		--enable-*)
 			for feat in $pkg_optional_features $pkg_default_features; do
+        ft=$(echo $feat | tr - _)
 				if [ "--enable-$feat" = "$arg" ] && [ -z "$argparam" ]; then
-					eval "enable_$feat=true"
+					eval "enable_$ft=true"
 				elif [ "--enable-$feat" = "$arg" ]; then
           if [ "$argparam" = "yes" ]; then
-					  eval "enable_$feat=\"true\""
+					  eval "enable_$ft=\"true\""
           else
-					  eval "enable_$feat=\"$argparam\""
+					  eval "enable_$ft=\"$argparam\""
           fi
 				fi
 			done
