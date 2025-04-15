@@ -23,6 +23,11 @@ uninstall:
 dist:
 	$(MESON) dist -C $(mesonbuilddir) --formats gztar
 
+# Make doxygen
+.PHONY: doxygen
+doxygen:
+	$(NINJA) -C $(mesonbuilddir) doxygen
+
 # Run tests
 .PHONY: check
 check:
