@@ -228,6 +228,9 @@ for dr in $standard_dirs; do
   if [ $dr = "srcdir" ]; then
     continue
   fi
+  if [ $dr = "mesonbuilddir" ]; then
+    continue
+  fi
   eval "vn=\${var_$dr}"
   if [ ! -z $vn ]; then
     eval "mesondiropts=\"$mesondiropts -D$dr=\${var_$dr}\""
