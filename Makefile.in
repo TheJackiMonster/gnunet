@@ -21,7 +21,7 @@ uninstall:
 # Make tarball
 .PHONY: dist
 dist:
-	$(MESON) dist -C $(mesonbuilddir) --formats gztar
+	$(MESON) dist -C $(mesonbuilddir) --no-tests --formats gztar
 
 # Make doxygen
 .PHONY: doxygen
