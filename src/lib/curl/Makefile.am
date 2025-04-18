@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 
 libgnunetcurl_la_LDFLAGS = \
   $(GN_LIBINTL) \
-  -version-info 0:0:0 \
+  -version-info 0:1:0 \
   -no-undefined
 libgnunetcurl_la_SOURCES = \
   curl.c curl_internal.h \
