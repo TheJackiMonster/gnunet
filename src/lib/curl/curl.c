@@ -479,6 +479,10 @@ GNUNET_CURL_extend_headers (struct GNUNET_CURL_Job *job,
                                                      curr->data)));
   }
   job->job_headers = all_headers;
+  GNUNET_break (CURLE_OK ==
+                curl_easy_setopt (job->easy_handle,
+                                  CURLOPT_HTTPHEADER,
+                                  all_headers));
 }
 
 
@@ -879,13 +883,14 @@ GNUNET_CURL_fini (struct GNUNET_CURL_Context *ctx)
   GNUNET_free (ctx);
 }
 
+
 void
 GNUNET_CURL_constructor__ (void);
 
 /**
  * Initial global setup logic, specifically runs the Curl setup.
  */
-void __attribute__ ((constructor)) 
+void __attribute__ ((constructor))
 GNUNET_CURL_constructor__ (void)
 {
   CURLcode ret;
@@ -898,6 +903,7 @@ GNUNET_CURL_constructor__ (void)
     curl_fail = 1;
   }
 }
+
 
 void
 GNUNET_CURL_destructor__ (void);
