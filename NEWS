@@ -1,3 +1,9 @@
+v0.24.2:
+  - Fix GNUNET_CURL_extend_headers() which failed to actually modify headers.
+  - Fix configuration loader to not abort loading configuration files on first non-"*.conf"-file.
+  - Fix logging when using timetravel.
+  - Fix segfault in gnunet-config.
+
 v0.24.1:
   - Fix crash in libgnunetpq when Postgresql database was restarted
   - Add configure and make functionality for new meson build (https://www.gnu.org/prep/standards/html_node/Configuration.html)
