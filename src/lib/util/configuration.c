@@ -2574,7 +2574,6 @@ GNUNET_CONFIGURATION_load_from (
     if (fun_ret != GNUNET_OK)
       break;
   }
-cleanup:
   if (files_context.files_length > 0)
   {
     for (size_t i = 0; i < files_context.files_length; i++)
