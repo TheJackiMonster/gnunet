@@ -277,10 +277,12 @@ GNUNET_STRINGS_fancy_time_to_relative (const char *fancy_time,
     { "d", 24 * 60 * 60 * 1000LL * 1000LL },
     { "day", 24 * 60 * 60 * 1000LL * 1000LL },
     { "days", 24 * 60 * 60 * 1000LL * 1000LL },
+    { "w", 7 * 24 * 60 * 60 * 1000LL * 1000LL },
     { "week", 7 * 24 * 60 * 60 * 1000LL * 1000LL },
     { "weeks", 7 * 24 * 60 * 60 * 1000LL * 1000LL },
     { "year", 31536000000000LL /* year */ },
     { "years", 31536000000000LL /* year */ },
+    { "y", 31536000000000LL /* year */ },
     { "a", 31536000000000LL /* year */ },
     { NULL, 0 } };
   int ret;
