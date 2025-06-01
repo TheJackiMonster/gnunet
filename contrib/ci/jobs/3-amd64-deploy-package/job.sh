@@ -1,7 +1,7 @@
 #!/bin/bash
 set -exuo pipefail
 
-ARTIFACT_PATH="/artifacts/${CI_PROJECT_NAME}/${CI_COMMIT_REF}/*.deb"
+ARTIFACT_PATH="/artifacts/gnunet/${CI_COMMIT_REF}/*.deb"
 RELEASE_ARTIFACT_DIR="${RELEASE_ARTIFACT_DIR:-"$(dirname $0)/../../../../release-artifacts"}"
 
 if [[ -d "$RELEASE_ARTIFACT_DIR" ]]; then
