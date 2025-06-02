@@ -2,7 +2,7 @@
 
 pkg_name="gnunet"
 pkg_default_features=""
-pkg_optional_features="experimental monolith testbed exclude-manpages malicious benchmarks poisoning nse-histogram disable-autostart install-rpath heap-statistics logging"
+pkg_optional_features="experimental monolith testbed exclude-manpages malicious benchmarks poisoning nse-histogram disable-autostart install-rpath heap-statistics logging coverage"
 pkg_optional_dependencies=""
 
 # DO NOT EDIT BELOW THIS LINE
@@ -187,7 +187,12 @@ mesonfeatopts=""
 for feat in $pkg_optional_features $pkg_default_features; do
   ft=$(echo $feat | tr - _)
 	eval "echo \"enable_$ft=\${enable_$ft}\" >> Makefile"
-  eval "mesonfeatopts=\"$mesonfeatopts -D$feat=\${enable_$ft}\""
+  if [ "coverage" = $feat ]; then
+    mfeat="b_$feat"
+  else
+    mfeat=$feat
+  fi
+  eval "mesonfeatopts=\"$mesonfeatopts -D$mfeat=\${enable_$ft}\""
 done
 for dep in $pkg_optional_dependencies; do
 	eval "echo \"with_$dep=\${with_$dep}\" >> Makefile"
