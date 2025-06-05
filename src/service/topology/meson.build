@@ -10,7 +10,7 @@ configure_file(
 
 
 if get_option('monolith')
-# FIXME add daemon when new daemon macro is ported/ready for it.
+    # FIXME add daemon when new daemon macro is ported/ready for it.
     #foreach p : libgnunetfriends_src
     #  gnunet_src += 'topology/' + p
     #endforeach

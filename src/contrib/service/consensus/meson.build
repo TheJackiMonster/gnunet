@@ -12,7 +12,7 @@ configure_file(
 
 # FIXME needs new seti/setu
 if get_option('monolith')
-#foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
+    #foreach p : libgnunetconsensus_src + gnunetserviceconsensus_src
     #  gnunet_src += 'consensus/' + p
     #endforeach
 endif

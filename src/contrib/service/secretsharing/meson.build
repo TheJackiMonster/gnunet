@@ -15,7 +15,7 @@ configure_file(
 
 # FIXME needs new seti/setu
 if get_option('monolith')
-#foreach p : libgnunetsecretsharing_src + gnunetservicesecretsharing_src
+    #foreach p : libgnunetsecretsharing_src + gnunetservicesecretsharing_src
     #  gnunet_src += 'secretsharing/' + p
     #endforeach
 endif

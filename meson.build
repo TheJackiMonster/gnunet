@@ -230,7 +230,7 @@ gnutls_dep = dependency('libgnutls', required: false)
 if not gnutls_dep.found()
     gnutls_dep = cc.find_library('gnutls', required: false)
     if not gnutls_dep.found()
-        gnutls_dep = cc.find_library('gnutls-dane', required: true)
+        gnutls_dep = cc.find_library('gnutls-dane', required: false)
     endif
 endif
 sodium_dep = dependency('libsodium', required: false, version: '>=1.0.18')
@@ -273,7 +273,7 @@ nghttp3_dep = dependency('libnghttp3', required: false)
 if not nghttp3_dep.found()
     nghttp3_dep = cc.find_library('nghttp3', required: false)
 endif
-http3_enabled = ngtcp2_dep.found() and ngtcp2_crypto_dep.found() and nghttp3_dep.found()
+http3_enabled = ngtcp2_dep.found() and ngtcp2_crypto_dep.found() and nghttp3_dep.found() and gnutls_dep.found()
 if http3_enabled
     message('HTTP3 enabled')
 endif
@@ -683,9 +683,11 @@ subdir('doc')
 subdir('contrib')
 subdir('data')
 
-run_target('doxygen',
-  command : 'scripts/doxygen.meson.sh',
-  env: {'PACKAGE_VERSION': version})
+run_target(
+    'doxygen',
+    command: 'scripts/doxygen.meson.sh',
+    env: {'PACKAGE_VERSION': version},
+)
 meson.add_dist_script('meson-dist-script')
 
 gnunet_prefix = get_option('prefix') / get_option('libdir')
@@ -709,7 +711,9 @@ summary(
         'compiler': cc.get_id(),
         'libdir': get_option('libdir'),
         'datadir': get_option('datadir'),
-        'default network interface': private_config.get('GNUNET_DEFAULT_INTERFACE'),
+        'default network interface': private_config.get(
+            'GNUNET_DEFAULT_INTERFACE',
+        ),
     },
     section: 'Detected system',
 )

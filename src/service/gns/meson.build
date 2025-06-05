@@ -51,23 +51,25 @@ pkg.generate(
     description: 'Provides API to access the GNU Name System',
 )
 
-executable(
-    'gnunet-gns-proxy',
-    gnunetgnsproxy_src,
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetgns_dep,
-        libgnunetutil_dep,
-        mhd_dep,
-        idn_dep,
-        curl_dep,
-        gnutls_dep,
-        libgnunetidentity_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: true,
-    install_dir: get_option('libdir') / 'gnunet' / 'libexec',
-)
+if gnutls_dep.found()
+    executable(
+        'gnunet-gns-proxy',
+        gnunetgnsproxy_src,
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetgns_dep,
+            libgnunetutil_dep,
+            mhd_dep,
+            idn_dep,
+            curl_dep,
+            gnutls_dep,
+            libgnunetidentity_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('libdir') / 'gnunet' / 'libexec',
+    )
+endif
 
 executable(
     'gnunet-service-gns',
