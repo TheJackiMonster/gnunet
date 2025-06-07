@@ -528,7 +528,7 @@ fork_and_exec (const char *file,
  * with 'NULL' for @a ego. That does NOT mean that the callback won't
  * be invoked in the future or that there was an error.
  *
- * When used with #GNUNET_IDENTITY_create or #GNUNET_IDENTITY_get, this
+ * When used with #GNUNET_IDENTITY_create, this
  * function is only called ONCE, and 'NULL' being passed in @a ego does
  * indicate an error (for example because name is taken or no default value is
  * known).  If @a ego is non-NULL and if '*ctx' is set in those callbacks, the
