@@ -203,7 +203,7 @@ GNUNET_STRINGS_from_utf8 (const char *input,
  *
  * @param input input string
  * @param output output buffer
- * @return GNUNET_OK on success
+ * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
 GNUNET_STRINGS_utf8_tolower (const char *input,
@@ -291,6 +291,7 @@ GNUNET_STRINGS_buffer_tokenize (const char *buffer,
  */
 const char *
 GNUNET_STRINGS_timestamp_to_string (struct GNUNET_TIME_Timestamp t);
+
 
 /**
  * @ingroup time
