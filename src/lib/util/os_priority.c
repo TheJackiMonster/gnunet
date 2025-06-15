@@ -33,10 +33,11 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-os-priority", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-os-priority", syscall)
+        GNUNET_log_from_strerror (kind, "util-os-priority", syscall)
 
 #define LOG_STRERROR_FILE(kind, syscall, filename) \
-  GNUNET_log_from_strerror_file (kind, "util-os-priority", syscall, filename)
+        GNUNET_log_from_strerror_file (kind, "util-os-priority", syscall, \
+                                       filename)
 
 #define GNUNET_OS_CONTROL_PIPE "GNUNET_OS_CONTROL_PIPE"
 
@@ -443,8 +444,12 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
   if (-1 == ret)
   {
     int eno = errno;
-    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "fork");
-    GNUNET_array_grow (lscp, ls, 0);
+
+    LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                  "fork");
+    GNUNET_array_grow (lscp,
+                       ls,
+                       0);
     if (NULL != childpipe_write)
       GNUNET_DISK_file_close (childpipe_write);
     if (0 <= childpipe_read_fd)
@@ -472,49 +477,65 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
     /* due to vfork, we must NOT free memory on DARWIN! */
     GNUNET_DISK_file_close (childpipe_write);
 #endif
-    snprintf (fdbuf, 100, "%x", childpipe_read_fd);
-    setenv (GNUNET_OS_CONTROL_PIPE, fdbuf, 1);
+    snprintf (fdbuf,
+              sizeof (fdbuf),
+              "%x",
+              childpipe_read_fd);
+    setenv (GNUNET_OS_CONTROL_PIPE,
+            fdbuf,
+            1);
   }
   else
     unsetenv (GNUNET_OS_CONTROL_PIPE);
   if (NULL != pipe_stdin)
   {
     GNUNET_break (0 == close (fd_stdin_write));
-    if (-1 == dup2 (fd_stdin_read, 0))
-      LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "dup2");
+    if (-1 == dup2 (fd_stdin_read,
+                    0))
+      LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                    "dup2");
     GNUNET_break (0 == close (fd_stdin_read));
   }
   else if (0 == (std_inheritance & GNUNET_OS_INHERIT_STD_IN))
   {
     GNUNET_break (0 == close (0));
-    open_dev_null (0, O_RDONLY);
+    open_dev_null (0,
+                   O_RDONLY);
   }
   if (NULL != pipe_stdout)
   {
     GNUNET_break (0 == close (fd_stdout_read));
-    if (-1 == dup2 (fd_stdout_write, 1))
-      LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "dup2");
-    GNUNET_break (0 == close (fd_stdout_write));
+    if (-1 == dup2 (fd_stdout_write,
+                    1))
+      LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR,
+                    "dup2");
+    GNUNET_break (0 ==
+                  close (fd_stdout_write));
   }
   else if (0 == (std_inheritance & GNUNET_OS_INHERIT_STD_OUT))
   {
     GNUNET_break (0 == close (1));
-    open_dev_null (1, O_WRONLY);
+    open_dev_null (1,
+                   O_WRONLY);
   }
   if (NULL != pipe_stderr)
   {
     GNUNET_break (0 == close (fd_stderr_read));
-    if (-1 == dup2 (fd_stderr_write, 2))
+    if (-1 == dup2 (fd_stderr_write,
+                    2))
       LOG_STRERROR (GNUNET_ERROR_TYPE_ERROR, "dup2");
     GNUNET_break (0 == close (fd_stderr_write));
   }
   else if (0 == (std_inheritance & GNUNET_OS_INHERIT_STD_ERR))
   {
     GNUNET_break (0 == close (2));
-    open_dev_null (2, O_WRONLY);
+    open_dev_null (2,
+                   O_WRONLY);
   }
   if (NULL != lscp)
   {
+    char *fdnames = GNUNET_strdup ("");
+
     /* read systemd documentation... */
     i = 0;
     tgt = 3;
@@ -539,26 +560,55 @@ start_process (enum GNUNET_OS_InheritStdioFlags std_inheritance,
         /* Bury any existing FD, no matter what; they should all be closed
          * on exec anyway and the important ones have been dup'ed away */
         GNUNET_break (0 == close (tgt));
-        GNUNET_assert (-1 != dup2 (lscp[i], tgt));
+        GNUNET_assert (-1 != dup2 (lscp[i],
+                                   tgt));
       }
       /* unset close-on-exec flag */
-      flags = fcntl (tgt, F_GETFD);
+      flags = fcntl (tgt,
+                     F_GETFD);
       GNUNET_assert (flags >= 0);
       flags &= ~FD_CLOEXEC;
       fflush (stderr);
-      (void) fcntl (tgt, F_SETFD, flags);
+      (void) fcntl (tgt,
+                    F_SETFD,
+                    flags);
+      {
+        char *tmp;
+
+        GNUNET_asprintf (&tmp,
+                         "%s:%d",
+                         fdnames,
+                         tgt);
+        GNUNET_free (fdnames);
+        fdnames = tmp;
+      }
       tgt++;
       i++;
     }
-    GNUNET_snprintf (fds, sizeof(fds), "%u", i);
-    setenv ("LISTEN_FDS", fds, 1);
+    GNUNET_snprintf (fds,
+                     sizeof(fds),
+                     "%u",
+                     i);
+    setenv ("LISTEN_FDS",
+            fds,
+            1);
+    if (0 != strlen (fdnames))
+      setenv ("LISTEN_FDNAMES",
+              fdnames + 1, /* skip leading ':' */
+              1);
+    GNUNET_free (fdnames);
   }
 #ifndef DARWIN
   /* due to vfork, we must NOT free memory on DARWIN! */
-  GNUNET_array_grow (lscp, ls, 0);
+  GNUNET_array_grow (lscp,
+                     ls,
+                     0);
 #endif
-  execvp (filename, argv);
-  LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_ERROR, "execvp", filename);
+  execvp (filename,
+          argv);
+  LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_ERROR,
+                     "execvp",
+                     filename);
   _exit (1);
 }
 

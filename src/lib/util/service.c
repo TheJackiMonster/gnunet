@@ -1480,9 +1480,10 @@ setup_service (const struct GNUNET_OS_ProjectData *pd,
   struct GNUNET_NETWORK_Handle **csocks = NULL;
   struct GNUNET_NETWORK_Handle **lsocks;
   const char *nfds;
+  const char *fdns;
   unsigned int cnt;
   int flags;
-  char dummy[2];
+  char dummy;
 
   if (GNUNET_CONFIGURATION_have_value (sh->cfg,
                                        sh->service_name,
@@ -1506,30 +1507,71 @@ setup_service (const struct GNUNET_OS_ProjectData *pd,
   lsocks = NULL;
   errno = 0;
   if ( (NULL != (nfds = getenv ("LISTEN_FDS"))) &&
-       (1 == sscanf (nfds, "%u%1s", &cnt, dummy)) && (cnt > 0) &&
-       (cnt < FD_SETSIZE) && (cnt + 4 < FD_SETSIZE))
+       (NULL != (fdns = getenv ("LISTEN_FDNAMES"))) &&
+       (1 == sscanf (nfds,
+                     "%u%c",
+                     &cnt,
+                     &dummy)) &&
+       (cnt > 0) &&
+       (cnt < FD_SETSIZE) )
   {
-    lsocks = GNUNET_new_array (cnt + 1, struct GNUNET_NETWORK_Handle *);
-    while (0 < cnt--)
+    char *fdnames;
+    unsigned int pos;
+
+    lsocks = GNUNET_new_array (cnt + 1,
+                               struct GNUNET_NETWORK_Handle *);
+    fdnames = GNUNET_strdup (fdns);
+    pos = 0;
+    for (const char *tok = strtok (fdnames,
+                                   ":");
+         NULL != tok;
+         tok = strtok (NULL, ":"))
     {
-      flags = fcntl (3 + cnt, F_GETFD);
-      if ((flags < 0) || (0 != (flags & FD_CLOEXEC)) ||
-          (NULL == (lsocks[cnt] = GNUNET_NETWORK_socket_box_native (3 + cnt))))
+      unsigned int fd;
+
+      if (pos == cnt)
       {
-        LOG (GNUNET_ERROR_TYPE_ERROR,
-             _ (
-               "Could not access pre-bound socket %u, will try to bind myself\n"),
-             (unsigned int) 3 + cnt);
-        cnt++;
-        while (NULL != lsocks[cnt])
-          GNUNET_break (GNUNET_OK ==
-                        GNUNET_NETWORK_socket_close (lsocks[cnt++]));
-        GNUNET_free (lsocks);
-        lsocks = NULL;
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "More than LISTEN_FDS sockets given in LISTEN_FDNAMES\n");
         break;
       }
+      if (1 != sscanf (tok,
+                       "%u%c",
+                       &fd,
+                       &dummy))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Malformed socket given in LISTEN_FDNAMES than in LISTEN_FDS\n");
+        break;
+      }
+      if (fd >= FD_SETSIZE)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    "Socket given in LISTEN_FDNAMES outside of select()able range\n");
+        break;
+      }
+      flags = fcntl ((int) fd,
+                     F_GETFD);
+      if ((flags < 0) ||
+          (0 != (flags & FD_CLOEXEC)) ||
+          (NULL == (lsocks[pos] = GNUNET_NETWORK_socket_box_native ((int) fd))))
+      {
+        LOG (GNUNET_ERROR_TYPE_ERROR,
+             "Could not access pre-bound socket %u\n",
+             fd);
+        break;
+      }
+      pos++;
+    }
+    if (0 == pos)
+    {
+      for (unsigned int i=0; i<cnt; i++)
+        GNUNET_break (GNUNET_OK ==
+                      GNUNET_NETWORK_socket_close (lsocks[i]));
+      GNUNET_free (lsocks);
     }
     unsetenv ("LISTEN_FDS");
+    cnt = pos;
   }
   if ( (0 != (GNUNET_SERVICE_OPTION_CLOSE_LSOCKS & sh->options)) &&
        (NULL != lsocks) )
@@ -1560,7 +1602,10 @@ setup_service (const struct GNUNET_OS_ProjectData *pd,
     socklen_t *addrlens;
     int num;
 
-    num = get_server_addresses (sh->service_name, sh->cfg, &addrs, &addrlens);
+    num = get_server_addresses (sh->service_name,
+                                sh->cfg,
+                                &addrs,
+                                &addrlens);
     if (GNUNET_SYSERR == num)
     {
       GNUNET_free (csocks);
@@ -1593,8 +1638,7 @@ setup_service (const struct GNUNET_OS_ProjectData *pd,
       /* All attempts to bind failed, hard failure */
       GNUNET_log (
         GNUNET_ERROR_TYPE_ERROR,
-        _ (
-          "Could not bind to any of the ports I was supposed to, refusing to run!\n"));
+        "Could not bind to any of the ports I was supposed to, refusing to run!\n");
       GNUNET_free (csocks);
       return GNUNET_SYSERR;
     }
