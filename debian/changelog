@@ -1,3 +1,9 @@
+gnunet (0.24.3) unstable; urgency=low
+
+  * Package for GNUnet v0.24.3.
+
+ -- Florian Dold <dold@taler.net>  Tue, 24 Jun 2025 17:06:01 +0200
+
 gnunet (0.24.2) unstable; urgency=low
 
   * Package for GNUnet v0.24.2.
