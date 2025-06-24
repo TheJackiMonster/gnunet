@@ -188,6 +188,18 @@ extern "C" {
 
 
 /**
+ * GNS zone delegation (FAESTKEY)
+ */
+#define GNUNET_GNSRECORD_TYPE_FAESTKEY 65562
+
+
+/**
+ * Record type to store epoch keys from a messenger room
+ */
+#define GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY 65563
+
+
+/**
  * Private metadata for a delegation registration
  */
 #define GNUNET_GNSRECORD_TYPE_GNS_REGISTRAR_METADATA 4294901760
