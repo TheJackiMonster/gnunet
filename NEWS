@@ -1,3 +1,10 @@
+v0.24.3:
+  - util: Support time specs with 'w' for weeks and 'y' for years as well
+  - identity: Delete previously removed GNUNET_IDENTITY_get/set API from header
+  - libmhd: Fix critical bug in compression implementation.
+  - build: Make gnutls an optional dependency
+  - other: Service activation: properly use LISTEN_FDNAMES as per modern systemd specification
+
 v0.24.2:
   - Fix GNUNET_CURL_extend_headers() which failed to actually modify headers.
   - Fix configuration loader to not abort loading configuration files on first non-"*.conf"-file.
