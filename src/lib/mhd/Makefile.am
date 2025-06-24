@@ -11,7 +11,7 @@ lib_LTLIBRARIES = \
 
 libgnunetmhd_la_LDFLAGS = \
   $(GN_LIBINTL) \
-  -version-info 0:0:0 \
+  -version-info 0:1:0 \
   -no-undefined
 libgnunetmhd_la_CFLAGS = \
   $(MHD_CFLAGS) \
