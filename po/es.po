@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.9.5a\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-11 14:26+0200\n"
+"POT-Creation-Date: 2025-06-24 12:34+0200\n"
 "PO-Revision-Date: 2013-02-23 17:50+0100\n"
 "Last-Translator: Miguel Ángel Arruga Vivas <rosen644835@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
@@ -2150,23 +2150,23 @@ msgid ""
 "Parse main configuration from this command-line argument and not from disk"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:233
+#: src/cli/util/gnunet-config.c:230
 #, fuzzy
 msgid "Failed to load default configuration, exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:245
+#: src/cli/util/gnunet-config.c:242
 #, fuzzy
 msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/cli/util/gnunet-config.c:254 src/lib/util/program.c:294
 #: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/cli/util/gnunet-config.c:268 src/cli/util/gnunet-config.c:283
 #: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
@@ -3402,17 +3402,17 @@ msgstr ""
 "La configuración especifica un valor no válido en la opción «%s» de la "
 "sección «%s»: %s\n"
 
-#: src/lib/util/configuration.c:1095
+#: src/lib/util/configuration.c:1107
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/configuration.c:1873
+#: src/lib/util/configuration.c:1885
 #, fuzzy
 msgid "Not a valid relative time specification"
 msgstr "Tiempo de expiración no válido para la operación «%s»\n"
 
-#: src/lib/util/configuration.c:1951
+#: src/lib/util/configuration.c:1963
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3421,27 +3421,27 @@ msgstr ""
 "El valor de configuración «%s» para «%s» de la sección «%s» no está dentro "
 "de las opciones legales\n"
 
-#: src/lib/util/configuration.c:2809
+#: src/lib/util/configuration.c:2823
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/configuration.c:2821
+#: src/lib/util/configuration.c:2835
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2835
+#: src/lib/util/configuration.c:2849
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "el parámetro --section es necesario\n"
 
-#: src/lib/util/configuration.c:2906
+#: src/lib/util/configuration.c:2920
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr "el parámetro --option es necesario para establecer un valor\n"
 
-#: src/lib/util/configuration.c:2949
+#: src/lib/util/configuration.c:2963
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Se produjo un fallo al cargar la configuración de %s\n"
@@ -3522,7 +3522,7 @@ msgstr "El firmado ECC falló en %s:%d: %s\n"
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "La verificación de la firma RSA fallo en %s:%d: %s\n"
 
-#: src/lib/util/disk.c:1219 src/lib/util/service.c:1665
+#: src/lib/util/disk.c:1233 src/lib/util/service.c:1709
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "No se pudo obtener información acerca del usuario «%s»: %s\n"
@@ -3881,18 +3881,18 @@ msgstr "No se pudo determinar la ruta de instalación de los módulos.\n"
 msgid "Malformed configuration. Exiting ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/program.c:446 src/lib/util/service.c:2010
+#: src/lib/util/program.c:446 src/lib/util/service.c:2054
 msgid "do daemonize (detach from terminal)"
 msgstr "demonizar (desasociar del terminal)"
 
 #: src/lib/util/program.c:502 src/lib/util/program.c:517
-#: src/lib/util/service.c:2090 src/lib/util/service.c:2105
+#: src/lib/util/service.c:2134 src/lib/util/service.c:2149
 #: src/service/transport/transport-testing-communicator.c:1068
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
 
-#: src/lib/util/program.c:530 src/lib/util/service.c:2117
+#: src/lib/util/program.c:530 src/lib/util/service.c:2161
 #, fuzzy
 msgid "Malformed configuration, exit ...\n"
 msgstr "Se produjo un fallo al borrar el fichero de configuración %s\n"
@@ -3995,42 +3995,30 @@ msgstr "«%s» falló para el puerto %d (%s): dirección en uso actualmente\n"
 msgid "`%s' failed for `%s': address already in use\n"
 msgstr "«%s» falló para «%.*s»: dirección en uso actualmente\n"
 
-#: src/lib/util/service.c:1497
+#: src/lib/util/service.c:1498
 #, c-format
 msgid "Specified value for `%s' of service `%s' is invalid\n"
 msgstr "El valor especificado «%s» para el servicio «%s» no es válido\n"
 
-#: src/lib/util/service.c:1521
-#, c-format
-msgid "Could not access pre-bound socket %u, will try to bind myself\n"
-msgstr ""
-"No se pudo acceder al «socket» pre-ascociado %u, lo intentaré asociar yo "
-"mismo\n"
-
-#: src/lib/util/service.c:1597
-msgid ""
-"Could not bind to any of the ports I was supposed to, refusing to run!\n"
-msgstr ""
-
-#: src/lib/util/service.c:1667
+#: src/lib/util/service.c:1711
 msgid "No such user"
 msgstr "No existe tal usuario"
 
-#: src/lib/util/service.c:1682
+#: src/lib/util/service.c:1726
 #, c-format
 msgid "Cannot change user/group to `%s': %s\n"
 msgstr "Imposible cambiar el usuario/grupo a «%s»: %s\n"
 
-#: src/lib/util/service.c:1781
+#: src/lib/util/service.c:1825
 msgid "Service process failed to initialize\n"
 msgstr "No se pudo inicializar el proceso del servicio\n"
 
-#: src/lib/util/service.c:1786
+#: src/lib/util/service.c:1830
 msgid "Service process could not initialize server function\n"
 msgstr ""
 "No se pudo inicializar la función del servidor en el proceso del servicio\n"
 
-#: src/lib/util/service.c:1791
+#: src/lib/util/service.c:1835
 msgid "Service process failed to report status\n"
 msgstr "El proceso del servicio no devolvió un estado\n"
 
@@ -4044,78 +4032,78 @@ msgstr ""
 msgid "Attempting to proxy service `%s' to invalid port %d or hostname.\n"
 msgstr ""
 
-#: src/lib/util/strings.c:403
+#: src/lib/util/strings.c:405
 #, c-format
 msgid "Character sets requested were `%s'->`%s'\n"
 msgstr "Los conjuntos de caracteres pedidos fueron «%s»->«%s»\n"
 
-#: src/lib/util/strings.c:523
+#: src/lib/util/strings.c:525
 msgid "Failed to expand `$HOME': environment variable `HOME' not set"
 msgstr ""
 "Se produjo un fallo al expandir «$HOME»: variable de entorno «HOME» no "
 "establecida"
 
-#: src/lib/util/strings.c:1076
+#: src/lib/util/strings.c:1082
 msgid "IPv6 address did not start with `['\n"
 msgstr "La dirección IPv6 no empezaba con «[»\n"
 
-#: src/lib/util/strings.c:1084
+#: src/lib/util/strings.c:1090
 msgid "IPv6 address did contain ':' to separate port number\n"
 msgstr "La dirección IPv6 contenía «:» para separar el número de puerto\n"
 
-#: src/lib/util/strings.c:1092
+#: src/lib/util/strings.c:1098
 msgid "IPv6 address did contain ']' before ':' to separate port number\n"
 msgstr ""
 "La dirección IPv6 contenía «]» antes de «:» para separar el número de "
 "puerto\n"
 
-#: src/lib/util/strings.c:1101
+#: src/lib/util/strings.c:1107
 msgid "IPv6 address did contain a valid port number after the last ':'\n"
 msgstr ""
 "La dirección IPv6 contenía un número de puerto válido después del último "
 "«:»\n"
 
-#: src/lib/util/strings.c:1110
+#: src/lib/util/strings.c:1116
 #, c-format
 msgid "Invalid IPv6 address `%s': %s\n"
 msgstr "Dirección IPv6 «%s» no válida: %s\n"
 
-#: src/lib/util/strings.c:1248 src/lib/util/strings.c:1259
+#: src/lib/util/strings.c:1253 src/lib/util/strings.c:1264
 msgid "Port not in range\n"
 msgstr ""
 
-#: src/lib/util/strings.c:1268
+#: src/lib/util/strings.c:1273
 #, fuzzy, c-format
 msgid "Malformed port policy `%s'\n"
 msgstr "Se produjo un fallo al iniciar el servicio «%s»\n"
 
-#: src/lib/util/strings.c:1336 src/lib/util/strings.c:1368
-#: src/lib/util/strings.c:1416 src/lib/util/strings.c:1429
+#: src/lib/util/strings.c:1341 src/lib/util/strings.c:1373
+#: src/lib/util/strings.c:1421 src/lib/util/strings.c:1434
 #, c-format
 msgid "Invalid format for IP: `%s'\n"
 msgstr "Formato no válido para la IP: «%s»\n"
 
-#: src/lib/util/strings.c:1393
+#: src/lib/util/strings.c:1398
 #, c-format
 msgid "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."
 msgstr "Notación de red no válida («/%d» no es válido en IPv4 CIDR)."
 
-#: src/lib/util/strings.c:1438
+#: src/lib/util/strings.c:1443
 #, fuzzy, c-format
 msgid "Invalid format: `%s'\n"
 msgstr "Formato de tiempo no válido «%s»\n"
 
-#: src/lib/util/strings.c:1473
+#: src/lib/util/strings.c:1478
 #, c-format
 msgid "Invalid network notation (does not end with ';': `%s')\n"
 msgstr "Notación de red no válida (no termina con «;»: «%s»)\n"
 
-#: src/lib/util/strings.c:1539
+#: src/lib/util/strings.c:1544
 #, c-format
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Formato «%s» erroneo para máscara de red\n"
 
-#: src/lib/util/strings.c:1574
+#: src/lib/util/strings.c:1579
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Formato «%s» erroneo para red\n"
@@ -7621,6 +7609,12 @@ msgstr "Se produjo un fallo al crear el espacio de nombres «%s»\n"
 #: src/service/zonemaster/gnunet-service-zonemaster.c:1374
 msgid "Failed to connect to the namestore!\n"
 msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
+
+#, c-format
+#~ msgid "Could not access pre-bound socket %u, will try to bind myself\n"
+#~ msgstr ""
+#~ "No se pudo acceder al «socket» pre-ascociado %u, lo intentaré asociar yo "
+#~ "mismo\n"
 
 #, fuzzy, c-format
 #~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
@@ -14962,11 +14956,10 @@ msgstr "¡Se produjo un fallo al conectar con el almacén de nombres!\n"
 #~ "activando la opción \"Mostrar todas las opciones\" en el menú de "
 #~ "\"Opciones\".\n"
 #~ "\n"
-#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,"
-#~ "·you·can·still·view·the·help·of·a·grayed-out·option.\n"
+#~ "Although·there·is·no·cross·reference·yet·to·help·you·figure·out·what·other·options·must·be·enabled·to·support·the·option·you·are·interested·in,·you·can·still·view·the·help·of·a·grayed-"
+#~ "out·option.\n"
 #~ "\n"
-#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,"
-#~ "·which·you·can·then·match·by·examining·other·options."
+#~ "Toggling·Show·Debug·Info·under·the·Options·menu·will·show·the·dependencies,·which·you·can·then·match·by·examining·other·options."
 
 #~ msgid ""
 #~ "Configuration file not found. Please run GNUnet Setup (Client "

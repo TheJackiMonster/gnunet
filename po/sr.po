@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-11 14:26+0200\n"
+"POT-Creation-Date: 2025-06-24 12:34+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -2114,23 +2114,23 @@ msgid ""
 "Parse main configuration from this command-line argument and not from disk"
 msgstr ""
 
-#: src/cli/util/gnunet-config.c:233
+#: src/cli/util/gnunet-config.c:230
 #, fuzzy
 msgid "Failed to load default configuration, exiting ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
-#: src/cli/util/gnunet-config.c:245
+#: src/cli/util/gnunet-config.c:242
 #, fuzzy
 msgid "Failed to parse configuration, exiting ...\n"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
-#: src/cli/util/gnunet-config.c:257 src/lib/util/program.c:294
+#: src/cli/util/gnunet-config.c:254 src/lib/util/program.c:294
 #: src/lib/util/program.c:321
 #, fuzzy, c-format
 msgid "Unreadable configuration file `%s', exiting ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
-#: src/cli/util/gnunet-config.c:271 src/cli/util/gnunet-config.c:286
+#: src/cli/util/gnunet-config.c:268 src/cli/util/gnunet-config.c:283
 #: src/lib/util/program.c:306
 #, fuzzy, c-format
 msgid "Malformed configuration file `%s', exiting ...\n"
@@ -3371,16 +3371,16 @@ msgid ""
 msgstr ""
 "Подешавање наводи неисправну вредност за опцију „%s“ у одељку „%s“: %s\n"
 
-#: src/lib/util/configuration.c:1095
+#: src/lib/util/configuration.c:1107
 #, fuzzy, c-format
 msgid "Failed to parse configuration file `%s'\n"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
-#: src/lib/util/configuration.c:1873
+#: src/lib/util/configuration.c:1885
 msgid "Not a valid relative time specification"
 msgstr ""
 
-#: src/lib/util/configuration.c:1951
+#: src/lib/util/configuration.c:1963
 #, c-format
 msgid ""
 "Configuration value '%s' for '%s' in section '%s' is not in set of legal "
@@ -3389,27 +3389,27 @@ msgstr ""
 "Вредност подешавања '%s' за '%s' у одељку '%s' није ус купу исправних "
 "избора\n"
 
-#: src/lib/util/configuration.c:2809
+#: src/lib/util/configuration.c:2823
 #, fuzzy, c-format
 msgid "Failed to load config file `%s'"
 msgstr "Нисам успео да уклоним датотеку подешавања „%s“\n"
 
-#: src/lib/util/configuration.c:2821
+#: src/lib/util/configuration.c:2835
 #, c-format
 msgid "The following sections are available:\n"
 msgstr ""
 
-#: src/lib/util/configuration.c:2835
+#: src/lib/util/configuration.c:2849
 #, fuzzy, c-format
 msgid "%s, %s or %s argument is required\n"
 msgstr "аргумент „--section“ је потребан\n"
 
-#: src/lib/util/configuration.c:2906
+#: src/lib/util/configuration.c:2920
 #, c-format
 msgid "--option argument required to set value\n"
 msgstr "аргумент „--option“ је потребан за постављање вредности\n"
 
-#: src/lib/util/configuration.c:2949
+#: src/lib/util/configuration.c:2963
 #, fuzzy, c-format
 msgid "failed to load configuration defaults"
 msgstr "Нисам успео да учитам подешавање за „%s“\n"
@@ -3489,7 +3489,7 @@ msgstr "„EdDSA“ потписивање није успело на %s:%d: %s\
 msgid "RSA signature verification failed at %s:%d: %s\n"
 msgstr "Провера „ECDSA“ потписа није успела на %s:%d: %s\n"
 
-#: src/lib/util/disk.c:1219 src/lib/util/service.c:1665
+#: src/lib/util/disk.c:1233 src/lib/util/service.c:1709
 #, c-format
 msgid "Cannot obtain information about user `%s': %s\n"
 msgstr "Не могу да добијем податке о кориснику „%s“: %s\n"
@@ -3843,18 +3843,18 @@ msgstr "Не могу да одредим путању инсталирања п
 msgid "Malformed configuration. Exiting ...\n"
 msgstr "Лоше подешавање, излазим ...\n"
 
-#: src/lib/util/program.c:446 src/lib/util/service.c:2010
+#: src/lib/util/program.c:446 src/lib/util/service.c:2054
 msgid "do daemonize (detach from terminal)"
 msgstr "ради демонизацију (откачиње од терминала)"
 
 #: src/lib/util/program.c:502 src/lib/util/program.c:517
-#: src/lib/util/service.c:2090 src/lib/util/service.c:2105
+#: src/lib/util/service.c:2134 src/lib/util/service.c:2149
 #: src/service/transport/transport-testing-communicator.c:1068
 #, c-format
 msgid "Malformed configuration file `%s', exit ...\n"
 msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
 
-#: src/lib/util/program.c:530 src/lib/util/service.c:2117
+#: src/lib/util/program.c:530 src/lib/util/service.c:2161
 msgid "Malformed configuration, exit ...\n"
 msgstr "Лоше подешавање, излазим ...\n"
 
@@ -3949,41 +3949,29 @@ msgstr "„%s“ није успело за прикључник %d (%s): адр
 msgid "`%s' failed for `%s': address already in use\n"
 msgstr "„%s“ није успело за „%s“: адреса је већ у употреби\n"
 
-#: src/lib/util/service.c:1497
+#: src/lib/util/service.c:1498
 #, c-format
 msgid "Specified value for `%s' of service `%s' is invalid\n"
 msgstr "Наведена вредност за „%s“ услуге „%s“ је неисправна\n"
 
-#: src/lib/util/service.c:1521
-#, c-format
-msgid "Could not access pre-bound socket %u, will try to bind myself\n"
-msgstr ""
-"Не могу да приступим унапред свезаној прикључници %u, покушаћу да свежем "
-"себе самог\n"
-
-#: src/lib/util/service.c:1597
-msgid ""
-"Could not bind to any of the ports I was supposed to, refusing to run!\n"
-msgstr ""
-
-#: src/lib/util/service.c:1667
+#: src/lib/util/service.c:1711
 msgid "No such user"
 msgstr "Нема таквог корисника"
 
-#: src/lib/util/service.c:1682
+#: src/lib/util/service.c:1726
 #, c-format
 msgid "Cannot change user/group to `%s': %s\n"
 msgstr "Не могу да променим власника/групу на „%s“: %s\n"
 
-#: src/lib/util/service.c:1781
+#: src/lib/util/service.c:1825
 msgid "Service process failed to initialize\n"
 msgstr "Процес услуге није успео да се покрене\n"
 
-#: src/lib/util/service.c:1786
+#: src/lib/util/service.c:1830
 msgid "Service process could not initialize server function\n"
 msgstr "Процес услуге не може да покрене функцију сервера\n"
 
-#: src/lib/util/service.c:1791
+#: src/lib/util/service.c:1835
 msgid "Service process failed to report status\n"
 msgstr "Процес услуге није успео да извести о стању\n"
 
@@ -3997,73 +3985,73 @@ msgstr ""
 msgid "Attempting to proxy service `%s' to invalid port %d or hostname.\n"
 msgstr ""
 
-#: src/lib/util/strings.c:403
+#: src/lib/util/strings.c:405
 #, c-format
 msgid "Character sets requested were `%s'->`%s'\n"
 msgstr "Скупови знакова се захтевају где је „%s“–>„%s“\n"
 
-#: src/lib/util/strings.c:523
+#: src/lib/util/strings.c:525
 msgid "Failed to expand `$HOME': environment variable `HOME' not set"
 msgstr ""
 "Нисам успео да раширим „$HOME“: променљива окружења „HOME“ није постављена"
 
-#: src/lib/util/strings.c:1076
+#: src/lib/util/strings.c:1082
 msgid "IPv6 address did not start with `['\n"
 msgstr "ИПв6 адреса не почиње са [\n"
 
-#: src/lib/util/strings.c:1084
+#: src/lib/util/strings.c:1090
 msgid "IPv6 address did contain ':' to separate port number\n"
 msgstr "ИПв6 адреса садржи : за раздвајање броја прикључника\n"
 
-#: src/lib/util/strings.c:1092
+#: src/lib/util/strings.c:1098
 msgid "IPv6 address did contain ']' before ':' to separate port number\n"
 msgstr "ИПв6 адреса садржи ] пре : за раздвајање броја прикључника\n"
 
-#: src/lib/util/strings.c:1101
+#: src/lib/util/strings.c:1107
 msgid "IPv6 address did contain a valid port number after the last ':'\n"
 msgstr "ИПв6 адреса садржи исправан број прикључника након последње „:“\n"
 
-#: src/lib/util/strings.c:1110
+#: src/lib/util/strings.c:1116
 #, c-format
 msgid "Invalid IPv6 address `%s': %s\n"
 msgstr "Неисправна ИПв6 адреса „%s“: %s\n"
 
-#: src/lib/util/strings.c:1248 src/lib/util/strings.c:1259
+#: src/lib/util/strings.c:1253 src/lib/util/strings.c:1264
 msgid "Port not in range\n"
 msgstr "Прикључник није у опсегу\n"
 
-#: src/lib/util/strings.c:1268
+#: src/lib/util/strings.c:1273
 #, c-format
 msgid "Malformed port policy `%s'\n"
 msgstr "Лоша политика прикључника „%s“\n"
 
-#: src/lib/util/strings.c:1336 src/lib/util/strings.c:1368
-#: src/lib/util/strings.c:1416 src/lib/util/strings.c:1429
+#: src/lib/util/strings.c:1341 src/lib/util/strings.c:1373
+#: src/lib/util/strings.c:1421 src/lib/util/strings.c:1434
 #, c-format
 msgid "Invalid format for IP: `%s'\n"
 msgstr "Неисправан формат за ИП: „%s“\n"
 
-#: src/lib/util/strings.c:1393
+#: src/lib/util/strings.c:1398
 #, c-format
 msgid "Invalid network notation ('/%d' is not legal in IPv4 CIDR)."
 msgstr "Неисправна напомена мреже („/%d“ није исправно у ИПв4 ЦИДР-у)."
 
-#: src/lib/util/strings.c:1438
+#: src/lib/util/strings.c:1443
 #, c-format
 msgid "Invalid format: `%s'\n"
 msgstr "Неисправан формат: „%s“\n"
 
-#: src/lib/util/strings.c:1473
+#: src/lib/util/strings.c:1478
 #, c-format
 msgid "Invalid network notation (does not end with ';': `%s')\n"
 msgstr "Неисправна напомена мреже (не завршава се са „;“: „%s“)\n"
 
-#: src/lib/util/strings.c:1539
+#: src/lib/util/strings.c:1544
 #, c-format
 msgid "Wrong format `%s' for netmask\n"
 msgstr "Погрешан формат „%s“ за мрежну маску\n"
 
-#: src/lib/util/strings.c:1574
+#: src/lib/util/strings.c:1579
 #, c-format
 msgid "Wrong format `%s' for network\n"
 msgstr "Погрешан формат „%s“ за мрежу\n"
@@ -7433,6 +7421,12 @@ msgstr "Нисам успео да реплицирам блок у остави
 msgid "Failed to connect to the namestore!\n"
 msgstr "Нисам успео да се повежем са смештајем назива!\n"
 
+#, c-format
+#~ msgid "Could not access pre-bound socket %u, will try to bind myself\n"
+#~ msgstr ""
+#~ "Не могу да приступим унапред свезаној прикључници %u, покушаћу да свежем "
+#~ "себе самог\n"
+
 #, fuzzy, c-format
 #~ msgid "Unreadable configuration file `%s'. Exiting ...\n"
 #~ msgstr "Лоша датотека подешавања „%s“, излазим ...\n"
@@ -7863,8 +7857,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: the maximum number of links a node can have\n"
 #~ "\t m: the number of links a node should have while joining the network\n"
 #~ "\t filename: the path of the file which contains topology information\n"
-#~ "NOTE: the format of the above file is described here: https://www.gnunet."
-#~ "org/content/topology-file-format\n"
+#~ "NOTE: the format of the above file is described here: https://"
+#~ "www.gnunet.org/content/topology-file-format\n"
 #~ msgstr ""
 #~ "Ствара СКуЛајт3 базу података која представља дати основни размештај.\n"
 #~ "Коришћење: gnunet-underlay-topology [ОПЦИЈЕ] db-filename TOPO "
@@ -7885,8 +7879,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ "\t cap: највећи број веза које чвор може да има\n"
 #~ "\t m: број веза које чвор треба да има приликом придруживања мрежи\n"
 #~ "\t filename: путања датотеке која садржи податке о размештају\n"
-#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://www."
-#~ "gnunet.org/content/topology-file-format\n"
+#~ "НАПОМЕНА: формат горе поменуте датотеке је описан овде: https://"
+#~ "www.gnunet.org/content/topology-file-format\n"
 
 #~ msgid "Daemon to log latency values of connections to neighbours"
 #~ msgstr "Демон за дневничење вредности кашњења веза са суседима"
@@ -9020,8 +9014,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 #~ msgstr "Нисам успео да поставим основни его: %s\n"
 
 #~ msgid ""
-#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with -"
-#~ "e)"
+#~ "set default identity to EGO for a subsystem SUBSYSTEM (use together with "
+#~ "-e)"
 #~ msgstr ""
 #~ "поставља основни идентитет на ЕГО за подсистем ПОДСИСТЕМ (користите "
 #~ "заједно са -e)"
@@ -9854,8 +9848,8 @@ msgstr "Нисам успео да се повежем са смештајем �
 
 #~ msgid ""
 #~ "Ego for `gns-short' not found. This is not really fatal, but i'll pretend "
-#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-import."
-#~ "sh?\n"
+#~ "that it is and refuse to perform a lookup.  Did you run gnunet-gns-"
+#~ "import.sh?\n"
 #~ msgstr ""
 #~ "Нисам нашао „gns-short“. То и није баш кобно, али ћу се ја претварати да "
 #~ "јесте и одбићу да обавим претраживање.  Да ли сте покренули „gnunet-gns-"
