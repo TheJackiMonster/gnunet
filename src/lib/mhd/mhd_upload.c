@@ -195,24 +195,12 @@ inflate_data (struct Buffer *buf)
   }
   while (1)
   {
-    fprintf (stderr,
-             "Pre-inflate: %p/%u/%p/%u\n",
-             z.next_in,
-             (unsigned int) z.avail_in,
-             z.next_out,
-             (unsigned int) z.avail_out);
     ret = inflate (&z,
                    0);
-    fprintf (stderr,
-             "Post-inflate: %p/%u/%p/%u\n",
-             z.next_in,
-             (unsigned int) z.avail_in,
-             z.next_out,
-             (unsigned int) z.avail_out);
     switch (ret)
     {
     case Z_BUF_ERROR:
-      GNUNET_break_op (0); // fails here!
+      GNUNET_break_op (0);
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
       return GNUNET_MHD_PR_JSON_INVALID;
