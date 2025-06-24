@@ -171,7 +171,9 @@ inflate_data (struct Buffer *buf)
   size_t tmp_size;
   int ret;
 
-  memset (&z, 0, sizeof(z));
+  memset (&z,
+          0,
+          sizeof(z));
   z.next_in = (Bytef *) buf->data;
   z.avail_in = buf->fill;
   tmp_size = GNUNET_MIN (buf->max,
@@ -193,12 +195,24 @@ inflate_data (struct Buffer *buf)
   }
   while (1)
   {
+    fprintf (stderr,
+             "Pre-inflate: %p/%u/%p/%u\n",
+             z.next_in,
+             (unsigned int) z.avail_in,
+             z.next_out,
+             (unsigned int) z.avail_out);
     ret = inflate (&z,
                    0);
+    fprintf (stderr,
+             "Post-inflate: %p/%u/%p/%u\n",
+             z.next_in,
+             (unsigned int) z.avail_in,
+             z.next_out,
+             (unsigned int) z.avail_out);
     switch (ret)
     {
     case Z_BUF_ERROR:
-      GNUNET_break_op (0);
+      GNUNET_break_op (0); // fails here!
       GNUNET_break (Z_OK == inflateEnd (&z));
       GNUNET_free (tmp);
       return GNUNET_MHD_PR_JSON_INVALID;
@@ -246,6 +260,7 @@ inflate_data (struct Buffer *buf)
       tmp = GNUNET_realloc (tmp,
                             tmp_size);
       z.next_out = (Bytef *) &tmp[z.total_out];
+      z.avail_out = tmp_size - z.total_out;
       continue;
     case Z_STREAM_END:
       /* decompression successful, make 'tmp' the new 'data' */
