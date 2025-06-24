@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -75,20 +75,23 @@ struct Buffer
  * @param max_size maximum size that the buffer can grow to
  * @return a GNUnet result code
  */
-static int
+static enum GNUNET_GenericReturnValue
 buffer_init (struct Buffer *buf,
              const void *data,
              size_t data_size,
              size_t alloc_size,
              size_t max_size)
 {
-  if ((data_size > max_size) || (alloc_size > max_size))
+  if ( (data_size > max_size) ||
+       (alloc_size > max_size) )
     return GNUNET_SYSERR;
   if (data_size > alloc_size)
     alloc_size = data_size;
   buf->data = GNUNET_malloc (alloc_size);
   buf->alloc = alloc_size;
-  GNUNET_memcpy (buf->data, data, data_size);
+  GNUNET_memcpy (buf->data,
+                 data,
+                 data_size);
   buf->fill = data_size;
   buf->max = max_size;
   return GNUNET_OK;
@@ -119,29 +122,36 @@ buffer_deinit (struct Buffer *buf)
  * @return #GNUNET_OK on success,
  *         #GNUNET_NO if the buffer can't accommodate for the new data
  */
-static int
+static enum GNUNET_GenericReturnValue
 buffer_append (struct Buffer *buf,
                const void *data,
                size_t data_size,
                size_t max_size)
 {
+  if (buf->fill + data_size < data_size)
+  {
+    GNUNET_break (0);
+    return GNUNET_NO; /* overflow */
+  }
   if (buf->fill + data_size > max_size)
     return GNUNET_NO;
   if (buf->fill + data_size > buf->alloc)
   {
-    char *new_buf;
     size_t new_size = buf->alloc;
-    while (new_size < buf->fill + data_size)
-      new_size += 2;
-    if (new_size > max_size)
+
+    while ( (new_size < buf->fill + data_size) &&
+            (new_size < SIZE_MAX / 2) )
+      new_size *= 2;
+    if ( (new_size > max_size) ||
+         (new_size < buf->fill + data_size) )
       return GNUNET_NO;
-    new_buf = GNUNET_malloc (new_size);
-    GNUNET_memcpy (new_buf, buf->data, buf->fill);
-    GNUNET_free (buf->data);
-    buf->data = new_buf;
+    buf->data = GNUNET_realloc (buf->data,
+                                new_size);
     buf->alloc = new_size;
   }
-  GNUNET_memcpy (buf->data + buf->fill, data, data_size);
+  GNUNET_memcpy (buf->data + buf->fill,
+                 data,
+                 data_size);
   buf->fill += data_size;
   return GNUNET_OK;
 }
@@ -164,7 +174,8 @@ inflate_data (struct Buffer *buf)
   memset (&z, 0, sizeof(z));
   z.next_in = (Bytef *) buf->data;
   z.avail_in = buf->fill;
-  tmp_size = GNUNET_MIN (buf->max, buf->fill * 4);
+  tmp_size = GNUNET_MIN (buf->max,
+                         buf->fill * 4);
   tmp = GNUNET_malloc (tmp_size);
   z.next_out = (Bytef *) tmp;
   z.avail_out = tmp_size;
@@ -174,17 +185,16 @@ inflate_data (struct Buffer *buf)
   case Z_MEM_ERROR:
     GNUNET_break (0);
     return GNUNET_MHD_PR_OUT_OF_MEMORY;
-
   case Z_STREAM_ERROR:
     GNUNET_break_op (0);
     return GNUNET_MHD_PR_JSON_INVALID;
-
   case Z_OK:
     break;
   }
   while (1)
   {
-    ret = inflate (&z, 0);
+    ret = inflate (&z,
+                   0);
     switch (ret)
     {
     case Z_BUF_ERROR:
@@ -208,7 +218,8 @@ inflate_data (struct Buffer *buf)
       GNUNET_free (tmp);
       return GNUNET_MHD_PR_JSON_INVALID;
     case Z_OK:
-      if ((0 < z.avail_out) && (0 == z.avail_in))
+      if ( (0 < z.avail_out) &&
+           (0 == z.avail_in) )
       {
         /* truncated input stream */
         GNUNET_break (0);
@@ -228,10 +239,12 @@ inflate_data (struct Buffer *buf)
         return GNUNET_MHD_PR_OUT_OF_MEMORY;
       }
       if (tmp_size * 2 < tmp_size)
-        tmp_size = buf->max;
+        tmp_size = buf->max; /* overflow */
       else
-        tmp_size = GNUNET_MIN (buf->max, tmp_size * 2);
-      tmp = GNUNET_realloc (tmp, tmp_size);
+        tmp_size = GNUNET_MIN (buf->max,
+                               tmp_size * 2);
+      tmp = GNUNET_realloc (tmp,
+                            tmp_size);
       z.next_out = (Bytef *) &tmp[z.total_out];
       continue;
     case Z_STREAM_END:
@@ -272,18 +285,18 @@ GNUNET_MHD_post_parser (size_t buffer_max,
 {
   struct Buffer *r = *con_cls;
   const char *ce;
-  int ret;
 
   *json = NULL;
   if (NULL == *con_cls)
   {
     /* We are seeing a fresh POST request. */
     r = GNUNET_new (struct Buffer);
-    if (GNUNET_OK != buffer_init (r,
-                                  upload_data,
-                                  *upload_data_size,
-                                  REQUEST_BUFFER_INITIAL,
-                                  buffer_max))
+    if (GNUNET_OK !=
+        buffer_init (r,
+                     upload_data,
+                     *upload_data_size,
+                     REQUEST_BUFFER_INITIAL,
+                     buffer_max))
     {
       *con_cls = NULL;
       buffer_deinit (r);
@@ -300,7 +313,10 @@ GNUNET_MHD_post_parser (size_t buffer_max,
     /* We are seeing an old request with more data available. */
 
     if (GNUNET_OK !=
-        buffer_append (r, upload_data, *upload_data_size, buffer_max))
+        buffer_append (r,
+                       upload_data,
+                       *upload_data_size,
+                       buffer_max))
     {
       /* Request too long */
       *con_cls = NULL;
@@ -317,8 +333,12 @@ GNUNET_MHD_post_parser (size_t buffer_max,
   ce = MHD_lookup_connection_value (connection,
                                     MHD_HEADER_KIND,
                                     MHD_HTTP_HEADER_CONTENT_ENCODING);
-  if ((NULL != ce) && (0 == strcasecmp ("deflate", ce)))
+  if ( (NULL != ce) &&
+       (0 == strcasecmp ("deflate",
+                         ce)) )
   {
+    enum GNUNET_MHD_PostResult ret;
+
     ret = inflate_data (r);
     if (GNUNET_MHD_PR_SUCCESS != ret)
     {
@@ -352,7 +372,6 @@ GNUNET_MHD_post_parser (size_t buffer_max,
   buffer_deinit (r);
   GNUNET_free (r);
   *con_cls = NULL;
-
   return GNUNET_MHD_PR_SUCCESS;
 }
 
