@@ -170,6 +170,19 @@ get_size_rec (void *cls, const char *fn)
     errno = EISDIR;
     return GNUNET_SYSERR;
   }
+  if ((S_ISLNK (buf.st_mode)) && (gfsd->include_sym_links == GNUNET_NO))
+  {
+    char linkdst[PATH_MAX];
+    ssize_t ret;
+    ret = readlink(fn, linkdst, PATH_MAX);
+    if (0 > ret)
+    {
+      LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "readlink", fn);
+      return GNUNET_SYSERR;
+    }
+    linkdst[ret] = '\0';
+    return get_size_rec(gfsd, linkdst);
+  }
   if ((! S_ISLNK (buf.st_mode)) || (gfsd->include_sym_links == GNUNET_YES))
     gfsd->total += buf.st_size;
   if ((S_ISDIR (buf.st_mode)) && (0 == access (fn, X_OK)) &&

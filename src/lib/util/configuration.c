@@ -1065,7 +1065,7 @@ GNUNET_CONFIGURATION_parse (struct GNUNET_CONFIGURATION_Handle *cfg,
   if (GNUNET_SYSERR ==
       GNUNET_DISK_file_size (fn,
                              &fs64,
-                             GNUNET_YES,
+                             GNUNET_NO,
                              GNUNET_YES))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,

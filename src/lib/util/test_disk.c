@@ -40,9 +40,15 @@ testReadWrite (void)
       GNUNET_DISK_fn_write (".testfile", TESTSTRING, strlen (TESTSTRING),
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))
+  {
+    GNUNET_break (0);
     return 1;
+  }
   if (GNUNET_OK != GNUNET_DISK_file_test (".testfile"))
+  {
+    GNUNET_break (0);
     return 1;
+  }
   ret = GNUNET_DISK_fn_read (".testfile", tmp, sizeof(tmp) - 1);
   if (ret < 0)
   {
@@ -76,7 +82,10 @@ testReadWrite (void)
   GNUNET_break (0 == unlink (".testfile"));
   GNUNET_break (0 == unlink (".testfile2"));
   if (GNUNET_NO != GNUNET_DISK_file_test (".testfile"))
+  {
+    GNUNET_break (0);
     return 1;
+  }
 
   return 0;
 }
