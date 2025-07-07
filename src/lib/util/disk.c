@@ -173,14 +173,21 @@ get_size_rec (void *cls, const char *fn)
   if ((S_ISLNK (buf.st_mode)) && (gfsd->include_sym_links == GNUNET_NO))
   {
     char linkdst[PATH_MAX];
+    char *fn_start;
     ssize_t ret;
-    ret = readlink(fn, linkdst, PATH_MAX);
+    strcpy (linkdst, fn);
+    fn_start = strrchr (linkdst, '/');
+    if (!fn_start)
+      fn_start = linkdst;
+    else
+      fn_start++; // skip '/'
+    ret = readlink(fn, fn_start, PATH_MAX);
     if (0 > ret)
     {
       LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_DEBUG, "readlink", fn);
       return GNUNET_SYSERR;
     }
-    linkdst[ret] = '\0';
+    fn_start[ret] = '\0';
     return get_size_rec(gfsd, linkdst);
   }
   if ((! S_ISLNK (buf.st_mode)) || (gfsd->include_sym_links == GNUNET_YES))
