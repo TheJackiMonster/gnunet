@@ -2137,24 +2137,48 @@ enum GNUNET_CRYPTO_HpkeMode
   GNUNET_CRYPTO_HPKE_SEAL_OVERHEAD_BYTES   \
   + sizeof (struct GNUNET_CRYPTO_HpkeEncapsulation)
 
+/**
+ * Role of the HPKE participant.
+ */
 enum GNUNET_CRYPTO_HpkeRole
 {
+  // Receiver
   GNUNET_CRYPTO_HPKE_ROLE_R = 0,
+  // Sender
   GNUNET_CRYPTO_HPKE_ROLE_S = 1
 };
 
+
+/**
+ * HPKE crypto context.
+ */
 struct GNUNET_CRYPTO_HpkeContext
 {
+  // Participant role
   enum GNUNET_CRYPTO_HpkeRole role;
+
+  // Encapsulated/Decapsulated key
   uint8_t key[GNUNET_CRYPTO_HPKE_KEY_LEN];
+
+  // Base nonce
   uint8_t base_nonce[GNUNET_CRYPTO_HPKE_NONCE_LEN];
+
+  // Sequence number
   uint64_t seq;
+
+  // Exporter secret
   struct GNUNET_ShortHashCode exporter_secret;
 };
 
+/**
+ * HPKE KEM identifier
+ * TODO: Elligator KEM was requested at IANA; Number is currently a placeholder.
+ */
 enum GNUNET_CRYPTO_HpkeKem
 {
+  // Non-elligator X25519 KEM using HKDF256
   GNUNET_CRYPTO_HPKE_KEM_DH_X25519_HKDF256 = 0x0020,
+  // Elligator X25519 KEM using HKDF256
   GNUNET_CRYPTO_HPKE_KEM_DH_X25519ELLIGATOR_HKDF256 = 0x0030,
 };
 
@@ -2372,51 +2396,6 @@ GNUNET_CRYPTO_hpke_elligator_kem_decaps (
   const struct GNUNET_CRYPTO_EcdhePrivateKey *skR,
   const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct GNUNET_ShortHashCode *shared_secret);
-
-/**
- * @ingroup crypto
- * Encapsulate authenticated key material for a X25519 public key.
- * Elligator variant.
- * Deterministic variant of #GNUNET_CRYPTO_hpke_authkem_encaps.
- * Dual to #GNUNET_CRYPTO_hpke_authkem_decaps.
- * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
- * keys from the key material.
- *
- * @param pkR public key  of receiver
- * @param skS secret of the authenticating sender
- * @param c public key from X25519 to use for the ECDH (X=h(x)G)
- * @param shared_secret where to write the key material
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_elligator_authkem_encaps_norand (
-  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
-  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  const struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey *skE,
-  struct GNUNET_ShortHashCode *shared_secret);
-
-/**
- * @ingroup crypto
- * Encapsulate authenticated key material for a X25519 public key.
- * Elligator variant.
- * Dual to #GNUNET_CRYPTO_hpke_kem_encaps.
- * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
- * keys from the key material.
- *
- * @param pkR public key  of receiver
- * @param skS secret of the authenticating sender
- * @param c public key from X25519 to use for the ECDH (X=h(x)G)
- * @param shared_secret where to write the key material
- * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
- */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_elligator_authkem_encaps (
-  const struct GNUNET_CRYPTO_EcdhePublicKey *pkR,
-  const struct GNUNET_CRYPTO_EcdhePrivateKey *skS,
-  struct GNUNET_CRYPTO_HpkeEncapsulation *c,
-  struct GNUNET_ShortHashCode *shared_secret);
-
 
 /**
  * @ingroup crypto
