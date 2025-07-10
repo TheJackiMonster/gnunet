@@ -307,7 +307,8 @@ GNUNET_STRINGS_fancy_time_to_absolute (const char *fancy_time,
   time_t t;
   const char *eos;
 
-  if (0 == strcasecmp ("end of time", fancy_time))
+  if (0 == strcasecmp ("end of time",
+                       fancy_time))
   {
     *atime = GNUNET_TIME_UNIT_FOREVER_ABS;
     return GNUNET_OK;
@@ -336,6 +337,7 @@ GNUNET_STRINGS_fancy_time_to_timestamp (const char *fancy_time,
                                         struct GNUNET_TIME_Timestamp *atime)
 {
   enum GNUNET_GenericReturnValue ret;
+
   if (GNUNET_OK !=
       (ret = GNUNET_STRINGS_fancy_time_to_absolute (fancy_time,
                                                     &atime->abs_time)))
