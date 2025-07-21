@@ -306,11 +306,23 @@ GNUNET_STRINGS_fancy_time_to_absolute (const char *fancy_time,
   struct tm tv;
   time_t t;
   const char *eos;
+  unsigned long long l;
+  char dummy;
 
   if (0 == strcasecmp ("end of time",
                        fancy_time))
   {
     *atime = GNUNET_TIME_UNIT_FOREVER_ABS;
+    return GNUNET_OK;
+  }
+  if ( (1 == sscanf (fancy_time,
+                     "%llu%c",
+                     &l,
+                     &dummy)) &&
+       (l > 9999) )
+  {
+    /* Time given in seconds after epoch, and not a year */
+    atime->abs_value_us = (uint64_t) ((uint64_t) l * 1000LL * 1000LL);
     return GNUNET_OK;
   }
   eos = &fancy_time[strlen (fancy_time)];
