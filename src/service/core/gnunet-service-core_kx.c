@@ -53,6 +53,23 @@
 #define CAKE_HANDSHAKE_RESEND_TIMEOUT \
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
 
+/**
+ * What is the minimum frequency for a heartbeat message?
+ */
+#define MIN_HEARTBEAT_FREQUENCY \
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+
+/**
+ * What is the minimum frequency for a HEARTBEAT message?
+ */
+#define MIN_HEARTBEAT_FREQUENCY \
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 5)
+
+/**
+ * How often do we send a heartbeat?
+ */
+#define HEARTBEAT_FREQUENCY \
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 12)
 
 /**
  * How often do we rekey?
@@ -148,52 +165,6 @@
 #define IV_STR "iv"
 
 
-GNUNET_NETWORK_STRUCT_BEGIN
-
-/**
- * Encapsulation for encrypted messages exchanged between
- * peers.  Followed by the actual encrypted data.
- */
-struct EncryptedMessage
-{
-  /**
-   * Message type is #GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE.
-   */
-  struct GNUNET_MessageHeader header;
-
-  /**
-   * Random value used for IV generation.
-   */
-  uint32_t iv_seed GNUNET_PACKED;
-
-  /**
-   * MAC of the encrypted message (starting at @e sequence_number),
-   * used to verify message integrity. Everything after this value
-   * (excluding this value itself) will be encrypted and
-   * authenticated.  #ENCRYPTED_HEADER_SIZE must be set to the offset
-   * of the *next* field.
-   */
-  struct GNUNET_HashCode hmac;
-
-  /**
-   * Sequence number, in network byte order.  This field
-   * must be the first encrypted/decrypted field
-   */
-  uint32_t sequence_number GNUNET_PACKED;
-
-  /**
-   * Reserved, always zero.
-   */
-  uint32_t reserved GNUNET_PACKED;
-
-  /**
-   * Timestamp.  Used to prevent replay of ancient messages
-   * (recent messages are caught with the sequence number).
-   */
-  struct GNUNET_TIME_AbsoluteNBO timestamp;
-};
-GNUNET_NETWORK_STRUCT_END
-
 /**
  * Number of bytes (at the beginning) of `struct EncryptedMessage`
  * that are NOT encrypted.
@@ -201,6 +172,10 @@ GNUNET_NETWORK_STRUCT_END
 #define ENCRYPTED_HEADER_SIZE \
         (offsetof (struct EncryptedMessage, sequence_number))
 
+/**
+ * Maximum number of epochs we keep on hand
+ */
+#define MAX_EPOCHS 10
 
 /**
  * Indicates whether a peer is in the initiating or receiving role.
@@ -208,10 +183,10 @@ GNUNET_NETWORK_STRUCT_END
 enum GSC_KX_Role
 {
   /* Peer is supposed to initiate the key exchange */
-  GSC_KX_ROLE_INITIATOR,
+  ROLE_INITIATOR = 0,
 
   /* Peer is supposed to wait for the key exchange */
-  GSC_KX_ROLE_RESPONDER,
+  ROLE_RESPONDER = 1,
 };
 
 
@@ -323,37 +298,40 @@ struct GSC_KeyExchangeInfo
   struct GNUNET_ShortHashCode master_secret_key;
 
   /**
-   * RATS - responder application traffic secret
-   * TODO
+   * *ATS - our current application traffic secret by epoch
    */
-  struct GNUNET_ShortHashCode rats;
+  struct GNUNET_ShortHashCode current_ats;
 
   /**
-   * IATS - initiator application traffic secret
+   * *ATS - other peers application traffic secret by epoch
    */
-  struct GNUNET_ShortHashCode iats;
+  struct GNUNET_ShortHashCode their_ats[MAX_EPOCHS];
 
   /**
-   * Epoch of cryptographic key material.
-   * Incremented on keyupdate
+   * Our currently used epoch for sending.
    */
-  uint64_t epoch;
+  uint64_t current_epoch;
 
   /**
-   * Sequence number of the initiator
+   * Highest seen (or used) epoch of
+   * responder resp initiator..
    */
-  uint64_t seq_i;
+  uint64_t their_max_epoch;
 
   /**
-   * Sequence number of the receiver
+   * Our current sequence number
    */
-  uint64_t seq_r;
+  uint64_t current_sqn;
 
   /**
-   * When should the session time out (if there are no PONGs)?
-   * TODO still needed?
+   * When should the session time out (if there are no Acks to HEARTBEATs)?
    */
   struct GNUNET_TIME_Absolute timeout;
+
+  /**
+   * Last time we notified monitors
+   */
+  struct GNUNET_TIME_Absolute last_notify_timeout;
 
   /**
    * Task for resending messages during handshake.
@@ -364,7 +342,7 @@ struct GSC_KeyExchangeInfo
    * ID of task used for sending keep-alive pings.
    * TODO still needed?
    */
-  struct GNUNET_SCHEDULER_Task *keep_alive_task;
+  struct GNUNET_SCHEDULER_Task *heartbeat_task;
 
   /**
    * #GNUNET_YES if this peer currently has excess bandwidth.
@@ -471,6 +449,81 @@ monitor_notify_all (struct GSC_KeyExchangeInfo *kx)
   msg.peer = *kx->peer;
   msg.timeout = GNUNET_TIME_absolute_hton (kx->timeout);
   GNUNET_notification_context_broadcast (nc, &msg.header, GNUNET_NO);
+  kx->last_notify_timeout = kx->timeout;
+}
+
+
+/**
+ * Task triggered when a neighbour entry is about to time out
+ * (and we should prevent this by sending an Ack in response
+ * to a heartbeat).
+ *
+ * @param cls the `struct GSC_KeyExchangeInfo`
+ */
+static void
+send_heartbeat (void *cls)
+{
+  struct GSC_KeyExchangeInfo *kx = cls;
+  struct GNUNET_TIME_Relative retry;
+  struct GNUNET_TIME_Relative left;
+
+  kx->heartbeat_task = NULL;
+  left = GNUNET_TIME_absolute_get_remaining (kx->timeout);
+  if (0 == left.rel_value_us)
+  {
+    GNUNET_STATISTICS_update (GSC_stats,
+                              gettext_noop ("# sessions terminated by timeout"),
+                              1,
+                              GNUNET_NO);
+    GSC_SESSIONS_end (kx->peer);
+    kx->status = GNUNET_CORE_KX_STATE_DOWN;
+    monitor_notify_all (kx);
+    // FIXME send_key (kx);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Sending HEARTBEAT to `%s'\n",
+              GNUNET_i2s (kx->peer));
+  GNUNET_STATISTICS_update (GSC_stats,
+                            gettext_noop ("# heartbeat messages sent"),
+                            1,
+                            GNUNET_NO);
+  send_heartbeat (kx);
+  retry = GNUNET_TIME_relative_max (GNUNET_TIME_relative_divide (left, 2),
+                                    MIN_HEARTBEAT_FREQUENCY);
+  kx->heartbeat_task =
+    GNUNET_SCHEDULER_add_delayed (retry, &send_heartbeat, kx);
+}
+
+
+/**
+ * We've seen a valid message from the other peer.
+ * Update the time when the session would time out
+ * and delay sending our keep alive message further.
+ *
+ * @param kx key exchange where we saw activity
+ */
+static void
+update_timeout (struct GSC_KeyExchangeInfo *kx)
+{
+  struct GNUNET_TIME_Relative delta;
+
+  kx->timeout =
+    GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT);
+  delta =
+    GNUNET_TIME_absolute_get_difference (kx->last_notify_timeout, kx->timeout);
+  if (delta.rel_value_us > 5LL * 1000LL * 1000LL)
+  {
+    /* we only notify monitors about timeout changes if those
+       are bigger than the threshold (5s) */
+    monitor_notify_all (kx);
+  }
+  if (NULL != kx->heartbeat_task)
+    GNUNET_SCHEDULER_cancel (kx->heartbeat_task);
+  kx->heartbeat_task = GNUNET_SCHEDULER_add_delayed (
+    GNUNET_TIME_relative_divide (GNUNET_CONSTANTS_IDLE_CONNECTION_TIMEOUT, 2),
+    &send_heartbeat,
+    kx);
 }
 
 
@@ -578,7 +631,7 @@ handle_transport_notify_connect (void *cls,
        message twice */
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "I am the initiator, sending hello\n");
-    kx->role = GSC_KX_ROLE_INITIATOR;
+    kx->role = ROLE_INITIATOR;
     send_initiator_hello (kx);
   }
   else
@@ -588,7 +641,7 @@ handle_transport_notify_connect (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "I am the responder, yielding and await initiator hello\n");
     kx->status = GNUNET_CORE_KX_STATE_AWAIT_INITIATION;
-    kx->role = GSC_KX_ROLE_RESPONDER;
+    kx->role = ROLE_RESPONDER;
     monitor_notify_all (kx);
   }
 
@@ -839,32 +892,6 @@ derive_ms (struct GSC_KeyExchangeInfo *kx)
 
 
 /**
- * Derive the responder application secret
- * @param kx key exchange info
- */
-static void
-derive_rats (struct GSC_KeyExchangeInfo *kx)
-{
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (&kx->rats, // result
-                                            sizeof (kx->rats), // result len
-                                            &kx->master_secret_key, // prk? TODO
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            KEY_STR,
-                                            strlen (KEY_STR),
-                                            &transcript_hash,
-                                            sizeof (transcript_hash),
-                                            NULL));
-}
-
-
-/**
  * Generate per record nonce as per
  * https://www.rfc-editor.org/rfc/rfc8446#section-5.3
  * using per key nonce and sequence number
@@ -930,80 +957,62 @@ derive_per_message_secrets (
 
 
 /**
+ * Derive the next application secret
+ * @param kx key exchange info
+ */
+static void
+derive_next_ats (const struct GNUNET_ShortHashCode *old_rats,
+                 struct GNUNET_ShortHashCode *new_rats)
+{
+  int8_t ret;
+
+  // FIXME: Not sure of PRK and output may overlap here!
+  ret = GNUNET_CRYPTO_hkdf_expand (new_rats, // result
+                                   sizeof (*new_rats), // result len
+                                   old_rats,
+                                   CAKE_LABEL, strlen (CAKE_LABEL),
+                                   TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
+                                   // TODO secret_len - according to lsd?
+                                   NULL);
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Something went wrong deriving next *ATS key\n");
+    GNUNET_assert (0);
+  }
+}
+
+
+/**
  * Derive the initiator application secret
  * @param kx key exchange info
  */
 static void
-derive_iats (struct GSC_KeyExchangeInfo *kx)
+derive_initial_ats (struct GSC_KeyExchangeInfo *kx,
+                    enum GSC_KX_Role role,
+                    struct GNUNET_ShortHashCode *initial_ats)
 {
   struct GNUNET_HashContext *transcript_hash_ctx_tmp;
   struct GNUNET_HashCode transcript_hash;
+  const char*traffic_str;
 
+  if (ROLE_INITIATOR == role)
+    traffic_str = I_AP_TRAFFIC_STR;
+  else
+    traffic_str = R_AP_TRAFFIC_STR;
   transcript_hash_ctx_tmp =
     GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
   GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (&kx->iats, // result
-                                            sizeof (kx->iats), // result len
+                 GNUNET_CRYPTO_hkdf_expand (initial_ats, // result
+                                            sizeof (*initial_ats), // result len
                                             &kx->master_secret_key, // prk? TODO
                                             CAKE_LABEL, strlen (CAKE_LABEL),
-                                            I_AP_TRAFFIC_STR,
-                                            strlen (I_AP_TRAFFIC_STR),
+                                            traffic_str,
+                                            strlen (traffic_str),
                                             &transcript_hash,
                                             sizeof (transcript_hash),
                                             NULL));
-}
-
-
-/**
- * Derive the next responder application secret
- * @param kx key exchange info
- */
-static void
-derive_next_rats (struct GSC_KeyExchangeInfo *kx)
-{
-  int8_t ret;
-
-  // FIXME: Not sure of PRK and output may overlap here!
-  ret = GNUNET_CRYPTO_hkdf_expand (&kx->rats, // result
-                                   sizeof (kx->rats), // result len
-                                   &kx->rats,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
-                                   // TODO secret_len - according to lsd?
-                                   NULL);
-  if (GNUNET_OK != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong deriving next RATS key\n");
-    GNUNET_assert (0);
-  }
-}
-
-
-/**
- * Derive the next initiator application secret
- * @param kx key exchange info
- */
-static void
-derive_next_iats (struct GSC_KeyExchangeInfo *kx)
-{
-  int8_t ret;
-
-  // FIXME: Not sure of PRK and output may overlap here!
-  ret = GNUNET_CRYPTO_hkdf_expand (&kx->iats, // result
-                                   sizeof (kx->iats), // result len
-                                   &kx->iats,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
-                                   // TODO secret_len - according to lsd?
-                                   NULL);
-  if (GNUNET_OK != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong deriving next RATS key\n");
-    GNUNET_assert (0);
-  }
 }
 
 
@@ -1376,12 +1385,16 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
   // 5. optionally send application data - encrypted with RATS
   // We do not really have any application data, instead, we send the ACK
   derive_ms (kx);
-  derive_rats (kx);
-  derive_per_message_secrets (&kx->rats,
-                              kx->seq_r,
+  derive_initial_ats (kx,
+                      ROLE_RESPONDER,
+                      &kx->current_ats);
+  kx->current_epoch = 0;
+  kx->current_sqn = 0;
+  derive_per_message_secrets (&kx->current_ats,
+                              kx->current_sqn,
                               enc_key,
                               enc_nonce);
-  kx->seq_r++;
+  kx->current_sqn++;
   ack.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
   ack.header.size = htons (sizeof ack);
   ret = crypto_aead_chacha20poly1305_ietf_encrypt (
@@ -1432,7 +1445,7 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
   struct InitiatorHelloCls *initiator_hello_cls;
   struct PilsRequest *req;
 
-  if (GSC_KX_ROLE_INITIATOR == kx->role)
+  if (ROLE_INITIATOR == kx->role)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1548,12 +1561,19 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
 
   /* derive *ATS */
   derive_ms (kx);
-  derive_rats (kx);
-  derive_per_message_secrets (&kx->rats,
+  derive_initial_ats (kx,
+                      ROLE_RESPONDER,
+                      &kx->their_ats[0]);
+  for (int i = 0; i < MAX_EPOCHS - 1; i++)
+  {
+    derive_next_ats (&kx->their_ats[i],
+                     &kx->their_ats[i + 1]);
+  }
+  kx->their_max_epoch = MAX_EPOCHS - 1;
+  derive_per_message_secrets (&kx->their_ats[0], // FIXME other HS epoch?
                               0,
                               enc_key,
                               enc_nonce);
-  kx->seq_r = 1;
   ret = crypto_aead_chacha20poly1305_ietf_decrypt (
     (unsigned char*) &ack_r,     // unsigned char *m
     NULL,                                  // mlen_p message length
@@ -1613,14 +1633,17 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
                                    + crypto_aead_chacha20poly1305_IETF_ABYTES);
-  derive_iats (kx);
-
+  derive_initial_ats (kx,
+                      ROLE_INITIATOR,
+                      &kx->current_ats);
+  kx->current_epoch = 0;
+  kx->current_sqn++;
   // 8. optionally encrypt payload TODO
-  derive_per_message_secrets (&kx->iats,
-                              kx->seq_i,
+  derive_per_message_secrets (&kx->current_ats,
+                              kx->current_sqn,
                               enc_key,
                               enc_nonce);
-  kx->seq_i++;
+  kx->current_sqn++;
   ack_i.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
   ack_i.header.size = htons (sizeof ack_i);
   ret = crypto_aead_chacha20poly1305_ietf_encrypt (
@@ -1643,9 +1666,6 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
   GNUNET_MQ_send (kx->mq, env);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent InitiatorDone\n");
 
-  kx->epoch = 0; // HTS
-  kx->seq_i = 0;
-  kx->seq_r = 0;
   GSC_SESSIONS_create (kx->peer, kx, kx->class);
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_DONE;
@@ -1699,7 +1719,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   }
 
   /* Forward the transcript hash context */
-  if (GSC_KX_ROLE_RESPONDER == kx->role)
+  if (ROLE_RESPONDER == kx->role)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1772,6 +1792,10 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   }
   c_len = sizeof (rhm_p->finished) + crypto_aead_xchacha20poly1305_ietf_ABYTES;
   // FIXME nonce reuse (see encryption)
+  derive_per_message_secrets (&kx->rhts,
+                              1,
+                              enc_key,
+                              enc_nonce);
   ret = crypto_aead_chacha20poly1305_ietf_decrypt (
     (unsigned char*) &rhm_p->finished,     // unsigned char *m
     NULL,                                  // mlen_p message length
@@ -1853,7 +1877,7 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
     GNUNET_free (kx->resend_env);
     kx->resend_env = NULL;
   }
-  if (GSC_KX_ROLE_INITIATOR == kx->role)
+  if (ROLE_INITIATOR == kx->role)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1907,8 +1931,18 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
                                    + crypto_aead_chacha20poly1305_IETF_ABYTES);
-  derive_iats (kx);
-  derive_per_message_secrets (&kx->iats,
+  derive_initial_ats (kx,
+                      ROLE_INITIATOR,
+                      &kx->their_ats[0]);
+  /**
+   * FIXME we do not really have to calculate all this now
+   */
+  for (int i = 0; i < MAX_EPOCHS - 1; i++)
+  {
+    derive_next_ats (&kx->their_ats[i],
+                     &kx->their_ats[i + 1]);
+  }
+  derive_per_message_secrets (&kx->their_ats[0], // FIXME other HS epoch?
                               0,
                               enc_key,
                               enc_nonce);
@@ -1944,20 +1978,19 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   // monitor_notify_all (kx);
   // GSC_SESSIONS_create (kx->peer, kx, kx->class);
   // GNUNET_assert (NULL == kx->keep_alive_task);
-  // update_timeout (kx);
 
   // kx->class = m->peer_class; TODO
   //  TODO also at other peer
 
   kx->status = GNUNET_CORE_KX_STATE_RESPONDER_DONE;
   monitor_notify_all (kx);
-  kx->epoch = 0;
-  kx->seq_i = 1; // Sent Ack
-  kx->seq_r = 1; // Received Ack
+  kx->current_sqn = 1;
   GSC_SESSIONS_create (kx->peer, kx, kx->class);
-  GNUNET_assert (NULL == kx->keep_alive_task);
+  GNUNET_assert (NULL == kx->heartbeat_task);
+  update_timeout (kx);
 
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->
+                                          peer);
 }
 
 
@@ -1967,21 +2000,13 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
  * @param m the encrypted message
  */
 static int
-check_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
+check_encrypted_message (void *cls, const struct EncryptedMessage *m)
 {
-  bool in_future;
   uint16_t size = ntohs (m->header.size) - sizeof(*m);
 
   // TODO check (see check_encrypted ())
-  //       - check timestamp
   //       - check epoch
   //       - check sequence number
-  in_future = GNUNET_TIME_absolute_is_future (
-    GNUNET_TIME_absolute_ntoh (m->timestamp));
-  if (GNUNET_YES == in_future)
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Timestamp is in the future!\n");
-  // TODO is just a warning the proper way to handle this? Should the
-  // connection be aborted?
   if (size < sizeof(struct GNUNET_MessageHeader))
   {
     GNUNET_break_op (0);
@@ -1991,13 +2016,30 @@ check_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
 }
 
 
+static enum GNUNET_GenericReturnValue
+check_if_ack (struct GSC_KeyExchangeInfo *kx,
+              const char *buf, size_t buf_len)
+{
+  struct ConfirmationAck *ack;
+  if (sizeof *ack != buf_len)
+    return GNUNET_NO;
+  ack = (struct ConfirmationAck *) buf;
+  if (GNUNET_MESSAGE_TYPE_CORE_ACK != ntohs (ack->header.type))
+    return GNUNET_NO;
+  if (sizeof *ack != ntohs (ack->header.size))
+    return GNUNET_NO;
+  update_timeout (kx);
+  return GNUNET_YES;
+}
+
+
 /**
  * handle an encrypted message
  * @param cls key exchange info
  * @param m encrypted message
  */
 static void
-handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
+handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
   uint16_t size = ntohs (m->header.size);
@@ -2006,7 +2048,9 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
   const unsigned char *seq_enc_nonce;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  struct GNUNET_ShortHashCode new_ats[MAX_EPOCHS];
   uint32_t seq_enc_ctr;
+  uint64_t epoch;
   uint64_t m_seq;
   uint64_t m_seq_nbo;
   uint64_t c_len;
@@ -2016,8 +2060,43 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
   //       - statistics
   //       - check liveliness of session
 
+  update_timeout (kx);
+  epoch = GNUNET_ntohll (m->epoch);
+  if (kx->their_max_epoch < epoch)
+  {
+    /**
+     * Prevent DoS
+     * FIXME maybe requires its own limit.
+     */
+    if ((epoch - kx->their_max_epoch) > 2 * MAX_EPOCHS)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Epoch %" PRIu64 " is too new, will decrypt...\n",
+                  epoch);
+      return;
+    }
+    /**
+     * Derive temporarily as we want to discard on
+     * decryption failure(s)
+     */
+    memcpy (new_ats,
+            kx->their_ats,
+            MAX_EPOCHS);
+    for (int i = kx->their_max_epoch; i < epoch; i++)
+    {
+      derive_next_ats (&new_ats[i % MAX_EPOCHS],
+                       &new_ats[(i + 1) % MAX_EPOCHS]);
+    }
+  }
+  else if ((kx->their_max_epoch - epoch) > MAX_EPOCHS)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Epoch %" PRIu64 " is too old, cannot decrypt...\n",
+                epoch);
+    return;
+  }
   derive_sn (
-    (GSC_KX_ROLE_INITIATOR == kx->role) ? &kx->rats : &kx->iats,
+    &new_ats[epoch % MAX_EPOCHS],
     seq_enc_k,
     sizeof seq_enc_k);
   /* compute the sequence number */
@@ -2046,30 +2125,18 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
               "\n",
               m_seq,
               m->sequence_number);
-  if (GSC_KX_ROLE_INITIATOR == kx->role)
-  {
-    /* We are the initiator and as we are going to receive,
-     * we are using the responder key material */
-    kx->seq_r = m_seq;
-    derive_per_message_secrets (&kx->rats,
-                                kx->seq_r,
-                                enc_key,
-                                enc_nonce);
-  }
-  else
-  {
-    kx->seq_i = m_seq;
-    derive_per_message_secrets (&kx->iats,
-                                kx->seq_i,
-                                enc_key,
-                                enc_nonce);
-  }
+  /* We are the initiator and as we are going to receive,
+   * we are using the responder key material */
+  derive_per_message_secrets (&new_ats[epoch],
+                              m_seq,
+                              enc_key,
+                              enc_nonce);
   // TODO checking sequence numbers - handle the case of out-of-sync messages!
   // for now only decrypt the payload
   // TODO encrypt other fields, too!
   // TODO
   // c_len = size - offsetof ();
-  c_len = size - sizeof (struct EncryptedMessage_cake);
+  c_len = size - sizeof (struct EncryptedMessage);
   ret = crypto_aead_chacha20poly1305_ietf_decrypt_detached (
     (unsigned char*) buf,   // m - plain message
     NULL,                                   // nsec - unused
@@ -2086,18 +2153,25 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong decrypting message\n");
     GNUNET_break_op (0); // FIXME handle gracefully
-    // FIXME do we reset our seq in this case?
     return;
   }
+  kx->their_max_epoch = epoch;
+  memcpy (&kx->their_ats,
+          new_ats,
+          MAX_EPOCHS);
 
-  if (GNUNET_OK !=
-      GNUNET_MST_from_buffer (kx->mst,
-                              buf,
-                              sizeof(buf),
-                              GNUNET_YES,
-                              GNUNET_NO))
-    GNUNET_break_op (0);
-
+  if (GNUNET_NO == check_if_ack (kx,
+                                 buf,
+                                 sizeof buf))
+  {
+    if (GNUNET_OK !=
+        GNUNET_MST_from_buffer (kx->mst,
+                                buf,
+                                sizeof buf,
+                                GNUNET_YES,
+                                GNUNET_NO))
+      GNUNET_break_op (0);
+  }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
@@ -2108,27 +2182,43 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage_cake *m)
  * @param m KeyUpdate message
  */
 static void
-handle_key_update (void *cls, const struct KeyUpdate *m)
+handle_heartbeat (void *cls, const struct Heartbeat *m)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
-  // TODO
-  derive_next_iats (kx);
-  derive_next_rats (kx);
-  kx->epoch++;
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
-}
+  struct GNUNET_ShortHashCode new_ats;
+  struct ConfirmationAck ack;
 
-
-/**
- * Handle an ACK
- * @param cls key exchange info
- * @param m ACK
- */
-static void
-handle_ack (void *cls, const struct ConfirmationAck *m)
-{
-  struct GSC_KeyExchangeInfo *kx = cls;
-  // TODO
+  if (m->flags & GSC_HEARTBEAT_KEY_UPDATE_REQUESTED)
+  {
+    if (kx->current_epoch == UINT64_MAX)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Max epoch reached (you probably will never see this)\n");
+    }
+    else
+    {
+      kx->current_epoch++;
+      kx->current_sqn = 0;
+      derive_next_ats (&kx->current_ats,
+                       &new_ats);
+      memcpy (&kx->current_ats,
+              &new_ats,
+              sizeof new_ats);
+    }
+  }
+  update_timeout (kx);
+  ack.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
+  ack.header.size = htons (sizeof ack);
+  GSC_KX_encrypt_and_transmit (kx,
+                               &ack,
+                               sizeof ack);
+  if (NULL != kx->heartbeat_task)
+  {
+    GNUNET_SCHEDULER_cancel (kx->heartbeat_task);
+    kx->heartbeat_task = GNUNET_SCHEDULER_add_delayed (MIN_HEARTBEAT_FREQUENCY,
+                                                       &send_heartbeat,
+                                                       kx);
+  }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
 
@@ -2168,10 +2258,10 @@ handle_transport_notify_disconnect (void *cls,
     GNUNET_free (kx->resend_env);
     kx->resend_env = NULL;
   }
-  if (NULL != kx->keep_alive_task)
+  if (NULL != kx->heartbeat_task)
   {
-    GNUNET_SCHEDULER_cancel (kx->keep_alive_task);
-    kx->keep_alive_task = NULL;
+    GNUNET_SCHEDULER_cancel (kx->heartbeat_task);
+    kx->heartbeat_task = NULL;
   }
   kx->status = GNUNET_CORE_KX_PEER_DISCONNECT;
   if (NULL != kx->peer)
@@ -2363,41 +2453,28 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 {
   {
     struct GNUNET_MQ_Envelope *env;
-    struct EncryptedMessage_cake *encrypted_msg;
+    struct EncryptedMessage *encrypted_msg;
     unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
     unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
     unsigned char seq_enc_k[crypto_stream_chacha20_ietf_KEYBYTES];
-    uint64_t seq;
+    uint64_t sqn;
+    uint64_t epoch;
     int8_t ret;
 
     encrypted_msg = NULL;
 
-    if (GSC_KX_ROLE_INITIATOR == kx->role)
-    {
-      seq = kx->seq_i;
-      /* We are the sender and as we are going to send,
-       * we are using the initiator key material */
-      derive_per_message_secrets (&kx->iats,
-                                  kx->seq_i,
-                                  enc_key,
-                                  enc_nonce);
-      kx->seq_i++;
-      derive_sn (&kx->iats,
-                 seq_enc_k,
-                 sizeof seq_enc_k);
-    }
-    else
-    {
-      seq = kx->seq_r;
-      derive_per_message_secrets (&kx->rats,
-                                  kx->seq_r,
-                                  enc_key,
-                                  enc_nonce);
-      kx->seq_r++;
-      derive_sn (&kx->rats,
-                 seq_enc_k,
-                 sizeof seq_enc_k);
-    }
+    sqn = kx->current_sqn;
+    epoch = kx->current_epoch;
+    /* We are the sender and as we are going to send,
+     * we are using the initiator key material */
+    derive_per_message_secrets (&kx->current_ats,
+                                sqn,
+                                enc_key,
+                                enc_nonce);
+    kx->current_sqn++;
+    derive_sn (&kx->current_ats,
+               seq_enc_k,
+               sizeof seq_enc_k);
     env = GNUNET_MQ_msg_extra (encrypted_msg,
                                payload_size,
                                GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE);
@@ -2427,7 +2504,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
       uint64_t seq_nbo;
       uint32_t seq_enc_ctr;
 
-      seq_nbo = GNUNET_htonll (seq);
+      seq_nbo = GNUNET_htonll (sqn);
       seq_enc_ctr = *((uint32_t*) encrypted_msg->tag);
       seq_enc_nonce = &encrypted_msg->tag[sizeof (uint32_t)];
       crypto_stream_chacha20_ietf_xor_ic (
@@ -2450,12 +2527,10 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Sending encrypted message with E(SQN=%" PRIu64 ")=%" PRIu64
                   "\n",
-                  seq,
+                  sqn,
                   encrypted_msg->sequence_number);
     }
-    encrypted_msg->epoch = GNUNET_htonll (kx->epoch);
-    encrypted_msg->timestamp = GNUNET_TIME_absolute_hton (
-      GNUNET_TIME_absolute_get ());
+    encrypted_msg->epoch = GNUNET_htonll (epoch);
 
     // TODO actually copy payload
     GNUNET_MQ_send (kx->mq, env);
@@ -2514,15 +2589,11 @@ GSC_KX_init (void)
                            NULL),
     GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
                              GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE, // TODO rename!
-                             struct EncryptedMessage_cake,
+                             struct EncryptedMessage,
                              NULL),
-    GNUNET_MQ_hd_fixed_size (key_update,
-                             GNUNET_MESSAGE_TYPE_CORE_KEY_UPDATE,
-                             struct KeyUpdate,
-                             NULL),
-    GNUNET_MQ_hd_fixed_size (ack,
-                             GNUNET_MESSAGE_TYPE_CORE_ACK,
-                             struct ConfirmationAck,
+    GNUNET_MQ_hd_fixed_size (heartbeat,
+                             GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT,
+                             struct Heartbeat,
                              NULL),
     GNUNET_MQ_handler_end ()
   };

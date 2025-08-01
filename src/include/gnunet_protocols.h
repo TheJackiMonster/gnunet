@@ -420,7 +420,7 @@ extern "C" {
 /**
  * Message updating the keys of the peers
  */
-#define GNUNET_MESSAGE_TYPE_CORE_KEY_UPDATE 84
+#define GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT 84
 
 /**
  * Acknowledgement of prior messages

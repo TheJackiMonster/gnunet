@@ -210,7 +210,7 @@ struct InitiatorDone
  *   - Timestamp
  *   - Tag
  */
-struct EncryptedMessage_cake
+struct EncryptedMessage
 {
   /**
    * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
@@ -228,12 +228,6 @@ struct EncryptedMessage_cake
   uint64_t sequence_number GNUNET_PACKED;
 
   /**
-   * Timestamp.  Used to prevent replay of ancient messages
-   * (recent messages are caught with the sequence number).
-   */
-  struct GNUNET_TIME_AbsoluteNBO timestamp;
-
-  /**
    * The Poly1305 tag of the encrypted message
    * (which is starting at @e sequence_number),
    * used to verify message integrity. Everything after this value
@@ -244,6 +238,24 @@ struct EncryptedMessage_cake
   unsigned char tag[crypto_aead_xchacha20poly1305_ietf_ABYTES];
 };
 
+/**
+ * Heartbeat flags
+ */
+enum HeartbeatFlags
+{
+  /**
+   * The peer that sent the update
+   * incremented its epoch and updated
+   * its key material
+   */
+  GSC_HEARTBEAT_KEY_UPDATED = 1,
+
+  /**
+   * A key update is requested from us
+   */
+  GSC_HEARTBEAT_KEY_UPDATE_REQUESTED = 2,
+
+};
 
 /**
  * KeyUpdate
@@ -251,12 +263,17 @@ struct EncryptedMessage_cake
  *   - ServicesInfo
  *   - <key>
  */
-struct KeyUpdate
+struct Heartbeat
 {
   /**
    * Message type is #GNUNET_MESSAGE_TYPE_CORE_PONG.
    */
   struct GNUNET_MessageHeader header;
+
+  /**
+   * Flags
+   */
+  uint32_t flags;
 
   /** TODO UpdateRequested */
   /** TODO ServicesInfo */
