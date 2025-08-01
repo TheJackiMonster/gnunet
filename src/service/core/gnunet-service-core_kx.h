@@ -34,6 +34,25 @@
  */
 struct GSC_KeyExchangeInfo;
 
+struct InitiatorHelloPayload
+{
+  /**
+   * Sender Peer ID
+   *
+   * TODO encrypted
+   */
+  struct GNUNET_PeerIdentity initiator;
+
+  /**
+   * The peer class of the sending peer
+   * TODO is it correct to send an enum like this?
+   * TODO part of services info?
+   * TODO encrypted
+   */
+  enum GNUNET_CORE_PeerClass peer_class;
+
+};
+
 /** TODO */
 /**
  * InitiatorHello
@@ -52,52 +71,28 @@ struct InitiatorHello
   struct GNUNET_MessageHeader header;
 
   /**
+   * Random number to make replay attacks harder.
+   */
+  uint64_t nonce;
+
+  /**
    * Ephemeral public edx25519 key.
    * TODO is this the proper key type?
    */
   struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
 
   /**
-   * Random number to make replay attacks harder.
+   * Key encapsulation.
    * c_R
-   * TODO better description
    */
   struct GNUNET_CRYPTO_HpkeEncapsulation initiator_kem_challenge;
-
-  /**
-   * XChaCha20 nonce
-   */
-  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
 
   /**
    * Hash of the responder peer id
    */
   struct GNUNET_HashCode hash_responder_peer_id;
 
-  /**
-   * Sender Peer ID
-   *
-   * TODO encrypted
-   */
-  struct GNUNET_PeerIdentity peer_id_sender;
-
-  /**
-   * TODO Services Info - encrypted
-   */
-  unsigned char services_info[GNUNET_CORE_SVC_INFO_LEN];
-
-  /**
-   * The peer class of the sending peer
-   * TODO is it correct to send an enum like this?
-   * TODO part of services info?
-   * TODO encrypted
-   */
-  enum GNUNET_CORE_PeerClass peer_class;
-
-  /**
-   * The following is the additional space needed for the mac.
-   */
-  unsigned char reserved[crypto_aead_xchacha20poly1305_ietf_ABYTES];
+  /* Followed by encrypted InitiatorHelloPayload */
 };
 
 /**
@@ -132,45 +127,30 @@ struct ResponderHello
 
   /**
    * Random number to make replay attacks harder.
+   */
+  uint64_t r_R;
+
+  /**
+   * Ephemeral key encapsulation
    * c_e
-   * TODO better description
    */
-  struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_kem_challenge;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c_e;
 
-  /**
-   * XChaCha20 nonce
-   */
-  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  /* Followed by encrypted ResponderHelloPayload */
 
-  /**
-   * TODO Services Info - encrypted
-   */
-  unsigned char services_info[GNUNET_CORE_SVC_INFO_LEN];
+};
 
+struct ResponderHelloPayload
+{
   /**
-   * Random number to make replay attacks harder.
+   * Challenge encapsulation
    * c_I
-   * encrypted
-   * TODO better description
    */
-  struct GNUNET_CRYPTO_HpkeEncapsulation responder_kem_challenge;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c_I;
 
   /**
-   * The following is the additional space needed for the mac.
+   * Followed by services_info (may be absent)
    */
-  unsigned char reserved_0[crypto_aead_xchacha20poly1305_ietf_ABYTES];
-
-  /**
-   * TODO {Finished} - encrypted
-   */
-  struct GNUNET_HashCode finished;
-
-  /**
-   * The following is the additional space needed for the mac.
-   */
-  unsigned char reserved_1[crypto_aead_xchacha20poly1305_ietf_ABYTES];
-
-  /** TODO potentially [Application Payload] */
 };
 
 /**
@@ -185,12 +165,6 @@ struct InitiatorDone
   struct GNUNET_MessageHeader header;
 
   /**
-   * XChaCha20 nonce
-   * XXX remove this nonce - only one nonce per handshake for each involved peer - reuse the one from InitiatorHello!
-   */
-  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-
-  /**
    * TODO {Finished} - encrypted
    */
   struct GNUNET_HashCode finished;
@@ -200,7 +174,6 @@ struct InitiatorDone
    */
   unsigned char reserved[crypto_aead_xchacha20poly1305_ietf_ABYTES];
 
-  /** TODO potentially [Application Payload] */
 };
 
 /**

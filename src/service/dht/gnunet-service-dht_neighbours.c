@@ -1964,15 +1964,7 @@ handle_find_my_hello (struct PeerInfo *pi,
                       const struct GNUNET_HashCode *query_hash,
                       struct GNUNET_BLOCK_Group *bg)
 {
-  size_t block_size;
-  char *block;
 
-  GNUNET_assert (GNUNET_NO != GNUNET_HELLO_parser_to_block (GDS_my_hello,
-                                                            NULL,
-                                                            &block_size));
-  GNUNET_HELLO_parser_to_block(GDS_my_hello,
-                               &block,
-                               &block_size);
   if (NULL == GDS_my_hello)
   {
     GNUNET_STATISTICS_update (GDS_stats,
@@ -1986,8 +1978,8 @@ handle_find_my_hello (struct PeerInfo *pi,
                                      bg,
                                      &GDS_my_identity_hash,
                                      NULL, 0,
-                                     block,
-                                     block_size))
+                                     GDS_my_hello,
+                                     ntohs (GDS_my_hello->size)))
   {
     struct GNUNET_DATACACHE_Block bd = {
       .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
@@ -1995,8 +1987,8 @@ handle_find_my_hello (struct PeerInfo *pi,
         = GNUNET_TIME_relative_to_absolute (
             GNUNET_HELLO_ADDRESS_EXPIRATION),
       .key = GDS_my_identity_hash,
-      .data = block,
-      .data_size = block_size
+      .data = GDS_my_hello,
+      .data_size = ntohs (GDS_my_hello->size)
     };
 
     GNUNET_break (GDS_NEIGHBOURS_handle_reply (pi,
@@ -2011,7 +2003,6 @@ handle_find_my_hello (struct PeerInfo *pi,
                               1,
                               GNUNET_NO);
   }
-  GNUNET_free (block);
 }
 
 

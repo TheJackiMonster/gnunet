@@ -322,11 +322,6 @@ struct MonitorNotifyMessage
   uint32_t state GNUNET_PACKED;
 
   /**
-   * Epoch we are currently in in NBO.
-   */
-  uint64_t epoch GNUNET_PACKED;
-
-  /**
    * Identity of the peer.
    */
   struct GNUNET_PeerIdentity peer;

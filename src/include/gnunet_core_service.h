@@ -612,12 +612,17 @@ enum GNUNET_CORE_KxState
   /**
    * We sent initiator done.
    */
-  GNUNET_CORE_KX_STATE_INITIATOR_DONE,
+  GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT,
 
   /**
-   * We sent responder done.
+   * Connected as initiator.
    */
-  GNUNET_CORE_KX_STATE_RESPONDER_DONE,
+  GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED,
+
+  /**
+   * Connected as responder.
+   */
+  GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED,
 
   /**
    * We're rekeying (or had a timeout), so we have sent the other peer

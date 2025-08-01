@@ -201,7 +201,10 @@ block_plugin_dht_check_reply (
 
       b = GNUNET_HELLO_parser_from_block (reply_block,
                                           reply_block_size);
-      GNUNET_assert (NULL != b);
+      if (NULL == b)
+      {
+        return GNUNET_BLOCK_REPLY_IRRELEVANT;
+      }
       pid = GNUNET_HELLO_parser_iterate (b,
                                          NULL, NULL);
       GNUNET_CRYPTO_hash (pid,

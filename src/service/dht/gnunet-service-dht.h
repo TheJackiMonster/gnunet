@@ -66,7 +66,7 @@ extern struct GNUNET_PILS_Handle *GDS_pils;
 /**
  * Our HELLO parser.
  */
-extern struct GNUNET_HELLO_Parser *GDS_my_hello;
+extern struct GNUNET_MessageHeader *GDS_my_hello;
 
 /**
  * Identity of this peer.

@@ -1142,11 +1142,16 @@ handle_dht_local_hello_get (void *cls,
                             const struct GNUNET_MessageHeader *msg)
 {
   struct ClientHandle *ch = cls;
-  char *url = GNUNET_HELLO_parser_to_url(GDS_my_hello);
-  size_t slen = strlen (url) + 1;
+  struct GNUNET_HELLO_Parser *p;
+  char *url;
+  size_t slen;
   struct GNUNET_MessageHeader *hdr;
   struct GNUNET_MQ_Envelope *env;
 
+  p = GNUNET_HELLO_parser_from_msg (GDS_my_hello);
+  GNUNET_assert (NULL != p);
+  url = GNUNET_HELLO_parser_to_url (p);
+  slen = strlen (url) + 1;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Handling request from local client for my HELLO\n");
   env = GNUNET_MQ_msg_extra (hdr,
@@ -1156,6 +1161,7 @@ handle_dht_local_hello_get (void *cls,
           url,
           slen);
   GNUNET_free (url);
+  GNUNET_HELLO_parser_free (p);
   GNUNET_MQ_send (ch->mq,
                   env);
   GNUNET_SERVICE_client_continue (ch->client);

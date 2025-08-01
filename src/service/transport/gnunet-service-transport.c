@@ -13163,6 +13163,12 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
               GNUNET_i2s (&msg->peer),
               (int) ntohl (msg->pk),
               (int) ntohl (msg->bw.value__));
+  if (0 == GNUNET_memcmp (GST_my_identity, &msg->peer))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Client suggested connection to ourselves, ignoring...\n");
+    return;
+  }
   pr = GNUNET_new (struct PeerRequest);
   pr->tc = tc;
   pr->pid = msg->peer;

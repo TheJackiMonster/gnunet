@@ -100,6 +100,10 @@ monitor_cb (void *cls,
     state_str = _ ("Hello sent (I)");
     break;
 
+  case GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT:
+    state_str = _ ("Done sent (I)");
+    break;
+
   case GNUNET_CORE_KX_STATE_AWAIT_INITIATION:
     state_str = _ ("Awaiting initiation (R)");
     break;
@@ -116,11 +120,11 @@ monitor_cb (void *cls,
     state_str = _ ("Hello received (I)");
     break;
 
-  case GNUNET_CORE_KX_STATE_INITIATOR_DONE:
+  case GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED:
     state_str = _ ("Connected (I)");
     break;
 
-  case GNUNET_CORE_KX_STATE_RESPONDER_DONE:
+  case GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED:
     state_str = _ ("Connected (R)");
     break;
 

@@ -47,7 +47,7 @@
 /**
  * Enable expensive (and possibly problematic for privacy!) logging of KX.
  */
-#define DEBUG_KX 0
+#define DEBUG_KX 1
 
 
 #define CAKE_HANDSHAKE_RESEND_TIMEOUT \
@@ -208,7 +208,7 @@ struct GSC_KeyExchangeInfo
   /**
    * Identity of the peer.
    */
-  struct GNUNET_PeerIdentity *peer;
+  struct GNUNET_PeerIdentity peer;
 
   /**
    * Message queue for sending messages to @a peer.
@@ -238,19 +238,17 @@ struct GSC_KeyExchangeInfo
   enum GSC_KX_Role role;
 
   // TODO
-  struct GNUNET_ShortHashCode shared_secret_R;
-  struct GNUNET_ShortHashCode shared_secret_e;
-  struct GNUNET_ShortHashCode shared_secret_I;
+  struct GNUNET_ShortHashCode ss_R;
+  struct GNUNET_ShortHashCode ss_e;
+  struct GNUNET_ShortHashCode ss_I;
 
   /**
-   * Private/secret ephemeral key for the handshake
-   * TODO naming?
+   * Initiator secret key
    */
   struct GNUNET_CRYPTO_EcdhePrivateKey sk_e;
 
   /**
-   * public ephemeral key
-   * TODO naming?
+   * Initiator ephemeral key
    */
   struct GNUNET_CRYPTO_EcdhePublicKey pk_e;
 
@@ -295,7 +293,7 @@ struct GSC_KeyExchangeInfo
    * Master secret key
    * TODO
    */
-  struct GNUNET_ShortHashCode master_secret_key;
+  struct GNUNET_ShortHashCode master_secret;
 
   /**
    * *ATS - our current application traffic secret by epoch
@@ -432,6 +430,22 @@ static struct GNUNET_NotificationContext *nc;
  */
 static enum GNUNET_GenericReturnValue init_phase;
 
+/**
+ * Our services info string TODO
+ */
+static char *my_services_info = "";
+
+
+static void
+snapshot_transcript (const struct GNUNET_HashContext *ts_hash,
+                     struct GNUNET_HashCode *snapshot)
+{
+  struct GNUNET_HashContext *tmp;
+
+  tmp = GNUNET_CRYPTO_hash_context_copy (ts_hash);
+  GNUNET_CRYPTO_hash_context_finish (tmp, snapshot);
+}
+
 
 /**
  * Inform all monitors about the KX state of the given peer.
@@ -446,12 +460,15 @@ monitor_notify_all (struct GSC_KeyExchangeInfo *kx)
   msg.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY);
   msg.header.size = htons (sizeof(msg));
   msg.state = htonl ((uint32_t) kx->status);
-  msg.peer = *kx->peer;
+  msg.peer = kx->peer;
   msg.timeout = GNUNET_TIME_absolute_hton (kx->timeout);
   GNUNET_notification_context_broadcast (nc, &msg.header, GNUNET_NO);
   kx->last_notify_timeout = kx->timeout;
 }
 
+
+static void
+restart_kx (struct GSC_KeyExchangeInfo *kx);
 
 /**
  * Task triggered when a neighbour entry is about to time out
@@ -476,15 +493,15 @@ send_heartbeat (void *cls)
                               gettext_noop ("# sessions terminated by timeout"),
                               1,
                               GNUNET_NO);
-    GSC_SESSIONS_end (kx->peer);
+    GSC_SESSIONS_end (&kx->peer);
     kx->status = GNUNET_CORE_KX_STATE_DOWN;
     monitor_notify_all (kx);
-    // FIXME send_key (kx);
+    restart_kx (kx);
     return;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending HEARTBEAT to `%s'\n",
-              GNUNET_i2s (kx->peer));
+              GNUNET_i2s (&kx->peer));
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# heartbeat messages sent"),
                             1,
@@ -560,12 +577,12 @@ deliver_message (void *cls, const struct GNUNET_MessageHeader *m)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Decrypted message of type %d from %s\n",
               ntohs (m->type),
-              GNUNET_i2s (kx->peer));
-  GSC_CLIENTS_deliver_message (kx->peer,
+              GNUNET_i2s (&kx->peer));
+  GSC_CLIENTS_deliver_message (&kx->peer,
                                m,
                                ntohs (m->size),
                                GNUNET_CORE_OPTION_SEND_FULL_INBOUND);
-  GSC_CLIENTS_deliver_message (kx->peer,
+  GSC_CLIENTS_deliver_message (&kx->peer,
                                m,
                                sizeof(struct GNUNET_MessageHeader),
                                GNUNET_CORE_OPTION_SEND_HDR_INBOUND);
@@ -586,17 +603,20 @@ restart_kx (struct GSC_KeyExchangeInfo *kx)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Initiating key exchange with peer %s\n",
-              GNUNET_i2s (kx->peer));
+              GNUNET_i2s (&kx->peer));
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# key exchanges initiated"),
                             1,
                             GNUNET_NO);
 
   monitor_notify_all (kx);
-  GNUNET_CRYPTO_hash (kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
+  GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
   GNUNET_CRYPTO_hash (&GSC_my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &h2);
+  if (NULL != kx->transcript_hash_ctx)
+    GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+  kx->transcript_hash_ctx = NULL;
   if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
   {
     /* peer with "lower" identity starts KX, otherwise we typically end up
@@ -652,8 +672,7 @@ handle_transport_notify_connect (void *cls,
   kx = GNUNET_new (struct GSC_KeyExchangeInfo);
   kx->mst = GNUNET_MST_create (&deliver_message, kx);
   kx->mq = mq;
-  kx->peer = GNUNET_new (struct GNUNET_PeerIdentity);
-  GNUNET_memcpy (kx->peer, peer_id, sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_memcpy (&kx->peer, peer_id, sizeof (struct GNUNET_PeerIdentity));
   GNUNET_CONTAINER_DLL_insert (kx_head, kx_tail, kx);
 
   restart_kx (kx);
@@ -707,35 +726,32 @@ handle_transport_notify_connect (void *cls,
  * @param kx the key exchange info
  */
 static void
-derive_es_ets (struct GSC_KeyExchangeInfo *kx)
+derive_es_ets (const struct GNUNET_HashCode *transcript,
+               const struct GNUNET_ShortHashCode *ss_R,
+               struct GNUNET_ShortHashCode *es,
+               struct GNUNET_ShortHashCode *ets)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
   uint64_t ret;
 
-  ret = GNUNET_CRYPTO_hkdf_extract (&kx->early_secret_key, // prk
+  ret = GNUNET_CRYPTO_hkdf_extract (es, // prk
                                     0,                     // salt
                                     0,                     // salt_len
-                                    &kx->shared_secret_R,  // ikm - initial key material
-                                    sizeof (kx->shared_secret_R));
+                                    ss_R,  // ikm - initial key material
+                                    sizeof (*ss_R));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong extracting ES\n")
     ;
     GNUNET_assert (0);
   }
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
   ret = GNUNET_CRYPTO_hkdf_expand (
-    &kx->early_traffic_secret,   // result
-    sizeof (kx->early_traffic_secret),   // result len
-    &kx->early_secret_key,
+    ets,   // result
+    sizeof (*ets),   // result len
+    es,
     CAKE_LABEL, strlen (CAKE_LABEL),
     EARLY_DATA_STR, strlen (EARLY_DATA_STR),
-    /* not yet encrypted part of the message: */
-    &transcript_hash,
-    sizeof (transcript_hash),
+    transcript,
+    sizeof (*transcript),
     NULL, 0);
   if (GNUNET_OK != ret)
   {
@@ -770,20 +786,20 @@ derive_sn (const struct GNUNET_ShortHashCode *secret,
  * @param kx key exchange info
  */
 static void
-derive_hs (struct GSC_KeyExchangeInfo *kx)
+derive_hs (const struct GNUNET_ShortHashCode *es,
+           const struct GNUNET_ShortHashCode *ss_e,
+           struct GNUNET_ShortHashCode *handshake_secret)
 {
   uint64_t ret;
   struct GNUNET_ShortHashCode derived_early_secret;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Deriving HS\n");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ES: %s\n", GNUNET_B2S (&kx->
-                                                               early_secret_key)
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ES: %s\n", GNUNET_B2S (es)
               );
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ss_e: %s\n", GNUNET_B2S (&kx->
-                                                                 shared_secret_e));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ss_e: %s\n", GNUNET_B2S (ss_e));
   ret = GNUNET_CRYPTO_hkdf_expand (&derived_early_secret, // result
                                    sizeof (derived_early_secret),
-                                   &kx->early_secret_key,
+                                   es,
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    DERIVED_STR, strlen (DERIVED_STR),
                                    NULL);
@@ -797,11 +813,11 @@ derive_hs (struct GSC_KeyExchangeInfo *kx)
   }
   // Handshake secret
   // TODO check: are dES the salt and ss_e the ikm or other way round?
-  ret = GNUNET_CRYPTO_hkdf_extract (&kx->handshake_secret,     // prk
+  ret = GNUNET_CRYPTO_hkdf_extract (handshake_secret,     // prk
                                     &derived_early_secret,         // salt - dES
                                     sizeof (derived_early_secret), // salt_len
-                                    &kx->shared_secret_e,          // ikm - initial key material
-                                    sizeof (kx->shared_secret_e));
+                                    ss_e,          // ikm - initial key material
+                                    sizeof (*ss_e));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong extracting HS\n")
@@ -816,24 +832,19 @@ derive_hs (struct GSC_KeyExchangeInfo *kx)
  * @param kx key exchange info
  */
 static void
-derive_ihts (struct GSC_KeyExchangeInfo *kx)
+derive_ihts (const struct GNUNET_HashCode *transcript,
+             const struct GNUNET_ShortHashCode *hs,
+             struct GNUNET_ShortHashCode *ihts)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
-
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (&kx->ihts, // result
-                                            sizeof (kx->ihts), // result len
-                                            &kx->handshake_secret, // prk?
+                 GNUNET_CRYPTO_hkdf_expand (ihts, // result
+                                            sizeof (*ihts), // result len
+                                            hs, // prk?
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             I_HS_TRAFFIC_STR,
                                             strlen (I_HS_TRAFFIC_STR),
-                                            &transcript_hash,
-                                            sizeof (transcript_hash),
+                                            transcript,
+                                            sizeof (*transcript),
                                             NULL));
 }
 
@@ -843,24 +854,19 @@ derive_ihts (struct GSC_KeyExchangeInfo *kx)
  * @param kx key exchange info
  */
 static void
-derive_rhts (struct GSC_KeyExchangeInfo *kx)
+derive_rhts (const struct GNUNET_HashCode *transcript,
+             const struct GNUNET_ShortHashCode *hs,
+             struct GNUNET_ShortHashCode *rhts)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
-
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (&kx->rhts, // result
-                                            sizeof (kx->rhts), // result len
-                                            &kx->handshake_secret, // prk? TODO
+                 GNUNET_CRYPTO_hkdf_expand (rhts, // result
+                                            sizeof (*rhts), // result len
+                                            hs, // prk? TODO
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             R_HS_TRAFFIC_STR,
                                             strlen (R_HS_TRAFFIC_STR),
-                                            &transcript_hash,
-                                            sizeof (transcript_hash),
+                                            transcript,
+                                            sizeof (*transcript),
                                             NULL));
 }
 
@@ -870,14 +876,16 @@ derive_rhts (struct GSC_KeyExchangeInfo *kx)
  * @param kx key exchange info
  */
 static void
-derive_ms (struct GSC_KeyExchangeInfo *kx)
+derive_ms (const struct GNUNET_ShortHashCode *hs,
+           const struct GNUNET_ShortHashCode *ss_I,
+           struct GNUNET_ShortHashCode *ms)
 {
   uint64_t ret;
   struct GNUNET_ShortHashCode derived_handshake_secret;
 
   ret = GNUNET_CRYPTO_hkdf_expand (&derived_handshake_secret, // result
                                    sizeof (derived_handshake_secret), // result len
-                                   &kx->handshake_secret, // prk? TODO
+                                   hs, // prk? TODO
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    DERIVED_STR, strlen (DERIVED_STR),
                                    NULL);
@@ -888,11 +896,11 @@ derive_ms (struct GSC_KeyExchangeInfo *kx)
     GNUNET_assert (0);
   }
   // TODO check: are dHS the salt and ss_I the ikm or other way round?
-  ret = GNUNET_CRYPTO_hkdf_extract (&kx->master_secret_key,            // prk
+  ret = GNUNET_CRYPTO_hkdf_extract (ms,            // prk
                                     &derived_handshake_secret,         // salt - dHS
                                     sizeof (derived_handshake_secret), // salt_len
-                                    &kx->shared_secret_I,              // ikm - initial key material
-                                    sizeof (kx->shared_secret_I));
+                                    ss_I,              // ikm - initial key material
+                                    sizeof (*ss_I));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong extracting MS\n")
@@ -972,15 +980,15 @@ derive_per_message_secrets (
  * @param kx key exchange info
  */
 static void
-derive_next_ats (const struct GNUNET_ShortHashCode *old_rats,
-                 struct GNUNET_ShortHashCode *new_rats)
+derive_next_ats (const struct GNUNET_ShortHashCode *old_ats,
+                 struct GNUNET_ShortHashCode *new_ats)
 {
   int8_t ret;
 
   // FIXME: Not sure of PRK and output may overlap here!
-  ret = GNUNET_CRYPTO_hkdf_expand (new_rats, // result
-                                   sizeof (*new_rats), // result len
-                                   old_rats,
+  ret = GNUNET_CRYPTO_hkdf_expand (new_ats, // result
+                                   sizeof (*new_ats), // result len
+                                   old_ats,
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
                                    // TODO secret_len - according to lsd?
@@ -999,30 +1007,26 @@ derive_next_ats (const struct GNUNET_ShortHashCode *old_rats,
  * @param kx key exchange info
  */
 static void
-derive_initial_ats (struct GSC_KeyExchangeInfo *kx,
+derive_initial_ats (const struct GNUNET_HashCode *transcript,
+                    const struct GNUNET_ShortHashCode *ms,
                     enum GSC_KX_Role role,
                     struct GNUNET_ShortHashCode *initial_ats)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-  const char*traffic_str;
+  const char *traffic_str;
 
   if (ROLE_INITIATOR == role)
     traffic_str = I_AP_TRAFFIC_STR;
   else
     traffic_str = R_AP_TRAFFIC_STR;
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (initial_ats, // result
                                             sizeof (*initial_ats), // result len
-                                            &kx->master_secret_key, // prk? TODO
+                                            ms, // prk? TODO
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             traffic_str,
                                             strlen (traffic_str),
-                                            &transcript_hash,
-                                            sizeof (transcript_hash),
+                                            transcript,
+                                            sizeof (*transcript),
                                             NULL));
 }
 
@@ -1034,17 +1038,16 @@ derive_initial_ats (struct GSC_KeyExchangeInfo *kx,
  *               to
  */
 static void
-generate_responder_finished (struct GSC_KeyExchangeInfo *kx,
+generate_responder_finished (const struct GNUNET_HashCode *transcript,
+                             const struct GNUNET_ShortHashCode *ms,
                              struct GNUNET_HashCode *result)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-  int8_t ret;
+  enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_R; // We might want to save this in kx?
 
   ret = GNUNET_CRYPTO_hkdf_expand (&fk_R, // result
                                    sizeof (fk_R),
-                                   &kx->master_secret_key,
+                                   ms,
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    R_FINISHED_STR, strlen (R_FINISHED_STR),
                                    NULL);
@@ -1055,13 +1058,9 @@ generate_responder_finished (struct GSC_KeyExchangeInfo *kx,
     GNUNET_assert (0);
   }
 
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
-
   GNUNET_CRYPTO_hmac (&fk_R,
-                      &transcript_hash,
-                      sizeof (transcript_hash),
+                      transcript,
+                      sizeof (*transcript),
                       result);
 }
 
@@ -1073,17 +1072,16 @@ generate_responder_finished (struct GSC_KeyExchangeInfo *kx,
  *               to
  */
 static void
-generate_initiator_finished (struct GSC_KeyExchangeInfo *kx,
+generate_initiator_finished (const struct GNUNET_HashCode *transcript,
+                             const struct GNUNET_ShortHashCode *ms,
                              struct GNUNET_HashCode *result)
 {
-  struct GNUNET_HashContext *transcript_hash_ctx_tmp;
-  struct GNUNET_HashCode transcript_hash;
-  int8_t ret;
+  enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_I; // We might want to save this in kx?
 
   ret = GNUNET_CRYPTO_hkdf_expand (&fk_I, // result
                                    sizeof (fk_I),
-                                   &kx->master_secret_key,
+                                   ms,
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    I_FINISHED_STR, strlen (I_FINISHED_STR),
                                    NULL);
@@ -1093,21 +1091,17 @@ generate_initiator_finished (struct GSC_KeyExchangeInfo *kx,
                 "Something went wrong expanding fk_I\n");
     GNUNET_assert (0);
   }
-  transcript_hash_ctx_tmp =
-    GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
-  GNUNET_CRYPTO_hash_context_finish (transcript_hash_ctx_tmp, &transcript_hash);
-
   GNUNET_CRYPTO_hmac (&fk_I,
-                      &transcript_hash,
-                      sizeof (transcript_hash),
+                      transcript,
+                      sizeof (*transcript),
                       result);
 }
 
 
-struct InitiatorHelloCls
+struct InitiatorHelloCtx
 {
   struct GSC_KeyExchangeInfo *kx;
-  struct InitiatorHello ihm_e;
+  struct InitiatorHello *ihm_e;
   struct PilsRequest *req;
 };
 
@@ -1126,58 +1120,261 @@ resend_responder_hello (void *cls)
 }
 
 
-static void
-handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
+void
+send_responder_hello (struct GSC_KeyExchangeInfo *kx)
 {
-  struct InitiatorHelloCls *initiator_hello_cls = cls;
-  struct GSC_KeyExchangeInfo *kx = initiator_hello_cls->kx;
-  const struct InitiatorHello *ihm_e = &initiator_hello_cls->ihm_e;
-  struct InitiatorHello *ihm_p; /* message - plaintext */
+  enum GNUNET_GenericReturnValue ret;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c_I;
+  struct ResponderHello *rhm_e; /* responder hello message - encrypted pointer */
+  struct GNUNET_MQ_Envelope *env;
   struct GNUNET_CRYPTO_HpkeEncapsulation ephemeral_kem_challenge;
-  uint32_t size = ntohs (ihm_e->header.size);
-  char buf[size] GNUNET_ALIGN;
+  struct GNUNET_ShortHashCode rhts;
+  struct GNUNET_ShortHashCode ihts;
+  struct GNUNET_ShortHashCode hs;
+  struct GNUNET_ShortHashCode ms;
+  struct GNUNET_ShortHashCode ss_e;
+  struct GNUNET_ShortHashCode ss_I;
+  struct GNUNET_HashContext *hc;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-  struct ResponderHello rhm_local; /* responder hello message - plain on stack */
-  struct ResponderHello *rhm_p = &rhm_local; /* responder hello message - plain pointer */
-  struct ResponderHello *rhm_e; /* responder hello message - encrypted pointer */
-  struct ConfirmationAck ack;
-  struct GNUNET_CRYPTO_HpkeEncapsulation c_I;
-  uint64_t nonce; // TODO rename r_R
-  uint64_t nonce_size;
-  struct GNUNET_HashCode h1;
-  struct GNUNET_HashCode h2;
-  struct GNUNET_MQ_Envelope *env;
-  size_t u_len; /* length of unencrypted part */
-  size_t pad_len; /* length of reserved part after the two fields - space for the mac */ // TODO we might prefer crypto_aead_xchacha20poly1305_ietf_ABYTES ?
-  size_t m_len; /* length of encrypted part */
-  long long unsigned int c_len;
-  int8_t ret;
-
-  initiator_hello_cls->req->op = NULL;
-  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
-                               pils_requests_tail,
-                               initiator_hello_cls->req);
-  GNUNET_free (initiator_hello_cls->req);
-  // XXX valgrind reports uninitialized memory
-  //     the following is a way to check whether this memory was meant
-  memset (rhm_p, 0, sizeof (*rhm_p));
-
-  kx->shared_secret_R = *key;
 
   //      4. encaps -> shared_secret_e, c_e (kemChallenge)
   //         TODO potentially write this directly into rhm?
-  ret = GNUNET_CRYPTO_hpke_kem_encaps (&ihm_e->ephemeral_key, // public ephemeral key of initiator
+  ret = GNUNET_CRYPTO_hpke_kem_encaps (&kx->pk_e, // public ephemeral key of initiator
                                        &ephemeral_kem_challenge,    // encapsulated key
-                                       &kx->shared_secret_e); // key - ss_e
+                                       &ss_e); // key - ss_e
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong encapsulating ss_e\n");
+    return;
   }
+  hc = GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
+  //      6. encaps -> shared_secret_I, c_I
+  ret = GNUNET_CRYPTO_eddsa_kem_encaps (&kx->peer.public_key, // public key of I
+                                        &c_I,                              // encapsulated key
+                                        &ss_I);             // where to write the key material
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Something went wrong encapsulating ss_I\n");
+    GNUNET_CRYPTO_hash_context_abort (hc);
+    return;
+  }
+  //      7. generate RHTS (responder_handshare_secret_key) and RATS (responder_application_traffic_secret_key) (section 5)
+  {
+    struct GNUNET_HashCode transcript;
+    snapshot_transcript (hc, &transcript);
+#if DEBUG_KX
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transcript snapshot for derivation of HS, MS: `%s'\n",
+                GNUNET_h2s (&transcript));
+#endif
+    derive_hs (&kx->early_secret_key,
+               &ss_e,
+               &hs);
+    derive_ms (&hs, &ss_I, &ms);
+  }
+
+  // send ResponderHello
+  // TODO fill fields / services_info!
+  // 1. r_R <- random
+  // TODO CAKE LSD says it's a uint64 - how does it compare to
+  // crypto_aead_xchacha20poly1305_ietf_NPUBBYTES?
+  struct ResponderHelloPayload *rhp;
+  size_t rhp_len = sizeof (*rhp) + strlen (my_services_info);
+  unsigned char rhp_buf[rhp_len];
+  size_t ct_len;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "ResponderHello payload is %lu bytes with services info `%s'\n",
+              rhp_len,
+              my_services_info);
+
+  rhp = (struct ResponderHelloPayload*) rhp_buf;
+  ct_len = rhp_len // ResponderHelloPayload, fist PT msg
+           + sizeof (struct GNUNET_HashCode) // Finished hash, second PT msg
+           + crypto_aead_xchacha20poly1305_ietf_ABYTES * 2; // Two tags;
+  env = GNUNET_MQ_msg_extra (rhm_e,
+                             ct_len,
+                             GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "ResponderHello is %u bytes\n",
+              ntohs (rhm_e->header.size));
+
+  rhm_e->r_R =
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX);       // TODO is "strong" needed here?
+
+  // c_e
+  GNUNET_memcpy (&rhm_e->c_e,
+                 &ephemeral_kem_challenge,
+                 sizeof (ephemeral_kem_challenge));
+  GNUNET_CRYPTO_hash_context_read (hc,
+                                   rhm_e,
+                                   sizeof (struct ResponderHello));
+  // 2. Encrypt ServicesInfo and c_I with RHTS
+  // derive RHTS
+  // TODO merge in one function
+  {
+    struct GNUNET_HashCode transcript;
+    snapshot_transcript (hc,
+                         &transcript);
+#if DEBUG_KX
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transcript snapshot for derivation of *HTS: `%s'\n",
+                GNUNET_h2s (&transcript));
+#endif
+    derive_rhts (&transcript,
+                 &hs,
+                 &rhts);
+    derive_ihts (&transcript,
+                 &hs,
+                 &ihts);
+    derive_per_message_secrets (&rhts,
+                                0,
+                                enc_key,
+                                enc_nonce);
+  }
+  // c_I
+  GNUNET_memcpy (&rhp->c_I, &c_I, sizeof (c_I));
+  // Services info empty for now.
+  GNUNET_memcpy (&rhp[1],
+                 my_services_info,
+                 strlen (my_services_info));
+
+  {
+    unsigned long long out_ct_len;
+    struct GNUNET_HashCode finished;
+    struct GNUNET_HashCode transcript;
+    unsigned char *finished_buf;
+    GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+                     (unsigned char*) &rhm_e[1], /* c - ciphertext */
+                     &out_ct_len, /* clen_p */
+                     rhp_buf, /* rhm_p - plaintext message */
+                     rhp_len, // mlen
+                     NULL, 0, // ad, adlen // FIXME should this not be the other, unencrypted
+                              // fields?
+                     NULL, // nsec - unused
+                     enc_nonce, // npub - nonce // FIXME nonce can be reused
+                     enc_key)); // k - key RHTS
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Encrypted and wrote %llu bytes\n",
+                out_ct_len);
+    // 3. Create ResponderFinished (Section 6)
+    // Derive fk_I <- HKDF-Expand (MS, "r finished", NULL)
+    /* Forward the transcript */
+    /* {svcinfo, c_I}RHTS */
+    GNUNET_CRYPTO_hash_context_read (
+      hc,
+      &rhm_e[1],
+      out_ct_len);
+
+    finished_buf = ((unsigned char*) &rhm_e[1]) + out_ct_len;
+    snapshot_transcript (hc,
+                         &transcript);
+#if DEBUG_KX
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transcript snapshot for derivation of Rfinished: `%s'\n",
+                GNUNET_h2s (&transcript));
+#endif
+    generate_responder_finished (&transcript,
+                                 &ms,
+                                 &finished);
+    // 4. Encrypt ResponderFinished
+    derive_per_message_secrets (&rhts,
+                                1,
+                                enc_key,
+                                enc_nonce);
+    GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+                     finished_buf,                               /* c - ciphertext */
+                     &out_ct_len, /* clen_p */
+                     (unsigned char*) &finished, /* rhm_p - plaintext message */
+                     sizeof (finished), // mlen
+                     NULL, 0, // ad, adlen // FIXME should this not be the other, unencrypted
+                              // fields?
+                     NULL, // nsec - unused
+                     enc_nonce, // npub - nonce // FIXME nonce can be reused
+                     enc_key)); // k - key RHTS
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Encrypted and wrote %llu bytes\n",
+                out_ct_len);
+    /* Forward the transcript
+     * after responder finished,
+     * before deriving *ATS and generating finished_I
+     * (finished_I will be generated when receiving the InitiatorFinished message
+     * in order to check it) */
+    GNUNET_CRYPTO_hash_context_read (
+      hc,
+      finished_buf,
+      out_ct_len);
+    // 5. optionally send application data - encrypted with RATS
+    // We do not really have any application data, instead, we send the ACK
+    snapshot_transcript (hc,
+                         &transcript);
+#if DEBUG_KX
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Transcript snapshot for derivation of *ATS: `%s'\n",
+                GNUNET_h2s (&transcript));
+#endif
+    derive_initial_ats (&transcript,
+                        &ms,
+                        ROLE_RESPONDER,
+                        &kx->current_ats);
+  }
+  /* Lock into struct */
+  GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+  kx->transcript_hash_ctx = hc;
+  kx->master_secret = ms;
+  kx->handshake_secret = hs;
+  kx->ss_e = ss_e;
+  kx->ihts = ihts;
+  kx->rhts = rhts;
+  kx->ss_I = ss_I;
+  kx->current_epoch = 0;
+  kx->current_sqn = 0;
+  derive_per_message_secrets (&kx->current_ats,
+                              kx->current_sqn,
+                              enc_key,
+                              enc_nonce);
+
+  GNUNET_MQ_send_copy (kx->mq, env);
+  kx->resend_env = env;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent ResponderHello\n");
+
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+                                                  &resend_responder_hello,
+                                                  kx);
+  kx->status = GNUNET_CORE_KX_STATE_RESPONDER_HELLO_SENT;
+  monitor_notify_all (kx);
+  GNUNET_TRANSPORT_core_receive_continue (transport, &kx->peer);
+}
+
+
+static void
+handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
+{
+  struct InitiatorHelloCtx *ihm_ctx = cls;
+  struct GSC_KeyExchangeInfo *kx = ihm_ctx->kx;
+  uint32_t ihm_len = ntohs (ihm_ctx->ihm_e->header.size);
+  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
+  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  struct GNUNET_HashCode h1;
+  struct GNUNET_HashCode h2;
+  struct GNUNET_HashCode transcript;
+  struct GNUNET_ShortHashCode es;
+  struct GNUNET_ShortHashCode ets;
+  enum GNUNET_GenericReturnValue ret;
+
+  ihm_ctx->req->op = NULL;
+  GNUNET_CONTAINER_DLL_remove (pils_requests_head,
+                               pils_requests_tail,
+                               ihm_ctx->req);
+  GNUNET_free (ihm_ctx->req);
+
+
   GNUNET_memcpy (&kx->pk_e,
-                 &ihm_e->ephemeral_key,
-                 sizeof (ihm_e->ephemeral_key));
+                 &ihm_ctx->ihm_e->ephemeral_key,
+                 sizeof (ihm_ctx->ihm_e->ephemeral_key));
   //      5. generate ETS (early_traffic_secret_key, decrypt pk_i
   //         expand ETS <- expand ES <- extract ss_R
   //         use ETS to decrypt
@@ -1185,66 +1382,64 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
   /* Forward the transcript hash context over the unencrypted fields to get it
    * to the same status that the initiator had when it needed to derive es and
    * ets for the encryption */
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm_e->ephemeral_key,
-                                   sizeof (ihm_e->ephemeral_key));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm_e->initiator_kem_challenge,
-                                   sizeof (ihm_e->initiator_kem_challenge));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm_e->nonce,
-                                   sizeof (ihm_e->nonce));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm_e->hash_responder_peer_id,
-                                   sizeof (ihm_e->hash_responder_peer_id));
-  derive_es_ets (kx);
-  derive_per_message_secrets (&kx->early_traffic_secret,
+  GNUNET_CRYPTO_hash_context_read (
+    kx->transcript_hash_ctx,
+    ihm_ctx->ihm_e,
+    sizeof (struct InitiatorHello));
+  snapshot_transcript (kx->transcript_hash_ctx,
+                       &transcript);
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transcript snapshot for derivation of ES, ETS: `%s'\n",
+              GNUNET_h2s (&transcript));
+#endif
+  derive_es_ets (&transcript, ss_R, &es, &ets);
+  derive_per_message_secrets (&ets,
                               0,
                               enc_key,
                               enc_nonce);
-  /* now forward it considering the encrypted messages that the initiator was
-   * able to send after deriving the es and ets */
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm_e->peer_id_sender,
-                                   sizeof (struct InitiatorHello)
-                                   - offsetof (struct InitiatorHello,
-                                               peer_id_sender));
-  // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
-  memset (&buf, 0, size);
-  ihm_p = (struct InitiatorHello *) &buf;
-  /* Length of the encrypted part of the message */
-  c_len = sizeof (struct InitiatorHello)
-          - offsetof (struct InitiatorHello, peer_id_sender)
-          - (sizeof (struct InitiatorHello)
-             - offsetof (struct InitiatorHello, reserved))
-          + crypto_aead_xchacha20poly1305_ietf_ABYTES;
-
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
-    (unsigned char*) &ihm_p->peer_id_sender,     // unsigned char *m
-    NULL,                                        // mlen_p message length
-    NULL,                                        // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &ihm_e->peer_id_sender,     // const unsigned char *c    - cyphertext
-    c_len,                                       // unsigned long long clen   - length of cyphertext
-    // mac,                                   // const unsigned char *mac  - authentication tag
-    NULL,                                        // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
-    0,                                           // unsigned long long adlen
-    enc_nonce,        // const unsigned char *npub - nonce
-    enc_key     // const unsigned char *k    - key
-    );
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "pid_sender: %s\n", GNUNET_i2s (&ihm_p->
-                                                                       peer_id_sender));
-  if (0 != ret)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong decrypting: %d\n", ret);
-    GNUNET_break_op (0);
+    struct InitiatorHelloPayload *ihmp;
+    size_t ct_len = ihm_len - sizeof (struct InitiatorHello);
+    unsigned char ihmp_buf[ct_len - crypto_aead_xchacha20poly1305_ietf_ABYTES];
+    ihmp = (struct InitiatorHelloPayload*) ihmp_buf;
+    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+      ihmp_buf,   // unsigned char *m
+      NULL,                                      // mlen_p message length
+      NULL,                                      // unsigned char *nsec       - unused: NULL
+      (unsigned char*) &ihm_ctx->ihm_e[1],   // const unsigned char *c    - cyphertext
+      ct_len,                                     // unsigned long long clen   - length of cyphertext
+      // mac,                                   // const unsigned char *mac  - authentication tag
+      NULL,                                      // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
+      0,                                         // unsigned long long adlen
+      enc_nonce,      // const unsigned char *npub - nonce
+      enc_key   // const unsigned char *k    - key
+      );
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "pid_sender: %s\n",
+                GNUNET_i2s (&ihmp->initiator));
+    if (0 != ret)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Something went wrong decrypting: %d\n", ret);
+      GNUNET_break_op (0);
+      GNUNET_free (ihm_ctx->ihm_e);
+      GNUNET_free (ihm_ctx);
+      GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+      kx->transcript_hash_ctx = NULL;
+      return;
+    }
+    /* now forward it considering the encrypted messages that the initiator was
+     * able to send after deriving the es and ets */
+    GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
+                                     &ihm_ctx->ihm_e[1],
+                                     ct_len);
+    GNUNET_memcpy (&kx->peer,
+                   &ihmp->initiator,
+                   sizeof (struct GNUNET_PeerIdentity));
   }
-
-  GNUNET_memcpy (kx->peer,
-                 &ihm_p->peer_id_sender,
-                 sizeof (struct GNUNET_PeerIdentity));
+  // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
   /* Check that we are actually in the receiving role */
-  GNUNET_CRYPTO_hash (kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
+  GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
   GNUNET_CRYPTO_hash (&GSC_my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &h2);
@@ -1259,183 +1454,38 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
      * handshake long enough and the 'responder' initiates the handshake */
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Something went wrong - we have the lower value and should have sent the InitiatorHello, but instead received it.\n");
+    GNUNET_free (ihm_ctx->ihm_e);
+    GNUNET_free (ihm_ctx);
+    GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+    kx->transcript_hash_ctx = NULL;
+    return;
   }
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Peer ID of other peer: %s\n", GNUNET_i2s
-                (kx->peer));
+                (&kx->peer));
   /* We update the monitoring peers here because now we know
    * that we can decrypt the message AND know the PID
    */
   monitor_notify_all (kx);
-  //      6. encaps -> shared_secret_I, c_I
-  ret = GNUNET_CRYPTO_eddsa_kem_encaps (&ihm_p->peer_id_sender.public_key, // public key of I
-                                        &c_I,                              // encapsulated key
-                                        &kx->shared_secret_I);             // where to write the key material
-  if (GNUNET_OK != ret)
+  kx->ss_R = *ss_R;
+  kx->early_secret_key = es;
+  kx->early_traffic_secret = ets;
+  send_responder_hello (kx);
+}
+
+
+static int
+check_initiator_hello (void *cls, const struct InitiatorHello *m)
+{
+  uint16_t size = ntohs (m->header.size);
+
+  if (size < sizeof (*m)
+      + sizeof (struct InitiatorHelloPayload)
+      + crypto_aead_xchacha20poly1305_ietf_ABYTES)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encapsulating ss_I\n");
-    GNUNET_assert (0);
+    return GNUNET_SYSERR;
   }
-  //      7. generate RHTS (responder_handshare_secret_key) and RATS (responder_application_traffic_secret_key) (section 5)
-  derive_hs (kx);
-
-  // send RespondercHello
-  // TODO consider application payload
-  memset (&rhm_p->services_info, 0, sizeof (rhm_p->services_info));
-  // TODO fill fields / services_info!
-  // 1. r_R <- random
-  // TODO CAKE LSD says it's a uint64 - how does it compare to
-  // crypto_aead_xchacha20poly1305_ietf_NPUBBYTES?
-  nonce = // TODO rename r_R
-          GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX); // TODO is "strong" needed here?
-  nonce_size = GNUNET_MIN (
-    sizeof (uint64_t),
-    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
-  GNUNET_memcpy (&rhm_p->nonce, &nonce, nonce_size); // TODO rename field nonce
-                                                     // to r_X!
-
-  // c_e
-  GNUNET_memcpy (&rhm_p->ephemeral_kem_challenge,
-                 &ephemeral_kem_challenge,
-                 sizeof (ephemeral_kem_challenge));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &rhm_p->ephemeral_kem_challenge,
-                                   sizeof (rhm_p->ephemeral_kem_challenge));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &rhm_p->nonce,
-                                   sizeof (rhm_p->nonce));
-
-  // 2. Encrypt ServicesInfo and c_I with RHTS
-  // derive RHTS
-  // TODO merge in one function
-  derive_rhts (kx);
-  derive_ihts (kx);
-  derive_per_message_secrets (&kx->rhts,
-                              0,
-                              enc_key,
-                              enc_nonce);
-  // c_I
-  GNUNET_memcpy (&rhm_p->responder_kem_challenge, &c_I, sizeof (c_I));
-
-  // TODO tidy the structure of the size computation and consolidate it with
-  //      decryption
-  u_len = offsetof (struct ResponderHello, services_info); /* length of unencrypted part */
-  pad_len = sizeof (struct ResponderHello) /* length of reserved part after the two fields - space for the mac */   // TODO we might prefer crypto_aead_xchacha20poly1305_ietf_ABYTES ?
-            - offsetof (struct ResponderHello, reserved_0);
-  m_len = sizeof (struct ResponderHello) - u_len - pad_len; /* length of encrypted part */
-  env = GNUNET_MQ_msg_extra (rhm_e,
-                             sizeof ack
-                             + crypto_aead_xchacha20poly1305_ietf_ABYTES,
-                             GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO);
-  GNUNET_memcpy (&rhm_e->ephemeral_kem_challenge,
-                 &rhm_p->ephemeral_kem_challenge,
-                 sizeof (struct ResponderHello)
-                 - offsetof (struct ResponderHello, ephemeral_kem_challenge));
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &rhm_e->services_info,   /* c - ciphertext */
-    &c_len,   /* clen_p */
-    (unsigned char*) &rhm_p->services_info,   /* rhm_p - plaintext message */
-    m_len,   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
-               // fields?
-    NULL,   // nsec - unused
-    enc_nonce,   // npub - nonce // FIXME nonce can be reused
-    enc_key);   // k - key RHTS
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encrypting Responder Hello\n");
-    GNUNET_assert (0);
-  }
-
-  // 3. Create ResponderFinished (Section 6)
-  // Derive fk_I <- HKDF-Expand (MS, "r finished", NULL)
-  /* Forward the transcript */
-  /* {svcinfo, c_I}RHTS */
-  GNUNET_CRYPTO_hash_context_read (
-    kx->transcript_hash_ctx,
-    &rhm_e->services_info,
-    m_len + crypto_aead_xchacha20poly1305_ietf_ABYTES);
-  generate_responder_finished (kx, &rhm_p->finished);
-  // 4. Encrypt ResponderFinished
-  // FIXME: This is a NONCE reuse!!!! Either derive new
-  // nonce and increment seq, or encypt
-  // with svcinfo!
-  derive_per_message_secrets (&kx->rhts,
-                              1,
-                              enc_key,
-                              enc_nonce);
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &rhm_e->finished,                                                /* c - ciphertext */
-    NULL,   /* clen_p */
-    (unsigned char*) &rhm_p->finished,   /* rhm_p - plaintext message */
-    sizeof (rhm_p->finished),   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
-               // fields?
-    NULL,   // nsec - unused
-    enc_nonce,   // npub - nonce // FIXME nonce can be reused
-    enc_key);   // k - key RHTS
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encrypting Responder Finished\n");
-    GNUNET_assert (0);
-  }
-
-  /* Forward the transcript
-   * after responder finished,
-   * before deriving *ATS and generating finished_I
-   * (finished_I will be generated when receiving the InitiatorFinished message
-   * in order to check it) */
-  GNUNET_CRYPTO_hash_context_read (
-    kx->transcript_hash_ctx,
-    &rhm_e->finished,
-    sizeof (rhm_e->finished) + crypto_aead_xchacha20poly1305_ietf_ABYTES);
-
-  // 5. optionally send application data - encrypted with RATS
-  // We do not really have any application data, instead, we send the ACK
-  derive_ms (kx);
-  derive_initial_ats (kx,
-                      ROLE_RESPONDER,
-                      &kx->current_ats);
-  kx->current_epoch = 0;
-  kx->current_sqn = 0;
-  derive_per_message_secrets (&kx->current_ats,
-                              kx->current_sqn,
-                              enc_key,
-                              enc_nonce);
-  kx->current_sqn++;
-  ack.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
-  ack.header.size = htons (sizeof ack);
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &rhm_e[1], /* c - ciphertext */
-    NULL,   /* clen_p */
-    (unsigned char*) &ack,   /* rhm_p - plaintext message */
-    sizeof ack,   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
-               // fields?
-    NULL,   // nsec - unused
-    enc_nonce,   // npub - nonce // FIXME nonce can be reused
-    enc_key);   // k - key RHTS
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encrypting Ack\n");
-    GNUNET_assert (0);
-  }
-
-
-  GNUNET_MQ_send_copy (kx->mq, env);
-  kx->resend_env = env;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent ResponderHello\n");
-
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
-                                                  &resend_responder_hello,
-                                                  kx);
-  kx->status = GNUNET_CORE_KX_STATE_RESPONDER_HELLO_SENT;
-  monitor_notify_all (kx);
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+  return GNUNET_OK;
 }
 
 
@@ -1451,22 +1501,24 @@ static void
 handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
-  struct GNUNET_PeerIdentity *pid;
   struct GNUNET_HashCode hash_compare;
-  struct InitiatorHelloCls *initiator_hello_cls;
-  struct PilsRequest *req;
+  struct InitiatorHelloCtx *initiator_hello_cls;
+  size_t ihm_len;
 
   if (ROLE_INITIATOR == kx->role)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "I am an initiator! Tearing down...\n");
-    GNUNET_CONTAINER_DLL_remove (kx_head, kx_tail, kx);
-    GNUNET_MST_destroy (kx->mst);
-    GNUNET_free (kx);
     return;
   }
-  pid = GNUNET_new (struct GNUNET_PeerIdentity);
+  if (kx->status == GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED)
+  {
+    GNUNET_break_op (0);
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Already received InitiatorHello)\n");
+    return;
+  }
   GNUNET_assert (NULL == kx->transcript_hash_ctx); // FIXME this triggers sometimes - why?
   kx->transcript_hash_ctx = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_assert (NULL != kx->transcript_hash_ctx);
@@ -1478,7 +1530,6 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
                             GNUNET_NO);
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED;
-  kx->peer = pid;
 
   //      1. verify type _INITIATOR_HELLO
   //         - This is implicytly done by arriving within this handler
@@ -1489,90 +1540,174 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
   GNUNET_CRYPTO_hash (&GSC_my_identity,
                       sizeof (struct GNUNET_PeerIdentity),
                       &hash_compare); /* result */
-  GNUNET_assert (0 == memcmp (&ihm_e->hash_responder_peer_id,
-                              &hash_compare,
-                              sizeof (struct GNUNET_HashCode)));
+  if (0 != memcmp (&ihm_e->hash_responder_peer_id,
+                   &hash_compare,
+                   sizeof (struct GNUNET_HashCode)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "This message is not meant for us (H(PID) mismatch)\n");
+    GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+    kx->transcript_hash_ctx = NULL;
+    return;
+  }
   // FIXME this sometimes triggers in the tests - why?
   //      3. decaps -> shared_secret_R, c_R (kemChallenge)
-  initiator_hello_cls = GNUNET_new (struct InitiatorHelloCls);
+  ihm_len = ntohs (ihm_e->header.size);
+  initiator_hello_cls = GNUNET_new (struct InitiatorHelloCtx);
   initiator_hello_cls->kx = kx;
-  GNUNET_memcpy (&initiator_hello_cls->ihm_e, ihm_e, sizeof (*ihm_e));
-  req = GNUNET_new (struct PilsRequest);
-  initiator_hello_cls->req = req;
+  initiator_hello_cls->ihm_e = GNUNET_malloc (ihm_len);
+  GNUNET_memcpy (initiator_hello_cls->ihm_e, ihm_e, ihm_len);
+  initiator_hello_cls->req = GNUNET_new (struct PilsRequest);
   GNUNET_CONTAINER_DLL_insert (pils_requests_head,
                                pils_requests_tail,
-                               req);
-  req->op = GNUNET_PILS_kem_decaps (pils,
-                                    &ihm_e->initiator_kem_challenge, // encapsulated key
-                                    handle_initiator_hello_cont, // continuation
-                                    initiator_hello_cls);
+                               initiator_hello_cls->req);
+  initiator_hello_cls->req->op =
+    GNUNET_PILS_kem_decaps (pils,
+                            &ihm_e->initiator_kem_challenge,
+                            // encapsulated key
+                            &handle_initiator_hello_cont,
+                            // continuation
+                            initiator_hello_cls);
 }
 
 
 struct ResponderHelloCls
 {
+  /* Current KX session */
   struct GSC_KeyExchangeInfo *kx;
-  struct ResponderHello rhm_e; /* responder hello message - encrypted */
-  struct ResponderHello rhm_p; /* responder hello message - plain/decrypted */
-  unsigned char ack_e[sizeof (struct ConfirmationAck)
-                      + crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /* responder hello message - encrypted */
+  struct ResponderHello rhm_e;
+
+  /* responder hello message - plain/decrypted */
+  struct ResponderHelloPayload *rhp;
+
+  /* Decrypted finish hash */
+  struct GNUNET_HashCode decrypted_finish;
+
+  /* Encrypted finished CT (for transcript later) */
+  char finished_enc[sizeof (struct GNUNET_HashCode)
+                    + crypto_aead_xchacha20poly1305_ietf_ABYTES];
+
+  /* Temporary transcript context */
+  struct GNUNET_HashContext *hc;
+
+  /* Temporary handshake secret */
+  struct GNUNET_ShortHashCode hs;
+
+  /* Temporary handshake secret */
+  struct GNUNET_ShortHashCode ss_e;
+
+  /* Temporary handshake secret */
+  struct GNUNET_ShortHashCode ihts;
+
+  /* Temporary handshake secret */
+  struct GNUNET_ShortHashCode rhts;
+
+  /* Pending PILS request */
   struct PilsRequest *req;
 };
 
+static void
+resend_initiator_done (void *cls)
+{
+  struct GSC_KeyExchangeInfo *kx = cls;
+
+  kx->resend_task = NULL;
+  GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+              "Resending initiator done...\n");
+  GNUNET_MQ_send_copy (kx->mq, kx->resend_env);
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+                                                  &resend_initiator_done,
+                                                  kx);
+}
+
 
 static void
-handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
+handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
 {
-  struct ResponderHelloCls *responder_hello_cls = cls;
-  struct GSC_KeyExchangeInfo *kx = responder_hello_cls->kx;
-  struct GNUNET_HashCode responder_finished;
-  struct ResponderHello *rhm_e = &responder_hello_cls->rhm_e; /* responder hello message - encrypted */
-  struct ResponderHello *rhm_p = &responder_hello_cls->rhm_p; /* responder hello message - plain/decrypted */
+  struct ResponderHelloCls *rh_ctx = cls;
+  struct GSC_KeyExchangeInfo *kx = rh_ctx->kx;
   struct InitiatorDone *idm_e; /* encrypted */
   struct InitiatorDone idm_local;
   struct InitiatorDone *idm_p; /* plaintext */
   struct GNUNET_MQ_Envelope *env;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-  struct ConfirmationAck ack_r;
   struct ConfirmationAck ack_i;
-  int8_t ret;
+  struct GNUNET_HashCode transcript;
+  struct GNUNET_ShortHashCode ms;
 
-  responder_hello_cls->req->op = NULL;
+  rh_ctx->req->op = NULL;
   GNUNET_CONTAINER_DLL_remove (pils_requests_head,
                                pils_requests_tail,
-                               responder_hello_cls->req);
-  GNUNET_free (responder_hello_cls->req);
+                               rh_ctx->req);
+  GNUNET_free (rh_ctx->req);
   // XXX valgrind reports uninitialized memory
   //     the following is a way to check whether this memory was meant
   // memset (&rhm_local, 0, sizeof (rhm_local)); - adapt to cls if still needed
   memset (&idm_local, 0, sizeof (idm_local));
 
-  kx->shared_secret_I = *key;
+  kx->ss_I = *ss_I;
 
+  /* derive *ATS */
+  derive_ms (&rh_ctx->hs, ss_I, &ms);;
   // 5. Create ResponderFinished as per Section 6 and check against decrypted payload.
-  generate_responder_finished (kx, &responder_finished);
-  if (0 != memcmp (&rhm_p->finished,
+  struct GNUNET_HashCode responder_finished;
+  // Transcript updates, snapshot again
+  snapshot_transcript (rh_ctx->hc,
+                       &transcript);
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transcript snapshot for derivation of Rfinished: `%s'\n",
+              GNUNET_h2s (&transcript));
+#endif
+  generate_responder_finished (&transcript,
+                               &ms,
+                               &responder_finished);
+  if (0 != memcmp (&rh_ctx->decrypted_finish,
                    &responder_finished,
                    sizeof (struct GNUNET_HashCode)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Could not verify \"responder finished\"\n");
+    GNUNET_free (rh_ctx->rhp);
+    GNUNET_free (rh_ctx->hc);
+    GNUNET_free (rh_ctx);
     GNUNET_assert (0);
   }
+
 
   /* Forward the transcript
    * after generating finished_R,
    * before deriving *ATS */
   GNUNET_CRYPTO_hash_context_read (
-    kx->transcript_hash_ctx,
-    &rhm_e->finished,
-    sizeof (rhm_e->finished) + crypto_aead_xchacha20poly1305_ietf_ABYTES);
-  // TODO optionally forward over encrypted payload
+    rh_ctx->hc,
+    rh_ctx->finished_enc,
+    sizeof (rh_ctx->finished_enc));
 
-  /* derive *ATS */
-  derive_ms (kx);
-  derive_initial_ats (kx,
+  // At this point we cannot fail anymore and may lock into kx
+  GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+  kx->transcript_hash_ctx = rh_ctx->hc;
+  kx->ss_I = *ss_I;
+  kx->handshake_secret = rh_ctx->hs;
+  kx->ss_e = rh_ctx->ss_e;
+  kx->ihts = rh_ctx->ihts;
+  kx->rhts = rh_ctx->rhts;
+  kx->master_secret = ms;
+  GNUNET_free (rh_ctx->rhp);
+  GNUNET_free (rh_ctx);
+  rh_ctx = NULL;
+
+  snapshot_transcript (kx->transcript_hash_ctx,
+                       &transcript);
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transcript snapshot for derivation of *ATS: `%s'\n",
+              GNUNET_h2s (&transcript));
+#endif
+  derive_initial_ats (&transcript,
+                      &kx->master_secret,
                       ROLE_RESPONDER,
                       &kx->their_ats[0]);
   for (int i = 0; i < MAX_EPOCHS - 1; i++)
@@ -1581,29 +1716,6 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
                      &kx->their_ats[i + 1]);
   }
   kx->their_max_epoch = MAX_EPOCHS - 1;
-  derive_per_message_secrets (&kx->their_ats[0], // FIXME other HS epoch?
-                              0,
-                              enc_key,
-                              enc_nonce);
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
-    (unsigned char*) &ack_r,     // unsigned char *m
-    NULL,                                  // mlen_p message length
-    NULL,                                  // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &responder_hello_cls->ack_e,     // const unsigned char *c    - cyphertext
-    sizeof responder_hello_cls->ack_e,                                 // unsigned long long clen   - length of cyphertext
-    NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
-    0,                                     // unsigned long long adlen
-    enc_nonce,     // const unsigned char *npub - nonce
-    enc_key     // const unsigned char *k    - key
-    );
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong decrypting the Ack: %d\n", ret);
-    GNUNET_assert (0); // FIXME handle gracefully
-  }
-  GNUNET_assert (sizeof ack_r == ntohs (ack_r.header.size));
-  GNUNET_assert (GNUNET_MESSAGE_TYPE_CORE_ACK == ntohs (ack_r.header.type));
 
   derive_per_message_secrets (&kx->ihts,
                               0,
@@ -1616,27 +1728,27 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
                              + crypto_aead_xchacha20poly1305_ietf_ABYTES,
                              GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE);
   // 6. Create IteratorFinished as per Section 6.
-  generate_initiator_finished (kx, &idm_p->finished);
+  generate_initiator_finished (&transcript,
+                               &kx->master_secret,
+                               &idm_p->finished);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Ifinished: `%s'\n",
+              GNUNET_h2s (&idm_p->finished));
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Transcript `%s'\n",
+              GNUNET_h2s (&transcript));
   // 7. Send InteratorFinished message encrypted with the key derived from IHTS to R
-  GNUNET_memcpy (&idm_e->nonce, &idm_p->nonce,
-                 crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
 
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &idm_e->finished,   /* c - ciphertext */
-    NULL,   /* clen_p */
-    (unsigned char*) &idm_p->finished,   /* idm_p - plaintext message */
-    sizeof (idm_p->finished),   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
-               // fields?
-    NULL,   // nsec - unused
-    enc_nonce,   // npub - nonce
-    enc_key);   // k - key IHTS
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encrypting Responder Hello\n");
-    GNUNET_assert (0);
-  }
+  GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+                   (unsigned char*) &idm_e->finished, /* c - ciphertext */
+                   NULL, /* clen_p */
+                   (unsigned char*) &idm_p->finished, /* idm_p - plaintext message */
+                   sizeof (idm_p->finished), // mlen
+                   NULL, 0, // ad, adlen // FIXME should this not be the other, unencrypted
+                            // fields?
+                   NULL, // nsec - unused
+                   enc_nonce, // npub - nonce
+                   enc_key)); // k - key IHTS
   /* Forward the transcript hash context
    * after generating finished_I and RATS_0
    * before deriving IATS_0 */
@@ -1644,7 +1756,15 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
                                    + crypto_aead_chacha20poly1305_IETF_ABYTES);
-  derive_initial_ats (kx,
+  snapshot_transcript (kx->transcript_hash_ctx,
+                       &transcript);
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transcript snapshot for derivation of *ATS: `%s'\n",
+              GNUNET_h2s (&transcript));
+#endif
+  derive_initial_ats (&transcript,
+                      &kx->master_secret,
                       ROLE_INITIATOR,
                       &kx->current_ats);
   kx->current_epoch = 0;
@@ -1657,31 +1777,28 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *key)
   kx->current_sqn++;
   ack_i.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
   ack_i.header.size = htons (sizeof ack_i);
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &idm_e[1], /* c - ciphertext */
-    NULL,   /* clen_p */
-    (unsigned char*) &ack_i,   /* rhm_p - plaintext message */
-    sizeof ack_i,   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
-               // fields?
-    NULL,   // nsec - unused
-    enc_nonce,   // npub - nonce // FIXME nonce can be reused
-    enc_key);   // k - key RHTS
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong encrypting Ack\n");
-    GNUNET_assert (0);
-  }
+  GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+                   (unsigned char*) &idm_e[1], /* c - ciphertext */
+                   NULL, /* clen_p */
+                   (unsigned char*) &ack_i, /* rhm_p - plaintext message */
+                   sizeof ack_i, // mlen
+                   NULL, 0, // ad, adlen // FIXME should this not be the other, unencrypted
+                            // fields?
+                   NULL, // nsec - unused
+                   enc_nonce, // npub - nonce // FIXME nonce can be reused
+                   enc_key)); // k - key RHTS
 
-  GNUNET_MQ_send (kx->mq, env);
+  GNUNET_MQ_send_copy (kx->mq, env);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent InitiatorDone\n");
 
-  GSC_SESSIONS_create (kx->peer, kx, kx->class);
 
-  kx->status = GNUNET_CORE_KX_STATE_INITIATOR_DONE;
+  kx->resend_env = env;
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+                                                  &resend_initiator_done,
+                                                  kx);
+  kx->status = GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT;
   monitor_notify_all (kx);
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+  GNUNET_TRANSPORT_core_receive_continue (transport, &kx->peer);
 }
 
 
@@ -1690,7 +1807,10 @@ check_responder_hello (void *cls, const struct ResponderHello *m)
 {
   uint16_t size = ntohs (m->header.size);
 
-  if (size < sizeof (*m) + sizeof (struct ConfirmationAck))
+  if (size < sizeof (*m)
+      + sizeof (struct ResponderHelloPayload)
+      + sizeof (struct GNUNET_HashCode)
+      + crypto_aead_xchacha20poly1305_ietf_ABYTES * 2)
   {
     return GNUNET_SYSERR;
   }
@@ -1707,17 +1827,17 @@ static void
 handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
-  struct ResponderHello rhm_local; /* responder hello message - local plain/decrypted */
-  struct ResponderHello *rhm_p = &rhm_local; /* responder hello message - plain/decrypted */
-  unsigned long long int c_len;
   struct PilsRequest *req;
-  struct ResponderHelloCls *responder_hello_cls;
+  struct ResponderHelloCls *rh_ctx;
+  struct GNUNET_HashCode transcript;
+  struct GNUNET_HashContext *hc;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-  int8_t ret;
+  enum GNUNET_GenericReturnValue ret;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ResponderHello\n");
 
+  hc = GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
   if (NULL != kx->resend_task)
   {
     GNUNET_SCHEDULER_cancel (kx->resend_task);
@@ -1734,116 +1854,132 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "I am a responder! Tearing down...\n");
-    GNUNET_CONTAINER_DLL_remove (kx_head, kx_tail, kx);
-    GNUNET_MST_destroy (kx->mst);
-    GNUNET_free (kx);
+                "I am the responder! Ignoring.\n");
     return;
   }
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &rhm_e->ephemeral_kem_challenge,
-                                   sizeof (rhm_e->ephemeral_kem_challenge));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &rhm_e->nonce,
-                                   sizeof (rhm_e->nonce));
+  GNUNET_CRYPTO_hash_context_read (hc,
+                                   rhm_e,
+                                   sizeof (struct ResponderHello));
   // 1. Verify that the message type is CORE_RESPONDER_HELLO
   //    - implicitly done by handling this message?
   //    - or is this about verifying the 'additional data' part of aead?
   //      should it check the encryption + mac? (is this implicitly done
   //      while decrypting?)
   // 2. sse <- Decaps(ske,ce)
+  rh_ctx = GNUNET_new (struct ResponderHelloCls);
   ret = GNUNET_CRYPTO_hpke_kem_decaps (&kx->sk_e, // secret/private ephemeral key of initiator (us)
-                                       &rhm_e->ephemeral_kem_challenge,    // encapsulated key
-                                       &kx->shared_secret_e); // key - ss_e
+                                       &rhm_e->c_e,    // encapsulated key
+                                       &rh_ctx->ss_e); // key - ss_e
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong decapsulating ss_e\n");
+    GNUNET_free (hc);
+    return;
   }
   // 3. Generate IHTS and RHTS from Section 5 and decrypt ServicesInfo, cI and ResponderFinished.
-  derive_hs (kx);
-  // TODO merge in one function
-  derive_rhts (kx);
-  derive_ihts (kx);
-  derive_per_message_secrets (&kx->rhts,
+  snapshot_transcript (hc, &transcript);
+#if DEBUG_KX
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Transcript snapshot for derivation of HS, *HTS: `%s'\n",
+              GNUNET_h2s (&transcript));
+#endif
+  derive_hs (&kx->early_secret_key,
+             &rh_ctx->ss_e,
+             &rh_ctx->hs);
+  derive_rhts (&transcript,
+               &rh_ctx->hs,
+               &rh_ctx->rhts);
+  derive_ihts (&transcript,
+               &rh_ctx->hs,
+               &rh_ctx->ihts);
+  derive_per_message_secrets (&rh_ctx->rhts,
                               0,
                               enc_key,
                               enc_nonce);
-  // use RHTS to decrypt
-  c_len = sizeof (struct ResponderHello)
-          - offsetof (struct ResponderHello, services_info)
-          + crypto_aead_xchacha20poly1305_ietf_ABYTES
-          - (sizeof (struct ResponderHello)
-             - offsetof (struct ResponderHello, reserved_0));
-
-  /* Forward the transcript_hash_ctx
-   * after rhts has been generated,
-   * before generating finished_R*/
-  GNUNET_CRYPTO_hash_context_read (
-    kx->transcript_hash_ctx,
-    &rhm_e->services_info,
-    c_len);
-
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
-    (unsigned char*) &rhm_p->services_info,     // unsigned char *m
-    NULL,                                       // mlen_p message length
-    NULL,                                       // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &rhm_e->services_info,     // const unsigned char *c    - cyphertext
-    c_len,                                      // unsigned long long clen   - length of cyphertext
-    NULL,                                       // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
-    0,                                          // unsigned long long adlen
-    enc_nonce,       // const unsigned char *npub - nonce
-    enc_key     // const unsigned char *k    - key
-    );
-  if (0 != ret)
+  rh_ctx->kx = kx;
+  GNUNET_memcpy (&rh_ctx->rhm_e, rhm_e, sizeof (*rhm_e));
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong decrypting: %d\n", ret);
-    GNUNET_assert (0);
-  }
-  c_len = sizeof (rhm_p->finished) + crypto_aead_xchacha20poly1305_ietf_ABYTES;
-  // FIXME nonce reuse (see encryption)
-  derive_per_message_secrets (&kx->rhts,
-                              1,
-                              enc_key,
-                              enc_nonce);
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
-    (unsigned char*) &rhm_p->finished,     // unsigned char *m
-    NULL,                                  // mlen_p message length
-    NULL,                                  // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &rhm_e->finished,     // const unsigned char *c    - cyphertext
-    c_len,                                 // unsigned long long clen   - length of cyphertext
-    NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
-    0,                                     // unsigned long long adlen
-    enc_nonce,     // const unsigned char *npub - nonce
-    enc_key     // const unsigned char *k    - key
-    );
-  if (0 != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Something went wrong decrypting finished field: %d\n", ret);
-    GNUNET_assert (0);
-  }
+    unsigned long long int c_len;
+    unsigned char *finished_buf;
+    // use RHTS to decrypt
+    c_len = ntohs (rhm_e->header.size) - sizeof (*rhm_e)
+            - sizeof (struct GNUNET_HashCode)
+            - crypto_aead_xchacha20poly1305_ietf_ABYTES;                                   // finished ct
+    rh_ctx->rhp = GNUNET_malloc (c_len
+                                 -
+                                 crypto_aead_xchacha20poly1305_ietf_ABYTES);
+    rh_ctx->hc = hc;
+    finished_buf = ((unsigned char*) &rhm_e[1]) + c_len;
+    /* Forward the transcript_hash_ctx
+     * after rhts has been generated,
+     * before generating finished_R*/
+    GNUNET_CRYPTO_hash_context_read (
+      hc,
+      &rhm_e[1],
+      c_len);
 
+    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+      (unsigned char*) rh_ctx->rhp,   // unsigned char *m
+      NULL,                                     // mlen_p message length
+      NULL,                                     // unsigned char *nsec       - unused: NULL
+      (unsigned char*) &rhm_e[1],   // const unsigned char *c    - cyphertext
+      c_len,                                    // unsigned long long clen   - length of cyphertext
+      NULL,                                     // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
+      0,                                        // unsigned long long adlen
+      enc_nonce,     // const unsigned char *npub - nonce
+      enc_key   // const unsigned char *k    - key
+      );
+    if (0 != ret)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Something went wrong decrypting: %d\n", ret);
+      GNUNET_free (rh_ctx->rhp);
+      GNUNET_free (rh_ctx);
+      GNUNET_free (hc);
+      return;
+    }
+    // FIXME nonce reuse (see encryption)
+    derive_per_message_secrets (&rh_ctx->rhts,
+                                1,
+                                enc_key,
+                                enc_nonce);
+    c_len = sizeof (struct GNUNET_HashCode)
+            + crypto_aead_xchacha20poly1305_ietf_ABYTES;
+    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+      (unsigned char*) &rh_ctx->decrypted_finish,   // unsigned char *m
+      NULL,                                // mlen_p message length
+      NULL,                                // unsigned char *nsec       - unused: NULL
+      finished_buf,   // const unsigned char *c    - cyphertext
+      c_len,                               // unsigned long long clen   - length of cyphertext
+      NULL,                                // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
+      0,                                   // unsigned long long adlen
+      enc_nonce,   // const unsigned char *npub - nonce
+      enc_key   // const unsigned char *k    - key
+      );
+    if (0 != ret)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Something went wrong decrypting finished field: %d\n", ret);
+      GNUNET_free (rh_ctx->rhp);
+      GNUNET_free (rh_ctx);
+      GNUNET_free (hc);
+      return;
+    }
+    GNUNET_memcpy (rh_ctx->finished_enc,
+                   finished_buf,
+                   c_len);
+  }
   // 4. ssI <- Decaps(skI,cI).
-  responder_hello_cls = GNUNET_new (struct ResponderHelloCls);
-  responder_hello_cls->kx = kx;
-  GNUNET_memcpy (&responder_hello_cls->rhm_e, rhm_e, sizeof (*rhm_e));
-  GNUNET_memcpy (&responder_hello_cls->rhm_p, rhm_p, sizeof (*rhm_p));
-  GNUNET_memcpy (&responder_hello_cls->ack_e,
-                 &rhm_e[1],
-                 sizeof (struct ConfirmationAck)
-                 + crypto_aead_xchacha20poly1305_ietf_ABYTES
-                 );
   req = GNUNET_new (struct PilsRequest);
-  responder_hello_cls->req = req;
+  rh_ctx->req = req;
   GNUNET_CONTAINER_DLL_insert (pils_requests_head,
                                pils_requests_tail,
                                req);
   req->op = GNUNET_PILS_kem_decaps (pils,
-                                    &rhm_p->responder_kem_challenge, // encapsulated key
+                                    &rh_ctx->rhp->c_I, // encapsulated key
                                     &handle_responder_hello_cont, // continuation
-                                    responder_hello_cls);
+                                    rh_ctx);
 }
 
 
@@ -1872,9 +2008,13 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   struct InitiatorDone idm_local;
   struct InitiatorDone *idm_p = &idm_local; /* plaintext */
   struct GNUNET_HashCode initiator_finished;
+  struct GNUNET_HashCode transcript;
+  struct GNUNET_ShortHashCode their_ats;
+  struct GNUNET_HashContext *hc;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
   struct ConfirmationAck ack_i;
+  struct ConfirmationAck ack_r;
   int8_t ret;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received InitiatorDone\n");
@@ -1892,10 +2032,7 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "I am an initiator! Tearing down...\n");
-    GNUNET_CONTAINER_DLL_remove (kx_head, kx_tail, kx);
-    GNUNET_MST_destroy (kx->mst);
-    GNUNET_free (kx);
+                "I am the initiator! Tearing down...\n");
     return;
   }
   derive_per_message_secrets (&kx->ihts,
@@ -1918,7 +2055,7 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong decrypting: %d\n", ret);
-    GNUNET_assert (0);
+    return;
   }
 
   //      - verify finished_I
@@ -1927,33 +2064,40 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
    *   (did so while we prepared responder hello)
    * before forwarding to [{payload}RATS and] {finished_I}IHTS */
   // (look at the end of handle_initiator_hello())
-  generate_initiator_finished (kx, &initiator_finished);
+  snapshot_transcript (kx->transcript_hash_ctx, &transcript);
+  generate_initiator_finished (&transcript,
+                               &kx->master_secret,
+                               &initiator_finished);
   if (0 != memcmp (&idm_p->finished,
                    &initiator_finished,
                    sizeof (struct GNUNET_HashCode)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Could not verify \"initiator finished\"\n");
-    GNUNET_assert (0);
+                "Could not verify \"initiator finished\" hash.\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Want: `%s'\n",
+                GNUNET_h2s (&initiator_finished));
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Have: `%s'\n",
+                GNUNET_h2s (&idm_p->finished));
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Transcript `%s'\n",
+                GNUNET_h2s (&transcript));
+    return;
   }
 
   /* Forward the transcript hash_context_read */
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
+  hc = GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
+  GNUNET_CRYPTO_hash_context_read (hc,
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
                                    + crypto_aead_chacha20poly1305_IETF_ABYTES);
-  derive_initial_ats (kx,
+  snapshot_transcript (hc, &transcript);
+  derive_initial_ats (&transcript,
+                      &kx->master_secret,
                       ROLE_INITIATOR,
-                      &kx->their_ats[0]);
-  /**
-   * FIXME we do not really have to calculate all this now
-   */
-  for (int i = 0; i < MAX_EPOCHS - 1; i++)
-  {
-    derive_next_ats (&kx->their_ats[i],
-                     &kx->their_ats[i + 1]);
-  }
-  derive_per_message_secrets (&kx->their_ats[0], // FIXME other HS epoch?
+                      &their_ats);
+  derive_per_message_secrets (&their_ats, // FIXME other HS epoch?
                               0,
                               enc_key,
                               enc_nonce);
@@ -1972,36 +2116,44 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong decrypting the Ack: %d\n", ret);
-    GNUNET_assert (0); // FIXME handle gracefully
+    GNUNET_CRYPTO_hash_context_abort (hc);
+    return;
   }
-  GNUNET_assert (sizeof ack_i == ntohs (ack_i.header.size));
-  GNUNET_assert (GNUNET_MESSAGE_TYPE_CORE_ACK == ntohs (ack_i.header.type));
-
-
-  // TODO look at handle_pong
-  // TODO maybe relevant (from handle_pong):
-  // GNUNET_STATISTICS_update (GSC_stats,
-  //                          gettext_noop (
-  //                            "# session keys confirmed via PONG"),
-  //                          1,
-  //                          GNUNET_NO);
-  // kx->status = GNUNET_CORE_KX_STATE_UP;
-  // monitor_notify_all (kx);
-  // GSC_SESSIONS_create (kx->peer, kx, kx->class);
-  // GNUNET_assert (NULL == kx->keep_alive_task);
-
-  // kx->class = m->peer_class; TODO
-  //  TODO also at other peer
-
-  kx->status = GNUNET_CORE_KX_STATE_RESPONDER_DONE;
+  if ((sizeof ack_i != ntohs (ack_i.header.size)) ||
+      (GNUNET_MESSAGE_TYPE_CORE_ACK != ntohs (ack_i.header.type)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Ack invalid!\n");
+    GNUNET_CRYPTO_hash_context_abort (hc);
+    return;
+  }
+  GNUNET_memcpy (&kx->their_ats[0],
+                 &their_ats,
+                 sizeof their_ats);
+  /**
+   * FIXME we do not really have to calculate all this now
+   */
+  for (int i = 0; i < MAX_EPOCHS - 1; i++)
+  {
+    derive_next_ats (&kx->their_ats[i],
+                     &kx->their_ats[i + 1]);
+  }
+  GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+  kx->transcript_hash_ctx = hc;
+  kx->status = GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED;
   monitor_notify_all (kx);
   kx->current_sqn = 1;
-  GSC_SESSIONS_create (kx->peer, kx, kx->class);
+  GSC_SESSIONS_create (&kx->peer, kx, kx->class);
   GNUNET_assert (NULL == kx->heartbeat_task);
   update_timeout (kx);
+  ack_r.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
+  ack_r.header.size = htons (sizeof ack_r);
+  GSC_KX_encrypt_and_transmit (kx,
+                               &ack_r,
+                               sizeof ack_r);
 
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->
-                                          peer);
+  GNUNET_TRANSPORT_core_receive_continue (transport,
+                                          &kx->peer);
 }
 
 
@@ -2070,7 +2222,7 @@ handle_heartbeat (struct GSC_KeyExchangeInfo *kx,
                                                        &send_heartbeat,
                                                        kx);
   }
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+  GNUNET_TRANSPORT_core_receive_continue (transport, &kx->peer);
 }
 
 
@@ -2091,7 +2243,6 @@ check_if_ack_or_heartbeat (struct GSC_KeyExchangeInfo *kx,
     ack = (struct ConfirmationAck *) buf;
     if (sizeof *ack != ntohs (ack->header.size))
       return GNUNET_NO;
-    update_timeout (kx);
   }
   else if  (GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT == ntohs (msg->type))
   {
@@ -2104,6 +2255,23 @@ check_if_ack_or_heartbeat (struct GSC_KeyExchangeInfo *kx,
   {
     return GNUNET_NO;
   }
+
+  /**
+   * Waiting for ACK or heartbeat
+   */
+  if (kx->status == GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT)
+  {
+    GSC_SESSIONS_create (&kx->peer, kx, kx->class);
+    kx->status = GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED;
+    if (NULL != kx->resend_task)
+      GNUNET_SCHEDULER_cancel (kx->resend_task);
+    kx->resend_task = NULL;
+    if (NULL != kx->resend_env)
+      GNUNET_free (kx->resend_env);
+    kx->resend_env = NULL;
+    monitor_notify_all (kx);
+  }
+  update_timeout (kx);
 
   return GNUNET_YES;
 }
@@ -2135,10 +2303,11 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   // TODO look at handle_encrypted
   //       - statistics
 
-  if ((kx->status != GNUNET_CORE_KX_STATE_RESPONDER_DONE) &&
-      (kx->status != GNUNET_CORE_KX_STATE_INITIATOR_DONE))
+  if ((kx->status != GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED) &&
+      (kx->status != GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED) &&
+      (kx->status != GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT))
   {
-    GSC_SESSIONS_end (kx->peer);
+    GSC_SESSIONS_end (&kx->peer);
     kx->status = GNUNET_CORE_KX_STATE_DOWN;
     monitor_notify_all (kx);
     restart_kx (kx);
@@ -2164,7 +2333,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Epoch %" PRIu64 " is too new, will not decrypt...\n",
                   epoch);
-      GSC_SESSIONS_end (kx->peer);
+      GSC_SESSIONS_end (&kx->peer);
       kx->status = GNUNET_CORE_KX_STATE_DOWN;
       monitor_notify_all (kx);
       restart_kx (kx);
@@ -2191,6 +2360,10 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   seq_enc_ctr = *((uint32_t*) m->tag);
   seq_enc_nonce = &m->tag[sizeof (uint32_t)];
 #if DEBUG_KX
+  GNUNET_print_bytes (&new_ats[epoch % MAX_EPOCHS],
+                      sizeof (struct GNUNET_ShortHashCode),
+                      8,
+                      GNUNET_NO);
   GNUNET_print_bytes (seq_enc_k,
                       sizeof seq_enc_k,
                       8,
@@ -2209,8 +2382,10 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
     seq_enc_k);
   m_seq = GNUNET_ntohll (m_seq_nbo);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Received encrypted message with E(SQN=%" PRIu64 ")=%" PRIu64
+              "Received encrypted message in epoch %" PRIu64
+              " with E(SQN=%" PRIu64 ")=%" PRIu64
               "\n",
+              epoch,
               m_seq,
               m->sequence_number);
   /* We are the initiator and as we are going to receive,
@@ -2252,6 +2427,13 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
                                               buf,
                                               sizeof buf))
   {
+    if (kx->status == GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Dropping message as we are still waiting for handshake ACK\n");
+      GNUNET_break_op (0);
+      return;
+    }
     if (GNUNET_OK !=
         GNUNET_MST_from_buffer (kx->mst,
                                 buf,
@@ -2260,7 +2442,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
                                 GNUNET_NO))
       GNUNET_break_op (0);
   }
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+  GNUNET_TRANSPORT_core_receive_continue (transport, &kx->peer);
 }
 
 
@@ -2283,8 +2465,8 @@ handle_transport_notify_disconnect (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Peer `%s' disconnected from us.\n",
-              GNUNET_i2s (kx->peer));
-  GSC_SESSIONS_end (kx->peer);
+              GNUNET_i2s (&kx->peer));
+  GSC_SESSIONS_end (&kx->peer);
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# key exchanges stopped"),
                             1,
@@ -2305,8 +2487,7 @@ handle_transport_notify_disconnect (void *cls,
     kx->heartbeat_task = NULL;
   }
   kx->status = GNUNET_CORE_KX_PEER_DISCONNECT;
-  if (NULL != kx->peer)
-    monitor_notify_all (kx);
+  monitor_notify_all (kx);
   GNUNET_CONTAINER_DLL_remove (kx_head, kx_tail, kx);
   GNUNET_MST_destroy (kx->mst);
   GNUNET_free (kx);
@@ -2337,37 +2518,40 @@ static void
 send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
 {
   struct GNUNET_MQ_Envelope *env;
-
-  uint8_t ret;
-  struct InitiatorHello ihm_local; /* initiator hello message - buffer on stack */
-  struct InitiatorHello *ihm = &ihm_local; /* initiator hello message - plain */
+  struct GNUNET_ShortHashCode es;
+  struct GNUNET_ShortHashCode ets;
+  struct GNUNET_ShortHashCode ss_R;
+  struct InitiatorHelloPayload *ihmp; /* initiator hello message - buffer on stack */
   struct InitiatorHello *ihm_e; /* initiator hello message - encrypted */
   long long unsigned int c_len;
   unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
   unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-  size_t u_len;
-  size_t pad_len;
-  size_t m_len;
+  enum GNUNET_GenericReturnValue ret;
+  size_t pt_len;
 
-  // XXX valgrind reports uninitialized memory
-  //     the following is a way to check whether this memory was meant
-  memset (ihm, 0, sizeof (*ihm));
-
-  env = GNUNET_MQ_msg (ihm_e, GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO);
-  GNUNET_CRYPTO_hash (kx->peer, /* what to hash */ // TODO do we do this twice?
+  pt_len = sizeof (*ihmp) + strlen (my_services_info);
+  c_len = pt_len + crypto_aead_xchacha20poly1305_ietf_ABYTES;
+  env = GNUNET_MQ_msg_extra (ihm_e,
+                             c_len,
+                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO);
+  ihmp = (struct InitiatorHelloPayload*) &ihm_e[1];
+  ihmp->peer_class = GNUNET_CORE_CLASS_UNKNOWN; // TODO set this to a meaningful
+  GNUNET_memcpy (&ihmp->initiator,
+                 &GSC_my_identity,
+                 sizeof (GSC_my_identity));
+  GNUNET_CRYPTO_hash (&kx->peer, /* what to hash */ // TODO do we do this twice?
                       sizeof (struct GNUNET_PeerIdentity),
-                      &ihm->hash_responder_peer_id); /* result */
+                      &ihm_e->hash_responder_peer_id); /* result */
   // TODO init hashcontext/transcript_hash
   GNUNET_assert (NULL == kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_assert (NULL != kx->transcript_hash_ctx);
-  memset (&ihm->services_info, 0, sizeof (ihm->services_info));
   // TODO fill services_info
 
   // 1. Encaps
-  ret = GNUNET_CRYPTO_eddsa_kem_encaps (&kx->peer->public_key, // public ephemeral key of initiator
-                                        &ihm->initiator_kem_challenge,    // encapsulated key
-                                        &kx->shared_secret_R); // key - ss_R
+  ret = GNUNET_CRYPTO_eddsa_kem_encaps (&kx->peer.public_key, // public ephemeral key of initiator
+                                        &ihm_e->initiator_kem_challenge,    // encapsulated key
+                                        &ss_R); // key - ss_R
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -2376,85 +2560,44 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   }
   // 2. generate rR (uint64_t) - is this the nonce? Naming seems not quite
   //    consistent
-  {
-    // TODO CAKE LSD says it's a uint64 - how does it compare to
-    // crypto_aead_xchacha20poly1305_ietf_NPUBBYTES?
-    uint64_t nonce =
-      GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX); // TODO is "strong" needed here?
-    uint64_t nonce_size = GNUNET_MIN (
-      sizeof (uint64_t),
-      crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
-    GNUNET_memcpy (&ihm->nonce, &nonce, nonce_size);
-  }
+  ihm_e->nonce =
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX);   // TODO is "strong" needed here?
   // 3. generate sk_e/pk_e - ephemeral key
   GNUNET_CRYPTO_ecdhe_key_create (&kx->sk_e);
   GNUNET_CRYPTO_ecdhe_key_get_public (
     &kx->sk_e,
     &kx->pk_e);
-  GNUNET_memcpy (&ihm->ephemeral_key, &kx->pk_e, sizeof (kx->pk_e));
+  GNUNET_memcpy (&ihm_e->ephemeral_key, &kx->pk_e, sizeof (kx->pk_e));
   // 4. generate ETS to encrypt
   //         generate ETS (early_traffic_secret_key, decrypt pk_i
   //         expand ETS <- expand ES <- extract ss_R
   //         use ETS to decrypt
   GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm->ephemeral_key,
-                                   sizeof (ihm->ephemeral_key));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm->initiator_kem_challenge,
-                                   sizeof (ihm->initiator_kem_challenge));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm->nonce,
-                                   sizeof (ihm->nonce));
-  GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
-                                   &ihm->hash_responder_peer_id,
-                                   sizeof (ihm->hash_responder_peer_id));
-  derive_es_ets (kx);
-  derive_per_message_secrets (&kx->early_traffic_secret,
-                              0,
-                              enc_key,
-                              enc_nonce);
+                                   ihm_e,
+                                   sizeof (struct InitiatorHello));
+  {
+    struct GNUNET_HashCode transcript;
+    snapshot_transcript (kx->transcript_hash_ctx,
+                         &transcript);
+    derive_es_ets (&transcript,
+                   &ss_R,
+                   &es,
+                   &ets);
+    derive_per_message_secrets (&ets,
+                                0,
+                                enc_key,
+                                enc_nonce);
+  }
   // 5. encrypt
-  /* Size of the part of the message that is to be encrypted */
-  /* Number of bytes (at the beginning) of `struct InitiatorHello` that are not
-   * encrypted */
-  u_len = offsetof (struct InitiatorHello, peer_id_sender);
-  /* Number of bytes at the end of `struct InitiatorHello` that reserve space
-   * for the cyphertext (including mac) that will be longer than the plaintext */
-  pad_len = sizeof (struct InitiatorHello)
-            - offsetof (struct InitiatorHello, reserved);
-  /* Number of bytes that are to be encrypted */
-  m_len = sizeof (struct InitiatorHello) - u_len;
-  m_len = m_len - pad_len;
-  /* Following fields will be encrypted */
-  GNUNET_memcpy (&ihm->peer_id_sender,
-                 &GSC_my_identity,
-                 sizeof (GSC_my_identity));
-  // TODO services info
-  // TODO peer class
-  ihm->peer_class = GNUNET_CORE_CLASS_UNKNOWN; // TODO set this to a meaningful
-                                               // value
-  /* Prepare the partially encrypted message */
-  GNUNET_memcpy (&ihm_e->ephemeral_key,
-                 &ihm->ephemeral_key,
-                 sizeof (ihm->ephemeral_key));
-  GNUNET_memcpy (&ihm_e->initiator_kem_challenge,
-                 &ihm->initiator_kem_challenge,
-                 sizeof (ihm->initiator_kem_challenge));
-  GNUNET_memcpy (&ihm_e->nonce,
-                 &ihm->nonce,
-                 sizeof (ihm->nonce));
-  GNUNET_memcpy (&ihm_e->hash_responder_peer_id,
-                 &ihm->hash_responder_peer_id,
-                 sizeof (ihm->hash_responder_peer_id));
 
   ret = crypto_aead_chacha20poly1305_ietf_encrypt (
-    (unsigned char*) &ihm_e->peer_id_sender,   /* c - ciphertext */
+    (unsigned char*) &ihm_e[1],   /* c - ciphertext */
     // mac,
     // NULL, // maclen_p
     &c_len,   /* clen_p */
-    (unsigned char*) &ihm->peer_id_sender,   /* m - plaintext message */
-    m_len,   // mlen
-    NULL, 0,   // ad, adlen // FIXME should this not be the other, unencrypted
+    (unsigned char*) ihmp,   /* m - plaintext message */
+    pt_len,   // mlen
+    NULL, 0,   // ad, adlen // FIXME maybe over the unencrypted header?
                // fields?
     NULL,   // nsec - unused
     enc_nonce,   // npub - nonce
@@ -2462,16 +2605,20 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   if (0 != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong encrypting\n");
-    GNUNET_assert (0);
+    GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+    kx->transcript_hash_ctx = NULL;
+    return;
   }
   /* Forward the transcript */
   GNUNET_CRYPTO_hash_context_read (
     kx->transcript_hash_ctx,
-    &ihm_e->peer_id_sender,
-    sizeof (struct InitiatorHello) - offsetof (struct InitiatorHello,
-                                               peer_id_sender));
+    &ihm_e[1],
+    c_len);
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_HELLO_SENT;
+  kx->early_secret_key = es;
+  kx->early_traffic_secret = ets;
+  kx->ss_R = ss_R;
   monitor_notify_all (kx);
   GNUNET_MQ_send_copy (kx->mq, env);
   kx->resend_env = env;
@@ -2492,90 +2639,88 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                              const void *payload,
                              size_t payload_size)
 {
+  struct GNUNET_MQ_Envelope *env;
+  struct EncryptedMessage *encrypted_msg;
+  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
+  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char seq_enc_k[crypto_stream_chacha20_ietf_KEYBYTES];
+  uint64_t sqn;
+  uint64_t epoch;
+  int8_t ret;
+
+  encrypted_msg = NULL;
+
+  sqn = kx->current_sqn;
+  epoch = kx->current_epoch;
+  /* We are the sender and as we are going to send,
+   * we are using the initiator key material */
+  derive_per_message_secrets (&kx->current_ats,
+                              sqn,
+                              enc_key,
+                              enc_nonce);
+  kx->current_sqn++;
+  derive_sn (&kx->current_ats,
+             seq_enc_k,
+             sizeof seq_enc_k);
+  env = GNUNET_MQ_msg_extra (encrypted_msg,
+                             payload_size,
+                             GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE);
+  // only encrypt the payload for now
+  // TODO encrypt other fields as well
+  ret = crypto_aead_chacha20poly1305_ietf_encrypt_detached (
+    (unsigned char*) &encrypted_msg[1],     // c - resulting ciphertext
+    (unsigned char*) &encrypted_msg->tag,     // mac - resulting mac/tag
+    NULL,     // maclen
+    (unsigned char*) payload,     // m - plain message
+    payload_size,     // mlen
+    NULL,     // ad - additional data TODO also cover the unencrypted part (epoch)
+    0,     // adlen
+    NULL,     // nsec - unused
+    enc_nonce,     // npub nonce
+    enc_key     // k - key
+    );
+  if (0 != ret)
   {
-    struct GNUNET_MQ_Envelope *env;
-    struct EncryptedMessage *encrypted_msg;
-    unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-    unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
-    unsigned char seq_enc_k[crypto_stream_chacha20_ietf_KEYBYTES];
-    uint64_t sqn;
-    uint64_t epoch;
-    int8_t ret;
-
-    encrypted_msg = NULL;
-
-    sqn = kx->current_sqn;
-    epoch = kx->current_epoch;
-    /* We are the sender and as we are going to send,
-     * we are using the initiator key material */
-    derive_per_message_secrets (&kx->current_ats,
-                                sqn,
-                                enc_key,
-                                enc_nonce);
-    kx->current_sqn++;
-    derive_sn (&kx->current_ats,
-               seq_enc_k,
-               sizeof seq_enc_k);
-    env = GNUNET_MQ_msg_extra (encrypted_msg,
-                               payload_size,
-                               GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE);
-    // only encrypt the payload for now
-    // TODO encrypt other fields as well
-    ret = crypto_aead_chacha20poly1305_ietf_encrypt_detached (
-      (unsigned char*) &encrypted_msg[1],   // c - resulting ciphertext
-      (unsigned char*) &encrypted_msg->tag,   // mac - resulting mac/tag
-      NULL,   // maclen
-      (unsigned char*) payload,   // m - plain message
-      payload_size,   // mlen
-      NULL,   // ad - additional data TODO also cover the unencrypted part (epoch)
-      0,   // adlen
-      NULL,   // nsec - unused
-      enc_nonce,   // npub nonce
-      enc_key   // k - key
-      );
-    if (0 != ret)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Something went wrong encrypting message\n");
-      GNUNET_assert (0);
-    }
-    {
-      /* compute the sequence number */
-      unsigned char *seq_enc_nonce;
-      uint64_t seq_nbo;
-      uint32_t seq_enc_ctr;
-
-      seq_nbo = GNUNET_htonll (sqn);
-      seq_enc_ctr = *((uint32_t*) encrypted_msg->tag);
-      seq_enc_nonce = &encrypted_msg->tag[sizeof (uint32_t)];
-      crypto_stream_chacha20_ietf_xor_ic (
-        (unsigned char*) &encrypted_msg->sequence_number,
-        (unsigned char*) &seq_nbo,
-        sizeof seq_nbo,
-        seq_enc_nonce,
-        ntohl (seq_enc_ctr),
-        seq_enc_k);
-#if DEBUG_KX
-      GNUNET_print_bytes (seq_enc_k,
-                          sizeof seq_enc_k,
-                          8,
-                          GNUNET_NO);
-      GNUNET_print_bytes ((char*) &seq_enc_ctr,
-                          16,
-                          8,
-                          GNUNET_NO);
-#endif
-      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                  "Sending encrypted message with E(SQN=%" PRIu64 ")=%" PRIu64
-                  "\n",
-                  sqn,
-                  encrypted_msg->sequence_number);
-    }
-    encrypted_msg->epoch = GNUNET_htonll (epoch);
-
-    // TODO actually copy payload
-    GNUNET_MQ_send (kx->mq, env);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Something went wrong encrypting message\n");
+    GNUNET_assert (0);
   }
+  {
+    /* compute the sequence number */
+    unsigned char *seq_enc_nonce;
+    uint64_t seq_nbo;
+    uint32_t seq_enc_ctr;
+
+    seq_nbo = GNUNET_htonll (sqn);
+    seq_enc_ctr = *((uint32_t*) encrypted_msg->tag);
+    seq_enc_nonce = &encrypted_msg->tag[sizeof (uint32_t)];
+    crypto_stream_chacha20_ietf_xor_ic (
+      (unsigned char*) &encrypted_msg->sequence_number,
+      (unsigned char*) &seq_nbo,
+      sizeof seq_nbo,
+      seq_enc_nonce,
+      ntohl (seq_enc_ctr),
+      seq_enc_k);
+#if DEBUG_KX
+    GNUNET_print_bytes (seq_enc_k,
+                        sizeof seq_enc_k,
+                        8,
+                        GNUNET_NO);
+    GNUNET_print_bytes ((char*) &seq_enc_ctr,
+                        16,
+                        8,
+                        GNUNET_NO);
+#endif
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Sending encrypted message with E(SQN=%" PRIu64 ")=%" PRIu64
+                "\n",
+                sqn,
+                encrypted_msg->sequence_number);
+  }
+  encrypted_msg->epoch = GNUNET_htonll (epoch);
+
+  // TODO actually copy payload
+  GNUNET_MQ_send (kx->mq, env);
 }
 
 
@@ -2616,10 +2761,10 @@ int
 GSC_KX_init (void)
 {
   struct GNUNET_MQ_MessageHandler handlers[] = {
-    GNUNET_MQ_hd_fixed_size (initiator_hello,
-                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
-                             struct InitiatorHello,
-                             NULL),
+    GNUNET_MQ_hd_var_size (initiator_hello,
+                           GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
+                           struct InitiatorHello,
+                           NULL),
     GNUNET_MQ_hd_var_size (initiator_done,
                            GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE,
                            struct InitiatorDone,
@@ -2754,7 +2899,7 @@ GSC_KX_handle_client_monitor_peers (struct GNUNET_MQ_Handle *mq)
 
     env_notify = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_CORE_MONITOR_NOTIFY);
     msg->state = htonl ((uint32_t) kx->status);
-    msg->peer = *kx->peer;
+    msg->peer = kx->peer;
     msg->timeout = GNUNET_TIME_absolute_hton (kx->timeout);
     GNUNET_MQ_send (mq, env_notify);
   }
