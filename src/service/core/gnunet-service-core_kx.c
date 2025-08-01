@@ -2146,6 +2146,13 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   }
   update_timeout (kx);
   epoch = GNUNET_ntohll (m->epoch);
+  /**
+   * Derive temporarily as we want to discard on
+   * decryption failure(s)
+   */
+  memcpy (new_ats,
+          kx->their_ats,
+          MAX_EPOCHS);
   if (kx->their_max_epoch < epoch)
   {
     /**
@@ -2163,13 +2170,6 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
       restart_kx (kx);
       return;
     }
-    /**
-     * Derive temporarily as we want to discard on
-     * decryption failure(s)
-     */
-    memcpy (new_ats,
-            kx->their_ats,
-            MAX_EPOCHS);
     for (int i = kx->their_max_epoch; i < epoch; i++)
     {
       derive_next_ats (&new_ats[i % MAX_EPOCHS],
