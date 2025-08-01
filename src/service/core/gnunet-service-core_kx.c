@@ -466,6 +466,7 @@ send_heartbeat (void *cls)
   struct GSC_KeyExchangeInfo *kx = cls;
   struct GNUNET_TIME_Relative retry;
   struct GNUNET_TIME_Relative left;
+  struct Heartbeat hb;
 
   kx->heartbeat_task = NULL;
   left = GNUNET_TIME_absolute_get_remaining (kx->timeout);
@@ -488,7 +489,11 @@ send_heartbeat (void *cls)
                             gettext_noop ("# heartbeat messages sent"),
                             1,
                             GNUNET_NO);
-  send_heartbeat (kx);
+  hb.header.type =  htons (GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT);
+  hb.header.size = htons (sizeof hb);
+  // FIXME when do we request update?
+  hb.flags = 0;
+  GSC_KX_encrypt_and_transmit (kx, &hb, sizeof hb);
   retry = GNUNET_TIME_relative_max (GNUNET_TIME_relative_divide (left, 2),
                                     MIN_HEARTBEAT_FREQUENCY);
   kx->heartbeat_task =
@@ -568,59 +573,27 @@ deliver_message (void *cls, const struct GNUNET_MessageHeader *m)
 }
 
 
-/**
- * Function called by transport to notify us that
- * a peer connected to us (on the network level).
- * Starts the key exchange with the given peer.
- *
- * @param cls closure (NULL)
- * @param mq message queue towards peer
- * @param peer_id (optional, may be NULL) the peer id of the connecting peer
- * @return key exchange information context
- */
-static void *
-handle_transport_notify_connect (void *cls,
-                                 const struct GNUNET_PeerIdentity *peer_id,
-                                 struct GNUNET_MQ_Handle *mq)
+static void
+restart_kx (struct GSC_KeyExchangeInfo *kx)
 {
-  struct GSC_KeyExchangeInfo *kx;
   struct GNUNET_HashCode h1;
   struct GNUNET_HashCode h2;
-  (void) cls;
 
   // TODO what happens if we're in the middle of a peer id change?
   // TODO there's a small chance this gets already called when we don't have a
   // peer id yet. Add a kx, insert into the list, mark it as to be completed
   // and let the callback to pils finish the rest once we got the peer id
 
-  if (0 == memcmp (peer_id, &GSC_my_identity, sizeof *peer_id))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Ignoring connection to self\n");
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Incoming connection of peer with %s\n",
-              GNUNET_i2s (peer_id));
-
-  /* Set up kx struct */
-  kx = GNUNET_new (struct GSC_KeyExchangeInfo);
-  kx->mst = GNUNET_MST_create (&deliver_message, kx);
-  kx->mq = mq;
-  kx->peer = GNUNET_new (struct GNUNET_PeerIdentity);
-  GNUNET_memcpy (kx->peer, peer_id, sizeof (struct GNUNET_PeerIdentity));
-  GNUNET_CONTAINER_DLL_insert (kx_head, kx_tail, kx);
-
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Initiating key exchange with peer %s\n",
-              GNUNET_i2s (peer_id));
+              GNUNET_i2s (kx->peer));
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# key exchanges initiated"),
                             1,
                             GNUNET_NO);
 
-  memcpy (kx->peer, peer_id, sizeof *peer_id);
   monitor_notify_all (kx);
-  GNUNET_CRYPTO_hash (peer_id, sizeof(struct GNUNET_PeerIdentity), &h1);
+  GNUNET_CRYPTO_hash (kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
   GNUNET_CRYPTO_hash (&GSC_my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &h2);
@@ -645,7 +618,45 @@ handle_transport_notify_connect (void *cls,
     monitor_notify_all (kx);
   }
 
-  /* set cls to kx */
+}
+
+
+/**
+ * Function called by transport to notify us that
+ * a peer connected to us (on the network level).
+ * Starts the key exchange with the given peer.
+ *
+ * @param cls closure (NULL)
+ * @param mq message queue towards peer
+ * @param peer_id (optional, may be NULL) the peer id of the connecting peer
+ * @return key exchange information context
+ */
+static void *
+handle_transport_notify_connect (void *cls,
+                                 const struct GNUNET_PeerIdentity *peer_id,
+                                 struct GNUNET_MQ_Handle *mq)
+{
+  struct GSC_KeyExchangeInfo *kx;
+  (void) cls;
+  if (0 == memcmp (peer_id, &GSC_my_identity, sizeof *peer_id))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Ignoring connection to self\n");
+    return NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Incoming connection of peer with %s\n",
+              GNUNET_i2s (peer_id));
+
+  /* Set up kx struct */
+  kx = GNUNET_new (struct GSC_KeyExchangeInfo);
+  kx->mst = GNUNET_MST_create (&deliver_message, kx);
+  kx->mq = mq;
+  kx->peer = GNUNET_new (struct GNUNET_PeerIdentity);
+  GNUNET_memcpy (kx->peer, peer_id, sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_CONTAINER_DLL_insert (kx_head, kx_tail, kx);
+
+  restart_kx (kx);
   return kx;
 }
 
@@ -2016,19 +2027,84 @@ check_encrypted_message (void *cls, const struct EncryptedMessage *m)
 }
 
 
-static enum GNUNET_GenericReturnValue
-check_if_ack (struct GSC_KeyExchangeInfo *kx,
-              const char *buf, size_t buf_len)
+/**
+ * Handle a key update
+ * @param cls key exchange info
+ * @param m KeyUpdate message
+ */
+static void
+handle_heartbeat (struct GSC_KeyExchangeInfo *kx,
+                  const struct Heartbeat *m)
 {
-  struct ConfirmationAck *ack;
-  if (sizeof *ack != buf_len)
-    return GNUNET_NO;
-  ack = (struct ConfirmationAck *) buf;
-  if (GNUNET_MESSAGE_TYPE_CORE_ACK != ntohs (ack->header.type))
-    return GNUNET_NO;
-  if (sizeof *ack != ntohs (ack->header.size))
-    return GNUNET_NO;
+  struct GNUNET_ShortHashCode new_ats;
+  struct ConfirmationAck ack;
+
+  if (m->flags & GSC_HEARTBEAT_KEY_UPDATE_REQUESTED)
+  {
+    if (kx->current_epoch == UINT64_MAX)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Max epoch reached (you probably will never see this)\n");
+    }
+    else
+    {
+      kx->current_epoch++;
+      kx->current_sqn = 0;
+      derive_next_ats (&kx->current_ats,
+                       &new_ats);
+      memcpy (&kx->current_ats,
+              &new_ats,
+              sizeof new_ats);
+    }
+  }
   update_timeout (kx);
+  ack.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
+  ack.header.size = htons (sizeof ack);
+  GSC_KX_encrypt_and_transmit (kx,
+                               &ack,
+                               sizeof ack);
+  if (NULL != kx->heartbeat_task)
+  {
+    GNUNET_SCHEDULER_cancel (kx->heartbeat_task);
+    kx->heartbeat_task = GNUNET_SCHEDULER_add_delayed (MIN_HEARTBEAT_FREQUENCY,
+                                                       &send_heartbeat,
+                                                       kx);
+  }
+  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
+}
+
+
+static enum GNUNET_GenericReturnValue
+check_if_ack_or_heartbeat (struct GSC_KeyExchangeInfo *kx,
+                           const char *buf,
+                           size_t buf_len)
+{
+  struct GNUNET_MessageHeader *msg;
+  struct ConfirmationAck *ack;
+  struct Heartbeat *hb;
+
+  if (sizeof *msg > buf_len)
+    return GNUNET_NO;
+  msg = (struct GNUNET_MessageHeader*) buf;
+  if (GNUNET_MESSAGE_TYPE_CORE_ACK == ntohs (msg->type))
+  {
+    ack = (struct ConfirmationAck *) buf;
+    if (sizeof *ack != ntohs (ack->header.size))
+      return GNUNET_NO;
+    update_timeout (kx);
+  }
+  else if  (GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT == ntohs (msg->type))
+  {
+    hb = (struct Heartbeat*) buf;
+    if (sizeof *hb != ntohs (hb->header.size))
+      return GNUNET_NO;
+    handle_heartbeat (kx, hb);
+  }
+  else
+  {
+    return GNUNET_NO;
+  }
+
   return GNUNET_YES;
 }
 
@@ -2058,8 +2134,16 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
 
   // TODO look at handle_encrypted
   //       - statistics
-  //       - check liveliness of session
 
+  if ((kx->status != GNUNET_CORE_KX_STATE_RESPONDER_DONE) &&
+      (kx->status != GNUNET_CORE_KX_STATE_INITIATOR_DONE))
+  {
+    GSC_SESSIONS_end (kx->peer);
+    kx->status = GNUNET_CORE_KX_STATE_DOWN;
+    monitor_notify_all (kx);
+    restart_kx (kx);
+    return;
+  }
   update_timeout (kx);
   epoch = GNUNET_ntohll (m->epoch);
   if (kx->their_max_epoch < epoch)
@@ -2071,8 +2155,12 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
     if ((epoch - kx->their_max_epoch) > 2 * MAX_EPOCHS)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Epoch %" PRIu64 " is too new, will decrypt...\n",
+                  "Epoch %" PRIu64 " is too new, will not decrypt...\n",
                   epoch);
+      GSC_SESSIONS_end (kx->peer);
+      kx->status = GNUNET_CORE_KX_STATE_DOWN;
+      monitor_notify_all (kx);
+      restart_kx (kx);
       return;
     }
     /**
@@ -2160,9 +2248,9 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
           new_ats,
           MAX_EPOCHS);
 
-  if (GNUNET_NO == check_if_ack (kx,
-                                 buf,
-                                 sizeof buf))
+  if (GNUNET_NO == check_if_ack_or_heartbeat (kx,
+                                              buf,
+                                              sizeof buf))
   {
     if (GNUNET_OK !=
         GNUNET_MST_from_buffer (kx->mst,
@@ -2171,53 +2259,6 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
                                 GNUNET_YES,
                                 GNUNET_NO))
       GNUNET_break_op (0);
-  }
-  GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
-}
-
-
-/**
- * Handle a key update
- * @param cls key exchange info
- * @param m KeyUpdate message
- */
-static void
-handle_heartbeat (void *cls, const struct Heartbeat *m)
-{
-  struct GSC_KeyExchangeInfo *kx = cls;
-  struct GNUNET_ShortHashCode new_ats;
-  struct ConfirmationAck ack;
-
-  if (m->flags & GSC_HEARTBEAT_KEY_UPDATE_REQUESTED)
-  {
-    if (kx->current_epoch == UINT64_MAX)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Max epoch reached (you probably will never see this)\n");
-    }
-    else
-    {
-      kx->current_epoch++;
-      kx->current_sqn = 0;
-      derive_next_ats (&kx->current_ats,
-                       &new_ats);
-      memcpy (&kx->current_ats,
-              &new_ats,
-              sizeof new_ats);
-    }
-  }
-  update_timeout (kx);
-  ack.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
-  ack.header.size = htons (sizeof ack);
-  GSC_KX_encrypt_and_transmit (kx,
-                               &ack,
-                               sizeof ack);
-  if (NULL != kx->heartbeat_task)
-  {
-    GNUNET_SCHEDULER_cancel (kx->heartbeat_task);
-    kx->heartbeat_task = GNUNET_SCHEDULER_add_delayed (MIN_HEARTBEAT_FREQUENCY,
-                                                       &send_heartbeat,
-                                                       kx);
   }
   GNUNET_TRANSPORT_core_receive_continue (transport, kx->peer);
 }
@@ -2590,10 +2631,6 @@ GSC_KX_init (void)
     GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
                              GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE, // TODO rename!
                              struct EncryptedMessage,
-                             NULL),
-    GNUNET_MQ_hd_fixed_size (heartbeat,
-                             GNUNET_MESSAGE_TYPE_CORE_HEARTBEAT,
-                             struct Heartbeat,
                              NULL),
     GNUNET_MQ_handler_end ()
   };

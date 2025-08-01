@@ -244,16 +244,9 @@ struct EncryptedMessage
 enum HeartbeatFlags
 {
   /**
-   * The peer that sent the update
-   * incremented its epoch and updated
-   * its key material
+   * A key update is requested
    */
-  GSC_HEARTBEAT_KEY_UPDATED = 1,
-
-  /**
-   * A key update is requested from us
-   */
-  GSC_HEARTBEAT_KEY_UPDATE_REQUESTED = 2,
+  GSC_HEARTBEAT_KEY_UPDATE_REQUESTED = 1,
 
 };
 
