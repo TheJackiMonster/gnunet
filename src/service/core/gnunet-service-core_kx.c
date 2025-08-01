@@ -2152,7 +2152,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
    */
   memcpy (new_ats,
           kx->their_ats,
-          MAX_EPOCHS);
+          MAX_EPOCHS * sizeof (struct GNUNET_ShortHashCode));
   if (kx->their_max_epoch < epoch)
   {
     /**
@@ -2246,7 +2246,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   kx->their_max_epoch = epoch;
   memcpy (&kx->their_ats,
           new_ats,
-          MAX_EPOCHS);
+          MAX_EPOCHS * sizeof (struct GNUNET_ShortHashCode));
 
   if (GNUNET_NO == check_if_ack_or_heartbeat (kx,
                                               buf,
