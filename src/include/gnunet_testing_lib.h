@@ -640,7 +640,7 @@ GNUNET_TESTING_cmd_make_unblocking (
  * @param timeout how long to wait at most for @a cmd_ref to finish
  * @return a finish-command.
  */
-const struct GNUNET_TESTING_Command
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_finish (
   const char *finish_label,
   const char *cmd_ref,
@@ -680,7 +680,7 @@ GNUNET_TESTING_cmd_sleep (
  *
  * @param label Label of the command.
 */
-const struct GNUNET_TESTING_Command
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec (
   const char *label,
   enum GNUNET_OS_ProcessStatusType expected_type,
@@ -692,8 +692,8 @@ GNUNET_TESTING_cmd_exec (
  * Command to execute a command.
  *
  * @param label Label of the command.
-*/
-const struct GNUNET_TESTING_Command
+ */
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec_va (
   const char *label,
   enum GNUNET_OS_ProcessStatusType expected_type,
