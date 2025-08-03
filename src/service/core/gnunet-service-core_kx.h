@@ -39,18 +39,18 @@ struct InitiatorHelloPayload
   /**
    * Sender Peer ID
    *
-   * TODO encrypted
    */
-  struct GNUNET_PeerIdentity initiator;
+  struct GNUNET_PeerIdentity pk_I;
 
   /**
    * The peer class of the sending peer
-   * TODO is it correct to send an enum like this?
    * TODO part of services info?
-   * TODO encrypted
    */
-  enum GNUNET_CORE_PeerClass peer_class;
+  uint16_t peer_class;
 
+  /**
+   * Followed by services_info (may be absent)
+   */
 };
 
 /** TODO */
@@ -79,18 +79,18 @@ struct InitiatorHello
    * Ephemeral public edx25519 key.
    * TODO is this the proper key type?
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey ephemeral_key;
+  struct GNUNET_CRYPTO_EcdhePublicKey pk_e;
 
   /**
    * Key encapsulation.
    * c_R
    */
-  struct GNUNET_CRYPTO_HpkeEncapsulation initiator_kem_challenge;
+  struct GNUNET_CRYPTO_HpkeEncapsulation c_R;
 
   /**
    * Hash of the responder peer id
    */
-  struct GNUNET_HashCode hash_responder_peer_id;
+  struct GNUNET_HashCode h_pk_R;
 
   /* Followed by encrypted InitiatorHelloPayload */
 };
@@ -147,6 +147,14 @@ struct ResponderHelloPayload
    * c_I
    */
   struct GNUNET_CRYPTO_HpkeEncapsulation c_I;
+
+  /**
+   * The peer class of the sending peer
+   * TODO is it correct to send an enum like this?
+   * TODO part of services info?
+   * TODO encrypted
+   */
+  uint16_t peer_class;
 
   /**
    * Followed by services_info (may be absent)

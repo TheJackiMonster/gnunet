@@ -1400,8 +1400,8 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
 
 
   GNUNET_memcpy (&kx->pk_e,
-                 &ihm_ctx->ihm_e->ephemeral_key,
-                 sizeof (ihm_ctx->ihm_e->ephemeral_key));
+                 &ihm_ctx->ihm_e->pk_e,
+                 sizeof (ihm_ctx->ihm_e->pk_e));
   //      5. generate ETS (early_traffic_secret_key, decrypt pk_i
   //         expand ETS <- expand ES <- extract ss_R
   //         use ETS to decrypt
@@ -1443,7 +1443,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
       enc_key   // const unsigned char *k    - key
       );
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "pid_sender: %s\n",
-                GNUNET_i2s (&ihmp->initiator));
+                GNUNET_i2s (&ihmp->pk_I));
     if (0 != ret)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1461,7 +1461,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
                                      &ihm_ctx->ihm_e[1],
                                      ct_len);
     GNUNET_memcpy (&kx->peer,
-                   &ihmp->initiator,
+                   &ihmp->pk_I,
                    sizeof (struct GNUNET_PeerIdentity));
   }
   // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
@@ -1567,7 +1567,7 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
   GNUNET_CRYPTO_hash (&GSC_my_identity,
                       sizeof (struct GNUNET_PeerIdentity),
                       &hash_compare); /* result */
-  if (0 != memcmp (&ihm_e->hash_responder_peer_id,
+  if (0 != memcmp (&ihm_e->h_pk_R,
                    &hash_compare,
                    sizeof (struct GNUNET_HashCode)))
   {
@@ -1590,7 +1590,7 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
                                initiator_hello_cls->req);
   initiator_hello_cls->req->op =
     GNUNET_PILS_kem_decaps (pils,
-                            &ihm_e->initiator_kem_challenge,
+                            &ihm_e->c_R,
                             // encapsulated key
                             &handle_initiator_hello_cont,
                             // continuation
@@ -2564,13 +2564,13 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
                              c_len,
                              GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO);
   ihmp = (struct InitiatorHelloPayload*) &ihm_e[1];
-  ihmp->peer_class = GNUNET_CORE_CLASS_UNKNOWN; // TODO set this to a meaningful
-  GNUNET_memcpy (&ihmp->initiator,
+  ihmp->peer_class = htons (GNUNET_CORE_CLASS_UNKNOWN); // TODO set this to a meaningful
+  GNUNET_memcpy (&ihmp->pk_I,
                  &GSC_my_identity,
                  sizeof (GSC_my_identity));
   GNUNET_CRYPTO_hash (&kx->peer, /* what to hash */ // TODO do we do this twice?
                       sizeof (struct GNUNET_PeerIdentity),
-                      &ihm_e->hash_responder_peer_id); /* result */
+                      &ihm_e->h_pk_R); /* result */
   // TODO init hashcontext/transcript_hash
   GNUNET_assert (NULL == kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = GNUNET_CRYPTO_hash_context_start ();
@@ -2579,7 +2579,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
 
   // 1. Encaps
   ret = GNUNET_CRYPTO_eddsa_kem_encaps (&kx->peer.public_key, // public ephemeral key of initiator
-                                        &ihm_e->initiator_kem_challenge,    // encapsulated key
+                                        &ihm_e->c_R,    // encapsulated key
                                         &ss_R); // key - ss_R
   if (GNUNET_OK != ret)
   {
@@ -2597,7 +2597,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   GNUNET_CRYPTO_ecdhe_key_get_public (
     &kx->sk_e,
     &kx->pk_e);
-  GNUNET_memcpy (&ihm_e->ephemeral_key, &kx->pk_e, sizeof (kx->pk_e));
+  GNUNET_memcpy (&ihm_e->pk_e, &kx->pk_e, sizeof (kx->pk_e));
   // 4. generate ETS to encrypt
   //         generate ETS (early_traffic_secret_key, decrypt pk_i
   //         expand ETS <- expand ES <- extract ss_R
