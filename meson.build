@@ -488,7 +488,7 @@ endif
 
 check_syscalls = [
     ['atoll', '#include<stdlib.h>'],
-    ['explicit_bzero', '#include<strings.h>'],
+    ['explicit_bzero', '#include<string.h>'],
     ['freeifaddrs', '#include<ifaddrs.h>'],
     ['getaddrinfo', '#include<netdb.h>'],
     ['gethostbyname', '#include<netdb.h>'],

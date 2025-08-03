@@ -435,6 +435,45 @@ static enum GNUNET_GenericReturnValue init_phase;
  */
 static char *my_services_info = "";
 
+static void
+buffer_clear (void *buf, size_t len)
+{
+#if HAVE_MEMSET_S
+  memset_s (buf, len, 0, len);
+#elif HAVE_EXPLICIT_BZERO
+  explicit_bzero (buf, len);
+#else
+  volatile unsigned char *p = buf;
+  while (len--)
+    *p++ = 0;
+#endif
+}
+
+
+static void
+cleanup_handshake_secrets (struct GSC_KeyExchangeInfo *kx)
+{
+  buffer_clear (&kx->ihts,
+                sizeof kx->ihts);
+  buffer_clear (&kx->rhts,
+                sizeof kx->rhts);
+  buffer_clear (&kx->sk_e,
+               sizeof kx->sk_e);
+  buffer_clear (&kx->ss_I,
+               sizeof kx->ss_I);
+  buffer_clear (&kx->ss_R,
+               sizeof kx->ss_R);
+  buffer_clear (&kx->ss_e,
+               sizeof kx->ss_e);
+  buffer_clear (&kx->master_secret,
+               sizeof kx->master_secret);
+  buffer_clear (&kx->early_secret_key,
+               sizeof kx->early_secret_key);
+  buffer_clear (&kx->early_traffic_secret,
+               sizeof kx->early_traffic_secret);
+  buffer_clear (&kx->handshake_secret,
+               sizeof kx->handshake_secret);
+}
 
 static void
 snapshot_transcript (const struct GNUNET_HashContext *ts_hash,
@@ -2141,6 +2180,7 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = hc;
   kx->status = GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED;
+  cleanup_handshake_secrets (kx);
   monitor_notify_all (kx);
   kx->current_sqn = 1;
   GSC_SESSIONS_create (&kx->peer, kx, kx->class);
@@ -2263,6 +2303,7 @@ check_if_ack_or_heartbeat (struct GSC_KeyExchangeInfo *kx,
   {
     GSC_SESSIONS_create (&kx->peer, kx, kx->class);
     kx->status = GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED;
+    cleanup_handshake_secrets (kx);
     if (NULL != kx->resend_task)
       GNUNET_SCHEDULER_cancel (kx->resend_task);
     kx->resend_task = NULL;
