@@ -40,7 +40,6 @@
 #include "gnunet-service-core_sessions.h"
 #include "gnunet-service-core.h"
 #include "gnunet_constants.h"
-#include "gnunet_signatures.h"
 #include "gnunet_protocols.h"
 #include "gnunet_pils_service.h"
 
@@ -49,8 +48,27 @@
  */
 #define DEBUG_KX 1
 
+/**
+ * Number of times we try to resend a handshake flight.
+ */
+#define RESEND_MAX_TRIES 4
 
-#define CAKE_HANDSHAKE_RESEND_TIMEOUT \
+/**
+ * libsodium has very long symbol names
+ */
+#define AEAD_KEY_BYTES crypto_aead_xchacha20poly1305_ietf_KEYBYTES
+
+/**
+ * libsodium has very long symbol names
+ */
+#define AEAD_NONCE_BYTES crypto_aead_xchacha20poly1305_ietf_NPUBBYTES
+
+/**
+ * libsodium has very long symbol names
+ */
+#define AEAD_TAG_BYTES crypto_aead_xchacha20poly1305_ietf_ABYTES
+
+#define RESEND_TIMEOUT \
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
 
 /**
@@ -72,9 +90,17 @@
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 12)
 
 /**
- * How often do we rekey?
+ * Maximum number of epochs we keep on hand.
+ * This implicitly defines the maximum age of
+ * messages we accept from other peers, depending
+ * on their rekey interval.
  */
-#define REKEY_FREQUENCY \
+#define MAX_EPOCHS 10
+
+/**
+ * How often do we rekey/switch to a new epoch?
+ */
+#define EPOCH_EXPIRATION \
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_HOURS, 12)
 
 /**
@@ -82,16 +108,6 @@
  */
 #define REKEY_TOLERANCE \
         GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
-
-/**
- * What is the maximum age of a message for us to consider processing
- * it?  Note that this looks at the timestamp used by the other peer,
- * so clock skew between machines does come into play here.  So this
- * should be picked high enough so that a little bit of clock skew
- * does not prevent peers from connecting to us.
- */
-#define MAX_MESSAGE_AGE GNUNET_TIME_UNIT_DAYS
-
 
 /**
  * String for expanding early transport secret
@@ -164,18 +180,6 @@
  */
 #define IV_STR "iv"
 
-
-/**
- * Number of bytes (at the beginning) of `struct EncryptedMessage`
- * that are NOT encrypted.
- */
-#define ENCRYPTED_HEADER_SIZE \
-        (offsetof (struct EncryptedMessage, sequence_number))
-
-/**
- * Maximum number of epochs we keep on hand
- */
-#define MAX_EPOCHS 10
 
 /**
  * Indicates whether a peer is in the initiating or receiving role.
@@ -311,6 +315,11 @@ struct GSC_KeyExchangeInfo
   uint64_t current_epoch;
 
   /**
+   * Expiration time of our current epoch
+   */
+  struct GNUNET_TIME_Absolute current_epoch_expiration;
+
+  /**
    * Highest seen (or used) epoch of
    * responder resp initiator..
    */
@@ -337,6 +346,11 @@ struct GSC_KeyExchangeInfo
   struct GNUNET_SCHEDULER_Task *resend_task;
 
   /**
+   * Resend tries left
+   */
+  unsigned int resend_tries_left;
+
+  /**
    * ID of task used for sending keep-alive pings.
    * TODO still needed?
    */
@@ -358,6 +372,7 @@ struct GSC_KeyExchangeInfo
    * TODO still needed?
    */
   enum GNUNET_CORE_PeerClass class;
+
 };
 
 /**
@@ -958,8 +973,8 @@ derive_ms (const struct GNUNET_ShortHashCode *hs,
 static void
 generate_per_record_nonce (
   uint64_t seq,
-  const uint8_t write_iv[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES],
-  uint8_t per_record_write_iv[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES])
+  const uint8_t write_iv[AEAD_NONCE_BYTES],
+  uint8_t per_record_write_iv[AEAD_NONCE_BYTES])
 {
   uint64_t seq_nbo;
   uint64_t *write_iv_ptr;
@@ -968,9 +983,9 @@ generate_per_record_nonce (
   seq_nbo = GNUNET_htonll (seq);
   memcpy (per_record_write_iv,
           write_iv,
-          crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+          AEAD_NONCE_BYTES);
   byte_offset =
-    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES - sizeof (uint64_t);
+    AEAD_NONCE_BYTES - sizeof (uint64_t);
   write_iv_ptr = (uint64_t*) (write_iv + byte_offset);
   *write_iv_ptr ^= seq_nbo;
 }
@@ -984,14 +999,14 @@ static void
 derive_per_message_secrets (
   const struct GNUNET_ShortHashCode *ts,
   uint64_t seq,
-  unsigned char key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES],
-  unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES])
+  unsigned char key[AEAD_KEY_BYTES],
+  unsigned char nonce[AEAD_NONCE_BYTES])
 {
-  unsigned char nonce_tmp[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char nonce_tmp[AEAD_NONCE_BYTES];
   /* derive actual key */
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (key,
-                                            crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+                                            AEAD_KEY_BYTES,
                                             ts,
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             KEY_STR,
@@ -1001,7 +1016,7 @@ derive_per_message_secrets (
   /* derive nonce */
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (nonce_tmp,
-                                            crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+                                            AEAD_NONCE_BYTES,
                                             ts,
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             IV_STR,
@@ -1148,10 +1163,19 @@ resend_responder_hello (void *cls)
   struct GSC_KeyExchangeInfo *kx = cls;
 
   kx->resend_task = NULL;
+  if (0 == kx->resend_tries_left)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Restarting KX\n");
+    restart_kx (kx);
+    return;
+  }
+  kx->resend_tries_left--;
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Resending responder hello...\n");
+              "Resending responder hello. Retries left: %u\n",
+              kx->resend_tries_left);
   GNUNET_MQ_send_copy (kx->mq, kx->resend_env);
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_responder_hello,
                                                   kx);
 }
@@ -1172,8 +1196,8 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
   struct GNUNET_ShortHashCode ss_e;
   struct GNUNET_ShortHashCode ss_I;
   struct GNUNET_HashContext *hc;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
 
   //      4. encaps -> shared_secret_e, c_e (kemChallenge)
   //         TODO potentially write this directly into rhm?
@@ -1224,7 +1248,7 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
   rhp = (struct ResponderHelloPayload*) rhp_buf;
   ct_len = rhp_len // ResponderHelloPayload, fist PT msg
            + sizeof (struct GNUNET_HashCode) // Finished hash, second PT msg
-           + crypto_aead_xchacha20poly1305_ietf_ABYTES * 2; // Two tags;
+           + AEAD_TAG_BYTES * 2; // Two tags;
   env = GNUNET_MQ_msg_extra (rhm_e,
                              ct_len,
                              GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO);
@@ -1366,9 +1390,10 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
 
   GNUNET_MQ_send_copy (kx->mq, env);
   kx->resend_env = env;
+  kx->resend_tries_left = RESEND_MAX_TRIES;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent ResponderHello\n");
 
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_responder_hello,
                                                   kx);
   kx->status = GNUNET_CORE_KX_STATE_RESPONDER_HELLO_SENT;
@@ -1383,8 +1408,8 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
   struct InitiatorHelloCtx *ihm_ctx = cls;
   struct GSC_KeyExchangeInfo *kx = ihm_ctx->kx;
   uint32_t ihm_len = ntohs (ihm_ctx->ihm_e->header.size);
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   struct GNUNET_HashCode h1;
   struct GNUNET_HashCode h2;
   struct GNUNET_HashCode transcript;
@@ -1428,7 +1453,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
   {
     struct InitiatorHelloPayload *ihmp;
     size_t ct_len = ihm_len - sizeof (struct InitiatorHello);
-    unsigned char ihmp_buf[ct_len - crypto_aead_xchacha20poly1305_ietf_ABYTES];
+    unsigned char ihmp_buf[ct_len - AEAD_TAG_BYTES];
     ihmp = (struct InitiatorHelloPayload*) ihmp_buf;
     ret = crypto_aead_chacha20poly1305_ietf_decrypt (
       ihmp_buf,   // unsigned char *m
@@ -1508,7 +1533,7 @@ check_initiator_hello (void *cls, const struct InitiatorHello *m)
 
   if (size < sizeof (*m)
       + sizeof (struct InitiatorHelloPayload)
-      + crypto_aead_xchacha20poly1305_ietf_ABYTES)
+      + AEAD_TAG_BYTES)
   {
     return GNUNET_SYSERR;
   }
@@ -1614,7 +1639,7 @@ struct ResponderHelloCls
 
   /* Encrypted finished CT (for transcript later) */
   char finished_enc[sizeof (struct GNUNET_HashCode)
-                    + crypto_aead_xchacha20poly1305_ietf_ABYTES];
+                    + AEAD_TAG_BYTES];
 
   /* Temporary transcript context */
   struct GNUNET_HashContext *hc;
@@ -1641,10 +1666,19 @@ resend_initiator_done (void *cls)
   struct GSC_KeyExchangeInfo *kx = cls;
 
   kx->resend_task = NULL;
+  if (0 == kx->resend_tries_left)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Restarting KX\n");
+    restart_kx (kx);
+    return;
+  }
+  kx->resend_tries_left--;
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Resending initiator done...\n");
+              "Resending initiator done. Retries left: %u\n",
+              kx->resend_tries_left);
   GNUNET_MQ_send_copy (kx->mq, kx->resend_env);
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_initiator_done,
                                                   kx);
 }
@@ -1659,8 +1693,8 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
   struct InitiatorDone idm_local;
   struct InitiatorDone *idm_p; /* plaintext */
   struct GNUNET_MQ_Envelope *env;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   struct ConfirmationAck ack_i;
   struct GNUNET_HashCode transcript;
   struct GNUNET_ShortHashCode ms;
@@ -1752,7 +1786,7 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
   idm_p = &idm_local; /* plaintext */
   env = GNUNET_MQ_msg_extra (idm_e,
                              sizeof (ack_i)
-                             + crypto_aead_xchacha20poly1305_ietf_ABYTES,
+                             + AEAD_TAG_BYTES,
                              GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE);
   // 6. Create IteratorFinished as per Section 6.
   generate_initiator_finished (&transcript,
@@ -1820,7 +1854,8 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
 
 
   kx->resend_env = env;
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  kx->resend_tries_left = RESEND_MAX_TRIES;
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_initiator_done,
                                                   kx);
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_DONE_SENT;
@@ -1837,7 +1872,7 @@ check_responder_hello (void *cls, const struct ResponderHello *m)
   if (size < sizeof (*m)
       + sizeof (struct ResponderHelloPayload)
       + sizeof (struct GNUNET_HashCode)
-      + crypto_aead_xchacha20poly1305_ietf_ABYTES * 2)
+      + AEAD_TAG_BYTES * 2)
   {
     return GNUNET_SYSERR;
   }
@@ -1858,8 +1893,8 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   struct ResponderHelloCls *rh_ctx;
   struct GNUNET_HashCode transcript;
   struct GNUNET_HashContext *hc;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   enum GNUNET_GenericReturnValue ret;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ResponderHello\n");
@@ -1932,10 +1967,10 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
     // use RHTS to decrypt
     c_len = ntohs (rhm_e->header.size) - sizeof (*rhm_e)
             - sizeof (struct GNUNET_HashCode)
-            - crypto_aead_xchacha20poly1305_ietf_ABYTES;                                   // finished ct
+            - AEAD_TAG_BYTES;                                   // finished ct
     rh_ctx->rhp = GNUNET_malloc (c_len
                                  -
-                                 crypto_aead_xchacha20poly1305_ietf_ABYTES);
+                                 AEAD_TAG_BYTES);
     rh_ctx->hc = hc;
     finished_buf = ((unsigned char*) &rhm_e[1]) + c_len;
     /* Forward the transcript_hash_ctx
@@ -1972,7 +2007,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
                                 enc_key,
                                 enc_nonce);
     c_len = sizeof (struct GNUNET_HashCode)
-            + crypto_aead_xchacha20poly1305_ietf_ABYTES;
+            + AEAD_TAG_BYTES;
     ret = crypto_aead_chacha20poly1305_ietf_decrypt (
       (unsigned char*) &rh_ctx->decrypted_finish,   // unsigned char *m
       NULL,                                // mlen_p message length
@@ -2038,8 +2073,8 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   struct GNUNET_HashCode transcript;
   struct GNUNET_ShortHashCode their_ats;
   struct GNUNET_HashContext *hc;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   struct ConfirmationAck ack_i;
   struct ConfirmationAck ack_r;
   int8_t ret;
@@ -2168,6 +2203,8 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = hc;
   kx->status = GNUNET_CORE_KX_STATE_RESPONDER_CONNECTED;
+  kx->current_epoch_expiration =
+    GNUNET_TIME_relative_to_absolute (EPOCH_EXPIRATION);
   cleanup_handshake_secrets (kx);
   monitor_notify_all (kx);
   kx->current_sqn = 1;
@@ -2229,6 +2266,8 @@ handle_heartbeat (struct GSC_KeyExchangeInfo *kx,
     else
     {
       kx->current_epoch++;
+      kx->current_epoch_expiration =
+        GNUNET_TIME_relative_to_absolute (EPOCH_EXPIRATION);
       kx->current_sqn = 0;
       derive_next_ats (&kx->current_ats,
                        &new_ats);
@@ -2291,6 +2330,8 @@ check_if_ack_or_heartbeat (struct GSC_KeyExchangeInfo *kx,
   {
     GSC_SESSIONS_create (&kx->peer, kx, kx->class);
     kx->status = GNUNET_CORE_KX_STATE_INITIATOR_CONNECTED;
+    kx->current_epoch_expiration =
+      GNUNET_TIME_relative_to_absolute (EPOCH_EXPIRATION);
     cleanup_handshake_secrets (kx);
     if (NULL != kx->resend_task)
       GNUNET_SCHEDULER_cancel (kx->resend_task);
@@ -2319,8 +2360,8 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   char buf[size - sizeof (*m)] GNUNET_ALIGN;
   unsigned char seq_enc_k[crypto_stream_chacha20_ietf_KEYBYTES];
   const unsigned char *seq_enc_nonce;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   struct GNUNET_ShortHashCode new_ats[MAX_EPOCHS];
   uint32_t seq_enc_ctr;
   uint64_t epoch;
@@ -2351,6 +2392,9 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   memcpy (new_ats,
           kx->their_ats,
           MAX_EPOCHS * sizeof (struct GNUNET_ShortHashCode));
+  // FIXME here we could introduce logic that sends hearbeats
+  // with key update request if we have not seen a new
+  // epoch after a while (e.g. EPOCH_EXPIRATION)
   if (kx->their_max_epoch < epoch)
   {
     /**
@@ -2530,9 +2574,10 @@ resend_initiator_hello (void *cls)
 
   kx->resend_task = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Resending initiator hello...\n");
+              "Resending initiator hello.\n");
   GNUNET_MQ_send_copy (kx->mq, kx->resend_env);
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  // FIXME (Exponential) backoff?
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_initiator_hello,
                                                   kx);
 }
@@ -2553,13 +2598,13 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   struct InitiatorHelloPayload *ihmp; /* initiator hello message - buffer on stack */
   struct InitiatorHello *ihm_e; /* initiator hello message - encrypted */
   long long unsigned int c_len;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   enum GNUNET_GenericReturnValue ret;
   size_t pt_len;
 
   pt_len = sizeof (*ihmp) + strlen (my_services_info);
-  c_len = pt_len + crypto_aead_xchacha20poly1305_ietf_ABYTES;
+  c_len = pt_len + AEAD_TAG_BYTES;
   env = GNUNET_MQ_msg_extra (ihm_e,
                              c_len,
                              GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO);
@@ -2652,11 +2697,39 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   monitor_notify_all (kx);
   GNUNET_MQ_send_copy (kx->mq, env);
   kx->resend_env = env;
-  kx->resend_task = GNUNET_SCHEDULER_add_delayed (CAKE_HANDSHAKE_RESEND_TIMEOUT,
+  kx->resend_tries_left = RESEND_MAX_TRIES;
+  kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_initiator_hello,
                                                   kx);
 }
 
+static void
+check_rekey (struct GSC_KeyExchangeInfo *kx)
+{
+  struct GNUNET_ShortHashCode new_ats;
+
+  if ((UINT64_MAX == kx->current_sqn) ||
+      (GNUNET_TIME_absolute_is_past (kx->current_epoch_expiration)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Epoch expiration %" PRIu64 " SQN %" PRIu64
+                ", incrementing epoch...\n",
+                kx->current_epoch_expiration.abs_value_us,
+                kx->current_sqn);
+    // Can this trigger? Maybe if we receive a lot of
+    // heatbeats?
+    GNUNET_assert (UINT64_MAX > kx->current_epoch);
+    kx->current_epoch++;
+    kx->current_epoch_expiration =
+      GNUNET_TIME_relative_to_absolute (EPOCH_EXPIRATION);
+    kx->current_sqn = 0;
+    derive_next_ats (&kx->current_ats,
+                     &new_ats);
+    memcpy (&kx->current_ats,
+            &new_ats,
+            sizeof new_ats);
+  }
+}
 
 /**
  * Encrypt and transmit payload
@@ -2671,8 +2744,8 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 {
   struct GNUNET_MQ_Envelope *env;
   struct EncryptedMessage *encrypted_msg;
-  unsigned char enc_key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
-  unsigned char enc_nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
+  unsigned char enc_key[AEAD_KEY_BYTES];
+  unsigned char enc_nonce[AEAD_NONCE_BYTES];
   unsigned char seq_enc_k[crypto_stream_chacha20_ietf_KEYBYTES];
   uint64_t sqn;
   uint64_t epoch;
@@ -2680,6 +2753,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 
   encrypted_msg = NULL;
 
+  check_rekey (kx);
   sqn = kx->current_sqn;
   epoch = kx->current_epoch;
   /* We are the sender and as we are going to send,
