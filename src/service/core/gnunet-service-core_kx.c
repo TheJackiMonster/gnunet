@@ -458,22 +458,23 @@ cleanup_handshake_secrets (struct GSC_KeyExchangeInfo *kx)
   buffer_clear (&kx->rhts,
                 sizeof kx->rhts);
   buffer_clear (&kx->sk_e,
-               sizeof kx->sk_e);
+                sizeof kx->sk_e);
   buffer_clear (&kx->ss_I,
-               sizeof kx->ss_I);
+                sizeof kx->ss_I);
   buffer_clear (&kx->ss_R,
-               sizeof kx->ss_R);
+                sizeof kx->ss_R);
   buffer_clear (&kx->ss_e,
-               sizeof kx->ss_e);
+                sizeof kx->ss_e);
   buffer_clear (&kx->master_secret,
-               sizeof kx->master_secret);
+                sizeof kx->master_secret);
   buffer_clear (&kx->early_secret_key,
-               sizeof kx->early_secret_key);
+                sizeof kx->early_secret_key);
   buffer_clear (&kx->early_traffic_secret,
-               sizeof kx->early_traffic_secret);
+                sizeof kx->early_traffic_secret);
   buffer_clear (&kx->handshake_secret,
-               sizeof kx->handshake_secret);
+                sizeof kx->handshake_secret);
 }
+
 
 static void
 snapshot_transcript (const struct GNUNET_HashContext *ts_hash,
@@ -991,22 +992,20 @@ derive_per_message_secrets (
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (key,
                                             crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
-                                            ts, // prk? TODO
+                                            ts,
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             KEY_STR,
                                             strlen (KEY_STR),
-                                            // TODO 64 - according to lsd?
                                             NULL));
 
   /* derive nonce */
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (nonce_tmp,
                                             crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
-                                            ts,              // prk?
+                                            ts,
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             IV_STR,
                                             strlen (IV_STR),
-                                            // TODO 12 (CAKE draft)???
                                             NULL));
   generate_per_record_nonce (seq,
                              nonce_tmp,
@@ -1030,7 +1029,6 @@ derive_next_ats (const struct GNUNET_ShortHashCode *old_ats,
                                    old_ats,
                                    CAKE_LABEL, strlen (CAKE_LABEL),
                                    TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
-                                   // TODO secret_len - according to lsd?
                                    NULL);
   if (GNUNET_OK != ret)
   {
@@ -1060,7 +1058,7 @@ derive_initial_ats (const struct GNUNET_HashCode *transcript,
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CRYPTO_hkdf_expand (initial_ats, // result
                                             sizeof (*initial_ats), // result len
-                                            ms, // prk? TODO
+                                            ms,
                                             CAKE_LABEL, strlen (CAKE_LABEL),
                                             traffic_str,
                                             strlen (traffic_str),
@@ -1218,17 +1216,10 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
   // send ResponderHello
   // TODO fill fields / services_info!
   // 1. r_R <- random
-  // TODO CAKE LSD says it's a uint64 - how does it compare to
-  // crypto_aead_xchacha20poly1305_ietf_NPUBBYTES?
   struct ResponderHelloPayload *rhp;
   size_t rhp_len = sizeof (*rhp) + strlen (my_services_info);
   unsigned char rhp_buf[rhp_len];
   size_t ct_len;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "ResponderHello payload is %lu bytes with services info `%s'\n",
-              rhp_len,
-              my_services_info);
 
   rhp = (struct ResponderHelloPayload*) rhp_buf;
   ct_len = rhp_len // ResponderHelloPayload, fist PT msg
@@ -1237,12 +1228,10 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
   env = GNUNET_MQ_msg_extra (rhm_e,
                              ct_len,
                              GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "ResponderHello is %u bytes\n",
-              ntohs (rhm_e->header.size));
 
   rhm_e->r_R =
-    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX);       // TODO is "strong" needed here?
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_NONCE,
+                              UINT64_MAX);
 
   // c_e
   GNUNET_memcpy (&rhm_e->c_e,
@@ -1253,7 +1242,6 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
                                    sizeof (struct ResponderHello));
   // 2. Encrypt ServicesInfo and c_I with RHTS
   // derive RHTS
-  // TODO merge in one function
   {
     struct GNUNET_HashCode transcript;
     snapshot_transcript (hc,
@@ -1332,7 +1320,7 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
                      NULL, 0, // ad, adlen // FIXME should this not be the other, unencrypted
                               // fields?
                      NULL, // nsec - unused
-                     enc_nonce, // npub - nonce // FIXME nonce can be reused
+                     enc_nonce, // npub
                      enc_key)); // k - key RHTS
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Encrypted and wrote %llu bytes\n",
@@ -2601,8 +2589,9 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   }
   // 2. generate rR (uint64_t) - is this the nonce? Naming seems not quite
   //    consistent
-  ihm_e->nonce =
-    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_STRONG, UINT64_MAX);   // TODO is "strong" needed here?
+  ihm_e->r_I =
+    GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_NONCE,
+                              UINT64_MAX);
   // 3. generate sk_e/pk_e - ephemeral key
   GNUNET_CRYPTO_ecdhe_key_create (&kx->sk_e);
   GNUNET_CRYPTO_ecdhe_key_get_public (

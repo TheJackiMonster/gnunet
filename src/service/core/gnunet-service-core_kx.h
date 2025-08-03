@@ -73,7 +73,7 @@ struct InitiatorHello
   /**
    * Random number to make replay attacks harder.
    */
-  uint64_t nonce;
+  uint64_t r_I;
 
   /**
    * Ephemeral public edx25519 key.
