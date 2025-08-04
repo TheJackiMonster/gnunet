@@ -448,7 +448,9 @@ GNUNET_PILS_sign_by_peer_identity (struct GNUNET_PILS_Handle *handle,
   GNUNET_CONTAINER_DLL_insert (handle->op_head,
                                handle->op_tail,
                                op);
+  // FIXME resend?
   GNUNET_MQ_send (handle->mq, op->env);
+  op->env = NULL;
   return op;
 }
 
@@ -482,7 +484,9 @@ GNUNET_PILS_kem_decaps (struct GNUNET_PILS_Handle *handle,
   GNUNET_CONTAINER_DLL_insert (handle->op_head,
                                handle->op_tail,
                                op);
+  // FIXME resend?
   GNUNET_MQ_send (handle->mq, op->env);
+  op->env = NULL;
   return op;
 }
 

@@ -1402,7 +1402,7 @@ run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Time window for zone iteration: %s\n",
                 GNUNET_STRINGS_relative_time_to_string (
-                  zone_publish_time_window,
+                  zone_publish_time_window_default,
                   GNUNET_YES));
   }
   zone_publish_time_window = zone_publish_time_window_default;
