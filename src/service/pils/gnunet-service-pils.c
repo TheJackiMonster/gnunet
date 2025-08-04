@@ -136,118 +136,38 @@ static struct GNUNET_MQ_Envelope *signed_hello;
  *
  * @param initial secret key the memory the initial secret key can be written to.
  */
-static enum GNUNET_GenericReturnValue
+static void
 load_ikm ()
 {
-  char *filename;
-  struct GNUNET_DISK_FileHandle *filehandle;
-  int ret;
+  char *keyfile;
+  struct GNUNET_CRYPTO_EddsaPrivateKey key;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               "pils",
-                                               "SECRET_KEY_FILE",
-                                               &filename))
+                                               "PEER",
+                                               "PRIVATE_KEY",
+                                               &keyfile))
   {
-    LOG (GNUNET_ERROR_TYPE_ERROR,
-         "PILS service is lacking initial secret key file configuration setting. Exiting\n");
-    return GNUNET_SYSERR;
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               "PEER",
+                               "PRIVATE_KEY");
+    GNUNET_SCHEDULER_shutdown ();
+    return;
   }
-  if (NULL == filename)
-    return GNUNET_SYSERR;
-  ret = GNUNET_DISK_file_test_read (filename);
-  if (GNUNET_SYSERR == ret)
-    return GNUNET_SYSERR;
-  if (GNUNET_NO == ret)
+  if (GNUNET_SYSERR ==
+      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                         GNUNET_YES,
+                                         &key))
   {
-    /* File does not exist - generate a new initial secret key and save it */
-    // TODO consider the case that the file exists and ist not readable
-    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
-                                ikm,
-                                sizeof ikm);
-    if (GNUNET_OK != GNUNET_DISK_directory_create_for_file (filename))
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "PILS service cannot create dir for saving initial secret key file. Exiting\n");
-      return GNUNET_SYSERR;
-    }
-    filehandle = GNUNET_DISK_file_open (filename,
-                                        GNUNET_DISK_OPEN_WRITE
-                                        | GNUNET_DISK_OPEN_CREATE,
-                                        GNUNET_DISK_PERM_USER_READ   // TODO
-                                        |                            // would
-                                                                     // the
-                                                                     // group
-                                                                     // need
-                                                                     // read
-                                                                     // perm?
-                                        GNUNET_DISK_PERM_USER_WRITE);
-    if (NULL == filehandle)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "PILS service had an issue with opening the initial secret key file. Exiting\n");
-      GNUNET_DISK_file_close (filehandle);
-      return GNUNET_SYSERR;
-    }
-    ret = GNUNET_DISK_file_write (filehandle,
-                                  ikm,
-                                  sizeof ikm);
-    GNUNET_DISK_file_close (filehandle);
-    if (sizeof ikm != ret)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "PILS service had an issue with writing the initial secret key to file. Exiting\n")
-      ;
-      return GNUNET_SYSERR;
-    }
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to setup peer's private key\n");
+    GNUNET_free (keyfile);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
   }
-  else
-  {
-    /* File existes - just read from it */
-    off_t size;
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "PILS is going to read initial secret key from file %s\n",
-         filename);
-    filehandle = GNUNET_DISK_file_open (filename,
-                                        GNUNET_DISK_OPEN_READ,
-                                        GNUNET_DISK_PERM_NONE);
-    if (NULL == filehandle)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "  Not able to open file\n");
-      return GNUNET_SYSERR;
-    }
-    if (GNUNET_OK != GNUNET_DISK_file_handle_size (filehandle, &size))
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "  File has the wrong size %lu\n",
-           size);
-      GNUNET_DISK_file_close (filehandle);
-      return GNUNET_SYSERR;
-    }
-    if (sizeof ikm != size)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "  Something is wrong with the file size, expected: %lu size, got: %lu\n",
-           size,
-           sizeof ikm);
-      GNUNET_DISK_file_close (filehandle);
-      return GNUNET_SYSERR;
-    }
-    ret = GNUNET_DISK_file_read (filehandle,
-                                 ikm,
-                                 sizeof ikm);
-    GNUNET_DISK_file_close (filehandle);
-    if (sizeof ikm != ret)
-    {
-      LOG (GNUNET_ERROR_TYPE_ERROR,
-           "  Read initial secret key with wrong size %u, expected %lu\n", ret,
-           sizeof ikm);
-      return GNUNET_SYSERR;
-    }
-
-  }
-  return GNUNET_OK;
+  GNUNET_free (keyfile);
+  GNUNET_assert (sizeof ikm == sizeof key.d);
+  memcpy (ikm, key.d, sizeof ikm);
 }
 
 static void
