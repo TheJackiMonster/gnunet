@@ -477,7 +477,8 @@ GNUNET_PILS_kem_decaps (struct GNUNET_PILS_Handle *handle,
   op->h = handle;
   op->decaps_cb = cb;
   op->decaps_cb_cls = cb_cls;
-  op->op_id = htonl (handle->op_id_counter++);
+  msg->rid = htonl (handle->op_id_counter++);
+  op->op_id = ntohl (msg->rid);
   GNUNET_CONTAINER_DLL_insert (handle->op_head,
                                handle->op_tail,
                                op);
