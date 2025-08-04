@@ -1298,7 +1298,7 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
     struct GNUNET_HashCode finished;
     struct GNUNET_HashCode transcript;
     unsigned char *finished_buf;
-    GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+    GNUNET_assert (0 == crypto_aead_xchacha20poly1305_ietf_encrypt (
                      (unsigned char*) &rhm_e[1], /* c - ciphertext */
                      &out_ct_len, /* clen_p */
                      rhp_buf, /* rhm_p - plaintext message */
@@ -1336,7 +1336,7 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
                                 1,
                                 enc_key,
                                 enc_nonce);
-    GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+    GNUNET_assert (0 == crypto_aead_xchacha20poly1305_ietf_encrypt (
                      finished_buf,                               /* c - ciphertext */
                      &out_ct_len, /* clen_p */
                      (unsigned char*) &finished, /* rhm_p - plaintext message */
@@ -1455,7 +1455,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
     size_t ct_len = ihm_len - sizeof (struct InitiatorHello);
     unsigned char ihmp_buf[ct_len - AEAD_TAG_BYTES];
     ihmp = (struct InitiatorHelloPayload*) ihmp_buf;
-    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+    ret = crypto_aead_xchacha20poly1305_ietf_decrypt (
       ihmp_buf,   // unsigned char *m
       NULL,                                      // mlen_p message length
       NULL,                                      // unsigned char *nsec       - unused: NULL
@@ -1800,7 +1800,7 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
               GNUNET_h2s (&transcript));
   // 7. Send InteratorFinished message encrypted with the key derived from IHTS to R
 
-  GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+  GNUNET_assert (0 == crypto_aead_xchacha20poly1305_ietf_encrypt (
                    (unsigned char*) &idm_e->finished, /* c - ciphertext */
                    NULL, /* clen_p */
                    (unsigned char*) &idm_p->finished, /* idm_p - plaintext message */
@@ -1816,7 +1816,7 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
   GNUNET_CRYPTO_hash_context_read (kx->transcript_hash_ctx,
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
-                                   + crypto_aead_chacha20poly1305_IETF_ABYTES);
+                                   + AEAD_TAG_BYTES);
   snapshot_transcript (kx->transcript_hash_ctx,
                        &transcript);
 #if DEBUG_KX
@@ -1838,7 +1838,7 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
   kx->current_sqn++;
   ack_i.header.type = htons (GNUNET_MESSAGE_TYPE_CORE_ACK);
   ack_i.header.size = htons (sizeof ack_i);
-  GNUNET_assert (0 == crypto_aead_chacha20poly1305_ietf_encrypt (
+  GNUNET_assert (0 == crypto_aead_xchacha20poly1305_ietf_encrypt (
                    (unsigned char*) &idm_e[1], /* c - ciphertext */
                    NULL, /* clen_p */
                    (unsigned char*) &ack_i, /* rhm_p - plaintext message */
@@ -1981,7 +1981,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
       &rhm_e[1],
       c_len);
 
-    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+    ret = crypto_aead_xchacha20poly1305_ietf_decrypt (
       (unsigned char*) rh_ctx->rhp,   // unsigned char *m
       NULL,                                     // mlen_p message length
       NULL,                                     // unsigned char *nsec       - unused: NULL
@@ -2008,7 +2008,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
                                 enc_nonce);
     c_len = sizeof (struct GNUNET_HashCode)
             + AEAD_TAG_BYTES;
-    ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+    ret = crypto_aead_xchacha20poly1305_ietf_decrypt (
       (unsigned char*) &rh_ctx->decrypted_finish,   // unsigned char *m
       NULL,                                // mlen_p message length
       NULL,                                // unsigned char *nsec       - unused: NULL
@@ -2101,13 +2101,13 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
                               0,
                               enc_key,
                               enc_nonce);
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+  ret = crypto_aead_xchacha20poly1305_ietf_decrypt (
     (unsigned char*) &idm_p->finished,     // unsigned char *m
     NULL,                                  // mlen_p message length
     NULL,                                  // unsigned char *nsec       - unused: NULL
     (unsigned char*) &idm_e->finished,     // const unsigned char *c    - cyphertext
     sizeof (idm_p->finished)               // unsigned long long clen   - length of cyphertext
-    + crypto_aead_chacha20poly1305_IETF_ABYTES,
+    + AEAD_TAG_BYTES,
     NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
     0,                                     // unsigned long long adlen
     enc_nonce,     // const unsigned char *npub - nonce
@@ -2153,7 +2153,7 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   GNUNET_CRYPTO_hash_context_read (hc,
                                    &idm_e->finished,
                                    sizeof (idm_e->finished)
-                                   + crypto_aead_chacha20poly1305_IETF_ABYTES);
+                                   + AEAD_TAG_BYTES);
   snapshot_transcript (hc, &transcript);
   derive_initial_ats (&transcript,
                       &kx->master_secret,
@@ -2163,12 +2163,12 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
                               0,
                               enc_key,
                               enc_nonce);
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt (
+  ret = crypto_aead_xchacha20poly1305_ietf_decrypt (
     (unsigned char*) &ack_i,     // unsigned char *m
     NULL,                                  // mlen_p message length
     NULL,                                  // unsigned char *nsec       - unused: NULL
     (unsigned char*) &idm_e[1],     // const unsigned char *c    - cyphertext
-    sizeof (ack_i) + crypto_aead_chacha20poly1305_IETF_ABYTES,                                 // unsigned long long clen   - length of cyphertext
+    sizeof (ack_i) + AEAD_TAG_BYTES,                                 // unsigned long long clen   - length of cyphertext
     NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
     0,                                     // unsigned long long adlen
     enc_nonce,     // const unsigned char *npub - nonce
@@ -2473,7 +2473,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   // TODO
   // c_len = size - offsetof ();
   c_len = size - sizeof (struct EncryptedMessage);
-  ret = crypto_aead_chacha20poly1305_ietf_decrypt_detached (
+  ret = crypto_aead_xchacha20poly1305_ietf_decrypt_detached (
     (unsigned char*) buf,   // m - plain message
     NULL,                                   // nsec - unused
     (unsigned char*) &m[1],                 // c - ciphertext
@@ -2665,7 +2665,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   }
   // 5. encrypt
 
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt (
+  ret = crypto_aead_xchacha20poly1305_ietf_encrypt (
     (unsigned char*) &ihm_e[1],   /* c - ciphertext */
     // mac,
     // NULL, // maclen_p
@@ -2771,7 +2771,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                              GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE);
   // only encrypt the payload for now
   // TODO encrypt other fields as well
-  ret = crypto_aead_chacha20poly1305_ietf_encrypt_detached (
+  ret = crypto_aead_xchacha20poly1305_ietf_encrypt_detached (
     (unsigned char*) &encrypted_msg[1],     // c - resulting ciphertext
     (unsigned char*) &encrypted_msg->tag,     // mac - resulting mac/tag
     NULL,     // maclen
