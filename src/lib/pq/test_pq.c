@@ -109,6 +109,16 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;"),
+    GNUNET_PQ_make_prepare ("test_select_array_nulls",
+                            "SELECT"
+                            " arr_bool"
+                            ",arr_int2"
+                            ",arr_int4"
+                            ",arr_int8"
+                            ",arr_text"
+                            " FROM test_pq_array_nulls"
+                            " WHERE id = $1"
+                            " LIMIT 1;"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
@@ -317,8 +327,8 @@ run_queries (struct GNUNET_PQ_Context *db_)
       return 1;
     }
     lret = GNUNET_PQ_extract_result (result,
-                                    results_select,
-                                    0);
+                                     results_select,
+                                     0);
     GNUNET_break (GNUNET_YES == lret);
     GNUNET_break (abs_time.abs_value_us == abs_time2.abs_value_us);
     GNUNET_break (forever.abs_value_us == forever2.abs_value_us);
@@ -401,6 +411,266 @@ run_queries (struct GNUNET_PQ_Context *db_)
   if (GNUNET_OK != lret)
     return 1;
 
+  return 0;
+}
+
+
+/**
+ * Run test queries for testing NULL entries in arrays
+ *
+ * @param db database handle
+ * @return 0 on success
+ */
+static int
+run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
+{
+  struct test_case
+  {
+    size_t len;
+    const bool *is_null;
+    const char *sql;
+    struct data
+    {
+      const bool *b;
+      const uint16_t *u16;
+      const uint32_t *u32;
+      const uint64_t *u64;
+      const char **str;
+    } expected;
+  } test_cases[] = {
+    {
+      .len = 1,
+      .is_null = (bool []){true},
+      .sql =
+        ",ARRAY[NULL]::BOOLEAN[]"
+        ",ARRAY[NULL]::SMALLINT[]"
+        ",ARRAY[NULL]::INTEGER[]"
+        ",ARRAY[NULL]::BIGINT[]"
+        ",ARRAY[NULL]::TEXT[]",
+      .expected = {
+        (bool []){false},
+        (uint16_t []){0},
+        (uint32_t []){0},
+        (uint64_t []){0},
+        (const char * []){NULL},
+      },
+    },
+    {
+      .len = 1,
+      .is_null = (bool []){false},
+      .sql =
+        ",ARRAY[false]::BOOLEAN[]"
+        ",ARRAY[100]::SMALLINT[]"
+        ",ARRAY[100100]::INTEGER[]"
+        ",ARRAY[100100100100]::BIGINT[]"
+        ",ARRAY['alpha']::TEXT[]",
+      .expected = {
+        (bool []){false},
+        (uint16_t []){100},
+        (uint32_t []){100100},
+        (uint64_t []){100100100100},
+        (const char * []){"alpha"},
+      },
+    },
+    {
+      .len = 3,
+      .is_null = (bool []){true, false, true},
+      .sql =
+        ",ARRAY[NULL, true, NULL]::BOOLEAN[]"
+        ",ARRAY[NULL, 100, NULL]::SMALLINT[]"
+        ",ARRAY[NULL, 100100, NULL]::INTEGER[]"
+        ",ARRAY[NULL, 100100100100, NULL]::BIGINT[]"
+        ",ARRAY[NULL, 'alpha3', NULL]::TEXT[]",
+      .expected = {
+        (bool []){false, true, false},
+        (uint16_t []){0, 100, 0},
+        (uint32_t []){0, 100100, 0},
+        (uint64_t []){0, 100100100100, 0},
+        (const char * []){NULL, "alpha3", NULL},
+      },
+    },
+    {
+      .len = 5,
+      .is_null = (bool []){true, false, false, false, true},
+      .sql =
+        ",ARRAY[NULL, true, false, true, NULL]::BOOLEAN[]"
+        ",ARRAY[NULL, 100, 200, 300, NULL]::SMALLINT[]"
+        ",ARRAY[NULL, 100100, 200200, 300300, NULL]::INTEGER[]"
+        ",ARRAY[NULL, 100100100100, 200200200200, 300300300300, NULL]::BIGINT[]"
+        ",ARRAY[NULL, 'alpha4', 'beta', 'gamma', NULL]::TEXT[]",
+      .expected = {
+        (bool []){false, true, false, true, false},
+        (uint16_t []){0, 100, 200, 300, 0},
+        (uint32_t []){0, 100100, 200200, 300300, 0},
+        (uint64_t []){0, 100100100100, 200200200200, 300300300300, 0},
+        (const char * []){NULL, "alpha4", "beta", "gamma", NULL},
+      },
+    },
+    {0},
+  };
+  enum typ
+  {
+    tbo,
+    t16,
+    t32,
+    t64,
+    tsr,
+    tmax,
+  };
+
+  for (uint32_t idx = 0; test_cases[idx].len != 0; idx++)
+  {
+    /* Insert row */
+    {
+      char stmt[512] = {0};
+
+      snprintf (stmt,
+                sizeof(stmt) - 1,
+                "INSERT INTO test_pq_array_nulls VALUES (%d %s);",
+                idx,
+                test_cases[idx].sql);
+      {
+        struct GNUNET_PQ_ExecuteStatement es[] = {
+          GNUNET_PQ_make_execute (stmt),
+          GNUNET_PQ_EXECUTE_STATEMENT_END,
+        };
+        if (GNUNET_OK !=
+            GNUNET_PQ_exec_statements (db,
+                                       es))
+        {
+          fprintf (stderr,
+                   "Failed to insert entries %d to table\n",
+                   idx);
+          GNUNET_PQ_disconnect (db);
+          return 1;
+        }
+      }
+    }
+
+    /* Read row */
+    {
+      PGresult *result;
+      int ret;
+      struct GNUNET_PQ_QueryParam params_select[] = {
+        GNUNET_PQ_query_param_uint32 (&idx),
+        GNUNET_PQ_query_param_end
+      };
+      struct
+      {
+        size_t num;
+        bool *is_null;
+        void *ptr;
+      } data[tmax] = {};
+      struct GNUNET_PQ_ResultSpec result_arrays[] = {
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_bool (db_,
+                                            "arr_bool",
+                                            &data[tbo].num,
+                                            (bool **) &data[tbo].ptr),
+          &data[tbo].is_null),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_uint16 (db_,
+                                              "arr_int2",
+                                              &data[t16].num,
+                                              (uint16_t **) &data[t16].ptr),
+          &data[t16].is_null),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_uint32 (db_,
+                                              "arr_int4",
+                                              &data[t32].num,
+                                              (uint32_t **) &data[t32].ptr),
+          &data[t32].is_null),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_uint64 (db_,
+                                              "arr_int8",
+                                              &data[t64].num,
+                                              (uint64_t **) &data[t64].ptr),
+          &data[t64].is_null),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_string (db_,
+                                              "arr_text",
+                                              &data[tsr].num,
+                                              (char **) &data[tsr].ptr),
+          &data[tsr].is_null),
+        GNUNET_PQ_result_spec_end
+      };
+
+      result = GNUNET_PQ_exec_prepared (db_,
+                                        "test_select_array_nulls",
+                                        params_select);
+      if (1 !=
+          PQntuples (result))
+      {
+        GNUNET_break (0);
+        PQclear (result);
+        return 1;
+      }
+      ret = GNUNET_PQ_extract_result (result,
+                                      result_arrays,
+                                      0);
+      GNUNET_assert (GNUNET_YES == ret);
+
+
+      /* For each type and array element,
+       * compare results with expected values */
+      for (enum typ t = 0; t<tmax; t++)
+      {
+        GNUNET_assert (data[t].num == test_cases[idx].len);
+        for (size_t n = 0; n < data[t].num; n++)
+        {
+          GNUNET_assert (data[t].is_null[n] == test_cases[idx].is_null[n]);
+
+#define COMPARE(typ, var) \
+        do { \
+          typ *var = (typ *) data[t].ptr; \
+\
+          GNUNET_assert (var[n] == test_cases[idx].expected.var[n]); \
+        } \
+        while (0)
+
+          if (! data[t].is_null[n])
+          {
+            switch (t)
+            {
+            case tbo:
+              COMPARE (bool, b);
+              break;
+            case t16:
+              COMPARE (uint16_t, u16);
+              break;
+            case t32:
+              COMPARE (uint32_t, u32);
+              break;
+            case t64:
+              COMPARE (uint64_t, u64);
+              break;
+            case tsr:
+              {
+                const char *exp = test_cases[idx].expected.str[n];
+                char *str = (char *) data[t].ptr;
+
+                for (int i = 0; i < n; i++)
+                  str += strlen (str) + 1;
+
+                GNUNET_assert (0 == strcmp (str, exp));
+                break;
+              }
+            case tmax:
+              GNUNET_assert (0);
+              break;
+            }
+          }
+        }
+      }
+#undef COMPARE
+
+      GNUNET_PQ_cleanup_result (result_arrays);
+      PQclear (result);
+
+      if (GNUNET_OK != ret)
+        return 1;
+    }
+  }
   return 0;
 }
 
@@ -495,27 +765,37 @@ main (int argc,
       const char *const argv[])
 {
   struct GNUNET_PQ_ExecuteStatement es[] = {
-    GNUNET_PQ_make_execute ("CREATE TEMPORARY TABLE IF NOT EXISTS test_pq ("
-                            " pub BYTEA NOT NULL"
-                            ",sig BYTEA NOT NULL"
-                            ",abs_time INT8 NOT NULL"
-                            ",forever INT8 NOT NULL"
-                            ",hash BYTEA NOT NULL CHECK(LENGTH(hash)=64)"
-                            ",vsize VARCHAR NOT NULL"
-                            ",u16 INT2 NOT NULL"
-                            ",u32 INT4 NOT NULL"
-                            ",u64 INT8 NOT NULL"
-                            ",unn INT8"
-                            ",arr_bool BOOL[]"
-                            ",arr_int2 INT2[]"
-                            ",arr_int4 INT4[]"
-                            ",arr_int8 INT8[]"
-                            ",arr_bytea BYTEA[]"
-                            ",arr_text TEXT[]"
-                            ",arr_abs_time INT8[]"
-                            ",arr_rel_time INT8[]"
-                            ",arr_timestamp  INT8[]"
-                            ")"),
+    GNUNET_PQ_make_execute (
+      "CREATE TEMPORARY TABLE IF NOT EXISTS test_pq ("
+      " pub BYTEA NOT NULL"
+      ",sig BYTEA NOT NULL"
+      ",abs_time INT8 NOT NULL"
+      ",forever INT8 NOT NULL"
+      ",hash BYTEA NOT NULL CHECK(LENGTH(hash)=64)"
+      ",vsize VARCHAR NOT NULL"
+      ",u16 INT2 NOT NULL"
+      ",u32 INT4 NOT NULL"
+      ",u64 INT8 NOT NULL"
+      ",unn INT8"
+      ",arr_bool BOOL[]"
+      ",arr_int2 INT2[]"
+      ",arr_int4 INT4[]"
+      ",arr_int8 INT8[]"
+      ",arr_bytea BYTEA[]"
+      ",arr_text TEXT[]"
+      ",arr_abs_time INT8[]"
+      ",arr_rel_time INT8[]"
+      ",arr_timestamp  INT8[]"
+      ");"),
+    GNUNET_PQ_make_execute (
+      "CREATE TEMPORARY TABLE IF NOT EXISTS test_pq_array_nulls ("
+      " id INT4 PRIMARY KEY"
+      ",arr_bool BOOL[]"
+      ",arr_int2 INT2[]"
+      ",arr_int4 INT4[]"
+      ",arr_int8 INT8[]"
+      ",arr_text TEXT[]"
+      ");"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
@@ -555,6 +835,14 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
+  ret = run_array_with_nulls_queries (db);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
+
 
   /* ensure oid lookup works */
   {
@@ -609,6 +897,7 @@ main (int argc,
   {
     struct GNUNET_PQ_ExecuteStatement es_tmp[] = {
       GNUNET_PQ_make_execute ("DROP TABLE test_pq"),
+      GNUNET_PQ_make_execute ("DROP TABLE test_pq_array_nulls"),
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
 

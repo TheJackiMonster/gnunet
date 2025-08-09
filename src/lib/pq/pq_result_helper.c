@@ -30,7 +30,6 @@
 #include "gnunet_pq_lib.h"
 #include "pq.h"
 
-
 struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_allow_null (struct GNUNET_PQ_ResultSpec rs,
                                   bool *is_null)
@@ -1226,6 +1225,14 @@ struct array_result_cls
   /* Out-pointer. If @a typ is array_of_byte and @a same_size is 0,
    * allocate and put the array of @a num sizes here. NULL otherwise */
   size_t **sizes;
+
+  /* If true, allow NULL as value for an element in the array */
+  bool allow_nulls;
+
+  /* * Out-pointer.  When @a allow_nulls is set to true, this is the
+   * location where to put the array allocated to cointain @a num bools,
+   * representing the positions of NULL entries in the array. */
+  bool **is_nulls;
 };
 
 
@@ -1263,14 +1270,14 @@ extract_array_generic (
   GNUNET_assert (NULL != dst);
   *((void **) dst) = NULL;
 
-  #define FAIL_IF(cond) \
-          do { \
-            if ((cond)) \
-            { \
-              GNUNET_break (! (cond)); \
-              goto FAIL; \
-            } \
-          } while (0)
+#define FAIL_IF(cond) \
+        do { \
+          if ((cond)) \
+          { \
+            GNUNET_break (! (cond)); \
+            goto FAIL; \
+          } \
+        } while (0)
 
   col_num = PQfnumber (result, fname);
   FAIL_IF (0 > col_num);
@@ -1300,14 +1307,14 @@ extract_array_generic (
       (struct pq_array_header *) data;
 
     header.ndim = ntohl (h->ndim);
-    header.has_null = ntohl (h->has_null);
+    header.has_nulls = ntohl (h->has_nulls);
     header.oid = ntohl (h->oid);
     header.dim = ntohl (h->dim);
     header.lbound = ntohl (h->lbound);
 
     FAIL_IF (1 != header.ndim);
     FAIL_IF (INT_MAX <= header.dim);
-    FAIL_IF (0 != header.has_null);
+    FAIL_IF ((0 != header.has_nulls) && ! info->allow_nulls);
     FAIL_IF (1 != header.lbound);
     FAIL_IF (info->oid != header.oid);
   }
@@ -1315,126 +1322,91 @@ extract_array_generic (
   if (NULL != info->num)
     *info->num = header.dim;
 
+  /* Prepare the array of bools, marking NULL elements */
+  if (info->allow_nulls)
+    *info->is_nulls = GNUNET_new_array (header.dim, bool);
+
   {
     char *in = data + sizeof(header);
+
+#define HANDLE_ELEMENT(typ, conv, access) \
+        do { \
+          int32_t sz =  ntohl (*(int32_t *) in); \
+\
+          in += sizeof(uint32_t); \
+          if (-1 != sz) \
+          { \
+            FAIL_IF (sz != sizeof(typ)); \
+            access (typ, conv); \
+            in += sz; \
+          } \
+          else \
+          { \
+            FAIL_IF (! info->allow_nulls); \
+            (*info->is_nulls)[i] = true; \
+          } \
+\
+          out += sizeof(typ); \
+        } while (0)
+
+#define HANDLE_ARRAY(typ, conv, access) \
+        do { \
+          if (NULL != dst_size) \
+          *dst_size = sizeof(typ) *(header.dim); \
+          out = GNUNET_new_array (header.dim, typ); \
+          *((void **) dst) = out; \
+          for (uint32_t i = 0; i < header.dim; i++) \
+          { \
+            HANDLE_ELEMENT (typ, conv, access); \
+          } \
+        } while (0)
+
+#define DEREF(typ, conv) \
+        *(typ *) out = conv (*(typ *) in)
+
+#define ACCESS_ABS(typ, conv) \
+        ((typ *) out)->abs_value_us = conv (*(uint64_t *) in)
+
+#define ACCESS_REL(typ, conv) \
+        ((typ *) out)->rel_value_us = conv (*(uint64_t *) in)
+
+#define ACCESS_TSTMP(typ, conv) \
+        ((typ *) out)->abs_time.abs_value_us = conv (*(uint64_t *) in)
 
     switch (info->typ)
     {
     case array_of_bool:
-      if (NULL != dst_size)
-        *dst_size = sizeof(bool) * (header.dim);
-      out = GNUNET_new_array (header.dim, bool);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(bool));
-        in += sizeof(uint32_t);
-        *(bool *) out = *(bool *) in;
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (bool, /* no conv */, DEREF);
       break;
 
     case array_of_uint16:
-      if (NULL != dst_size)
-        *dst_size = sizeof(uint16_t) * (header.dim);
-      out = GNUNET_new_array (header.dim, uint16_t);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint16_t));
-        in += sizeof(uint32_t);
-        *(uint16_t *) out = ntohs (*(uint16_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (uint16_t, ntohs, DEREF);
       break;
 
     case array_of_uint32:
-      if (NULL != dst_size)
-        *dst_size = sizeof(uint32_t) * (header.dim);
-      out = GNUNET_new_array (header.dim, uint32_t);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint32_t));
-        in += sizeof(uint32_t);
-        *(uint32_t *) out = ntohl (*(uint32_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (uint32_t, ntohl, DEREF);
       break;
 
     case array_of_uint64:
-      if (NULL != dst_size)
-        *dst_size = sizeof(uint64_t) * (header.dim);
-      out = GNUNET_new_array (header.dim, uint64_t);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint64_t));
-        in += sizeof(uint32_t);
-        *(uint64_t *) out = GNUNET_ntohll (*(uint64_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (uint64_t, GNUNET_ntohll, DEREF);
       break;
 
     case array_of_abs_time:
-      if (NULL != dst_size)
-        *dst_size = sizeof(struct GNUNET_TIME_Absolute) * (header.dim);
-      out = GNUNET_new_array (header.dim, struct GNUNET_TIME_Absolute);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint64_t));
-        in += sizeof(uint32_t);
-        ((struct GNUNET_TIME_Absolute *) out)->abs_value_us =
-          GNUNET_ntohll (*(uint64_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (struct GNUNET_TIME_Absolute,
+                    GNUNET_ntohll,
+                    ACCESS_ABS);
       break;
 
     case array_of_rel_time:
-      if (NULL != dst_size)
-        *dst_size = sizeof(struct GNUNET_TIME_Relative) * (header.dim);
-      out = GNUNET_new_array (header.dim,
-                              struct GNUNET_TIME_Relative);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint64_t));
-        in += sizeof(uint32_t);
-        ((struct GNUNET_TIME_Relative *) out)->rel_value_us =
-          GNUNET_ntohll (*(uint64_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (struct GNUNET_TIME_Relative,
+                    GNUNET_ntohll,
+                    ACCESS_REL);
       break;
 
     case array_of_timestamp:
-      if (NULL != dst_size)
-        *dst_size = sizeof(struct GNUNET_TIME_Timestamp) * (header.dim);
-      out = GNUNET_new_array (header.dim,
-                              struct GNUNET_TIME_Timestamp);
-      *((void **) dst) = out;
-      for (uint32_t i = 0; i < header.dim; i++)
-      {
-        size_t sz =  ntohl (*(uint32_t *) in);
-        FAIL_IF (sz != sizeof(uint64_t));
-        in += sizeof(uint32_t);
-        ((struct GNUNET_TIME_Timestamp *) out)->abs_time.abs_value_us =
-          GNUNET_ntohll (*(uint64_t *) in);
-        in += sz;
-        out += sz;
-      }
+      HANDLE_ARRAY (struct GNUNET_TIME_Timestamp,
+                    GNUNET_ntohll,
+                    ACCESS_TSTMP);
       break;
 
     case array_of_byte:
@@ -1451,11 +1423,20 @@ extract_array_generic (
           char *ptr = data + sizeof(header);
           for (uint32_t i = 0; i < header.dim; i++)
           {
-            uint32_t sz;
+            int32_t sz;
 
-            sz = ntohl (*(uint32_t *) ptr);
+            sz = ntohl (*(int32_t *) ptr);
+            if (-1 == sz)   /* signifies NULL entry */
+            {
+              FAIL_IF (! info->allow_nulls);
+              (*info->is_nulls)[i] = true;
+              sz = 0;
+            }
+            else
+              FAIL_IF (0 > sz);
+
             total += sz + (is_string ? 1 : 0);
-            ptr += sizeof(uint32_t);
+            ptr += sizeof(int32_t);
             ptr += sz;
 
             if ((! is_string) &&
@@ -1467,25 +1448,28 @@ extract_array_generic (
             FAIL_IF (total < sz);
           }
         }
+        FAIL_IF ((! info->allow_nulls) && (0 == total));
 
         if (NULL != dst_size)
           *dst_size = total;
 
-        FAIL_IF (0 == total);
         out = GNUNET_malloc (total);
-
         *((void **) dst) = out;
 
         /* copy data */
         for (uint32_t i = 0; i < header.dim; i++)
         {
-          size_t sz =  ntohl (*(uint32_t *) in);
+          int32_t sz =  ntohl (*(int32_t *) in);
+
           in += sizeof(uint32_t);
-          GNUNET_memcpy (out, in, sz);
+          if (-1 == sz)
+            sz = 0;
+          else
+            GNUNET_memcpy (out, in, sz);
 
           in += sz;
           out += sz;
-          out += (array_of_string == info->typ) ? 1 : 0;
+          out += (is_string) ? 1 : 0;
         }
         break;
       }
@@ -1499,7 +1483,31 @@ extract_array_generic (
 FAIL:
   GNUNET_free (*(void **) dst);
   return GNUNET_SYSERR;
-  #undef FAIL_IF
+#undef FAIL_IF
+#undef DEREF
+#undef ACCESS_ABS
+#undef ACCESS_REL
+#undef ACCESS_TSTMP
+#undef HANDLE_ARRAY
+#undef HANDLE_ELEMENT
+}
+
+
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_allow_nulls (
+  struct GNUNET_PQ_ResultSpec rs,
+  bool **is_nulls)
+{
+  struct GNUNET_PQ_ResultSpec rsr;
+  struct array_result_cls *info = rs.cls;
+
+  GNUNET_assert (rs.conv == extract_array_generic);
+  GNUNET_assert (NULL != is_nulls);
+  info->allow_nulls = true;
+  info->is_nulls = is_nulls;
+
+  rsr = rs;
+  return rsr;
 }
 
 
@@ -1518,6 +1526,9 @@ array_cleanup (void *cls,
       (0 == info->same_size) &&
       (NULL != info->sizes))
     GNUNET_free (*(info->sizes));
+
+  if (info->allow_nulls)
+    GNUNET_free (*info->is_nulls);
 
   GNUNET_free (cls);
   GNUNET_free (*dst);

@@ -999,6 +999,22 @@ struct GNUNET_PQ_ResultSpec
 GNUNET_PQ_result_spec_int64 (const char *name,
                              int64_t *i64);
 
+/**
+ * Allow NULL values in an array to be found in the database for the given value.
+ *
+ * @param rs result spec entry to modify, MUST be one for the _array_ types
+ * @param[out] is_nulls location where to put the array of bools,
+ *     whose elements will be set to 'true' if the value was indeed NULL,
+ *     or to 'false' if the value was non-NULL.
+ *     This parameter MUST NOT be NULL itself.
+ *     The length of the allocated array will be equal to the length of
+ *     the result for the values in @a rs.
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_array_allow_nulls (
+  struct GNUNET_PQ_ResultSpec rs,
+  bool **is_nulls);
 
 /**
  * array of bool expected.

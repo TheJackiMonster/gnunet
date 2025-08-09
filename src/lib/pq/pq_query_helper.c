@@ -866,7 +866,7 @@ qconv_array (
     size_t nullbyte = (array_of_string == meta->typ) ? 1 : 0;
     struct pq_array_header h = {
       .ndim = htonl (1),        /* We only support one-dimensional arrays */
-      .has_null = htonl (0),    /* We do not support NULL entries in arrays */
+      .has_nulls = htonl (0),      /* We do not support NULL entries in arrays */
       .lbound = htonl (1),      /* Default start index value */
       .dim = htonl (num),
       .oid = htonl (meta->oid),

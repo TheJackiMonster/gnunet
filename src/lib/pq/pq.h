@@ -159,17 +159,17 @@ enum array_types
 };
 
 /**
- * the header for a postgresql array in binary format. note that this a
+ * The header for a postgresql array in binary format. Note that this a
  * simplified special case of the general structure (which contains pointers),
  * as we only support one-dimensional arrays.
  */
 struct pq_array_header
 {
-  uint32_t ndim;     /* number of dimensions. we only support ndim = 1 */
-  uint32_t has_null;
+  uint32_t ndim;       /* number of dimensions. we only support ndim = 1 */
+  uint32_t has_nulls; /* not zero if array contains NULL elements */
   uint32_t oid;
-  uint32_t dim;      /* size of the array */
-  uint32_t lbound;   /* index value of first element in the db (default: 1). */
+  uint32_t dim;        /* size of the array */
+  uint32_t lbound;     /* index value of first element in the db (default: 1). */
 } __attribute__((packed));
 
 
