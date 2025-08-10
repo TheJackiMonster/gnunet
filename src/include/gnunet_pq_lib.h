@@ -1201,6 +1201,19 @@ GNUNET_PQ_result_spec_blind_sign_pub (
 
 
 /**
+ * Blinded signature expected.
+ *
+ * @param name name of the field in the table
+ * @param[out] blind_sig where to store the blinded signature
+ * @return array entry for the result specification to use
+ */
+struct GNUNET_PQ_ResultSpec
+GNUNET_PQ_result_spec_blinded_sig (
+  const char *name,
+  struct GNUNET_CRYPTO_BlindedSignature **b_sig);
+
+
+/**
  * Blind sign private key expected.
  *
  * @param name name of the field in the table
