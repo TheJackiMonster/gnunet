@@ -610,7 +610,7 @@ libltversions = [
     ['libgnunetnat', '2:0:0'],
     ['libgnunetnse', '0:0:0'],
     ['libgnunetpils', '0:0:0'],
-    ['libgnunetpq', '8:0:3'],
+    ['libgnunetpq', '9:0:4'],
     ['libgnunetreclaim', '0:0:0'],
     ['libgnunetregex', '3:1:0'],
     ['libgnunetregexblock', '1:0:0'],
