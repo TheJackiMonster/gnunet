@@ -11,7 +11,8 @@ set -e
 insert_gns() {
   echo -n "Checking NSS setup..."
   # abort if /etc/nsswitch.conf does not exist
-  if ! [ -e /etc/nsswitch.conf ]; then
+  if ! [ -e /etc/nsswitch.conf ];
+  then
     echo "Could not find /etc/nsswitch.conf."
     return 1
   fi
@@ -42,17 +43,11 @@ case "${1}" in
 configure)
   db_version 2.0
 
-  _USERNAME="gnunet"
-  _GROUPNAME="gnunet"
-
-  db_get gnunet-systempeer/autostart
-  _AUTOSTART="${RET}" # boolean
-
   db_get gnunet-dns/libnsswitch
   _LIBNSSWITCH="${RET}" # boolean
 
-  db_get gnunet-user/proxy
-  _PROXY="${RET}" # boolean
+#  db_get gnunet-user/proxy
+#  _PROXY="${RET}" # boolean
 
   db_stop
 
@@ -60,40 +55,40 @@ configure)
   GNUNET_HOME="/var/lib/gnunet"
 
   # Creating gnunet group if needed
-  if ! getent group ${_GROUPNAME} >/dev/null; then
-    echo -n "Creating new GNUnet group ${_GROUPNAME}:"
-    addgroup --quiet --system ${_GROUPNAME}
+  if ! getent group gnunet >/dev/null;
+  then
+    echo -n "Creating new GNUnet group gnunet:"
+    addgroup --quiet --system gnunet
     echo " done."
   fi
 
   # Creating gnunet user if needed
-  if ! getent passwd ${_USERNAME} >/dev/null; then
-    echo -n "Creating new GNUnet user ${_USERNAME}:"
-    adduser --quiet --system --ingroup ${_GROUPNAME} --home ${GNUNET_HOME} ${_USERNAME}
+  if ! getent passwd gnunet >/dev/null;
+  then
+    echo -n "Creating new GNUnet user gnunet:"
+    adduser --quiet --system --ingroup gnunet --home ${GNUNET_HOME} gnunet
     echo " done."
   fi
 
   # Add a special secured group
-  GNUNETDNS_GROUP="gnunetdns"
-
   # Creating gnunetdns group if needed
-  if ! getent group ${GNUNETDNS_GROUP} >/dev/null; then
-    echo -n "Creating new secured GNUnet group ${GNUNETDNS_GROUP}:"
-    addgroup --quiet --system ${GNUNETDNS_GROUP}
+  if ! getent group gnunetdns >/dev/null;
+  then
+    echo -n "Creating new secured GNUnet group gnunetdns:"
+    addgroup --quiet --system gnunetdns
     echo " done."
   fi
 
   # Copy the libnss_gns files to the libnss directory
-  if ${_LIBNSSWITCH}; then
+  if ${_LIBNSSWITCH};
+  then
     echo "Editing /etc/nsswitch.conf to use GNS before DNS"
     # $2 equals the currently installed version if it exists
-    if [ -z "$2" ]; then
+    if [ -z "$2" ];
+    then
       # first install: setup the recommended configuration (unless
       # nsswitch.conf already contains mdns entries)
-      insert_gns
-      if [ "$?" -gt 0 ]; then
-        echo "nsswitch does not exist on this system"
-      fi
+      insert_gns || echo "nsswitch does not exist on this system"
     fi
     echo " done."
   fi
@@ -169,20 +164,23 @@ configure)
     /usr/bin/gnunet-helper-transport-wlan \
     /usr/bin/gnunet-helper-vpn; do
     # only do something when no setting exists
-    if ! dpkg-statoverride --list $file >/dev/null 2>&1 && [ -e $file ]; then
-      chown root:${_GROUPNAME} $file
-      chmod 4750 $file
+    if ! dpkg-statoverride --list $file >/dev/null 2>&1 && [ -e $file ];
+    then
+        dpkg-statoverride --add --update \
+          root gnunet 4750 "$file"
     fi
   done
   if ! dpkg-statoverride --list /usr/bin/gnunet-helper-dns >/dev/null 2>&1 &&
-    [ -e /usr/bin/gnunet-helper-dns ]; then
-    chown root:${GNUNETDNS_GROUP} /usr/bin/gnunet-helper-dns
-    chmod 4750 /usr/bin/gnunet-helper-dns
+          [ -e /usr/bin/gnunet-helper-dns ];
+  then
+      dpkg-statoverride --add --update \
+        root gnunetdns 4750 /usr/bin/gnunet-helper-dns
   fi
   if ! dpkg-statoverride --list /usr/bin/gnunet-service-dns >/dev/null 2>&1 &&
-    [ -e /usr/bin/gnunet-service-dns ]; then
-    chown ${_USERNAME}:${GNUNETDNS_GROUP} /usr/bin/gnunet-service-dns
-    chmod 2750 /usr/bin/gnunet-service-dns
+          [ -e /usr/bin/gnunet-service-dns ];
+  then
+      dpkg-statoverride --add --update \
+        gnunet gnunetdns 2750 /usr/bin/gnunet-service-dns
   fi
   echo " done."
 

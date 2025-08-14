@@ -22,9 +22,6 @@ remove_gns() {
 	' /etc/nsswitch.conf
 }
 
-_USERNAME="gnunet"
-_GROUPNAME="gnunet"
-GNUNETDNS_GROUP="gnunetdns"
 if [ -e /usr/share/debconf/confmodule ]; then
   . /usr/share/debconf/confmodule
   db_version 2.0
@@ -47,7 +44,8 @@ purge)
 
 remove | upgrade | failed-upgrade | abort-install | abort-upgrade | disappear)
 
-  if $_LIBNSSWITCH; then
+  if $_LIBNSSWITCH;
+  then
     rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns.so.2
     rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns4.so.2
     rm -rf /usr/lib/x86_64-linux-gnu/usr/libnss_gns6.so.2
@@ -61,6 +59,18 @@ remove | upgrade | failed-upgrade | abort-install | abort-upgrade | disappear)
   exit 1
   ;;
 esac
+
+for file in /usr/bin/gnunet-helper-exit \
+    /usr/bin/gnunet-helper-nat-client \
+    /usr/bin/gnunet-helper-nat-server \
+    /usr/bin/gnunet-helper-transport-bluetooth \
+    /usr/bin/gnunet-helper-transport-wlan \
+    /usr/bin/gnunet-service-dns \
+    /usr/bin/gnunet-helper-dns \
+    /usr/bin/gnunet-helper-vpn;
+do
+    dpkg-statoverride --remove "$file"
+done
 
 #DEBHELPER#
 
