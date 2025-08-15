@@ -8,7 +8,6 @@ option('benchmarks', type : 'boolean', value : false, description: 'Enable bench
 option('poisoning', type : 'boolean', value : false, description: 'Enable poisoning of freed memory (for debugging) if set')
 option('nse-histogram', type : 'boolean', value : false, description: 'Enable NSE histogram if set')
 option('disable-autostart', type : 'boolean', value : false, description: 'Do not start peer services by default if set')
-option('install-rpath', type : 'boolean', value : true, description: 'Add rpath to installed binaries if set')
+option('install-rpath', type : 'boolean', value : false, description: 'Add rpath to installed binaries if set')
 option('heap-statistics', type : 'boolean', value : false, description: 'Expensive heap statistics if set')
 option('logging', type : 'string', value: 'yes', description: 'Log setting. Can be set to "yes" (logging, default), "no" (no logging), "verbose" (extra logging"), "veryverbose" (even more logging)')
-
