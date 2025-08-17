@@ -227,7 +227,7 @@ exec_recv_run (void *cls,
     GNUNET_assert (0);
   };
   rs->connect_state = connect_state;
-  // FIXME: set cls per hanlder
+  // FIXME: set cls per handler
   GNUNET_array_append (connect_state->recv_handlers,
                        connect_state->recv_handlers_len,
                        &handle_msg_test);

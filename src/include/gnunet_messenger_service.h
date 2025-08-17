@@ -323,7 +323,7 @@ enum GNUNET_MESSENGER_MessageKind
   GNUNET_MESSENGER_KIND_TAG = 19,
 
   /**
-   * The subscribtion kind. The message contains a #GNUNET_MESSENGER_MessageSubscribtion body.
+   * The subscription kind. The message contains a #GNUNET_MESSENGER_MessageSubscribtion body.
    */
   GNUNET_MESSENGER_KIND_SUBSCRIBTION = 20,
 
@@ -771,7 +771,7 @@ struct GNUNET_MESSENGER_MessageTag
 };
 
 /**
- * A subscribtion message body
+ * A subscription message body
  * This allows subscribing to a discourse.
  *
  * Message-body-size: 44 bytes
@@ -779,7 +779,7 @@ struct GNUNET_MESSENGER_MessageTag
 struct GNUNET_MESSENGER_MessageSubscribtion
 {
   /**
-   * The hash of the discourse to subscribtion.
+   * The hash of the discourse to subscription.
    */
   struct GNUNET_ShortHashCode discourse;
 
@@ -1052,7 +1052,7 @@ struct GNUNET_MESSENGER_MessageBody
     struct GNUNET_MESSENGER_MessageTicket ticket;
     struct GNUNET_MESSENGER_MessageTranscript transcript;
     struct GNUNET_MESSENGER_MessageTag tag;
-    struct GNUNET_MESSENGER_MessageSubscribtion subscribtion;
+    struct GNUNET_MESSENGER_MessageSubscribtion subscription;
     struct GNUNET_MESSENGER_MessageTalk talk;
     struct GNUNET_MESSENGER_MessageAnnouncement announcement;
     struct GNUNET_MESSENGER_MessageSecret secret;

@@ -256,7 +256,7 @@ is_epoch_member (const struct GNUNET_MESSENGER_Epoch *epoch,
                  const struct GNUNET_MESSENGER_Contact *contact);
 
 /**
- * Returns a relative member positon of a specific <i>contact</i> inside a
+ * Returns a relative member position of a specific <i>contact</i> inside a
  * given <i>epoch</i> in relation to its list of members. The position gets
  * reduced depending on an optional active <i>membership</i> from a subgroup.
  *

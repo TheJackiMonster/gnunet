@@ -815,7 +815,7 @@ keep_subscription_alive (void *cls)
 
   subscription->message = NULL;
 
-  discourse = &(message->body.subscribtion.discourse);
+  discourse = &(message->body.subscription.discourse);
 
   if (GNUNET_YES != GNUNET_CONTAINER_multishortmap_remove (room->subscriptions,
                                                            discourse,
@@ -842,9 +842,9 @@ handle_discourse_subscription (struct GNUNET_MESSENGER_Room *room,
 
   GNUNET_assert ((room) && (message));
 
-  flags = message->body.subscribtion.flags;
+  flags = message->body.subscription.flags;
 
-  discourse = &(message->body.subscribtion.discourse);
+  discourse = &(message->body.subscription.discourse);
 
   subscription = GNUNET_CONTAINER_multishortmap_get (room->subscriptions,
                                                      discourse);
@@ -877,7 +877,7 @@ active_subscription:
   if (0 == (flags & GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE))
     return;
 
-  time = GNUNET_TIME_relative_ntoh (message->body.subscribtion.time);
+  time = GNUNET_TIME_relative_ntoh (message->body.subscription.time);
 
   if (! subscription)
   {
@@ -902,7 +902,7 @@ active_subscription:
       destroy_message (subscription->message);
   }
 
-  subscription->message = create_message_subscribtion (discourse, time,
+  subscription->message = create_message_subscription (discourse, time,
                                                        flags);
 
   if (! subscription->message)

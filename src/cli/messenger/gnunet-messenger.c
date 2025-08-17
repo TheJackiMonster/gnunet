@@ -282,7 +282,7 @@ on_message (void *cls,
   case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
     {
       printf ("* '%s' subscribes: %s\n", sender_name,
-              GNUNET_sh2s (&(message->body.subscribtion.discourse)));
+              GNUNET_sh2s (&(message->body.subscription.discourse)));
       break;
     }
   case GNUNET_MESSENGER_KIND_TALK:
@@ -388,13 +388,13 @@ skip_printing:
       return;
 
     response.header.kind = GNUNET_MESSENGER_KIND_SUBSCRIBTION;
-    response.body.subscribtion.flags =
+    response.body.subscription.flags =
       GNUNET_MESSENGER_FLAG_SUBSCRIPTION_KEEP_ALIVE;
-    response.body.subscribtion.time =
+    response.body.subscription.time =
       GNUNET_TIME_relative_hton (GNUNET_TIME_relative_get_second_ ());
 
-    memset (&(response.body.subscribtion.discourse), 0,
-            sizeof(response.body.subscribtion.discourse));
+    memset (&(response.body.subscription.discourse), 0,
+            sizeof(response.body.subscription.discourse));
 
     GNUNET_MESSENGER_send_message (room, &response, NULL);
   }

@@ -402,7 +402,7 @@ handle_epoch_announcement_access (struct GNUNET_MESSENGER_EpochAnnouncement *
 
 /**
  * Writes/Deletes the GNS record of a given epoch <i>announcement</i>
- * depending on a provided flag that states wether an existing record
+ * depending on a provided flag that states whether an existing record
  * should be <i>deleted</i>.
  *
  * @param[in,out] announcement Epoch announcement

@@ -114,7 +114,7 @@ struct ConfirmationAck
  *   - {ResponderKemCiphertext}
  *   - {Finished}
  *   - [Application Payload]
- * TODO services_info and c_I are encrypted toghether, separately from finished,
+ * TODO services_info and c_I are encrypted together, separately from finished,
  *      both have space for mac/tag afterwards
  *
  */

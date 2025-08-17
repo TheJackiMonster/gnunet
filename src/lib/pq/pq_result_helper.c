@@ -1230,7 +1230,7 @@ struct array_result_cls
   bool allow_nulls;
 
   /* * Out-pointer.  When @a allow_nulls is set to true, this is the
-   * location where to put the array allocated to cointain @a num bools,
+   * location where to put the array allocated to contain @a num bools,
    * representing the positions of NULL entries in the array. */
   bool **is_nulls;
 };

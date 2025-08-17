@@ -197,7 +197,7 @@ GNUNET_PILS_feed_addresses (struct GNUNET_PILS_Handle *handle,
 
 
 /**
- * Hash address in buidler
+ * Hash address in builder
  *
  * @param builder builder to serialize
  * @param address_hash hash of the addresses

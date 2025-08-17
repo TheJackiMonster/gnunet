@@ -6243,7 +6243,7 @@ store_pi (void *cls)
   // FIXME hello_mono_time used here?? What about expiration in ale?
   pils_sign_address (ale,
                      hello_mono_time);
-  // TODO keep track of op and potentially cancle/clean
+  // TODO keep track of op and potentially cancel/clean
   GNUNET_free (address_uri);
 }
 
@@ -13568,7 +13568,7 @@ pils_pid_change_cb (void *cls,
       GNUNET_HELLO_builder_address_list_cmp (GST_my_hello, nbuilder))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "New PID from PILS is derived from address list inconsistend with ours. Ignoring...\n");
+                "New PID from PILS is derived from address list inconsistent with ours. Ignoring...\n");
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Proposed address list:\n");
     GNUNET_HELLO_builder_iterate (nbuilder, &print_address_list, NULL);

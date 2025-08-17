@@ -434,7 +434,7 @@ exec_recv_run (void *cls,
         (const void**) &uds)) {
     GNUNET_assert (0);
   };
-  // FIXME: set cls per hanlder
+  // FIXME: set cls per handler
   GNUNET_array_append (uds->recv_handlers,
                        uds->recv_handlers_len,
                        &handle_msg_test);
@@ -503,7 +503,7 @@ exec_send_run (void *cls,
       udss->num_messages);
   /* For now send on all available channels as we don't know at this stage
    * which is an usable channel - this should be fine as the unusable channel
-   * will (probably) be discoverd and cleand up in the process. */
+   * will (probably) be discovered and cleand up in the process. */
   for (struct Channel *c_iter = uds->channels_head;
        NULL != c_iter;
        c_iter = c_iter->next)

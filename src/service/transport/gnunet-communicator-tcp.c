@@ -3806,7 +3806,7 @@ add_addr (struct sockaddr *in, socklen_t in_len)
  *
  * Get the initial secret key for generating the peer id. This is supposed to be generated at
  * random once in the lifetime of a peer, so all generated peer ids use the
- * same initial secret key to optain the same peer id per set of addresses.
+ * same initial secret key to obtain the same peer id per set of addresses.
  *
  * First check whether there's already a initial secret key. If so: return it. If no initial secret key
  * exists yet, generate at random and store it where it will be found.

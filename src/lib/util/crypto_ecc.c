@@ -486,7 +486,7 @@ GNUNET_CRYPTO_eddsa_key_create (struct GNUNET_CRYPTO_EddsaPrivateKey *pk)
    * here, actually corresponds to the seed in libsodium.
    *
    * (Contrast this to ECDSA, where functions using the private key can't clamp
-   * due to properties needed for GNS.  That is a worse/unsafer API, but
+   * due to properties needed for GNS.  That is a worse/unsafter API, but
    * required for the GNS constructions to work.)
    */
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,

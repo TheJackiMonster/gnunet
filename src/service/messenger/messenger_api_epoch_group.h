@@ -257,7 +257,7 @@ is_epoch_group_missing_announcement (const struct GNUNET_MESSENGER_EpochGroup *
                                      announcement);
 
 /**
- * Returns a relative member positon of the client inside a given epoch
+ * Returns a relative member position of the client inside a given epoch
  * <i>group</i> in relation to its list of members.
  *
  * @param[in] group Epoch group
@@ -383,7 +383,7 @@ handle_epoch_group_access (struct GNUNET_MESSENGER_EpochGroup *group,
 
 /**
  * Writes/Deletes the GNS record of a given epoch <i>group</i> depending
- * on a provided flag that states wether an existing record should be
+ * on a provided flag that states whether an existing record should be
  * <i>deleted</i>.
  *
  * @param[in,out] group Epoch group

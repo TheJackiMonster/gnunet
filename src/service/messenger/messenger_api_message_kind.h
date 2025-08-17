@@ -111,7 +111,7 @@ create_message_deletion (const struct GNUNET_HashCode *hash,
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_subscribtion (const struct GNUNET_ShortHashCode *discourse,
+create_message_subscription (const struct GNUNET_ShortHashCode *discourse,
                              const struct GNUNET_TIME_Relative time,
                              uint32_t flags);
 

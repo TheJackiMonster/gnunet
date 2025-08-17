@@ -198,7 +198,7 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
 
   member = session->member->member;
 
-  discourse = &(message->body.subscribtion.discourse);
+  discourse = &(message->body.subscription.discourse);
   subscription = get_member_subscription (member, discourse);
 
   {
@@ -206,7 +206,7 @@ handle_message_subscribe (struct GNUNET_MESSENGER_SrvRoom *room,
     struct GNUNET_TIME_Relative duration;
 
     timestamp = GNUNET_TIME_absolute_ntoh (message->header.timestamp);
-    duration = GNUNET_TIME_relative_ntoh (message->body.subscribtion.time);
+    duration = GNUNET_TIME_relative_ntoh (message->body.subscription.time);
 
     if (subscription)
       update_subscription (subscription,

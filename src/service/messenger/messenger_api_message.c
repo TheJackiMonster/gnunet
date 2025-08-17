@@ -369,11 +369,11 @@ get_message_body_kind_size (enum GNUNET_MESSENGER_MessageKind kind)
     break;
   case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
     length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.subscribtion.discourse);
+                           body.subscription.discourse);
     length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.subscribtion.time);
+                           body.subscription.time);
     length += member_size (struct GNUNET_MESSENGER_Message,
-                           body.subscribtion.flags);
+                           body.subscription.flags);
     break;
   case GNUNET_MESSENGER_KIND_TALK:
     length += member_size (struct GNUNET_MESSENGER_Message,
@@ -758,10 +758,10 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
                                                              body->tag.tag)));
     break;
   case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
-    value0 = GNUNET_htobe32 (body->subscribtion.flags);
+    value0 = GNUNET_htobe32 (body->subscription.flags);
 
-    encode_step (buffer, offset, &(body->subscribtion.discourse));
-    encode_step (buffer, offset, &(body->subscribtion.time));
+    encode_step (buffer, offset, &(body->subscription.discourse));
+    encode_step (buffer, offset, &(body->subscription.time));
     encode_step (buffer, offset, &value0);
     break;
   case GNUNET_MESSENGER_KIND_TALK:
@@ -1075,11 +1075,11 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
       body->tag.tag = NULL;
     break;
   case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
-    decode_step (buffer, offset, &(body->subscribtion.discourse));
-    decode_step (buffer, offset, &(body->subscribtion.time));
+    decode_step (buffer, offset, &(body->subscription.discourse));
+    decode_step (buffer, offset, &(body->subscription.time));
     decode_step (buffer, offset, &value0);
 
-    body->subscribtion.flags = GNUNET_be32toh (value0);
+    body->subscription.flags = GNUNET_be32toh (value0);
     break;
   case GNUNET_MESSENGER_KIND_TALK:
     decode_step (buffer, offset, &(body->talk.discourse));
@@ -2244,7 +2244,7 @@ get_message_discourse (const struct GNUNET_MESSENGER_Message *message)
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_SUBSCRIBTION:
-    return &(message->body.subscribtion.discourse);
+    return &(message->body.subscription.discourse);
   case GNUNET_MESSENGER_KIND_TALK:
     return &(message->body.talk.discourse);
   default:

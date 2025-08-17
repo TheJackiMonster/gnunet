@@ -1459,8 +1459,8 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
       ihmp_buf,   // unsigned char *m
       NULL,                                      // mlen_p message length
       NULL,                                      // unsigned char *nsec       - unused: NULL
-      (unsigned char*) &ihm_ctx->ihm_e[1],   // const unsigned char *c    - cyphertext
-      ct_len,                                     // unsigned long long clen   - length of cyphertext
+      (unsigned char*) &ihm_ctx->ihm_e[1],   // const unsigned char *c    - ciphertext
+      ct_len,                                     // unsigned long long clen   - length of ciphertext
       // mac,                                   // const unsigned char *mac  - authentication tag
       NULL,                                      // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
       0,                                         // unsigned long long adlen
@@ -1545,7 +1545,7 @@ check_initiator_hello (void *cls, const struct InitiatorHello *m)
  * Handle the InitiatorHello message
  *  - derives necessary keys from the plaintext parts
  *  - decrypts the encrypted part
- *  - replys with ResponderHello message
+ *  - replies with ResponderHello message
  * @param cls the key exchange info
  * @param ihm_e InitiatorHello message
  */
@@ -1985,8 +1985,8 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
       (unsigned char*) rh_ctx->rhp,   // unsigned char *m
       NULL,                                     // mlen_p message length
       NULL,                                     // unsigned char *nsec       - unused: NULL
-      (unsigned char*) &rhm_e[1],   // const unsigned char *c    - cyphertext
-      c_len,                                    // unsigned long long clen   - length of cyphertext
+      (unsigned char*) &rhm_e[1],   // const unsigned char *c    - ciphertext
+      c_len,                                    // unsigned long long clen   - length of ciphertext
       NULL,                                     // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
       0,                                        // unsigned long long adlen
       enc_nonce,     // const unsigned char *npub - nonce
@@ -2012,8 +2012,8 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
       (unsigned char*) &rh_ctx->decrypted_finish,   // unsigned char *m
       NULL,                                // mlen_p message length
       NULL,                                // unsigned char *nsec       - unused: NULL
-      finished_buf,   // const unsigned char *c    - cyphertext
-      c_len,                               // unsigned long long clen   - length of cyphertext
+      finished_buf,   // const unsigned char *c    - ciphertext
+      c_len,                               // unsigned long long clen   - length of ciphertext
       NULL,                                // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
       0,                                   // unsigned long long adlen
       enc_nonce,   // const unsigned char *npub - nonce
@@ -2105,8 +2105,8 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
     (unsigned char*) &idm_p->finished,     // unsigned char *m
     NULL,                                  // mlen_p message length
     NULL,                                  // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &idm_e->finished,     // const unsigned char *c    - cyphertext
-    sizeof (idm_p->finished)               // unsigned long long clen   - length of cyphertext
+    (unsigned char*) &idm_e->finished,     // const unsigned char *c    - ciphertext
+    sizeof (idm_p->finished)               // unsigned long long clen   - length of ciphertext
     + AEAD_TAG_BYTES,
     NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
     0,                                     // unsigned long long adlen
@@ -2167,8 +2167,8 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
     (unsigned char*) &ack_i,     // unsigned char *m
     NULL,                                  // mlen_p message length
     NULL,                                  // unsigned char *nsec       - unused: NULL
-    (unsigned char*) &idm_e[1],     // const unsigned char *c    - cyphertext
-    sizeof (ack_i) + AEAD_TAG_BYTES,                                 // unsigned long long clen   - length of cyphertext
+    (unsigned char*) &idm_e[1],     // const unsigned char *c    - ciphertext
+    sizeof (ack_i) + AEAD_TAG_BYTES,                                 // unsigned long long clen   - length of ciphertext
     NULL,                                  // const unsigned char *ad   - additional data (optional) TODO those should be used, right?
     0,                                     // unsigned long long adlen
     enc_nonce,     // const unsigned char *npub - nonce
@@ -2392,7 +2392,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
   memcpy (new_ats,
           kx->their_ats,
           MAX_EPOCHS * sizeof (struct GNUNET_ShortHashCode));
-  // FIXME here we could introduce logic that sends hearbeats
+  // FIXME here we could introduce logic that sends heartbeats
   // with key update request if we have not seen a new
   // epoch after a while (e.g. EPOCH_EXPIRATION)
   if (kx->their_max_epoch < epoch)

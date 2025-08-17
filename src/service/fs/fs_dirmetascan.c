@@ -371,7 +371,7 @@ process_helper_msgs (void *cls, const struct GNUNET_MessageHeader *msg)
                                     EXTRACTOR_METATYPE_FILENAME,
                                     NULL,
                                     0);
-        /* instead, put in our 'safer' original filename */
+        /* instead, put in our 'safter' original filename */
         GNUNET_FS_meta_data_insert (ds->pos->meta,
                                     "<libgnunetfs>",
                                     EXTRACTOR_METATYPE_GNUNET_ORIGINAL_FILENAME,

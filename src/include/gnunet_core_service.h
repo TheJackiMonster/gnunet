@@ -75,7 +75,7 @@ enum GNUNET_CORE_PeerClass
 
   /**
    * This device is currently unwilling to spend more then the absolutely
-   * necessary ressources.
+   * necessary resources.
    */
   GNUNET_CORE_CLASS_UNWILLING,
 

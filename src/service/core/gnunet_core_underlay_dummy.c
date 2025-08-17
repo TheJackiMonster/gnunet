@@ -538,14 +538,14 @@ try_notify_connect (struct Connection *connection)
 
 
 static void
-cancle_initiating_connections (struct GNUNET_CORE_UNDERLAY_DUMMY_Handle *h,
+cancel_initiating_connections (struct GNUNET_CORE_UNDERLAY_DUMMY_Handle *h,
                                struct Connection *connection)
 {
   struct Connection *c_iter_next;
   char *peer_addr = connection->peer_addr;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "Going to cancle all initializing connections to %s\n",
+      "Going to cancel all initializing connections to %s\n",
       peer_addr);
   if (NULL == peer_addr) return; /* No sense in comparing to unknown address */
   for (struct Connection *c_iter = h->connections_head;
@@ -761,8 +761,8 @@ do_read (void *cls)
 
     try_notify_connect (connection);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-        "Finished initializing - going to cancle all still initializing connections to this address\n");
-    cancle_initiating_connections (connection->handle, connection);
+        "Finished initializing - going to cancel all still initializing connections to this address\n");
+    cancel_initiating_connections (connection->handle, connection);
 
     /* We need to schedule the recv_task here because this is not a message
      * passed to the caller an thus the caller will not call
@@ -899,8 +899,8 @@ write_cb (void *cls)
       connection->status = CONNECTION_LIVE;
       try_notify_connect (connection);
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-          "Finished initializing - going to cancle all still initializing connections to this address\n");
-      cancle_initiating_connections (connection->handle, connection);
+          "Finished initializing - going to cancel all still initializing connections to this address\n");
+      cancel_initiating_connections (connection->handle, connection);
       break;
     case CONNECTION_INITIALIZING:
       connection->status = CONNECTION_INITIALIZING_SEND;
@@ -1039,7 +1039,7 @@ mq_error_handler_impl (void *cls, enum GNUNET_MQ_Error error)
 /**
  * Accept a connection on the dummy's socket
  *
- * @param cls the hanlde to the dummy passed as closure
+ * @param cls the handle to the dummy passed as closure
  */
 static void
 do_accept (void *cls)
@@ -1288,7 +1288,7 @@ try_connect (struct GNUNET_CORE_UNDERLAY_DUMMY_Handle *h, const char *address)
  * @param cls handle to the dummy service
  * @param filename the discovered filename
  *
- * @return #GNUNET_OK indicating that the iteration through filnames is
+ * @return #GNUNET_OK indicating that the iteration through filenames is
  * supposed to continue
  */
 static enum GNUNET_GenericReturnValue
@@ -1356,7 +1356,7 @@ try_open_listening_socket (struct GNUNET_CORE_UNDERLAY_DUMMY_Handle *h,
   {
     /* Error different from Address already in use - cancel */
     LOG (GNUNET_ERROR_TYPE_ERROR,
-        "Faild binding to socket: %u %s (closing socket)\n",
+        "Failed binding to socket: %u %s (closing socket)\n",
         errno, strerror(errno));
     GNUNET_NETWORK_socket_close (h->sock_listen);
     h->sock_listen = NULL;
@@ -1617,7 +1617,7 @@ GNUNET_CORE_UNDERLAY_DUMMY_receive_continue (
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "from _receive_continue()\n");
 
-  /* Find the connection beloning to the mq */
+  /* Find the connection belonging to the mq */
   for (struct Connection *conn_iter = h->connections_head;
        NULL != conn_iter;
        conn_iter = conn_iter->next)

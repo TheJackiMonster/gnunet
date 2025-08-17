@@ -82,8 +82,8 @@ struct Connection
   /* Context to the 'peer' to which the connection belongs */
   struct DummyContext *dc;
 
- /* counter of replys/highest index */
-  uint32_t result_replys;
+ /* counter of replies/highest index */
+  uint32_t result_replies;
 };
 
 
@@ -91,7 +91,7 @@ struct Connection
  * @brief Context for the scheduled destruction of an MQ.
  *
  * This is needed in case an undesired channel opens and we want to tear it
- * down immediately - this cannot be done from within the hanlder/callback that
+ * down immediately - this cannot be done from within the handler/callback that
  * provides us with the new connection.
  */
 struct DestroyMQTask
@@ -141,14 +141,14 @@ uint8_t result_connect_cb_0 = GNUNET_NO;
 /* Flag indicating whether #notify_connect_cb was called a second time */
 uint8_t result_connect_cb_1 = GNUNET_NO;
 
-/* Number of replys that peer0 received */
-uint32_t result_replys_0 = 0;
+/* Number of replies that peer0 received */
+uint32_t result_replies_0 = 0;
 
-/* Number of replys that peer1 received */
-uint32_t result_replys_1 = 0;
+/* Number of replies that peer1 received */
+uint32_t result_replies_1 = 0;
 
 /**
- * @brief Task of the schutdown task that is triggert afer a timeout
+ * @brief Task of the schutdown task that is triggert after a timeout
  */
 static struct GNUNET_SCHEDULER_Task *timeout_task;
 
@@ -199,7 +199,7 @@ print_connections (struct DummyContext *dc)
  *            #GNUNET_CORE_UNDERLAY_DUMMY_connect
  * @param num_addresses number of addresses connected to the incoming
  *                      connection
- * @param addresses string represenation of the @a num_addresses addresses
+ * @param addresses string representation of the @a num_addresses addresses
  *                  connected to the incoming connection
  * @param mq The mq to the newly established connection
  *
@@ -264,7 +264,7 @@ static void *notify_connect_cb (
   connection->mq = mq;
   connection->address = GNUNET_strdup (addresses[0]);
   connection->dc = dc;
-  connection->result_replys = 0;
+  connection->result_replies = 0;
   GNUNET_MQ_set_handlers_closure (mq, connection);
   GNUNET_CONTAINER_DLL_insert (dc->conn_head,
                                dc->conn_tail,
@@ -322,13 +322,13 @@ notify_disconnect_cb (
       "(%u) Connection disconnected.\n",
       &dc0 == dc ? 0 : 1);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "(%u) Adding result replys: %" PRIu32 ".\n",
+      "(%u) Adding result replies: %" PRIu32 ".\n",
       &dc0 == dc ? 0 : 1,
-      connection->result_replys);
+      connection->result_replies);
   if (&dc0 == dc)
-    result_replys_0 = result_replys_0 + connection->result_replys;
+    result_replies_0 = result_replies_0 + connection->result_replies;
   else if (&dc1 == dc)
-    result_replys_1 = result_replys_1 + connection->result_replys;
+    result_replies_1 = result_replies_1 + connection->result_replies;
   else
     LOG (GNUNET_ERROR_TYPE_ERROR, "Unknown dummy context\n");
   GNUNET_CONTAINER_DLL_remove (dc->conn_head,
@@ -341,8 +341,8 @@ notify_disconnect_cb (
       &dc0 == dc ? 0 : 1);
   print_connections (dc);
   // TODO cancel test
-  if ((NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replys_0) &&
-      (NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replys_1))
+  if ((NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replies_0) &&
+      (NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replies_1))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Test finished early, shutting down\n");
     if (NULL != timeout_task) GNUNET_SCHEDULER_cancel (timeout_task);
@@ -355,7 +355,7 @@ notify_disconnect_cb (
 /**
  * @brief Callback called when our address changes
  *
- * TODO document or link to network localtion hash and network generation id
+ * TODO document or link to network location hash and network generation id
  *
  * @param cls Closure: The #DummyContext
  * @param network_location_hash The network location hash for the new address
@@ -426,17 +426,17 @@ do_shutdown (void *cls)
        NULL != conn_iter;
        conn_iter = conn_iter->next)
   {
-    result_replys_0 = result_replys_0 + conn_iter->result_replys;
+    result_replies_0 = result_replies_0 + conn_iter->result_replies;
     LOG (GNUNET_ERROR_TYPE_DEBUG, "added %u replies for this connection\n",
-         conn_iter->result_replys);
+         conn_iter->result_replies);
   }
   for (struct Connection *conn_iter = dc1.conn_head;
        NULL != conn_iter;
        conn_iter = conn_iter->next)
   {
-    result_replys_1 = result_replys_1 + conn_iter->result_replys;
+    result_replies_1 = result_replies_1 + conn_iter->result_replies;
     LOG (GNUNET_ERROR_TYPE_DEBUG, "added %u replies for this connection\n",
-         conn_iter->result_replys);
+         conn_iter->result_replies);
   }
 
   GNUNET_CORE_UNDERLAY_DUMMY_disconnect (dc0.h);
@@ -459,9 +459,9 @@ do_shutdown (void *cls)
   }
   LOG(GNUNET_ERROR_TYPE_INFO, "Disconnected from underlay dummy\n");
   LOG (GNUNET_ERROR_TYPE_DEBUG, "counted %u replies for peer 0\n",
-       result_replys_0);
+       result_replies_0);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "counted %u replies for peer 1\n",
-       result_replys_1);
+       result_replies_1);
 }
 
 
@@ -508,11 +508,11 @@ handle_test (void *cls, const struct GNUNET_UNDERLAY_DUMMY_Message *msg)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG, "on connection 1\n");
   }
-  GNUNET_assert (GNUNET_ntohll (msg->id) == connection->result_replys);
+  GNUNET_assert (GNUNET_ntohll (msg->id) == connection->result_replies);
 
-  connection->result_replys++;
+  connection->result_replies++;
   LOG (GNUNET_ERROR_TYPE_DEBUG, "(%u messages on this channel now)\n",
-       connection->result_replys);
+       connection->result_replies);
   peer_id = &dc0 == connection->dc ? 0 : 1;
   LOG (GNUNET_ERROR_TYPE_DEBUG, "(peer %u)\n", peer_id);
   GNUNET_assert (GNUNET_ntohll (msg->peer) != peer_id);
@@ -578,24 +578,24 @@ int main (void)
   if (GNUNET_YES != result_connect_cb_0) return -1;
   if (GNUNET_YES != result_connect_cb_1) return -1;
   if ((NUMBER_SENDING_PEERS > 1) &&
-      (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replys_0))
+      (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replies_0))
   {
     LOG(GNUNET_ERROR_TYPE_ERROR,
         "Peer 0 received %u of %u messages\n",
-        result_replys_0,
+        result_replies_0,
         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     // XXX:
     LOG(GNUNET_ERROR_TYPE_ERROR,
         "Peer 1 received %u of %u messages\n",
-        result_replys_1,
+        result_replies_1,
         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     return -1;
   }
-  if (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replys_1)
+  if (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replies_1)
   {
     LOG(GNUNET_ERROR_TYPE_ERROR,
         "Peer 1 received %u of %u messages\n",
-        result_replys_1,
+        result_replies_1,
         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     return -1;
   }
