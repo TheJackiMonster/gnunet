@@ -23,74 +23,91 @@
  * @file util/perf_crypto_hash.c
  * @brief measure performance of hash function
  */
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include <sodium.h>
 
+
 static void
-perfHashS ()
+perfHashS (void)
 {
   struct GNUNET_HashCode hc;
-  unsigned int i;
   char buf[64 * 1024];
 
-  memset (buf, 1, sizeof(buf));
-  for (i = 0; i < 1024; i++)
-    crypto_generichash_blake2b(&hc, sizeof hc, buf, sizeof buf, NULL, 0);
+  memset (buf,
+          1,
+          sizeof(buf));
+  for (unsigned int i = 0; i < 1024; i++)
+    crypto_generichash_blake2b ((unsigned char *) &hc,
+                                sizeof(hc),
+                                buf,
+                                sizeof(buf),
+                                NULL,
+                                0);
 }
 
 
 static void
-perfHashSmallS ()
+perfHashSmallS (void)
 {
   struct GNUNET_HashCode hc;
-  unsigned int i;
   char buf[64];
 
-  memset (buf, 1, sizeof(buf));
-  for (i = 0; i < 1024; i++)
-    crypto_generichash_blake2b(&hc, sizeof hc, buf, sizeof buf, NULL, 0);
+  memset (buf,
+          1,
+          sizeof(buf));
+  for (unsigned int i = 0; i < 1024; i++)
+    crypto_generichash_blake2b ((unsigned char *) &hc,
+                                sizeof(hc),
+                                buf,
+                                sizeof(buf),
+                                NULL,
+                                0);
 }
 
 
 static void
-perfHash ()
+perfHash (void)
 {
   struct GNUNET_HashCode hc;
-  unsigned int i;
   char buf[64 * 1024];
 
-  memset (buf, 1, sizeof(buf));
-  for (i = 0; i < 1024; i++)
-    GNUNET_CRYPTO_hash (buf, sizeof(buf), &hc);
+  memset (buf,
+          1,
+          sizeof(buf));
+  for (unsigned int i = 0; i < 1024; i++)
+    GNUNET_CRYPTO_hash (buf,
+                        sizeof(buf),
+                        &hc);
 }
 
 
 static void
-perfHashSmall ()
+perfHashSmall (void)
 {
   struct GNUNET_HashCode hc;
-  unsigned int i;
   char buf[64];
 
-  memset (buf, 1, sizeof(buf));
-  for (i = 0; i < 1024; i++)
-    GNUNET_CRYPTO_hash (buf, sizeof(buf), &hc);
+  memset (buf,
+          1,
+          sizeof(buf));
+  for (unsigned int i = 0; i < 1024; i++)
+    GNUNET_CRYPTO_hash (buf,
+                        sizeof(buf),
+                        &hc);
 }
 
 
 static void
-perfHKDF ()
+perfHKDF (void)
 {
-  unsigned int i;
   char res[128];
   char buf[128];
   char skm[64];
 
   memset (buf, 1, sizeof(buf));
   memset (skm, 2, sizeof(skm));
-  for (i = 0; i < 1024; i++)
+  for (unsigned int i = 0; i < 1024; i++)
     GNUNET_CRYPTO_hkdf_gnunet (res, sizeof(res),
                                buf, sizeof(buf),
                                skm, sizeof(skm),
