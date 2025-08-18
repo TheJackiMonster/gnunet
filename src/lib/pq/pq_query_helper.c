@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet
-   Copyright (C) 2014, 2015, 2016, 2020 GNUnet e.V.
+   Copyright (C) 2014, 2015, 2016, 2020, 2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -21,6 +21,7 @@
  * @file pq/pq_query_helper.c
  * @brief functions to initialize parameter arrays
  * @author Christian Grothoff
+ * @author Özgür Kesim
  */
 #include "platform.h"
 #include "gnunet_common.h"
@@ -777,6 +778,8 @@ qconv_array (
   size_t *string_lengths = NULL;
   void *elements = NULL;
   bool noerror = true;
+  bool has_nulls = false;
+  bool is_null[num];
 
   (void) (param_length);
   (void) (scratch_length);
@@ -786,6 +789,7 @@ qconv_array (
 
   sizes = meta->sizes;
   same_sized = (0 != meta->same_size);
+  memset (is_null, 0, num);
 
 #define RETURN_UNLESS(cond) \
         do { \
@@ -821,6 +825,13 @@ qconv_array (
     }
     else  /* sizes are different per element */
     {
+      /* This value is Postgres' indicator for a NULL
+       * element in the array.  Therefore it also
+       * has to be the upper limit of an elements
+       * size.
+       */
+#define MAXELEMENTSIZE 0xFFFFFFFFLU
+
       /* for an array of strings we need to get their length's first */
       if (array_of_string == meta->typ)
       {
@@ -832,6 +843,7 @@ qconv_array (
           for (unsigned int i = 0; i < num; i++)
           {
             size_t len = strlen (ptr);
+            RETURN_UNLESS (len < MAXELEMENTSIZE);
             string_lengths[i] = len;
             ptr += len + 1;
           }
@@ -840,10 +852,38 @@ qconv_array (
         {
           const char **str = (const char **) data;
           for (unsigned int i = 0; i < num; i++)
-            string_lengths[i] = strlen (str[i]);
+          {
+            if (NULL != str[i])
+            {
+              size_t len = strlen (str[i]);
+              RETURN_UNLESS (len < MAXELEMENTSIZE);
+              string_lengths[i] = len;
+            }
+            else
+            {
+              has_nulls = true;
+              string_lengths[i] = 0;
+              is_null[i] = true;
+            }
+          }
         }
 
         sizes = string_lengths;
+      }
+      else
+      {
+        /* Ensure consistency between NULL elements
+         * and sizes */
+        for (unsigned int i = 0; i < num; i++)
+        {
+          const char **ptr = (const char **) data;
+          if (NULL == ptr[i])
+          {
+            RETURN_UNLESS (sizes[i] == 0);
+            has_nulls = true;
+            is_null[i] = true;
+          }
+        }
       }
 
       for (unsigned int i = 0; i < num; i++)
@@ -855,7 +895,6 @@ qconv_array (
     }
 
     RETURN_UNLESS (total_size < INT_MAX);
-
     elements = GNUNET_malloc (total_size);
   }
 
@@ -863,10 +902,9 @@ qconv_array (
   {
     char *in = (char *) data;
     char *out = elements;
-    size_t nullbyte = (array_of_string == meta->typ) ? 1 : 0;
     struct pq_array_header h = {
       .ndim = htonl (1),        /* We only support one-dimensional arrays */
-      .has_nulls = htonl (0),      /* We do not support NULL entries in arrays */
+      .has_nulls = has_nulls,
       .lbound = htonl (1),      /* Default start index value */
       .dim = htonl (num),
       .oid = htonl (meta->oid),
@@ -881,7 +919,7 @@ qconv_array (
     for (unsigned int i = 0; i < num; i++)
     {
       size_t sz = same_sized ? meta->same_size : sizes[i];
-      uint32_t hsz = htonl (sz);
+      uint32_t hsz = is_null[i] ? htonl (-1) : htonl (sz);
 
       GNUNET_memcpy (out,
                      &hsz,
@@ -935,15 +973,20 @@ qconv_array (
 
           if (meta->continuous)
           {
+            size_t nullbyte = (array_of_string == meta->typ) ? 1 : 0;
+
             ptr = in;
             in += sz + nullbyte;
           }
           else
             ptr = ((const void **) data)[i];
 
-          GNUNET_memcpy (out,
-                         ptr,
-                         sz);
+          RETURN_UNLESS (is_null[i] == (NULL == ptr));
+
+          if (! is_null[i])
+            GNUNET_memcpy (out,
+                           ptr,
+                           sz);
           break;
         }
       case array_of_abs_time:
