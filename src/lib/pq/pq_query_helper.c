@@ -816,21 +816,43 @@ qconv_array (
     /* sizes of elements */
     if (same_sized)
     {
-      x = num * meta->same_size;
-      RETURN_UNLESS ((0 == num) || (x / num == meta->same_size));
+      if (meta->continuous)
+      {
+        x = num * meta->same_size;
+        RETURN_UNLESS ((0 == num) || (x / num == meta->same_size));
 
-      y = total_size;
-      total_size += x;
-      RETURN_UNLESS (total_size >= y);
+        y = total_size;
+        total_size += x;
+        RETURN_UNLESS (total_size >= y);
+      }
+      else
+      {
+        /* Not continuous, but same sized.
+         * There might be NULL pointers in the array, though. */
+        for (unsigned int i = 0; i < num; i++)
+        {
+          const void **ptr = (const void **) data;
+
+          if (NULL != ptr[i])
+          {
+            total_size += meta->same_size;
+            RETURN_UNLESS (total_size >= meta->same_size);
+          }
+          else
+          {
+            has_nulls = true;
+            is_null[i] = true;
+          }
+        }
+      }
     }
-    else  /* sizes are different per element */
+    else  /* sizes are different per element, provided in sizes[] */
     {
       /* This value is Postgres' indicator for a NULL
        * element in the array.  Therefore it also
        * has to be the upper limit of an elements
        * size.
        */
-#define MAXELEMENTSIZE 0xFFFFFFFFLU
 
       /* for an array of strings we need to get their length's first */
       if (array_of_string == meta->typ)
@@ -840,10 +862,11 @@ qconv_array (
         if (meta->continuous)
         {
           const char *ptr = data;
+
           for (unsigned int i = 0; i < num; i++)
           {
             size_t len = strlen (ptr);
-            RETURN_UNLESS (len < MAXELEMENTSIZE);
+            RETURN_UNLESS (len < INT_MAX);
             string_lengths[i] = len;
             ptr += len + 1;
           }
@@ -851,12 +874,13 @@ qconv_array (
         else
         {
           const char **str = (const char **) data;
+
           for (unsigned int i = 0; i < num; i++)
           {
             if (NULL != str[i])
             {
               size_t len = strlen (str[i]);
-              RETURN_UNLESS (len < MAXELEMENTSIZE);
+              RETURN_UNLESS (len < INT_MAX);
               string_lengths[i] = len;
             }
             else
@@ -872,17 +896,19 @@ qconv_array (
       }
       else
       {
-        /* Ensure consistency between NULL elements
-         * and sizes */
+        /* Ensure consistency between NULL elements and sizes */
         for (unsigned int i = 0; i < num; i++)
         {
           const char **ptr = (const char **) data;
+
           if (NULL == ptr[i])
           {
             RETURN_UNLESS (sizes[i] == 0);
             has_nulls = true;
             is_null[i] = true;
           }
+          else
+            RETURN_UNLESS (sizes[i] < INT_MAX);
         }
       }
 
@@ -904,7 +930,7 @@ qconv_array (
     char *out = elements;
     struct pq_array_header h = {
       .ndim = htonl (1),        /* We only support one-dimensional arrays */
-      .has_nulls = has_nulls,
+      .has_nulls = has_nulls ? htonl (1) : 0,
       .lbound = htonl (1),      /* Default start index value */
       .dim = htonl (num),
       .oid = htonl (meta->oid),
@@ -979,7 +1005,7 @@ qconv_array (
             in += sz + nullbyte;
           }
           else
-            ptr = ((const void **) data)[i];
+            ptr = ((const char **) data)[i];
 
           RETURN_UNLESS (is_null[i] == (NULL == ptr));
 
@@ -1061,7 +1087,8 @@ qconv_array (
           break;
         }
       }
-      out += sz;
+      if (! is_null[i])
+        out += sz;
     }
   }
 

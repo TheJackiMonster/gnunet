@@ -109,6 +109,13 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;"),
+    /* Add this new prepared statement for inserting arrays with NULLs */
+    GNUNET_PQ_make_prepare ("test_insert_array_nulls",
+                            "INSERT INTO test_pq_array_nulls"
+                            " (id"
+                            " ,arr_text"
+                            ") VALUES ($1, $2);"),
+    /* The existing test_select_array_nulls should already be there */
     GNUNET_PQ_make_prepare ("test_select_array_nulls",
                             "SELECT"
                             " arr_bool"
@@ -416,13 +423,13 @@ run_queries (struct GNUNET_PQ_Context *db_)
 
 
 /**
- * Run test queries for testing NULL entries in arrays
+ * Run test queries for testing NULL entries in arrays in results.
  *
  * @param db database handle
  * @return 0 on success
  */
 static int
-run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
+run_array_with_nulls_results (struct GNUNET_PQ_Context *db_)
 {
   struct test_case
   {
@@ -676,6 +683,161 @@ run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
 
 
 /**
+ * Run test for NULL entries in arrays as query parameters.
+ *
+ * @param db_ database handle
+ * @return 0 on success
+ */
+static int
+run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
+{
+  struct test_case
+  {
+    uint32_t id;
+    unsigned int num;  /* Single size for all arrays */
+
+    /* Input arrays with NULLs */
+    const char **tx;
+
+  } test_cases[] = {
+    /* Test case 1: NULLs at beginning and end */
+    {
+      .id = 1001,
+      .num = 4,
+      .tx = (const char *[]){NULL, "alpha", "beta", NULL},
+    },
+    /* Test case 2: NULLs in the middle */
+    {
+      .id = 1002,
+      .num = 5,
+      .tx = (const char *[]){"first", NULL, "third", NULL, "fifth"},
+    },
+    /* Test case 3: All NULLs */
+    {
+      .id = 1003,
+      .num = 3,
+      .tx = (const char *[]){NULL, NULL, NULL},
+    },
+    /* Test case 4: No NULLs */
+    {
+      .id = 1004,
+      .num = 3,
+      .tx = (const char *[]){"one", "two", "three"},
+    },
+    /* Test case 5: Single NULL element */
+    {
+      .id = 1005,
+      .num = 1,
+      .tx = (const char *[]){NULL},
+    },
+    /* Sentinel */
+    {0},
+  };
+
+  for (uint32_t idx = 0; test_cases[idx].id != 0; idx++)
+  {
+    struct test_case *tc = &test_cases[idx];
+
+    /* Insert data */
+    {
+      struct GNUNET_PQ_QueryParam params_insert[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_array_ptrs_string (tc->num,
+                                                 tc->tx,
+                                                 db_),
+        GNUNET_PQ_query_param_end
+      };
+
+      PGresult *result = GNUNET_PQ_exec_prepared (db_,
+                                                  "test_insert_array_nulls",
+                                                  params_insert);
+
+      if (PGRES_COMMAND_OK != PQresultStatus (result))
+      {
+        fprintf (stderr,
+                 "Failed to insert test case %d: %s\n",
+                 tc->id,
+                 PQresultErrorMessage (result));
+        PQclear (result);
+        return 1;
+      }
+      PQclear (result);
+      GNUNET_PQ_cleanup_query_params_closures (params_insert);
+    }
+
+    /* Read back and verify */
+    {
+      struct GNUNET_PQ_QueryParam params_select[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_end
+      };
+      size_t num_text_res;
+      char *arr_text_res;
+      bool *is_null_text;
+      struct GNUNET_PQ_ResultSpec result_spec[] = {
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_string (db_,
+                                              "arr_text",
+                                              &num_text_res,
+                                              &arr_text_res),
+          &is_null_text),
+        GNUNET_PQ_result_spec_end
+      };
+
+      PGresult *result = GNUNET_PQ_exec_prepared (db_,
+                                                  "test_select_array_nulls",
+                                                  params_select);
+
+      if (1 != PQntuples (result))
+      {
+        GNUNET_break (0);
+        PQclear (result);
+        return 1;
+      }
+
+      int ret = GNUNET_PQ_extract_result (result,
+                                          result_spec,
+                                          0);
+
+      if (GNUNET_YES != ret)
+      {
+        GNUNET_break (0);
+        PQclear (result);
+        return 1;
+      }
+
+      /* Verify results match expectations */
+      GNUNET_assert (num_text_res == tc->num);
+      GNUNET_assert (NULL != is_null_text);
+
+      /* Check text array for expected values */
+      {
+        char *str = arr_text_res;
+
+        for (size_t i = 0; i < tc->num; i++)
+        {
+          bool expected_null = (tc->tx[i] == NULL);
+
+          GNUNET_assert (is_null_text[i] == expected_null);
+          if (! is_null_text[i])
+          {
+            GNUNET_assert (0 == strcmp (str, tc->tx[i]));
+            str += strlen (str);
+          }
+          str += 1;
+        }
+      }
+
+      GNUNET_PQ_cleanup_result (result_spec);
+      PQclear (result);
+    }
+  }
+
+  return 0;
+}
+
+
+/**
  * Task called on shutdown.
  *
  * @param cls NULL
@@ -835,6 +997,13 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
+  ret = run_array_with_nulls_results (db);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
   ret = run_array_with_nulls_queries (db);
   if (0 != ret)
   {
@@ -842,7 +1011,6 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
-
 
   /* ensure oid lookup works */
   {
