@@ -109,7 +109,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " FROM test_pq"
                             " ORDER BY abs_time DESC "
                             " LIMIT 1;"),
-    /* Add this new prepared statement for inserting arrays with NULLs */
+    /* Prepared statement for inserting arrays with NULLs */
     GNUNET_PQ_make_prepare ("test_insert_array_nulls",
                             "INSERT INTO test_pq_array_nulls"
                             " (id"
@@ -126,6 +126,19 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " FROM test_pq_array_nulls"
                             " WHERE id = $1"
                             " LIMIT 1;"),
+    /* Insert statement for time arrays with NULLs */
+    GNUNET_PQ_make_prepare ("test_insert_time_arrays_nulls",
+                            "INSERT INTO test_time_arrays"
+                            " (id, arr_abs_time, arr_rel_time, arr_timestamp)"
+                            " VALUES ($1, $2, $3, $4);"),
+    /* Select statement for verification */
+    GNUNET_PQ_make_prepare ("test_select_time_arrays_nulls",
+                            "SELECT"
+                            " arr_abs_time"
+                            ",arr_rel_time"
+                            ",arr_timestamp"
+                            " FROM test_time_arrays"
+                            " WHERE id = $1;"),
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
@@ -832,7 +845,6 @@ run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
       PQclear (result);
     }
   }
-
   return 0;
 }
 
@@ -852,6 +864,313 @@ event_end (void *cls)
     GNUNET_SCHEDULER_cancel (tt);
     tt = NULL;
   }
+}
+
+
+/* Run tests with arrays of pointers of time types with potential NULLs */
+static int
+run_time_arrays_with_nulls (struct GNUNET_PQ_Context *db)
+{
+  /* Sample time values for testing */
+  struct GNUNET_TIME_Absolute abs1 = {.abs_value_us = 1000000};
+  struct GNUNET_TIME_Absolute abs2 = {.abs_value_us = 2000000};
+  struct GNUNET_TIME_Absolute abs3 = {.abs_value_us = 3000000};
+
+  struct GNUNET_TIME_Relative rel1 = {.rel_value_us = 500000};
+  struct GNUNET_TIME_Relative rel2 = {.rel_value_us = 750000};
+
+  struct GNUNET_TIME_Timestamp ts1 = {.abs_time = {.abs_value_us = 4000000}};
+  struct GNUNET_TIME_Timestamp ts2 = {.abs_time = {.abs_value_us = 5000000}};
+  /* Test structure for time-based arrays */
+  struct test_case_time
+  {
+    uint32_t id;
+    unsigned int num; /* Single size for all arrays */
+
+    /* Input arrays with NULLs */
+    const struct GNUNET_TIME_Absolute **abs_time;
+    const struct GNUNET_TIME_Relative **rel_time;
+    const struct GNUNET_TIME_Timestamp **timestamp;
+  } test_cases[] = {
+    /* Test case 1: NULLs at beginning and end */
+    {
+      .id = 2001,
+      .num = 4,
+      .abs_time = (const struct GNUNET_TIME_Absolute *[]){NULL,
+                                                          &abs1,
+                                                          &abs2,
+                                                          NULL},
+      .rel_time = (const struct GNUNET_TIME_Relative *[]){NULL,
+                                                          &rel1,
+                                                          &rel2,
+                                                          NULL},
+      .timestamp = (const struct GNUNET_TIME_Timestamp *[]){NULL,
+                                                            &ts1,
+                                                            &ts2,
+                                                            NULL},
+    },
+    /* Test case 2: NULLs in the middle */
+    {
+      .id = 2002,
+      .num = 5,
+      .abs_time = (const struct GNUNET_TIME_Absolute *[]){&abs1,
+                                                          NULL,
+                                                          &abs2,
+                                                          NULL,
+                                                          &abs3},
+      .rel_time = (const struct GNUNET_TIME_Relative *[]){&rel1,
+                                                          NULL,
+                                                          &rel2,
+                                                          NULL,
+                                                          &rel1},
+      .timestamp = (const struct GNUNET_TIME_Timestamp *[]){&ts1,
+                                                            NULL,
+                                                            &ts2,
+                                                            NULL,
+                                                            &ts1},
+    },
+    /* Test case 3: All NULLs */
+    {
+      .id = 2003,
+      .num = 3,
+      .abs_time = (const struct GNUNET_TIME_Absolute *[]){NULL, NULL, NULL},
+      .rel_time = (const struct GNUNET_TIME_Relative *[]){NULL, NULL, NULL},
+      .timestamp = (const struct GNUNET_TIME_Timestamp *[]){NULL, NULL, NULL},
+    },
+    /* Test case 4: No NULLs */
+    {
+      .id = 2004,
+      .num = 3,
+      .abs_time = (const struct GNUNET_TIME_Absolute *[]){&abs1, &abs2, &abs3},
+      .rel_time = (const struct GNUNET_TIME_Relative *[]){&rel1, &rel2, &rel1},
+      .timestamp = (const struct GNUNET_TIME_Timestamp *[]){&ts1, &ts2, &ts1},
+    },
+    /* Sentinel */
+    {0},
+  };
+
+  for (uint32_t idx = 0; test_cases[idx].id != 0; idx++)
+  {
+    struct test_case_time *tc = &test_cases[idx];
+
+    /* Insert data */
+    {
+      struct GNUNET_PQ_QueryParam params_insert[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_array_ptrs_abs_time (tc->num,
+                                                   tc->abs_time,
+                                                   db),
+        GNUNET_PQ_query_param_array_ptrs_rel_time (tc->num,
+                                                   tc->rel_time,
+                                                   db),
+        GNUNET_PQ_query_param_array_ptrs_timestamp (tc->num,
+                                                    tc->timestamp,
+                                                    db),
+        GNUNET_PQ_query_param_end
+      };
+
+      PGresult *result = GNUNET_PQ_exec_prepared (db,
+                                                  "test_insert_time_arrays_nulls",
+                                                  params_insert);
+
+      if (PGRES_COMMAND_OK != PQresultStatus (result))
+      {
+        fprintf (stderr,
+                 "Failed to insert time test case %d: %s\n",
+                 tc->id,
+                 PQresultErrorMessage (result));
+        PQclear (result);
+        return 1;
+      }
+      PQclear (result);
+      GNUNET_PQ_cleanup_query_params_closures (params_insert);
+    }
+
+
+    /* Read back and verify */
+    /* Inside test_time_arrays_with_nulls, after the insert, complete the verification */
+    {
+      struct GNUNET_PQ_QueryParam params_select[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_end
+      };
+
+      size_t num_abs_res, num_rel_res, num_ts_res;
+      struct GNUNET_TIME_Absolute *arr_abs_res;
+      struct GNUNET_TIME_Relative *arr_rel_res;
+      struct GNUNET_TIME_Timestamp *arr_ts_res;
+      bool *is_null_abs;
+      bool *is_null_rel;
+      bool *is_null_ts;
+
+      struct GNUNET_PQ_ResultSpec result_spec[] = {
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_abs_time (db,
+                                                "arr_abs_time",
+                                                &num_abs_res,
+                                                &arr_abs_res),
+          &is_null_abs),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_rel_time (db,
+                                                "arr_rel_time",
+                                                &num_rel_res,
+                                                &arr_rel_res),
+          &is_null_rel),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_timestamp (db,
+                                                 "arr_timestamp",
+                                                 &num_ts_res,
+                                                 &arr_ts_res),
+          &is_null_ts),
+        GNUNET_PQ_result_spec_end
+      };
+
+      enum GNUNET_DB_QueryStatus qs =
+        GNUNET_PQ_eval_prepared_singleton_select (
+          db,
+          "test_select_time_arrays_nulls",
+          params_select,
+          result_spec);
+
+      if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != qs)
+      {
+        fprintf (stderr,
+                 "Failed to retrieve time test case %d: query status %d\n",
+                 tc->id,
+                 qs);
+        GNUNET_PQ_cleanup_result (result_spec);
+        return 1;
+      }
+
+      /* Verify array sizes */
+      if ((num_abs_res != tc->num) ||
+          (num_rel_res != tc->num) ||
+          (num_ts_res != tc->num))
+      {
+        fprintf (stderr,
+                 "Test case %d: Array size mismatch. Expected %u, got abs:%zu rel:%zu ts:%zu\n",
+                 tc->id,
+                 tc->num,
+                 num_abs_res,
+                 num_rel_res,
+                 num_ts_res);
+        GNUNET_PQ_cleanup_result (result_spec);
+        return 1;
+      }
+
+      /* Verify absolute time array */
+      for (unsigned int i = 0; i < tc->num; i++)
+      {
+        bool expect_null = (tc->abs_time[i] == NULL);
+
+        if (expect_null != is_null_abs[i])
+        {
+          fprintf (stderr,
+                   "Test case %d: abs_time[%u] NULL mismatch. Expected %s, got %s\n",
+                   tc->id,
+                   i,
+                   expect_null ? "NULL" : "non-NULL",
+                   is_null_abs[i] ? "NULL" : "non-NULL");
+          GNUNET_PQ_cleanup_result (result_spec);
+          return 1;
+        }
+
+        if (! expect_null && ! is_null_abs[i])
+        {
+          if (tc->abs_time[i]->abs_value_us != arr_abs_res[i].abs_value_us)
+          {
+            fprintf (stderr,
+                     "Test case %d: abs_time[%u] value mismatch. Expected %llu, got %llu\n",
+                     tc->id,
+                     i,
+                     (unsigned long long) tc->abs_time[i]->abs_value_us,
+                     (unsigned long long) arr_abs_res[i].abs_value_us);
+            GNUNET_PQ_cleanup_result (result_spec);
+            return 1;
+          }
+        }
+      }
+
+      /* Verify relative time array */
+      for (unsigned int i = 0; i < tc->num; i++)
+      {
+        bool expect_null = (tc->rel_time[i] == NULL);
+
+        if (expect_null != is_null_rel[i])
+        {
+          fprintf (stderr,
+                   "Test case %d: rel_time[%u] NULL mismatch. Expected %s, got %s\n",
+                   tc->id,
+                   i,
+                   expect_null ? "NULL" : "non-NULL",
+                   is_null_rel[i] ? "NULL" : "non-NULL");
+          GNUNET_PQ_cleanup_result (result_spec);
+          return 1;
+        }
+
+        if (! expect_null && ! is_null_rel[i])
+        {
+          if (tc->rel_time[i]->rel_value_us != arr_rel_res[i].rel_value_us)
+          {
+            fprintf (stderr,
+                     "Test case %d: rel_time[%u] value mismatch. Expected %llu, got %llu\n",
+                     tc->id,
+                     i,
+                     (unsigned long long) tc->rel_time[i]->rel_value_us,
+                     (unsigned long long) arr_rel_res[i].rel_value_us);
+            GNUNET_PQ_cleanup_result (result_spec);
+            return 1;
+          }
+        }
+      }
+
+      /* Verify timestamp array */
+      for (unsigned int i = 0; i < tc->num; i++)
+      {
+        bool expect_null = (tc->timestamp[i] == NULL);
+
+        if (expect_null != is_null_ts[i])
+        {
+          fprintf (stderr,
+                   "Test case %d: timestamp[%u] NULL mismatch. Expected %s, got %s\n",
+                   tc->id,
+                   i,
+                   expect_null ? "NULL" : "non-NULL",
+                   is_null_ts[i] ? "NULL" : "non-NULL");
+          GNUNET_PQ_cleanup_result (result_spec);
+          return 1;
+        }
+
+        if (! expect_null && ! is_null_ts[i])
+        {
+          if (tc->timestamp[i]->abs_time.abs_value_us !=
+              arr_ts_res[i].abs_time.abs_value_us)
+          {
+            fprintf (stderr,
+                     "Test case %d: timestamp[%u] value mismatch. Expected %llu, got %llu\n",
+                     tc->id,
+                     i,
+                     (unsigned long
+                      long) tc->timestamp[i]->abs_time.abs_value_us,
+                     (unsigned long long) arr_ts_res[i].abs_time.abs_value_us);
+            GNUNET_PQ_cleanup_result (result_spec);
+            return 1;
+          }
+        }
+      }
+
+      /* Clean up result */
+      GNUNET_PQ_cleanup_result (result_spec);
+
+      fprintf (stderr,
+               "Test case %d (abs:%u items, rel:%u items, ts:%u items) passed\n",
+               tc->id,
+               tc->num,
+               tc->num,
+               tc->num);
+    }
+  }
+  return 0;
 }
 
 
@@ -957,6 +1276,17 @@ main (int argc,
       ",arr_int4 INT4[]"
       ",arr_int8 INT8[]"
       ",arr_text TEXT[]"
+      ",arr_abs_time INT8[]"
+      ",arr_rel_time INT8[]"
+      ",arr_timestamp INT8[]"
+      ");"),
+    /* Create table for time arrays test */
+    GNUNET_PQ_make_execute (
+      "CREATE TEMPORARY TABLE IF NOT EXISTS test_time_arrays ("
+      " id INTEGER PRIMARY KEY"
+      ",arr_abs_time INT8[]"
+      ",arr_rel_time INT8[]"
+      ",arr_timestamp INT8[]"
       ");"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
@@ -1005,6 +1335,13 @@ main (int argc,
     return ret;
   }
   ret = run_array_with_nulls_queries (db);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
+  ret = run_time_arrays_with_nulls (db);
   if (0 != ret)
   {
     GNUNET_break (0);
@@ -1066,6 +1403,7 @@ main (int argc,
     struct GNUNET_PQ_ExecuteStatement es_tmp[] = {
       GNUNET_PQ_make_execute ("DROP TABLE test_pq"),
       GNUNET_PQ_make_execute ("DROP TABLE test_pq_array_nulls"),
+      GNUNET_PQ_make_execute ("DROP TABLE test_time_arrays"),
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
 

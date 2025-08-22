@@ -891,7 +891,6 @@ qconv_array (
             }
           }
         }
-
         sizes = string_lengths;
       }
       else
@@ -994,6 +993,7 @@ qconv_array (
         }
       case array_of_byte:
       case array_of_string:
+        if (! is_null[i])
         {
           const void *ptr;
 
@@ -1008,16 +1008,15 @@ qconv_array (
             ptr = ((const char **) data)[i];
 
           RETURN_UNLESS (is_null[i] == (NULL == ptr));
-
-          if (! is_null[i])
-            GNUNET_memcpy (out,
-                           ptr,
-                           sz);
-          break;
+          GNUNET_memcpy (out,
+                         ptr,
+                         sz);
         }
+        break;
       case array_of_abs_time:
       case array_of_rel_time:
       case array_of_timestamp:
+        if (! is_null [i])
         {
           uint64_t val;
 
@@ -1033,6 +1032,7 @@ qconv_array (
               if (! meta->continuous)
                 abs = ((const struct GNUNET_TIME_Absolute **) data)[i];
 
+              RETURN_UNLESS (is_null[i] == (NULL == abs));
               val = abs->abs_value_us;
               break;
             }
@@ -1046,6 +1046,7 @@ qconv_array (
               if (! meta->continuous)
                 rel = ((const struct GNUNET_TIME_Relative **) data)[i];
 
+              RETURN_UNLESS (is_null[i] == (NULL == rel));
               val = rel->rel_value_us;
               break;
             }
@@ -1059,6 +1060,7 @@ qconv_array (
               if (! meta->continuous)
                 ts = ((const struct GNUNET_TIME_Timestamp **) data)[i];
 
+              RETURN_UNLESS (is_null[i] == (NULL == ts));
               val = ts->abs_time.abs_value_us;
               break;
             }
@@ -1068,9 +1070,7 @@ qconv_array (
             }
           }
 
-          if (val > INT64_MAX)
-            val = INT64_MAX;
-
+          val = val > INT64_MAX ? INT64_MAX : val;
           val = GNUNET_htonll (val);
           GNUNET_memcpy (out,
                          &val,
@@ -1078,14 +1078,11 @@ qconv_array (
 
           if (meta->continuous)
             in += sz;
-
-          break;
         }
+        break;
       default:
-        {
-          GNUNET_assert (0);
-          break;
-        }
+        GNUNET_assert (0);
+        break;
       }
       if (! is_null[i])
         out += sz;
