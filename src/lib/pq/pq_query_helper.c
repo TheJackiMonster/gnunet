@@ -848,13 +848,7 @@ qconv_array (
     }
     else  /* sizes are different per element, provided in sizes[] */
     {
-      /* This value is Postgres' indicator for a NULL
-       * element in the array.  Therefore it also
-       * has to be the upper limit of an elements
-       * size.
-       */
-
-      /* for an array of strings we need to get their length's first */
+      /* For an array of strings we need to get their length's first */
       if (array_of_string == meta->typ)
       {
         string_lengths = GNUNET_new_array (num, size_t);
@@ -1007,7 +1001,7 @@ qconv_array (
           else
             ptr = ((const char **) data)[i];
 
-          RETURN_UNLESS (is_null[i] == (NULL == ptr));
+          RETURN_UNLESS (NULL != ptr);
           GNUNET_memcpy (out,
                          ptr,
                          sz);
@@ -1032,7 +1026,7 @@ qconv_array (
               if (! meta->continuous)
                 abs = ((const struct GNUNET_TIME_Absolute **) data)[i];
 
-              RETURN_UNLESS (is_null[i] == (NULL == abs));
+              RETURN_UNLESS (NULL != abs);
               val = abs->abs_value_us;
               break;
             }
@@ -1046,7 +1040,7 @@ qconv_array (
               if (! meta->continuous)
                 rel = ((const struct GNUNET_TIME_Relative **) data)[i];
 
-              RETURN_UNLESS (is_null[i] == (NULL == rel));
+              RETURN_UNLESS (NULL != rel);
               val = rel->rel_value_us;
               break;
             }
@@ -1060,7 +1054,7 @@ qconv_array (
               if (! meta->continuous)
                 ts = ((const struct GNUNET_TIME_Timestamp **) data)[i];
 
-              RETURN_UNLESS (is_null[i] == (NULL == ts));
+              RETURN_UNLESS (NULL != ts);
               val = ts->abs_time.abs_value_us;
               break;
             }
@@ -1084,6 +1078,7 @@ qconv_array (
         GNUNET_assert (0);
         break;
       }
+
       if (! is_null[i])
         out += sz;
     }
