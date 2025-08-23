@@ -1420,32 +1420,46 @@ extract_array_generic (
 
         /* first, calculate total size required for allocation */
         {
-          char *ptr = data + sizeof(header);
+          char *in = data + sizeof(header);
+
           for (uint32_t i = 0; i < header.dim; i++)
           {
-            int32_t sz;
+            int32_t elem_sz;
+            int32_t in_adv;
+            bool is_null;
 
-            sz = ntohl (*(int32_t *) ptr);
-            if (-1 == sz)   /* signifies NULL entry */
+            elem_sz = ntohl (*(int32_t *) in);
+            if (-1 == elem_sz)   /* signifies NULL entry */
             {
               FAIL_IF (! info->allow_nulls);
-              (*info->is_nulls)[i] = true;
-              sz = 0;
+
+              is_null = true;
+              elem_sz =  (0 != info->same_size) ? info->same_size : 0;
+              in_adv = 0;
             }
             else
-              FAIL_IF (0 > sz);
+            {
+              is_null = false;
+              FAIL_IF (0 > elem_sz);
+              in_adv = elem_sz;
+            }
 
-            total += sz + (is_string ? 1 : 0);
-            ptr += sizeof(int32_t);
-            ptr += sz;
+            if (is_null)
+              (*info->is_nulls)[i] = true;
+
+
+            total += elem_sz;
+            total += (is_string && ! is_null) ? 1 : 0; /* Null byte for non-NULL element of type string */
+            in += sizeof(int32_t);
+            in += in_adv;
 
             if ((! is_string) &&
                 (0 == info->same_size))
-              (*info->sizes)[i] = sz;
+              (*info->sizes)[i] = elem_sz;
 
             FAIL_IF ((0 != info->same_size) &&
-                     (sz != info->same_size));
-            FAIL_IF (total < sz);
+                     (elem_sz != info->same_size));
+            FAIL_IF (total < elem_sz);
           }
         }
         FAIL_IF ((! info->allow_nulls) && (0 == total));
@@ -1459,17 +1473,27 @@ extract_array_generic (
         /* copy data */
         for (uint32_t i = 0; i < header.dim; i++)
         {
-          int32_t sz =  ntohl (*(int32_t *) in);
+          int32_t elem_sz =  ntohl (*(int32_t *) in);
+          int32_t in_adv;
+          bool is_null;
 
           in += sizeof(uint32_t);
-          if (-1 == sz)
-            sz = 0;
+          if (-1 == elem_sz)
+          {
+            is_null = true;
+            elem_sz = (0 != info->same_size) ? info->same_size : 0;
+            in_adv = 0;
+          }
           else
-            GNUNET_memcpy (out, in, sz);
+          {
+            is_null = false;
+            in_adv = elem_sz;
+            GNUNET_memcpy (out, in, elem_sz);
+          }
 
-          in += sz;
-          out += sz;
-          out += (is_string) ? 1 : 0;
+          in += in_adv;
+          out += elem_sz;
+          out += (is_string && ! is_null) ? 1 : 0; /* Null byte for non-NULL element of type string */
         }
         break;
       }
@@ -2129,11 +2153,11 @@ GNUNET_PQ_result_spec_blind_sign_priv (
  */
 static enum GNUNET_GenericReturnValue
 extract_blinded_sig (void *cls,
-                   PGresult *result,
-                   int row,
-                   const char *fname,
-                   size_t *dst_size,
-                   void *dst)
+                     PGresult *result,
+                     int row,
+                     const char *fname,
+                     size_t *dst_size,
+                     void *dst)
 {
   struct GNUNET_CRYPTO_BlindedSignature **sig = dst;
   struct GNUNET_CRYPTO_BlindedSignature *bs;
@@ -2386,7 +2410,5 @@ GNUNET_PQ_result_spec_unblinded_sig (
 
   return res;
 }
-
-
 
 /* end of pq_result_helper.c */

@@ -128,7 +128,7 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " LIMIT 1;"),
     /* Insert statement for time arrays with NULLs */
     GNUNET_PQ_make_prepare ("test_insert_time_arrays_nulls",
-                            "INSERT INTO test_time_arrays"
+                            "INSERT INTO test_pq_time_arrays"
                             " (id, arr_abs_time, arr_rel_time, arr_timestamp)"
                             " VALUES ($1, $2, $3, $4);"),
     /* Select statement for verification */
@@ -137,8 +137,22 @@ postgres_prepare (struct GNUNET_PQ_Context *db_)
                             " arr_abs_time"
                             ",arr_rel_time"
                             ",arr_timestamp"
-                            " FROM test_time_arrays"
+                            " FROM test_pq_time_arrays"
                             " WHERE id = $1;"),
+    /* Insert statement for struct arrays with NULLs */
+    GNUNET_PQ_make_prepare ("test_insert_struct_arrays_nulls",
+                            "INSERT INTO test_pq_struct_arrays"
+                            " (id, arr_fixed_bytes, arr_var_bytes)"
+                            " VALUES ($1, $2, $3);"),
+
+    /* Select statement for verification */
+    GNUNET_PQ_make_prepare ("test_select_struct_arrays_nulls",
+                            "SELECT"
+                            " arr_fixed_bytes"
+                            ",arr_var_bytes"
+                            " FROM test_pq_struct_arrays"
+                            " WHERE id = $1;"),
+
     GNUNET_PQ_PREPARED_STATEMENT_END
   };
 
@@ -670,7 +684,8 @@ run_array_with_nulls_results (struct GNUNET_PQ_Context *db_)
                 char *str = (char *) data[t].ptr;
 
                 for (int i = 0; i < n; i++)
-                  str += strlen (str) + 1;
+                  if (! data[t].is_null[i])
+                    str += strlen (str) + 1;
 
                 GNUNET_assert (0 == strcmp (str, exp));
                 break;
@@ -835,9 +850,8 @@ run_array_with_nulls_queries (struct GNUNET_PQ_Context *db_)
           if (! is_null_text[i])
           {
             GNUNET_assert (0 == strcmp (str, tc->tx[i]));
-            str += strlen (str);
+            str += strlen (str) + 1;
           }
-          str += 1;
         }
       }
 
@@ -867,7 +881,394 @@ event_end (void *cls)
 }
 
 
-/* Run tests with arrays of pointers of time types with potential NULLs */
+/**
+ * Run test with arrays for ptrs to structs, potentially with NULL elements
+ *
+ * @param db The database connection
+ * @return 0 on success, 1 on error
+ */
+static int
+run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db_)
+{
+  /* Sample fixed-size data using GNUNET_HashCode (512 bits / 64 bytes) */
+  struct GNUNET_HashCode hash1;
+  struct GNUNET_HashCode hash2;
+  struct GNUNET_HashCode hash3;
+
+  /* Initialize hashes with test data */
+  memset (&hash1, 0x11, sizeof(hash1));
+  memset (&hash2, 0x22, sizeof(hash2));
+  memset (&hash3, 0x33, sizeof(hash3));
+
+  /* Make them distinguishable */
+  hash1.bits[0] = 0xDEADBEEF;
+  hash2.bits[0] = 0xCAFEBABE;
+  hash3.bits[0] = 0xFEEDFACE;
+
+  /* Sample variable-size structs */
+  struct var_size_data
+  {
+    uint32_t size;
+    char *data;
+  };
+
+  struct var_size_data var1 = {
+    .size = 5,
+    .data = "short"
+  };
+  struct var_size_data var2 = {
+    .size = 29,
+    .data = "this is a longer test string!"
+  };
+  struct var_size_data var3 = {
+    .size = 15,
+    .data = "medium length!!"
+  };
+
+  struct test_case_struct
+  {
+    uint32_t id;
+    unsigned int num;
+    const struct GNUNET_HashCode **fixed_hashes;
+    const struct var_size_data **var_structs;
+  } test_cases[] = {
+    /* Test case 1: Mixed NULLs */
+    {
+      .id = 3001,
+      .num = 4,
+      .fixed_hashes = (const struct GNUNET_HashCode *[]){NULL,
+                                                         &hash1,
+                                                         &hash2,
+                                                         NULL},
+      .var_structs = (const struct var_size_data *[]){&var1,
+                                                      NULL,
+                                                      NULL,
+                                                      &var2},
+    },
+    /* Test case 2: Alternating NULLs */
+    {
+      .id = 3002,
+      .num = 5,
+      .fixed_hashes = (const struct GNUNET_HashCode *[]){&hash1,
+                                                         NULL,
+                                                         &hash2,
+                                                         NULL,
+                                                         &hash3},
+      .var_structs = (const struct var_size_data *[]){NULL,
+                                                      &var1,
+                                                      NULL,
+                                                      &var2,
+                                                      NULL},
+    },
+    /* Test case 3: All NULLs */
+    {
+      .id = 3003,
+      .num = 3,
+      .fixed_hashes = (const struct GNUNET_HashCode *[]){NULL, NULL, NULL},
+      .var_structs = (const struct var_size_data *[]){NULL, NULL, NULL},
+    },
+    /* Test case 4: No NULLs */
+    {
+      .id = 3004,
+      .num = 3,
+      .fixed_hashes = (const struct GNUNET_HashCode *[]){&hash1,
+                                                         &hash2,
+                                                         &hash3},
+      .var_structs = (const struct var_size_data *[]){&var1,
+                                                      &var2,
+                                                      &var3},
+    },
+    /* Test case 5: NULLs at beginning */
+    {
+      .id = 3005,
+      .num = 4,
+      .fixed_hashes = (const struct GNUNET_HashCode *[]){NULL,
+                                                         NULL,
+                                                         &hash1,
+                                                         &hash2},
+      .var_structs = (const struct var_size_data *[]){NULL,
+                                                      NULL,
+                                                      &var1,
+                                                      &var2},
+    },
+    /* Sentinel */
+    {0},
+  };
+
+  for (uint32_t idx = 0; test_cases[idx].id != 0; idx++)
+  {
+    struct test_case_struct *tc = &test_cases[idx];
+    int ret = 1;  /* Default to error */
+
+    /* Prepare byte arrays for insertion */
+    void **fixed_bytes = GNUNET_new_array (tc->num, void*);
+    void **var_bytes = GNUNET_new_array (tc->num, void*);
+    size_t *var_sizes = GNUNET_new_array (tc->num, size_t);
+
+    /* Results */
+    size_t num_fixed_res = 0, num_var_res = 0;
+    void *arr_fixed_res = NULL;
+    void *arr_var_res = NULL;
+    size_t *sizes_var_res = NULL;
+    bool *is_null_fixed = NULL;
+    bool *is_null_var = NULL;
+
+    /* Convert structs to byte arrays */
+    for (unsigned int i = 0; i < tc->num; i++)
+    {
+      /* Handle fixed-size hashes */
+      if (tc->fixed_hashes[i] != NULL)
+      {
+        fixed_bytes[i] = GNUNET_malloc (sizeof(struct GNUNET_HashCode));
+        memcpy (fixed_bytes[i], tc->fixed_hashes[i], sizeof(struct
+                                                            GNUNET_HashCode));
+      }
+      else
+      {
+        fixed_bytes[i] = NULL;
+      }
+
+      /* Handle variable-size structs */
+      if (tc->var_structs[i] != NULL)
+      {
+        var_sizes[i] =  tc->var_structs[i]->size;
+        var_bytes[i] = tc->var_structs[i]->data;
+      }
+      else
+      {
+        var_bytes[i] = NULL;
+        var_sizes[i] = 0;
+      }
+    }
+
+    /* Insert data */
+    {
+      struct GNUNET_PQ_QueryParam params_insert[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
+          tc->num,
+          (const void **) fixed_bytes,
+          sizeof(struct GNUNET_HashCode),
+          db_),
+        GNUNET_PQ_query_param_array_ptrs_bytes (
+          tc->num,
+          (const void **) var_bytes,
+          var_sizes,
+          db_),
+        GNUNET_PQ_query_param_end
+      };
+
+      PGresult *result = GNUNET_PQ_exec_prepared (db_,
+                                                  "test_insert_struct_arrays_nulls",
+                                                  params_insert);
+
+      if (PGRES_COMMAND_OK != PQresultStatus (result))
+      {
+        fprintf (stderr,
+                 "Failed to insert struct test case %d: %s\n",
+                 tc->id,
+                 PQresultErrorMessage (result));
+        PQclear (result);
+        GNUNET_PQ_cleanup_query_params_closures (params_insert);
+        goto cleanup;
+      }
+      PQclear (result);
+      GNUNET_PQ_cleanup_query_params_closures (params_insert);
+    }
+
+    /* Read back and verify */
+    {
+      struct GNUNET_PQ_QueryParam params_select[] = {
+        GNUNET_PQ_query_param_uint32 (&tc->id),
+        GNUNET_PQ_query_param_end
+      };
+
+      struct GNUNET_PQ_ResultSpec result_spec[] = {
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_fixed_size (db_,
+                                                  "arr_fixed_bytes",
+                                                  sizeof(struct
+                                                         GNUNET_HashCode),
+                                                  &num_fixed_res,
+                                                  &arr_fixed_res),
+          &is_null_fixed),
+        GNUNET_PQ_result_spec_array_allow_nulls (
+          GNUNET_PQ_result_spec_array_variable_size (db_,
+                                                     "arr_var_bytes",
+                                                     &num_var_res,
+                                                     &sizes_var_res,
+                                                     &arr_var_res),
+          &is_null_var),
+        GNUNET_PQ_result_spec_end
+      };
+
+      enum GNUNET_DB_QueryStatus qs = GNUNET_PQ_eval_prepared_singleton_select (
+        db_,
+        "test_select_struct_arrays_nulls",
+        params_select,
+        result_spec);
+
+      if (GNUNET_DB_STATUS_SUCCESS_ONE_RESULT != qs)
+      {
+        fprintf (stderr,
+                 "Failed to retrieve struct test case %d: query status %d\n",
+                 tc->id,
+                 qs);
+        goto cleanup;
+      }
+
+      /* Verify array sizes */
+      if ((num_fixed_res != tc->num) || (num_var_res != tc->num))
+      {
+        fprintf (stderr,
+                 "Test case %d: Array size mismatch. Expected %u, got fixed:%zu var:%zu\n",
+                 tc->id,
+                 tc->num,
+                 num_fixed_res,
+                 num_var_res);
+        GNUNET_PQ_cleanup_result (result_spec);
+        goto cleanup;
+      }
+
+      /* Verify fixed-size hash array */
+      for (unsigned int i = 0; i < tc->num; i++)
+      {
+        bool expect_null = (tc->fixed_hashes[i] == NULL);
+
+        if (expect_null != is_null_fixed[i])
+        {
+          fprintf (stderr,
+                   "Test case %d: fixed_hashes[%u] NULL mismatch. Expected %s, got %s\n",
+                   tc->id,
+                   i,
+                   expect_null ? "NULL" : "non-NULL",
+                   is_null_fixed[i] ? "NULL" : "non-NULL");
+          GNUNET_PQ_cleanup_result (result_spec);
+          goto cleanup;
+        }
+
+        if (! expect_null && ! is_null_fixed[i])
+        {
+          char *ptr = ((char *) arr_fixed_res) + i * sizeof(struct
+                                                            GNUNET_HashCode);
+
+          if (memcmp (ptr,
+                      tc->fixed_hashes[i],
+                      sizeof(struct GNUNET_HashCode))
+              != 0)
+          {
+            fprintf (stderr,
+                     "Test case %d: fixed_hashes[%u] content mismatch: %x (got) vs %x (expected)\n",
+                     tc->id,
+                     i,
+                     ((struct GNUNET_HashCode *) ptr)->bits[0],
+                     (tc->fixed_hashes[i])->bits[0]);
+            GNUNET_PQ_cleanup_result (result_spec);
+            goto cleanup;
+          }
+        }
+      }
+
+      /* Verify variable-size struct array */
+      {
+        size_t sz_acc = 0;
+
+        for (unsigned int i = 0; i < tc->num; i++)
+        {
+          bool expect_null = (tc->var_structs[i] == NULL);
+
+          if (expect_null != is_null_var[i])
+          {
+            fprintf (stderr,
+                     "Test case %d: var_structs[%u] NULL mismatch. Expected %s, got %s\n",
+                     tc->id,
+                     i,
+                     expect_null ? "NULL" : "non-NULL",
+                     is_null_var[i] ? "NULL" : "non-NULL");
+            GNUNET_PQ_cleanup_result (result_spec);
+            goto cleanup;
+          }
+
+          if (! expect_null && ! is_null_var[i])
+          {
+            /* Verify size */
+            size_t expected_size = tc->var_structs[i]->size;
+
+            if (sizes_var_res[i] != expected_size)
+            {
+              fprintf (stderr,
+                       "Test case %d: var_structs[%u] size mismatch. Expected %zu, got %zu\n",
+                       tc->id,
+                       i,
+                       expected_size,
+                       sizes_var_res[i]);
+              GNUNET_PQ_cleanup_result (result_spec);
+              GNUNET_break (0);
+              goto cleanup;
+            }
+
+
+            /* Verify content */
+            {
+              char *ptr = ((char *) arr_var_res) + sz_acc;
+
+              if (memcmp (ptr,
+                          tc->var_structs[i]->data,
+                          tc->var_structs[i]->size) != 0)
+              {
+                fprintf (stderr,
+                         "Test case %d: var_structs[%u] data mismatch: expecting »%s«, got »%s« (sz_acc: %ld)\n",
+                         tc->id,
+                         i,
+                         tc->var_structs[i]->data,
+                         ptr,
+                         sz_acc);
+                GNUNET_PQ_cleanup_result (result_spec);
+                goto cleanup;
+              }
+            }
+          }
+
+          sz_acc += sizes_var_res[i];
+        }
+      }
+
+      /* Success! */
+      ret = 0;
+      GNUNET_PQ_cleanup_result (result_spec);
+
+      fprintf (stdout,
+               "Test case %d (fixed hashes:%u items, var:%u items) passed\n",
+               tc->id,
+               tc->num,
+               tc->num);
+    }
+
+cleanup:
+    /* Cleanup allocated memory */
+    for (unsigned int i = 0; i < tc->num; i++)
+    {
+      if (fixed_bytes[i] != NULL)
+        GNUNET_free (fixed_bytes[i]);
+    }
+    GNUNET_free (fixed_bytes);
+    GNUNET_free (var_bytes);
+    GNUNET_free (var_sizes);
+
+    if (ret != 0)
+      return ret;
+  }
+
+  return 0;
+}
+
+
+/**
+ * Run tests with arrays of pointers of time types with potential NULLs
+ *
+ * @param db The database connection
+ * @return 0 on success, 1 on error
+ */
 static int
 run_time_arrays_with_nulls (struct GNUNET_PQ_Context *db)
 {
@@ -1280,14 +1681,21 @@ main (int argc,
       ",arr_rel_time INT8[]"
       ",arr_timestamp INT8[]"
       ");"),
-    /* Create table for time arrays test */
+    /* Create table for time arrays test, including NULL */
     GNUNET_PQ_make_execute (
-      "CREATE TEMPORARY TABLE IF NOT EXISTS test_time_arrays ("
+      "CREATE TEMPORARY TABLE IF NOT EXISTS test_pq_time_arrays ("
       " id INTEGER PRIMARY KEY"
       ",arr_abs_time INT8[]"
       ",arr_rel_time INT8[]"
       ",arr_timestamp INT8[]"
       ");"),
+    /* Create table for struct arrays test, including NULL*/
+    GNUNET_PQ_make_execute (
+      "CREATE TEMPORARY TABLE IF NOT EXISTS test_pq_struct_arrays ("
+      " id INTEGER PRIMARY KEY"
+      ",arr_fixed_bytes BYTEA[]"
+      ",arr_var_bytes BYTEA[]"
+      ")"),
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
@@ -1342,6 +1750,13 @@ main (int argc,
     return ret;
   }
   ret = run_time_arrays_with_nulls (db);
+  if (0 != ret)
+  {
+    GNUNET_break (0);
+    GNUNET_PQ_disconnect (db);
+    return ret;
+  }
+  ret = run_struct_arrays_with_nulls (db);
   if (0 != ret)
   {
     GNUNET_break (0);
@@ -1403,7 +1818,8 @@ main (int argc,
     struct GNUNET_PQ_ExecuteStatement es_tmp[] = {
       GNUNET_PQ_make_execute ("DROP TABLE test_pq"),
       GNUNET_PQ_make_execute ("DROP TABLE test_pq_array_nulls"),
-      GNUNET_PQ_make_execute ("DROP TABLE test_time_arrays"),
+      GNUNET_PQ_make_execute ("DROP TABLE test_pq_time_arrays"),
+      GNUNET_PQ_make_execute ("DROP TABLE test_pq_struct_arrays"),
       GNUNET_PQ_EXECUTE_STATEMENT_END
     };
 

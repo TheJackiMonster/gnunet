@@ -1137,7 +1137,7 @@ GNUNET_PQ_result_spec_array_timestamp (
  * @param name name of the field in the table
  * @param[out] num where to store the number of elements
  * @param[out] sizes where to store the @a num size's of byte-buffers in @a dst
- * @param[out] dst where to store the continuous array of @a num byte-buffers , allocated
+ * @param[out] dst where to store the continuous array of @a num byte-buffers of sizes given in @a size, allocated
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
@@ -1156,7 +1156,7 @@ GNUNET_PQ_result_spec_array_variable_size (
  * @param name name of the field in the table
  * @param size number of bytes expected in each element of @a dst
  * @param[out] num where to store the number of elements
- * @param[out] dst where to store the results, an continuous array of fixed-size elements
+ * @param[out] dst where to store the results, an continuous array of @num fixed-size elements
  * @return array entry for the result specification to use
  */
 struct GNUNET_PQ_ResultSpec
