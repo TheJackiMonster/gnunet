@@ -1415,85 +1415,84 @@ extract_array_generic (
     /* fallthrough */
     case array_of_string:
       {
-        size_t total = 0;
+        char *in = data + sizeof(header);
+        size_t total_sz = 0;
         bool is_string = (array_of_string == info->typ);
+        /**
+         * The sizes of the elements in the input. A NULL element will
+         * be indicated in the input by a size of -1.  However, we will
+         * then use an element size of either 0 (for variable sized data)
+         * or info->same_size (for fixed sized data).
+         */
+        uint32_t elem_sz[header.dim];
+        /**
+          * The amounts of bytes to advance the in-pointer after
+          * the encoded size of an element. If the element is NULL
+          * (indicated by a size of -1), the value will be 0, independent
+          * of the corresponding value of @a elem_sz.
+          */
+        uint32_t in_adv[header.dim];
+        bool is_null[header.dim];
+
+        memset (elem_sz, 0, sizeof(elem_sz));
+        memset (in_adv, 0, sizeof(in_adv));
+        memset (is_null, 0, sizeof(is_null));
 
         /* first, calculate total size required for allocation */
-        {
-          char *in = data + sizeof(header);
-
-          for (uint32_t i = 0; i < header.dim; i++)
-          {
-            int32_t elem_sz;
-            int32_t in_adv;
-            bool is_null;
-
-            elem_sz = ntohl (*(int32_t *) in);
-            if (-1 == elem_sz)   /* signifies NULL entry */
-            {
-              FAIL_IF (! info->allow_nulls);
-
-              is_null = true;
-              elem_sz =  (0 != info->same_size) ? info->same_size : 0;
-              in_adv = 0;
-            }
-            else
-            {
-              is_null = false;
-              FAIL_IF (0 > elem_sz);
-              in_adv = elem_sz;
-            }
-
-            if (is_null)
-              (*info->is_nulls)[i] = true;
-
-
-            total += elem_sz;
-            total += (is_string && ! is_null) ? 1 : 0; /* Null byte for non-NULL element of type string */
-            in += sizeof(int32_t);
-            in += in_adv;
-
-            if ((! is_string) &&
-                (0 == info->same_size))
-              (*info->sizes)[i] = elem_sz;
-
-            FAIL_IF ((0 != info->same_size) &&
-                     (elem_sz != info->same_size));
-            FAIL_IF (total < elem_sz);
-          }
-        }
-        FAIL_IF ((! info->allow_nulls) && (0 == total));
-
-        if (NULL != dst_size)
-          *dst_size = total;
-
-        out = GNUNET_malloc (total);
-        *((void **) dst) = out;
-
-        /* copy data */
         for (uint32_t i = 0; i < header.dim; i++)
         {
-          int32_t elem_sz =  ntohl (*(int32_t *) in);
-          int32_t in_adv;
-          bool is_null;
+          int32_t sz = ntohl (*(int32_t *) in);
 
-          in += sizeof(uint32_t);
-          if (-1 == elem_sz)
+          if (-1 == sz) /* signifies NULL entry */
           {
-            is_null = true;
-            elem_sz = (0 != info->same_size) ? info->same_size : 0;
-            in_adv = 0;
+            FAIL_IF (! info->allow_nulls);
+            is_null[i] = true;
+            elem_sz[i] =   info->same_size ? info->same_size : 0;
+            in_adv[i] = 0;
           }
           else
           {
-            is_null = false;
-            in_adv = elem_sz;
-            GNUNET_memcpy (out, in, elem_sz);
+            FAIL_IF (0 > sz);
+            elem_sz[i] = sz;
+            in_adv[i] = sz;
           }
+          FAIL_IF (info->same_size &&
+                   (elem_sz[i] != info->same_size));
 
-          in += in_adv;
-          out += elem_sz;
-          out += (is_string && ! is_null) ? 1 : 0; /* Null byte for non-NULL element of type string */
+          if (info->allow_nulls)
+            (*info->is_nulls)[i] = is_null[i];
+
+          if ((! is_string) &&
+              (! info->same_size))
+            (*info->sizes)[i] = elem_sz[i];
+
+          total_sz += elem_sz[i];
+          /* add room for terminator for non-NULL entry of type string */
+          total_sz += (is_string && ! is_null[i]) ? 1 : 0;
+          in += sizeof(int32_t);
+          in += in_adv[i];
+
+          FAIL_IF (total_sz < elem_sz[i]);
+        }
+
+        FAIL_IF ((! info->allow_nulls) && (0 == total_sz));
+        if (NULL != dst_size)
+          *dst_size = total_sz;
+
+        out = GNUNET_malloc (total_sz);
+        *((void **) dst) = out;
+        in = data + sizeof(header); /* reset to beginning of input */
+
+        /* Finally, copy the data */
+        for (uint32_t i = 0; i < header.dim; i++)
+        {
+          in += sizeof(uint32_t); /* skip length */
+          if (! is_null[i])
+            GNUNET_memcpy (out, in, elem_sz[i]);
+
+          in += in_adv[i];
+          out += elem_sz[i];
+          out += (is_string && ! is_null[i]) ? 1 : 0;
         }
         break;
       }
