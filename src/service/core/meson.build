@@ -244,13 +244,14 @@ testcore_basic = find_program(
     # TODO specify current working/build dir if possible
 )
 
-test('test_core_basic',
-     testcore_basic,
-     suite: 'core',
-     workdir: meson.current_build_dir(),
-     #depends: [
-     #    libgnunettesting_dep
-     #],
+test(
+    'test_core_basic',
+    testcore_basic,
+    suite: 'core',
+    workdir: meson.current_build_dir(),
+    #depends: [
+    #    libgnunettesting_dep
+    #],
 )
 
 # FIXME: add shell script tests: test_core_start_testcase.sh, test_core_underlay_dummy.sh

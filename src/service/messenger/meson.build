@@ -65,7 +65,7 @@ libgnunetmessenger = library(
         libgnunetutil_dep,
         libgnunetcadet_dep,
         libgnunetidentity_dep,
-        libgnunetnamestore_dep
+        libgnunetnamestore_dep,
     ],
     include_directories: [incdir, configuration_inc],
     install: true,

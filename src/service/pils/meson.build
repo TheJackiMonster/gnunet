@@ -1,8 +1,6 @@
 libgnunetpils_src = ['pils_api.c', 'pils.h']
 
-gnunetservicepils_src = [
-    'gnunet-service-pils.c',
-]
+gnunetservicepils_src = ['gnunet-service-pils.c']
 
 configure_file(
     input: 'pils.conf.in',
