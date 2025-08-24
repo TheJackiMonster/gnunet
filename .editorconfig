@@ -8,13 +8,18 @@ root = true
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
+charset = utf-8
 
 # 4 space indentation
 [*.{c,h}]
 indent_style = space
 indent_size = 2
-charset = utf-8
+max_line_length = 80
 
 # Tab indentation (no size specified)
 [Makefile]
 indent_style = tab
+
+[meson.build]
+indent_style = space
+indent_size = 2
