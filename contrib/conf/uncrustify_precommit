@@ -45,7 +45,7 @@ then
     export REPORT=$(mktemp /tmp/codespellXXXXXX)
     ( set -o pipefail;
       echo "Checking for spelling errors with codespell..."
-      scripts/check_codespell.sh src 2> ${REPORT};
+      contrib/ci/jobs/0-codespell/job.sh src 2> ${REPORT};
     ) || { echo "Please fix the code spell errors in ${REPORT} first"; exit 2; }
 else
     echo "No codespell installed, skipping spell check."

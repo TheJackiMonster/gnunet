@@ -5,6 +5,7 @@
 # 'foo' and you add 'Foo' _here_, codespell will continue to complain
 #  about 'Foo'.
 #
+AKE
 BRE
 ND
 Nd
