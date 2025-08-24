@@ -89,7 +89,7 @@ struct GNUNET_PILS_Handle
   /* Closure to the #pid_change_cb callback */
   void *pid_change_cb_cls;
 
-  /* Task regularily trying to connect to the service */
+  /* Task regularly trying to connect to the service */
   struct GNUNET_SCHEDULER_Task *reconnect_task;
 
   /* Delay until the next reconnect */
@@ -526,7 +526,7 @@ GNUNET_PILS_derive_pid (size_t seed_key_bytes,
    * We now expand the PRK to the key size we actually require.
    * FIXME: IF we want to use elligator, we need to find a
    * private key that can actually be used as such.
-   * For that, we may want to add a coutner to the initial secret key
+   * For that, we may want to add a counter to the initial secret key
    * to the above PRF.
    */
   GNUNET_CRYPTO_hkdf_expand (outkey,
@@ -566,7 +566,7 @@ GNUNET_PILS_feed_addresses (struct GNUNET_PILS_Handle *handle,
 /**
  * Create HELLO signature.
  *
- * @param handle hande to the pils service
+ * @param handle handle to the pils service
  * @param builder the builder to use
  * @param et expiration time to sign
  * @param cb callback to call with the signature

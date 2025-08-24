@@ -33,6 +33,21 @@ then
   echo " Uncrustify your code in your next commit.                      "
   echo " See https://docs.gnunet.org/latest/developers/style.html#coding-style "
   echo "================================================================"
+  exit 1
 fi
+
+# Make sure we have no stupid spelling error
+if (which codespell > /dev/null)
+then
+    export REPORT=$(mktemp /tmp/codespellXXXXXX)
+    ( set -o pipefail;
+      echo "Checking for spelling errors with codespell..."
+      scripts/check_codespell.sh src 2> ${REPORT};
+    ) || { echo "Please fix the code spell errors in ${REPORT} first"; exit 2; }
+else
+    echo "No codespell installed, skipping spell check."
+    echo "** Please consider installing codespell! **"
+fi
+
 # Do not fail
 exit 0

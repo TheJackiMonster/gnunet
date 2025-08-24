@@ -236,7 +236,7 @@ test(
 
 # FIXME test_core_basic
 #      this currently works on my (ch3) machine, but is not expected to work on
-#      others. It is expecting the netjail testing scripts in a locatin
+#      others. It is expecting the netjail testing scripts in a location
 #      specific to my machine, because currently they're not available in the
 #      build dir
 testcore_basic = find_program(

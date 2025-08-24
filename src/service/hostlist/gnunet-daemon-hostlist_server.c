@@ -168,7 +168,7 @@ add_cors_headers (struct MHD_Response *resp)
 
 
 static struct MHD_Response*
-build_json_response (const struct HostSet *bu)
+build_json_response (const struct HostSet *host_set)
 {
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_HELLO_Parser *hparser;
@@ -180,9 +180,9 @@ build_json_response (const struct HostSet *bu)
 
   hello_uri_j = json_object ();
   hello_array = json_array ();
-  while (offset < bu->size)
+  while (offset < host_set->size)
   {
-    hello = (struct GNUNET_MessageHeader*) (bu->data + offset);
+    hello = (struct GNUNET_MessageHeader*) (host_set->data + offset);
     hparser = GNUNET_HELLO_parser_from_msg (hello);
     if (NULL == hparser)
     {

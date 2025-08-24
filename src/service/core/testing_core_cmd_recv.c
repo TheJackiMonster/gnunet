@@ -201,7 +201,7 @@ handle_msg_test (void *cls,
      * This might be done nicer - via a barrier? Check the other node's receive
      * state?
      * The number of 3 Milliseconds was chosen by looking at logs and then
-     * continuously runnint the test and seeing how many actually work reliably
+     * continuously running the test and seeing how many actually work reliably
      * (Increased it quite a bit in the end for valgrind - no repeated tests
      * this time.)
      */

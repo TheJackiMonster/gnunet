@@ -96,7 +96,7 @@ send_messages (struct SendState *send_state)
   GNUNET_assert (NULL != connect_state->channels_head);
   /* For now send on all available channels as we don't know at this stage
    * which is an usable channel - this should be fine as the unusable channel
-   * will (probably) be discovered and cleand up in the process. */
+   * will (probably) be discovered and cleaned up in the process. */
   for (channel_iter = connect_state->channels_head;
        NULL != channel_iter;
        channel_iter = channel_iter->next)

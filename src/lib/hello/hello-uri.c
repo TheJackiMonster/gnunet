@@ -822,7 +822,7 @@ GNUNET_HELLO_parser_to_url (const struct GNUNET_HELLO_Parser *parser)
        NULL != a;
        a = a->next)
   {
-    char *ue;
+    char *eou_url_encoded;
     char *tmp;
     int pfx_len;
     const char *eou;
@@ -839,15 +839,15 @@ GNUNET_HELLO_parser_to_url (const struct GNUNET_HELLO_Parser *parser)
     eou += 3;
     GNUNET_STRINGS_urlencode (a->uri_len - 4 - pfx_len,
                               eou,
-                              &ue);
+                              &eou_url_encoded);
     GNUNET_asprintf (&tmp,
                      "%s%s%.*s=%s",
                      result,
                      sep,
                      pfx_len,
                      a->uri,
-                     ue);
-    GNUNET_free (ue);
+                     eou_url_encoded);
+    GNUNET_free (eou_url_encoded);
     GNUNET_free (result);
     result = tmp;
     sep = "&";
@@ -1096,7 +1096,7 @@ GNUNET_HELLO_build_url (const struct GNUNET_HELLO_Builder *builder,
        NULL != a;
        a = a->next)
   {
-    char *ue;
+    char *eou_url_encoded;
     char *tmp;
     int pfx_len;
     const char *eou;
@@ -1113,15 +1113,15 @@ GNUNET_HELLO_build_url (const struct GNUNET_HELLO_Builder *builder,
     eou += 3;
     GNUNET_STRINGS_urlencode (a->uri_len - 4 - pfx_len,
                               eou,
-                              &ue);
+                              &eou_url_encoded);
     GNUNET_asprintf (&tmp,
                      "%s%s%.*s=%s",
                      *result,
                      sep,
                      pfx_len,
                      a->uri,
-                     ue);
-    GNUNET_free (ue);
+                     eou_url_encoded);
+    GNUNET_free (eou_url_encoded);
     GNUNET_free (*result);
     *result = tmp;
     sep = "&";

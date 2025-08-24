@@ -223,7 +223,7 @@ GNUNET_PILS_derive_pid (size_t seed_key_bytes,
 /**
  * Create HELLO signature.
  *
- * @param handle hande to the pils service
+ * @param handle handle to the pils service
  * @param builder the builder to use
  * @param et expiration time to sign
  * @param cb callback to call with the signature

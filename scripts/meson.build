@@ -21,6 +21,7 @@ binfiles = [
     'pogen.sh',
     'rename.sh',
     'gana_update.sh',
+    'check_codespell.sh', 'dictionary.txt'
 ]
 
 foreach f : binfiles

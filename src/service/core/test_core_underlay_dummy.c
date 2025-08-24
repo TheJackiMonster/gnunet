@@ -217,7 +217,7 @@ static void *notify_connect_cb (
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_UNDERLAY_DUMMY_Message *msg;
   struct Connection *connection;
-  (void) peer_id; /* unused - the underlay dummy doesn't know abot peer ids */
+  (void) peer_id; /* unused - the underlay dummy doesn't know about peer ids */
 
   if (0 == num_addresses)
   {

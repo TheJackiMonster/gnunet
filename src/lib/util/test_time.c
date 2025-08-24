@@ -30,7 +30,7 @@ int
 main (int argc, char *argv[])
 {
   struct GNUNET_TIME_Absolute now;
-  struct GNUNET_TIME_AbsoluteNBO nown;
+  struct GNUNET_TIME_AbsoluteNBO now_nbo;
   struct GNUNET_TIME_Absolute future;
   struct GNUNET_TIME_Absolute past;
   struct GNUNET_TIME_Absolute last;
@@ -138,9 +138,9 @@ main (int argc, char *argv[])
   reln = GNUNET_TIME_relative_hton (rel);
   GNUNET_assert (rel.rel_value_us == GNUNET_TIME_relative_ntoh (
                    reln).rel_value_us);
-  nown = GNUNET_TIME_absolute_hton (now);
+  now_nbo = GNUNET_TIME_absolute_hton (now);
   GNUNET_assert (now.abs_value_us == GNUNET_TIME_absolute_ntoh (
-                   nown).abs_value_us);
+                   now_nbo).abs_value_us);
 
   /* check absolute addition */
   future = GNUNET_TIME_absolute_add (now, GNUNET_TIME_UNIT_SECONDS);

@@ -2717,7 +2717,7 @@ check_rekey (struct GSC_KeyExchangeInfo *kx)
                 kx->current_epoch_expiration.abs_value_us,
                 kx->current_sqn);
     // Can this trigger? Maybe if we receive a lot of
-    // heatbeats?
+    // heartbeats?
     GNUNET_assert (UINT64_MAX > kx->current_epoch);
     kx->current_epoch++;
     kx->current_epoch_expiration =

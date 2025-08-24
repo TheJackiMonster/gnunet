@@ -196,7 +196,7 @@ static void
 {
   struct UnderlayDummyState *uds = cls;
   struct Channel *channel;
-  (void) peer_id; /* unused - the underlay dummy doesn't know abot peer ids */
+  (void) peer_id; /* unused - the underlay dummy doesn't know about peer ids */
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "A new connection was established\n");
 
@@ -503,7 +503,7 @@ exec_send_run (void *cls,
       udss->num_messages);
   /* For now send on all available channels as we don't know at this stage
    * which is an usable channel - this should be fine as the unusable channel
-   * will (probably) be discovered and cleand up in the process. */
+   * will (probably) be discovered and cleaned up in the process. */
   for (struct Channel *c_iter = uds->channels_head;
        NULL != c_iter;
        c_iter = c_iter->next)
