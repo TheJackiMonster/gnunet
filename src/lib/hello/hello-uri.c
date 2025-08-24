@@ -1342,7 +1342,7 @@ GNUNET_HELLO_builder_address_list_cmp (const struct GNUNET_HELLO_Builder *
       found = true;
       break;
     }
-    if (!found)
+    if (! found)
       return GNUNET_NO;
     found = false;
   }

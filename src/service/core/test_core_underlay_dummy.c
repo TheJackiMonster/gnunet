@@ -82,7 +82,7 @@ struct Connection
   /* Context to the 'peer' to which the connection belongs */
   struct DummyContext *dc;
 
- /* counter of replies/highest index */
+  /* counter of replies/highest index */
   uint32_t result_replies;
 };
 
@@ -180,13 +180,13 @@ print_connections (struct DummyContext *dc)
   uint32_t count = 0;
 
   for (struct Connection *c_iter = dc->conn_head;
-      NULL != c_iter;
-      c_iter = c_iter->next)
+       NULL != c_iter;
+       c_iter = c_iter->next)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-        "  %" PRIu32 ": %s\n",
-        count,
-        c_iter->address);
+         "  %" PRIu32 ": %s\n",
+         count,
+         c_iter->address);
     count++;
   }
 }
@@ -206,7 +206,8 @@ print_connections (struct DummyContext *dc)
  * @return The returned value overwrites the cls set in the handlers for this
  * mq. If NULL, the cls from the original handlers array is used.
  */
-static void *notify_connect_cb (
+static void *
+notify_connect_cb (
   void *cls,
   uint32_t num_addresses,
   const char *addresses[static num_addresses],
@@ -221,18 +222,18 @@ static void *notify_connect_cb (
 
   if (0 == num_addresses)
   {
-  LOG (GNUNET_ERROR_TYPE_INFO,
-      "(%u) Got notified about successful connection to peer with %u address\n",
-      dc == &dc0 ? 0 : 1,
-      num_addresses);
+    LOG (GNUNET_ERROR_TYPE_INFO,
+         "(%u) Got notified about successful connection to peer with %u address\n",
+         dc == &dc0 ? 0 : 1,
+         num_addresses);
   }
   else
   {
-  LOG (GNUNET_ERROR_TYPE_INFO,
-      "(%u) Got notified about successful connection to peer with %u address: `%s'\n",
-      dc == &dc0 ? 0 : 1,
-      num_addresses,
-      addresses[num_addresses - 1]);
+    LOG (GNUNET_ERROR_TYPE_INFO,
+         "(%u) Got notified about successful connection to peer with %u address: `%s'\n",
+         dc == &dc0 ? 0 : 1,
+         num_addresses,
+         addresses[num_addresses - 1]);
   }
   /* Note test result */
   if (GNUNET_NO == result_connect_cb_0)
@@ -240,14 +241,14 @@ static void *notify_connect_cb (
     result_connect_cb_0 = GNUNET_YES;
   }
   else if (GNUNET_YES == result_connect_cb_0 &&
-             GNUNET_NO == result_connect_cb_1)
+           GNUNET_NO == result_connect_cb_1)
   {
     result_connect_cb_1 = GNUNET_YES;
   }
   /* If we knew whether this connection is the one that's used to send/recv, we
    * could close it right now: */
-  //if ()
-  //{
+  // if ()
+  // {
   //  /* Don't accept further connections */
   //  struct DestroyMQTask *destroy_mq_task;
   //  destroy_mq_task = GNUNET_new (struct DestroyMQTask);
@@ -259,7 +260,7 @@ static void *notify_connect_cb (
   //                               dc->destroy_mq_task_tail,
   //                               destroy_mq_task);
   //  return NULL;
-  //}
+  // }
   connection = GNUNET_new (struct Connection);
   connection->mq = mq;
   connection->address = GNUNET_strdup (addresses[0]);
@@ -271,17 +272,17 @@ static void *notify_connect_cb (
                                connection);
   dc->num_open_connections++;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "(%u) Current connections:\n",
-      dc == &dc0 ? 0 : 1);
-  print_connections(dc);
+       "(%u) Current connections:\n",
+       dc == &dc0 ? 0 : 1);
+  print_connections (dc);
   // FIXME get it in sync: number of messages sent (per connection) vs. number
   // of messages received (per peer)
   if (NUMBER_SENDING_PEERS == 1 &&
       &dc1 == dc)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-        "(%u) Not going to send messages - only one peer is supposed to\n",
-        dc == &dc0 ? 0 : 1);
+         "(%u) Not going to send messages - only one peer is supposed to\n",
+         dc == &dc0 ? 0 : 1);
     return connection;
   }
   for (uint64_t i = 0; i < NUMBER_MESSAGES; i++)
@@ -294,16 +295,17 @@ static void *notify_connect_cb (
     msg->batch = GNUNET_htonll (dc->num_open_connections - 1);
     msg->peer = GNUNET_htonll (&dc0 == dc ? 0 : 1);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-        "(%u) Going to send message %" PRIu64 " through message queue %" PRIu32 "\n",
-        &dc0 == dc ? 0 : 1,
-        i,
-        dc->num_open_connections - 1);
+         "(%u) Going to send message %" PRIu64 " through message queue %" PRIu32
+         "\n",
+         &dc0 == dc ? 0 : 1,
+         i,
+         dc->num_open_connections - 1);
     GNUNET_MQ_send (mq, env);
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-        "(%u) Sent message %" PRIu64 " through message queue %" PRIu32 "\n",
-        &dc0 == dc ? 0 : 1,
-        i,
-        dc->num_open_connections - 1);
+         "(%u) Sent message %" PRIu64 " through message queue %" PRIu32 "\n",
+         &dc0 == dc ? 0 : 1,
+         i,
+         dc->num_open_connections - 1);
   }
 
   return connection;
@@ -319,12 +321,12 @@ notify_disconnect_cb (
   struct DummyContext *dc = cls;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "(%u) Connection disconnected.\n",
-      &dc0 == dc ? 0 : 1);
+       "(%u) Connection disconnected.\n",
+       &dc0 == dc ? 0 : 1);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "(%u) Adding result replies: %" PRIu32 ".\n",
-      &dc0 == dc ? 0 : 1,
-      connection->result_replies);
+       "(%u) Adding result replies: %" PRIu32 ".\n",
+       &dc0 == dc ? 0 : 1,
+       connection->result_replies);
   if (&dc0 == dc)
     result_replies_0 = result_replies_0 + connection->result_replies;
   else if (&dc1 == dc)
@@ -337,15 +339,16 @@ notify_disconnect_cb (
   GNUNET_free (connection->address);
   GNUNET_free (connection);
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "(%u) Connections:\n",
-      &dc0 == dc ? 0 : 1);
+       "(%u) Connections:\n",
+       &dc0 == dc ? 0 : 1);
   print_connections (dc);
   // TODO cancel test
   if ((NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replies_0) &&
       (NUMBER_MESSAGES * NUMBER_CONNECTIONS == result_replies_1))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG, "Test finished early, shutting down\n");
-    if (NULL != timeout_task) GNUNET_SCHEDULER_cancel (timeout_task);
+    if (NULL != timeout_task)
+      GNUNET_SCHEDULER_cancel (timeout_task);
     timeout_task = NULL;
     GNUNET_SCHEDULER_shutdown ();
   }
@@ -370,27 +373,29 @@ address_change_cb (void *cls,
 
   result_address_callback = GNUNET_YES;
   LOG (GNUNET_ERROR_TYPE_INFO,
-      "(%u) Got informed of address change\n",
-      dc == &dc0 ? 0 : 1);
+       "(%u) Got informed of address change\n",
+       dc == &dc0 ? 0 : 1);
   LOG (GNUNET_ERROR_TYPE_INFO,
-      "%" PRIu32 " new addresses:\n",
-      num_addresses);
+       "%" PRIu32 " new addresses:\n",
+       num_addresses);
   for (uint32_t i = 0; i < num_addresses; i++)
   {
     LOG (GNUNET_ERROR_TYPE_INFO,
-        "  %" PRIu32 ": %s\n",
-        i,
-        addresses[i]);
+         "  %" PRIu32 ": %s\n",
+         i,
+         addresses[i]);
   }
   if (&dc0 == dc)
   {
     /* We cannot know which peer has which socket - try both */
     GNUNET_CORE_UNDERLAY_DUMMY_connect_to_peer (dc->h,
-                                                SOCK_NAME_BASE "0" SOCK_EXTENSION,
+                                                SOCK_NAME_BASE "0"
+                                                SOCK_EXTENSION,
                                                 GNUNET_MQ_PRIO_BEST_EFFORT,
                                                 GNUNET_BANDWIDTH_VALUE_MAX);
     GNUNET_CORE_UNDERLAY_DUMMY_connect_to_peer (dc->h,
-                                                SOCK_NAME_BASE "1" SOCK_EXTENSION,
+                                                SOCK_NAME_BASE "1"
+                                                SOCK_EXTENSION,
                                                 GNUNET_MQ_PRIO_BEST_EFFORT,
                                                 GNUNET_BANDWIDTH_VALUE_MAX);
   }
@@ -399,11 +404,13 @@ address_change_cb (void *cls,
   {
     /* We cannot know which peer has which socket - try both */
     GNUNET_CORE_UNDERLAY_DUMMY_connect_to_peer (dc->h,
-                                                SOCK_NAME_BASE "0" SOCK_EXTENSION,
+                                                SOCK_NAME_BASE "0"
+                                                SOCK_EXTENSION,
                                                 GNUNET_MQ_PRIO_BEST_EFFORT,
                                                 GNUNET_BANDWIDTH_VALUE_MAX);
     GNUNET_CORE_UNDERLAY_DUMMY_connect_to_peer (dc->h,
-                                                SOCK_NAME_BASE "1" SOCK_EXTENSION,
+                                                SOCK_NAME_BASE "1"
+                                                SOCK_EXTENSION,
                                                 GNUNET_MQ_PRIO_BEST_EFFORT,
                                                 GNUNET_BANDWIDTH_VALUE_MAX);
   }
@@ -457,7 +464,7 @@ do_shutdown (void *cls)
     GNUNET_SCHEDULER_cancel (dmt_iter->destroy_mq_task);
     do_destroy_mq (dmt_iter);
   }
-  LOG(GNUNET_ERROR_TYPE_INFO, "Disconnected from underlay dummy\n");
+  LOG (GNUNET_ERROR_TYPE_INFO, "Disconnected from underlay dummy\n");
   LOG (GNUNET_ERROR_TYPE_DEBUG, "counted %u replies for peer 0\n",
        result_replies_0);
   LOG (GNUNET_ERROR_TYPE_DEBUG, "counted %u replies for peer 1\n",
@@ -475,7 +482,7 @@ do_timeout (void *cls)
 {
   timeout_task = NULL;
 
-  LOG(GNUNET_ERROR_TYPE_INFO, "Disconnecting from underlay dummy\n");
+  LOG (GNUNET_ERROR_TYPE_INFO, "Disconnecting from underlay dummy\n");
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -496,7 +503,7 @@ handle_test (void *cls, const struct GNUNET_UNDERLAY_DUMMY_Message *msg)
   GNUNET_assert (NULL != cls);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "received test message %" PRIu64 " (%" PRIu64 ", %" PRIu64 ")\n",
+       "received test message %" PRIu64 " (%" PRIu64 ", %" PRIu64 ")\n",
        GNUNET_ntohll (msg->id),
        GNUNET_ntohll (msg->batch),
        GNUNET_ntohll (msg->peer));
@@ -529,32 +536,33 @@ handle_test (void *cls, const struct GNUNET_UNDERLAY_DUMMY_Message *msg)
  *
  * @param cls Closure - unused
  */
-static void run_test (void *cls)
+static void
+run_test (void *cls)
 {
-  struct GNUNET_MQ_MessageHandler handlers[] =
-  {
-    GNUNET_MQ_hd_fixed_size (test, MTYPE, struct GNUNET_UNDERLAY_DUMMY_Message, NULL),
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_fixed_size (test, MTYPE, struct GNUNET_UNDERLAY_DUMMY_Message,
+                             NULL),
     GNUNET_MQ_handler_end ()
   };
   GNUNET_log_setup ("test-core-underlay-dummy", "DEBUG", NULL);
   dc0.num_open_connections = 0;
   dc1.num_open_connections = 0;
 
-  LOG(GNUNET_ERROR_TYPE_INFO, "Connecting to underlay dummy\n");
-  dc0.h = GNUNET_CORE_UNDERLAY_DUMMY_connect (NULL, //cfg
+  LOG (GNUNET_ERROR_TYPE_INFO, "Connecting to underlay dummy\n");
+  dc0.h = GNUNET_CORE_UNDERLAY_DUMMY_connect (NULL, // cfg
                                               handlers,
                                               &dc0, // cls
                                               notify_connect_cb,
                                               notify_disconnect_cb, // nd
                                               address_change_cb);
-  LOG(GNUNET_ERROR_TYPE_INFO, "(0) Connected to underlay dummy\n");
-  dc1.h = GNUNET_CORE_UNDERLAY_DUMMY_connect (NULL, //cfg
+  LOG (GNUNET_ERROR_TYPE_INFO, "(0) Connected to underlay dummy\n");
+  dc1.h = GNUNET_CORE_UNDERLAY_DUMMY_connect (NULL, // cfg
                                               handlers,
                                               &dc1, // cls
                                               notify_connect_cb,
                                               notify_disconnect_cb, // nd
                                               address_change_cb);
-  LOG(GNUNET_ERROR_TYPE_INFO, "(1) Connected to underlay dummy 2\n");
+  LOG (GNUNET_ERROR_TYPE_INFO, "(1) Connected to underlay dummy 2\n");
   GNUNET_SCHEDULER_add_shutdown (do_shutdown, NULL);
   timeout_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_SECONDS,
                                                do_timeout,
@@ -570,33 +578,37 @@ static void run_test (void *cls)
  *
  * @return Indicate success or failure
  */
-int main (void)
+int
+main (void)
 {
   GNUNET_SCHEDULER_run (run_test, NULL);
 
-  if (GNUNET_YES != result_address_callback) return -1;
-  if (GNUNET_YES != result_connect_cb_0) return -1;
-  if (GNUNET_YES != result_connect_cb_1) return -1;
+  if (GNUNET_YES != result_address_callback)
+    return -1;
+  if (GNUNET_YES != result_connect_cb_0)
+    return -1;
+  if (GNUNET_YES != result_connect_cb_1)
+    return -1;
   if ((NUMBER_SENDING_PEERS > 1) &&
       (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replies_0))
   {
-    LOG(GNUNET_ERROR_TYPE_ERROR,
-        "Peer 0 received %u of %u messages\n",
-        result_replies_0,
-        NUMBER_MESSAGES * NUMBER_CONNECTIONS);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Peer 0 received %u of %u messages\n",
+         result_replies_0,
+         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     // XXX:
-    LOG(GNUNET_ERROR_TYPE_ERROR,
-        "Peer 1 received %u of %u messages\n",
-        result_replies_1,
-        NUMBER_MESSAGES * NUMBER_CONNECTIONS);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Peer 1 received %u of %u messages\n",
+         result_replies_1,
+         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     return -1;
   }
   if (NUMBER_MESSAGES * NUMBER_CONNECTIONS != result_replies_1)
   {
-    LOG(GNUNET_ERROR_TYPE_ERROR,
-        "Peer 1 received %u of %u messages\n",
-        result_replies_1,
-        NUMBER_MESSAGES * NUMBER_CONNECTIONS);
+    LOG (GNUNET_ERROR_TYPE_ERROR,
+         "Peer 1 received %u of %u messages\n",
+         result_replies_1,
+         NUMBER_MESSAGES * NUMBER_CONNECTIONS);
     return -1;
   }
   return 0;

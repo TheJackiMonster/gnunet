@@ -121,7 +121,6 @@ GNUNET_PILS_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      void *cls);
 
 
-
 /**
  * @brief Disconnect from the PILS service
  *
@@ -191,9 +190,8 @@ GNUNET_PILS_kem_decaps (struct GNUNET_PILS_Handle *handle,
  */
 void
 GNUNET_PILS_feed_addresses (struct GNUNET_PILS_Handle *handle,
-                            const struct GNUNET_HELLO_Builder *addresses_builder);
-
-
+                            const struct GNUNET_HELLO_Builder *addresses_builder
+                            );
 
 
 /**
@@ -204,7 +202,7 @@ GNUNET_PILS_feed_addresses (struct GNUNET_PILS_Handle *handle,
  */
 void
 GNUNET_HELLO_builder_hash_addresses (const struct GNUNET_HELLO_Builder *builder,
-                            struct GNUNET_HashCode *address_hash);
+                                     struct GNUNET_HashCode *address_hash);
 
 /**
  * Generate the peer id from the addresses hash and the initial secret key.
@@ -235,6 +233,7 @@ GNUNET_PILS_sign_hello (struct GNUNET_PILS_Handle *handle,
                         struct GNUNET_TIME_Absolute et,
                         GNUNET_PILS_SignResultCallback cb,
                         void *cb_cls);
+
 /**
  * Cancel request
  *

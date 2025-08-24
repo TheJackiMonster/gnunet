@@ -35,7 +35,7 @@
  * @brief Generic logging shortcut
  */
 #define LOG(kind, ...) \
-  GNUNET_log_from (kind, "testing-core-recv", __VA_ARGS__)
+        GNUNET_log_from (kind, "testing-core-recv", __VA_ARGS__)
 
 
 struct RecvState;
@@ -87,24 +87,24 @@ remove_recv_handler (struct GNUNET_TESTING_CORE_ConnectState *connect_state)
       // FIXME this is the dirty solution. The attempt below did for whatever
       // reason not work.
       connect_state->recv_handlers[i] = NULL;
-      //LOG (GNUNET_ERROR_TYPE_DEBUG,
+      // LOG (GNUNET_ERROR_TYPE_DEBUG,
       //    "recv handlers[0]: %p, handle_msg_test: %p, (%lu)\n",
       //    connect_state->recv_handlers[0],
       //    &handle_msg_test,
       //    sizeof (&handle_msg_test));
-      //LOG (GNUNET_ERROR_TYPE_DEBUG,
+      // LOG (GNUNET_ERROR_TYPE_DEBUG,
       //    "recv handlers: %p, %" PRIu64 "\n",
       //    connect_state->recv_handlers,
       //    connect_state->recv_handlers_len);
-      //GNUNET_memcpy (&connect_state->recv_handlers[i],
+      // GNUNET_memcpy (&connect_state->recv_handlers[i],
       //               &connect_state->recv_handlers[i+1],
       //               (connect_state->connect_cbs_len - i - 1) *
       //                 sizeof (handle_msg_test));
-      //LOG (GNUNET_ERROR_TYPE_DEBUG,
+      // LOG (GNUNET_ERROR_TYPE_DEBUG,
       //    "recv handlers: %p, %" PRIu64 "\n",
       //    connect_state->recv_handlers,
       //    connect_state->recv_handlers_len);
-      //GNUNET_array_grow (connect_state->recv_handlers,
+      // GNUNET_array_grow (connect_state->recv_handlers,
       //                   connect_state->recv_handlers_len,
       //                   connect_state->recv_handlers_len - 1);
     }
@@ -117,7 +117,7 @@ handle_msg_test (void *cls,
                  struct GNUNET_TESTING_CORE_Channel *channel,
                  const struct GNUNET_TESTING_CORE_Message *msg)
 {
-  //struct ChannelCount *channel_count = cls;
+  // struct ChannelCount *channel_count = cls;
   struct RecvState *rs = cls;
   struct ChannelCount *channel_count;
   uint32_t channel_i;
@@ -125,7 +125,8 @@ handle_msg_test (void *cls,
   uint64_t num_messages_target;
   enum GNUNET_GenericReturnValue ret;
 
-  LOG (GNUNET_ERROR_TYPE_INFO, "received test message %" PRIu64 " (%" PRIu64 ") %s\n",
+  LOG (GNUNET_ERROR_TYPE_INFO, "received test message %" PRIu64 " (%" PRIu64
+       ") %s\n",
        GNUNET_ntohll (msg->id),
        GNUNET_ntohll (msg->batch),
        msg->node_id);
@@ -174,13 +175,16 @@ handle_msg_test (void *cls,
   num_messages_received = channel_count->num_messages_received;
   num_messages_target = channel_count->rs->num_messages_target;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "Received %" PRIu64 " messages (of %" PRIu64 " on channel %" PRIu32 ")\n",
-      num_messages_received,
-      num_messages_target,
-      channel_i);
-  if (num_messages_target > num_messages_received) return;
-  if (num_messages_target < num_messages_received) GNUNET_assert (0);
-  //if (num_messages_target == num_messages_received)
+       "Received %" PRIu64 " messages (of %" PRIu64 " on channel %" PRIu32
+       ")\n",
+       num_messages_received,
+       num_messages_target,
+       channel_i);
+  if (num_messages_target > num_messages_received)
+    return;
+  if (num_messages_target < num_messages_received)
+    GNUNET_assert (0);
+  // if (num_messages_target == num_messages_received)
   //  GNUNET_TESTING_async_finish (&rs->ac);
   ret = GNUNET_YES;
   for (uint32_t i = 0; i < rs->num_channels; i++)
@@ -191,7 +195,8 @@ handle_msg_test (void *cls,
   }
   if (GNUNET_YES == ret)
   {
-    LOG (GNUNET_ERROR_TYPE_INFO, "Received all expected messages on all channels\n");
+    LOG (GNUNET_ERROR_TYPE_INFO,
+         "Received all expected messages on all channels\n");
     remove_recv_handler (rs->connect_state);
     // TODO do we want to keep track of this task?
     /* If we finish this task, this ARM will shut down this peer, taking with
@@ -223,27 +228,30 @@ exec_recv_run (void *cls,
   if (GNUNET_OK != GNUNET_CORE_TESTING_get_trait_connect (
         // TODO make the "connect" an input to the command
         GNUNET_TESTING_interpreter_lookup_command (is, "connect"),
-        &connect_state)) {
+        &connect_state))
+  {
     GNUNET_assert (0);
-  };
+  }
+  ;
   rs->connect_state = connect_state;
   // FIXME: set cls per handler
   GNUNET_array_append (connect_state->recv_handlers,
                        connect_state->recv_handlers_len,
                        &handle_msg_test);
   // FIXME is the following ok?
-  ((struct GNUNET_TESTING_CORE_ConnectState *)connect_state)->recv_handlers_cls = rs;
+  ((struct GNUNET_TESTING_CORE_ConnectState *) connect_state)->recv_handlers_cls
+    = rs;
 }
 
 
 static void
 exec_recv_cleanup (void *cls)
 {
-  //struct RecvState *rs = cls;
+  // struct RecvState *rs = cls;
   // TODO
 
-  //GNUNET_free (rs->channel_count);
-  //GNUNET_free (rs);
+  // GNUNET_free (rs->channel_count);
+  // GNUNET_free (rs);
 }
 
 
@@ -261,12 +269,12 @@ GNUNET_TESTING_CORE_cmd_recv (
   rs->num_messages_target = num_messages;
   LOG (GNUNET_ERROR_TYPE_DEBUG, "(Setting up _cmd_recv)\n");
   return GNUNET_TESTING_command_new_ac (
-      rs, // state
-      label,
-      &exec_recv_run,
-      &exec_recv_cleanup,
-      NULL, // traits
-      &rs->ac); // FIXME
+    rs,   // state
+    label,
+    &exec_recv_run,
+    &exec_recv_cleanup,
+    NULL,   // traits
+    &rs->ac);   // FIXME
 }
 
 

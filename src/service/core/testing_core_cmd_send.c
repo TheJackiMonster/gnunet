@@ -35,7 +35,7 @@
  * @brief Generic logging shortcut
  */
 #define LOG(kind, ...) \
-  GNUNET_log_from (kind, "testing-core-send", __VA_ARGS__)
+        GNUNET_log_from (kind, "testing-core-send", __VA_ARGS__)
 
 
 static void *
@@ -67,14 +67,14 @@ cleanup_callbacks (struct SendState *send_state)
       /* remove the callback */
       GNUNET_memcpy (connect_cb_iter,
                      connect_cb_iter + 1,
-                     (connect_state->connect_cbs_len - i - 1) *
-                       sizeof (struct GNUNET_TESTING_CORE_ConnectCb));
+                     (connect_state->connect_cbs_len - i - 1)
+                     * sizeof (struct GNUNET_TESTING_CORE_ConnectCb));
       GNUNET_array_grow (connect_state->connect_cbs,
                          connect_state->connect_cbs_len,
                          connect_state->connect_cbs_len - 1);
-      //FIXME the following seems to be a double free, but I currently don't
-      //know where the other free should be
-      //GNUNET_free (connect_cb_iter);
+      // FIXME the following seems to be a double free, but I currently don't
+      // know where the other free should be
+      // GNUNET_free (connect_cb_iter);
     }
   }
 }
@@ -91,8 +91,8 @@ send_messages (struct SendState *send_state)
   uint64_t channel_index = 0;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
-      "Going to send %" PRIu64 " messages\n",
-      send_state->num_messages);
+       "Going to send %" PRIu64 " messages\n",
+       send_state->num_messages);
   GNUNET_assert (NULL != connect_state->channels_head);
   /* For now send on all available channels as we don't know at this stage
    * which is an usable channel - this should be fine as the unusable channel
@@ -104,7 +104,8 @@ send_messages (struct SendState *send_state)
     for (uint64_t i = 0; i < send_state->num_messages; i++)
     {
       LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "Going to send message (type %u) %" PRIu64 ", %s (channel %" PRIu64 ") to %s\n",
+           "Going to send message (type %u) %" PRIu64 ", %s (channel %" PRIu64
+           ") to %s\n",
            MTYPE,
            i,
            connect_state->node_id,
@@ -156,9 +157,11 @@ exec_send_run (void *cls,
   // TODO make the "connect" label an input to the command
   if (GNUNET_OK != GNUNET_CORE_TESTING_get_trait_connect (
         GNUNET_TESTING_interpreter_lookup_command (is, "connect"),
-        &connect_state)) {
+        &connect_state))
+  {
     GNUNET_assert (0);
-  };
+  }
+  ;
   send_state->connect_state = connect_state;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG, "Going to (register to) send messages\n");
@@ -175,7 +178,8 @@ exec_send_run (void *cls,
     // FIXME is the following ok?
     struct GNUNET_TESTING_CORE_ConnectCb *connect_cb_struct =
       GNUNET_new (struct GNUNET_TESTING_CORE_ConnectCb);
-    LOG (GNUNET_ERROR_TYPE_DEBUG, "Registering our connect callback with the connect callbacks\n");
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Registering our connect callback with the connect callbacks\n");
     connect_cb_struct->callback = connect_cb;
     connect_cb_struct->cls = send_state;
     GNUNET_array_append (connect_state->connect_cbs,
@@ -208,11 +212,11 @@ GNUNET_TESTING_CORE_cmd_send (
   send_state->await_new_connection = await_new_connection;
   LOG (GNUNET_ERROR_TYPE_DEBUG, "(Setting up _cmd_send)\n");
   return GNUNET_TESTING_command_new (
-      send_state, // state
-      label,
-      &exec_send_run,
-      &exec_send_cleanup,
-      NULL);
+    send_state,   // state
+    label,
+    &exec_send_run,
+    &exec_send_cleanup,
+    NULL);
 }
 
 

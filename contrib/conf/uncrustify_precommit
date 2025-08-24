@@ -33,7 +33,9 @@ then
   echo " Uncrustify your code in your next commit.                      "
   echo " See https://docs.gnunet.org/latest/developers/style.html#coding-style "
   echo "================================================================"
-  exit 1
+  echo "Example:"
+  echo "$ uncrustify --replace -c uncrustify.cfg ${crustified}"
+  exit $RET
 fi
 
 # Make sure we have no stupid spelling error

@@ -2703,6 +2703,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
                                                   kx);
 }
 
+
 static void
 check_rekey (struct GSC_KeyExchangeInfo *kx)
 {
@@ -2730,6 +2731,7 @@ check_rekey (struct GSC_KeyExchangeInfo *kx)
             sizeof new_ats);
   }
 }
+
 
 /**
  * Encrypt and transmit payload

@@ -229,7 +229,7 @@ handle_sign_result (void *cls, const struct SignResultMessage *msg)
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Didn't find the operation corresponding to id %u\n",
-         ntohl(msg->rid));
+         ntohl (msg->rid));
     return;
   }
   if (NULL != op->sign_cb)
