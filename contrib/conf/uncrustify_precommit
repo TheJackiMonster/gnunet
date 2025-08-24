@@ -7,6 +7,7 @@ exec 1>&2
 RET=0
 changed=$(git diff --cached --name-only)
 crustified=""
+tomesonfmt=""
 
 for f in $changed;
 do
@@ -24,17 +25,32 @@ do
       RET=1
     fi
   fi
+  if echo $f | grep \meson\.build\$ > /dev/null
+  then
+    meson fmt -q $f
+    if test $? = 1 ;
+    then
+      tomesonfmt=" $tomesonfmt $f"
+      RET=1
+    fi
+  fi
 done
 
 if [ $RET = 1 ];
 then
   echo "================================================================"
-  echo " Your changes are ugly!                                         "
-  echo " Uncrustify your code in your next commit.                      "
+  echo " Format your code!                                              "
   echo " See https://docs.gnunet.org/latest/developers/style.html#coding-style "
   echo "================================================================"
-  echo "Example:"
-  echo "$ uncrustify --replace -c uncrustify.cfg ${crustified}"
+  echo "Run:"
+  if [ -n "$crustified" ];
+  then
+    echo "$ uncrustify --replace --no-backup -c uncrustify.cfg ${crustified}"
+  fi
+  if [ -n "$tomesonfmt" ];
+  then
+    echo "$ meson fmt -i ${tomesonfmt}"
+  fi
   echo "Do not forget to readd and commit afterwards!"
   exit $RET
 fi
