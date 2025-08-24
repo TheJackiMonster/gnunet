@@ -35,6 +35,7 @@ then
   echo "================================================================"
   echo "Example:"
   echo "$ uncrustify --replace -c uncrustify.cfg ${crustified}"
+  echo "Do not forget to readd and commit afterwards!"
   exit $RET
 fi
 
