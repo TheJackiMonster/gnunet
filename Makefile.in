@@ -33,5 +33,9 @@ doxygen:
 check:
 	$(MESON) test -C $(mesonbuilddir)
 
+format:
+	$(MESON) fmt -i -r .
+	find ./src -name "*.[h,c]" | uncrustify -l c -c contrib/conf/uncrustify.cfg -F - --replace --no-backup
+
 Makefile: Makefile.in
 	./config.status
