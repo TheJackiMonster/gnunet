@@ -174,7 +174,11 @@ GNUNET_IDENTITY_ego_get_anonymous ()
   return &anon;
 }
 
-
+const char*
+GNUNET_IDENTITY_ego_get_name (const struct GNUNET_IDENTITY_Ego *ego)
+{
+  return ego->name;
+}
 
 /**
  * Try again to connect to the identity service.
