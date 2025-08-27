@@ -371,7 +371,8 @@ process_result_ip (void *cls,
     for (int i = 0; i < ns_deleg->ip6_num; i++)
     {
       char ip_str[INET6_ADDRSTRLEN];
-      inet_ntop(AF_INET6, &ns_deleg->ip6_addrs[i*2], ip_str, INET6_ADDRSTRLEN);
+      inet_ntop (AF_INET6, &ns_deleg->ip6_addrs[i * 2], ip_str, INET6_ADDRSTRLEN
+                 );
       printf ("%s\n",
               ip_str);
     }
