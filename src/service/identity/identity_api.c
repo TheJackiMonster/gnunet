@@ -174,11 +174,13 @@ GNUNET_IDENTITY_ego_get_anonymous ()
   return &anon;
 }
 
+
 const char*
 GNUNET_IDENTITY_ego_get_name (const struct GNUNET_IDENTITY_Ego *ego)
 {
   return ego->name;
 }
+
 
 /**
  * Try again to connect to the identity service.
@@ -375,9 +377,9 @@ handle_identity_update (void *cls,
   key_len = ntohs (um->key_len);
   GNUNET_assert (GNUNET_SYSERR !=
                  GNUNET_CRYPTO_read_private_key_from_buffer (tmp + name_len,
-                                                               key_len,
-                                                               &private_key,
-                                                               &kb_read));
+                                                             key_len,
+                                                             &private_key,
+                                                             &kb_read));
   GNUNET_assert (0 <= GNUNET_CRYPTO_private_key_get_length (&private_key));
   GNUNET_CRYPTO_hash (&private_key,
                       GNUNET_CRYPTO_private_key_get_length (&private_key),
@@ -510,7 +512,6 @@ GNUNET_IDENTITY_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 }
 
 
-
 /**
  * Obtain the ECC key associated with a ego.
  *
@@ -522,6 +523,7 @@ GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego)
 {
   return &ego->pk;
 }
+
 
 /**
  * Get the identifier (public key) of an ego.
@@ -540,6 +542,7 @@ GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
   }
   *pk = ego->pub;
 }
+
 
 static enum GNUNET_GenericReturnValue
 private_key_create (enum GNUNET_CRYPTO_KeyType ktype,
@@ -560,6 +563,7 @@ private_key_create (enum GNUNET_CRYPTO_KeyType ktype,
   }
   return GNUNET_OK;
 }
+
 
 struct GNUNET_IDENTITY_Operation *
 GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
@@ -601,8 +605,8 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
                              GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
   crm->name_len = htons (slen);
   GNUNET_CRYPTO_write_private_key_to_buffer (&private_key,
-                                               &crm[1],
-                                               key_len);
+                                             &crm[1],
+                                             key_len);
   crm->key_len = htons (key_len);
   op->pk = private_key;
   GNUNET_memcpy ((char*) &crm[1] + key_len, name, slen);
