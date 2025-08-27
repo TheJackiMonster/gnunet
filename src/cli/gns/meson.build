@@ -28,6 +28,22 @@ executable(
     install_dir: get_option('bindir'),
 )
 
+executable(
+    'gnunet-dns2gns-absorb',
+    'gnunet-dns2gns-absorb.c',
+    install_rpath: rpath_option,
+    dependencies: [
+        libgnunetidentity_dep,
+        libgnunetgns_dep,
+        libgnunetgnsrecord_dep,
+        idn_dep,
+        libgnunetutil_dep,
+    ],
+    include_directories: [incdir, configuration_inc],
+    install: true,
+    install_dir: get_option('bindir'),
+)
+
 testgns = [
     'test_dns2gns',
     'test_gns_at_lookup',
