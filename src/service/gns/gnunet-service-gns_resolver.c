@@ -1743,7 +1743,6 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
   {
     char *ip;
     char *n;
-    size_t off;
     struct Gns2DnsPending *gp;
     struct GNUNET_CRYPTO_PublicKey zone;
     struct sockaddr_in v4;
@@ -1753,34 +1752,19 @@ recursive_gns2dns_resolution (struct GNS_ResolverHandle *rh,
     {
       /**
        * Records other than GNS2DNS not allowed
+       * FIXME: According to RFC 9498, they are...
        */
       GNUNET_free (ns);
       GNUNET_free (ac);
       return GNUNET_SYSERR;
     }
-    off = 0;
-    n = GNUNET_DNSPARSER_parse_name (rd[i].data,
-                                     rd[i].data_size,
-                                     &off);
-    ip = GNUNET_strdup (&((const char *) rd[i].data)[off]);
-    if ((NULL == n) ||
-        (NULL == ip))
+    n = GNUNET_strdup ((const char*) rd[i].data);
+    if (strlen (n) + 1 >= rd[i].data_size)
     {
       GNUNET_break_op (0);
-      GNUNET_free (n);
-      GNUNET_free (ip);
       continue;
     }
-
-    off += strlen (ip) + 1;
-
-    if (off != rd[i].data_size)
-    {
-      GNUNET_break_op (0);
-      GNUNET_free (n);
-      GNUNET_free (ip);
-      continue;
-    }
+    ip = GNUNET_strdup (rd[i].data + strlen (n) + 1);
     /* resolve 'ip' to determine the IP(s) of the DNS
        resolver to use for lookup of 'ns' */
     if (NULL != ns)

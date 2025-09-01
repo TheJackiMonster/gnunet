@@ -202,6 +202,29 @@ struct Request
   uint16_t id;
 };
 
+/**
+ * Missing identity creation context
+ */
+struct MissingZoneCreationCtx
+{
+  // DLL
+  struct MissingZoneCreationCtx *next;
+
+  // DLL
+  struct MissingZoneCreationCtx *prev;
+
+  // Operation
+  struct GNUNET_IDENTITY_Operation *id_op;
+
+  // Request
+  struct Request *req;
+};
+
+// Missing zones list
+static struct MissingZoneCreationCtx *missing_zones_head;
+
+// Missing zones list
+static struct MissingZoneCreationCtx *missing_zones_tail;
 
 /**
  * Command-line argument specifying desired size of the hash map with
@@ -605,8 +628,7 @@ check_for_glue (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
 {
   struct GlueClosure *gc = cls;
   char dst[65536];
-  size_t dst_len;
-  size_t off;
+  size_t rd_len;
   char ip[INET6_ADDRSTRLEN + 1];
   socklen_t ip_size = (socklen_t) sizeof(ip);
   struct GNUNET_TIME_Absolute expiration_time;
@@ -622,8 +644,7 @@ check_for_glue (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
   if (left.rel_value_us < minimum_expiration_time.rel_value_us)
     expiration_time =
       GNUNET_TIME_relative_to_absolute (minimum_expiration_time);
-  dst_len = sizeof(dst);
-  off = 0;
+  rd_len = 0;
   switch (rec->type)
   {
   case GNUNET_DNSPARSER_TYPE_A:
@@ -637,20 +658,22 @@ check_for_glue (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
       GNUNET_break (0);
       return;
     }
-    if ((GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                         dst_len,
-                                                         &off,
-                                                         gc->req->hostname)) &&
-        (GNUNET_OK ==
-         GNUNET_DNSPARSER_builder_add_name (dst, dst_len, &off, ip)))
-    {
-      add_record (gc->req,
-                  GNUNET_GNSRECORD_TYPE_GNS2DNS,
-                  expiration_time,
-                  dst,
-                  off);
-      gc->found = GNUNET_YES;
-    }
+    // NAME
+    GNUNET_memcpy (dst,
+                   gc->req->hostname,
+                   strlen (gc->req->hostname) + 1);
+    rd_len += strlen (gc->req->hostname) + 1;
+    // DNS SERVER NAME
+    GNUNET_memcpy (dst + strlen (gc->req->hostname) + 1,
+                   ip,
+                   strlen (ip) + 1);
+    rd_len += strlen (ip) + 1;
+    add_record (gc->req,
+                GNUNET_GNSRECORD_TYPE_GNS2DNS,
+                expiration_time,
+                dst,
+                rd_len);
+    gc->found = GNUNET_YES;
     break;
 
   case GNUNET_DNSPARSER_TYPE_AAAA:
@@ -664,39 +687,41 @@ check_for_glue (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
       GNUNET_break (0);
       return;
     }
-    if ((GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                         dst_len,
-                                                         &off,
-                                                         gc->req->hostname)) &&
-        (GNUNET_OK ==
-         GNUNET_DNSPARSER_builder_add_name (dst, dst_len, &off, ip)))
-    {
-      add_record (gc->req,
-                  GNUNET_GNSRECORD_TYPE_GNS2DNS,
-                  expiration_time,
-                  dst,
-                  off);
-      gc->found = GNUNET_YES;
-    }
+    // NAME
+    GNUNET_memcpy (dst,
+                   gc->req->hostname,
+                   strlen (gc->req->hostname) + 1);
+    rd_len += strlen (gc->req->hostname) + 1;
+    // DNS SERVER NAME
+    GNUNET_memcpy (dst + strlen (gc->req->hostname) + 1,
+                   ip,
+                   strlen (ip) + 1);
+    rd_len += strlen (ip) + 1;
+    add_record (gc->req,
+                GNUNET_GNSRECORD_TYPE_GNS2DNS,
+                expiration_time,
+                dst,
+                rd_len);
+    gc->found = GNUNET_YES;
     break;
 
   case GNUNET_DNSPARSER_TYPE_CNAME:
-    if ((GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                         dst_len,
-                                                         &off,
-                                                         gc->req->hostname)) &&
-        (GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                         dst_len,
-                                                         &off,
-                                                         rec->data.hostname)))
-    {
-      add_record (gc->req,
-                  GNUNET_GNSRECORD_TYPE_GNS2DNS,
-                  expiration_time,
-                  dst,
-                  off);
-      gc->found = GNUNET_YES;
-    }
+    // NAME
+    GNUNET_memcpy (dst,
+                   gc->req->hostname,
+                   strlen (gc->req->hostname) + 1);
+    rd_len += strlen (gc->req->hostname) + 1;
+    // DNS SERVER NAME
+    GNUNET_memcpy (dst + strlen (gc->req->hostname) + 1,
+                   rec->data.hostname,
+                   strlen (rec->data.hostname) + 1);
+    rd_len += strlen (ip) + 1;
+    add_record (gc->req,
+                GNUNET_GNSRECORD_TYPE_GNS2DNS,
+                expiration_time,
+                dst,
+                rd_len);
+    gc->found = GNUNET_YES;
     break;
 
   default:
@@ -787,16 +812,18 @@ process_record (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
       gc.ns = rec->data.hostname;
       gc.found = GNUNET_NO;
       for_all_records (prc->p, &check_for_glue, &gc);
-      if ((GNUNET_NO == gc.found) &&
-          (GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                           dst_len,
-                                                           &off,
-                                                           req->hostname)) &&
-          (GNUNET_OK == GNUNET_DNSPARSER_builder_add_name (dst,
-                                                           dst_len,
-                                                           &off,
-                                                           rec->data.hostname)))
+      if (GNUNET_NO == gc.found)
       {
+        // NAME
+        GNUNET_memcpy (dst,
+                       req->hostname,
+                       strlen (req->hostname) + 1);
+        off += strlen (req->hostname) + 1;
+        // DNS SERVER NAME
+        GNUNET_memcpy (dst + strlen (req->hostname) + 1,
+                       rec->data.hostname,
+                       strlen (rec->data.hostname) + 1);
+        off += strlen (rec->data.hostname) + 1;
         /* FIXME: actually check if this is out-of-bailiwick,
              and if not request explicit resolution... */
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1497,6 +1524,36 @@ ns_lookup_result_cb (void *cls,
 }
 
 
+static void
+missing_zone_creation_cont (
+  void *cls,
+  const struct GNUNET_CRYPTO_PrivateKey *pk,
+  enum GNUNET_ErrorCode ec)
+{
+  struct MissingZoneCreationCtx *mzctx = cls;
+  struct Zone *zone;
+  const char*dot;
+
+  dot = strchr (mzctx->req->hostname, (unsigned char) '.');
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Created missing ego `%s'\n",
+              dot + 1);
+  zone = GNUNET_new (struct Zone);
+  zone->key = *pk;
+  zone->domain = GNUNET_strdup (dot + 1);
+  mzctx->req->zone = zone;
+  GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
+  GNUNET_CONTAINER_DLL_remove (missing_zones_head,
+                               missing_zones_tail,
+                               mzctx);
+  GNUNET_free (mzctx);
+  if (NULL == missing_zones_head)
+  {
+    iterate_zones (NULL);
+  }
+}
+
+
 /**
  * Add @a hostname to the list of requests to be made.
  *
@@ -1531,18 +1588,31 @@ queue (const char *hostname)
   for (zone = zone_head; NULL != zone; zone = zone->next)
     if (0 == strcmp (zone->domain, dot + 1))
       break;
-  if (NULL == zone)
-  {
-    rejects++;
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Domain name `%s' not in ego list!\n",
-                dot + 1);
-    return;
-  }
-
   hlen = strlen (hostname) + 1;
   req = GNUNET_malloc (sizeof(struct Request) + hlen);
-  req->zone = zone;
+  if (NULL == zone)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Domain name `%s' not in ego list!\n",
+                dot + 1);
+    struct MissingZoneCreationCtx *mzctx;
+    mzctx = GNUNET_new (struct MissingZoneCreationCtx);
+    mzctx->id_op = GNUNET_IDENTITY_create (id,
+                                           dot + 1,
+                                           NULL,
+                                           GNUNET_PUBLIC_KEY_TYPE_EDDSA,
+                                           &missing_zone_creation_cont,
+                                           mzctx);
+    mzctx->req = req;
+    GNUNET_CONTAINER_DLL_insert (missing_zones_head,
+                                 missing_zones_tail,
+                                 mzctx);
+  }
+  else
+  {
+    req->zone = zone;
+  }
+
   req->hostname = (char *) &req[1];
   GNUNET_memcpy (req->hostname, hostname, hlen);
   req->id = (uint16_t) GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
@@ -1669,11 +1739,6 @@ process_stdin (void *cls)
 
   (void) cls;
   t = NULL;
-  if (NULL != id)
-  {
-    GNUNET_IDENTITY_disconnect (id);
-    id = NULL;
-  }
   while (NULL != fgets (hn, sizeof(hn), stdin))
   {
     if (strlen (hn) > 0)
@@ -1698,7 +1763,11 @@ process_stdin (void *cls)
            "Done reading %llu domain names\n",
            (unsigned long long) idot);
   GNUNET_STATISTICS_set (stats, "# domain names provided", idot, GNUNET_NO);
-  iterate_zones (NULL);
+  // Only start iteration immediately if no zones are missing.
+  if (NULL == missing_zones_head)
+  {
+    iterate_zones (NULL);
+  }
 }
 
 
@@ -1743,7 +1812,10 @@ identity_cb (void *cls,
 {
   (void) cls;
   (void) ctx;
+  static int initial_iteration = GNUNET_YES;
 
+  if (GNUNET_NO == initial_iteration)
+    return;
   if (NULL == ego)
   {
     /* end of iteration */
@@ -1753,6 +1825,7 @@ identity_cb (void *cls,
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
+    initial_iteration = GNUNET_NO;
     /* zone_head non-null, process hostnames from stdin */
     t = GNUNET_SCHEDULER_add_now (&process_stdin, NULL);
     return;

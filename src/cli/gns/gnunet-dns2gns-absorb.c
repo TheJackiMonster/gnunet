@@ -26,6 +26,7 @@
 #include "platform.h"
 #include <gnunet_util_lib.h>
 #include <gnunet_gnsrecord_lib.h>
+#include <gnunet_namestore_service.h>
 
 /**
  * Request we should make.
@@ -113,12 +114,23 @@ static struct GNUNET_SCHEDULER_Task *t;
 
 static char*dnsserver;
 
-static char*name;
+static char *name;
+
+static char ego_to_use_name[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
+
+static char current_hostname[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
 
 static struct GNUNET_IDENTITY_Handle *identity;
 
+static struct GNUNET_NAMESTORE_Handle *namestore;
+
+static struct GNUNET_NAMESTORE_QueueEntry *ns_op;
+
 static struct GNUNET_IDENTITY_Ego *ego_to_use;
 
+static struct GNUNET_CRYPTO_PrivateKey ego_to_use_sk;
+
+static struct GNUNET_IDENTITY_Operation *id_op;
 
 /**
  * Maximum number of queries pending at the same time.
@@ -214,7 +226,9 @@ process_record (struct Request *req,
     struct NsDelegation *ns_deleg;
     ns_deleg = GNUNET_new (struct NsDelegation);
     sprintf (ns_deleg->name, "%s", rec->data.hostname);
-    printf ("New ns_deleg %s\n", ns_deleg->name);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "New ns_deleg %s\n",
+                ns_deleg->name);
     GNUNET_CONTAINER_DLL_insert (ns_delegs_head,
                                  ns_delegs_tail,
                                  ns_deleg);
@@ -257,7 +271,59 @@ submit_req (struct Request *req, GNUNET_DNSSTUB_ResultCallback rc)
  * @param hostname name to resolve
  */
 static void
-resolve_ip (const struct NsDelegation *ns_deleg, int type);
+resolve (const char *hostname, int type, GNUNET_DNSSTUB_ResultCallback rc)
+{
+  struct GNUNET_DNSPARSER_Packet p;
+  struct GNUNET_DNSPARSER_Query q;
+  struct Request *req;
+  char *raw;
+  size_t raw_size;
+  int ret;
+
+  if (GNUNET_OK !=
+      GNUNET_DNSPARSER_check_name (hostname))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Refusing invalid hostname `%s'\n",
+                hostname);
+    return;
+  }
+  q.name = (char *) hostname;
+  q.type = type;
+  q.dns_traffic_class = GNUNET_TUN_DNS_CLASS_INTERNET;
+
+  memset (&p,
+          0,
+          sizeof(p));
+  p.num_queries = 1;
+  p.queries = &q;
+  p.id = (uint16_t) GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
+                                              UINT16_MAX);
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Resolving hostname `%s'\n",
+              hostname);
+  ret = GNUNET_DNSPARSER_pack (&p,
+                               UINT16_MAX,
+                               &raw,
+                               &raw_size);
+  if (GNUNET_OK != ret)
+  {
+    if (GNUNET_NO == ret)
+      GNUNET_free (raw);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to pack query for hostname `%s'\n",
+                hostname);
+    return;
+  }
+
+  req = GNUNET_new (struct Request);
+  req->hostname = strdup (hostname);
+  req->raw = raw;
+  req->raw_len = raw_size;
+  req->id = p.id;
+  submit_req (req, rc);
+}
+
 
 /**
  * Function called with the result of a DNS resolution.
@@ -341,131 +407,163 @@ process_result_ip (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "No IPv4s.\n");
-    resolve_ip (ns_deleg,
-                GNUNET_DNSPARSER_TYPE_AAAA);
+    resolve (ns_deleg->name,
+             GNUNET_DNSPARSER_TYPE_AAAA,
+             &process_result_ip);
     GNUNET_free (req);
     return;
   }
   GNUNET_assert (req->type == GNUNET_DNSPARSER_TYPE_AAAA);
   if (NULL != ns_deleg->next)
   {
-    resolve_ip (ns_deleg->next, GNUNET_DNSPARSER_TYPE_A);
+    resolve (ns_deleg->next->name,
+             GNUNET_DNSPARSER_TYPE_A,
+             &process_result_ip);
     GNUNET_free (req);
     return;
   }
   GNUNET_free (req);
-  for (ns_deleg = ns_delegs_head;
-       NULL != ns_deleg;
-       ns_deleg = ns_deleg->next)
   {
-    printf (
-      "Got delegating DNS server `%s' with %d IPv4 and %d IPv6 addresses\n",
-      ns_deleg->name,
-      ns_deleg->ip_num,
-      ns_deleg->ip6_num);
-    for (int i = 0; i < ns_deleg->ip_num; i++)
+    int rd_count = 0;
+    for (ns_deleg = ns_delegs_head;
+         NULL != ns_deleg;
+         ns_deleg = ns_deleg->next)
     {
-      printf ("%s\n",
-              inet_ntoa (*(struct in_addr*) &ns_deleg->ip_addrs[i]));
+      rd_count += ns_deleg->ip_num + ns_deleg->ip6_num;
     }
-    for (int i = 0; i < ns_deleg->ip6_num; i++)
+
+    struct GNUNET_GNSRECORD_Data rd[rd_count];
+    int rd_idx = 0;
+    char ip_str[INET6_ADDRSTRLEN];
+    char nsbuf[514];
+    size_t off;
+
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_DNSPARSER_builder_add_name (nsbuf,
+                                                      sizeof(nsbuf),
+                                                      &off,
+                                                      name));
+    for (ns_deleg = ns_delegs_head;
+         NULL != ns_deleg;
+         ns_deleg = ns_deleg->next)
     {
-      char ip_str[INET6_ADDRSTRLEN];
-      inet_ntop (AF_INET6, &ns_deleg->ip6_addrs[i * 2], ip_str, INET6_ADDRSTRLEN
-                 );
-      printf ("%s\n",
-              ip_str);
+      GNUNET_log (
+        GNUNET_ERROR_TYPE_DEBUG,
+        "Got delegating DNS server `%s' with %d IPv4 and %d IPv6 addresses\n",
+        ns_deleg->name,
+        ns_deleg->ip_num,
+        ns_deleg->ip6_num);
+      for (int i = 0; i < ns_deleg->ip_num; i++)
+      {
+        inet_ntop (AF_INET,
+                   &ns_deleg->ip_addrs[i],
+                   ip_str,
+                   INET_ADDRSTRLEN);
+        printf ("%s\n",
+                ip_str);
+        rd[rd_idx].record_type = GNUNET_GNSRECORD_TYPE_GNS2DNS;
+        rd[rd_idx].expiration_time = GNUNET_TIME_UNIT_DAYS.rel_value_us;
+        rd[rd_idx].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+        GNUNET_memcpy (&nsbuf[off],
+                       ip_str,
+                       INET_ADDRSTRLEN + 1);
+        off += INET_ADDRSTRLEN + 1;
+        rd[rd_idx].data = GNUNET_malloc (off);
+        GNUNET_memcpy ((void*) rd[i].data, nsbuf, off);
+        rd[rd_idx].data_size = off;
+        rd_idx++;
+      }
+      for (int i = 0; i < ns_deleg->ip6_num; i++)
+      {
+        inet_ntop (AF_INET6,
+                   &ns_deleg->ip6_addrs[i * 2],
+                   ip_str,
+                   INET6_ADDRSTRLEN);
+        printf ("%s\n",
+                ip_str);
+        rd[rd_idx].record_type = GNUNET_GNSRECORD_TYPE_GNS2DNS;
+        rd[rd_idx].expiration_time = GNUNET_TIME_UNIT_DAYS.rel_value_us;
+        rd[rd_idx].flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+        GNUNET_memcpy (&nsbuf[off],
+                       ip_str,
+                       INET6_ADDRSTRLEN + 1);
+        off += INET6_ADDRSTRLEN + 1;
+        rd[rd_idx].data = GNUNET_malloc (off);
+        GNUNET_memcpy ((void*) rd[i].data, nsbuf, off);
+        rd[rd_idx].data_size = off;
+        rd_idx++;
+      }
     }
   }
   GNUNET_SCHEDULER_shutdown ();
 }
 
 
-/**
- * Add @a hostname to the list of requests to be made.
- *
- * @param hostname name to resolve
- */
-static void
-resolve_ip (const struct NsDelegation *ns_deleg, int type)
-{
-  struct GNUNET_DNSPARSER_Packet p;
-  struct GNUNET_DNSPARSER_Query q;
-  struct Request *req;
-  char *raw;
-  size_t raw_size;
-  int ret;
-  const char *hostname = ns_deleg->name;
-
-  if (GNUNET_OK !=
-      GNUNET_DNSPARSER_check_name (hostname))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Refusing invalid hostname `%s'\n",
-                hostname);
-    return;
-  }
-  q.name = (char *) hostname;
-  q.type = type;
-  q.dns_traffic_class = GNUNET_TUN_DNS_CLASS_INTERNET;
-
-  memset (&p,
-          0,
-          sizeof(p));
-  p.num_queries = 1;
-  p.queries = &q;
-  p.id = (uint16_t) GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
-                                              UINT16_MAX);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Resolving hostname `%s'\n",
-              hostname);
-  ret = GNUNET_DNSPARSER_pack (&p,
-                               UINT16_MAX,
-                               &raw,
-                               &raw_size);
-  if (GNUNET_OK != ret)
-  {
-    if (GNUNET_NO == ret)
-      GNUNET_free (raw);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to pack query for hostname `%s'\n",
-                hostname);
-    return;
-  }
-
-  req = GNUNET_new (struct Request);
-  req->hostname = strdup (hostname);
-  req->raw = raw;
-  req->type = type;
-  req->raw_len = raw_size;
-  req->id = p.id;
-  submit_req (req, &process_result_ip);
-}
-
-
 static const char*
-get_next_label ()
+pop_next_label ()
 {
   char *next_lbl;
-  printf ("%s\n", name);
   next_lbl = strrchr (name, '.');
   if (NULL != next_lbl)
   {
     *next_lbl = 0;
     return next_lbl + 1;
   }
-  printf ("%s\n", name);
   return NULL;
 }
 
 
-/**
- * Add @a hostname to the list of requests to be made.
- *
- * @param hostname name to resolve
- */
 static void
-resolve (const char *hostname);
+ego_create_cb (
+  void *cls,
+  const struct GNUNET_CRYPTO_PrivateKey *pk,
+  enum GNUNET_ErrorCode ec)
+{
+  id_op = NULL;
+  GNUNET_assert (GNUNET_EC_NONE == ec);
+}
+
+
+static void
+ns_lookup_error_cb (void *cls)
+{
+  GNUNET_assert (0);
+}
+
+
+static void
+ns_lookup_result_cb (void *cls,
+                     const struct
+                     GNUNET_CRYPTO_PrivateKey *zone,
+                     const char *label,
+                     unsigned int rd_count,
+                     const struct GNUNET_GNSRECORD_Data *rd)
+{
+  ns_op = NULL;
+  if (0 == rd_count)
+  {
+    id_op = GNUNET_IDENTITY_create (identity,
+                                    current_hostname,
+                                    NULL,
+                                    GNUNET_PUBLIC_KEY_TYPE_EDDSA,
+                                    &ego_create_cb,
+                                    NULL);
+    return;
+  }
+  for (int i = 0; i < rd_count; i++)
+  {
+    if (GNUNET_GNSRECORD_is_zonekey_type (rd[i].record_type))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "We have an ego for `%s', using that\n",
+                  label);
+      GNUNET_memcpy (&ego_to_use_sk,
+                     rd[i].data,
+                     rd[i].data_size);
+    }
+  }
+}
+
 
 /**
  * Function called with the result of a DNS resolution.
@@ -540,7 +638,24 @@ process_result_ns (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "No NS records found.\n");
     char *next_hostname;
-    const char *next_lbl = get_next_label ();
+    const char *next_lbl;
+
+    // We have found no NS records.
+    // We need to use or create a new Ego
+    // to continue with the current label.
+    if (NULL != strrchr (name, '.'))
+    {
+      ns_op =
+        GNUNET_NAMESTORE_records_lookup (namestore,
+                                         &ego_to_use_sk,
+                                         next_lbl,
+                                         &ns_lookup_error_cb,
+                                         NULL,
+                                         &ns_lookup_result_cb,
+                                         NULL);
+      return;
+    }
+    next_lbl = pop_next_label ();
     if (NULL == next_lbl)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -552,13 +667,19 @@ process_result_ns (void *cls,
       return;
     }
     GNUNET_asprintf (&next_hostname, "%s.%s", next_lbl, req->hostname);
-    resolve (next_hostname);
+    resolve (next_hostname,
+             GNUNET_DNSPARSER_TYPE_A,
+             &process_result_ip);
     return;
   }
+  // next_lbl now contains the name under which to publish
+  // any GNS2DNS records
   GNUNET_free (req->hostname);
   GNUNET_free (req->raw);
   GNUNET_free (req);
-  resolve_ip (ns_delegs_head, GNUNET_DNSPARSER_TYPE_A);
+  resolve (ns_delegs_head->name,
+           GNUNET_DNSPARSER_TYPE_A,
+           &process_result_ip);
 
 }
 
@@ -579,70 +700,24 @@ do_shutdown (void *cls)
   }
   GNUNET_DNSSTUB_stop (ctx);
   ctx = NULL;
+  if (NULL != id_op)
+  {
+    GNUNET_IDENTITY_cancel (id_op);
+    id_op = NULL;
+  }
   if (NULL != identity)
   {
     GNUNET_IDENTITY_disconnect (identity);
   }
-}
-
-
-/**
- * Add @a hostname to the list of requests to be made.
- *
- * @param hostname name to resolve
- */
-static void
-resolve (const char *hostname)
-{
-  struct GNUNET_DNSPARSER_Packet p;
-  struct GNUNET_DNSPARSER_Query q;
-  struct Request *req;
-  char *raw;
-  size_t raw_size;
-  int ret;
-
-  if (GNUNET_OK !=
-      GNUNET_DNSPARSER_check_name (hostname))
+  if (NULL != ns_op)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Refusing invalid hostname `%s'\n",
-                hostname);
-    return;
+    GNUNET_NAMESTORE_cancel (ns_op);
+    ns_op = NULL;
   }
-  q.name = (char *) hostname;
-  q.type = GNUNET_DNSPARSER_TYPE_NS;
-  q.dns_traffic_class = GNUNET_TUN_DNS_CLASS_INTERNET;
-
-  memset (&p,
-          0,
-          sizeof(p));
-  p.num_queries = 1;
-  p.queries = &q;
-  p.id = (uint16_t) GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_NONCE,
-                                              UINT16_MAX);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Resolving hostname `%s'\n",
-              hostname);
-  ret = GNUNET_DNSPARSER_pack (&p,
-                               UINT16_MAX,
-                               &raw,
-                               &raw_size);
-  if (GNUNET_OK != ret)
+  if (NULL != namestore)
   {
-    if (GNUNET_NO == ret)
-      GNUNET_free (raw);
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to pack query for hostname `%s'\n",
-                hostname);
-    return;
+    GNUNET_NAMESTORE_disconnect (namestore);
   }
-
-  req = GNUNET_new (struct Request);
-  req->hostname = strdup (hostname);
-  req->raw = raw;
-  req->raw_len = raw_size;
-  req->id = p.id;
-  submit_req (req, &process_result_ns);
 }
 
 
@@ -664,9 +739,13 @@ id_cb (void *cls,
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
+    ego_to_use_sk = *GNUNET_IDENTITY_ego_get_private_key (ego_to_use);
+    GNUNET_memcpy (ego_to_use_name,
+                   GNUNET_IDENTITY_ego_get_name (ego_to_use),
+                   strlen (GNUNET_IDENTITY_ego_get_name (ego_to_use) + 1));
     sprintf (suffix,
              ".%s.",
-             GNUNET_IDENTITY_ego_get_name (ego_to_use));
+             ego_to_use_name);
     // Find pointer to first label before suffix.
     printf ("Absorbing `%s' into `%s'\n",
             name,
@@ -676,11 +755,13 @@ id_cb (void *cls,
                                 suffix));
     name[strlen (name) - strlen (suffix)] = '\0';
     printf ("%s\n", name);
-    const char *next_lbl = get_next_label ();
+    const char *next_lbl = pop_next_label ();
     GNUNET_assert (NULL != next_lbl);
     char *next_hostname;
     GNUNET_asprintf (&next_hostname, "%s%s", next_lbl, suffix);
-    resolve (next_hostname);
+    resolve (next_hostname,
+             GNUNET_DNSPARSER_TYPE_NS,
+             &process_result_ns);
     return;
   }
   if ((NULL == ego) || (NULL == ego_name))
@@ -753,6 +834,7 @@ run (void *cls,
   }
   // Find longest prefix identity
   identity = GNUNET_IDENTITY_connect (c, &id_cb, NULL);
+  namestore = GNUNET_NAMESTORE_connect (c);
 }
 
 

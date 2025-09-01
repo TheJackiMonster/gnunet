@@ -68,25 +68,16 @@ gns_value_to_string (void *cls,
   case GNUNET_GNSRECORD_TYPE_LEHO:
     return GNUNET_strndup (data, data_size);
 
+  // See https://www.rfc-editor.org/rfc/rfc9498.html#name-gns2dns
   case GNUNET_GNSRECORD_TYPE_GNS2DNS: {
-      char *ns;
-      char *ip;
-      size_t off;
+      const char *name;
+      const char *dns_server_name;
       char *nstr;
 
-      off = 0;
-      ns = GNUNET_DNSPARSER_parse_name (data, data_size, &off);
-      if (NULL == ns)
-      {
-        GNUNET_break_op (0);
-        GNUNET_free (ns);
-        return NULL;
-      }
+      name = (const char *) data;
       /* DNS server IP/name must be UTF-8 */
-      ip = GNUNET_strdup (&((const char*) data)[off]);
-      GNUNET_asprintf (&nstr, "%s@%s", ns, ip);
-      GNUNET_free (ns);
-      GNUNET_free (ip);
+      dns_server_name = name + strlen (name) + 1;
+      GNUNET_asprintf (&nstr, "%s@%s", name, dns_server_name);
       return nstr;
     }
 
@@ -229,11 +220,10 @@ gns_string_to_value (void *cls,
     *data_size = strlen (s);
     return GNUNET_OK;
 
+  // See https://www.rfc-editor.org/rfc/rfc9498.html#name-gns2dns
   case GNUNET_GNSRECORD_TYPE_GNS2DNS: {
-      char nsbuf[514];
       char *cpy;
       char *at;
-      size_t off;
 
       cpy = GNUNET_strdup (s);
       at = strchr (cpy, '@');
@@ -248,27 +238,9 @@ gns_string_to_value (void *cls,
       *at = '\0';
       at++;
 
-      off = 0;
-      if (GNUNET_OK !=
-          GNUNET_DNSPARSER_builder_add_name (nsbuf,
-                                             sizeof(nsbuf),
-                                             &off,
-                                             cpy))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    _ (
-                      "Failed to serialize GNS2DNS record with value `%s': Not a DNS name.\n"),
-                    s);
-        GNUNET_free (cpy);
-        return GNUNET_SYSERR;
-      }
       /* The DNS server location/name is in UTF-8 */
-      GNUNET_memcpy (&nsbuf[off], at, strlen (at) + 1);
-      off += strlen (at) + 1;
-      GNUNET_free (cpy);
-      *data_size = off;
-      *data = GNUNET_malloc (off);
-      GNUNET_memcpy (*data, nsbuf, off);
+      *data_size = strlen (s) + 1;
+      *data = cpy;
       return GNUNET_OK;
     }
 
@@ -483,6 +455,7 @@ gns_is_critical (void *cls, uint32_t type)
           GNUNET_YES : GNUNET_NO);
 }
 
+
 void *
 libgnunet_plugin_gnsrecord_gns_init (void *cls);
 
@@ -505,6 +478,7 @@ libgnunet_plugin_gnsrecord_gns_init (void *cls)
   api->is_critical = &gns_is_critical;
   return api;
 }
+
 
 void *
 libgnunet_plugin_gnsrecord_gns_done (void *cls);
