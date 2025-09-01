@@ -1064,10 +1064,16 @@ process_result (void *cls,
   unsigned int rd_count;
 
   GNUNET_assert (NULL == req->hn);
-  if (NULL == dns)
+  if ((NULL == dns) ||
+      (dns->flags.return_code != GNUNET_TUN_DNS_RETURN_CODE_NO_ERROR))
   {
     /* stub gave up */
     GNUNET_CONTAINER_DLL_remove (req_head, req_tail, req);
+    if (NULL != dns)
+    {
+      GNUNET_DNSSTUB_resolve_cancel (req->rs);
+      req->rs = NULL;
+    }
     pending--;
     if (NULL == t)
     {
@@ -1196,6 +1202,7 @@ process_result (void *cls,
     GNUNET_assert (NULL != req->qe);
   }
   insert_sorted (req);
+  return;
 }
 
 
