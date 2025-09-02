@@ -1237,7 +1237,18 @@ recursive_dns_resolution (struct GNS_ResolverHandle *rh)
     rh->original_dns_id = p->id;
     GNUNET_assert (NULL != ac->authority_info.dns_authority.dns_handle);
     GNUNET_assert (NULL == rh->dns_request);
-    rh->leho = GNUNET_strdup (ac->label);
+    if (IDNA_SUCCESS != idna_to_unicode_8z8z (ac->label,
+                                              &rh->leho,
+                                              IDNA_ALLOW_UNASSIGNED))
+    {
+      GNUNET_break (0);
+      rh->proc (rh->proc_cls,
+                0,
+                NULL);
+      GNUNET_assert (NULL == rh->task_id);
+      rh->task_id = GNUNET_SCHEDULER_add_now (&GNS_resolver_lookup_cancel_,
+                                              rh);
+    }
     rh->dns_request = GNUNET_DNSSTUB_resolve (
       ac->authority_info.dns_authority.dns_handle,
       dns_request,
