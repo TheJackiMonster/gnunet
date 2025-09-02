@@ -50,6 +50,7 @@ executable(
         libgnunetstatistics_dep,
         libgnunetgnsrecord_dep,
         libgnunetidentity_dep,
+        idn_dep,
     ],
     include_directories: [incdir, configuration_inc],
     install: true,
