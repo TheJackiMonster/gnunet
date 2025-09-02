@@ -990,6 +990,7 @@ dns_result_parser (void *cls,
     struct GNUNET_GNSRECORD_Data rd[rd_count + 1]; /* +1 for LEHO */
     int skip;
     char buf[UINT16_MAX];
+    char *name_ace;
     size_t buf_off;
     size_t buf_start;
 
@@ -1009,11 +1010,24 @@ dns_result_parser (void *cls,
                                      - p->num_authority_records];
       /* As we copied the full DNS name to 'rh->ac_tail->label', this
          should be the correct check to see if this record is actually
-         a record for our label... */
-      if (0 != strcmp (rec->name,
+         a record for our label...
+         However, DNSPARSER will convert the ACE name to UTF-8 so
+         we must convert back.
+       */
+      if (IDNA_SUCCESS != idna_to_ascii_8z (rec->name,
+                                            &name_ace,
+                                            IDNA_ALLOW_UNASSIGNED))
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                    _ ("Name `%s' cannot be converted to IDNA."),
+                    rec->name);
+        continue;
+      }
+
+      if (0 != strcmp (name_ace,
                        rh->ac_tail->label))
       {
-        GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "Dropping record `%s', does not match desired name `%s'\n",
                     rec->name,
                     rh->ac_tail->label);
@@ -1159,6 +1173,8 @@ dns_result_parser (void *cls,
     GNUNET_DNSSTUB_resolve_cancel (rh->dns_request);
     rh->dns_request = NULL;
   }
+
+
   GNUNET_DNSPARSER_free_packet (p);
   if (NULL != rh->task_id)
     GNUNET_SCHEDULER_cancel (rh->task_id); /* should be timeout task */
