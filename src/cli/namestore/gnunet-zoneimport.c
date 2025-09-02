@@ -216,6 +216,9 @@ struct MissingZoneCreationCtx
   // Operation
   struct GNUNET_IDENTITY_Operation *id_op;
 
+  // NS Operation
+  struct GNUNET_NAMESTORE_QueueEntry *ns_qe;
+
   // Request
   struct Request *req;
 };
@@ -1331,8 +1334,26 @@ do_shutdown (void *cls)
 {
   struct Request *req;
   struct Zone *zone;
+  struct MissingZoneCreationCtx *mzctx;
 
   (void) cls;
+  while (NULL != (mzctx = missing_zones_head))
+  {
+    GNUNET_CONTAINER_DLL_remove (missing_zones_head,
+                                 missing_zones_tail,
+                                 mzctx);
+    if (NULL != mzctx->id_op)
+    {
+      GNUNET_IDENTITY_cancel (mzctx->id_op);
+      mzctx->id_op = NULL;
+    }
+    if (NULL != mzctx->ns_qe)
+    {
+      GNUNET_NAMESTORE_cancel (mzctx->ns_qe);
+      mzctx->ns_qe = NULL;
+    }
+    GNUNET_free (mzctx);
+  }
   if (NULL != id)
   {
     GNUNET_IDENTITY_disconnect (id);
@@ -1532,24 +1553,22 @@ ns_lookup_result_cb (void *cls,
 
 
 static void
-missing_zone_creation_cont (
-  void *cls,
-  const struct GNUNET_CRYPTO_PrivateKey *pk,
-  enum GNUNET_ErrorCode ec)
+delegation_store_cont (void *cls,
+                       enum GNUNET_ErrorCode ec)
 {
   struct MissingZoneCreationCtx *mzctx = cls;
-  struct Zone *zone;
-  const char*dot;
 
-  dot = strchr (mzctx->req->hostname, (unsigned char) '.');
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Created missing ego `%s'\n",
-              dot + 1);
-  zone = GNUNET_new (struct Zone);
-  zone->key = *pk;
-  zone->domain = GNUNET_strdup (dot + 1);
-  mzctx->req->zone = zone;
-  GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
+  mzctx->ns_qe = NULL;
+  if (GNUNET_EC_NONE != ec)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to store delegation: `%s'\n",
+                GNUNET_ErrorCode_get_hint (ec));
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Added delegation successfully\n");
   GNUNET_CONTAINER_DLL_remove (missing_zones_head,
                                missing_zones_tail,
                                mzctx);
@@ -1558,6 +1577,83 @@ missing_zone_creation_cont (
   {
     iterate_zones (NULL);
   }
+
+}
+
+
+static void
+missing_zone_creation_cont (
+  void *cls,
+  const struct GNUNET_CRYPTO_PrivateKey *sk,
+  enum GNUNET_ErrorCode ec)
+{
+  struct MissingZoneCreationCtx *mzctx = cls;
+  struct GNUNET_CRYPTO_PublicKey pk;
+  struct Zone *parent_zone;
+  struct Zone *zone;
+  const char *dot;
+  const char *expected_parent_zone_name;
+  char parent_delegation_label[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
+
+  mzctx->id_op = NULL;
+  dot = strchr (mzctx->req->hostname, (unsigned char) '.');
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Created missing ego `%s'\n",
+              dot + 1);
+  zone = GNUNET_new (struct Zone);
+  zone->key = *sk;
+  zone->domain = GNUNET_strdup (dot + 1);
+  mzctx->req->zone = zone;
+  GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
+
+  expected_parent_zone_name = strchr (dot + 1,
+                                      (unsigned char) '.');
+  if (NULL == expected_parent_zone_name)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Created identity without parent zone!\n");
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
+  {
+    int label_len = strlen (dot + 1) - strlen (expected_parent_zone_name) + 1;
+    snprintf (parent_delegation_label,
+              label_len,
+              "%s",
+              dot + 1);
+    parent_delegation_label[label_len] = '\0';
+  }
+  for (parent_zone = zone_head;
+       NULL != parent_zone;
+       parent_zone = parent_zone->next)
+  {
+    if (0 != strcmp (expected_parent_zone_name + 1,
+                     parent_zone->domain))
+      continue;
+    break;
+  }
+  GNUNET_CRYPTO_key_get_public (sk, &pk);
+  struct GNUNET_GNSRECORD_Data delegation_rd;
+  char *data;
+  size_t data_size;
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_GNSRECORD_data_from_identity (&pk,
+                                                      &data,
+                                                      &data_size,
+                                                      &delegation_rd.record_type
+                                                      ));
+  delegation_rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
+  delegation_rd.expiration_time = GNUNET_TIME_UNIT_WEEKS.rel_value_us;
+  delegation_rd.data = data;
+  delegation_rd.data_size = data_size;
+  mzctx->ns_qe = GNUNET_NAMESTORE_record_set_store (ns,
+                                                    &parent_zone->key,
+                                                    parent_delegation_label,
+                                                    1,
+                                                    &delegation_rd,
+                                                    &delegation_store_cont,
+                                                    mzctx);
+  GNUNET_free (data);
 }
 
 
