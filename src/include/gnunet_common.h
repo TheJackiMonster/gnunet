@@ -55,11 +55,13 @@
 #if defined(__FreeBSD__)
 
 #include <sys/endian.h>
+#define bswap_16(x) bswap16 (x)
 #define bswap_32(x) bswap32 (x)
 #define bswap_64(x) bswap64 (x)
 
 #elif defined(__OpenBSD__)
 
+#define bswap_16(x) swap16 (x)
 #define bswap_32(x) swap32 (x)
 #define bswap_64(x) swap64 (x)
 
@@ -67,6 +69,7 @@
 
 #include <machine/bswap.h>
 #if defined(__BSWAP_RENAME) && ! defined(__bswap_32)
+#define bswap_16(x) bswap16 (x)
 #define bswap_32(x) bswap32 (x)
 #define bswap_64(x) bswap64 (x)
 #endif
