@@ -1779,9 +1779,6 @@ queue (const char *hostname)
   req = GNUNET_malloc (sizeof(struct Request) + hlen);
   if (NULL == zone)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Domain name `%s' not in ego list!\n",
-                dot + 1);
     struct MissingZoneCreationCtx *mzctx;
 
     for (mzctx = missing_zones_head;
@@ -1796,6 +1793,9 @@ queue (const char *hostname)
     }
     if (NULL == mzctx)
     {
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Domain name `%s' not in ego list! Creating.\n",
+                  dot + 1);
       mzctx = GNUNET_new (struct MissingZoneCreationCtx);
       mzctx->id_op = GNUNET_IDENTITY_create (id,
                                              dot + 1,
