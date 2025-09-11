@@ -157,7 +157,7 @@ struct Job
   /**
    * Hostname we are resolving.
    */
-  char hostname[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
+  char label[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
 
   /**
    * Namestore operation pending for this record.
@@ -206,20 +206,6 @@ static struct Job *req_head;
  * Active requests are kept in a DLL.
  */
 static struct Job *req_tail;
-
-
-// Missing zones list
-static struct MissingZoneCreationCtx *missing_zones_head;
-
-// Missing zones list
-static struct MissingZoneCreationCtx *missing_zones_tail;
-
-/**
- * Hash map of requests for which we may still get a response from
- * the namestore.  Set to NULL once the initial namestore iteration
- * is done.
- */
-static struct GNUNET_CONTAINER_MultiHashMap *ns_pending;
 
 
 /**
@@ -475,7 +461,6 @@ origin_create_cb (void *cls,
                   const struct GNUNET_CRYPTO_PrivateKey *pk,
                   enum GNUNET_ErrorCode ec)
 {
-  struct MissingZoneCreationCtx *mzctx = cls;
   struct Zone *zone;
   id_op = NULL;
   if (GNUNET_EC_NONE != ec)
@@ -485,13 +470,12 @@ origin_create_cb (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  mzctx->id_op = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
               "Created missing ego `%s'\n",
-              mzctx->name);
+              ego_name);
   zone = GNUNET_new (struct Zone);
   zone->key = *pk;
-  zone->domain = GNUNET_strdup (mzctx->name);
+  zone->domain = GNUNET_strdup (ego_name);
   GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
   // FIXME add delegation to parent zone
   state = ZS_ORIGIN_SET;
@@ -576,11 +560,11 @@ process_queue (void *cls)
     GNUNET_CONTAINER_DLL_insert (req_head, req_tail, job);
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Requesting store for `%s'\n",
-                job->hostname);
+                job->label);
     job->op_start_time = GNUNET_TIME_absolute_get ();
     job->qe = GNUNET_NAMESTORE_record_set_store (ns,
                                                  &job->zone->key,
-                                                 job->hostname,
+                                                 job->label,
                                                  job->rd_count,
                                                  job->rd,
                                                  &add_continuation,
@@ -618,135 +602,10 @@ process_queue (void *cls)
  * @param req request to insert into #req_heap
  */
 static void
-insert_sorted (struct Job *req)
+insert_sorted (struct Job *job)
 {
-  req->hn =
-    GNUNET_CONTAINER_heap_insert (req_heap, req, req->expires.abs_value_us);
-  if (req == GNUNET_CONTAINER_heap_peek (req_heap))
-  {
-    if (NULL != t)
-      GNUNET_SCHEDULER_cancel (t);
-    sleep_time_reg_proc = GNUNET_TIME_absolute_get ();
-    t = GNUNET_SCHEDULER_add_at (req->expires, &process_queue, NULL);
-  }
-}
-
-
-static void
-delegation_store_cont (void *cls,
-                       enum GNUNET_ErrorCode ec)
-{
-  struct MissingZoneCreationCtx *mzctx = cls;
-
-  mzctx->ns_qe = NULL;
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to store delegation: `%s'\n",
-                GNUNET_ErrorCode_get_hint (ec));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Added delegation successfully\n");
-  GNUNET_CONTAINER_DLL_remove (missing_zones_head,
-                               missing_zones_tail,
-                               mzctx);
-  GNUNET_free (mzctx);
-  if (NULL == missing_zones_head)
-  {
-    if (NULL == t)
-    {
-      sleep_time_reg_proc = GNUNET_TIME_absolute_get ();
-      t = GNUNET_SCHEDULER_add_now (&process_queue, NULL);
-    }
-  }
-
-}
-
-
-static void
-missing_zone_creation_cont (
-  void *cls,
-  const struct GNUNET_CRYPTO_PrivateKey *sk,
-  enum GNUNET_ErrorCode ec)
-{
-  struct MissingZoneCreationCtx *mzctx = cls;
-  struct GNUNET_CRYPTO_PublicKey pk;
-  struct Zone *parent_zone;
-  struct Zone *zone;
-  const char *dot;
-  const char *expected_parent_zone_name;
-  char parent_delegation_label[GNUNET_DNSPARSER_MAX_NAME_LENGTH];
-
-  if (GNUNET_EC_NONE != ec)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to create zone for `%s': %s\n",
-                mzctx->job->hostname,
-                GNUNET_ErrorCode_get_hint (ec));
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  mzctx->id_op = NULL;
-  dot = strchr (mzctx->job->hostname, (unsigned char) '.');
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Created missing ego `%s'\n",
-              dot + 1);
-  zone = GNUNET_new (struct Zone);
-  zone->key = *sk;
-  zone->domain = GNUNET_strdup (dot + 1);
-  mzctx->job->zone = zone;
-  GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
-
-  expected_parent_zone_name = strchr (dot + 1,
-                                      (unsigned char) '.');
-  if (NULL == expected_parent_zone_name)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Created identity without parent zone!\n");
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  {
-    int label_len = strlen (dot + 1) - strlen (expected_parent_zone_name) + 1;
-    snprintf (parent_delegation_label,
-              label_len,
-              "%s",
-              dot + 1);
-    parent_delegation_label[label_len] = '\0';
-  }
-  for (parent_zone = zone_head;
-       NULL != parent_zone;
-       parent_zone = parent_zone->next)
-  {
-    if (0 != strcmp (expected_parent_zone_name + 1,
-                     parent_zone->domain))
-      continue;
-    break;
-  }
-  GNUNET_CRYPTO_key_get_public (sk, &pk);
-  struct GNUNET_GNSRECORD_Data delegation_rd;
-  char *data;
-  size_t data_size;
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_GNSRECORD_data_from_identity (&pk,
-                                                      &data,
-                                                      &data_size,
-                                                      &delegation_rd.record_type
-                                                      ));
-  delegation_rd.flags = GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION;
-  delegation_rd.expiration_time = GNUNET_TIME_UNIT_WEEKS.rel_value_us;
-  delegation_rd.data = data;
-  delegation_rd.data_size = data_size;
-  mzctx->ns_qe = GNUNET_NAMESTORE_record_set_store (ns,
-                                                    &parent_zone->key,
-                                                    parent_delegation_label,
-                                                    1,
-                                                    &delegation_rd,
-                                                    &delegation_store_cont,
-                                                    mzctx);
-  GNUNET_free (data);
+  job->hn =
+    GNUNET_CONTAINER_heap_insert (req_heap, job, job->expires.abs_value_us);
 }
 
 
@@ -758,87 +617,26 @@ missing_zone_creation_cont (
 static void
 queue (const char *label,
        uint32_t rd_count,
-       struct GNUNET_GNSRECORD_Data *rd)
+       struct GNUNET_GNSRECORD_Data *rd,
+       const struct Zone *zone)
 {
   struct Job *job;
-  const char *dot;
-  struct Zone *zone;
-  size_t hlen;
+  struct GNUNET_HashContext *hctx;
   struct GNUNET_HashCode hc;
+  size_t hlen;
 
-  if (GNUNET_OK != GNUNET_DNSPARSER_check_name (label))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Refusing invalid hostname `%s'\n",
-                label);
-    return;
-  }
-  dot = strchr (label, (unsigned char) '.');
-  if (NULL == dot)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Refusing invalid hostname `%s' (lacks '.')\n",
-                label);
-    return;
-  }
-  for (zone = zone_head; NULL != zone; zone = zone->next)
-    if (0 == strcmp (zone->domain, dot + 1))
-      break;
   hlen = strlen (label) + 1;
   job = GNUNET_new (struct Job);
   job->rd = rd;
   job->rd_count = rd_count;
-  if (NULL == zone)
-  {
-    struct MissingZoneCreationCtx *mzctx;
-
-    for (mzctx = missing_zones_head;
-         NULL != mzctx;
-         mzctx = mzctx->next)
-    {
-      const char *tmp_dot;
-      tmp_dot = strchr (mzctx->job->hostname, (unsigned char) '.');
-      if (0 != strcmp (dot + 1, tmp_dot + 1))
-        continue;
-      break;
-    }
-    if (NULL == mzctx)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                  "Domain name `%s' not in ego list! Creating.\n",
-                  dot + 1);
-      mzctx = GNUNET_new (struct MissingZoneCreationCtx);
-      mzctx->id_op = GNUNET_IDENTITY_create (id,
-                                             dot + 1,
-                                             NULL,
-                                             GNUNET_PUBLIC_KEY_TYPE_EDDSA,
-                                             &missing_zone_creation_cont,
-                                             mzctx);
-      mzctx->job = job;
-      GNUNET_CONTAINER_DLL_insert (missing_zones_head,
-                                   missing_zones_tail,
-                                   mzctx);
-    }
-  }
-  else
-  {
-    job->zone = zone;
-  }
-  GNUNET_memcpy (job->hostname, label, hlen);
-  GNUNET_CRYPTO_hash (job->hostname, hlen, &hc);
+  GNUNET_assert (NULL != zone);
+  job->zone = zone;
+  GNUNET_memcpy (job->label, label, hlen);
+  hctx = GNUNET_CRYPTO_hash_context_start ();
+  GNUNET_CRYPTO_hash_context_read (hctx, job->label, hlen);
+  GNUNET_CRYPTO_hash_context_read (hctx, job->zone, sizeof *zone);
+  GNUNET_CRYPTO_hash_context_finish (hctx, &hc),
   insert_sorted (job);
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
-        ns_pending,
-        &hc,
-        job,
-        GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Duplicate hostname `%s' ignored\n",
-                label);
-    GNUNET_free (job);
-    return;
-  }
 }
 
 
@@ -1103,9 +901,13 @@ parse (void *cls)
     idna_to_unicode_8z8z (lastname,
                           &lastname_utf8,
                           IDNA_ALLOW_UNASSIGNED);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Queueing %d records\n",
+                rd_count);
     queue (lastname_utf8,
            rd_count,
-           rd);
+           rd,
+           current_zone);
     published_sets++;
     published_records += rd_count;
     for (int i = 0; i < rd_count; i++)
@@ -1122,6 +924,21 @@ parse (void *cls)
     }
     else
       rd_count = 0;
+    if (ZS_ORIGIN_CHANGED == state)
+    {
+      if (NULL != ego_name)
+        GNUNET_free (ego_name);
+      ego_name = GNUNET_strdup (origin);
+      if (ego_name[strlen (ego_name) - 1] == '.')
+        ego_name[strlen (ego_name) - 1] = '\0';
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                  "Changing origin to %s\n", ego_name);
+      ensure_ego_and_continue (ego_name);
+      return;
+    }
+    if (NULL != t)
+      GNUNET_SCHEDULER_cancel (t);
+    t = GNUNET_SCHEDULER_add_now (&parse, NULL);
     return;
   }
   if (ZS_ORIGIN_CHANGED == state)
@@ -1136,6 +953,8 @@ parse (void *cls)
     ensure_ego_and_continue (ego_name);
     return;
   }
+  sleep_time_reg_proc = GNUNET_TIME_absolute_get ();
+  t = GNUNET_SCHEDULER_add_now (&process_queue, NULL);
   printf ("Published %u records sets with total %u records\n",
           published_sets, published_records);
   GNUNET_SCHEDULER_shutdown ();
@@ -1205,9 +1024,9 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *_cfg)
 {
   cfg = _cfg;
-  ns = GNUNET_NAMESTORE_connect (cfg);
   req_heap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown, (void *) cfg);
+  ns = GNUNET_NAMESTORE_connect (cfg);
   if (NULL == ns)
   {
     fprintf (stderr,
