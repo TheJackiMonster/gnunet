@@ -1787,6 +1787,7 @@ queue (const char *hostname)
     {
       const char *tmp_dot;
       tmp_dot = strchr (mzctx->req->hostname, (unsigned char) '.');
+      GNUNET_assert (NULL != tmp_dot);
       if (0 != strcmp (dot + 1, tmp_dot + 1))
         continue;
       break;
