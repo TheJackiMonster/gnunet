@@ -106,8 +106,8 @@ reply_to_dns (void *cls, uint32_t rd_count,
   int ret;
   char *buf;
   unsigned int num_answers;
-  unsigned int skip_answers;
-  unsigned int skip_additional;
+  unsigned int skipped_answers;
+  unsigned int skipped_additional;
   size_t off = 0;
 
   /* Put records in the DNS packet */
@@ -115,8 +115,8 @@ reply_to_dns (void *cls, uint32_t rd_count,
   for (i = 0; i < rd_count; i++)
     if (rd[i].record_type == query->type)
       num_answers++;
-  skip_answers = 0;
-  skip_additional = 0;
+  skipped_answers = 0;
+  skipped_additional = 0;
 
   {
     struct GNUNET_DNSPARSER_Record answer_records[num_answers];
@@ -131,14 +131,14 @@ reply_to_dns (void *cls, uint32_t rd_count,
     {
       if (rd[i].record_type == query->type)
       {
-        answer_records[i - skip_answers].name = query->name;
-        answer_records[i - skip_answers].type = rd[i].record_type;
+        answer_records[i - skipped_answers].name = query->name;
+        answer_records[i - skipped_answers].type = rd[i].record_type;
         switch (rd[i].record_type)
         {
         case GNUNET_DNSPARSER_TYPE_NS:
         case GNUNET_DNSPARSER_TYPE_CNAME:
         case GNUNET_DNSPARSER_TYPE_PTR:
-          answer_records[i - skip_answers].data.hostname
+          answer_records[i - skipped_answers].data.hostname
             = GNUNET_DNSPARSER_parse_name (rd[i].data,
                                            rd[i].data_size,
                                            &off);
@@ -146,12 +146,13 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == answer_records[i].data.hostname))
           {
             GNUNET_break_op (0);
-            skip_answers++;
+            skipped_answers++;
+            continue;
           }
           break;
 
         case GNUNET_DNSPARSER_TYPE_SOA:
-          answer_records[i - skip_answers].data.soa
+          answer_records[i - skipped_answers].data.soa
             = GNUNET_DNSPARSER_parse_soa (rd[i].data,
                                           rd[i].data_size,
                                           &off);
@@ -159,22 +160,23 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == answer_records[i].data.soa))
           {
             GNUNET_break_op (0);
-            skip_answers++;
+            skipped_answers++;
+            continue;
           }
           break;
 
         case GNUNET_DNSPARSER_TYPE_SRV:
           /* FIXME: SRV is not yet supported */
-          skip_answers++;
-          break;
+          skipped_answers++;
+          continue;
 
         case GNUNET_DNSPARSER_TYPE_URI:
           /* FIXME: URI is not yet supported */
-          skip_answers++;
-          break;
+          skipped_answers++;
+          continue;
 
         case GNUNET_DNSPARSER_TYPE_MX:
-          answer_records[i - skip_answers].data.mx
+          answer_records[i - skipped_answers].data.mx
             = GNUNET_DNSPARSER_parse_mx (rd[i].data,
                                          rd[i].data_size,
                                          &off);
@@ -182,32 +184,35 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == answer_records[i].data.hostname))
           {
             GNUNET_break_op (0);
-            skip_answers++;
+            skipped_answers++;
+            continue;
           }
           break;
 
         default:
-          answer_records[i - skip_answers].data.raw.data_len = rd[i].data_size;
-          answer_records[i - skip_answers].data.raw.data = (char *) rd[i].data;
+          answer_records[i - skipped_answers].data.raw.data_len = rd[i].
+                                                                  data_size;
+          answer_records[i - skipped_answers].data.raw.data = (char *) rd[i].
+                                                              data;
           break;
         }
-        GNUNET_break (0 == (rd[i - skip_answers].flags
+        GNUNET_break (0 == (rd[i - skipped_answers].flags
                             & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION));
-        answer_records[i - skip_answers].expiration_time.abs_value_us =
+        answer_records[i - skipped_answers].expiration_time.abs_value_us =
           rd[i].expiration_time;
-        answer_records[i - skip_answers].dns_traffic_class =
+        answer_records[i - skipped_answers].dns_traffic_class =
           GNUNET_TUN_DNS_CLASS_INTERNET;
       }
       else
       {
-        additional_records[i - skip_additional].name = query->name;
-        additional_records[i - skip_additional].type = rd[i].record_type;
+        additional_records[i - skipped_additional].name = query->name;
+        additional_records[i - skipped_additional].type = rd[i].record_type;
         switch (rd[i].record_type)
         {
         case GNUNET_DNSPARSER_TYPE_NS:
         case GNUNET_DNSPARSER_TYPE_CNAME:
         case GNUNET_DNSPARSER_TYPE_PTR:
-          additional_records[i - skip_additional].data.hostname
+          additional_records[i - skipped_additional].data.hostname
             = GNUNET_DNSPARSER_parse_name (rd[i].data,
                                            rd[i].data_size,
                                            &off);
@@ -215,12 +220,13 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == additional_records[i].data.hostname))
           {
             GNUNET_break_op (0);
-            skip_additional++;
+            skipped_additional++;
+            continue;
           }
           break;
 
         case GNUNET_DNSPARSER_TYPE_SOA:
-          additional_records[i - skip_additional].data.soa
+          additional_records[i - skipped_additional].data.soa
             = GNUNET_DNSPARSER_parse_soa (rd[i].data,
                                           rd[i].data_size,
                                           &off);
@@ -228,12 +234,13 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == additional_records[i].data.hostname))
           {
             GNUNET_break_op (0);
-            skip_additional++;
+            skipped_additional++;
+            continue;
           }
           break;
 
         case GNUNET_DNSPARSER_TYPE_MX:
-          additional_records[i - skip_additional].data.mx
+          additional_records[i - skipped_additional].data.mx
             = GNUNET_DNSPARSER_parse_mx (rd[i].data,
                                          rd[i].data_size,
                                          &off);
@@ -241,45 +248,49 @@ reply_to_dns (void *cls, uint32_t rd_count,
               (NULL == additional_records[i].data.hostname))
           {
             GNUNET_break_op (0);
-            skip_additional++;
+            skipped_additional++;
+            continue;
           }
           break;
 
         case GNUNET_DNSPARSER_TYPE_SRV:
           /* FIXME: SRV is not yet supported */
-          skip_answers++;
-          break;
+          skipped_additional++;
+          continue;
 
         case GNUNET_DNSPARSER_TYPE_URI:
-          additional_records[i - skip_additional].data.uri
+          additional_records[i - skipped_additional].data.uri
             = GNUNET_DNSPARSER_parse_uri (rd[i].data,
-                                           rd[i].data_size,
-                                           &off);
+                                          rd[i].data_size,
+                                          &off);
           if ((off != rd[i].data_size) ||
               (NULL == additional_records[i].data.uri))
           {
             GNUNET_break_op (0);
-            skip_additional++;
+            skipped_additional++;
+            continue;
           }
           break;
 
         default:
-          additional_records[i - skip_additional].data.raw.data_len =
+          additional_records[i - skipped_additional].data.raw.data_len =
             rd[i].data_size;
-          additional_records[i - skip_additional].data.raw.data =
+          additional_records[i - skipped_additional].data.raw.data =
             (char *) rd[i].data;
           break;
         }
-        GNUNET_break (0 == (rd[i - skip_additional].flags
+        GNUNET_break (0 == (rd[i - skipped_additional].flags
                             & GNUNET_GNSRECORD_RF_RELATIVE_EXPIRATION));
-        additional_records[i - skip_additional].expiration_time.abs_value_us =
-          rd[i].expiration_time;
-        additional_records[i - skip_additional].dns_traffic_class =
+        additional_records[i - skipped_additional].expiration_time.abs_value_us
+          =
+            rd[i].expiration_time;
+        additional_records[i - skipped_additional].dns_traffic_class =
           GNUNET_TUN_DNS_CLASS_INTERNET;
       }
     }
-    packet->num_answers = num_answers - skip_answers;
-    packet->num_additional_records = rd_count - num_answers - skip_additional;
+    packet->num_answers = num_answers - skipped_answers;
+    packet->num_additional_records = rd_count - num_answers - skipped_additional
+    ;
     packet->flags.authoritative_answer = 1;
     if (NULL == rd)
       packet->flags.return_code = GNUNET_TUN_DNS_RETURN_CODE_NAME_ERROR;
