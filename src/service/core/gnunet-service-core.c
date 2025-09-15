@@ -203,9 +203,10 @@ GSC_SVCI_init ()
   return services_info;
 }
 
+
 // TODO
 static void
-GSC_SVCI_destroy (struct GSC_ServicesInfo * services_info)
+GSC_SVCI_destroy (struct GSC_ServicesInfo *services_info)
 {
   GNUNET_assert (NULL != services_info);
   GNUNET_free (services_info);
@@ -228,6 +229,7 @@ GSC_SVCI_add (struct GSC_ServicesInfo *services,
   entry->version = GNUNET_strdup (version);
   entry->version_len = version_len;
 }
+
 
 // TODO
 static void
@@ -265,140 +267,14 @@ GSC_SVCI_remove (struct GSC_ServicesInfo *services,
   for (uint64_t i = i_entry; i < services->num_entries - 1; i++)
   {
     GNUNET_memcpy (&services->entries[i],
-        &services->entries[i+1],
-        sizeof (services->entries[i+1]));
+                   &services->entries[i + 1],
+                   sizeof (services->entries[i + 1]));
   }
   GNUNET_array_grow (services->entries,
                      services->num_entries,
-                     services->num_entries -1);
+                     services->num_entries - 1);
 }
 
-//// TODO
-//static enum GNUNET_GenericReturnValue
-//GSC_SVCI_iter (char *service)
-//{
-//}
-
-// TODO
-// TODO compare version
-static enum GNUNET_GenericReturnValue
-GSC_SVCI_contains (struct GSC_ServicesInfo *services,
-                   char *name,
-                   uint32_t name_len)
-{
-  for (uint32_t i = 0; i < services->num_entries; i++)
-  {
-    if (name_len != services->entries[i].name_len)
-      continue;
-    if (0 == memcmp (services->entries[i].name,
-                     name,
-                     services->entries[i].name_len))
-        return GNUNET_YES;
-  }
-  return GNUNET_NO;
-}
-
-// TODO
-static char *
-GSC_SVCI_to_string (struct GSC_ServicesInfo *services)
-{
-  char *ret_string = GNUNET_malloc (GNUNET_CORE_SVC_INFO_LEN);
-  char *cursor = ret_string;
-
-  for (uint32_t i = 0; i < services->num_entries; i++)
-  {
-    struct GSC_ServicesInfo_Entry *entry = &services->entries[i];
-    GNUNET_memcpy (&cursor, entry->name, entry->name_len);
-    cursor = cursor + entry->name_len;
-    memset (&cursor, ':', 1);
-    cursor = cursor + 1;
-    GNUNET_memcpy (&cursor, entry->version, entry->version_len);
-    cursor = cursor + entry->version_len;
-    memset (&cursor, ';', 1);
-    cursor = cursor + 1;
-  }
-  // TODO check bounds!
-  memset (cursor, '\0', 1);
-  return ret_string;
-}
-
-// TODO
-static struct GSC_ServicesInfo *
-GSC_SVCI_from_string (char *services_str)
-{
-  struct GSC_ServicesInfo *services_ret =
-    GNUNET_malloc (sizeof (struct GSC_ServicesInfo));
-  char *cursor = services_str;
-  int8_t done = GNUNET_NO;
-  char *name = services_str; /* We start parsing expecting with a name */
-  uint32_t name_len = 0;
-  char *version = NULL; /* We start parsing with signifying that we're not
-                           expecting/parsing the version */
-  uint32_t version_len = 0;
-
-  while ((cursor < services_str + GNUNET_CORE_SVC_INFO_LEN) &&
-         (GNUNET_YES != done))
-  {
-    switch (*cursor)
-    {
-      case '\0':
-        done = GNUNET_YES;
-        if ((NULL != version) ||
-            (name_len != 0))
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                      "Reached end of service info string in unclean state\n");
-        }
-        break;
-      case ':':
-        if (NULL == name)
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      "Not able to parse service name before `:'\n");
-          return NULL;
-        }
-        /* Finished parsing name, start parsing version */
-        version = cursor + 1;
-        break;
-      case ';':
-        if (NULL == version)
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      "Not able to parse service version before `;'\n");
-          return NULL;
-        }
-        if (NULL == name)
-        {
-          GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                      "Not able to parse service entry before `;'\n");
-          return NULL;
-        }
-        /* Finished parsing version, start parsing next entry */
-        GSC_SVCI_add (services_ret, name, name_len, version, version_len);
-        name = cursor + 1;
-        name_len = 0;
-        version = NULL;
-        version_len = 0;
-        break;
-      default:
-        // TODO check ascii-range 65 - 90, 97 - 122
-        if (NULL == version) /* We're scanning the name */
-        {
-          GNUNET_assert (NULL != name);
-          GNUNET_assert (0 != name_len);
-          name_len = name_len + 1;
-        }
-        if (NULL != version) /* We're scanning the version */
-        {
-          GNUNET_assert (NULL != name);
-          GNUNET_assert (NULL != version);
-          version_len = version_len + 1;;
-        }
-        break;
-    }
-  }
-  return services_ret;
-}
 
 /*************************************
  *    End of Services Info Utils    *
@@ -887,7 +763,7 @@ client_disconnect_cb (void *cls,
   }
   GNUNET_CONTAINER_multipeermap_destroy (c->connectmap);
   c->connectmap = NULL;
-  //TODO
+  // TODO
   GSC_SVCI_remove (own_services, "example", 7);
 
   /* recalculate 'all_client_options' */
@@ -920,7 +796,7 @@ GSC_CLIENTS_notify_client_about_neighbour (
   if (GNUNET_YES != client->got_init)
     return;
   // TODO
-  GSC_SVCI_contains (own_services, "example", 7);
+  // GSC_SVCI_contains (own_services, "example", 7);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Notifying client about neighbour %s\n",
               GNUNET_i2s (neighbour));
@@ -1023,7 +899,7 @@ GSC_CLIENTS_deliver_message (const struct GNUNET_PeerIdentity *sender,
               GNUNET_i2s (sender),
               (unsigned int) ntohs (msg->type));
   // TODO
-  //GSC_SVCI_add (sender->services, "example", 7, "0.1", 3);
+  // GSC_SVCI_add (sender->services, "example", 7, "0.1", 3);
 
   for (struct GSC_Client *c = client_head; NULL != c; c = c->next)
   {
@@ -1171,7 +1047,7 @@ run (void *cls,
   GSC_stats = GNUNET_STATISTICS_create ("core", GSC_cfg);
   {
     /* Read the peer class from the configuration */
-    const char *peer_class_str = {'\0' * 10};
+    const char *peer_class_str = "UNKNOWN";
     const char *choices[] = {
       "UNKNOWN",
       "UNWILLING",
@@ -1224,7 +1100,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "core",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

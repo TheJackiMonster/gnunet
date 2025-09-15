@@ -46,7 +46,7 @@
 /**
  * Enable expensive (and possibly problematic for privacy!) logging of KX.
  */
-#define DEBUG_KX 1
+#define DEBUG_KX 0
 
 /**
  * Number of times we try to resend a handshake flight.
@@ -1553,7 +1553,7 @@ static void
 handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 {
   struct GSC_KeyExchangeInfo *kx = cls;
-  struct GNUNET_HashCode hash_compare;
+  struct GNUNET_HashCode hash_compare = { 0 };
   struct InitiatorHelloCtx *initiator_hello_cls;
   size_t ihm_len;
 
@@ -2442,7 +2442,7 @@ handle_encrypted_message (void *cls, const struct EncryptedMessage *m)
                       8,
                       GNUNET_NO);
   GNUNET_print_bytes ((char*) &seq_enc_ctr,
-                      16,
+                      sizeof seq_enc_ctr,
                       8,
                       GNUNET_NO);
 #endif
@@ -2682,6 +2682,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong encrypting\n");
     GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
     kx->transcript_hash_ctx = NULL;
+    GNUNET_MQ_discard (env);
     return;
   }
   /* Forward the transcript */
@@ -2813,7 +2814,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
                         8,
                         GNUNET_NO);
     GNUNET_print_bytes ((char*) &seq_enc_ctr,
-                        16,
+                        sizeof seq_enc_ctr,
                         8,
                         GNUNET_NO);
 #endif
