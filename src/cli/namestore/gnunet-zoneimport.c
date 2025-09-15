@@ -1716,6 +1716,7 @@ missing_zone_creation_cont (
       continue;
     break;
   }
+  GNUNET_assert (NULL != parent_zone);
   GNUNET_CRYPTO_key_get_public (sk, &pk);
   struct GNUNET_GNSRECORD_Data delegation_rd;
   char *data;
