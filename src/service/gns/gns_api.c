@@ -387,8 +387,8 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
     = htons (recursion_depth_limit);
   lookup_msg->key_len = htonl (key_len);
   written = GNUNET_CRYPTO_write_public_key_to_buffer (zone,
-                                                        buf,
-                                                        key_len);
+                                                      buf,
+                                                      key_len);
   GNUNET_assert (0 <= written);
   buf += written;
   lookup_msg->type = htonl (type);

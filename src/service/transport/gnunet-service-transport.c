@@ -9716,7 +9716,7 @@ handle_validation_challenge (
   const struct TransportValidationChallengeMessage *tvc)
 {
   struct CommunicatorMessageContext *cmc = cls;
-  struct TransportValidationResponseMessage tvr;
+  struct TransportValidationResponseMessage tvr = { 0 };
   struct GNUNET_TIME_RelativeNBO validity_duration;
 
   /* DV-routed messages are not allowed for validation challenges */
