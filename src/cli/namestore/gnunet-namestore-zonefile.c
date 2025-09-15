@@ -865,6 +865,7 @@ parse (void *cls)
       if ((token[i] == ')') && ! quoted)
         bracket_unclosed--;
     }
+    GNUNET_assert (strlen (token) < sizeof payload - (payload_pos - payload));
     memcpy (payload_pos, token, strlen (token));
     payload_pos += strlen (token);
     if (bracket_unclosed > 0)
