@@ -9,7 +9,7 @@ if [[ -d "$RELEASE_ARTIFACT_DIR" ]]; then
 else
   RSYNC_HOST=${RSYNC_HOST:-"taler.host.internal"}
   RSYNC_PORT=${RSYNC_PORT:-424242}
-  RSYNC_PATH=${RSYNC_PATH:-"incoming_packages/bookworm-taler-ci/"}
+  RSYNC_PATH=${RSYNC_PATH:-"incoming_packages/trixie-taler-ci/"}
   RSYNC_DEST=${RSYNC_DEST:-"rsync://${RSYNC_HOST}/${RSYNC_PATH}"}
 
   rsync -vP \
