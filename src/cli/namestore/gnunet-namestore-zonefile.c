@@ -1005,15 +1005,15 @@ identity_cb (void *cls,
     zone->key = *GNUNET_IDENTITY_ego_get_private_key (ego);
     zone->domain = GNUNET_strdup (name);
     GNUNET_CONTAINER_DLL_insert (zone_head, zone_tail, zone);
-  }
 
-  if ((NULL != ego_name) &&
-      (0 == strcmp (name,
-                    ego_name)))
-  {
-    ego_zone_found = GNUNET_YES;
-    sprintf (origin, "%s.", ego_name);
-    state = ZS_ORIGIN_SET;
+    if ((NULL != ego_name) &&
+        (0 == strcmp (name,
+                      ego_name)))
+    {
+      ego_zone_found = GNUNET_YES;
+      sprintf (origin, "%s.", ego_name);
+      state = ZS_ORIGIN_SET;
+    }
   }
 }
 
