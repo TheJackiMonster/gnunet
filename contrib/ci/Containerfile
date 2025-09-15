@@ -13,7 +13,6 @@ RUN apt-get install -yqq \
            libpq-dev \
            libmicrohttpd-dev \
            pkg-config \
-           recutils \
            meson \
            python3-sphinx \
            python3-sphinx-book-theme \
