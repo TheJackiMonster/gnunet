@@ -762,7 +762,7 @@ check_for_glue (void *cls, const struct GNUNET_DNSPARSER_Record *rec)
     GNUNET_memcpy (dst + strlen (gc->req->hostname) + 1,
                    rec->data.hostname,
                    strlen (rec->data.hostname) + 1);
-    rd_len += strlen (ip) + 1;
+    rd_len += strlen (rec->data.hostname) + 1;
     add_record (gc->req,
                 GNUNET_GNSRECORD_TYPE_GNS2DNS,
                 expiration_time,
