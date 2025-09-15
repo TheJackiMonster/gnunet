@@ -6198,7 +6198,7 @@ store_pi (void *cls)
   struct AddressListEntry *ale = cls;
   const char *dash;
   char *address_uri;
-  char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
+  char *prefix;
   unsigned int add_success;
 
   if (NULL == GST_my_identity)
@@ -6208,7 +6208,7 @@ store_pi (void *cls)
                                             ale);
     return;
   }
-
+  prefix = GNUNET_HELLO_address_to_prefix (ale->address);
   dash = strchr (ale->address, '-');
   GNUNET_assert (NULL != dash);
   dash++;
@@ -9063,7 +9063,7 @@ decaps_dv_box_cb (void *cls, const struct GNUNET_ShortHashCode *km)
 {
   struct DecapsDvBoxCls *decaps_dv_box_cls = cls;
   struct CommunicatorMessageContext *cmc = decaps_dv_box_cls->cmc;
-  const struct TransportDVBoxMessage *dvb = dvb;
+  const struct TransportDVBoxMessage *dvb = decaps_dv_box_cls->dvb;
   struct DVKeyState key;
   const char *hdr;
   size_t hdr_len;
@@ -9098,7 +9098,7 @@ decaps_dv_box_cb (void *cls, const struct GNUNET_ShortHashCode *km)
   {
     struct Backtalker *b;
     struct GNUNET_TIME_Absolute monotime;
-    struct TransportDVBoxPayloadP ppay;
+    struct TransportDVBoxPayloadP ppay = { 0 };
     char body[hdr_len - sizeof(ppay)] GNUNET_ALIGN;
     const struct GNUNET_MessageHeader *mh;
 
@@ -12330,6 +12330,10 @@ start_dv_learn (void *cls)
   dvl.non_network_delay = GNUNET_TIME_relative_hton (GNUNET_TIME_UNIT_ZERO);
   dvl.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (GST_cfg));
+  // We will set the below again later
+  memset (&dvl.init_sig, 0, sizeof dvl.init_sig);
+  dvl.challenge = lle->challenge;
+  dvl.initiator = *GST_my_identity;
   {
     struct DvInitPS dvip = {
       .purpose.purpose = htonl (
@@ -13578,6 +13582,7 @@ pils_pid_change_cb (void *cls,
     GNUNET_HELLO_builder_free (nbuilder);
     return;
   }
+  GNUNET_HELLO_builder_free (GST_my_hello);
   GST_my_hello = nbuilder;
   memcpy (GST_my_identity, &npid, sizeof npid);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
