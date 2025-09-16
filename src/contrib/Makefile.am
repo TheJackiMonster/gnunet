@@ -1,3 +1,0 @@
-SUBDIRS = \
-	service \
-	cli

@@ -71,25 +71,6 @@ check_yapf()
     fi
 }
 
-check_libtool()
-{
-    echo "checking for libtoolize / libtool... "
-
-    if existence libtool || \
-       existence libtoolize || \
-       existence glibtoolize || \
-       existence slibtool; then
-        autoreconf -if; ret=$?
-        if [ $ret -ne 0 ]; then
-          echo 'Error with `autoreconf -if`'
-          return $ret
-        fi
-    elif ! existence meson; then
-        echo "*** No libtoolize (libtool) or libtool or meson found, please install it ***" >&2;
-        exit 1
-    fi
-}
-
 submodules()
 {
     # Try to update the submodule. Since bootstrap
@@ -111,33 +92,12 @@ install_hooks()
   ln -fs $(pwd)/contrib/conf/commit-msg .git/hooks/commit-msg 2> /dev/null
 }
 
-pogen()
-{
-    . "scripts/pogen.sh" || exit 1
-}
-
-update_gana()
-{
-    . "scripts/gana_update.sh" || exit 1
-}
-
 main()
 {
     cleanup
     submodules
     check_uncrustify
     check_yapf
-    echo "Please note that we have changed our default build system to meson"
-    echo "If you want to build using autotools, pass 'autotools' to the bootstrap command"
-    # update_gana
-    if [ "$1" = "autotools" ]; then
-      check_libtool; ret=$?
-      if [ $ret -ne 0 ]; then
-        echo 'Error with checking for libtool'
-        return $ret
-      fi
-    fi
-    #pogen
     if test -d .git
     then
         install_hooks
