@@ -170,6 +170,7 @@ load_ikm ()
   memcpy (ikm, key.d, sizeof ikm);
 }
 
+
 static void
 print_uri (void *cls,
            const struct GNUNET_PeerIdentity *pid,
@@ -178,6 +179,7 @@ print_uri (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "%s\n", uri);
 }
+
 
 /**
  * Generate the peer id from the addresses hash and the initial secret key.
@@ -202,12 +204,13 @@ do_generate_pid (const struct GNUNET_HELLO_Parser *parser)
   {
     builder = GNUNET_HELLO_builder_from_parser (parser, NULL);
   }
-  LOG(GNUNET_ERROR_TYPE_DEBUG,
-      "Got new address list to derive PID:\n");
-  GNUNET_HELLO_builder_iterate(builder, &print_uri, NULL);
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Got new address list to derive PID:\n");
+  GNUNET_HELLO_builder_iterate (builder, &print_uri, NULL);
   GNUNET_HELLO_builder_hash_addresses (builder,
                                        &new_addresses_hash);
-  /*if (0 == GNUNET_CRYPTO_hash_cmp (&new_addresses_hash,
+#if HELLO_DETERMINISTIC_PID_DERIVATION
+  if (0 == GNUNET_CRYPTO_hash_cmp (&new_addresses_hash,
                                    &addresses_hash))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -215,7 +218,8 @@ do_generate_pid (const struct GNUNET_HELLO_Parser *parser)
          GNUNET_h2s (&addresses_hash));
     GNUNET_HELLO_builder_free (builder);
     return;
-  }*/
+  }
+#endif
   addresses_hash = new_addresses_hash;
   GNUNET_PILS_derive_pid (sizeof ikm,
                           (uint8_t*) ikm,
