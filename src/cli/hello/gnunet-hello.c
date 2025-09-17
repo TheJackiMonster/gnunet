@@ -154,6 +154,7 @@ url_resign_cb (void *cls,
   struct GNUNET_HELLO_Builder *builder = cls;
   char *url;
 
+  op = NULL;
   GNUNET_HELLO_builder_to_url2 (builder,
                                 pid,
                                 sig,
@@ -162,6 +163,8 @@ url_resign_cb (void *cls,
 
   printf ("%s\n", url);
   GNUNET_free (url); // TODO is this right?
+  GNUNET_HELLO_builder_free (builder);
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -205,12 +208,15 @@ env_resign_cb (void*cls,
   struct GNUNET_HELLO_Builder *builder = cls;
   struct GNUNET_MQ_Envelope *env;
 
+  op = NULL;
   env = GNUNET_HELLO_builder_to_env (builder,
                                      pid,
                                      sig,
                                      hello_validity);
   output_env (env);
+  GNUNET_HELLO_builder_free (builder);
   GNUNET_free (env);
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -290,7 +296,6 @@ pid_changed_cb (void *cls,
       hello_validity,
       (GNUNET_NO == binary_output) ? &env_resign_cb : &url_resign_cb,
       builder);
-    GNUNET_HELLO_builder_free (builder);
     return;
   }
   output_parser (parser);
