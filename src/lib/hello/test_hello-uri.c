@@ -42,7 +42,7 @@ main (int argc,
   GNUNET_CRYPTO_eddsa_key_create (&priv);
   GNUNET_CRYPTO_eddsa_key_get_public (&priv,
                                       &pid.public_key);
-  b = GNUNET_HELLO_builder_new (&pid);
+  b = GNUNET_HELLO_builder_new ();
   GNUNET_assert (GNUNET_SYSERR ==
                  GNUNET_HELLO_builder_add_address (b,
                                                    "invalid"));
@@ -84,7 +84,7 @@ main (int argc,
   }
   GNUNET_CRYPTO_eddsa_key_get_public (&priv,
                                       &pid.public_key);
-  b = GNUNET_HELLO_builder_new (&pid);
+  b = GNUNET_HELLO_builder_new ();
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_HELLO_builder_add_address (b,
                                                    "a://first"));
