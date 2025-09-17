@@ -282,7 +282,6 @@ src/service/core/core_api_monitor_peers.c
 src/service/core/gnunet-service-core.c
 src/service/core/gnunet-service-core_kx.c
 src/service/core/gnunet-service-core_sessions.c
-src/service/core/gnunet-service-core_typemap.c
 src/service/core/gnunet_core_underlay_dummy.c
 src/service/core/testing_core_cmd_connect.c
 src/service/core/testing_core_cmd_connecting_peers.c
