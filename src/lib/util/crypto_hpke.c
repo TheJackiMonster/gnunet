@@ -158,10 +158,10 @@ GNUNET_CRYPTO_hpke_labeled_extract_and_expand (const void *dh,
 static uint8_t GNUNET_CRYPTO_HPKE_KEM_SUITE_ID[] = { 'K', 'E', 'M',
                                                      0x00, 0x20 };
 
-// DHKEM(X25519Elligator, HKDF-256): kem_id = 0x0030
+// DHKEM(X25519Elligator, HKDF-256): kem_id = 0x0022
 // concat("KEM", I2OSP(kem_id, 2))
 static uint8_t GNUNET_CRYPTO_HPKE_KEM_ELLIGATOR_SUITE_ID[] = { 'K', 'E', 'M',
-                                                               0x00, 0x30 };
+                                                               0x00, 0x22 };
 
 static enum GNUNET_GenericReturnValue
 kem_encaps_norand (uint8_t *suite_id, size_t suite_id_len,
