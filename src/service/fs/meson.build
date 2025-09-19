@@ -79,6 +79,8 @@ executable(
         libgnunetutil_dep,
         libgnunetstatistics_dep,
         libgnunetcore_dep,
+        libgnunethello_dep,
+        libgnunetpils_dep,
         libgnunetdht_dep,
         libgnunetidentity_dep,
         m_dep,

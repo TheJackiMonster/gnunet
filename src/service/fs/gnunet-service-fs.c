@@ -26,6 +26,7 @@
 #include "platform.h"
 #include <float.h>
 #include "gnunet_core_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_datastore_service.h"
 #include "gnunet_load_lib.h"
@@ -286,6 +287,12 @@ struct GNUNET_BLOCK_Context *GSF_block_ctx;
  * connected to it).
  */
 struct GNUNET_CORE_Handle *GSF_core;
+
+/**
+ * Pointer to handle to the pils service (points to NULL until we've
+ * connected to it).
+ */
+struct GNUNET_PILS_Handle *GSF_pils;
 
 /**
  * Are we introducing randomized delays for better anonymity?
@@ -1131,6 +1138,11 @@ static void
 shutdown_task (void *cls)
 {
   GSF_cadet_stop_server ();
+  if (NULL != GSF_pils)
+  {
+    GNUNET_PILS_disconnect (GSF_pils);
+    GSF_pils = NULL;
+  }
   if (NULL != GSF_core)
   {
     GNUNET_CORE_disconnect (GSF_core);
@@ -1166,7 +1178,7 @@ shutdown_task (void *cls)
 
 
 /**
- * Function called after GNUNET_CORE_connect has succeeded
+ * Function called after GNUNET_PILS_connect has succeeded
  * (or failed for good).  Note that the private key of the
  * peer is intentionally not exposed here; if you need it,
  * your process should try to read the private key file
@@ -1174,18 +1186,23 @@ shutdown_task (void *cls)
  *
  * @param cls closure
  * @param my_identity ID of this peer, NULL if we failed
+ * @param cls closure given to #GNUNET_PILS_connect
+ * @param parser the new HELLO from which the PID can be extracted
+ * @param hash The hash of addresses the peer id is based on.
+ *             This hash is also returned by #GNUNET_PILS_feed_address.
  */
 static void
-peer_init_handler (void *cls,
-                   const struct GNUNET_PeerIdentity *my_identity)
+pils_pid_change_cb (void *cls,
+                    const struct GNUNET_HELLO_Parser *parser,
+                    const struct GNUNET_HashCode *hash)
 {
-  if (0 != GNUNET_memcmp (&GSF_my_id,
-                          my_identity))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Peer identity mismatch, refusing to start!\n");
-    GNUNET_SCHEDULER_shutdown ();
-  }
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "My current identity is `%s'\n",
+              GNUNET_i2s_full (&GSF_my_id));
+  GSF_my_id = *GNUNET_HELLO_parser_get_id (parser);
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "My new identity is `%s'\n",
+              GNUNET_i2s_full (&GSF_my_id));
 }
 
 
@@ -1217,8 +1234,7 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
   };
   int anon_p2p_off;
   char *keyfile;
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_FS,
     .version = { 1, 0 },
     .version_max = { 1, 0 },
@@ -1266,13 +1282,24 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
   GSF_core
     = GNUNET_CORE_connect (GSF_cfg,
                            NULL,
-                           &peer_init_handler,
+                           NULL,
                            &GSF_peer_connect_handler,
                            &GSF_peer_disconnect_handler,
                            (GNUNET_YES == anon_p2p_off)
                            ? no_p2p_handlers
                            : p2p_handlers,
                            &service_info);
+  if (NULL == GSF_core)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                _ ("Failed to connect to `%s' service.\n"),
+                "core");
+    return GNUNET_SYSERR;
+  }
+  GSF_pils
+    = GNUNET_PILS_connect (GSF_cfg,
+                           &pils_pid_change_cb,
+                           NULL);
   if (NULL == GSF_core)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1354,8 +1381,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "fs",
+  (GNUNET_OS_project_data_gnunet (),
+  "fs",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

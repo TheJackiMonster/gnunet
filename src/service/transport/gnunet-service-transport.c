@@ -13534,7 +13534,7 @@ print_address_list (void *cls,
  * identity
  *
  * @param cls closure given to #GNUNET_PILS_connect
- * @param peer_id the new peer id
+ * @param parser the new HELLO from which the PID can be extracted
  * @param hash The hash of addresses the peer id is based on.
  *             This hash is also returned by #GNUNET_PILS_feed_address.
  */
