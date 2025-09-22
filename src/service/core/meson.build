@@ -173,31 +173,31 @@ configure_file(
 
 if false
 
-testcore_underlay_dummy = executable(
-    'test_core_underlay_dummy',
-    ['test_core_underlay_dummy.c'],
-    dependencies: [libgnunetcoreunderlaydummy_dep, libgnunetutil_dep],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
+    testcore_underlay_dummy = executable(
+        'test_core_underlay_dummy',
+        ['test_core_underlay_dummy.c'],
+        dependencies: [libgnunetcoreunderlaydummy_dep, libgnunetutil_dep],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
 
-test(
-    'test_core_underlay_dummy',
-    testcore_underlay_dummy,
-    suite: 'core',
-    workdir: meson.current_build_dir(),
-)
+    test(
+        'test_core_underlay_dummy',
+        testcore_underlay_dummy,
+        suite: 'core',
+        workdir: meson.current_build_dir(),
+    )
 
-# FIXME: Name of binary. Install directory?
-executable(
-    'test-core-underlay-dummy-testing-launcher',
-    ['test_core_underlay_dummy_testing_launcher.c'],
-    install_rpath: rpath_option,
-    dependencies: [libgnunetutil_dep, libgnunettesting_dep],
-    include_directories: [incdir, configuration_inc],
-    install: true,
-    install_dir: get_option('bindir'),
-)
+    # FIXME: Name of binary. Install directory?
+    executable(
+        'test-core-underlay-dummy-testing-launcher',
+        ['test_core_underlay_dummy_testing_launcher.c'],
+        install_rpath: rpath_option,
+        dependencies: [libgnunetutil_dep, libgnunettesting_dep],
+        include_directories: [incdir, configuration_inc],
+        install: true,
+        install_dir: get_option('bindir'),
+    )
 
 
     testcore_api_send_self = executable(

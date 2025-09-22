@@ -158,8 +158,6 @@ b2block_cb (void *cls,
             const struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct GNUNET_HELLO_Builder *b = cls;
-  char *block;
-  size_t block_size;
   struct PilsHelloSignaturePurpose hsp = {
     .purpose.size = htonl (sizeof (hsp)),
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_HELLO),
