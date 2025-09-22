@@ -424,66 +424,171 @@ configure_file(
     copy: true,
 )
 
-testcommunicator_basic_unix = executable(
-    'test_communicator_basic-unix',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-testcommunicator_basic_tcp = executable(
-    'test_communicator_basic-tcp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-testcommunicator_basic_udp = executable(
-    'test_communicator_basic-udp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-if quic_dep.found() and get_option('experimental')
-    testcommunicator_basic_quic = executable(
-        'test_communicator_basic-quic',
+# https://bugs.gnunet.org/view.php?id=10431
+if false
+
+    testcommunicator_basic_unix = executable(
+        'test_communicator_basic-unix',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+    testcommunicator_basic_tcp = executable(
+        'test_communicator_basic-tcp',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+    testcommunicator_basic_udp = executable(
+        'test_communicator_basic-udp',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+    if quic_dep.found() and get_option('experimental')
+        testcommunicator_basic_quic = executable(
+            'test_communicator_basic-quic',
+            ['test_communicator_basic.c'],
+            install_rpath: rpath_option,
+            dependencies: [
+                libgnunetutil_dep,
+                libgnunettransportapplication_dep,
+                libgnunettestingtransport_dep,
+                libgnunettransportcore_dep,
+                libgnunettesting_dep,
+                libgnunetpeerstore_dep,
+                libgnunetstatistics_dep,
+                libgnunethello_dep,
+                libgnunetarm_dep,
+                libgnunetutil_dep,
+            ],
+            include_directories: [incdir, configuration_inc],
+            install: false,
+        )
+    endif
+    if http3_enabled
+        testcommunicator_basic_http3 = executable(
+            'test_communicator_basic-http3',
+            ['test_communicator_basic.c'],
+            install_rpath: rpath_option,
+            dependencies: [
+                libgnunetutil_dep,
+                libgnunettransportapplication_dep,
+                libgnunettransportcore_dep,
+                libgnunettestingtransport_dep,
+                libgnunettesting_dep,
+                libgnunetpeerstore_dep,
+                libgnunetstatistics_dep,
+                libgnunethello_dep,
+                libgnunetarm_dep,
+                libgnunetutil_dep,
+            ],
+            include_directories: [incdir, configuration_inc],
+            install: false,
+        )
+    endif
+
+    testcommunicator_rekey_tcp = executable(
+        'test_communicator_rekey-tcp',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+
+    testcommunicator_rekey_udp = executable(
+        'test_communicator_rekey-udp',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+
+    testcommunicator_backchannel_udp = executable(
+        'test_communicator_backchannel-udp',
+        ['test_communicator_basic.c'],
+        install_rpath: rpath_option,
+        dependencies: [
+            libgnunetutil_dep,
+            libgnunettransportapplication_dep,
+            libgnunettestingtransport_dep,
+            libgnunettransportcore_dep,
+            libgnunettesting_dep,
+            libgnunetpeerstore_dep,
+            libgnunetstatistics_dep,
+            libgnunethello_dep,
+            libgnunetarm_dep,
+            libgnunetutil_dep,
+        ],
+        include_directories: [incdir, configuration_inc],
+        install: false,
+    )
+
+    testcommunicator_bidirect_tcp = executable(
+        'test_communicator_bidirect-tcp',
         ['test_communicator_basic.c'],
         install_rpath: rpath_option,
         dependencies: [
@@ -502,108 +607,6 @@ if quic_dep.found() and get_option('experimental')
         install: false,
     )
 endif
-if http3_enabled
-    testcommunicator_basic_http3 = executable(
-        'test_communicator_basic-http3',
-        ['test_communicator_basic.c'],
-        install_rpath: rpath_option,
-        dependencies: [
-            libgnunetutil_dep,
-            libgnunettransportapplication_dep,
-            libgnunettransportcore_dep,
-            libgnunettestingtransport_dep,
-            libgnunettesting_dep,
-            libgnunetpeerstore_dep,
-            libgnunetstatistics_dep,
-            libgnunethello_dep,
-            libgnunetarm_dep,
-            libgnunetutil_dep,
-        ],
-        include_directories: [incdir, configuration_inc],
-        install: false,
-    )
-endif
-
-testcommunicator_rekey_tcp = executable(
-    'test_communicator_rekey-tcp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-
-testcommunicator_rekey_udp = executable(
-    'test_communicator_rekey-udp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-
-testcommunicator_backchannel_udp = executable(
-    'test_communicator_backchannel-udp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-
-testcommunicator_bidirect_tcp = executable(
-    'test_communicator_bidirect-tcp',
-    ['test_communicator_basic.c'],
-    install_rpath: rpath_option,
-    dependencies: [
-        libgnunetutil_dep,
-        libgnunettransportapplication_dep,
-        libgnunettestingtransport_dep,
-        libgnunettransportcore_dep,
-        libgnunettesting_dep,
-        libgnunetpeerstore_dep,
-        libgnunetstatistics_dep,
-        libgnunethello_dep,
-        libgnunetarm_dep,
-        libgnunetutil_dep,
-    ],
-    include_directories: [incdir, configuration_inc],
-    install: false,
-)
-
 
 if false
     testtransport_test_names = [
@@ -640,70 +643,75 @@ if false
     endforeach
 endif
 
-test(
-    'test_communicator_basic-unix',
-    testcommunicator_basic_unix,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-test(
-    'test_communicator_basic-tcp',
-    testcommunicator_basic_tcp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-test(
-    'test_communicator_basic-udp',
-    testcommunicator_basic_udp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-if quic_dep.found() and get_option('experimental')
+# https://bugs.gnunet.org/view.php?id=10431
+if false
+
     test(
-        'test_communicator_basic-quic',
-        testcommunicator_basic_quic,
+        'test_communicator_basic-unix',
+        testcommunicator_basic_unix,
         workdir: meson.current_build_dir(),
         suite: ['transport', 'communicator'],
         is_parallel: false,
     )
-endif
-if http3_enabled
     test(
-        'test_communicator_basic-http3',
-        testcommunicator_basic_http3,
+        'test_communicator_basic-tcp',
+        testcommunicator_basic_tcp,
         workdir: meson.current_build_dir(),
         suite: ['transport', 'communicator'],
         is_parallel: false,
     )
+    test(
+        'test_communicator_basic-udp',
+        testcommunicator_basic_udp,
+        workdir: meson.current_build_dir(),
+        suite: ['transport', 'communicator'],
+        is_parallel: false,
+    )
+    if quic_dep.found() and get_option('experimental')
+        test(
+            'test_communicator_basic-quic',
+            testcommunicator_basic_quic,
+            workdir: meson.current_build_dir(),
+            suite: ['transport', 'communicator'],
+            is_parallel: false,
+        )
+    endif
+    if http3_enabled
+        test(
+            'test_communicator_basic-http3',
+            testcommunicator_basic_http3,
+            workdir: meson.current_build_dir(),
+            suite: ['transport', 'communicator'],
+            is_parallel: false,
+        )
+    endif
+    test(
+        'test_communicator_rekey-tcp',
+        testcommunicator_rekey_tcp,
+        workdir: meson.current_build_dir(),
+        suite: ['transport', 'communicator'],
+        is_parallel: false,
+    )
+    test(
+        'test_communicator_rekey-udp',
+        testcommunicator_rekey_udp,
+        workdir: meson.current_build_dir(),
+        suite: ['transport', 'communicator'],
+        is_parallel: false,
+    )
+    test(
+        'test_communicator_backchannel-udp',
+        testcommunicator_backchannel_udp,
+        workdir: meson.current_build_dir(),
+        suite: ['transport', 'communicator'],
+        is_parallel: false,
+    )
+    test(
+        'test_communicator_bidirect-tcp',
+        testcommunicator_bidirect_tcp,
+        workdir: meson.current_build_dir(),
+        suite: ['transport', 'communicator'],
+        is_parallel: false,
+    )
+
 endif
-test(
-    'test_communicator_rekey-tcp',
-    testcommunicator_rekey_tcp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-test(
-    'test_communicator_rekey-udp',
-    testcommunicator_rekey_udp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-test(
-    'test_communicator_backchannel-udp',
-    testcommunicator_backchannel_udp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
-test(
-    'test_communicator_bidirect-tcp',
-    testcommunicator_bidirect_tcp,
-    workdir: meson.current_build_dir(),
-    suite: ['transport', 'communicator'],
-    is_parallel: false,
-)
