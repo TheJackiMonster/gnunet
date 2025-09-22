@@ -113,7 +113,8 @@ check_completion_status (void)
 
 GNUNET_NETWORK_STRUCT_BEGIN
 
-struct BoxToSign {
+struct BoxToSign
+{
   struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
   struct GNUNET_TIME_Relative validity;
   char buffer[128];
@@ -167,18 +168,12 @@ b2block_cb (void *cls,
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Signed block for PID `%s' is ready\n",
-              GNUNET_i2s(pid));
-  //block_size = GNUNET_HELLO_get_builder_to_block_size (b);
-  //block = GNUNET_malloc (block_size);
-  //GNUNET_HELLO_builder_to_block (b,
-  //                               pid,
-  //                               sig,
-  //                               GNUNET_TIME_UNIT_FOREVER_ABS,
-  //                               block);
-  // FIXME the following fails, but I wrote it quickly and am not sure about
-  // its correctness:
+              GNUNET_i2s (pid));
   GNUNET_HELLO_builder_hash_addresses (b, &hsp.h_addrs);
-  if (GNUNET_OK != GNUNET_CRYPTO_eddsa_verify (hsp.purpose.purpose,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Address hash is %s\n",
+              GNUNET_h2s_full (&hsp.h_addrs));
+  if (GNUNET_OK != GNUNET_CRYPTO_eddsa_verify (GNUNET_SIGNATURE_PURPOSE_HELLO,
                                                &hsp,
                                                sig,
                                                &pid->public_key))
@@ -200,24 +195,24 @@ pid_change_cb (void *cls,
                const struct GNUNET_HELLO_Parser *parser,
                const struct GNUNET_HashCode *hash)
 {
-  struct PeerContext *p = cls;
+  (void) cls;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Got a new peer id: %s\n",
-              GNUNET_i2s (GNUNET_HELLO_parser_get_id(parser)));
+              GNUNET_i2s (GNUNET_HELLO_parser_get_id (parser)));
   // TODO do stuff here
 
-  //if (p == &pc)
-  //{
+  // if (p == &pc)
+  // {
   //  /* connect p2 */
-  //}
-  //else
-  //{
+  // }
+  // else
+  // {
   //  GNUNET_SCHEDULER_cancel (timeout_task_id);
   //  timeout_task_id = NULL;
   //  GNUNET_SCHEDULER_add_now (&shutdown_task,
   //                            NULL);
-  //}
+  // }
 
   {
     struct GNUNET_HELLO_Builder *b;
@@ -252,7 +247,7 @@ pid_change_cb (void *cls,
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Going to sign box\n");
       box_to_sign = GNUNET_new (struct BoxToSign);
-      box_to_sign->purpose.purpose = htonl(GNUNET_SIGNATURE_PURPOSE_HELLO);
+      box_to_sign->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_HELLO);
       box_to_sign->purpose.size = htonl (sizeof (*box_to_sign));
       box_to_sign->validity = GNUNET_TIME_UNIT_FOREVER_REL;
       memset (box_to_sign->buffer, 0, 128);
@@ -276,35 +271,6 @@ pid_change_cb (void *cls,
       GNUNET_assert (NULL != op);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "  (after builder_to_block())\n");
-      //GNUNET_assert (GNUNET_NO ==
-      //               GNUNET_HELLO_builder_to_block (b,
-      //                                              &priv,
-      //                                              NULL,
-      //                                              &block_size,
-      //                                              GNUNET_TIME_UNIT_FOREVER_REL))
-      //;
-      //GNUNET_assert (0 != block_size);
-      //block = GNUNET_malloc (block_size);
-      //GNUNET_assert (GNUNET_OK ==
-      //               GNUNET_HELLO_builder_to_block (b,
-      //                                              &priv,
-      //                                              block,
-      //                                              &block_size,
-      //                                              GNUNET_TIME_UNIT_FOREVER_REL))
-      //;
-      //b2 = GNUNET_HELLO_parser_from_block (block,
-      //                                     block_size);
-      //GNUNET_free (block);
-      //GNUNET_assert (NULL != b2);
-      //found = 0;
-      //p2 = GNUNET_HELLO_parser_iterate (b2,
-      //                                  &check_uris,
-      //                                  &found);
-      //GNUNET_assert (3 == found);
-      //GNUNET_assert (0 ==
-      //               GNUNET_memcmp (p2,
-      //                              &pid));
-      //GNUNET_HELLO_parser_free (b2);
     }
     // TODO test canceling operations
 
@@ -319,9 +285,9 @@ setup_peer (struct PeerContext *p,
 {
   char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet(),
+  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                               "gnunet-service-arm");
-  p->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet());
+  p->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
   p->arm_proc =
     GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
                              | GNUNET_OS_USE_PIPE_CONTROL,
@@ -419,12 +385,12 @@ check ()
   };
 
   GNUNET_DISK_purge_cfg_dir
-    (GNUNET_OS_project_data_gnunet(),
+    (GNUNET_OS_project_data_gnunet (),
     "test_pils_api.conf",
     "GNUNET_TEST_HOME");
 
   ok = 1;
-  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                       (sizeof(argv) / sizeof(char *)) - 1,
                       argv,
                       "test-pils-api-hello",
@@ -452,7 +418,7 @@ main (int argc,
                     NULL);
   ret = check ();
   GNUNET_DISK_purge_cfg_dir
-    (GNUNET_OS_project_data_gnunet(),
+    (GNUNET_OS_project_data_gnunet (),
     "test_pils_api.conf",
     "GNUNET_TEST_HOME");
   return ret;
