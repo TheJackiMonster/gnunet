@@ -40,7 +40,7 @@ perfHashS (void)
   for (unsigned int i = 0; i < 1024; i++)
     crypto_generichash_blake2b ((unsigned char *) &hc,
                                 sizeof(hc),
-                                buf,
+                                (unsigned char*) buf,
                                 sizeof(buf),
                                 NULL,
                                 0);
@@ -59,7 +59,7 @@ perfHashSmallS (void)
   for (unsigned int i = 0; i < 1024; i++)
     crypto_generichash_blake2b ((unsigned char *) &hc,
                                 sizeof(hc),
-                                buf,
+                                (unsigned char*) buf,
                                 sizeof(buf),
                                 NULL,
                                 0);
