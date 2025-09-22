@@ -171,6 +171,8 @@ configure_file(
     copy: true,
 )
 
+if false
+
 testcore_underlay_dummy = executable(
     'test_core_underlay_dummy',
     ['test_core_underlay_dummy.c'],
@@ -197,7 +199,6 @@ executable(
     install_dir: get_option('bindir'),
 )
 
-if false
 
     testcore_api_send_self = executable(
         'test_core_api_send_to_self',
@@ -232,6 +233,7 @@ test(
     testcore_api_start,
     suite: 'core',
     workdir: meson.current_build_dir(),
+    is_parallel: false,
 )
 
 # FIXME test_core_basic

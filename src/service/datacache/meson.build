@@ -126,18 +126,21 @@ test(
     testdc_sqlite,
     suite: 'datacache',
     workdir: meson.current_build_dir(),
+    is_parallel: false,
 )
 test(
     'test_datacache_quota_sqlite',
     testdc_quota_sqlite,
     suite: 'datacache',
     workdir: meson.current_build_dir(),
+    is_parallel: false,
 )
 test(
     'test_datacache_heap',
     testdc_heap,
     suite: 'datacache',
     workdir: meson.current_build_dir(),
+    is_parallel: false,
 )
 test(
     'test_datacache_quota_heap',
