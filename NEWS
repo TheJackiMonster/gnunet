@@ -1,6 +1,8 @@
 v0.25.1:
   - transport: hotfix incorrect communicator key derivations
   - tests: make failing tests work again
+  - util: Change to assigned HPKE codepoint for DHKEM+Elligator. See https://www.iana.org/assignments/hpke/
+  - fs: service failed to start because of PILS addition
 
 v0.25.0:
   - util: Removed authkem from HPKE implementation as it is going to be removed from the RFC9180bis spec and is unused in GNUnet anyway.
