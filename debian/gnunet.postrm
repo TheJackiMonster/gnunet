@@ -69,7 +69,7 @@ for file in /usr/bin/gnunet-helper-exit \
     /usr/bin/gnunet-helper-dns \
     /usr/bin/gnunet-helper-vpn;
 do
-    dpkg-statoverride --remove "$file"
+    dpkg-statoverride --remove "$file" || true
 done
 
 #DEBHELPER#
