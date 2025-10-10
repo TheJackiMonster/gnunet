@@ -1,3 +1,19 @@
+configure_file(
+    input: 'namecache-0001.sql',
+    output: 'namecache-0001.sql',
+    configuration: cdata,
+    install: true,
+    install_dir: get_option('datadir') / 'gnunet' / 'sql',
+)
+
+configure_file(
+    input: 'namecache-drop.sql',
+    output: 'namecache-drop.sql',
+    configuration: cdata,
+    install: true,
+    install_dir: get_option('datadir') / 'gnunet' / 'sql',
+)
+
 shared_module(
     'gnunet_plugin_namecache_sqlite',
     ['plugin_namecache_sqlite.c'],
