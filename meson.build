@@ -241,16 +241,19 @@ if not sodium_dep.found()
     sodium_dep = cc.find_library('sodium', required: true)
     sodium_version_check = '''#include <sodium.h>
   int main(int argc, char **argv) {
-    return ((SODIUM_LIBRARY_VERSION_MAJOR > 10) ||
-            ((SODIUM_LIBRARY_VERSION_MAJOR == 10) &&
-             (SODIUM_LIBRARY_VERSION_MINOR >= 3))) ? 0 : 1;
+    #if !((SODIUM_LIBRARY_VERSION_MAJOR > 10) || \
+         ((SODIUM_LIBRARY_VERSION_MAJOR == 10) && \
+         (SODIUM_LIBRARY_VERSION_MINOR >= 3)))
+      #error "libsodium version >= 1.0.18 required"
+    #endif
+    return 0
     }
   '''
-    if cc.run(
+    if not cc.compiles(
         sodium_version_check,
         name: 'sodium version check',
         dependencies: sodium_dep,
-    ).returncode() != 0
+    )
         error('libsodium version >=1.0.18 required')
     endif
 endif
