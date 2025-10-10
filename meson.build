@@ -194,14 +194,17 @@ if not curl_dep.found()
     curl_dep = cc.find_library('curl', required: true)
     curl_version_check = '''#include <curl/curl.h>
   int main(int argc, char **argv) {
-    return (LIBCURL_VERSION_NUM >= 0x075500) ? 0 : 1;
+    #if LIBCURL_VERSION_NUM < 0x075500
+      #error "cURL version >= 7.85.0 required"
+    #endif
+    return 0;
     }
   '''
-    if cc.run(
+    if not cc.compiles(
         curl_version_check,
         name: 'cURL version check',
         dependencies: curl_dep,
-    ).returncode() != 0
+    )
         error('cURL version >=7.85.0 required')
     endif
 endif
