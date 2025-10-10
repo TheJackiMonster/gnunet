@@ -175,14 +175,17 @@ if not sqlite_dep.found()
     sqlite_dep = cc.find_library('sqlite3', required: true)
     sqlite_version_check = '''#include <sqlite3.h>
   int main(int argc, char **argv) {
-    return (SQLITE_VERSION_NUMBER >= 3035000) ? 0 : 1;
+    #if SQLITE_VERSION_NUMBER < 3035000
+      #error "SQLite version >= 3.35.0 required"
+    #endif
+    return 0;
   }
   '''
-    if cc.run(
+    if not cc.compiles(
         sqlite_version_check,
         name: 'sqlite version check',
         dependencies: sqlite_dep,
-    ).returncode() != 0
+    )
         error('Sqlite version >= 3.35.0 requried')
     endif
 endif
