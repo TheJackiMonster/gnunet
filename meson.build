@@ -466,6 +466,9 @@ if cc.check_header('gnutls/dane.h')
         private_config.set('HAVE_GNUTLS_DANE', 1)
     endif
 endif
+
+# This check is of little consequence atm as the
+# defines are not used anywhere.
 curl_ssl_check = '''#include <curl/curl.h>
   int main(int argc, char **argv) {
     return (CURLSSLSET_OK != curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL));
