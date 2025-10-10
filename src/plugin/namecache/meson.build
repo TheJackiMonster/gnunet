@@ -29,6 +29,16 @@ shared_module(
     install_dir: get_option('libdir') / 'gnunet',
 )
 
+shared_module(
+    'gnunet_plugin_namecache_flat',
+    ['plugin_namecache_flat.c'],
+    install_rpath: rpath_option,
+    dependencies: [libgnunetutil_dep, libgnunetgnsrecord_dep],
+    include_directories: [incdir, configuration_inc],
+    install: true,
+    install_dir: get_option('libdir') / 'gnunet',
+)
+
 if pq_dep.found()
     shared_module(
         'gnunet_plugin_namecache_postgres',
