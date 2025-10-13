@@ -184,7 +184,7 @@ cleanup_finish (void *cls)
 }
 
 
-const struct GNUNET_TESTING_Command
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_finish (
   const char *finish_label,
   const char *cmd_ref,
