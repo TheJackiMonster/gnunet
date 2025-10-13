@@ -705,7 +705,7 @@ GNUNET_CORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                       * currently don't think so. I guess pils might be the
                       * responsible service? */
                      const struct GNUNET_MQ_MessageHandler *handlers,
-                     struct GNUNET_CORE_ServiceInfo *service_info)
+                     const struct GNUNET_CORE_ServiceInfo *service_info)
 {
   struct GNUNET_CORE_Handle *h;
 

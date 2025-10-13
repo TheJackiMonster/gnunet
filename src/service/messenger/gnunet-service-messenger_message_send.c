@@ -266,7 +266,7 @@ traverse_epoch_session_message (struct GNUNET_MESSENGER_MemberNotify *notify,
   if (! session)
   {
     struct GNUNET_MESSENGER_MemberStore *member_store;
-    struct GNUNET_MESSENGER_Member *member;
+    struct GNUNET_MESSENGER_Member *member = NULL;
 
     if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)
       goto skip_session;

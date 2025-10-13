@@ -460,16 +460,6 @@ postgres_plugin_get_key (void *cls,
   uint16_t use_key = NULL != key;
   uint16_t use_type = GNUNET_BLOCK_TYPE_ANY != type;
   uint64_t rvalue;
-  struct GNUNET_PQ_QueryParam params[] = {
-    GNUNET_PQ_query_param_uint64 (&next_uid),
-    GNUNET_PQ_query_param_uint64 (&rvalue),
-    GNUNET_PQ_query_param_uint16 (&use_rvalue),
-    GNUNET_PQ_query_param_auto_from_type (key),
-    GNUNET_PQ_query_param_uint16 (&use_key),
-    GNUNET_PQ_query_param_uint32 (&utype),
-    GNUNET_PQ_query_param_uint16 (&use_type),
-    GNUNET_PQ_query_param_end
-  };
   struct ProcessResultContext prc;
   enum GNUNET_DB_QueryStatus res;
 
@@ -483,15 +473,28 @@ postgres_plugin_get_key (void *cls,
   {
     rvalue = 0;
   }
-  prc.plugin = plugin;
-  prc.proc = proc;
-  prc.proc_cls = proc_cls;
 
-  res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
-                                              "get",
-                                              params,
-                                              &process_result,
-                                              &prc);
+  {
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_uint64 (&next_uid),
+      GNUNET_PQ_query_param_uint64 (&rvalue),
+      GNUNET_PQ_query_param_uint16 (&use_rvalue),
+      GNUNET_PQ_query_param_auto_from_type (key),
+      GNUNET_PQ_query_param_uint16 (&use_key),
+      GNUNET_PQ_query_param_uint32 (&utype),
+      GNUNET_PQ_query_param_uint16 (&use_type),
+      GNUNET_PQ_query_param_end
+    };
+    prc.plugin = plugin;
+    prc.proc = proc;
+    prc.proc_cls = proc_cls;
+
+    res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
+                                                "get",
+                                                params,
+                                                &process_result,
+                                                &prc);
+  }
   if (0 > res)
     proc (proc_cls, NULL, 0, NULL, 0, 0, 0, 0,
           GNUNET_TIME_UNIT_ZERO_ABS, 0);

@@ -32,7 +32,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "datacache-sqlite", __VA_ARGS__)
 
 #define LOG_STRERROR_FILE(kind, op, fn) \
-  GNUNET_log_from_strerror_file (kind, "datacache-sqlite", op, fn)
+        GNUNET_log_from_strerror_file (kind, "datacache-sqlite", op, fn)
 
 
 /**
@@ -122,15 +122,15 @@ struct Plugin
  * @param cmd failed command
  */
 #define LOG_SQLITE(db, level, cmd)                    \
-  do                                                  \
-  {                                                   \
-    LOG (level,                                       \
-         _ ("`%s' failed at %s:%d with error: %s\n"), \
-         cmd,                                         \
-         __FILE__,                                    \
-         __LINE__,                                    \
-         sqlite3_errmsg (db));                        \
-  } while (0)
+        do                                                  \
+        {                                                   \
+          LOG (level,                                       \
+               _ ("`%s' failed at %s:%d with error: %s\n"), \
+               cmd,                                         \
+               __FILE__,                                    \
+               __LINE__,                                    \
+               sqlite3_errmsg (db));                        \
+        } while (0)
 
 
 /**
@@ -140,21 +140,21 @@ struct Plugin
  * @param cmd SQL command to execute
  */
 #define SQLITE3_EXEC(db, cmd)                                   \
-  do                                                            \
-  {                                                             \
-    emsg = NULL;                                                \
-    if (SQLITE_OK !=                                            \
-        sqlite3_exec (db, cmd, NULL, NULL, &emsg))              \
-    {                                                           \
-      LOG (GNUNET_ERROR_TYPE_ERROR,                             \
-           _ ("`%s' failed at %s:%d with error: %s\n"),         \
-           "sqlite3_exec",                                      \
-           __FILE__,                                            \
-           __LINE__,                                            \
-           emsg);                                               \
-      sqlite3_free (emsg);                                      \
-    }                                                           \
-  } while (0)
+        do                                                            \
+        {                                                             \
+          emsg = NULL;                                                \
+          if (SQLITE_OK !=                                            \
+              sqlite3_exec (db, cmd, NULL, NULL, &emsg))              \
+          {                                                           \
+            LOG (GNUNET_ERROR_TYPE_ERROR,                             \
+                 _ ("`%s' failed at %s:%d with error: %s\n"),         \
+                 "sqlite3_exec",                                      \
+                 __FILE__,                                            \
+                 __LINE__,                                            \
+                 emsg);                                               \
+            sqlite3_free (emsg);                                      \
+          }                                                           \
+        } while (0)
 
 
 /**
@@ -274,133 +274,138 @@ get_any (void *cls,
   void *path;
   void *data;
   size_t path_size;
-  struct GNUNET_SQ_QueryParam params_count[] = {
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_end
-  };
-  struct GNUNET_SQ_QueryParam params_select[] = {
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_uint32 (&off),
-    GNUNET_SQ_query_param_end
-  };
-  struct GNUNET_SQ_ResultSpec rs[] = {
-    GNUNET_SQ_result_spec_variable_size (&data,
-                                         &block.data_size),
-    GNUNET_SQ_result_spec_absolute_time (&block.expiration_time),
-    GNUNET_SQ_result_spec_variable_size (&path,
-                                         &path_size),
-    GNUNET_SQ_result_spec_auto_from_type (&block.trunc_peer),
-    GNUNET_SQ_result_spec_uint32 (&btype32),
-    GNUNET_SQ_result_spec_uint32 (&bro32),
-    GNUNET_SQ_result_spec_end
-  };
 
   now = GNUNET_TIME_absolute_get ();
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Processing GET for key `%s'\n",
-       GNUNET_h2s (key));
-
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->get_count_any_stmt,
-                      params_count))
   {
-    LOG_SQLITE (plugin->dbh,
-                GNUNET_ERROR_TYPE_ERROR,
-                "sqlite3_bind_xxx");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->get_count_any_stmt);
-    return 0;
-  }
-  if (SQLITE_ROW !=
-      sqlite3_step (plugin->get_count_any_stmt))
-  {
-    LOG_SQLITE (plugin->dbh,
-                GNUNET_ERROR_TYPE_ERROR,
-                "sqlite_step");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->get_count_any_stmt);
+    struct GNUNET_SQ_QueryParam params_count[] = {
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_end
+    };
     LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "No content found when processing GET for key `%s'\n",
+         "Processing GET for key `%s'\n",
          GNUNET_h2s (key));
-    return 0;
-  }
-  total = sqlite3_column_int (plugin->get_count_any_stmt,
-                              0);
-  GNUNET_SQ_reset (plugin->dbh,
-                   plugin->get_count_any_stmt);
-  if ( (0 == total) ||
-       (NULL == iter) )
-  {
-    if (0 == total)
-      LOG (GNUNET_ERROR_TYPE_DEBUG,
-           "No content found when processing GET for key `%s'\n",
-           GNUNET_h2s (key));
-    return total;
-  }
 
-  cnt = 0;
-  block.key = *key;
-  off = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
-                                  total);
-  while (cnt < total)
-  {
-    off = (off + 1) % total;
     if (GNUNET_OK !=
-        GNUNET_SQ_bind (plugin->get_any_stmt,
-                        params_select))
+        GNUNET_SQ_bind (plugin->get_count_any_stmt,
+                        params_count))
     {
       LOG_SQLITE (plugin->dbh,
                   GNUNET_ERROR_TYPE_ERROR,
                   "sqlite3_bind_xxx");
       GNUNET_SQ_reset (plugin->dbh,
-                       plugin->get_any_stmt);
-      return cnt;
+                       plugin->get_count_any_stmt);
+      return 0;
     }
     if (SQLITE_ROW !=
-        sqlite3_step (plugin->get_any_stmt))
-      break;
-    if (GNUNET_OK !=
-        GNUNET_SQ_extract_result (plugin->get_any_stmt,
-                                  rs))
+        sqlite3_step (plugin->get_count_any_stmt))
     {
-      GNUNET_break (0);
+      LOG_SQLITE (plugin->dbh,
+                  GNUNET_ERROR_TYPE_ERROR,
+                  "sqlite_step");
       GNUNET_SQ_reset (plugin->dbh,
-                       plugin->get_any_stmt);
-      break;
+                       plugin->get_count_any_stmt);
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "No content found when processing GET for key `%s'\n",
+           GNUNET_h2s (key));
+      return 0;
     }
-    if (0 != path_size % sizeof(struct GNUNET_DHT_PathElement))
+    total = sqlite3_column_int (plugin->get_count_any_stmt,
+                                0);
+    GNUNET_SQ_reset (plugin->dbh,
+                     plugin->get_count_any_stmt);
+    if ( (0 == total) ||
+         (NULL == iter) )
     {
-      GNUNET_break (0);
-      path_size = 0;
-      path = NULL;
+      if (0 == total)
+        LOG (GNUNET_ERROR_TYPE_DEBUG,
+             "No content found when processing GET for key `%s'\n",
+             GNUNET_h2s (key));
+      return total;
     }
-    block.data = data;
-    block.put_path = path;
-    block.put_path_length = path_size / sizeof(struct GNUNET_DHT_PathElement);
-    block.type = (enum GNUNET_BLOCK_Type) btype32;
-    block.ro = (enum GNUNET_DHT_RouteOption) bro32;
-    cnt++;
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Found %u-byte result when processing GET for key `%s'\n",
-         (unsigned int) block.data_size,
-         GNUNET_h2s (&block.key));
-    if (GNUNET_OK !=
-        iter (iter_cls,
-              &block))
+  }
+  cnt = 0;
+  block.key = *key;
+  off = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
+                                  total);
+  {
+    struct GNUNET_SQ_QueryParam params_select[] = {
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_uint32 (&off),
+      GNUNET_SQ_query_param_end
+    };
+    struct GNUNET_SQ_ResultSpec rs[] = {
+      GNUNET_SQ_result_spec_variable_size (&data,
+                                           &block.data_size),
+      GNUNET_SQ_result_spec_absolute_time (&block.expiration_time),
+      GNUNET_SQ_result_spec_variable_size (&path,
+                                           &path_size),
+      GNUNET_SQ_result_spec_auto_from_type (&block.trunc_peer),
+      GNUNET_SQ_result_spec_uint32 (&btype32),
+      GNUNET_SQ_result_spec_uint32 (&bro32),
+      GNUNET_SQ_result_spec_end
+    };
+
+    while (cnt < total)
     {
+      off = (off + 1) % total;
+      if (GNUNET_OK !=
+          GNUNET_SQ_bind (plugin->get_any_stmt,
+                          params_select))
+      {
+        LOG_SQLITE (plugin->dbh,
+                    GNUNET_ERROR_TYPE_ERROR,
+                    "sqlite3_bind_xxx");
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_any_stmt);
+        return cnt;
+      }
+      if (SQLITE_ROW !=
+          sqlite3_step (plugin->get_any_stmt))
+        break;
+      if (GNUNET_OK !=
+          GNUNET_SQ_extract_result (plugin->get_any_stmt,
+                                    rs))
+      {
+        GNUNET_break (0);
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_any_stmt);
+        break;
+      }
+      if (0 != path_size % sizeof(struct GNUNET_DHT_PathElement))
+      {
+        GNUNET_break (0);
+        path_size = 0;
+        path = NULL;
+      }
+      block.data = data;
+      block.put_path = path;
+      block.put_path_length = path_size / sizeof(struct GNUNET_DHT_PathElement);
+      block.type = (enum GNUNET_BLOCK_Type) btype32;
+      block.ro = (enum GNUNET_DHT_RouteOption) bro32;
+      cnt++;
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Found %u-byte result when processing GET for key `%s'\n",
+           (unsigned int) block.data_size,
+           GNUNET_h2s (&block.key));
+      if (GNUNET_OK !=
+          iter (iter_cls,
+                &block))
+      {
+        GNUNET_SQ_cleanup_result (rs);
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_any_stmt);
+        break;
+      }
       GNUNET_SQ_cleanup_result (rs);
       GNUNET_SQ_reset (plugin->dbh,
                        plugin->get_any_stmt);
-      break;
     }
-    GNUNET_SQ_cleanup_result (rs);
     GNUNET_SQ_reset (plugin->dbh,
                      plugin->get_any_stmt);
   }
-  GNUNET_SQ_reset (plugin->dbh,
-                   plugin->get_any_stmt);
+
   return cnt;
 }
 
@@ -434,19 +439,6 @@ get_typed (void *cls,
   void *path;
   void *data;
   size_t path_size;
-  struct GNUNET_SQ_QueryParam params_count[] = {
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_uint32 (&type32),
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_end
-  };
-  struct GNUNET_SQ_QueryParam params_select[] = {
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_uint32 (&type32),
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_uint32 (&off),
-    GNUNET_SQ_query_param_end
-  };
   struct GNUNET_SQ_ResultSpec rs[] = {
     GNUNET_SQ_result_spec_variable_size (&data,
                                          &block.data_size),
@@ -462,17 +454,25 @@ get_typed (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Processing GET for key `%s'\n",
        GNUNET_h2s (key));
-
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->get_count_stmt,
-                      params_count))
   {
-    LOG_SQLITE (plugin->dbh,
-                GNUNET_ERROR_TYPE_ERROR,
-                "sqlite3_bind_xxx");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->get_count_stmt);
-    return 0;
+    struct GNUNET_SQ_QueryParam params_count[] = {
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_uint32 (&type32),
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_end
+    };
+
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (plugin->get_count_stmt,
+                        params_count))
+    {
+      LOG_SQLITE (plugin->dbh,
+                  GNUNET_ERROR_TYPE_ERROR,
+                  "sqlite3_bind_xxx");
+      GNUNET_SQ_reset (plugin->dbh,
+                       plugin->get_count_stmt);
+      return 0;
+    }
   }
   if (SQLITE_ROW !=
       sqlite3_step (plugin->get_count_stmt))
@@ -505,64 +505,73 @@ get_typed (void *cls,
   block.key = *key;
   off = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
                                   total);
-  while (cnt < total)
   {
-    off = (off + 1) % total;
-    if (GNUNET_OK !=
-        GNUNET_SQ_bind (plugin->get_stmt,
-                        params_select))
+    struct GNUNET_SQ_QueryParam params_select[] = {
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_uint32 (&type32),
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_uint32 (&off),
+      GNUNET_SQ_query_param_end
+    };
+    while (cnt < total)
     {
-      LOG_SQLITE (plugin->dbh,
-                  GNUNET_ERROR_TYPE_ERROR,
-                  "sqlite3_bind_xxx");
-      GNUNET_SQ_reset (plugin->dbh,
-                       plugin->get_stmt);
-      return cnt;
-    }
-    if (SQLITE_ROW !=
-        sqlite3_step (plugin->get_stmt))
-      break;
-    if (GNUNET_OK !=
-        GNUNET_SQ_extract_result (plugin->get_stmt,
-                                  rs))
-    {
-      GNUNET_break (0);
-      GNUNET_SQ_reset (plugin->dbh,
-                       plugin->get_stmt);
-      break;
-    }
-    if (0 != path_size % sizeof(struct GNUNET_DHT_PathElement))
-    {
-      GNUNET_break (0);
-      path_size = 0;
-      path = NULL;
-    }
-    block.data = data;
-    block.put_path = path;
-    block.put_path_length = path_size / sizeof(struct GNUNET_DHT_PathElement);
-    block.type = type;
-    block.ro = (enum GNUNET_DHT_RouteOption) bro32;
-    cnt++;
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
-         "Found %u-byte result when processing GET for key `%s'\n",
-         (unsigned int) block.data_size,
-         GNUNET_h2s (&block.key));
-    if ( (NULL != iter) &&
-         (GNUNET_OK !=
-          iter (iter_cls,
-                &block)) )
-    {
+      off = (off + 1) % total;
+      if (GNUNET_OK !=
+          GNUNET_SQ_bind (plugin->get_stmt,
+                          params_select))
+      {
+        LOG_SQLITE (plugin->dbh,
+                    GNUNET_ERROR_TYPE_ERROR,
+                    "sqlite3_bind_xxx");
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_stmt);
+        return cnt;
+      }
+      if (SQLITE_ROW !=
+          sqlite3_step (plugin->get_stmt))
+        break;
+      if (GNUNET_OK !=
+          GNUNET_SQ_extract_result (plugin->get_stmt,
+                                    rs))
+      {
+        GNUNET_break (0);
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_stmt);
+        break;
+      }
+      if (0 != path_size % sizeof(struct GNUNET_DHT_PathElement))
+      {
+        GNUNET_break (0);
+        path_size = 0;
+        path = NULL;
+      }
+      block.data = data;
+      block.put_path = path;
+      block.put_path_length = path_size / sizeof(struct GNUNET_DHT_PathElement);
+      block.type = type;
+      block.ro = (enum GNUNET_DHT_RouteOption) bro32;
+      cnt++;
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Found %u-byte result when processing GET for key `%s'\n",
+           (unsigned int) block.data_size,
+           GNUNET_h2s (&block.key));
+      if ( (NULL != iter) &&
+           (GNUNET_OK !=
+            iter (iter_cls,
+                  &block)) )
+      {
+        GNUNET_SQ_cleanup_result (rs);
+        GNUNET_SQ_reset (plugin->dbh,
+                         plugin->get_stmt);
+        break;
+      }
       GNUNET_SQ_cleanup_result (rs);
       GNUNET_SQ_reset (plugin->dbh,
                        plugin->get_stmt);
-      break;
     }
-    GNUNET_SQ_cleanup_result (rs);
     GNUNET_SQ_reset (plugin->dbh,
                      plugin->get_stmt);
   }
-  GNUNET_SQ_reset (plugin->dbh,
-                   plugin->get_stmt);
   return cnt;
 }
 
@@ -625,24 +634,26 @@ sqlite_plugin_del (void *cls)
     GNUNET_SQ_query_param_uint64 (&rowid),
     GNUNET_SQ_query_param_end
   };
-  struct GNUNET_SQ_QueryParam time_params[] = {
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_end
-  };
-
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Processing DEL\n");
   now = GNUNET_TIME_absolute_get ();
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->del_expired_stmt,
-                      time_params))
   {
-    LOG_SQLITE (plugin->dbh,
-                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                "sqlite3_bind");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->del_expired_stmt);
-    return GNUNET_SYSERR;
+    struct GNUNET_SQ_QueryParam time_params[] = {
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_end
+    };
+
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (plugin->del_expired_stmt,
+                        time_params))
+    {
+      LOG_SQLITE (plugin->dbh,
+                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind");
+      GNUNET_SQ_reset (plugin->dbh,
+                       plugin->del_expired_stmt);
+      return GNUNET_SYSERR;
+    }
   }
   if ( (SQLITE_ROW !=
         sqlite3_step (plugin->del_expired_stmt)) ||
@@ -739,13 +750,6 @@ sqlite_plugin_get_closest (void *cls,
   uint32_t bro32;
   struct GNUNET_DATACACHE_Block block;
   uint32_t rtype32;
-  struct GNUNET_SQ_QueryParam params[] = {
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_absolute_time (&now),
-    GNUNET_SQ_query_param_uint32 (&type32),
-    GNUNET_SQ_query_param_uint32 (&num_results32),
-    GNUNET_SQ_query_param_end
-  };
   struct GNUNET_SQ_ResultSpec rs[] = {
     GNUNET_SQ_result_spec_variable_size (&data,
                                          &block.data_size),
@@ -763,16 +767,25 @@ sqlite_plugin_get_closest (void *cls,
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Processing GET_CLOSEST for key `%s'\n",
        GNUNET_h2s (key));
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->get_closest_stmt,
-                      params))
   {
-    LOG_SQLITE (plugin->dbh,
-                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                "sqlite3_bind_xxx");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->get_closest_stmt);
-    return 0;
+    struct GNUNET_SQ_QueryParam params[] = {
+      GNUNET_SQ_query_param_auto_from_type (key),
+      GNUNET_SQ_query_param_absolute_time (&now),
+      GNUNET_SQ_query_param_uint32 (&type32),
+      GNUNET_SQ_query_param_uint32 (&num_results32),
+      GNUNET_SQ_query_param_end
+    };
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (plugin->get_closest_stmt,
+                        params))
+    {
+      LOG_SQLITE (plugin->dbh,
+                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind_xxx");
+      GNUNET_SQ_reset (plugin->dbh,
+                       plugin->get_closest_stmt);
+      return 0;
+    }
   }
   cnt = 0;
   while (SQLITE_ROW ==
@@ -816,6 +829,7 @@ sqlite_plugin_get_closest (void *cls,
                    plugin->get_closest_stmt);
   return cnt;
 }
+
 
 void *
 libgnunet_plugin_datacache_sqlite_init (void *cls);
@@ -992,6 +1006,7 @@ libgnunet_plugin_datacache_sqlite_init (void *cls)
        "Sqlite datacache running\n");
   return api;
 }
+
 
 void *
 libgnunet_plugin_datacache_sqlite_done (void *cls);

@@ -527,7 +527,7 @@ GNUNET_CORE_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                      GNUNET_CORE_ConnectEventHandler connects,
                      GNUNET_CORE_DisconnectEventHandler disconnects,
                      const struct GNUNET_MQ_MessageHandler *handlers,
-                     struct GNUNET_CORE_ServiceInfo *service_info);
+                     const struct GNUNET_CORE_ServiceInfo *service_info);
 
 
 /**

@@ -431,7 +431,7 @@ key_schedule (enum GNUNET_CRYPTO_HpkeRole role,
   struct GNUNET_ShortHashCode info_hash;
   struct GNUNET_ShortHashCode secret;
   uint8_t key_schedule_context[1 + sizeof info_hash * 2];
-  uint8_t suite_id[strlen ("HPKE") + 6];
+  uint8_t suite_id[4 + 3 * 2];
   uint16_t kem_id = htons (32); // FIXME hardcode as constant
   uint16_t kdf_id = htons (1); // HKDF-256 FIXME hardcode as constant
   uint16_t aead_id = htons (3); // ChaCha20Poly1305 FIXME hardcode as constant

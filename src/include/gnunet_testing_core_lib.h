@@ -145,7 +145,7 @@ struct GNUNET_TESTING_CORE_Message
   // The following will be used for debugging
   uint64_t id; // id of the message
   uint64_t batch; // first batch of that peer (for this test 0 or 1)
-  //uint64_t peer; // number of sending peer (for this test 0 or 1)
+  // uint64_t peer; // number of sending peer (for this test 0 or 1)
   char node_id[NODE_ID_LEN];
 };
 
@@ -174,7 +174,9 @@ typedef void
 struct GNUNET_TESTING_CORE_ConnectState
 {
   struct GNUNET_CORE_Handle *h;
-  const char* node_id;
+
+  // FIXME why is this const? Borrowed pointer?!
+  const char*node_id;
   struct GNUNET_PeerIdentity peer_id;
   char *arm_service_label;
   const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -227,7 +229,7 @@ GNUNET_CORE_cmd_connect_peers (
 const struct GNUNET_TESTING_Command
 GNUNET_TESTING_CORE_cmd_connect (
   const char *label,
-  const char* node_id,
+  const char*node_id,
   char *arm_service_label);
 
 
@@ -250,7 +252,7 @@ GNUNET_TESTING_CORE_cmd_send (
 #define GNUNET_CORE_TESTING_SIMPLE_TRAITS(op, prefix)   \
         op (prefix, connect_peer_state, const struct \
             GNUNET_TESTING_ConnectPeersState) \
-        op (prefix, connect, const struct \
+        op (prefix, connect, struct \
             GNUNET_TESTING_CORE_ConnectState)
 
 GNUNET_CORE_TESTING_SIMPLE_TRAITS (GNUNET_TESTING_MAKE_DECL_SIMPLE_TRAIT,

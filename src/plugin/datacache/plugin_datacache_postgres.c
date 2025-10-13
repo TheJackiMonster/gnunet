@@ -349,21 +349,19 @@ postgres_plugin_del (void *cls)
     GNUNET_PQ_result_spec_end
   };
   enum GNUNET_DB_QueryStatus res;
-  struct GNUNET_PQ_QueryParam dparam[] = {
-    GNUNET_PQ_query_param_uint64 (&oid),
-    GNUNET_PQ_query_param_end
-  };
   struct GNUNET_TIME_Absolute now;
-  struct GNUNET_PQ_QueryParam xparam[] = {
-    GNUNET_PQ_query_param_absolute_time (&now),
-    GNUNET_PQ_query_param_end
-  };
-
   now = GNUNET_TIME_absolute_get ();
-  res = GNUNET_PQ_eval_prepared_singleton_select (plugin->dbh,
-                                                  "getex",
-                                                  xparam,
-                                                  rs);
+  {
+    struct GNUNET_PQ_QueryParam xparam[] = {
+      GNUNET_PQ_query_param_absolute_time (&now),
+      GNUNET_PQ_query_param_end
+    };
+
+    res = GNUNET_PQ_eval_prepared_singleton_select (plugin->dbh,
+                                                    "getex",
+                                                    xparam,
+                                                    rs);
+  }
   if (0 >= res)
     res = GNUNET_PQ_eval_prepared_singleton_select (plugin->dbh,
                                                     "getm",
@@ -378,9 +376,15 @@ postgres_plugin_del (void *cls)
          "Ending iteration (no more results)\n");
     return 0;
   }
-  res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
-                                            "delrow",
-                                            dparam);
+  {
+    struct GNUNET_PQ_QueryParam dparam[] = {
+      GNUNET_PQ_query_param_uint64 (&oid),
+      GNUNET_PQ_query_param_end
+    };
+    res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
+                                              "delrow",
+                                              dparam);
+  }
   if (0 > res)
   {
     GNUNET_PQ_cleanup_result (rs);
@@ -522,24 +526,26 @@ postgres_plugin_get_closest (void *cls,
   uint32_t num_results32 = (uint32_t) num_results;
   uint32_t type32 = (uint32_t) type;
   struct GNUNET_TIME_Absolute now;
-  struct GNUNET_PQ_QueryParam params[] = {
-    GNUNET_PQ_query_param_auto_from_type (key),
-    GNUNET_PQ_query_param_absolute_time (&now),
-    GNUNET_PQ_query_param_uint32 (&type32),
-    GNUNET_PQ_query_param_uint32 (&num_results32),
-    GNUNET_PQ_query_param_end
-  };
   enum GNUNET_DB_QueryStatus res;
   struct ExtractResultContext erc;
 
   erc.iter = iter;
   erc.iter_cls = iter_cls;
   now = GNUNET_TIME_absolute_get ();
-  res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
-                                              "get_closest",
-                                              params,
-                                              &extract_result_cb,
-                                              &erc);
+  {
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_auto_from_type (key),
+      GNUNET_PQ_query_param_absolute_time (&now),
+      GNUNET_PQ_query_param_uint32 (&type32),
+      GNUNET_PQ_query_param_uint32 (&num_results32),
+      GNUNET_PQ_query_param_end
+    };
+    res = GNUNET_PQ_eval_prepared_multi_select (plugin->dbh,
+                                                "get_closest",
+                                                params,
+                                                &extract_result_cb,
+                                                &erc);
+  }
   if (0 > res)
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -555,6 +561,7 @@ postgres_plugin_get_closest (void *cls,
   }
   return res;
 }
+
 
 void *
 libgnunet_plugin_datacache_postgres_init (void *cls);
@@ -591,6 +598,7 @@ libgnunet_plugin_datacache_postgres_init (void *cls)
        "Postgres datacache running\n");
   return api;
 }
+
 
 void *
 libgnunet_plugin_datacache_postgres_done (void *cls);

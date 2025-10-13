@@ -150,13 +150,8 @@ namecache_postgres_cache_block (void *cls,
   struct Plugin *plugin = cls;
   struct GNUNET_HashCode query;
   size_t block_size = GNUNET_GNSRECORD_block_get_size (block);
-  struct GNUNET_TIME_Absolute exp = GNUNET_GNSRECORD_block_get_expiration (block);
-  struct GNUNET_PQ_QueryParam params[] = {
-    GNUNET_PQ_query_param_auto_from_type (&query),
-    GNUNET_PQ_query_param_fixed_size (block, block_size),
-    GNUNET_PQ_query_param_absolute_time (&exp),
-    GNUNET_PQ_query_param_end
-  };
+  struct GNUNET_TIME_Absolute exp = GNUNET_GNSRECORD_block_get_expiration (block
+                                                                           );
   enum GNUNET_DB_QueryStatus res;
 
   namecache_postgres_expire_blocks (plugin);
@@ -167,13 +162,21 @@ namecache_postgres_cache_block (void *cls,
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  delete_old_block (plugin,
-                    &query,
-                    exp);
+  {
+    struct GNUNET_PQ_QueryParam params[] = {
+      GNUNET_PQ_query_param_auto_from_type (&query),
+      GNUNET_PQ_query_param_fixed_size (block, block_size),
+      GNUNET_PQ_query_param_absolute_time (&exp),
+      GNUNET_PQ_query_param_end
+    };
+    delete_old_block (plugin,
+                      &query,
+                      exp);
 
-  res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
-                                            "cache_block",
-                                            params);
+    res = GNUNET_PQ_eval_prepared_non_select (plugin->dbh,
+                                              "cache_block",
+                                              params);
+  }
   if (0 > res)
     return GNUNET_SYSERR;
   return GNUNET_OK;
@@ -256,6 +259,7 @@ database_shutdown (struct Plugin *plugin)
   plugin->dbh = NULL;
 }
 
+
 void *
 libgnunet_plugin_namecache_postgres_init (void *cls);
 
@@ -289,6 +293,7 @@ libgnunet_plugin_namecache_postgres_init (void *cls)
        "Postgres namecache plugin running\n");
   return api;
 }
+
 
 void *
 libgnunet_plugin_namecache_postgres_done (void *cls);

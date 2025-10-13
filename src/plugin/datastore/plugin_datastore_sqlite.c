@@ -659,17 +659,6 @@ sqlite_plugin_put (void *cls,
     // FIXME Refactor?
     uint64_t rvalue;
     uint32_t type32 = (uint32_t) type;
-    struct GNUNET_SQ_QueryParam params[] =
-    { GNUNET_SQ_query_param_uint32 (&replication),
-      GNUNET_SQ_query_param_uint32 (&type32),
-      GNUNET_SQ_query_param_uint32 (&priority),
-      GNUNET_SQ_query_param_uint32 (&anonymity),
-      GNUNET_SQ_query_param_absolute_time (&expiration),
-      GNUNET_SQ_query_param_uint64 (&rvalue),
-      GNUNET_SQ_query_param_auto_from_type (key),
-      GNUNET_SQ_query_param_auto_from_type (&vhash),
-      GNUNET_SQ_query_param_fixed_size (data, size),
-      GNUNET_SQ_query_param_end };
     int n;
     int ret;
     sqlite3_stmt *stmt;
@@ -693,10 +682,23 @@ sqlite_plugin_put (void *cls,
       GNUNET_STRINGS_absolute_time_to_string (expiration));
     stmt = plugin->insertContent;
     rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
-    if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
     {
-      cont (cont_cls, key, size, GNUNET_SYSERR, NULL);
-      return;
+      struct GNUNET_SQ_QueryParam params[] =
+      { GNUNET_SQ_query_param_uint32 (&replication),
+        GNUNET_SQ_query_param_uint32 (&type32),
+        GNUNET_SQ_query_param_uint32 (&priority),
+        GNUNET_SQ_query_param_uint32 (&anonymity),
+        GNUNET_SQ_query_param_absolute_time (&expiration),
+        GNUNET_SQ_query_param_uint64 (&rvalue),
+        GNUNET_SQ_query_param_auto_from_type (key),
+        GNUNET_SQ_query_param_auto_from_type (&vhash),
+        GNUNET_SQ_query_param_fixed_size (data, size),
+        GNUNET_SQ_query_param_end };
+      if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
+      {
+        cont (cont_cls, key, size, GNUNET_SYSERR, NULL);
+        return;
+      }
     }
     n = sqlite3_step (stmt);
     switch (n)
@@ -900,26 +902,6 @@ sqlite_plugin_get_key (void *cls,
   int use_type = GNUNET_BLOCK_TYPE_ANY != type;
   int use_key = NULL != key;
   sqlite3_stmt *stmt = plugin->get[use_rvalue * 4 + use_key * 2 + use_type];
-  struct GNUNET_SQ_QueryParam params[] =
-  { GNUNET_SQ_query_param_uint64 (&next_uid),
-    GNUNET_SQ_query_param_uint64 (&rvalue),
-    GNUNET_SQ_query_param_auto_from_type (key),
-    GNUNET_SQ_query_param_uint32 (&type32),
-    GNUNET_SQ_query_param_end };
-
-  /* SQLite doesn't like it when you try to bind a parameter greater than the
-   * last numbered parameter, but unused parameters in the middle are OK.
-   */
-  if (! use_type)
-  {
-    params[3] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
-    if (! use_key)
-    {
-      params[2] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
-      if (! use_rvalue)
-        params[1] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
-    }
-  }
   if (random)
   {
     rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
@@ -927,11 +909,32 @@ sqlite_plugin_get_key (void *cls,
   }
   else
     rvalue = 0;
+  {  struct GNUNET_SQ_QueryParam params[] =
+     { GNUNET_SQ_query_param_uint64 (&next_uid),
+       GNUNET_SQ_query_param_uint64 (&rvalue),
+       GNUNET_SQ_query_param_auto_from_type (key),
+       GNUNET_SQ_query_param_uint32 (&type32),
+       GNUNET_SQ_query_param_end };
 
-  if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
-  {
-    proc (proc_cls, NULL, 0, NULL, 0, 0, 0, 0, GNUNET_TIME_UNIT_ZERO_ABS, 0);
-    return;
+     /* SQLite doesn't like it when you try to bind a parameter greater than the
+      * last numbered parameter, but unused parameters in the middle are OK.
+      */
+     if (! use_type)
+     {
+       params[3] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
+       if (! use_key)
+       {
+         params[2] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
+         if (! use_rvalue)
+           params[1] = (struct GNUNET_SQ_QueryParam) GNUNET_SQ_query_param_end;
+       }
+     }
+
+     if (GNUNET_OK != GNUNET_SQ_bind (stmt, params))
+     {
+       proc (proc_cls, NULL, 0, NULL, 0, 0, 0, 0, GNUNET_TIME_UNIT_ZERO_ABS, 0);
+       return;
+     }
   }
   execute_get (plugin, stmt, proc, proc_cls);
 }
@@ -1038,10 +1041,6 @@ sqlite_plugin_get_replication (void *cls,
   struct ReplCtx rc;
   uint64_t rvalue = 0;
   uint32_t repl;
-  struct GNUNET_SQ_QueryParam params_sel_repl[] =
-  { GNUNET_SQ_query_param_uint64 (&rvalue),
-    GNUNET_SQ_query_param_uint32 (&repl),
-    GNUNET_SQ_query_param_end };
   struct GNUNET_SQ_QueryParam params_upd_repl[] =
   { GNUNET_SQ_query_param_uint64 (&rc.uid), GNUNET_SQ_query_param_end };
 
@@ -1056,12 +1055,18 @@ sqlite_plugin_get_replication (void *cls,
     return;
   }
   repl = sqlite3_column_int (plugin->maxRepl, 0);
-  GNUNET_SQ_reset (plugin->dbh, plugin->maxRepl);
-  rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
-  if (GNUNET_OK != GNUNET_SQ_bind (plugin->selRepl, params_sel_repl))
   {
-    proc (proc_cls, NULL, 0, NULL, 0, 0, 0, 0, GNUNET_TIME_UNIT_ZERO_ABS, 0);
-    return;
+    struct GNUNET_SQ_QueryParam params_sel_repl[] =
+    { GNUNET_SQ_query_param_uint64 (&rvalue),
+      GNUNET_SQ_query_param_uint32 (&repl),
+      GNUNET_SQ_query_param_end };
+    GNUNET_SQ_reset (plugin->dbh, plugin->maxRepl);
+    rvalue = GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_WEAK, UINT64_MAX);
+    if (GNUNET_OK != GNUNET_SQ_bind (plugin->selRepl, params_sel_repl))
+    {
+      proc (proc_cls, NULL, 0, NULL, 0, 0, 0, 0, GNUNET_TIME_UNIT_ZERO_ABS, 0);
+      return;
+    }
   }
   rc.have_uid = GNUNET_SYSERR;
   rc.proc = proc;

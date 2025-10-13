@@ -223,7 +223,7 @@ exec_recv_run (void *cls,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct RecvState *rs = cls;
-  const struct GNUNET_TESTING_CORE_ConnectState *connect_state;
+  struct GNUNET_TESTING_CORE_ConnectState *connect_state;
 
   if (GNUNET_OK != GNUNET_CORE_TESTING_get_trait_connect (
         // TODO make the "connect" an input to the command

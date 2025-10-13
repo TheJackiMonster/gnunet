@@ -3394,7 +3394,7 @@ iterate_initial_edge (unsigned int min_len,
                   "Start state at split edge `%s'-`%s` is %s\n",
                   temp,
                   edge[0].label,
-                  GNUNET_h2s (&hash_new));
+                  GNUNET_h2s (&hash));
       iterator (iterator_cls, &hash, temp, GNUNET_NO, 1, edge);
       GNUNET_free (temp);
     }

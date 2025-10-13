@@ -330,18 +330,6 @@ namecache_sqlite_cache_block (void *cls,
   struct GNUNET_HashCode query;
   struct GNUNET_TIME_Absolute expiration;
   size_t block_size = GNUNET_GNSRECORD_block_get_size (block);
-  struct GNUNET_SQ_QueryParam del_params[] = {
-    GNUNET_SQ_query_param_auto_from_type (&query),
-    GNUNET_SQ_query_param_absolute_time (&expiration),
-    GNUNET_SQ_query_param_end
-  };
-  struct GNUNET_SQ_QueryParam ins_params[] = {
-    GNUNET_SQ_query_param_auto_from_type (&query),
-    GNUNET_SQ_query_param_fixed_size (block,
-                                      block_size),
-    GNUNET_SQ_query_param_absolute_time (&expiration),
-    GNUNET_SQ_query_param_end
-  };
   int n;
 
   /* run expiration of old cache entries once per hour */
@@ -364,16 +352,23 @@ namecache_sqlite_cache_block (void *cls,
     return GNUNET_SYSERR;
   }
 
-  /* delete old version of the block */
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->delete_block,
-                      del_params))
   {
-    LOG_SQLITE (plugin, GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                "sqlite3_bind_XXXX");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->delete_block);
-    return GNUNET_SYSERR;
+    struct GNUNET_SQ_QueryParam del_params[] = {
+      GNUNET_SQ_query_param_auto_from_type (&query),
+      GNUNET_SQ_query_param_absolute_time (&expiration),
+      GNUNET_SQ_query_param_end
+    };
+    /* delete old version of the block */
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (plugin->delete_block,
+                        del_params))
+    {
+      LOG_SQLITE (plugin, GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind_XXXX");
+      GNUNET_SQ_reset (plugin->dbh,
+                       plugin->delete_block);
+      return GNUNET_SYSERR;
+    }
   }
   n = sqlite3_step (plugin->delete_block);
   switch (n)
@@ -398,18 +393,27 @@ namecache_sqlite_cache_block (void *cls,
   }
   GNUNET_SQ_reset (plugin->dbh,
                    plugin->delete_block);
-
-  /* insert new version of the block */
-  if (GNUNET_OK !=
-      GNUNET_SQ_bind (plugin->cache_block,
-                      ins_params))
   {
-    LOG_SQLITE (plugin,
-                GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
-                "sqlite3_bind_XXXX");
-    GNUNET_SQ_reset (plugin->dbh,
-                     plugin->cache_block);
-    return GNUNET_SYSERR;
+    struct GNUNET_SQ_QueryParam ins_params[] = {
+      GNUNET_SQ_query_param_auto_from_type (&query),
+      GNUNET_SQ_query_param_fixed_size (block,
+                                        block_size),
+      GNUNET_SQ_query_param_absolute_time (&expiration),
+      GNUNET_SQ_query_param_end
+    };
+
+    /* insert new version of the block */
+    if (GNUNET_OK !=
+        GNUNET_SQ_bind (plugin->cache_block,
+                        ins_params))
+    {
+      LOG_SQLITE (plugin,
+                  GNUNET_ERROR_TYPE_ERROR | GNUNET_ERROR_TYPE_BULK,
+                  "sqlite3_bind_XXXX");
+      GNUNET_SQ_reset (plugin->dbh,
+                       plugin->cache_block);
+      return GNUNET_SYSERR;
+    }
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Caching block under derived key `%s'\n",
@@ -530,6 +534,7 @@ namecache_sqlite_lookup_block (void *cls,
   return ret;
 }
 
+
 void *
 libgnunet_plugin_namecache_sqlite_init (void *cls);
 
@@ -563,6 +568,7 @@ libgnunet_plugin_namecache_sqlite_init (void *cls)
        _ ("Sqlite database running\n"));
   return api;
 }
+
 
 void *
 libgnunet_plugin_namecache_sqlite_done (void *cls);

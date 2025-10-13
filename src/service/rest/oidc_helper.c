@@ -175,12 +175,6 @@ generate_userinfo_json (const struct GNUNET_CRYPTO_PublicKey *sub_key,
   json_t *aggr_sources;
   json_t *aggr_sources_jwt;
   json_t *addr_claim = NULL;
-  int num_presentations = 0;
-  for (le = attrs->list_head; NULL != le; le = le->next)
-  {
-    if (GNUNET_NO == GNUNET_RECLAIM_id_is_zero (&le->attribute->credential))
-      num_presentations++;
-  }
 
   subject =
     GNUNET_STRINGS_data_to_string_alloc (sub_key,

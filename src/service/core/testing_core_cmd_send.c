@@ -46,7 +46,7 @@ connect_cb (void *cls,
 
 struct SendState
 {
-  const struct GNUNET_TESTING_CORE_ConnectState *connect_state;
+  struct GNUNET_TESTING_CORE_ConnectState *connect_state;
   uint64_t num_messages;
   enum GNUNET_GenericReturnValue await_new_connection;
 };
@@ -55,7 +55,7 @@ struct SendState
 static void
 cleanup_callbacks (struct SendState *send_state)
 {
-  const struct GNUNET_TESTING_CORE_ConnectState *connect_state =
+  struct GNUNET_TESTING_CORE_ConnectState *connect_state =
     send_state->connect_state;
   struct GNUNET_TESTING_CORE_ConnectCb *connect_cb_iter;
 
@@ -152,7 +152,7 @@ exec_send_run (void *cls,
                struct GNUNET_TESTING_Interpreter *is)
 {
   struct SendState *send_state = cls;
-  const struct GNUNET_TESTING_CORE_ConnectState *connect_state;
+  struct GNUNET_TESTING_CORE_ConnectState *connect_state;
 
   // TODO make the "connect" label an input to the command
   if (GNUNET_OK != GNUNET_CORE_TESTING_get_trait_connect (
@@ -192,7 +192,7 @@ exec_send_run (void *cls,
 static void
 exec_send_cleanup (void *cls)
 {
-  struct GNUNET_TESTING_CORE_ConnectState *connect_state = cls;
+  // struct GNUNET_TESTING_CORE_ConnectState *connect_state = cls;
 
 }
 
