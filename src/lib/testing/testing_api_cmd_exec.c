@@ -183,7 +183,7 @@ traits (void *cls,
 }
 
 
-const struct GNUNET_TESTING_Command
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec (
   const char *label,
   enum GNUNET_OS_ProcessStatusType expected_type,
@@ -213,7 +213,7 @@ GNUNET_TESTING_cmd_exec (
 }
 
 
-const struct GNUNET_TESTING_Command
+struct GNUNET_TESTING_Command
 GNUNET_TESTING_cmd_exec_va (
   const char *label,
   enum GNUNET_OS_ProcessStatusType expected_type,
