@@ -191,7 +191,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
   PGnotify *n;
   unsigned int cnt = 0;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "PG poll job active\n");
   if (1 !=
       PQconsumeInput (db->conn))
@@ -256,7 +256,7 @@ GNUNET_PQ_event_do_poll (struct GNUNET_PQ_Context *db)
     GNUNET_free (ctx.extra);
     PQfreemem (n);
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "PG poll job finishes after %u events\n",
               cnt);
 }
@@ -284,7 +284,7 @@ do_scheduler_notify (void *cls)
     GNUNET_SCHEDULER_cancel (db->event_task);
     db->event_task = NULL;
   }
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Resubscribing\n");
   if (NULL == db->rfd)
   {
@@ -337,7 +337,7 @@ scheduler_fd_cb (void *cls,
 {
   struct GNUNET_PQ_Context *db = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New poll FD is %d\n",
               fd);
   if (NULL != db->event_task)
@@ -350,7 +350,7 @@ scheduler_fd_cb (void *cls,
     return;
   if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
     return;
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Activating poll job on %d\n",
               fd);
   db->rfd = GNUNET_NETWORK_socket_box_native (fd);
@@ -384,7 +384,7 @@ manage_subscribe (struct GNUNET_PQ_Context *db,
                 cmd);
   end = sh_to_channel (&eh->sh,
                        end);
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Executing PQ command `%s'\n",
               sql);
   result = PQexec (db->conn,
@@ -434,7 +434,7 @@ void
 GNUNET_PQ_event_reconnect_ (struct GNUNET_PQ_Context *db,
                             int fd)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Change in PQ event FD to %d\n",
               fd);
   scheduler_fd_cb (db,
@@ -489,7 +489,7 @@ GNUNET_PQ_event_listen (struct GNUNET_PQ_Context *db,
                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
   if (NULL == db->event_task)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Starting event scheduler\n");
     scheduler_fd_cb (db,
                      PQsocket (db->conn));
@@ -522,7 +522,7 @@ GNUNET_PQ_event_listen_cancel (struct GNUNET_DB_EventHandler *eh)
                       eh);
   if (0 == GNUNET_CONTAINER_multishortmap_size (db->channel_map))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Stopping PQ event scheduler job\n");
     GNUNET_free (db->rfd);
     if (NULL != db->event_task)
@@ -579,7 +579,7 @@ GNUNET_PQ_event_notify (struct GNUNET_PQ_Context *db,
   *end = '\0';
   end = stpcpy (end,
                 "'");
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Executing command `%s'\n",
               sql);
   result = PQexec (db->conn,
