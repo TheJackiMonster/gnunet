@@ -1,3 +1,7 @@
+v0.25.2:
+  - build: Various build system and detection logic improvements incl. compiler warnings.
+  - reintroduce some flat file storages
+
 v0.25.1:
   - transport: hotfix incorrect communicator key derivations
   - tests: make failing tests work again
