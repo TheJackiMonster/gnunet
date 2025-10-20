@@ -82,6 +82,7 @@ install_headers(
     'gnunet_peer_lib.h',
     'gnunet_peerstore_plugin.h',
     'gnunet_peerstore_service.h',
+    'gnunet_pils_service.h',
     'gnunet_plugin_lib.h',
     'gnunet_pq_lib.h',
     'gnunet_program_lib.h',
