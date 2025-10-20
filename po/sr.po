@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet-0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-17 11:55+0200\n"
+"POT-Creation-Date: 2025-10-16 13:50+0200\n"
 "PO-Revision-Date: 2020-10-23 18:39+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <(nothing)>\n"
@@ -4084,7 +4084,7 @@ msgstr ""
 msgid "Heap datacache running\n"
 msgstr "Остава података скупине ради\n"
 
-#: src/plugin/datacache/plugin_datacache_sqlite.c:1039
+#: src/plugin/datacache/plugin_datacache_sqlite.c:1054
 #: src/plugin/datastore/plugin_datastore_sqlite.c:532
 #: src/plugin/namecache/plugin_namecache_sqlite.c:235
 #: src/plugin/namestore/plugin_namestore_sqlite.c:242
@@ -4096,11 +4096,11 @@ msgid "Heap database running\n"
 msgstr "База података скупине ради\n"
 
 #: src/plugin/datastore/plugin_datastore_postgres.c:238
-#: src/plugin/datastore/plugin_datastore_postgres.c:849
+#: src/plugin/datastore/plugin_datastore_postgres.c:852
 msgid "Postgresql exec failure"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_postgres.c:810
+#: src/plugin/datastore/plugin_datastore_postgres.c:813
 msgid "Failed to drop table from database.\n"
 msgstr "Нисам успео да избацим табелу из базе података.\n"
 
@@ -4121,27 +4121,27 @@ msgstr "Не могу да покренем СКуЛајт: %s.\n"
 msgid "sqlite bind failure"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:679
+#: src/plugin/datastore/plugin_datastore_sqlite.c:668
 #, fuzzy
 msgid "Data too large"
 msgstr "Вредност је превелика.\n"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1260
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1265
 msgid "sqlite version to old to determine size, assuming zero\n"
 msgstr "скулајт издање је престаро за одређивање величине, подразумевам нулу\n"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1275
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1288
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1280
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1293
 #, fuzzy
 msgid "error preparing statement\n"
 msgstr "Нисам успео да припремим стање „%s“\n"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1296
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1301
 #, fuzzy
 msgid "error stepping\n"
 msgstr "„%s“ се зауставља"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1304
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1309
 #, c-format
 msgid ""
 "Using sqlite page utilization to estimate payload (%llu pages of size %llu "
@@ -4150,8 +4150,8 @@ msgstr ""
 "Користим страницу коришћења скулајта да проценим утовар (%llu странице "
 "величине %llu бајта)\n"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1349
-#: src/plugin/namecache/plugin_namecache_sqlite.c:563
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1354
+#: src/plugin/namecache/plugin_namecache_sqlite.c:568
 msgid "Sqlite database running\n"
 msgstr "База података Скулајта ради\n"
 
@@ -5509,42 +5509,43 @@ msgstr "самостално окончава експеримент након 
 msgid "run a testbed to measure file-sharing performance"
 msgstr "покреће пробно место за мерење учинковитости дељења датотека"
 
-#: src/service/fs/gnunet-service-fs.c:363
-#: src/service/fs/gnunet-service-fs.c:831
+#: src/service/fs/gnunet-service-fs.c:370
+#: src/service/fs/gnunet-service-fs.c:838
 msgid "# client searches active"
 msgstr "# претраге клијента су активне"
 
-#: src/service/fs/gnunet-service-fs.c:422
+#: src/service/fs/gnunet-service-fs.c:429
 msgid "# replies received for local clients"
 msgstr "# одговори су примљени за локалне клијенте"
 
-#: src/service/fs/gnunet-service-fs.c:601
+#: src/service/fs/gnunet-service-fs.c:608
 #: src/service/fs/gnunet-service-fs_cp.c:445
 msgid "# Loopback routes suppressed"
 msgstr "# Руте петље су потиснуте"
 
-#: src/service/fs/gnunet-service-fs.c:784
+#: src/service/fs/gnunet-service-fs.c:791
 msgid "# client searches received"
 msgstr "# претраге клијента су примљене"
 
-#: src/service/fs/gnunet-service-fs.c:824
+#: src/service/fs/gnunet-service-fs.c:831
 msgid "# client searches updated (merged content seen list)"
 msgstr "# претраге клијента су освежене (стопљени садржај виђеног списка)"
 
-#: src/service/fs/gnunet-service-fs.c:994
+#: src/service/fs/gnunet-service-fs.c:1001
 #, fuzzy, c-format
 msgid "Hash mismatch trying to index file `%s' which does not have hash `%s'\n"
 msgstr ""
 "Неодговарајући хеш приликом покушаја индексирања датотеке „%s“ која има хеш "
 "„%s“\n"
 
-#: src/service/fs/gnunet-service-fs.c:1244
+#: src/service/fs/gnunet-service-fs.c:1260
 #, fuzzy
 msgid "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 "Услузи језгра недостаје поставка подешавања КЉУЧА_ДОМАЋИНА.  Излазим.\n"
 
-#: src/service/fs/gnunet-service-fs.c:1279
+#: src/service/fs/gnunet-service-fs.c:1295
+#: src/service/fs/gnunet-service-fs.c:1306
 #: src/service/hostlist/gnunet-daemon-hostlist.c:355
 #: src/service/topology/gnunet-daemon-topology.c:1093
 #: src/service/topology/gnunet-daemon-topology.c:1101
@@ -6980,11 +6981,11 @@ msgstr ""
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4383
+#: src/service/transport/gnunet-communicator-tcp.c:4300
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:4106
+#: src/service/transport/gnunet-communicator-udp.c:4023
 msgid "GNUnet UDP communicator"
 msgstr ""
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-17 11:55+0200\n"
+"POT-Creation-Date: 2025-10-16 13:50+0200\n"
 "PO-Revision-Date: 2021-11-21 00:53+0100\n"
 "Last-Translator: Stéphane  Aulery <lkppo@free.fr>\n"
 "Language-Team: French <traduc@traduc.org>\n"
@@ -3953,7 +3953,7 @@ msgstr ""
 msgid "Heap datacache running\n"
 msgstr ""
 
-#: src/plugin/datacache/plugin_datacache_sqlite.c:1039
+#: src/plugin/datacache/plugin_datacache_sqlite.c:1054
 #: src/plugin/datastore/plugin_datastore_sqlite.c:532
 #: src/plugin/namecache/plugin_namecache_sqlite.c:235
 #: src/plugin/namestore/plugin_namestore_sqlite.c:242
@@ -3965,11 +3965,11 @@ msgid "Heap database running\n"
 msgstr ""
 
 #: src/plugin/datastore/plugin_datastore_postgres.c:238
-#: src/plugin/datastore/plugin_datastore_postgres.c:849
+#: src/plugin/datastore/plugin_datastore_postgres.c:852
 msgid "Postgresql exec failure"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_postgres.c:810
+#: src/plugin/datastore/plugin_datastore_postgres.c:813
 msgid "Failed to drop table from database.\n"
 msgstr ""
 
@@ -3990,33 +3990,33 @@ msgstr ""
 msgid "sqlite bind failure"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:679
+#: src/plugin/datastore/plugin_datastore_sqlite.c:668
 msgid "Data too large"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1260
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1265
 msgid "sqlite version to old to determine size, assuming zero\n"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1275
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1288
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1280
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1293
 #, fuzzy
 msgid "error preparing statement\n"
 msgstr "Erreur de création du tunnel\n"
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1296
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1301
 msgid "error stepping\n"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1304
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1309
 #, c-format
 msgid ""
 "Using sqlite page utilization to estimate payload (%llu pages of size %llu "
 "bytes)\n"
 msgstr ""
 
-#: src/plugin/datastore/plugin_datastore_sqlite.c:1349
-#: src/plugin/namecache/plugin_namecache_sqlite.c:563
+#: src/plugin/datastore/plugin_datastore_sqlite.c:1354
+#: src/plugin/namecache/plugin_namecache_sqlite.c:568
 msgid "Sqlite database running\n"
 msgstr ""
 
@@ -5302,38 +5302,39 @@ msgstr ""
 msgid "run a testbed to measure file-sharing performance"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:363
-#: src/service/fs/gnunet-service-fs.c:831
+#: src/service/fs/gnunet-service-fs.c:370
+#: src/service/fs/gnunet-service-fs.c:838
 msgid "# client searches active"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:422
+#: src/service/fs/gnunet-service-fs.c:429
 msgid "# replies received for local clients"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:601
+#: src/service/fs/gnunet-service-fs.c:608
 #: src/service/fs/gnunet-service-fs_cp.c:445
 msgid "# Loopback routes suppressed"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:784
+#: src/service/fs/gnunet-service-fs.c:791
 msgid "# client searches received"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:824
+#: src/service/fs/gnunet-service-fs.c:831
 msgid "# client searches updated (merged content seen list)"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:994
+#: src/service/fs/gnunet-service-fs.c:1001
 #, c-format
 msgid "Hash mismatch trying to index file `%s' which does not have hash `%s'\n"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:1244
+#: src/service/fs/gnunet-service-fs.c:1260
 msgid "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"
 msgstr ""
 
-#: src/service/fs/gnunet-service-fs.c:1279
+#: src/service/fs/gnunet-service-fs.c:1295
+#: src/service/fs/gnunet-service-fs.c:1306
 #: src/service/hostlist/gnunet-daemon-hostlist.c:355
 #: src/service/topology/gnunet-daemon-topology.c:1093
 #: src/service/topology/gnunet-daemon-topology.c:1101
@@ -6706,11 +6707,11 @@ msgstr ""
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4383
+#: src/service/transport/gnunet-communicator-tcp.c:4300
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:4106
+#: src/service/transport/gnunet-communicator-udp.c:4023
 msgid "GNUnet UDP communicator"
 msgstr ""
 
