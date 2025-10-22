@@ -789,7 +789,7 @@ qconv_array (
 
   sizes = meta->sizes;
   same_sized = (0 != meta->same_size);
-  memset (is_null, 0, num);
+  memset (is_null, 0, sizeof (is_null));
 
 #define RETURN_UNLESS(cond) \
         do { \
@@ -805,7 +805,8 @@ qconv_array (
   {
     /* num * length-field */
     size_t x = sizeof(uint32_t);
-    size_t y = x * num;
+    size_t y = x * num; /* for hsz headers of each element */
+
     RETURN_UNLESS ((0 == num) || (y / num == x));
 
     /* size of header */
@@ -860,6 +861,7 @@ qconv_array (
           for (unsigned int i = 0; i < num; i++)
           {
             size_t len = strlen (ptr);
+
             RETURN_UNLESS (len < INT_MAX);
             string_lengths[i] = len;
             ptr += len + 1;
@@ -874,6 +876,7 @@ qconv_array (
             if (NULL != str[i])
             {
               size_t len = strlen (str[i]);
+
               RETURN_UNLESS (len < INT_MAX);
               string_lengths[i] = len;
             }
@@ -901,7 +904,9 @@ qconv_array (
             is_null[i] = true;
           }
           else
+          {
             RETURN_UNLESS (sizes[i] < INT_MAX);
+          }
         }
       }
 
@@ -914,6 +919,7 @@ qconv_array (
     }
 
     RETURN_UNLESS (total_size < INT_MAX);
+    RETURN_UNLESS (total_size < GNUNET_MAX_MALLOC_CHECKED);
     elements = GNUNET_malloc (total_size);
   }
 
@@ -930,9 +936,10 @@ qconv_array (
     };
 
     /* Write header */
-    GNUNET_memcpy (out, &h, sizeof(h));
+    GNUNET_memcpy (out,
+                   &h,
+                   sizeof(h));
     out += sizeof(h);
-
 
     /* Write elements */
     for (unsigned int i = 0; i < num; i++)
@@ -964,8 +971,8 @@ qconv_array (
       case array_of_uint32:
         {
           uint32_t v;
-          GNUNET_assert (sizeof(uint32_t) == sz);
 
+          GNUNET_assert (sizeof(uint32_t) == sz);
           v = htonl (*(uint32_t *) in);
           GNUNET_memcpy (out,
                          &v,
@@ -976,8 +983,8 @@ qconv_array (
       case array_of_uint64:
         {
           uint64_t tmp;
-          GNUNET_assert (sizeof(uint64_t) == sz);
 
+          GNUNET_assert (sizeof(uint64_t) == sz);
           tmp = GNUNET_htonll (*(uint64_t *) in);
           GNUNET_memcpy (out,
                          &tmp,
@@ -999,8 +1006,9 @@ qconv_array (
             in += sz + nullbyte;
           }
           else
+          {
             ptr = ((const char **) data)[i];
-
+          }
           RETURN_UNLESS (NULL != ptr);
           GNUNET_memcpy (out,
                          ptr,
