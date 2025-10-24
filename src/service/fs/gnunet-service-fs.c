@@ -1300,11 +1300,11 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
     = GNUNET_PILS_connect (GSF_cfg,
                            &pils_pid_change_cb,
                            NULL);
-  if (NULL == GSF_core)
+  if (NULL == GSF_pils)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to connect to `%s' service.\n"),
-                "core");
+                "pils");
     return GNUNET_SYSERR;
   }
   cover_age_task =
