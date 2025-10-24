@@ -1405,6 +1405,7 @@ GNUNET_CRYPTO_hkdf_extract (struct GNUNET_ShortHashCode *prk,
  * @brief HKDF-Expand using SHA256. RFC 5869
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
+ * @param prk pesudorandom key
  * @param ... pair of void * & size_t for context chunks, terminated by NULL
  * @return #GNUNET_YES on success
  */
@@ -2408,8 +2409,8 @@ GNUNET_CRYPTO_eddsa_kem_decaps (const struct
  * Use #GNUNET_CRYPTO_hkdf_expand to derive further context-specific
  * keys from the key material.
  *
- * @param priv private key to use for the ECDH (y)
- * @param c public key from EdDSA to use for the ECDH (X=h(x)G)
+ * @param pub public key from EdDSA to use for the ECDH (X=h(x)G)
+ * @param c encapsulation of prk
  * @param prk where to write the key material HKDF-Extract(c||aX)=HKDF-Extract(c||x(aG))
  * @return #GNUNET_SYSERR on error, #GNUNET_OK on success
  */
@@ -2909,9 +2910,9 @@ GNUNET_CRYPTO_eddsa_verify_ (
  *
  * @param purp purpose of the signature, must match 'ps->purpose.purpose'
  *              (except in host byte order)
- * @param priv private key to use for the signing
  * @param ps packed struct with what to sign, MUST begin with a purpose
  * @param sig where to write the signature
+ * @param pub public key key to use for the verification
  */
 #define GNUNET_CRYPTO_eddsa_verify(purp,ps,sig,pub) ({             \
     /* check size is set correctly */                              \
