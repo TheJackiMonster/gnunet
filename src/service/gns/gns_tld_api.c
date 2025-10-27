@@ -167,7 +167,7 @@ process_lookup_result (void *cls,
  */
 static void
 lookup_with_public_key (struct GNUNET_GNS_LookupWithTldRequest *ltr,
-                        const struct GNUNET_CRYPTO_PublicKey *pkey)
+                        const struct GNUNET_CRYPTO_BlindablePublicKey *pkey)
 {
   ltr->lr = GNUNET_GNS_lookup (ltr->gns_handle,
                                ltr->name,
@@ -190,11 +190,11 @@ lookup_with_public_key (struct GNUNET_GNS_LookupWithTldRequest *ltr,
  */
 static void
 identity_zone_cb (void *cls,
-                  const struct GNUNET_CRYPTO_PrivateKey *priv,
+                  const struct GNUNET_CRYPTO_BlindablePrivateKey *priv,
                   const char *ego_name)
 {
   struct GNUNET_GNS_LookupWithTldRequest *ltr = cls;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   ltr->id_co = NULL;
   if (NULL == priv)
@@ -219,20 +219,20 @@ identity_zone_cb (void *cls,
     ltr->options = GNUNET_GNS_LO_NO_DHT;
   else
     ltr->options = GNUNET_GNS_LO_LOCAL_MASTER;
-  GNUNET_CRYPTO_key_get_public (priv, &pkey);
+  GNUNET_CRYPTO_blindable_key_get_public (priv, &pkey);
   lookup_with_public_key (ltr, &pkey);
 }
 
 
 enum GNUNET_GenericReturnValue
 GNUNET_GNS_parse_ztld (const char *name,
-                       struct GNUNET_CRYPTO_PublicKey *ztld_key)
+                       struct GNUNET_CRYPTO_BlindablePublicKey *ztld_key)
 {
   const char *tld;
 
   /* start with trivial case: TLD is zkey */
   tld = get_tld (name);
-  return GNUNET_CRYPTO_public_key_from_string (tld, ztld_key);
+  return GNUNET_CRYPTO_blindable_public_key_from_string (tld, ztld_key);
 }
 
 
@@ -248,7 +248,7 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
   const char *tld;
   char *dot_tld;
   char *zonestr;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   ltr = GNUNET_new (struct GNUNET_GNS_LookupWithTldRequest);
   ltr->gns_handle = handle;
@@ -282,8 +282,8 @@ GNUNET_GNS_lookup_with_tld (struct GNUNET_GNS_Handle *handle,
                                                             &zonestr))
     {
       if (GNUNET_OK !=
-          GNUNET_CRYPTO_public_key_from_string (zonestr,
-                                                &pkey))
+          GNUNET_CRYPTO_blindable_public_key_from_string (zonestr,
+                                                          &pkey))
       {
         GNUNET_log_config_invalid (
           GNUNET_ERROR_TYPE_ERROR,

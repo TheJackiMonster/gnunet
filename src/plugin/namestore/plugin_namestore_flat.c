@@ -52,7 +52,7 @@ struct FlatFileEntry
   /**
    * Entry zone
    */
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
 
   /**
    * Record count.
@@ -84,7 +84,7 @@ struct FlatFileEntry
  * @param[out] h initialized hash
  */
 static void
-hash_pkey_and_label (const struct GNUNET_CRYPTO_PrivateKey *pkey,
+hash_pkey_and_label (const struct GNUNET_CRYPTO_BlindablePrivateKey *pkey,
                      const char *label,
                      struct GNUNET_HashCode *h)
 {
@@ -93,14 +93,14 @@ hash_pkey_and_label (const struct GNUNET_CRYPTO_PrivateKey *pkey,
   size_t key_len;
 
   label_len = strlen (label);
-  key_len = label_len + sizeof(struct GNUNET_CRYPTO_PrivateKey);
+  key_len = label_len + sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey);
   key = GNUNET_malloc (key_len);
   GNUNET_memcpy (key,
                  label,
                  label_len);
   GNUNET_memcpy (key + label_len,
                  pkey,
-                 sizeof(struct GNUNET_CRYPTO_PrivateKey));
+                 sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey));
   GNUNET_CRYPTO_hash (key,
                       key_len,
                       h);
@@ -294,7 +294,7 @@ database_setup (struct Plugin *plugin)
     GNUNET_free (record_data);
 
     {
-      struct GNUNET_CRYPTO_PrivateKey *private_key;
+      struct GNUNET_CRYPTO_BlindablePrivateKey *private_key;
 
       GNUNET_STRINGS_base64_decode (zone_private_key,
                                     strlen (zone_private_key),
@@ -343,7 +343,8 @@ store_and_free_entries (void *cls,
 
   (void) key;
   GNUNET_STRINGS_base64_encode (&entry->private_key,
-                                sizeof(struct GNUNET_CRYPTO_PrivateKey),
+                                sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey)
+                                ,
                                 &zone_private_key);
   data_size = GNUNET_GNSRECORD_records_get_size (entry->record_count,
                                                  entry->record_data);
@@ -450,7 +451,7 @@ database_shutdown (struct Plugin *plugin)
 static int
 namestore_flat_store_records (void *cls,
                               const struct
-                              GNUNET_CRYPTO_PrivateKey *zone_key,
+                              GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                               const char *label,
                               unsigned int rd_count,
                               const struct GNUNET_GNSRECORD_Data *rd)
@@ -480,7 +481,7 @@ namestore_flat_store_records (void *cls,
                    strlen (label));
   GNUNET_memcpy (&entry->private_key,
                  zone_key,
-                 sizeof(struct GNUNET_CRYPTO_PrivateKey));
+                 sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey));
   entry->rvalue = rvalue;
   entry->record_count = rd_count;
   entry->record_data = GNUNET_new_array (rd_count,
@@ -515,7 +516,8 @@ namestore_flat_store_records (void *cls,
  */
 static int
 namestore_flat_lookup_records (void *cls,
-                               const struct GNUNET_CRYPTO_PrivateKey *zone,
+                               const struct GNUNET_CRYPTO_BlindablePrivateKey *
+                               zone,
                                const char *label,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
@@ -572,7 +574,7 @@ struct IterateContext
   /**
    * Target zone.
    */
-  const struct GNUNET_CRYPTO_PrivateKey *zone;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
 
   /**
    * Function to call on each record.
@@ -645,7 +647,7 @@ iterate_zones (void *cls,
 static int
 namestore_flat_iterate_records (void *cls,
                                 const struct
-                                GNUNET_CRYPTO_PrivateKey *zone,
+                                GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                 uint64_t serial,
                                 uint64_t limit,
                                 GNUNET_NAMESTORE_RecordIterator iter,
@@ -672,8 +674,8 @@ namestore_flat_iterate_records (void *cls,
  */
 struct ZoneToNameContext
 {
-  const struct GNUNET_CRYPTO_PrivateKey *zone;
-  const struct GNUNET_CRYPTO_PublicKey *value_zone;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *value_zone;
   GNUNET_NAMESTORE_RecordIterator iter;
   void *iter_cls;
 
@@ -731,9 +733,10 @@ zone_to_name (void *cls,
  */
 static int
 namestore_flat_zone_to_name (void *cls,
-                             const struct GNUNET_CRYPTO_PrivateKey *zone,
+                             const struct GNUNET_CRYPTO_BlindablePrivateKey *
+                             zone,
                              const struct
-                             GNUNET_CRYPTO_PublicKey *value_zone,
+                             GNUNET_CRYPTO_BlindablePublicKey *value_zone,
                              GNUNET_NAMESTORE_RecordIterator iter,
                              void *iter_cls)
 {

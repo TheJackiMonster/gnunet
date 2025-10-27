@@ -107,7 +107,7 @@ struct Iterator
   /**
    * Key of the zone we are iterating over.
    */
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
 
   /**
    * Namestore iterator
@@ -263,7 +263,7 @@ struct AttributeDeleteHandle
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
 
 
   /**
@@ -341,12 +341,12 @@ struct AttributeStoreHandle
   /**
    * Identity
    */
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
 
   /**
    * Identity pubkey
    */
-  struct GNUNET_CRYPTO_PublicKey identity_pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey identity_pkey;
 
   /**
    * QueueEntry
@@ -767,7 +767,7 @@ handle_issue_ticket_message (void *cls, const struct IssueTicketMessage *im)
   struct IdpClient *idp = cls;
   struct GNUNET_RECLAIM_AttributeList *attrs;
   struct GNUNET_RECLAIM_AttributeListEntry *le;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   const char *rp;
   size_t attrs_len;
   size_t key_len;
@@ -882,7 +882,7 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
 {
   struct TicketRevocationOperation *rop;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   struct GNUNET_RECLAIM_Ticket *ticket;
   size_t key_len;
   size_t read;
@@ -924,7 +924,7 @@ handle_revoke_ticket_message (void *cls, const struct RevokeTicketMessage *rm)
  */
 static void
 consume_result_cb (void *cls,
-                   const struct GNUNET_CRYPTO_PublicKey *identity,
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
                    const struct GNUNET_RECLAIM_AttributeList *attrs,
                    const struct GNUNET_RECLAIM_PresentationList *presentations,
                    int32_t success,
@@ -958,9 +958,9 @@ consume_result_cb (void *cls,
   crm->key_len = htons (key_len);
   crm->result = htons (success);
   data_tmp = (char *) &crm[1];
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (identity,
-                                                      data_tmp,
-                                                      key_len);
+  written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (identity,
+                                                        data_tmp,
+                                                        key_len);
   GNUNET_assert (0 <= written);
   data_tmp += written;
   GNUNET_RECLAIM_attribute_list_serialize (attrs, data_tmp);
@@ -1151,7 +1151,7 @@ handle_attribute_store_message (void *cls,
 {
   struct AttributeStoreHandle *ash;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t data_len;
   size_t key_len;
   size_t read;
@@ -1181,7 +1181,7 @@ handle_attribute_store_message (void *cls,
   ash->r_id = ntohl (sam->id);
   ash->identity = identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_CRYPTO_key_get_public (&identity, &ash->identity_pkey);
+  GNUNET_CRYPTO_blindable_key_get_public (&identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1256,7 +1256,7 @@ cred_error (void *cls)
 */
 static void
 cred_add_cb (void *cls,
-             const struct GNUNET_CRYPTO_PrivateKey *zone,
+             const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
              const char *label,
              unsigned int rd_count,
              const struct GNUNET_GNSRECORD_Data *rd)
@@ -1352,7 +1352,7 @@ handle_credential_store_message (void *cls,
 {
   struct AttributeStoreHandle *ash;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t data_len;
   size_t key_len;
   size_t read;
@@ -1381,7 +1381,7 @@ handle_credential_store_message (void *cls,
   ash->r_id = ntohl (sam->id);
   ash->identity = identity;
   ash->exp.rel_value_us = GNUNET_ntohll (sam->exp);
-  GNUNET_CRYPTO_key_get_public (&identity, &ash->identity_pkey);
+  GNUNET_CRYPTO_blindable_key_get_public (&identity, &ash->identity_pkey);
 
   GNUNET_SERVICE_client_continue (idp->client);
   ash->client = idp;
@@ -1426,7 +1426,7 @@ send_delete_response (struct AttributeDeleteHandle *adh, int32_t success)
  */
 static void
 consistency_iter (void *cls,
-                  const struct GNUNET_CRYPTO_PrivateKey *zone,
+                  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
                   const char *label,
                   unsigned int rd_count,
                   const struct GNUNET_GNSRECORD_Data *rd)
@@ -1827,7 +1827,7 @@ handle_attribute_delete_message (void *cls,
 {
   struct AttributeDeleteHandle *adh;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t data_len;
   size_t key_len;
   size_t read;
@@ -1934,7 +1934,7 @@ handle_credential_delete_message (void *cls,
 {
   struct AttributeDeleteHandle *adh;
   struct IdpClient *idp = cls;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t data_len;
   size_t key_len;
   size_t read;
@@ -2035,14 +2035,14 @@ attr_iter_error (void *cls)
  */
 static void
 attr_iter_cb (void *cls,
-              const struct GNUNET_CRYPTO_PrivateKey *zone,
+              const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
               const char *label,
               unsigned int rd_count,
               const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_CRYPTO_PublicKey identity;
+  struct GNUNET_CRYPTO_BlindablePublicKey identity;
   struct AttributeResultMessage *arm;
   char *data_tmp;
   size_t key_len;
@@ -2058,7 +2058,7 @@ attr_iter_cb (void *cls,
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending ATTRIBUTE_RESULT message\n");
-  GNUNET_CRYPTO_key_get_public (zone, &identity);
+  GNUNET_CRYPTO_blindable_key_get_public (zone, &identity);
   key_len = GNUNET_CRYPTO_public_key_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
                              rd->data_size + key_len,
@@ -2067,9 +2067,9 @@ attr_iter_cb (void *cls,
   arm->attr_len = htons (rd->data_size);
   data_tmp = (char *) &arm[1];
   arm->pkey_len = htons (key_len);
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (&identity,
-                                                      data_tmp,
-                                                      key_len);
+  written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (&identity,
+                                                        data_tmp,
+                                                        key_len);
   GNUNET_assert (0 <= written);
   data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
@@ -2109,7 +2109,7 @@ handle_iteration_start (void *cls,
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t key_len;
   size_t read;
 
@@ -2266,7 +2266,7 @@ cred_iter_error (void *cls)
  */
 static void
 cred_iter_cb (void *cls,
-              const struct GNUNET_CRYPTO_PrivateKey *zone,
+              const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
               const char *label,
               unsigned int rd_count,
               const struct GNUNET_GNSRECORD_Data *rd)
@@ -2274,7 +2274,7 @@ cred_iter_cb (void *cls,
   struct Iterator *ai = cls;
   struct GNUNET_MQ_Envelope *env;
   struct CredentialResultMessage *arm;
-  struct GNUNET_CRYPTO_PublicKey identity;
+  struct GNUNET_CRYPTO_BlindablePublicKey identity;
   char *data_tmp;
   size_t key_len;
   ssize_t written;
@@ -2289,7 +2289,7 @@ cred_iter_cb (void *cls,
               label);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CREDENTIAL_RESULT message\n");
-  GNUNET_CRYPTO_key_get_public (zone, &identity);
+  GNUNET_CRYPTO_blindable_key_get_public (zone, &identity);
   key_len = GNUNET_CRYPTO_public_key_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
                              rd->data_size + key_len,
@@ -2298,9 +2298,9 @@ cred_iter_cb (void *cls,
   arm->credential_len = htons (rd->data_size);
   arm->key_len = htons (key_len);
   data_tmp = (char *) &arm[1];
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (&identity,
-                                                      data_tmp,
-                                                      key_len);
+  written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (&identity,
+                                                        data_tmp,
+                                                        key_len);
   GNUNET_assert (written >= 0);
   data_tmp += written;
   GNUNET_memcpy (data_tmp, rd->data, rd->data_size);
@@ -2341,7 +2341,7 @@ handle_credential_iteration_start (void *cls,
 {
   struct IdpClient *idp = cls;
   struct Iterator *ai;
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   size_t key_len;
   size_t read;
 
@@ -2526,7 +2526,7 @@ handle_ticket_iteration_start (
   void *cls,
   const struct TicketIterationStartMessage *tis_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey identity;
+  struct GNUNET_CRYPTO_BlindablePrivateKey identity;
   struct IdpClient *client = cls;
   struct TicketIteration *ti;
   size_t key_len;
@@ -2711,7 +2711,7 @@ client_connect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "reclaim",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

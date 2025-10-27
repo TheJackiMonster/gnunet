@@ -114,7 +114,7 @@ struct CallList
   /**
    * Public key identifying the caller.
    */
-  struct GNUNET_CRYPTO_PublicKey caller_id;
+  struct GNUNET_CRYPTO_BlindablePublicKey caller_id;
 
   /**
    * Unique number of the call.
@@ -192,7 +192,7 @@ static char *ego_name;
 /**
  * Public key of active conversation partner (if any).
  */
-static struct GNUNET_CRYPTO_PublicKey peer_key;
+static struct GNUNET_CRYPTO_BlindablePublicKey peer_key;
 
 /**
  * Name of active conversation partner (if any).
@@ -242,7 +242,7 @@ static void
 phone_event_handler (void *cls,
                      enum GNUNET_CONVERSATION_PhoneEventCode code,
                      struct GNUNET_CONVERSATION_Caller *caller,
-                     const struct GNUNET_CRYPTO_PublicKey *caller_id)
+                     const struct GNUNET_CRYPTO_BlindablePublicKey *caller_id)
 {
   struct CallList *cl;
 
@@ -668,7 +668,8 @@ do_status (const char *args)
     fprintf (
       stdout,
       _ (
-        "We are currently trying to locate the private key for the ego `%s'.\n"),
+        "We are currently trying to locate the private key for the ego `%s'.\n")
+      ,
       ego_name);
     break;
 
@@ -936,7 +937,8 @@ static struct VoipCommand commands[] = {
   { "/address",
     &do_address,
     gettext_noop (
-      "Use `/address' to find out which address this phone should have in GNS") },
+      "Use `/address' to find out which address this phone should have in GNS")}
+  ,
   { "/call", &do_call, gettext_noop ("Use `/call USER.gnu' to call USER") },
   { "/accept",
     &do_accept,
@@ -1207,7 +1209,7 @@ main (int argc, char *const *argv)
   stdin_fh = GNUNET_DISK_get_handle_from_int_fd (0);
 
   ret =
-    GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+    GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                         argc,
                         argv,
                         "gnunet-conversation",

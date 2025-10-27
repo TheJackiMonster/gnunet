@@ -151,7 +151,8 @@ typedef void
                                          struct GNUNET_CONVERSATION_Caller *
                                          caller,
                                          const struct
-                                         GNUNET_CRYPTO_PublicKey *caller_id);
+                                         GNUNET_CRYPTO_BlindablePublicKey *
+                                         caller_id);
 
 
 /**

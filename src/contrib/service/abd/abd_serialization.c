@@ -199,7 +199,7 @@ GNUNET_ABD_delegates_serialize (
     c_rec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
     c_rec.purpose.size =
       htonl ((sizeof (struct DelegateEntry) + cd[i].issuer_attribute_len)
-             - sizeof (struct GNUNET_CRYPTO_Signature));
+             - sizeof (struct GNUNET_CRYPTO_BlindableKeySignature));
     c_rec.expiration = GNUNET_htonll (cd[i].expiration.abs_value_us);
     if (off + sizeof (c_rec) > dest_size)
       return -1;
@@ -446,15 +446,16 @@ GNUNET_ABD_delegate_serialize (struct GNUNET_ABD_Delegate *dele,
     }
     cdata->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
     cdata->purpose.size =
-      htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
+      htonl (size - sizeof (struct GNUNET_CRYPTO_BlindableKeySignature));
 
     GNUNET_memcpy (&cdata[1], tmp_str, attr_len);
   }
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                       &cdata->purpose,
-                                       &cdata->signature,
-                                       &cdata->issuer_key))
+      GNUNET_CRYPTO_blinded_key_signature_verify_ (
+        GNUNET_SIGNATURE_PURPOSE_DELEGATE,
+        &cdata->purpose,
+        &cdata->signature,
+        &cdata->issuer_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Serialize: Invalid delegate\n");
     return 0;
@@ -474,10 +475,11 @@ GNUNET_ABD_delegate_deserialize (const char *data, size_t data_size)
     return NULL;
   cdata = (struct DelegateEntry *) data;
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_signature_verify_ (GNUNET_SIGNATURE_PURPOSE_DELEGATE,
-                                       &cdata->purpose,
-                                       &cdata->signature,
-                                       &cdata->issuer_key))
+      GNUNET_CRYPTO_blinded_key_signature_verify_ (
+        GNUNET_SIGNATURE_PURPOSE_DELEGATE,
+        &cdata->purpose,
+        &cdata->signature,
+        &cdata->issuer_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deserialize: Invalid delegate\n");
     return NULL;

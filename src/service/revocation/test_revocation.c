@@ -38,8 +38,8 @@ struct TestPeer
   struct GNUNET_TESTBED_Operation *core_op;
   struct GNUNET_IDENTITY_Handle *idh;
   const struct GNUNET_CONFIGURATION_Handle *cfg;
-  const struct GNUNET_CRYPTO_PrivateKey *privkey;
-  struct GNUNET_CRYPTO_PublicKey pubkey;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *privkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
   struct GNUNET_CRYPTO_EcdsaSignature sig;
   struct GNUNET_IDENTITY_Operation *create_id_op;
   struct GNUNET_IDENTITY_EgoLookup *ego_lookup;
@@ -148,7 +148,7 @@ static void
 ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
   static int completed = 0;
-  const struct GNUNET_CRYPTO_PrivateKey *privkey;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *privkey;
 
   if ((NULL != ego) && (cls == &testpeers[0]))
   {
@@ -194,7 +194,7 @@ ego_cb (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 
 static void
 identity_create_cb (void *cls,
-                    const struct GNUNET_CRYPTO_PrivateKey *pk,
+                    const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
                     enum GNUNET_ErrorCode ec)
 {
   static int completed = 0;

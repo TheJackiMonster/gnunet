@@ -323,8 +323,8 @@ calculate_pow (void *cls)
 static void
 ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_CRYPTO_PublicKey key;
-  const struct GNUNET_CRYPTO_PrivateKey *privkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *privkey;
   struct GNUNET_GNSRECORD_PowCalculationHandle *ph = NULL;
   size_t psize;
 
@@ -411,15 +411,15 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *c)
 {
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   size_t psize;
 
   cfg = c;
   if (NULL != test_ego)
   {
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_public_key_from_string (test_ego,
-                                              &pk))
+        GNUNET_CRYPTO_blindable_public_key_from_string (test_ego,
+                                                        &pk))
     {
       fprintf (stderr, _ ("Public key `%s' malformed\n"), test_ego);
       return;

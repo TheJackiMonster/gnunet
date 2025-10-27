@@ -86,7 +86,7 @@ typedef void
  * @return handle to cancel operation
  */
 struct GNS_ResolverHandle *
-GNS_resolver_lookup (const struct GNUNET_CRYPTO_PublicKey *zone,
+GNS_resolver_lookup (const struct GNUNET_CRYPTO_BlindablePublicKey *zone,
                      uint32_t record_type,
                      const char *name,
                      enum GNUNET_GNS_LocalOptions options,

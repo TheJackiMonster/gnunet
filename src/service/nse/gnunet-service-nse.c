@@ -197,7 +197,7 @@ struct GNUNET_NSE_FloodMessage
   /**
    * Purpose.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * The current timestamp value (which all
@@ -586,6 +586,7 @@ get_transmit_delay (int round_offset)
   return GNUNET_TIME_UNIT_FOREVER_REL;
 }
 
+
 static void
 sign_message_before_send_cb (void *cls,
                              const struct GNUNET_PeerIdentity *pid,
@@ -667,7 +668,6 @@ transmit_task_cb (void *cls)
     &sign_message_before_send_cb,
     peer_entry);
 }
-
 
 
 /**
@@ -1466,8 +1466,7 @@ run (void *cls,
     GNUNET_MQ_handler_end () };
   char *proof;
   struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_NSE,
     .version = { 1, 0 },
     .version_max = { 1, 0 },
@@ -1576,7 +1575,7 @@ run (void *cls,
                          &handle_core_connect, /* Handle connects */
                          &handle_core_disconnect, /* Handle disconnects */
                          core_handlers, /* Register these handlers */
-                         &service_info );
+                         &service_info);
   if (NULL == core_api)
   {
     GNUNET_SCHEDULER_shutdown ();

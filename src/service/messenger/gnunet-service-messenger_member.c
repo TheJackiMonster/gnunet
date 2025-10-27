@@ -378,7 +378,7 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member)
 
 struct GNUNET_MESSENGER_MemberSession*
 get_member_session (const struct GNUNET_MESSENGER_Member *member,
-                    const struct GNUNET_CRYPTO_PublicKey *public_key)
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *public_key)
 {
   struct GNUNET_HashCode hash;
 
@@ -422,7 +422,7 @@ iterate_search_session (void *cls,
 
 static struct GNUNET_MESSENGER_MemberSession*
 try_member_session (struct GNUNET_MESSENGER_Member *member,
-                    const struct GNUNET_CRYPTO_PublicKey *public_key)
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *public_key)
 {
   struct GNUNET_MESSENGER_MemberSession *session;
 
@@ -473,7 +473,7 @@ void
 add_member_session (struct GNUNET_MESSENGER_Member *member,
                     struct GNUNET_MESSENGER_MemberSession *session)
 {
-  const struct GNUNET_CRYPTO_PublicKey *public_key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
   struct GNUNET_HashCode hash;
 
   if (! session)
@@ -497,7 +497,7 @@ void
 remove_member_session (struct GNUNET_MESSENGER_Member *member,
                        struct GNUNET_MESSENGER_MemberSession *session)
 {
-  const struct GNUNET_CRYPTO_PublicKey *public_key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
   struct GNUNET_HashCode hash;
 
   GNUNET_assert ((member) && (session) && (session->member == member));

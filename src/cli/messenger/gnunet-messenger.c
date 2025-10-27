@@ -646,7 +646,7 @@ static void
 on_ego_lookup (void *cls,
                struct GNUNET_IDENTITY_Ego *ego)
 {
-  const struct GNUNET_CRYPTO_PrivateKey *key;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
 
   ego_lookup = NULL;
 

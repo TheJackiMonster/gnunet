@@ -170,7 +170,7 @@ struct UdpHandshakeSignature
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the inititor of the UDP connection (UDP client).
@@ -280,7 +280,7 @@ struct UdpBroadcastSignature
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the inititor of the UDP broadcast.
@@ -597,7 +597,7 @@ struct ReceiverAddress
   /**
    * To whom are we talking to.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey target_hpke_key;
+  struct GNUNET_CRYPTO_HpkePublicKey target_hpke_key;
 
   /**
    * The address key for this entry.
@@ -863,7 +863,7 @@ static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 /**
  * Our private key for HPKE.
  */
-static struct GNUNET_CRYPTO_EcdhePrivateKey my_x25519_private_key;
+static struct GNUNET_CRYPTO_HpkePrivateKey my_x25519_private_key;
 
 /**
  * Our configuration.
@@ -905,23 +905,25 @@ static struct GNUNET_SCHEDULER_Task *burst_task;
 
 static void
 eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
-                        struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+                        struct GNUNET_CRYPTO_HpkePrivateKey *pk)
 {
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
-  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key,
+                                   pk);
 }
 
 
 static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
-                       struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+                       struct GNUNET_CRYPTO_HpkePublicKey *pk)
 {
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
-  GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
+  GNUNET_CRYPTO_hpke_pk_to_x25519 (&key,
+                                   pk);
 }
 
 
@@ -1428,7 +1430,9 @@ setup_shared_secret_dec (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral
   struct SharedSecret *ss;
 
   ss = GNUNET_new (struct SharedSecret);
-  GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &ss->master);
+  GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key,
+                                  ephemeral,
+                                  &ss->master);
   calculate_cmac (ss);
   return ss;
 }
@@ -1471,7 +1475,8 @@ setup_shared_secret_ephemeral (struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral
   struct SharedSecret *ss;
 
   ss = GNUNET_new (struct SharedSecret);
-  GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key, ephemeral,
+  GNUNET_CRYPTO_eddsa_kem_encaps (&receiver->target.public_key,
+                                  ephemeral,
                                   &ss->master);
   calculate_cmac (ss);
   ss->receiver = receiver;

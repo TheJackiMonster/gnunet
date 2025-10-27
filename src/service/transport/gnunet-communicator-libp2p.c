@@ -53,9 +53,7 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "communicator-tcp", __VA_ARGS__)
 
 
-
 GNUNET_NETWORK_STRUCT_BEGIN
-
 
 
 /**
@@ -84,7 +82,6 @@ struct Queue
   struct sockaddr *address;
 
 };
-
 
 
 /**
@@ -194,7 +191,7 @@ static void
 eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
                         struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
 {
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
@@ -205,7 +202,7 @@ static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
                        struct GNUNET_CRYPTO_EcdhePublicKey *pk)
 {
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
@@ -3294,7 +3291,7 @@ run (void *cls,
     // structure in order to send something via the c++ implementation of
     // libp2p.
     //
-    //post(
+    // post(
     //  *context,
     //  [log,
     //   host{std::move(host)},

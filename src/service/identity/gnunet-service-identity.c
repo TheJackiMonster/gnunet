@@ -55,7 +55,7 @@ struct Ego
   /**
    * Private key of the ego.
    */
-  struct GNUNET_CRYPTO_PrivateKey pk;
+  struct GNUNET_CRYPTO_BlindablePrivateKey pk;
 
   /**
    * String identifier for the ego.
@@ -236,7 +236,7 @@ create_update_message (struct Ego *ego)
   size_t name_len;
   ssize_t key_len;
 
-  key_len = GNUNET_CRYPTO_private_key_get_length (&ego->pk);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (&ego->pk);
   name_len = (NULL == ego->identifier) ? 0 : (strlen (ego->identifier) + 1);
   env = GNUNET_MQ_msg_extra (um, name_len + key_len,
                              GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
@@ -244,9 +244,9 @@ create_update_message (struct Ego *ego)
   um->end_of_list = htons (GNUNET_NO);
   um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
-  GNUNET_CRYPTO_write_private_key_to_buffer (&ego->pk,
-                                             ((char*) &um[1]) + name_len,
-                                             key_len);
+  GNUNET_CRYPTO_write_blindable_sk_to_buffer (&ego->pk,
+                                              ((char*) &um[1]) + name_len,
+                                              key_len);
   return env;
 }
 
@@ -420,7 +420,7 @@ notify_listeners (struct Ego *ego)
   ssize_t key_len;
 
   name_len = (NULL == ego->identifier) ? 0 : (strlen (ego->identifier) + 1);
-  key_len = GNUNET_CRYPTO_private_key_get_length (&ego->pk);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (&ego->pk);
   um = GNUNET_malloc (sizeof(struct UpdateMessage) + name_len + key_len);
   um->header.type = htons (GNUNET_MESSAGE_TYPE_IDENTITY_UPDATE);
   um->header.size = htons (sizeof(struct UpdateMessage) + name_len + key_len);
@@ -428,9 +428,9 @@ notify_listeners (struct Ego *ego)
   um->end_of_list = htons (GNUNET_NO);
   um->key_len = htons (key_len);
   GNUNET_memcpy (&um[1], ego->identifier, name_len);
-  GNUNET_CRYPTO_write_private_key_to_buffer (&ego->pk,
-                                             ((char*) &um[1]) + name_len,
-                                             key_len);
+  GNUNET_CRYPTO_write_blindable_sk_to_buffer (&ego->pk,
+                                              ((char*) &um[1]) + name_len,
+                                              key_len);
   GNUNET_notification_context_broadcast (nc, &um->header, GNUNET_NO);
   GNUNET_free (um);
 }
@@ -485,7 +485,7 @@ static void
 handle_create_message (void *cls,
                        const struct CreateRequestMessage *crm)
 {
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
   struct GNUNET_SERVICE_Client *client = cls;
   struct Ego *ego;
   char *str;
@@ -529,7 +529,7 @@ handle_create_message (void *cls,
   if (GNUNET_OK !=
       GNUNET_DISK_fn_write (fn,
                             &private_key,
-                            sizeof(struct GNUNET_CRYPTO_PrivateKey),
+                            sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey),
                             GNUNET_DISK_PERM_USER_READ
                             | GNUNET_DISK_PERM_USER_WRITE))
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR, "write", fn);
@@ -998,7 +998,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "identity",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

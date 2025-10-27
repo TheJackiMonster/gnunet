@@ -169,7 +169,7 @@ cb_key_error (void *cls)
 
 static void
 cb_key_monitor (void *cls,
-                const struct GNUNET_CRYPTO_PrivateKey *zone,
+                const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
                 const char *label,
                 unsigned int rd_count,
                 const struct GNUNET_GNSRECORD_Data *rd,
@@ -378,7 +378,7 @@ cb_key_sync (void *cls)
 
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
-                const struct GNUNET_CRYPTO_PrivateKey *key)
+                const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   GNUNET_assert (handle);
 
@@ -402,13 +402,13 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
   }
 
   if (! handle->key)
-    handle->key = GNUNET_new (struct GNUNET_CRYPTO_PrivateKey);
+    handle->key = GNUNET_new (struct GNUNET_CRYPTO_BlindablePrivateKey);
 
   if (! handle->pubkey)
-    handle->pubkey = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
+    handle->pubkey = GNUNET_new (struct GNUNET_CRYPTO_BlindablePublicKey);
 
   GNUNET_memcpy (handle->key, key, sizeof(*key));
-  GNUNET_CRYPTO_key_get_public (key, handle->pubkey);
+  GNUNET_CRYPTO_blindable_key_get_public (key, handle->pubkey);
 
   // Resets epoch and group keys as not stored yet
   GNUNET_CONTAINER_multihashmap_iterate (
@@ -428,7 +428,7 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
 }
 
 
-const struct GNUNET_CRYPTO_PrivateKey*
+const struct GNUNET_CRYPTO_BlindablePrivateKey*
 get_handle_key (const struct GNUNET_MESSENGER_Handle *handle)
 {
   GNUNET_assert (handle);
@@ -440,7 +440,7 @@ get_handle_key (const struct GNUNET_MESSENGER_Handle *handle)
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_handle_pubkey (const struct GNUNET_MESSENGER_Handle *handle)
 {
   GNUNET_assert (handle);
@@ -560,7 +560,7 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
                         void *cont_cls,
                         struct GNUNET_NAMESTORE_QueueEntry **query)
 {
-  const struct GNUNET_CRYPTO_PrivateKey *zone;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
   struct GNUNET_TIME_Absolute expiration;
   struct GNUNET_GNSRECORD_Data data;
   struct GNUNET_MESSENGER_RoomEpochKeyRecord record;

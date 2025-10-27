@@ -457,7 +457,7 @@ static void
 send_open_room (struct GNUNET_MESSENGER_Handle *handle,
                 struct GNUNET_MESSENGER_Room *room)
 {
-  const struct GNUNET_CRYPTO_PublicKey *key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key;
   struct GNUNET_MESSENGER_RoomMessage *msg;
   struct GNUNET_MQ_Envelope *env;
   char *msg_buffer;
@@ -470,7 +470,7 @@ send_open_room (struct GNUNET_MESSENGER_Handle *handle,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Open room (%s) by member using key: %s\n",
               GNUNET_h2s (get_room_key (room)),
-              GNUNET_CRYPTO_public_key_to_string (key));
+              GNUNET_CRYPTO_blindable_public_key_to_string (key));
 
   len = GNUNET_CRYPTO_public_key_get_length (key);
 
@@ -482,7 +482,7 @@ send_open_room (struct GNUNET_MESSENGER_Handle *handle,
   msg_buffer = ((char*) msg) + sizeof(*msg);
 
   if (len > 0)
-    GNUNET_CRYPTO_write_public_key_to_buffer (key, msg_buffer, len);
+    GNUNET_CRYPTO_write_blindable_pk_to_buffer (key, msg_buffer, len);
 
   GNUNET_MQ_send (handle->mq, env);
 }
@@ -493,7 +493,7 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
                  struct GNUNET_MESSENGER_Room *room,
                  const struct GNUNET_PeerIdentity *door)
 {
-  const struct GNUNET_CRYPTO_PublicKey *key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key;
   struct GNUNET_MESSENGER_RoomMessage *msg;
   struct GNUNET_MQ_Envelope *env;
   char *msg_buffer;
@@ -506,7 +506,7 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Enter room (%s) via door: %s (%s)\n",
               GNUNET_h2s (get_room_key (room)),
               GNUNET_i2s (door),
-              GNUNET_CRYPTO_public_key_to_string (key));
+              GNUNET_CRYPTO_blindable_public_key_to_string (key));
 
   len = GNUNET_CRYPTO_public_key_get_length (key);
 
@@ -519,7 +519,7 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
   msg_buffer = ((char*) msg) + sizeof(*msg);
 
   if (len > 0)
-    GNUNET_CRYPTO_write_public_key_to_buffer (key, msg_buffer, len);
+    GNUNET_CRYPTO_write_blindable_pk_to_buffer (key, msg_buffer, len);
 
   GNUNET_MQ_send (handle->mq, env);
 }
@@ -727,7 +727,7 @@ reconnect (struct GNUNET_MESSENGER_Handle *handle)
 struct GNUNET_MESSENGER_Handle*
 GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *name,
-                          const struct GNUNET_CRYPTO_PrivateKey *key,
+                          const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                           GNUNET_MESSENGER_MessageCallback msg_callback,
                           void *msg_cls)
 {
@@ -746,7 +746,7 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
     set_handle_name (handle, name);
 
-    if ((! key) || (0 < GNUNET_CRYPTO_private_key_get_length (key)))
+    if ((! key) || (0 < GNUNET_CRYPTO_blindable_sk_get_length (key)))
       set_handle_key (handle, key);
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Connect handle!\n");
@@ -925,7 +925,7 @@ active_subscription:
 static void
 send_message_to_room (struct GNUNET_MESSENGER_Room *room,
                       struct GNUNET_MESSENGER_Message *message,
-                      const struct GNUNET_CRYPTO_PrivateKey *key,
+                      const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                       const struct GNUNET_HashCode *epoch,
                       struct GNUNET_HashCode *hash)
 {
@@ -1068,7 +1068,7 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          struct GNUNET_MESSENGER_Message *transcript,
                          enum GNUNET_GenericReturnValue sync)
 {
-  const struct GNUNET_CRYPTO_PrivateKey *key;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
 
   GNUNET_assert ((room) && (message));
 
@@ -1100,10 +1100,10 @@ dequeue_message_from_room (void *cls)
   struct GNUNET_MESSENGER_Room *room;
   struct GNUNET_MESSENGER_Message *message;
   struct GNUNET_MESSENGER_Message *transcript;
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
   struct GNUNET_HashCode epoch;
   struct GNUNET_HashCode hash;
-  struct GNUNET_CRYPTO_PublicKey pubkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
 
   GNUNET_assert (cls);
 
@@ -1145,7 +1145,7 @@ dequeue_message_from_room (void *cls)
   GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
 
   memset (&pubkey, 0, sizeof(pubkey));
-  GNUNET_CRYPTO_key_get_public (&key, &pubkey);
+  GNUNET_CRYPTO_blindable_key_get_public (&key, &pubkey);
 
   if (GNUNET_YES == encrypt_message (transcript, &pubkey))
   {
@@ -1242,8 +1242,9 @@ GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
 }
 
 
-static const struct GNUNET_CRYPTO_PublicKey*
-get_non_anonymous_key (const struct GNUNET_CRYPTO_PublicKey *public_key)
+static const struct GNUNET_CRYPTO_BlindablePublicKey*
+get_non_anonymous_key (const struct GNUNET_CRYPTO_BlindablePublicKey *public_key
+                       )
 {
   if (0 == GNUNET_memcmp (public_key, get_anonymous_public_key ()))
     return NULL;
@@ -1252,7 +1253,7 @@ get_non_anonymous_key (const struct GNUNET_CRYPTO_PublicKey *public_key)
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle)
 {
   if (! handle)
@@ -1267,7 +1268,7 @@ iterate_send_key_to_room (void *cls,
                           struct GNUNET_MESSENGER_Room *room,
                           const struct GNUNET_MESSENGER_Contact *contact)
 {
-  const struct GNUNET_CRYPTO_PrivateKey *key;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
   struct GNUNET_MESSENGER_Message *message;
 
   GNUNET_assert ((cls) && (room));
@@ -1285,7 +1286,7 @@ iterate_send_key_to_room (void *cls,
 
 enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
-                          const struct GNUNET_CRYPTO_PrivateKey *key)
+                          const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   if (! handle)
     return GNUNET_SYSERR;
@@ -1297,11 +1298,11 @@ GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
     return GNUNET_YES;
   }
 
-  if (0 >= GNUNET_CRYPTO_private_key_get_length (key))
+  if (0 >= GNUNET_CRYPTO_blindable_sk_get_length (key))
     return GNUNET_SYSERR;
 
   {
-    struct GNUNET_CRYPTO_PrivateKey priv;
+    struct GNUNET_CRYPTO_BlindablePrivateKey priv;
     GNUNET_memcpy (&priv, key, sizeof (priv));
 
     GNUNET_MESSENGER_find_rooms (handle, NULL, iterate_send_key_to_room, &priv);
@@ -1499,7 +1500,7 @@ GNUNET_MESSENGER_contact_get_name (const struct
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct
                                   GNUNET_MESSENGER_Contact *contact)
 {
@@ -1524,10 +1525,11 @@ GNUNET_MESSENGER_contact_get_id (const struct
 static void
 send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
                                struct GNUNET_MESSENGER_Message *message,
-                               const struct GNUNET_CRYPTO_PublicKey *public_key)
+                               const struct GNUNET_CRYPTO_BlindablePublicKey *
+                               public_key)
 {
   struct GNUNET_MESSENGER_Message *transcript;
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
   const char *handle_name;
   char *original_name;
 
@@ -1583,7 +1585,7 @@ GNUNET_MESSENGER_send_message (struct GNUNET_MESSENGER_Room *room,
                                const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_MESSENGER_Contact *contact)
 {
-  const struct GNUNET_CRYPTO_PublicKey *public_key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
 
   if ((! room) || (! message))
     return;

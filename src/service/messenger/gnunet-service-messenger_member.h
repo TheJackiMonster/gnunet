@@ -129,7 +129,7 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member);
  */
 struct GNUNET_MESSENGER_MemberSession*
 get_member_session (const struct GNUNET_MESSENGER_Member *member,
-                    const struct GNUNET_CRYPTO_PublicKey *public_key);
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *public_key);
 
 /**
  * Returns the member session of a <i>member</i> using a public key which can verify

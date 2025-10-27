@@ -79,7 +79,7 @@ struct ZoneIteration
   /**
    * Key of the zone we are iterating over.
    */
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
 
   /**
    * The record set filter
@@ -179,7 +179,7 @@ struct ZoneMonitor
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
 
   /**
    * The record set filter
@@ -283,7 +283,7 @@ struct StoreActivity
   /**
    * The zone private key
    */
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
 
   /**
    * Copy of the original record set (as data fields in @e rd will
@@ -307,7 +307,7 @@ struct NickCache
   /**
    * Zone the cache entry is for.
    */
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
 
   /**
    * Cached record data.
@@ -328,7 +328,7 @@ static struct NickCache nick_cache[NC_SIZE];
 /**
  * Public key of all zeros.
  */
-static const struct GNUNET_CRYPTO_PrivateKey zero;
+static const struct GNUNET_CRYPTO_BlindablePrivateKey zero;
 
 /**
  * Configuration handle.
@@ -436,7 +436,7 @@ static void
 lookup_nick_it (void *cls,
                 uint64_t seq,
                 const char *editor_hint,
-                const struct GNUNET_CRYPTO_PrivateKey *private_key,
+                const struct GNUNET_CRYPTO_BlindablePrivateKey *private_key,
                 const char *label,
                 unsigned int rd_count,
                 const struct GNUNET_GNSRECORD_Data *rd)
@@ -476,7 +476,7 @@ lookup_nick_it (void *cls,
  * @param nick nick entry to cache
  */
 static void
-cache_nick (const struct GNUNET_CRYPTO_PrivateKey *zone,
+cache_nick (const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
             const struct GNUNET_GNSRECORD_Data *nick)
 {
   struct NickCache *oldest;
@@ -520,9 +520,9 @@ cache_nick (const struct GNUNET_CRYPTO_PrivateKey *zone,
  * @return NULL if no NICK record was found
  */
 static struct GNUNET_GNSRECORD_Data *
-get_nick_record (const struct GNUNET_CRYPTO_PrivateKey *zone)
+get_nick_record (const struct GNUNET_CRYPTO_BlindablePrivateKey *zone)
 {
-  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub;
   struct GNUNET_GNSRECORD_Data *nick;
   int res;
 
@@ -562,7 +562,7 @@ get_nick_record (const struct GNUNET_CRYPTO_PrivateKey *zone)
                                            __LINE__);
     if (1 == do_log)
     {
-      GNUNET_CRYPTO_key_get_public (zone, &pub);
+      GNUNET_CRYPTO_blindable_key_get_public (zone, &pub);
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG | GNUNET_ERROR_TYPE_BULK,
                   "No nick name set for zone `%s'\n",
                   GNUNET_GNSRECORD_z2s (&pub));
@@ -678,7 +678,7 @@ static int
 send_lookup_response_with_filter (struct NamestoreClient *nc,
                                   uint32_t request_id,
                                   const struct
-                                  GNUNET_CRYPTO_PrivateKey *zone_key,
+                                  GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                                   const char *name,
                                   unsigned int rd_count,
                                   const struct GNUNET_GNSRECORD_Data *rd,
@@ -762,7 +762,7 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
     GNUNET_SERVICE_client_drop (nc->client);
     return 0;
   }
-  key_len = GNUNET_CRYPTO_private_key_get_length (zone_key);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (zone_key);
   env = GNUNET_MQ_msg_extra (zir_msg,
                              name_len + rd_ser_len + key_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_RECORD_RESULT);
@@ -771,9 +771,9 @@ send_lookup_response_with_filter (struct NamestoreClient *nc,
   zir_msg->rd_count = htons (res_count);
   zir_msg->rd_len = htons ((uint16_t) rd_ser_len);
   zir_msg->key_len = htons (key_len);
-  GNUNET_CRYPTO_write_private_key_to_buffer (zone_key,
-                                             &zir_msg[1],
-                                             key_len);
+  GNUNET_CRYPTO_write_blindable_sk_to_buffer (zone_key,
+                                              &zir_msg[1],
+                                              key_len);
   zir_msg->expire = GNUNET_TIME_absolute_hton (block_exp);
   name_tmp = (char *) &zir_msg[1] + key_len;
   GNUNET_memcpy (name_tmp, name, name_len);
@@ -1144,7 +1144,7 @@ static void
 lookup_it (void *cls,
            uint64_t seq,
            const char *editor_hint,
-           const struct GNUNET_CRYPTO_PrivateKey *private_key,
+           const struct GNUNET_CRYPTO_BlindablePrivateKey *private_key,
            const char *label,
            unsigned int rd_count_nf,
            const struct GNUNET_GNSRECORD_Data *rd_nf)
@@ -1291,7 +1291,7 @@ check_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
 static void
 handle_edit_record_set (void *cls, const struct EditRecordSetMessage *er_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   struct GNUNET_MQ_Envelope *env;
   struct EditRecordSetResponseMessage *rer_msg;
@@ -1425,7 +1425,7 @@ static void
 handle_edit_record_set_cancel (void *cls, const struct
                                EditRecordSetCancelMessage *er_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   struct GNUNET_MQ_Envelope *env;
   struct NamestoreResponseMessage *rer_msg;
@@ -1530,7 +1530,7 @@ check_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
 static void
 handle_record_lookup (void *cls, const struct LabelLookupMessage *ll_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   struct GNUNET_MQ_Envelope *env;
   struct LabelLookupResponseMessage *llr_msg;
@@ -1677,7 +1677,7 @@ get_existing_rd_exp (void *cls,
                      uint64_t seq,
                      const char *editor_hint,
                      const struct
-                     GNUNET_CRYPTO_PrivateKey *private_key,
+                     GNUNET_CRYPTO_BlindablePrivateKey *private_key,
                      const char *label,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -1712,7 +1712,7 @@ get_existing_rd_exp (void *cls,
 
 static enum GNUNET_ErrorCode
 store_record_set (struct NamestoreClient *nc,
-                  const struct GNUNET_CRYPTO_PrivateKey *private_key,
+                  const struct GNUNET_CRYPTO_BlindablePrivateKey *private_key,
                   const struct RecordSet *rd_set,
                   ssize_t *len)
 {
@@ -1911,7 +1911,7 @@ store_record_set (struct NamestoreClient *nc,
 static void
 handle_record_store (void *cls, const struct RecordStoreMessage *rp_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   uint32_t rid;
   uint16_t rd_set_count;
@@ -2019,7 +2019,8 @@ static void
 handle_zone_to_name_it (void *cls,
                         uint64_t seq,
                         const char *editor_hint,
-                        const struct GNUNET_CRYPTO_PrivateKey *zone_key,
+                        const struct GNUNET_CRYPTO_BlindablePrivateKey *zone_key
+                        ,
                         const char *name,
                         unsigned int rd_count,
                         const struct GNUNET_GNSRECORD_Data *rd)
@@ -2047,7 +2048,7 @@ handle_zone_to_name_it (void *cls,
     ztn_ctx->ec = htonl (GNUNET_EC_NAMESTORE_UNKNOWN);
     return;
   }
-  key_len = GNUNET_CRYPTO_private_key_get_length (zone_key);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (zone_key);
   msg_size = sizeof(struct ZoneToNameResponseMessage)
              + name_len + rd_ser_len + key_len;
   if (msg_size >= GNUNET_MAX_MESSAGE_SIZE)
@@ -2067,9 +2068,9 @@ handle_zone_to_name_it (void *cls,
   ztnr_msg->rd_count = htons (rd_count);
   ztnr_msg->name_len = htons (name_len);
   ztnr_msg->key_len = htons (key_len);
-  GNUNET_CRYPTO_write_private_key_to_buffer (zone_key,
-                                             &ztnr_msg[1],
-                                             key_len);
+  GNUNET_CRYPTO_write_blindable_sk_to_buffer (zone_key,
+                                              &ztnr_msg[1],
+                                              key_len);
   name_tmp = (char *) &ztnr_msg[1] + key_len;
   GNUNET_memcpy (name_tmp, name, name_len);
   rd_tmp = &name_tmp[name_len];
@@ -2098,8 +2099,8 @@ check_zone_to_name (void *cls,
 static void
 handle_zone_to_name (void *cls, const struct ZoneToNameMessage *ztn_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
-  struct GNUNET_CRYPTO_PublicKey value_zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePublicKey value_zone;
   struct NamestoreClient *nc = cls;
   struct ZoneToNameCtx ztn_ctx;
   struct GNUNET_MQ_Envelope *env;
@@ -2205,7 +2206,7 @@ static void
 zone_iterate_proc (void *cls,
                    uint64_t seq,
                    const char *editor_hint,
-                   const struct GNUNET_CRYPTO_PrivateKey *zone_key,
+                   const struct GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                    const char *name,
                    unsigned int rd_count,
                    const struct GNUNET_GNSRECORD_Data *rd)
@@ -2326,7 +2327,7 @@ static void
 handle_iteration_start (void *cls,
                         const struct ZoneIterationStartMessage *zis_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   struct ZoneIteration *zi;
   size_t key_len;
@@ -2516,7 +2517,7 @@ static void
 monitor_iterate_cb (void *cls,
                     uint64_t seq,
                     const char *editor_hint,
-                    const struct GNUNET_CRYPTO_PrivateKey *zone_key,
+                    const struct GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                     const char *name,
                     unsigned int rd_count,
                     const struct GNUNET_GNSRECORD_Data *rd)
@@ -2579,7 +2580,7 @@ static void
 handle_monitor_start (void *cls, const struct
                       ZoneMonitorStartMessage *zis_msg)
 {
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
   struct NamestoreClient *nc = cls;
   struct ZoneMonitor *zm;
   size_t key_len;
@@ -2786,7 +2787,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "namestore",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

@@ -54,9 +54,9 @@ static uint8_t skEmBytes[32] = {
 
 static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
-                       struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+                       struct GNUNET_CRYPTO_HpkePublicKey *pk)
 {
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
@@ -80,7 +80,7 @@ main (int argc,
   struct GNUNET_CRYPTO_ElligatorEcdhePrivateKey skEm;
   struct GNUNET_CRYPTO_EcdhePublicKey pkEm = {0};
   struct GNUNET_CRYPTO_ElligatorRepresentative enc = {0}; // randomness through seed
-  struct GNUNET_CRYPTO_EcdhePublicKey pkRmHpke = {0};
+  struct GNUNET_CRYPTO_HpkePublicKey pkRmHpke = {0};
   struct GNUNET_ShortHashCode key = {0};
   memcpy (skRm.d, skRmBytes, sizeof(skRm.d));
   memcpy (pkRm.q_y, pkRmBytes, sizeof(pkRm.q_y));
@@ -93,7 +93,8 @@ main (int argc,
                                                        &enc);
 
   // compute "key" deterministically
-  eddsa_pub_to_hpke_key (&pkRm, &pkRmHpke);
+  eddsa_pub_to_hpke_key (&pkRm,
+                         &pkRmHpke);
   GNUNET_CRYPTO_hpke_elligator_kem_encaps_norand (seed,
                                                   &pkRmHpke,
                                                   (struct

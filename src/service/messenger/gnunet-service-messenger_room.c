@@ -1029,7 +1029,7 @@ idle_request_room_messages (void *cls)
 void
 solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
                                   const struct
-                                  GNUNET_CRYPTO_PublicKey *public_key,
+                                  GNUNET_CRYPTO_BlindablePublicKey *public_key,
                                   const struct GNUNET_ShortHashCode *member_id,
                                   struct GNUNET_TIME_Absolute timestamp)
 {
@@ -1051,7 +1051,7 @@ solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
 
   for (element = handles->head; element; element = element->next)
   {
-    const struct GNUNET_CRYPTO_PublicKey *pubkey;
+    const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
     struct GNUNET_MESSENGER_MemberSession *session;
 
     if (0 != GNUNET_memcmp (member_id, get_srv_handle_member_id (
@@ -1318,7 +1318,7 @@ struct GNUNET_MESSENGER_MemberSubscriptionIteration
 
 static enum GNUNET_GenericReturnValue
 iterate_member_for_subscription (void *cls,
-                                 const struct GNUNET_CRYPTO_PublicKey *
+                                 const struct GNUNET_CRYPTO_BlindablePublicKey *
                                  public_key,
                                  struct GNUNET_MESSENGER_MemberSession *session)
 {
@@ -1388,7 +1388,7 @@ struct GNUNET_MESSENGER_MemberUpdate
 static enum GNUNET_GenericReturnValue
 iterate_update_member_sessions (void *cls,
                                 const struct
-                                GNUNET_CRYPTO_PublicKey *public_key,
+                                GNUNET_CRYPTO_BlindablePublicKey *public_key,
                                 struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberUpdate *update;
@@ -1658,7 +1658,7 @@ remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
   remove_member_session (session->member, session);
 
   {
-    const struct GNUNET_CRYPTO_PublicKey *public_key;
+    const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
     public_key = get_member_session_public_key (session);
 
     GNUNET_CRYPTO_hash (public_key, sizeof(*public_key), &hash);

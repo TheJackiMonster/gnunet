@@ -214,10 +214,10 @@ testTimeDecoding (void)
 static int
 elligatorKEM ()
 {
-  struct GNUNET_CRYPTO_PrivateKey pk_receiver;
-  struct GNUNET_CRYPTO_EcdhePrivateKey pk_receiver_hpke;
-  struct GNUNET_CRYPTO_PublicKey pub_receiver;
-  struct GNUNET_CRYPTO_EcdhePublicKey pub_receiver_hpke;
+  struct GNUNET_CRYPTO_BlindablePrivateKey pk_receiver;
+  struct GNUNET_CRYPTO_HpkePrivateKey pk_receiver_hpke;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub_receiver;
+  struct GNUNET_CRYPTO_HpkePublicKey pub_receiver_hpke;
   struct GNUNET_CRYPTO_HpkeEncapsulation c_sender;
   struct GNUNET_ShortHashCode key_material_encaps;
   struct GNUNET_ShortHashCode key_material_decaps;
@@ -228,7 +228,8 @@ elligatorKEM ()
                                       &pub_receiver.eddsa_key);
 
 
-  GNUNET_CRYPTO_hpke_sk_to_x25519 (&pk_receiver, &pk_receiver_hpke);
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&pk_receiver,
+                                   &pk_receiver_hpke);
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&pub_receiver, &pub_receiver_hpke);
   // Sender side
   GNUNET_CRYPTO_hpke_elligator_kem_encaps (&pub_receiver_hpke, &c_sender,

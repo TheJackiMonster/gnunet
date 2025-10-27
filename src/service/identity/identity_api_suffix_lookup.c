@@ -132,7 +132,7 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   const char *str;
   size_t key_len;
   size_t kb_read;
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
   const char *tmp;
 
   tmp = (const char*) &um[1];
@@ -143,9 +143,9 @@ handle_identity_update (void *cls, const struct UpdateMessage *um)
   {
     GNUNET_assert (GNUNET_SYSERR !=
                    GNUNET_CRYPTO_read_private_key_from_buffer (tmp + name_len,
-                                                                 key_len,
-                                                                 &private_key,
-                                                                 &kb_read));
+                                                               key_len,
+                                                               &private_key,
+                                                               &kb_read));
     GNUNET_assert (key_len == kb_read);
   }
   el->cb (el->cb_cls, &private_key, str);
@@ -235,7 +235,8 @@ GNUNET_IDENTITY_ego_lookup_by_suffix (const struct
  */
 void
 GNUNET_IDENTITY_ego_lookup_by_suffix_cancel (struct
-                                             GNUNET_IDENTITY_EgoSuffixLookup *el)
+                                             GNUNET_IDENTITY_EgoSuffixLookup *el
+                                             )
 {
   GNUNET_MQ_destroy (el->mq);
   GNUNET_free (el->suffix);

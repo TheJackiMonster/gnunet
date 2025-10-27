@@ -93,7 +93,7 @@ struct Zone
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
 };
 
 /**
@@ -458,7 +458,7 @@ parse_origin (char *token, char *porigin)
 
 static void
 origin_create_cb (void *cls,
-                  const struct GNUNET_CRYPTO_PrivateKey *pk,
+                  const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
                   enum GNUNET_ErrorCode ec)
 {
   struct Zone *zone;

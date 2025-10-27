@@ -122,7 +122,7 @@ struct GNS_TopLevelDomain
   /**
    * Public key associated with the @a tld.
    */
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   /**
    * Top-level domain as a string, including leading ".".
@@ -176,7 +176,7 @@ static struct GNS_TopLevelDomain *tld_tail;
  */
 enum GNUNET_GenericReturnValue
 GNS_find_tld (const char *tld_str,
-              struct GNUNET_CRYPTO_PublicKey *pkey)
+              struct GNUNET_CRYPTO_BlindablePublicKey *pkey)
 {
   if ('\0' == *tld_str)
     return GNUNET_NO;
@@ -420,7 +420,7 @@ handle_lookup (void *cls,
 {
   struct GnsClient *gc = cls;
   struct ClientLookupHandle *clh;
-  struct GNUNET_CRYPTO_PublicKey zone;
+  struct GNUNET_CRYPTO_BlindablePublicKey zone;
   const char *name;
   size_t key_len;
   size_t read;
@@ -497,7 +497,7 @@ read_service_conf (void *cls,
                    const char *option,
                    const char *value)
 {
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   struct GNS_TopLevelDomain *tld;
 
   (void) cls;
@@ -602,8 +602,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "gns",
+  (GNUNET_OS_project_data_gnunet (),
+  "gns",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

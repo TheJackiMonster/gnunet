@@ -403,7 +403,7 @@ static void
 phone_event_handler (void *cls,
                      enum GNUNET_CONVERSATION_PhoneEventCode code,
                      struct GNUNET_CONVERSATION_Caller *caller,
-                     const struct GNUNET_CRYPTO_PublicKey *caller_id)
+                     const struct GNUNET_CRYPTO_BlindablePublicKey *caller_id)
 {
   const char *cid;
 
@@ -507,7 +507,7 @@ call_event_handler (void *cls, enum GNUNET_CONVERSATION_CallEventCode code)
 
 static void
 caller_ego_create_cont (void *cls,
-                        const struct GNUNET_CRYPTO_PrivateKey *pk,
+                        const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
                         enum GNUNET_ErrorCode ec)
 {
   (void) cls;
@@ -537,7 +537,7 @@ identity_cb (void *cls,
              const char *name)
 {
   struct GNUNET_GNSRECORD_Data rd;
-  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub;
 
   (void) cls;
   (void) ctx;
@@ -560,12 +560,13 @@ identity_cb (void *cls,
     rd.expiration_time = UINT64_MAX;
     qe =
       GNUNET_NAMESTORE_record_set_store (ns,
-                                      GNUNET_IDENTITY_ego_get_private_key (ego),
-                                      "phone" /* GNS label */,
-                                      1,
-                                      &rd,
-                                      &namestore_put_cont,
-                                      NULL);
+                                         GNUNET_IDENTITY_ego_get_private_key (
+                                           ego),
+                                         "phone" /* GNS label */,
+                                         1,
+                                         &rd,
+                                         &namestore_put_cont,
+                                         NULL);
     return;
   }
   if (0 == strcmp (name, "caller-ego"))
@@ -595,7 +596,7 @@ identity_cb (void *cls,
 
 static void
 phone_ego_create_cont (void *cls,
-                       const struct GNUNET_CRYPTO_PrivateKey *pk,
+                       const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
                        enum GNUNET_ErrorCode ec)
 {
   (void) cls;

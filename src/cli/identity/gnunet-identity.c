@@ -123,7 +123,7 @@ static struct GNUNET_IDENTITY_Operation *delete_op;
 /**
  * Private key from command line option, or NULL.
  */
-struct GNUNET_CRYPTO_PrivateKey pk;
+struct GNUNET_CRYPTO_BlindablePrivateKey pk;
 
 /**
  * Value to return from #main().
@@ -213,7 +213,7 @@ delete_finished (void *cls,
  */
 static void
 create_finished (void *cls,
-                 const struct GNUNET_CRYPTO_PrivateKey *pk_created,
+                 const struct GNUNET_CRYPTO_BlindablePrivateKey *pk_created,
                  enum GNUNET_ErrorCode ec)
 {
   struct GNUNET_IDENTITY_Operation **op = cls;
@@ -228,16 +228,16 @@ create_finished (void *cls,
   }
   else if (verbose)
   {
-    struct GNUNET_CRYPTO_PublicKey pub;
+    struct GNUNET_CRYPTO_BlindablePublicKey pub;
     char *pubs;
 
-    GNUNET_CRYPTO_key_get_public (pk_created, &pub);
-    pubs = GNUNET_CRYPTO_public_key_to_string (&pub);
+    GNUNET_CRYPTO_blindable_key_get_public (pk_created, &pub);
+    pubs = GNUNET_CRYPTO_blindable_public_key_to_string (&pub);
     if (private_keys)
     {
       char *privs;
 
-      privs = GNUNET_CRYPTO_private_key_to_string (pk_created);
+      privs = GNUNET_CRYPTO_blindable_private_key_to_string (pk_created);
       fprintf (stdout, "%s - %s\n", pubs, privs);
       GNUNET_free (privs);
     }
@@ -258,17 +258,18 @@ create_finished (void *cls,
 static void
 write_encrypted_message (void)
 {
-  struct GNUNET_CRYPTO_PublicKey recipient;
-  struct GNUNET_CRYPTO_EcdhePublicKey hpke_key = {0};
+  struct GNUNET_CRYPTO_BlindablePublicKey recipient;
+  struct GNUNET_CRYPTO_HpkePublicKey hpke_key = {0};
   size_t msg_len = strlen (write_msg) + 1;
   size_t ct_len = strlen (write_msg) + 1
                   + GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
   unsigned char ct[ct_len];
-  if (GNUNET_CRYPTO_public_key_from_string (pubkey_msg, &recipient) !=
+  if (GNUNET_CRYPTO_blindable_public_key_from_string (pubkey_msg, &recipient) !=
       GNUNET_SYSERR)
   {
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient, &hpke_key));
+                   GNUNET_CRYPTO_hpke_pk_to_x25519 (&recipient,
+                                                    &hpke_key));
     if (GNUNET_OK == GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
                                                       NULL, 0, // FIXME provide?
                                                       NULL, 0,
@@ -306,7 +307,7 @@ write_encrypted_message (void)
 static void
 read_encrypted_message (struct GNUNET_IDENTITY_Ego *ego)
 {
-  struct GNUNET_CRYPTO_EcdhePrivateKey hpke_key;
+  struct GNUNET_CRYPTO_HpkePrivateKey hpke_key;
   char *deserialized_msg;
   size_t msg_len;
   if (GNUNET_OK == GNUNET_STRINGS_string_to_data_alloc (read_msg,
@@ -387,7 +388,7 @@ print_ego (void *cls,
            void **ctx,
            const char *identifier)
 {
-  struct GNUNET_CRYPTO_PublicKey pk_tmp;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk_tmp;
   char *s;
   char *privs;
 
@@ -419,8 +420,8 @@ print_ego (void *cls,
                      set_ego)) )
     return;
   GNUNET_IDENTITY_ego_get_public_key (ego, &pk_tmp);
-  s = GNUNET_CRYPTO_public_key_to_string (&pk_tmp);
-  privs = GNUNET_CRYPTO_private_key_to_string (
+  s = GNUNET_CRYPTO_blindable_public_key_to_string (&pk_tmp);
+  privs = GNUNET_CRYPTO_blindable_private_key_to_string (
     GNUNET_IDENTITY_ego_get_private_key (ego));
   if ((NULL != read_msg) && (NULL != set_ego))
   {
@@ -511,7 +512,7 @@ run (void *cls,
                                      strlen (privkey_ego),
                                      &pk,
                                      sizeof(struct
-                                            GNUNET_CRYPTO_PrivateKey));
+                                            GNUNET_CRYPTO_BlindablePrivateKey));
       create_op =
         GNUNET_IDENTITY_create (sh,
                                 create_ego,

@@ -63,7 +63,7 @@ GNUNET_NETWORK_STRUCT_BEGIN
  */
 struct TestSignatureDataPS
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
   uint32_t testval;
 };
 

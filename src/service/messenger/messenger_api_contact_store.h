@@ -89,7 +89,7 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
 struct GNUNET_MESSENGER_Contact*
 get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                    const struct GNUNET_HashCode *context,
-                   const struct GNUNET_CRYPTO_PublicKey *pubkey);
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey);
 
 /**
  * Moves a <i>contact</i> from the <i>store</i> to another location
@@ -108,7 +108,7 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context,
                       const struct GNUNET_HashCode *next_context,
-                      const struct GNUNET_CRYPTO_PublicKey *pubkey);
+                      const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey);
 
 /**
  * Removes a <i>contact</i> from the <i>store</i> which uses

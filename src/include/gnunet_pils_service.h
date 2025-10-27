@@ -135,7 +135,7 @@ GNUNET_PILS_disconnect (struct GNUNET_PILS_Handle *handle);
  * @brief Sign data with the peer id
  *
  * TODO not sure whether this was the intended design from last meeting - this
- *      is currently following the design of #GNUNET_CRYPTO_sign_by_peer_identity
+ *      is currently following the design of #GNUNET_CRYPTO_blinded_key_sign_by_peer_identity
  *
  *      In particular we currently transfer the secret key from the service to
  *      the api so we can sign in-place and have no ipc-overhead. Is this fine?
@@ -150,7 +150,7 @@ GNUNET_PILS_disconnect (struct GNUNET_PILS_Handle *handle);
 struct GNUNET_PILS_Operation*
 GNUNET_PILS_sign_by_peer_identity (struct GNUNET_PILS_Handle *handle,
                                    const struct
-                                   GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                                   GNUNET_CRYPTO_SignaturePurpose *purpose,
                                    GNUNET_PILS_SignResultCallback cb,
                                    void *cb_cls);
 

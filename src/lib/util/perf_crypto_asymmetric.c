@@ -33,7 +33,7 @@ static struct GNUNET_TIME_Absolute start;
 
 struct TestSig
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_HashCode h;
   struct GNUNET_CRYPTO_EddsaSignature sig;
 };
@@ -71,7 +71,7 @@ main (int argc, char *argv[])
   for (i = 0; i < l; i++)
   {
     sig[i].purp.purpose = 0;
-    sig[i].purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+    sig[i].purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
                               + sizeof(struct GNUNET_HashCode));
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK,
                                 &sig[i].h,

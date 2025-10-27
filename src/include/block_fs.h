@@ -60,7 +60,7 @@ struct UBlock
   /**
    * What is being signed and why?
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Public key used to sign this block.

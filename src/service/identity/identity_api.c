@@ -75,7 +75,7 @@ struct GNUNET_IDENTITY_Operation
   /**
    * Private key to return to @e create_cont, or NULL.
    */
-  struct GNUNET_CRYPTO_PrivateKey pk;
+  struct GNUNET_CRYPTO_BlindablePrivateKey pk;
 
   /**
    * Continuation to invoke with the result of the transmission for
@@ -165,7 +165,7 @@ GNUNET_IDENTITY_ego_get_anonymous ()
   anon.pk.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
   anon.pub.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
   anon.pk.ecdsa_key = *GNUNET_CRYPTO_ecdsa_key_get_anonymous ();
-  key_len = GNUNET_CRYPTO_private_key_get_length (&anon.pk);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (&anon.pk);
   GNUNET_assert (0 < key_len);
   GNUNET_CRYPTO_hash (&anon.pk,
                       key_len,
@@ -361,7 +361,7 @@ handle_identity_update (void *cls,
   size_t kb_read;
   struct GNUNET_HashCode id;
   struct GNUNET_IDENTITY_Ego *ego;
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
   const char *tmp;
 
   if (GNUNET_YES == ntohs (um->end_of_list))
@@ -380,9 +380,9 @@ handle_identity_update (void *cls,
                                                              key_len,
                                                              &private_key,
                                                              &kb_read));
-  GNUNET_assert (0 <= GNUNET_CRYPTO_private_key_get_length (&private_key));
+  GNUNET_assert (0 <= GNUNET_CRYPTO_blindable_sk_get_length (&private_key));
   GNUNET_CRYPTO_hash (&private_key,
-                      GNUNET_CRYPTO_private_key_get_length (&private_key),
+                      GNUNET_CRYPTO_blindable_sk_get_length (&private_key),
                       &id);
   ego = GNUNET_CONTAINER_multihashmap_get (h->egos,
                                            &id);
@@ -518,7 +518,7 @@ GNUNET_IDENTITY_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
  * @param ego the ego
  * @return associated ECC key, valid as long as the ego is valid
  */
-const struct GNUNET_CRYPTO_PrivateKey *
+const struct GNUNET_CRYPTO_BlindablePrivateKey *
 GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego)
 {
   return &ego->pk;
@@ -533,11 +533,11 @@ GNUNET_IDENTITY_ego_get_private_key (const struct GNUNET_IDENTITY_Ego *ego)
  */
 void
 GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
-                                    struct GNUNET_CRYPTO_PublicKey *pk)
+                                    struct GNUNET_CRYPTO_BlindablePublicKey *pk)
 {
   if (GNUNET_NO == ego->pub_initialized)
   {
-    GNUNET_CRYPTO_key_get_public (&ego->pk, &ego->pub);
+    GNUNET_CRYPTO_blindable_key_get_public (&ego->pk, &ego->pub);
     ego->pub_initialized = GNUNET_YES;
   }
   *pk = ego->pub;
@@ -546,7 +546,7 @@ GNUNET_IDENTITY_ego_get_public_key (struct GNUNET_IDENTITY_Ego *ego,
 
 static enum GNUNET_GenericReturnValue
 private_key_create (enum GNUNET_CRYPTO_KeyType ktype,
-                    struct GNUNET_CRYPTO_PrivateKey *key)
+                    struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   key->type = htonl (ktype);
   switch (ktype)
@@ -568,12 +568,12 @@ private_key_create (enum GNUNET_CRYPTO_KeyType ktype,
 struct GNUNET_IDENTITY_Operation *
 GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
                         const char *name,
-                        const struct GNUNET_CRYPTO_PrivateKey *privkey,
+                        const struct GNUNET_CRYPTO_BlindablePrivateKey *privkey,
                         enum GNUNET_CRYPTO_KeyType ktype,
                         GNUNET_IDENTITY_CreateContinuation cont,
                         void *cont_cls)
 {
-  struct GNUNET_CRYPTO_PrivateKey private_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey private_key;
   struct GNUNET_IDENTITY_Operation *op;
   struct GNUNET_MQ_Envelope *env;
   struct CreateRequestMessage *crm;
@@ -600,13 +600,13 @@ GNUNET_IDENTITY_create (struct GNUNET_IDENTITY_Handle *h,
   }
   else
     private_key = *privkey;
-  key_len = GNUNET_CRYPTO_private_key_get_length (&private_key);
+  key_len = GNUNET_CRYPTO_blindable_sk_get_length (&private_key);
   env = GNUNET_MQ_msg_extra (crm, slen + key_len,
                              GNUNET_MESSAGE_TYPE_IDENTITY_CREATE);
   crm->name_len = htons (slen);
-  GNUNET_CRYPTO_write_private_key_to_buffer (&private_key,
-                                             &crm[1],
-                                             key_len);
+  GNUNET_CRYPTO_write_blindable_sk_to_buffer (&private_key,
+                                              &crm[1],
+                                              key_len);
   crm->key_len = htons (key_len);
   op->pk = private_key;
   GNUNET_memcpy ((char*) &crm[1] + key_len, name, slen);

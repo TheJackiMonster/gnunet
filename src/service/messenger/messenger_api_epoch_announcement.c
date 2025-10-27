@@ -971,6 +971,7 @@ handle_epoch_announcement_access (struct GNUNET_MESSENGER_EpochAnnouncement *
                                   const struct GNUNET_HashCode *hash)
 {
   const struct GNUNET_CRYPTO_EcdhePrivateKey *private_key;
+  struct GNUNET_CRYPTO_HpkePrivateKey private_hpke;
   struct GNUNET_CRYPTO_SymmetricSessionKey shared_key;
   const struct GNUNET_MESSENGER_Message *appeal_message;
 
@@ -985,9 +986,13 @@ handle_epoch_announcement_access (struct GNUNET_MESSENGER_EpochAnnouncement *
                 "Private key for decrypting shared key is missing!\n");
     return;
   }
-
+  GNUNET_memcpy (&private_hpke.ecdhe_key,
+                 private_key,
+                 sizeof *private_key);
   if (GNUNET_NO == extract_access_message_key (
-        message, private_key, &shared_key))
+        message,
+        &private_hpke,
+        &shared_key))
     return;
 
   if (get_epoch_announcement_key (announcement))

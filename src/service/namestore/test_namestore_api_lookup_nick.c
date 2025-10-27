@@ -39,9 +39,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_PrivateKey privkey;
+static struct GNUNET_CRYPTO_BlindablePrivateKey privkey;
 
-static struct GNUNET_CRYPTO_PublicKey pubkey;
+static struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
 
 static int res;
 
@@ -96,7 +96,7 @@ end (void *cls)
 
 static void
 lookup_it (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone,
+           const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -288,8 +288,8 @@ run (void *cls,
                                                 NULL);
   privkey.type = htonl (GNUNET_GNSRECORD_TYPE_PKEY);
   GNUNET_CRYPTO_ecdsa_key_create (&privkey.ecdsa_key);
-  GNUNET_CRYPTO_key_get_public (&privkey,
-                                &pubkey);
+  GNUNET_CRYPTO_blindable_key_get_public (&privkey,
+                                          &pubkey);
 
   nsh = GNUNET_NAMESTORE_connect (cfg);
   GNUNET_break (NULL != nsh);

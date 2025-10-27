@@ -232,13 +232,13 @@ database_connect (struct Plugin *plugin)
 static enum GNUNET_GenericReturnValue
 namestore_postgres_store_records (void *cls,
                                   const struct
-                                  GNUNET_CRYPTO_PrivateKey *zone_key,
+                                  GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                                   const char *label,
                                   unsigned int rd_count,
                                   const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Plugin *plugin = cls;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
   uint64_t rvalue;
   uint32_t rd_count32 = (uint32_t) rd_count;
   ssize_t data_size;
@@ -350,7 +350,7 @@ struct ParserContext
   /**
    * Zone key, NULL if part of record.
    */
-  const struct GNUNET_CRYPTO_PrivateKey *zone_key;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone_key;
 
   /**
    * Number of results still to return (counted down by
@@ -387,7 +387,7 @@ parse_result_call_iterator (void *cls,
     uint32_t record_count;
     char *label;
     char *editor_hint;
-    struct GNUNET_CRYPTO_PrivateKey zk;
+    struct GNUNET_CRYPTO_BlindablePrivateKey zk;
     struct GNUNET_PQ_ResultSpec rs_with_zone[] = {
       GNUNET_PQ_result_spec_uint64 ("seq", &serial),
       GNUNET_PQ_result_spec_uint32 ("record_count", &record_count),
@@ -467,7 +467,7 @@ parse_result_call_iterator (void *cls,
 static enum GNUNET_GenericReturnValue
 namestore_postgres_lookup_records (void *cls,
                                    const struct
-                                   GNUNET_CRYPTO_PrivateKey *zone,
+                                   GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                    const char *label,
                                    GNUNET_NAMESTORE_RecordIterator iter,
                                    void *iter_cls)
@@ -517,12 +517,12 @@ namestore_postgres_clear_editor_hint (void *cls,
                                       const char *editor_hint,
                                       const char *editor_hint_replacement,
                                       const struct
-                                      GNUNET_CRYPTO_PrivateKey *zone,
+                                      GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                       const char *label)
 {
 
   struct Plugin *plugin = cls;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   GNUNET_assert (GNUNET_OK == database_prepare (plugin));
   memset (&pkey,
@@ -563,7 +563,7 @@ static int
 namestore_postgres_edit_records (void *cls,
                                  const char *editor_hint,
                                  const struct
-                                 GNUNET_CRYPTO_PrivateKey *zone,
+                                 GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                  const char *label,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
@@ -615,7 +615,7 @@ namestore_postgres_edit_records (void *cls,
 static enum GNUNET_GenericReturnValue
 namestore_postgres_iterate_records (void *cls,
                                     const struct
-                                    GNUNET_CRYPTO_PrivateKey *zone,
+                                    GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                     uint64_t serial,
                                     uint64_t limit,
                                     GNUNET_NAMESTORE_RecordIterator iter,
@@ -683,9 +683,9 @@ namestore_postgres_iterate_records (void *cls,
 static enum GNUNET_GenericReturnValue
 namestore_postgres_zone_to_name (void *cls,
                                  const struct
-                                 GNUNET_CRYPTO_PrivateKey *zone,
+                                 GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                  const struct
-                                 GNUNET_CRYPTO_PublicKey *value_zone,
+                                 GNUNET_CRYPTO_BlindablePublicKey *value_zone,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
 {

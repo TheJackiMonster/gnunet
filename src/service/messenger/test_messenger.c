@@ -49,7 +49,7 @@ static struct GNUNET_SCHEDULER_Task *it_task = NULL;
 
 struct GNUNET_MESSENGER_Handle *messenger = NULL;
 
-static struct GNUNET_CRYPTO_PrivateKey identity;
+static struct GNUNET_CRYPTO_BlindablePrivateKey identity;
 
 static void
 end (void *cls)
@@ -133,11 +133,12 @@ on_iteration (void *cls)
     return;
   }
 
-  const struct GNUNET_CRYPTO_PublicKey *key = GNUNET_MESSENGER_get_key (
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key = GNUNET_MESSENGER_get_key
+                                                       (
     handle);
 
-  struct GNUNET_CRYPTO_PublicKey pubkey;
-  GNUNET_CRYPTO_key_get_public (&identity, &pubkey);
+  struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
+  GNUNET_CRYPTO_blindable_key_get_public (&identity, &pubkey);
 
   if (((! identity_counter) && (key)) ||
       ((identity_counter) && ((! key) ||

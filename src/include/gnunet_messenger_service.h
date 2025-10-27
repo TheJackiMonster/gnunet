@@ -412,7 +412,7 @@ struct GNUNET_MESSENGER_MessageHeader
   /**
    * The signature of the senders private key.
    */
-  struct GNUNET_CRYPTO_Signature signature;
+  struct GNUNET_CRYPTO_BlindableKeySignature signature;
 
   /**
    * The timestamp of the message.
@@ -469,7 +469,7 @@ struct GNUNET_MESSENGER_MessageJoin
   /**
    * The senders public key to verify its signatures.
    */
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
 };
 
 /**
@@ -511,7 +511,7 @@ struct GNUNET_MESSENGER_MessageKey
   /**
    * The new public key which replaces the current senders public key.
    */
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
 };
 
 /**
@@ -738,7 +738,7 @@ struct GNUNET_MESSENGER_MessageTranscript
   /**
    * The key from the recipient of the original message.
    */
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
 
   /**
    * The length of the transcribed message.
@@ -1239,7 +1239,7 @@ typedef enum GNUNET_GenericReturnValue
 struct GNUNET_MESSENGER_Handle*
 GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *name,
-                          const struct GNUNET_CRYPTO_PrivateKey *key,
+                          const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                           GNUNET_MESSENGER_MessageCallback msg_callback,
                           void *msg_cls);
 
@@ -1278,7 +1278,7 @@ GNUNET_MESSENGER_set_name (struct GNUNET_MESSENGER_Handle *handle,
  * @param[in] handle Messenger handle to use
  * @return Used public key or NULL
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
@@ -1292,7 +1292,7 @@ GNUNET_MESSENGER_get_key (const struct GNUNET_MESSENGER_Handle *handle);
  */
 enum GNUNET_GenericReturnValue
 GNUNET_MESSENGER_set_key (struct GNUNET_MESSENGER_Handle *handle,
-                          const struct GNUNET_CRYPTO_PrivateKey *key);
+                          const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Open a room to send and receive messages. The room will use the specified <i>key</i> as port for the underlying cadet
@@ -1418,7 +1418,7 @@ GNUNET_MESSENGER_contact_get_name (const struct
  * @param[in] contact Contact handle
  * @return Public key used by <i>contact</i> or NULL
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 GNUNET_MESSENGER_contact_get_key (const struct
                                   GNUNET_MESSENGER_Contact *contact);
 

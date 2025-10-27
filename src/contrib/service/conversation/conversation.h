@@ -39,7 +39,7 @@ extern "C"
 
 
 #define MAX_TRANSMIT_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 60)
+          GNUNET_TIME_UNIT_SECONDS, 60)
 
 
 /**
@@ -273,7 +273,7 @@ struct CadetPhoneRingInfoPS
    * Purpose for the signature, must be
    * #GNUNET_SIGNATURE_PURPOSE_CONVERSATION_RING.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Which port did the call go to?

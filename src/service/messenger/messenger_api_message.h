@@ -180,7 +180,7 @@ sign_message (struct GNUNET_MESSENGER_Message *message,
               uint16_t length,
               char *buffer,
               const struct GNUNET_HashCode *hash,
-              const struct GNUNET_CRYPTO_PrivateKey *key);
+              const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Signs the <i>hash</i> of a <i>message</i> with the peer identity of a given <i>config</i>
@@ -226,7 +226,7 @@ sign_message_by_key (struct GNUNET_MESSENGER_Message *message,
 enum GNUNET_GenericReturnValue
 verify_message (const struct GNUNET_MESSENGER_Message *message,
                 const struct GNUNET_HashCode *hash,
-                const struct GNUNET_CRYPTO_PublicKey *key);
+                const struct GNUNET_CRYPTO_BlindablePublicKey *key);
 
 /**
  * Verifies the signature of a given <i>message</i> and its <i>hash</i> with a specific
@@ -266,7 +266,7 @@ verify_message_by_key (const struct GNUNET_MESSENGER_Message *message,
  */
 enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_PublicKey *key);
+                 const struct GNUNET_CRYPTO_BlindablePublicKey *key);
 
 /**
  * Decrypts a private <i>message</i> using a given private <i>key</i> and replaces its body
@@ -279,7 +279,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  */
 enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_PrivateKey *key);
+                 const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Transcribes a <i>message</i> as a new transcript message using a given public
@@ -291,7 +291,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
  */
 struct GNUNET_MESSENGER_Message*
 transcribe_message (const struct GNUNET_MESSENGER_Message *message,
-                    const struct GNUNET_CRYPTO_PublicKey *key);
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *key);
 
 /**
  * Encrypts a <i>message</i> using a given shared <i>key</i> from an announcement of an
@@ -346,7 +346,7 @@ read_transcript_message (struct GNUNET_MESSENGER_Message *message);
  */
 enum GNUNET_GenericReturnValue
 extract_access_message_key (const struct GNUNET_MESSENGER_Message *message,
-                            const struct GNUNET_CRYPTO_EcdhePrivateKey *key,
+                            const struct GNUNET_CRYPTO_HpkePrivateKey *key,
                             struct GNUNET_CRYPTO_SymmetricSessionKey *
                             shared_key);
 

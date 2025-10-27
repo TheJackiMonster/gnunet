@@ -128,7 +128,7 @@ struct TcpHandshakeSignature
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the inititor of the TCP connection (TCP client).
@@ -166,7 +166,7 @@ struct TcpHandshakeAckSignature
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the inititor of the TCP connection (TCP client).
@@ -328,7 +328,7 @@ struct TcpRekeySignature
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the inititor of the TCP connection (TCP client).
@@ -444,7 +444,7 @@ struct Queue
   /**
    * To whom are we talking to.
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey target_hpke_key;
+  struct GNUNET_CRYPTO_HpkePublicKey target_hpke_key;
 
   /**
    * Listen socket.
@@ -870,7 +870,7 @@ static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 /**
  * Our private key.
  */
-static struct GNUNET_CRYPTO_EcdhePrivateKey my_x25519_private_key;
+static struct GNUNET_CRYPTO_HpkePrivateKey my_x25519_private_key;
 
 /**
  * Our configuration.
@@ -959,20 +959,21 @@ listen_cb (void *cls);
 
 static void
 eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
-                        struct GNUNET_CRYPTO_EcdhePrivateKey *pk)
+                        struct GNUNET_CRYPTO_HpkePrivateKey *pk)
 {
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
-  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key, pk);
+  GNUNET_CRYPTO_hpke_sk_to_x25519 (&key,
+                                   pk);
 }
 
 
 static void
 eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
-                       struct GNUNET_CRYPTO_EcdhePublicKey *pk)
+                       struct GNUNET_CRYPTO_HpkePublicKey *pk)
 {
-  struct GNUNET_CRYPTO_PublicKey key;
+  struct GNUNET_CRYPTO_BlindablePublicKey key;
   key.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
   key.eddsa_key = *edpk;
   GNUNET_CRYPTO_hpke_pk_to_x25519 (&key, pk);
@@ -1398,7 +1399,9 @@ setup_in_cipher_elligator (
 {
   struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key, c, &k);
+  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key,
+                                           c,
+                                           &k);
   setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
@@ -3122,7 +3125,8 @@ proto_read_kx (void *cls)
 
     queue = GNUNET_new (struct Queue);
     queue->target = pm->clientIdentity;
-    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
+    eddsa_pub_to_hpke_key (&queue->target.public_key,
+                           &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_OUTBOUND;
     read_task = &queue_read_kx;
   }
@@ -3152,7 +3156,8 @@ proto_read_kx (void *cls)
       return;
     }
     queue->target = tc.sender;
-    eddsa_pub_to_hpke_key (&queue->target.public_key, &queue->target_hpke_key);
+    eddsa_pub_to_hpke_key (&queue->target.public_key,
+                           &queue->target_hpke_key);
     queue->cs = GNUNET_TRANSPORT_CS_INBOUND;
     read_task = &queue_read;
   }

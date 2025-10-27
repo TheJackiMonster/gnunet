@@ -106,7 +106,7 @@ struct TicketRecordsEntry
 typedef void (*RECLAIM_TICKETS_TicketIter) (
   void *cls,
   struct GNUNET_RECLAIM_Ticket *ticket,
-  const char* rp_uri);
+  const char*rp_uri);
 
 
 /**
@@ -139,7 +139,7 @@ typedef void (*RECLAIM_TICKETS_TicketResult) (
  */
 typedef void (*RECLAIM_TICKETS_ConsumeCallback) (
   void *cls,
-  const struct GNUNET_CRYPTO_PublicKey *identity,
+  const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
   const struct GNUNET_RECLAIM_AttributeList *attributes,
   const struct GNUNET_RECLAIM_PresentationList *presentations,
   int32_t success,
@@ -168,7 +168,8 @@ typedef void (*RECLAIM_TICKETS_RevokeCallback) (void *cls, int32_t success);
  */
 struct RECLAIM_TICKETS_RevokeHandle *
 RECLAIM_TICKETS_revoke (const struct GNUNET_RECLAIM_Ticket *ticket,
-                        const struct GNUNET_CRYPTO_PrivateKey *identity,
+                        const struct GNUNET_CRYPTO_BlindablePrivateKey *identity
+                        ,
                         RECLAIM_TICKETS_RevokeCallback cb,
                         void *cb_cls);
 
@@ -221,7 +222,7 @@ RECLAIM_TICKETS_consume_cancel (struct RECLAIM_TICKETS_ConsumeHandle *cth);
  * FIXME: Return handle??
  */
 void
-RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_PrivateKey *identity,
+RECLAIM_TICKETS_issue (const struct GNUNET_CRYPTO_BlindablePrivateKey *identity,
                        const struct GNUNET_RECLAIM_AttributeList *attrs,
                        const char *rp,
                        RECLAIM_TICKETS_TicketResult cb,
@@ -256,7 +257,7 @@ RECLAIM_TICKETS_iteration_stop (struct RECLAIM_TICKETS_Iterator *iter);
  */
 struct RECLAIM_TICKETS_Iterator *
 RECLAIM_TICKETS_iteration_start (
-  const struct GNUNET_CRYPTO_PrivateKey *identity,
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *identity,
   RECLAIM_TICKETS_TicketIter cb,
   void *cb_cls);
 

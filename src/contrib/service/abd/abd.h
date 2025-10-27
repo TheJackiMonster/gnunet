@@ -42,12 +42,12 @@ struct CollectMessage
   /**
    * Subject public key
    */
-  struct GNUNET_CRYPTO_PrivateKey subject_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey subject_key;
 
   /**
    * Trust anchor
    */
-  struct GNUNET_CRYPTO_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer_key;
 
   /**
    * Length of the issuer attribute
@@ -81,12 +81,12 @@ struct VerifyMessage
   /**
    * Subject public key
    */
-  struct GNUNET_CRYPTO_PublicKey subject_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey subject_key;
 
   /**
    * Trust anchor
    */
-  struct GNUNET_CRYPTO_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer_key;
 
   /**
    * Number of delegates
@@ -170,7 +170,7 @@ struct DelegationRecordData
   /**
    * Subject key
    */
-  struct GNUNET_CRYPTO_PublicKey subject_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey subject_key;
 
   /**
    * Subject attributes
@@ -184,12 +184,12 @@ struct ChainEntry
   /**
    * Issuer key
    */
-  struct GNUNET_CRYPTO_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer_key;
 
   /**
    * Subject key
    */
-  struct GNUNET_CRYPTO_PublicKey subject_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey subject_key;
 
   /**
    * Issuer attributes
@@ -208,22 +208,22 @@ struct DelegateEntry
   /**
    * The signature for this credential by the issuer
    */
-  struct GNUNET_CRYPTO_Signature signature;
+  struct GNUNET_CRYPTO_BlindableKeySignature signature;
 
   /**
    * Signature meta
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Public key of the issuer
    */
-  struct GNUNET_CRYPTO_PublicKey issuer_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer_key;
 
   /**
    * Public key of the subject this credential was issued to
    */
-  struct GNUNET_CRYPTO_PublicKey subject_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey subject_key;
 
   /**
    * Expiration time of this credential

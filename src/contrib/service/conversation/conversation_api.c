@@ -105,7 +105,7 @@ struct GNUNET_CONVERSATION_Caller
   /**
    * Identity of the person calling us.
    */
-  struct GNUNET_CRYPTO_PublicKey caller_id;
+  struct GNUNET_CRYPTO_BlindablePublicKey caller_id;
 
   /**
    * Internal handle to identify the caller with the service.
@@ -192,7 +192,7 @@ struct GNUNET_CONVERSATION_Phone
   /**
    * My GNS zone.
    */
-  struct GNUNET_CRYPTO_PrivateKey my_zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey my_zone;
 
   /**
    * State machine for the phone.
@@ -238,6 +238,7 @@ transmit_phone_audio (void *cls,
                   e);
 }
 
+
 /**
  * We received a `struct ClientPhoneRingMessage`
  *
@@ -246,11 +247,13 @@ transmit_phone_audio (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 check_phone_ring (void *cls,
-                   const struct ClientPhoneRingMessage *ring)
+                  const struct ClientPhoneRingMessage *ring)
 {
-  //FIXME
+  // FIXME
   return GNUNET_OK;
 }
+
+
 /**
  * We received a `struct ClientPhoneRingMessage`
  *
@@ -263,7 +266,7 @@ handle_phone_ring (void *cls,
 {
   struct GNUNET_CONVERSATION_Phone *phone = cls;
   struct GNUNET_CONVERSATION_Caller *caller;
-  struct GNUNET_CRYPTO_PublicKey caller_id;
+  struct GNUNET_CRYPTO_BlindablePublicKey caller_id;
   size_t key_len;
   size_t read;
 
@@ -277,9 +280,9 @@ handle_phone_ring (void *cls,
   case PS_READY:
     if ((GNUNET_SYSERR ==
          GNUNET_CRYPTO_read_public_key_from_buffer (&ring[1],
-                                                      key_len,
-                                                      &caller_id,
-                                                      &read)) ||
+                                                    key_len,
+                                                    &caller_id,
+                                                    &read)) ||
         (read != key_len))
     {
       GNUNET_break (0);

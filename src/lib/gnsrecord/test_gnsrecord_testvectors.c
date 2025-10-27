@@ -527,7 +527,7 @@ res_checker (void *cls,
 static enum GNUNET_GenericReturnValue
 check_derivations_edkey (const char*label,
                          struct GNUNET_TIME_Absolute expire,
-                         struct GNUNET_CRYPTO_PublicKey *pub,
+                         struct GNUNET_CRYPTO_BlindablePublicKey *pub,
                          struct GnsTv *tv)
 {
   unsigned char nonce[crypto_secretbox_NONCEBYTES];
@@ -565,7 +565,7 @@ check_derivations_edkey (const char*label,
 static enum GNUNET_GenericReturnValue
 check_derivations_pkey (const char*label,
                         struct GNUNET_TIME_Absolute expire,
-                        struct GNUNET_CRYPTO_PublicKey *pub,
+                        struct GNUNET_CRYPTO_BlindablePublicKey *pub,
                         struct GnsTv *tv)
 {
   unsigned char ctr[GNUNET_CRYPTO_AES_KEY_LENGTH / 2];
@@ -601,9 +601,9 @@ check_derivations_pkey (const char*label,
 int
 main ()
 {
-  struct GNUNET_CRYPTO_PrivateKey priv;
-  struct GNUNET_CRYPTO_PublicKey pub;
-  struct GNUNET_CRYPTO_PublicKey pub_parsed;
+  struct GNUNET_CRYPTO_BlindablePrivateKey priv;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub_parsed;
   struct GNUNET_GNSRECORD_Block *rrblock;
   struct GNUNET_HashCode query;
   struct GNUNET_HashCode expected_query;
@@ -621,7 +621,7 @@ main ()
     parsehex (tvs[i].d,(char*) &priv.ecdsa_key, sizeof (priv.ecdsa_key),
               (GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub_parsed.type)) ? 1 : 0);
     priv.type = pub_parsed.type;
-    GNUNET_CRYPTO_key_get_public (&priv, &pub);
+    GNUNET_CRYPTO_blindable_key_get_public (&priv, &pub);
     if (0 != memcmp (&pub, &pub_parsed, GNUNET_CRYPTO_public_key_get_length (
                        &pub)))
     {

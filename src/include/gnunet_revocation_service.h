@@ -88,7 +88,7 @@ typedef void (*GNUNET_REVOCATION_Callback) (void *cls,
  */
 struct GNUNET_REVOCATION_Query *
 GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                         const struct GNUNET_CRYPTO_PublicKey *key,
+                         const struct GNUNET_CRYPTO_BlindablePublicKey *key,
                          GNUNET_REVOCATION_Callback func, void *func_cls);
 
 
@@ -132,8 +132,6 @@ GNUNET_REVOCATION_revoke (const struct GNUNET_CONFIGURATION_Handle *cfg,
  */
 void
 GNUNET_REVOCATION_revoke_cancel (struct GNUNET_REVOCATION_Handle *h);
-
-
 
 
 #if 0                           /* keep Emacsens' auto-indent happy */

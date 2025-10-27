@@ -427,7 +427,7 @@ GNUNET_PILS_disconnect (struct GNUNET_PILS_Handle *handle)
 struct GNUNET_PILS_Operation*
 GNUNET_PILS_sign_by_peer_identity (struct GNUNET_PILS_Handle *handle,
                                    const struct
-                                   GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+                                   GNUNET_CRYPTO_SignaturePurpose *purpose,
                                    GNUNET_PILS_SignResultCallback cb,
                                    void *cb_cls)
 

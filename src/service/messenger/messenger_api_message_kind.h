@@ -37,7 +37,7 @@
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key);
+create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Creates and allocates a new leave message.
@@ -65,7 +65,7 @@ create_message_name (const char *name);
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_CRYPTO_PrivateKey *key);
+create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Creates and allocates a new id message containing the unique member id to change to.

@@ -36,7 +36,7 @@ struct GNUNET_MESSENGER_SrvHandle
   struct GNUNET_MESSENGER_Service *service;
   struct GNUNET_MQ_Handle *mq;
 
-  struct GNUNET_CRYPTO_PublicKey *key;
+  struct GNUNET_CRYPTO_BlindablePublicKey *key;
 
   struct GNUNET_CONTAINER_MultiHashMap *member_ids;
   struct GNUNET_CONTAINER_MultiHashMap *next_ids;
@@ -72,7 +72,7 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle);
  */
 void
 set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_CRYPTO_PublicKey *key);
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *key);
 
 /**
  * Returns the public key of a given <i>handle</i>.
@@ -80,7 +80,7 @@ set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
  * @param[in] handle Handle
  * @return Public key of handle
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_srv_handle_key (const struct GNUNET_MESSENGER_SrvHandle *handle);
 
 /**

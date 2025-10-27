@@ -32,7 +32,7 @@
 
 struct GNUNET_MESSENGER_MemberSession*
 create_member_session (struct GNUNET_MESSENGER_Member *member,
-                       const struct GNUNET_CRYPTO_PublicKey *pubkey)
+                       const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey)
 {
   struct GNUNET_MESSENGER_MemberSession *session;
 
@@ -474,7 +474,7 @@ get_member_session_id (const struct GNUNET_MESSENGER_MemberSession *session)
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_member_session_public_key (const struct
                                GNUNET_MESSENGER_MemberSession *session)
 {
@@ -528,7 +528,7 @@ verify_member_session_as_sender (const struct
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Check message (%s) using key: %s\n",
               GNUNET_h2s (hash),
-              GNUNET_CRYPTO_public_key_to_string (
+              GNUNET_CRYPTO_blindable_public_key_to_string (
                 get_member_session_public_key (session)));
 
   return verify_message (message, hash, get_member_session_public_key (
@@ -701,7 +701,7 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, config_file))
   {
-    struct GNUNET_CRYPTO_PublicKey key;
+    struct GNUNET_CRYPTO_BlindablePublicKey key;
     enum GNUNET_GenericReturnValue key_result;
     unsigned long long numeric_value;
     char *key_data;
@@ -710,7 +710,8 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
                                                             "key", &key_data))
       goto destroy_config;
 
-    key_result = GNUNET_CRYPTO_public_key_from_string (key_data, &key);
+    key_result = GNUNET_CRYPTO_blindable_public_key_from_string (key_data, &key)
+    ;
     GNUNET_free (key_data);
 
     if (GNUNET_OK != key_result)
@@ -806,7 +807,7 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
 
   if (GNUNET_OK == GNUNET_CONFIGURATION_parse (cfg, config_file))
   {
-    struct GNUNET_CRYPTO_PublicKey next_key;
+    struct GNUNET_CRYPTO_BlindablePublicKey next_key;
     enum GNUNET_GenericReturnValue key_result;
     struct GNUNET_ShortHashCode next_id;
     char *key_data;
@@ -816,7 +817,8 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
                                                             &key_data))
       goto destroy_config;
 
-    key_result = GNUNET_CRYPTO_public_key_from_string (key_data, &next_key);
+    key_result = GNUNET_CRYPTO_blindable_public_key_from_string (key_data, &
+                                                                 next_key);
     GNUNET_free (key_data);
 
     if (GNUNET_OK != key_result)
@@ -924,7 +926,7 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
   if (! cfg)
     goto free_config;
 
-  key_data = GNUNET_CRYPTO_public_key_to_string (
+  key_data = GNUNET_CRYPTO_blindable_public_key_to_string (
     get_member_session_public_key (session));
 
   if (key_data)
@@ -948,7 +950,7 @@ save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
       GNUNET_free (next_id_data);
     }
 
-    key_data = GNUNET_CRYPTO_public_key_to_string (
+    key_data = GNUNET_CRYPTO_blindable_public_key_to_string (
       get_member_session_public_key (session->next));
 
     if (key_data)

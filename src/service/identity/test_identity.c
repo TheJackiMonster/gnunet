@@ -253,25 +253,25 @@ success_rename_cont (void *cls, enum GNUNET_ErrorCode ec)
  */
 static void
 create_cb (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *pk,
+           const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
            enum GNUNET_ErrorCode ec)
 {
   CHECK (NULL != pk);
   CHECK (GNUNET_EC_NONE == ec);
-  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub;
   size_t pt_len = strlen ("test") + 1;
   unsigned char ct[pt_len + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES];
   char pt[pt_len];
   enum GNUNET_GenericReturnValue res;
 
-  GNUNET_CRYPTO_key_get_public (pk, &pub);
+  GNUNET_CRYPTO_blindable_key_get_public (pk, &pub);
   res = GNUNET_CRYPTO_encrypt ("test", pt_len, &pub, ct,
-                                 pt_len
-                                 + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES);
+                               pt_len
+                               + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES);
   CHECK (GNUNET_OK == res);
   res = GNUNET_CRYPTO_decrypt (ct, pt_len
-                                 + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES,
-                                 pk, pt, pt_len);
+                               + GNUNET_CRYPTO_ENCRYPT_OVERHEAD_BYTES,
+                               pk, pt, pt_len);
   CHECK (GNUNET_OK == res);
   CHECK (0 == strcmp (pt, "test"));
   op =

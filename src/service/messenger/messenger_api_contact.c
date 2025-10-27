@@ -26,7 +26,7 @@
 #include "messenger_api_contact.h"
 
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_CRYPTO_PublicKey *key,
+create_contact (const struct GNUNET_CRYPTO_BlindablePublicKey *key,
                 size_t unique_id)
 {
   struct GNUNET_MESSENGER_Contact *contact;
@@ -85,7 +85,7 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact)
 {
   GNUNET_assert (contact);

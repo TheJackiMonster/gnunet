@@ -47,8 +47,8 @@ struct GNUNET_MESSENGER_Handle
   void *msg_cls;
 
   char *name;
-  struct GNUNET_CRYPTO_PrivateKey *key;
-  struct GNUNET_CRYPTO_PublicKey *pubkey;
+  struct GNUNET_CRYPTO_BlindablePrivateKey *key;
+  struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
 
   struct GNUNET_TIME_Relative reconnect_time;
   struct GNUNET_SCHEDULER_Task *reconnect_task;
@@ -109,7 +109,7 @@ get_handle_name (const struct GNUNET_MESSENGER_Handle *handle);
  */
 void
 set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
-                const struct GNUNET_CRYPTO_PrivateKey *key);
+                const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
  * Returns the private key of a given <i>handle</i>.
@@ -117,7 +117,7 @@ set_handle_key (struct GNUNET_MESSENGER_Handle *handle,
  * @param[in] handle Handle
  * @return Private key of the handle
  */
-const struct GNUNET_CRYPTO_PrivateKey*
+const struct GNUNET_CRYPTO_BlindablePrivateKey*
 get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**
@@ -126,7 +126,7 @@ get_handle_key (const struct GNUNET_MESSENGER_Handle *handle);
  * @param[in] handle Handle
  * @return Public key of the handle
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_handle_pubkey (const struct GNUNET_MESSENGER_Handle *handle);
 
 /**

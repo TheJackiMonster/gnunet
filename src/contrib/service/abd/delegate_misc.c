@@ -42,10 +42,13 @@ GNUNET_ABD_delegate_to_string (
   char *issuer_pkey;
   char *signature;
 
-  subject_pkey = GNUNET_CRYPTO_public_key_to_string (&cred->subject_key);
-  issuer_pkey = GNUNET_CRYPTO_public_key_to_string (&cred->issuer_key);
+  subject_pkey = GNUNET_CRYPTO_blindable_public_key_to_string (&cred->
+                                                               subject_key);
+  issuer_pkey = GNUNET_CRYPTO_blindable_public_key_to_string (&cred->issuer_key)
+  ;
   GNUNET_STRINGS_base64_encode ((char *) &cred->signature,
-                                sizeof (struct GNUNET_CRYPTO_Signature),
+                                sizeof (struct
+                                        GNUNET_CRYPTO_BlindableKeySignature),
                                 &signature);
   if (0 == cred->subject_attribute_len)
   {
@@ -90,7 +93,7 @@ GNUNET_ABD_delegate_from_string (const char *s)
   char signature[256]; // TODO max payload size
   int attr_len;
 
-  struct GNUNET_CRYPTO_Signature *sig;
+  struct GNUNET_CRYPTO_BlindableKeySignature *sig;
   struct GNUNET_TIME_Absolute etime_abs;
 
   // If it's A.a <- B.b...
@@ -142,20 +145,20 @@ GNUNET_ABD_delegate_from_string (const char *s)
     }
     tmp_str[attr_len - 1] = '\0';
     if (GNUNET_SYSERR ==
-        GNUNET_CRYPTO_public_key_from_string (subject_pkey,
-                                              &dele->subject_key))
+        GNUNET_CRYPTO_blindable_public_key_from_string (subject_pkey,
+                                                        &dele->subject_key))
     {
       GNUNET_free (dele);
       return NULL;
     }
     if (GNUNET_SYSERR ==
-        GNUNET_CRYPTO_public_key_from_string (issuer_pkey,
-                                              &dele->issuer_key))
+        GNUNET_CRYPTO_blindable_public_key_from_string (issuer_pkey,
+                                                        &dele->issuer_key))
     {
       GNUNET_free (dele);
       return NULL;
     }
-    GNUNET_assert (sizeof (struct GNUNET_CRYPTO_Signature) ==
+    GNUNET_assert (sizeof (struct GNUNET_CRYPTO_BlindableKeySignature) ==
                    GNUNET_STRINGS_base64_decode (signature,
                                                  strlen (signature),
                                                  (void **) &sig));
@@ -195,8 +198,8 @@ GNUNET_ABD_delegate_from_string (const char *s)
 
 struct GNUNET_ABD_Delegate *
 GNUNET_ABD_delegate_issue (
-  const struct GNUNET_CRYPTO_PrivateKey *issuer,
-  struct GNUNET_CRYPTO_PublicKey *subject,
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *issuer,
+  struct GNUNET_CRYPTO_BlindablePublicKey *subject,
   const char *iss_attr,
   const char *sub_attr,
   struct GNUNET_TIME_Absolute *expiration)
@@ -232,9 +235,9 @@ GNUNET_ABD_delegate_issue (
 
     del = GNUNET_malloc (size);
     del->purpose.size =
-      htonl (size - sizeof (struct GNUNET_CRYPTO_Signature));
+      htonl (size - sizeof (struct GNUNET_CRYPTO_BlindableKeySignature));
     del->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DELEGATE);
-    GNUNET_CRYPTO_key_get_public (issuer, &del->issuer_key);
+    GNUNET_CRYPTO_blindable_key_get_public (issuer, &del->issuer_key);
     del->subject_key = *subject;
     del->expiration = GNUNET_htonll (expiration->abs_value_us);
     del->issuer_attribute_len = htonl (strlen (iss_attr) + 1);
@@ -248,12 +251,12 @@ GNUNET_ABD_delegate_issue (
     }
 
     GNUNET_memcpy (&del[1], tmp_str, attr_len);
-    GNUNET_CRYPTO_sign_ (issuer, &del->purpose, &del->signature);
+    GNUNET_CRYPTO_blinded_key_sign_ (issuer, &del->purpose, &del->signature);
 
     dele = GNUNET_malloc (sizeof (struct GNUNET_ABD_Delegate) + attr_len);
     dele->signature = del->signature;
     dele->expiration = *expiration;
-    GNUNET_CRYPTO_key_get_public (issuer, &dele->issuer_key);
+    GNUNET_CRYPTO_blindable_key_get_public (issuer, &dele->issuer_key);
 
     dele->subject_key = *subject;
 

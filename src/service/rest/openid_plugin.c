@@ -330,7 +330,7 @@ struct OIDC_Variables
   /**
    * The RP client public key
    */
-  struct GNUNET_CRYPTO_PublicKey client_pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey client_pkey;
 
   /**
    * The OIDC client id of the RP
@@ -441,7 +441,7 @@ struct RequestHandle
   /**
    * Pointer to ego private key
    */
-  struct GNUNET_CRYPTO_PrivateKey priv_key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey priv_key;
 
   /**
    * OIDC variables
@@ -1260,7 +1260,7 @@ oidc_cred_collect_finished_cb (void *cls)
  */
 static void
 oidc_cred_collect (void *cls,
-                   const struct GNUNET_CRYPTO_PublicKey *identity,
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
                    const struct GNUNET_RECLAIM_Credential *cred)
 {
   struct RequestHandle *handle = cls;
@@ -1383,7 +1383,7 @@ attr_in_userinfo_request (struct RequestHandle *handle,
  */
 static void
 oidc_attr_collect (void *cls,
-                   const struct GNUNET_CRYPTO_PublicKey *identity,
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
                    const struct GNUNET_RECLAIM_Attribute *attr)
 {
   struct RequestHandle *handle = cls;
@@ -1432,8 +1432,8 @@ code_redirect (void *cls)
   struct RequestHandle *handle = cls;
   struct GNUNET_TIME_Absolute current_time;
   struct GNUNET_TIME_Absolute *relog_time;
-  struct GNUNET_CRYPTO_PublicKey pubkey;
-  struct GNUNET_CRYPTO_PublicKey ego_pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey ego_pkey;
   struct GNUNET_HashCode cache_key;
   char *identity_cookie;
 
@@ -1453,9 +1453,9 @@ code_redirect (void *cls)
     if (current_time.abs_value_us <= relog_time->abs_value_us)
     {
       if (GNUNET_OK !=
-          GNUNET_CRYPTO_public_key_from_string (handle->oidc
-                                                ->login_identity,
-                                                &pubkey))
+          GNUNET_CRYPTO_blindable_public_key_from_string (handle->oidc
+                                                          ->login_identity,
+                                                          &pubkey))
       {
         handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_INVALID_COOKIE);
         handle->edesc =
@@ -1547,7 +1547,7 @@ lookup_redirect_uri_result (void *cls,
   char *tmp;
   char *tmp_key_str;
   char *pos;
-  struct GNUNET_CRYPTO_PublicKey redirect_zone;
+  struct GNUNET_CRYPTO_BlindablePublicKey redirect_zone;
 
   handle->gns_op = NULL;
   if (0 == rd_count)
@@ -1779,10 +1779,10 @@ static void
 tld_iter (void *cls, const char *section, const char *option, const char *value)
 {
   struct RequestHandle *handle = cls;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_public_key_from_string (value, &pkey))
+      GNUNET_CRYPTO_blindable_public_key_from_string (value, &pkey))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Skipping non key %s\n", value);
     return;
@@ -1806,8 +1806,8 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
 {
   struct RequestHandle *handle = cls;
   struct EgoEntry *tmp_ego;
-  const struct GNUNET_CRYPTO_PrivateKey *priv_key;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *priv_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
 
   cookie_identity_interpretation (handle);
 
@@ -1835,8 +1835,9 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   }
 
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_public_key_from_string (handle->oidc->client_id,
-                                            &handle->oidc->client_pkey))
+      GNUNET_CRYPTO_blindable_public_key_from_string (handle->oidc->client_id,
+                                                      &handle->oidc->client_pkey
+                                                      ))
   {
     handle->emsg = GNUNET_strdup (OIDC_ERROR_KEY_UNAUTHORIZED_CLIENT);
     handle->edesc = GNUNET_strdup ("The client is not authorized to request an "
@@ -1851,7 +1852,7 @@ authorize_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   for (tmp_ego = ego_head; NULL != tmp_ego; tmp_ego = tmp_ego->next)
   {
     priv_key = GNUNET_IDENTITY_ego_get_private_key (tmp_ego->ego);
-    GNUNET_CRYPTO_key_get_public (priv_key, &pkey);
+    GNUNET_CRYPTO_blindable_key_get_public (priv_key, &pkey);
     if (0 == GNUNET_memcmp (&pkey, &handle->oidc->client_pkey))
     {
       handle->tld = GNUNET_strdup (tmp_ego->identifier);
@@ -2045,7 +2046,7 @@ parse_credentials_post_body (struct RequestHandle *handle,
 
 static int
 check_authorization (struct RequestHandle *handle,
-                     struct GNUNET_CRYPTO_PublicKey *cid)
+                     struct GNUNET_CRYPTO_BlindablePublicKey *cid)
 {
   char *expected_pass;
   char *received_cid;
@@ -2082,7 +2083,8 @@ check_authorization (struct RequestHandle *handle,
     GNUNET_STRINGS_string_to_data (received_cid,
                                    strlen (received_cid),
                                    cid,
-                                   sizeof(struct GNUNET_CRYPTO_PublicKey));
+                                   sizeof(struct
+                                          GNUNET_CRYPTO_BlindablePublicKey));
     GNUNET_free (received_cid);
     return GNUNET_OK;
 
@@ -2132,7 +2134,8 @@ check_authorization (struct RequestHandle *handle,
   GNUNET_STRINGS_string_to_data (received_cid,
                                  strlen (received_cid),
                                  cid,
-                                 sizeof(struct GNUNET_CRYPTO_PublicKey));
+                                 sizeof(struct GNUNET_CRYPTO_BlindablePublicKey)
+                                 );
 
   GNUNET_free (received_cpw);
   GNUNET_free (received_cid);
@@ -2142,10 +2145,10 @@ check_authorization (struct RequestHandle *handle,
 
 static const struct EgoEntry *
 find_ego (struct RequestHandle *handle,
-          struct GNUNET_CRYPTO_PublicKey *test_key)
+          struct GNUNET_CRYPTO_BlindablePublicKey *test_key)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_CRYPTO_PublicKey pub_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub_key;
 
   for (ego_entry = ego_head; NULL != ego_entry;
        ego_entry = ego_entry->next)
@@ -2176,10 +2179,10 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
   struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
-  struct GNUNET_CRYPTO_PublicKey cid;
+  struct GNUNET_CRYPTO_BlindablePublicKey cid;
   struct GNUNET_HashCode cache_key;
   struct MHD_Response *resp = NULL;
-  struct GNUNET_CRYPTO_PublicKey issuer;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer;
   char *grant_type = NULL;
   char *code = NULL;
   char *json_response = NULL;
@@ -2454,7 +2457,7 @@ token_endpoint (struct GNUNET_REST_RequestHandle *con_handle,
  */
 static void
 consume_ticket (void *cls,
-                const struct GNUNET_CRYPTO_PublicKey *identity,
+                const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
                 const struct GNUNET_RECLAIM_Attribute *attr,
                 const struct GNUNET_RECLAIM_Presentation *presentation)
 {
@@ -2491,14 +2494,15 @@ consume_ticket (void *cls,
 
   if (NULL == identity)
   {
-    struct GNUNET_CRYPTO_PublicKey issuer;
+    struct GNUNET_CRYPTO_BlindablePublicKey issuer;
     char *key;
     char *tmp = GNUNET_strdup (handle->ticket.gns_name);
     GNUNET_assert (NULL != strtok (tmp, "."));
     key = strtok (NULL, ".");
     GNUNET_assert (NULL != key);
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_public_key_from_string (key, &issuer));
+                   GNUNET_CRYPTO_blindable_public_key_from_string (key, &issuer)
+                   );
     GNUNET_free (tmp);
     result_str = OIDC_generate_userinfo (&issuer,
                                          handle->attr_userinfo_list,
@@ -2557,9 +2561,9 @@ consume_fail (void *cls)
   struct GNUNET_RECLAIM_AttributeList *cl = NULL;
   struct GNUNET_RECLAIM_PresentationList *pl = NULL;
   struct GNUNET_RECLAIM_Ticket ticket;
-  struct GNUNET_CRYPTO_PublicKey cid;
+  struct GNUNET_CRYPTO_BlindablePublicKey cid;
   struct MHD_Response *resp;
-  struct GNUNET_CRYPTO_PublicKey issuer;
+  struct GNUNET_CRYPTO_BlindablePublicKey issuer;
   char *nonce;
   char *cached_code;
   char *result_str;
@@ -2599,7 +2603,8 @@ consume_fail (void *cls)
   GNUNET_STRINGS_string_to_data (received_cid,
                                  strlen (received_cid),
                                  &cid,
-                                 sizeof(struct GNUNET_CRYPTO_PublicKey));
+                                 sizeof(struct GNUNET_CRYPTO_BlindablePublicKey)
+                                 );
 
   // decode code
   if (GNUNET_OK != OIDC_parse_authz_code (received_cid, &cid,
@@ -2625,7 +2630,7 @@ consume_fail (void *cls)
   key = strtok (NULL, ".");
   GNUNET_assert (NULL != key);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_public_key_from_string (key, &issuer));
+                 GNUNET_CRYPTO_blindable_public_key_from_string (key, &issuer));
   GNUNET_free (tmp);
   result_str = OIDC_generate_userinfo (&issuer,
                                        cl,
@@ -2837,7 +2842,7 @@ list_ego (void *cls,
           const char *identifier)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
 
   if (NULL == ego)
   {
@@ -2849,7 +2854,7 @@ list_ego (void *cls,
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
+    ego_entry->keystring = GNUNET_CRYPTO_blindable_public_key_to_string (&pk);
     ego_entry->ego = ego;
     ego_entry->identifier = GNUNET_strdup (identifier);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -2876,7 +2881,7 @@ list_ego (void *cls,
       /* Add */
       ego_entry = GNUNET_new (struct EgoEntry);
       GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
+      ego_entry->keystring = GNUNET_CRYPTO_blindable_public_key_to_string (&pk);
       ego_entry->ego = ego;
       ego_entry->identifier = GNUNET_strdup (identifier);
       GNUNET_CONTAINER_DLL_insert_tail (ego_head,

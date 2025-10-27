@@ -29,7 +29,7 @@
 #include <string.h>
 
 struct GNUNET_MESSENGER_Message*
-create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key)
+create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   struct GNUNET_MESSENGER_Message *message;
 
@@ -44,7 +44,7 @@ create_message_join (const struct GNUNET_CRYPTO_PrivateKey *key)
   memset (&(message->body.leave.epoch), 0,
           sizeof (struct GNUNET_HashCode));
 
-  GNUNET_CRYPTO_key_get_public (key, &(message->body.join.key));
+  GNUNET_CRYPTO_blindable_key_get_public (key, &(message->body.join.key));
   return message;
 }
 
@@ -85,7 +85,7 @@ create_message_name (const char *name)
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_CRYPTO_PrivateKey *key)
+create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   struct GNUNET_MESSENGER_Message *message;
 
@@ -97,7 +97,7 @@ create_message_key (const struct GNUNET_CRYPTO_PrivateKey *key)
   if (! message)
     return NULL;
 
-  GNUNET_CRYPTO_key_get_public (key, &(message->body.key.key));
+  GNUNET_CRYPTO_blindable_key_get_public (key, &(message->body.key.key));
   return message;
 }
 
@@ -268,6 +268,7 @@ create_message_access (const struct GNUNET_HashCode *event,
                        shared_key)
 {
   struct GNUNET_MESSENGER_Message *message;
+  struct GNUNET_CRYPTO_HpkePublicKey public_hpke;
 
   if ((! event) || (! public_key) || (! shared_key))
     return NULL;
@@ -277,7 +278,10 @@ create_message_access (const struct GNUNET_HashCode *event,
   if (! message)
     return NULL;
 
-  if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (public_key,
+  GNUNET_memcpy (&public_hpke.ecdhe_key,
+                 public_key,
+                 sizeof *public_key);
+  if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (&public_hpke,
                                                     (const uint8_t*)
                                                     "messenger",
                                                     strlen ("messenger"),

@@ -36,9 +36,9 @@ static struct GNUNET_NAMESTORE_Handle *nsh;
 
 static struct GNUNET_SCHEDULER_Task *endbadly_task;
 
-static struct GNUNET_CRYPTO_PrivateKey privkey;
+static struct GNUNET_CRYPTO_BlindablePrivateKey privkey;
 
-static struct GNUNET_CRYPTO_PrivateKey privkey2;
+static struct GNUNET_CRYPTO_BlindablePrivateKey privkey2;
 
 static struct GNUNET_NAMESTORE_ZoneMonitor *zm;
 
@@ -127,7 +127,7 @@ end (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone_key,
+           const struct GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
            const char *name,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -331,7 +331,8 @@ run (void *cls,
                                                                1,
                                                                s_rd_3,
                                                                &put_cont,
-                                                               (void *) s_name_3)));
+                                                               (void *) s_name_3
+                                                               )));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 1\n");
@@ -344,7 +345,8 @@ run (void *cls,
                                                                1,
                                                                s_rd_1,
                                                                &put_cont,
-                                                               (void *) s_name_1)));
+                                                               (void *) s_name_1
+                                                               )));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Created record 2 \n");
   s_name_2 = "dummy2";
@@ -356,7 +358,8 @@ run (void *cls,
                                                                1,
                                                                s_rd_2,
                                                                &put_cont,
-                                                               (void *) s_name_2)));
+                                                               (void *) s_name_2
+                                                               )));
 }
 
 

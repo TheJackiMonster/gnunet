@@ -38,7 +38,7 @@ struct GNUNET_MESSENGER_MemberSession
 {
   struct GNUNET_MESSENGER_Member *member;
 
-  struct GNUNET_CRYPTO_PublicKey public_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey public_key;
   struct GNUNET_HashCode context;
 
   struct GNUNET_MESSENGER_Contact *contact;
@@ -67,7 +67,7 @@ struct GNUNET_MESSENGER_MemberSession
  */
 struct GNUNET_MESSENGER_MemberSession*
 create_member_session (struct GNUNET_MESSENGER_Member *member,
-                       const struct GNUNET_CRYPTO_PublicKey *pubkey);
+                       const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey);
 
 /**
  * Creates and allocates a new member session closing and replacing a given
@@ -175,7 +175,7 @@ get_member_session_id (const struct GNUNET_MESSENGER_MemberSession *session);
  * @param[in] session Member session
  * @return Public key
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_member_session_public_key (const struct
                                GNUNET_MESSENGER_MemberSession *session);
 

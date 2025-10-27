@@ -64,7 +64,8 @@ typedef void
                                     uint64_t serial,
                                     const char *editor_hint,
                                     const struct
-                                    GNUNET_CRYPTO_PrivateKey *private_key,
+                                    GNUNET_CRYPTO_BlindablePrivateKey *
+                                    private_key,
                                     const char *label,
                                     unsigned int rd_count,
                                     const struct GNUNET_GNSRECORD_Data *rd);
@@ -92,11 +93,11 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*store_records)(void *cls,
-                   const struct GNUNET_CRYPTO_PrivateKey *zone,
-                   const char *label,
-                   unsigned int rd_count,
-                   const struct GNUNET_GNSRECORD_Data *rd);
+    (*store_records)(void *cls,
+                     const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                     const char *label,
+                     unsigned int rd_count,
+                     const struct GNUNET_GNSRECORD_Data *rd);
 
   /**
    * Lookup records in the datastore for which we are the authority.
@@ -109,11 +110,11 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*lookup_records)(void *cls,
-                    const struct GNUNET_CRYPTO_PrivateKey *zone,
-                    const char *label,
-                    GNUNET_NAMESTORE_RecordIterator iter,
-                    void *iter_cls);
+    (*lookup_records)(void *cls,
+                      const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                      const char *label,
+                      GNUNET_NAMESTORE_RecordIterator iter,
+                      void *iter_cls);
 
 
   /**
@@ -131,12 +132,12 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO if there were no more results, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*iterate_records)(void *cls,
-                     const struct GNUNET_CRYPTO_PrivateKey *zone,
-                     uint64_t serial,
-                     uint64_t limit,
-                     GNUNET_NAMESTORE_RecordIterator iter,
-                     void *iter_cls);
+    (*iterate_records)(void *cls,
+                       const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                       uint64_t serial,
+                       uint64_t limit,
+                       GNUNET_NAMESTORE_RecordIterator iter,
+                       void *iter_cls);
 
 
   /**
@@ -151,11 +152,11 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO if there were no results, #GNUNET_SYSERR on error
    */
   enum GNUNET_GenericReturnValue
-  (*zone_to_name)(void *cls,
-                  const struct GNUNET_CRYPTO_PrivateKey *zone,
-                  const struct GNUNET_CRYPTO_PublicKey *value_zone,
-                  GNUNET_NAMESTORE_RecordIterator iter,
-                  void *iter_cls);
+    (*zone_to_name)(void *cls,
+                    const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *value_zone,
+                    GNUNET_NAMESTORE_RecordIterator iter,
+                    void *iter_cls);
 
   /** Transaction-based API draft **/
 
@@ -173,12 +174,12 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*edit_records)(void *cls,
-                  const char *editor_hint,
-                  const struct GNUNET_CRYPTO_PrivateKey *zone,
-                  const char *label,
-                  GNUNET_NAMESTORE_RecordIterator iter,
-                  void *iter_cls);
+    (*edit_records)(void *cls,
+                    const char *editor_hint,
+                    const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                    const char *label,
+                    GNUNET_NAMESTORE_RecordIterator iter,
+                    void *iter_cls);
 
   /**
    * This clears the editor hint, unless it does not match the
@@ -196,11 +197,11 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, #GNUNET_NO for no results, else #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*clear_editor_hint)(void *cls,
-                  const char *editor_hint,
-                  const char *editor_hint_replacement,
-                  const struct GNUNET_CRYPTO_PrivateKey *zone,
-                       const char *label);
+    (*clear_editor_hint)(void *cls,
+                         const char *editor_hint,
+                         const char *editor_hint_replacement,
+                         const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                         const char *label);
 
   /**
    * Tell plugin that a set of procedures are coming that
@@ -212,7 +213,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*begin_tx)(void *cls);
+    (*begin_tx)(void *cls);
 
   /**
    * Tell plugin the we finished what we started with
@@ -222,7 +223,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*commit_tx)(void *cls);
+    (*commit_tx)(void *cls);
 
   /**
    * Tell plugin to rollback what we started with
@@ -233,7 +234,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*rollback_tx)(void *cls);
+    (*rollback_tx)(void *cls);
 
   /**
    * Setup the database.
@@ -242,7 +243,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*create_tables)(void *cls);
+    (*create_tables)(void *cls);
 
 
   /**
@@ -253,7 +254,7 @@ struct GNUNET_NAMESTORE_PluginFunctions
    * @return #GNUNET_OK on success, else fails with #GNUNET_SYSERR
    */
   enum GNUNET_GenericReturnValue
-  (*drop_tables)(void *cls);
+    (*drop_tables)(void *cls);
 };
 
 

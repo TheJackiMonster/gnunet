@@ -59,15 +59,14 @@ struct PeerIdUpdateMessage
 };
 
 
-
 /**
  * Message requesting a signature on data with the current peer id.
  * The message does not contain the actual data but the hash.
  *
  * FIXME currently not in use
  */
-//struct GNUNET_PILS_SignRequest
-//{
+// struct GNUNET_PILS_SignRequest
+// {
 //  /**
 //   * Type: GNUNET_MESSAGE_TYPE_PILS_SIGN_REQUEST
 //   */
@@ -82,7 +81,7 @@ struct PeerIdUpdateMessage
 //   * The hash over the data to be signed
 //   */
 //  struct GNUNET_HashCode hash GNUNET_PACKED;
-//};
+// };
 
 
 /**
@@ -90,8 +89,8 @@ struct PeerIdUpdateMessage
  *
  * FIXME currently not in use
  */
-//struct GNUNET_PILS_Signature
-//{
+// struct GNUNET_PILS_Signature
+// {
 //  /**
 //   * Type: GNUNET_MESSAGE_TYPE_PILS_SIGNATURE
 //   */
@@ -111,7 +110,7 @@ struct PeerIdUpdateMessage
 //   * The signature over the hashed data
 //   */
 //  struct GNUNET_CRYPTO_EddsaSignature signature GNUNET_PACKED;
-//};
+// };
 
 
 /**
@@ -233,7 +232,7 @@ struct PilsHelloSignaturePurpose
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_HELLO
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * When does the signature expire?
@@ -250,4 +249,3 @@ struct PilsHelloSignaturePurpose
 GNUNET_NETWORK_STRUCT_END
 
 #endif
-

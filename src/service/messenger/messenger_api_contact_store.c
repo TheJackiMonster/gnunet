@@ -79,7 +79,7 @@ select_store_contact_map (struct GNUNET_MESSENGER_ContactStore *store,
                           const struct GNUNET_HashCode *context,
                           struct GNUNET_HashCode *hash)
 {
-  const struct GNUNET_CRYPTO_PublicKey *anonymous;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *anonymous;
   struct GNUNET_HashCode anonHash;
 
   GNUNET_assert (hash);
@@ -119,7 +119,7 @@ get_store_contact_raw (struct GNUNET_MESSENGER_ContactStore *store,
 struct GNUNET_MESSENGER_Contact*
 get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                    const struct GNUNET_HashCode *context,
-                   const struct GNUNET_CRYPTO_PublicKey *pubkey)
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey)
 {
   struct GNUNET_CONTAINER_MultiHashMap *map;
   struct GNUNET_MESSENGER_Contact *contact;
@@ -137,7 +137,8 @@ get_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
     if (0 != GNUNET_memcmp (pubkey, get_contact_key (contact)))
     {
       char *str;
-      str = GNUNET_CRYPTO_public_key_to_string (get_contact_key (contact));
+      str = GNUNET_CRYPTO_blindable_public_key_to_string (get_contact_key (
+                                                            contact));
 
       GNUNET_log (GNUNET_ERROR_TYPE_INVALID,
                   "Contact in store uses wrong key: %s\n", str);
@@ -167,9 +168,9 @@ update_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context,
                       const struct GNUNET_HashCode *next_context,
-                      const struct GNUNET_CRYPTO_PublicKey *pubkey)
+                      const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey)
 {
-  const struct GNUNET_CRYPTO_PublicKey *oldkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *oldkey;
   struct GNUNET_CONTAINER_MultiHashMap *map;
   struct GNUNET_HashCode hash;
 
@@ -207,7 +208,7 @@ remove_store_contact (struct GNUNET_MESSENGER_ContactStore *store,
                       struct GNUNET_MESSENGER_Contact *contact,
                       const struct GNUNET_HashCode *context)
 {
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
   struct GNUNET_CONTAINER_MultiHashMap *map;
   struct GNUNET_HashCode hash;
 

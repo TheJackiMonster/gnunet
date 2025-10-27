@@ -118,7 +118,7 @@ notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
 static enum GNUNET_GenericReturnValue
 iterate_notify_about_members (void *cls,
                               const struct
-                              GNUNET_CRYPTO_PublicKey *public_key,
+                              GNUNET_CRYPTO_BlindablePublicKey *public_key,
                               struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberNotify *notify;
@@ -142,7 +142,7 @@ iterate_notify_about_members (void *cls,
 static enum GNUNET_GenericReturnValue
 iterate_epoch_session_members (void *cls,
                                const struct
-                               GNUNET_CRYPTO_PublicKey *public_key,
+                               GNUNET_CRYPTO_BlindablePublicKey *public_key,
                                struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberNotify *notify;

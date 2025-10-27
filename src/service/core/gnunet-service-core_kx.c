@@ -249,12 +249,12 @@ struct GSC_KeyExchangeInfo
   /**
    * Initiator secret key
    */
-  struct GNUNET_CRYPTO_EcdhePrivateKey sk_e;
+  struct GNUNET_CRYPTO_HpkePrivateKey sk_e;
 
   /**
    * Initiator ephemeral key
    */
-  struct GNUNET_CRYPTO_EcdhePublicKey pk_e;
+  struct GNUNET_CRYPTO_HpkePublicKey pk_e;
 
   /**
    * The transcript hash context.
@@ -1424,7 +1424,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
   GNUNET_free (ihm_ctx->req);
 
 
-  GNUNET_memcpy (&kx->pk_e,
+  GNUNET_memcpy (&kx->pk_e.ecdhe_key,
                  &ihm_ctx->ihm_e->pk_e,
                  sizeof (ihm_ctx->ihm_e->pk_e));
   //      5. generate ETS (early_traffic_secret_key, decrypt pk_i
@@ -2638,11 +2638,13 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
     GNUNET_CRYPTO_random_u64 (GNUNET_CRYPTO_QUALITY_NONCE,
                               UINT64_MAX);
   // 3. generate sk_e/pk_e - ephemeral key
-  GNUNET_CRYPTO_ecdhe_key_create (&kx->sk_e);
+  GNUNET_CRYPTO_ecdhe_key_create (&kx->sk_e.ecdhe_key);
   GNUNET_CRYPTO_ecdhe_key_get_public (
-    &kx->sk_e,
-    &kx->pk_e);
-  GNUNET_memcpy (&ihm_e->pk_e, &kx->pk_e, sizeof (kx->pk_e));
+    &kx->sk_e.ecdhe_key,
+    &kx->pk_e.ecdhe_key);
+  GNUNET_memcpy (&ihm_e->pk_e,
+                 &kx->pk_e.ecdhe_key,
+                 sizeof (kx->pk_e.ecdhe_key));
   // 4. generate ETS to encrypt
   //         generate ETS (early_traffic_secret_key, decrypt pk_i
   //         expand ETS <- expand ES <- extract ss_R

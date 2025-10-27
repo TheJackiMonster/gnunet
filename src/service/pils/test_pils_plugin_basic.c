@@ -32,7 +32,6 @@
 #include "gnunet_signatures.h"
 
 
-
 #define LOG(kind, ...) GNUNET_log_from (kind, "test-pils-api", __VA_ARGS__)
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 10)
@@ -44,7 +43,7 @@ char *arm_service_label;
 
 struct SignReturnCls
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose *purpose;
   const struct GNUNET_PeerIdentity *peer_id;
 };
 
@@ -57,16 +56,18 @@ sign_result_cb (void *cls,
   struct SignReturnCls *sign_return_cls = cls;
 
   GNUNET_assert (GNUNET_OK ==
-      GNUNET_CRYPTO_verify_peer_identity (GNUNET_SIGNATURE_PURPOSE_TEST,
-                                          sign_return_cls->purpose,
-                                          sig,
-                                          sign_return_cls->peer_id));
+                 GNUNET_CRYPTO_verify_peer_identity (
+                   GNUNET_SIGNATURE_PURPOSE_TEST,
+                   sign_return_cls->purpose,
+                   sig,
+                   sign_return_cls->peer_id));
   // TODO let someone else check the signing and verification!
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Successfully verified signature!\n");
   GNUNET_free (sign_return_cls);
   GNUNET_TESTING_async_finish (&ac);
 }
+
 
 static void
 pid_change_cb (
@@ -79,12 +80,12 @@ pid_change_cb (
        GNUNET_i2s (peer_id));
 
   {
-    struct GNUNET_CRYPTO_EccSignaturePurpose *purpose;
+    struct GNUNET_CRYPTO_SignaturePurpose *purpose;
     struct SignReturnCls *sign_return_cls;
 
-    purpose = GNUNET_new (struct GNUNET_CRYPTO_EccSignaturePurpose);
+    purpose = GNUNET_new (struct GNUNET_CRYPTO_SignaturePurpose);
     purpose->purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
-    purpose->size = htonl (sizeof (struct GNUNET_CRYPTO_EccSignaturePurpose));
+    purpose->size = htonl (sizeof (struct GNUNET_CRYPTO_SignaturePurpose));
     sign_return_cls = GNUNET_new (struct SignReturnCls);
     sign_return_cls->purpose = purpose;
     sign_return_cls->peer_id = peer_id;
@@ -103,7 +104,8 @@ exec_connect_run (void *cls,
 {
   const struct GNUNET_TESTING_Command *arm_cmd;
   struct GNUNET_HELLO_Builder *builder;
-  const char *addresses[4] = {"address_a", "address_b", "address_c", "address_d"};
+  const char *addresses[4] = {"address_a", "address_b", "address_c",
+                              "address_d"};
 
   // TODO
   arm_cmd
@@ -123,7 +125,7 @@ exec_connect_run (void *cls,
   builder = GNUNET_HELLO_builder_new ();
   for (int i = 0; i < 4; i++)
   {
-    GNUNET_HELLO_builder_add_address(builder, addresses[i]);
+    GNUNET_HELLO_builder_add_address (builder, addresses[i]);
   }
   // TODO store returned hash and later compare it to hash in pid_cb
   GNUNET_PILS_feed_addresses (h,
@@ -140,7 +142,6 @@ exec_connect_cleanup (void *cls)
 }
 
 
-
 static const struct GNUNET_TESTING_Command
 GNUNET_TESTING_PILS_cmd_connect (
   const char *label,
@@ -150,12 +151,12 @@ GNUNET_TESTING_PILS_cmd_connect (
        "Starting command 'connect'\n");
   arm_service_label = GNUNET_strdup (arm_label);
   return GNUNET_TESTING_command_new_ac (
-      NULL, //uds, // state
-      label,
-      &exec_connect_run,
-      &exec_connect_cleanup,
-      NULL,
-      &ac);
+    NULL,   // uds, // state
+    label,
+    &exec_connect_run,
+    &exec_connect_cleanup,
+    NULL,
+    &ac);
 }
 
 

@@ -58,14 +58,14 @@ GNUNET_GNSRECORD_label_check (const char*label, char **emsg)
 
 
 const char *
-GNUNET_GNSRECORD_z2s (const struct GNUNET_CRYPTO_PublicKey *z)
+GNUNET_GNSRECORD_z2s (const struct GNUNET_CRYPTO_BlindablePublicKey *z)
 {
-  static char buf[sizeof(struct GNUNET_CRYPTO_PublicKey) * 8];
+  static char buf[sizeof(struct GNUNET_CRYPTO_BlindablePublicKey) * 8];
   char *end;
 
   end = GNUNET_STRINGS_data_to_string ((const unsigned char *) z,
                                        sizeof(struct
-                                              GNUNET_CRYPTO_PublicKey),
+                                              GNUNET_CRYPTO_BlindablePublicKey),
                                        buf, sizeof(buf));
   if (NULL == end)
   {
@@ -225,12 +225,13 @@ GNUNET_GNSRECORD_is_expired (const struct GNUNET_GNSRECORD_Data *rd)
  *         key in an encoding suitable for DNS labels.
  */
 const char *
-GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_PublicKey *pkey)
+GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_BlindablePublicKey *
+                               pkey)
 {
   static char ret[128];
   char *pkeys;
 
-  pkeys = GNUNET_CRYPTO_public_key_to_string (pkey);
+  pkeys = GNUNET_CRYPTO_blindable_public_key_to_string (pkey);
   GNUNET_snprintf (ret,
                    sizeof(ret),
                    "%s",
@@ -251,11 +252,11 @@ GNUNET_GNSRECORD_pkey_to_zkey (const struct GNUNET_CRYPTO_PublicKey *pkey)
  */
 int
 GNUNET_GNSRECORD_zkey_to_pkey (const char *zkey,
-                               struct GNUNET_CRYPTO_PublicKey *pkey)
+                               struct GNUNET_CRYPTO_BlindablePublicKey *pkey)
 {
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_public_key_from_string (zkey,
-                                            pkey))
+      GNUNET_CRYPTO_blindable_public_key_from_string (zkey,
+                                                      pkey))
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
@@ -265,7 +266,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_identity_from_data (const char *data,
                                      size_t data_size,
                                      uint32_t type,
-                                     struct GNUNET_CRYPTO_PublicKey *key)
+                                     struct GNUNET_CRYPTO_BlindablePublicKey *
+                                     key)
 {
   if (GNUNET_NO == GNUNET_GNSRECORD_is_zonekey_type (type))
     return GNUNET_SYSERR;
@@ -292,7 +294,7 @@ GNUNET_GNSRECORD_identity_from_data (const char *data,
 
 enum GNUNET_GenericReturnValue
 GNUNET_GNSRECORD_data_from_identity (const struct
-                                     GNUNET_CRYPTO_PublicKey *key,
+                                     GNUNET_CRYPTO_BlindablePublicKey *key,
                                      char **data,
                                      size_t *data_size,
                                      uint32_t *type)
@@ -446,7 +448,8 @@ GNUNET_GNSRECORD_normalize_record_set (const char *label,
       if (have_empty_label)
       {
         *emsg = GNUNET_strdup (_ (
-                                 "Zone delegation record not allowed in apex."));
+                                 "Zone delegation record not allowed in apex."))
+        ;
         return GNUNET_SYSERR;
       }
       if ((GNUNET_YES == have_other) ||

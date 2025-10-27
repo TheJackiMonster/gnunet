@@ -342,7 +342,7 @@ GNUNET_GNS_lookup_cancel (struct GNUNET_GNS_LookupRequest *lr)
 struct GNUNET_GNS_LookupRequest *
 GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
                            const char *name,
-                           const struct GNUNET_CRYPTO_PublicKey *zone,
+                           const struct GNUNET_CRYPTO_BlindablePublicKey *zone,
                            uint32_t type,
                            enum GNUNET_GNS_LocalOptions options,
                            uint16_t recursion_depth_limit,
@@ -386,9 +386,9 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
   lookup_msg->recursion_depth_limit
     = htons (recursion_depth_limit);
   lookup_msg->key_len = htonl (key_len);
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (zone,
-                                                      buf,
-                                                      key_len);
+  written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (zone,
+                                                        buf,
+                                                        key_len);
   GNUNET_assert (0 <= written);
   buf += written;
   lookup_msg->type = htonl (type);
@@ -420,7 +420,7 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
 struct GNUNET_GNS_LookupRequest*
 GNUNET_GNS_lookup (struct GNUNET_GNS_Handle *handle,
                    const char *name,
-                   const struct GNUNET_CRYPTO_PublicKey *zone,
+                   const struct GNUNET_CRYPTO_BlindablePublicKey *zone,
                    uint32_t type,
                    enum GNUNET_GNS_LocalOptions options,
                    GNUNET_GNS_LookupResultProcessor proc,

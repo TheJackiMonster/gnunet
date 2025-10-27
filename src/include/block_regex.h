@@ -53,7 +53,7 @@ struct RegexAcceptBlock
    * Accept blocks must be signed.  Signature
    * goes over expiration time and key.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * When does the signature expire?

@@ -115,7 +115,7 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
 
 void
 set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
-                    const struct GNUNET_CRYPTO_PublicKey *key)
+                    const struct GNUNET_CRYPTO_BlindablePublicKey *key)
 {
   GNUNET_assert (handle);
 
@@ -125,14 +125,14 @@ set_srv_handle_key (struct GNUNET_MESSENGER_SrvHandle *handle,
     handle->key = NULL;
   }
   else if (! handle->key)
-    handle->key = GNUNET_new (struct GNUNET_CRYPTO_PublicKey);
+    handle->key = GNUNET_new (struct GNUNET_CRYPTO_BlindablePublicKey);
 
   if (key)
-    memcpy (handle->key, key, sizeof(struct GNUNET_CRYPTO_PublicKey));
+    memcpy (handle->key, key, sizeof(struct GNUNET_CRYPTO_BlindablePublicKey));
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_srv_handle_key (const struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   GNUNET_assert (handle);
@@ -431,7 +431,7 @@ get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
                            const struct GNUNET_HashCode *key)
 {
   const struct GNUNET_ShortHashCode *id;
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
 
   GNUNET_assert ((handle) && (room) && (key) && (handle->service));
 
@@ -547,7 +547,7 @@ skip_message_filter:
   }
   else
   {
-    const struct GNUNET_CRYPTO_PublicKey *pubkey;
+    const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
     pubkey = get_member_session_public_key (session->member);
     GNUNET_CRYPTO_hash (pubkey, sizeof(*pubkey), &sender);
 

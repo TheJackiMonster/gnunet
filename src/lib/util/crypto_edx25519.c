@@ -102,7 +102,7 @@ GNUNET_CRYPTO_edx25519_key_get_public (
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_edx25519_sign_ (
   const struct GNUNET_CRYPTO_Edx25519PrivateKey *priv,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  const struct GNUNET_CRYPTO_SignaturePurpose *purpose,
   struct GNUNET_CRYPTO_Edx25519Signature *sig)
 {
 
@@ -185,7 +185,7 @@ GNUNET_CRYPTO_edx25519_sign_ (
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_edx25519_verify_ (
   uint32_t purpose,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const struct GNUNET_CRYPTO_SignaturePurpose *validate,
   const struct GNUNET_CRYPTO_Edx25519Signature *sig,
   const struct GNUNET_CRYPTO_Edx25519PublicKey *pub)
 {

@@ -107,7 +107,7 @@ struct Zone
   /**
    * Private key of the zone.
    */
-  struct GNUNET_CRYPTO_PrivateKey key;
+  struct GNUNET_CRYPTO_BlindablePrivateKey key;
 };
 
 
@@ -1519,7 +1519,7 @@ ns_lookup_error_cb (void *cls)
  */
 static void
 ns_lookup_result_cb (void *cls,
-                     const struct GNUNET_CRYPTO_PrivateKey *key,
+                     const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                      const char *label_utf8,
                      unsigned int rd_count,
                      const struct GNUNET_GNSRECORD_Data *rd)
@@ -1659,11 +1659,11 @@ delegation_store_cont (void *cls,
 static void
 missing_zone_creation_cont (
   void *cls,
-  const struct GNUNET_CRYPTO_PrivateKey *sk,
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *sk,
   enum GNUNET_ErrorCode ec)
 {
   struct MissingZoneCreationCtx *mzctx = cls;
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   struct Zone *parent_zone;
   struct Zone *zone;
   const char *dot;
@@ -1717,7 +1717,7 @@ missing_zone_creation_cont (
     break;
   }
   GNUNET_assert (NULL != parent_zone);
-  GNUNET_CRYPTO_key_get_public (sk, &pk);
+  GNUNET_CRYPTO_blindable_key_get_public (sk, &pk);
   struct GNUNET_GNSRECORD_Data delegation_rd;
   char *data;
   size_t data_size;

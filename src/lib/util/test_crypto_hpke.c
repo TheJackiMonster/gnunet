@@ -119,10 +119,14 @@ static int
 test_mode_base ()
 {
 
-  struct GNUNET_CRYPTO_EcdhePrivateKey rfc9180_a2_skEm;
-  struct GNUNET_CRYPTO_EcdhePublicKey rfc9180_a2_pkEm;
-  struct GNUNET_CRYPTO_EcdhePrivateKey rfc9180_a2_skRm;
-  struct GNUNET_CRYPTO_EcdhePublicKey rfc9180_a2_pkRm;
+  struct GNUNET_CRYPTO_HpkePrivateKey rfc9180_a2_skEm_hpke;
+  struct GNUNET_CRYPTO_HpkePublicKey rfc9180_a2_pkEm_hpke;
+  struct GNUNET_CRYPTO_HpkePrivateKey rfc9180_a2_skRm_hpke;
+  struct GNUNET_CRYPTO_HpkePublicKey rfc9180_a2_pkRm_hpke;
+  struct GNUNET_CRYPTO_EcdhePrivateKey *rfc9180_a2_skEm;
+  struct GNUNET_CRYPTO_EcdhePublicKey *rfc9180_a2_pkEm;
+  struct GNUNET_CRYPTO_EcdhePrivateKey *rfc9180_a2_skRm;
+  struct GNUNET_CRYPTO_EcdhePublicKey *rfc9180_a2_pkRm;
   struct GNUNET_CRYPTO_HpkeEncapsulation rfc9180_a2_enc;
   struct GNUNET_CRYPTO_HpkeEncapsulation enc;
   struct GNUNET_ShortHashCode rfc9180_a2_shared_secret;
@@ -141,14 +145,18 @@ test_mode_base ()
   uint8_t test_ct[strlen (rfc9180_a2_1_ct_seq0_str) / 2];
   uint8_t test_pt[strlen (rfc9180_a2_1_pt_str) / 2];
 
+  rfc9180_a2_skEm = &rfc9180_a2_skEm_hpke.ecdhe_key;
+  rfc9180_a2_pkEm = &rfc9180_a2_pkEm_hpke.ecdhe_key;
+  rfc9180_a2_skRm = &rfc9180_a2_skRm_hpke.ecdhe_key;
+  rfc9180_a2_pkRm = &rfc9180_a2_pkRm_hpke.ecdhe_key;
   GNUNET_log_setup ("test-crypto-kem", "WARNING", NULL);
 
   parsehex (rfc9180_a2_1_skEm_str,
-            (char*) &rfc9180_a2_skEm.d,
-            sizeof rfc9180_a2_skEm, 0);
+            (char*) &rfc9180_a2_skEm->d,
+            sizeof *rfc9180_a2_skEm, 0);
   parsehex (rfc9180_a2_1_skRm_str,
-            (char*) &rfc9180_a2_skRm.d,
-            sizeof rfc9180_a2_skRm, 0);
+            (char*) &rfc9180_a2_skRm->d,
+            sizeof *rfc9180_a2_skRm, 0);
   parsehex (rfc9180_a2_1_enc_str,
             (char*) &rfc9180_a2_enc,
             sizeof rfc9180_a2_enc, 0);
@@ -179,17 +187,27 @@ test_mode_base ()
   parsehex (rfc9180_a2_1_ct_seq255_str,
             (char*) &rfc9180_a2_ct_seq255,
             sizeof rfc9180_a2_ct_seq255, 0);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&rfc9180_a2_skEm, &rfc9180_a2_pkEm);
-  GNUNET_CRYPTO_ecdhe_key_get_public (&rfc9180_a2_skRm, &rfc9180_a2_pkRm);
+  GNUNET_CRYPTO_ecdhe_key_get_public (rfc9180_a2_skEm,
+                                      rfc9180_a2_pkEm);
+  GNUNET_CRYPTO_ecdhe_key_get_public (rfc9180_a2_skRm,
+                                      rfc9180_a2_pkRm);
   printf ("pkRm: ");
-  print_bytes (&rfc9180_a2_pkRm, sizeof rfc9180_a2_pkRm, 0);
+  print_bytes (&rfc9180_a2_pkRm,
+               sizeof *rfc9180_a2_pkRm,
+               0);
   printf ("\n");
   printf ("pkEm: ");
-  print_bytes (&rfc9180_a2_pkEm, sizeof rfc9180_a2_pkEm, 0);
+  print_bytes (&rfc9180_a2_pkEm,
+               sizeof *rfc9180_a2_pkEm,
+               0);
   printf ("\n");
-  memcpy (enc.q_y, rfc9180_a2_pkEm.q_y, 32);
-  GNUNET_CRYPTO_hpke_kem_encaps_norand (&rfc9180_a2_pkRm, &enc,
-                                        &rfc9180_a2_skEm, &shared_secret);
+  memcpy (enc.q_y,
+          rfc9180_a2_pkEm->q_y,
+          32);
+  GNUNET_CRYPTO_hpke_kem_encaps_norand (&rfc9180_a2_pkRm_hpke,
+                                        &enc,
+                                        &rfc9180_a2_skEm_hpke,
+                                        &shared_secret);
   GNUNET_assert (0 == GNUNET_memcmp (&enc, &rfc9180_a2_enc));
   printf ("enc: ");
   print_bytes (&enc, sizeof enc, 0);
@@ -202,15 +220,15 @@ test_mode_base ()
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sender_setup2 (
                    GNUNET_CRYPTO_HPKE_KEM_DH_X25519_HKDF256,
                    GNUNET_CRYPTO_HPKE_MODE_BASE,
-                   &rfc9180_a2_skEm, NULL,
-                   &rfc9180_a2_pkRm,
+                   &rfc9180_a2_skEm_hpke, NULL,
+                   &rfc9180_a2_pkRm_hpke,
                    rfc9180_a2_info, sizeof rfc9180_a2_info,
                    NULL, 0,
                    NULL, 0,
                    &enc, &ctxS));
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_receiver_setup (
                    &enc,
-                   &rfc9180_a2_skRm,
+                   &rfc9180_a2_skRm_hpke,
                    rfc9180_a2_info, sizeof rfc9180_a2_info,
                    &ctxR));
   GNUNET_assert (0 == GNUNET_memcmp (ctxR.key, ctxS.key));

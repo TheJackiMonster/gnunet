@@ -393,7 +393,7 @@ struct EphemeralConfirmationPS
   /**
    * Purpose is #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * How long is this signature over the ephemeral key valid?
@@ -590,7 +590,7 @@ struct DvInitPS
   /**
    * Purpose is #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_INITIATOR
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Time at the initiator when generating the signature.
@@ -634,7 +634,7 @@ struct DvHopPS
   /**
    * Purpose is #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Identity of the previous peer on the path.
@@ -878,7 +878,7 @@ struct TransportValidationPS
   /**
    * Purpose is #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_CHALLENGE
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * How long does the sender believe the address on
@@ -6134,7 +6134,7 @@ struct SignedAddress
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_TRANSPORT_ADDRESS
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * When was the address generated.

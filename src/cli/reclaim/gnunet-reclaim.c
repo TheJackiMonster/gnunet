@@ -156,7 +156,7 @@ static struct GNUNET_RECLAIM_TicketIterator *ticket_iterator;
 /**
  * ego private key
  */
-static const struct GNUNET_CRYPTO_PrivateKey *pkey;
+static const struct GNUNET_CRYPTO_BlindablePrivateKey *pkey;
 
 /**
  * Ticket to consume
@@ -256,7 +256,7 @@ store_cont (void *cls, int32_t success, const char *emsg)
 
 static void
 process_attrs (void *cls,
-               const struct GNUNET_CRYPTO_PublicKey *identity,
+               const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
                const struct GNUNET_RECLAIM_Attribute *attr,
                const struct GNUNET_RECLAIM_Presentation *presentation)
 {
@@ -533,7 +533,7 @@ iter_finished (void *cls)
 
 static void
 iter_cb (void *cls,
-         const struct GNUNET_CRYPTO_PublicKey *identity,
+         const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
          const struct GNUNET_RECLAIM_Attribute *attr)
 {
   struct GNUNET_RECLAIM_AttributeListEntry *le;
@@ -676,7 +676,7 @@ cred_iter_finished (void *cls)
 
 static void
 cred_iter_cb (void *cls,
-              const struct GNUNET_CRYPTO_PublicKey *identity,
+              const struct GNUNET_CRYPTO_BlindablePublicKey *identity,
               const struct GNUNET_RECLAIM_Credential *cred)
 {
   char *cred_str;

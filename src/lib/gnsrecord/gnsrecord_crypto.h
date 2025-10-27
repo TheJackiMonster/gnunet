@@ -41,7 +41,7 @@ struct GNRBlockPS
    * Number of bytes signed; also specifies the number of bytes
    * of encrypted data that follow.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Expiration time of the block.
@@ -62,10 +62,10 @@ struct GNRBlockPS
  */
 void
 GNR_derive_block_aes_key (unsigned char *ctr,
-                      unsigned char *key,
-                      const char *label,
-                      uint64_t exp,
-                      const struct GNUNET_CRYPTO_EcdsaPublicKey *pub);
+                          unsigned char *key,
+                          const char *label,
+                          uint64_t exp,
+                          const struct GNUNET_CRYPTO_EcdsaPublicKey *pub);
 
 
 /**
@@ -78,10 +78,10 @@ GNR_derive_block_aes_key (unsigned char *ctr,
  */
 void
 GNR_derive_block_xsalsa_key (unsigned char *nonce,
-                         unsigned char *key,
-                         const char *label,
-                         uint64_t exp,
-                         const struct GNUNET_CRYPTO_EddsaPublicKey *pub);
+                             unsigned char *key,
+                             const char *label,
+                             uint64_t exp,
+                             const struct GNUNET_CRYPTO_EddsaPublicKey *pub);
 
 /**
  * Create the revocation metadata to sign for a revocation message
@@ -91,4 +91,3 @@ GNR_derive_block_xsalsa_key (unsigned char *nonce,
  */
 struct GNUNET_GNSRECORD_SignaturePurposePS *
 GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow);
-

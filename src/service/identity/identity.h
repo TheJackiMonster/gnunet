@@ -43,12 +43,12 @@ struct GNUNET_IDENTITY_Ego
   /**
    * The identity key pair
    */
-  struct GNUNET_CRYPTO_PublicKey pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey pub;
 
   /**
    * The identity key pair
    */
-  struct GNUNET_CRYPTO_PrivateKey pk;
+  struct GNUNET_CRYPTO_BlindablePrivateKey pk;
 
   /**
    * Current name associated with this ego.
@@ -65,8 +65,6 @@ struct GNUNET_IDENTITY_Ego
    */
   bool pub_initialized;
 };
-
-
 
 
 GNUNET_NETWORK_STRUCT_BEGIN

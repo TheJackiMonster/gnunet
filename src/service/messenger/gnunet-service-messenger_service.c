@@ -292,12 +292,13 @@ struct HandleInitializationClosure
 {
   struct GNUNET_MESSENGER_SrvHandle *handle;
   struct GNUNET_MESSENGER_SrvRoom *room;
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
 };
 
 static enum GNUNET_GenericReturnValue
 find_member_session_in_room (void *cls,
-                             const struct GNUNET_CRYPTO_PublicKey *public_key,
+                             const struct GNUNET_CRYPTO_BlindablePublicKey *
+                             public_key,
                              struct GNUNET_MESSENGER_MemberSession *session)
 {
   struct HandleInitializationClosure *init;
@@ -311,7 +312,7 @@ find_member_session_in_room (void *cls,
     return GNUNET_YES;
 
   {
-    const struct GNUNET_CRYPTO_PublicKey *pubkey;
+    const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
     pubkey = get_srv_handle_key (init->handle);
 
     if (0 != GNUNET_memcmp (pubkey, public_key))
@@ -340,7 +341,7 @@ initialize_service_handle (struct GNUNET_MESSENGER_SrvHandle *handle,
                            struct GNUNET_MESSENGER_SrvRoom *room)
 {
   struct GNUNET_MESSENGER_MemberStore *store;
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
 
   GNUNET_assert ((handle) && (room));
 

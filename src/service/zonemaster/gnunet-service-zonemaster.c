@@ -146,7 +146,7 @@ struct RecordPublicationJob
   /**
    * The zone key to sign the block with
    */
-  struct GNUNET_CRYPTO_PrivateKey zone;
+  struct GNUNET_CRYPTO_BlindablePrivateKey zone;
 
   /**
    * The block to sign
@@ -828,7 +828,7 @@ dht_put_continuation (void *cls)
  * @return DHT PUT handle, NULL on error
  */
 static void
-dispatch_job (const struct GNUNET_CRYPTO_PrivateKey *key,
+dispatch_job (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
               const char *label,
               const struct GNUNET_GNSRECORD_Data *rd,
               unsigned int rd_count,
@@ -1071,7 +1071,7 @@ zone_iteration_finished (void *cls)
  */
 static void
 handle_record (void *cls,
-               const struct GNUNET_CRYPTO_PrivateKey *key,
+               const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                const char *label,
                unsigned int rd_count,
                const struct GNUNET_GNSRECORD_Data *rd,
@@ -1158,7 +1158,7 @@ publish_zone_dht_start (void *cls)
  * @param rd_public_count number of records in @a rd_public
  */
 static void
-dispatch_job_monitor (const struct GNUNET_CRYPTO_PrivateKey *key,
+dispatch_job_monitor (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
                       const char *label,
                       const struct GNUNET_GNSRECORD_Data *rd,
                       unsigned int rd_count,
@@ -1240,7 +1240,7 @@ dispatch_job_monitor (const struct GNUNET_CRYPTO_PrivateKey *key,
  */
 static void
 handle_monitor_event (void *cls,
-                      const struct GNUNET_CRYPTO_PrivateKey *zone,
+                      const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
                       const char *label,
                       unsigned int rd_count,
                       const struct GNUNET_GNSRECORD_Data *rd,
@@ -1502,8 +1502,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "zonemaster",
+  (GNUNET_OS_project_data_gnunet (),
+  "zonemaster",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   NULL,

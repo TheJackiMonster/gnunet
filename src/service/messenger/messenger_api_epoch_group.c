@@ -992,6 +992,7 @@ handle_epoch_group_access (struct GNUNET_MESSENGER_EpochGroup *group,
                            const struct GNUNET_HashCode *hash)
 {
   const struct GNUNET_CRYPTO_EcdhePrivateKey *private_key;
+  struct GNUNET_CRYPTO_HpkePrivateKey private_hpke;
   struct GNUNET_CRYPTO_SymmetricSessionKey shared_key;
 
   GNUNET_assert ((group) && (message) && (hash));
@@ -1006,7 +1007,12 @@ handle_epoch_group_access (struct GNUNET_MESSENGER_EpochGroup *group,
     return;
   }
 
-  if (GNUNET_NO == extract_access_message_key (message, private_key, &shared_key
+  GNUNET_memcpy (&private_hpke.ecdhe_key,
+                 private_key,
+                 sizeof *private_key);
+  if (GNUNET_NO == extract_access_message_key (message,
+                                               &private_hpke,
+                                               &shared_key
                                                ))
     return;
 

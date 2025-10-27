@@ -341,7 +341,7 @@ request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
 void
 solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
                                   const struct
-                                  GNUNET_CRYPTO_PublicKey *public_key,
+                                  GNUNET_CRYPTO_BlindablePublicKey *public_key,
                                   const struct GNUNET_ShortHashCode *member_id,
                                   struct GNUNET_TIME_Absolute timestamp);
 

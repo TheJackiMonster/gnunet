@@ -43,7 +43,7 @@ DID_ego_to_did (struct GNUNET_IDENTITY_Ego *ego);
  * @return GNUNET_OK if successful
  */
 enum GNUNET_GenericReturnValue
-DID_public_key_from_did (const char* did,
-                         struct GNUNET_CRYPTO_PublicKey *pk);
+DID_public_key_from_did (const char*did,
+                         struct GNUNET_CRYPTO_BlindablePublicKey *pk);
 
 #endif

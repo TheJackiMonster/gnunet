@@ -125,7 +125,7 @@ regex_iterator (void *cls,
          "State %s is accepting, putting own id\n",
          GNUNET_h2s (key));
     size = sizeof(struct RegexAcceptBlock);
-    ab.purpose.size = ntohl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+    ab.purpose.size = ntohl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
                              + sizeof(struct GNUNET_TIME_AbsoluteNBO)
                              + sizeof(struct GNUNET_HashCode));
     ab.purpose.purpose = ntohl (GNUNET_SIGNATURE_PURPOSE_REGEX_ACCEPT);

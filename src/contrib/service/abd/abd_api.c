@@ -422,9 +422,9 @@ GNUNET_ABD_request_cancel (struct GNUNET_ABD_Request *lr)
 struct GNUNET_ABD_Request *
 GNUNET_ABD_collect (
   struct GNUNET_ABD_Handle *handle,
-  const struct GNUNET_CRYPTO_PublicKey *issuer_key,
+  const struct GNUNET_CRYPTO_BlindablePublicKey *issuer_key,
   const char *issuer_attribute,
-  const struct GNUNET_CRYPTO_PrivateKey *subject_key,
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *subject_key,
   enum GNUNET_ABD_AlgoDirectionFlags direction,
   GNUNET_ABD_CredentialResultProcessor proc,
   void *proc_cls,
@@ -496,9 +496,9 @@ GNUNET_ABD_collect (
 struct GNUNET_ABD_Request *
 GNUNET_ABD_verify (
   struct GNUNET_ABD_Handle *handle,
-  const struct GNUNET_CRYPTO_PublicKey *issuer_key,
+  const struct GNUNET_CRYPTO_BlindablePublicKey *issuer_key,
   const char *issuer_attribute,
-  const struct GNUNET_CRYPTO_PublicKey *subject_key,
+  const struct GNUNET_CRYPTO_BlindablePublicKey *subject_key,
   uint32_t delegate_count,
   const struct GNUNET_ABD_Delegate *delegates,
   enum GNUNET_ABD_AlgoDirectionFlags direction,

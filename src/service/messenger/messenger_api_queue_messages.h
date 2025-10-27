@@ -33,7 +33,7 @@ struct GNUNET_MESSENGER_QueueMessage
   struct GNUNET_MESSENGER_QueueMessage *prev;
   struct GNUNET_MESSENGER_QueueMessage *next;
 
-  struct GNUNET_CRYPTO_PrivateKey sender;
+  struct GNUNET_CRYPTO_BlindablePrivateKey sender;
   struct GNUNET_HashCode epoch;
 
   struct GNUNET_MESSENGER_Message *message;
@@ -74,7 +74,7 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages);
  */
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
-                     const struct GNUNET_CRYPTO_PrivateKey *sender,
+                     const struct GNUNET_CRYPTO_BlindablePrivateKey *sender,
                      const struct GNUNET_HashCode *epoch,
                      struct GNUNET_MESSENGER_Message *message,
                      struct GNUNET_MESSENGER_Message *transcript);
@@ -90,7 +90,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
  */
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
-                       struct GNUNET_CRYPTO_PrivateKey *sender,
+                       struct GNUNET_CRYPTO_BlindablePrivateKey *sender,
                        struct GNUNET_HashCode *epoch,
                        struct GNUNET_MESSENGER_Message **transcript);
 

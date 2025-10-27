@@ -477,7 +477,7 @@ uri_ksk_continuation (void *cls,
                       const char *emsg)
 {
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv;
-  const struct GNUNET_CRYPTO_PrivateKey *pk;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *pk;
 
   if (NULL != emsg)
   {
@@ -575,7 +575,7 @@ directory_trim_complete (struct GNUNET_FS_ShareTreeItem *directory_scan_result)
 {
   struct GNUNET_FS_FileInformation *fi;
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv;
-  const struct GNUNET_CRYPTO_PrivateKey *pk;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *pk;
 
   fi = get_file_information (directory_scan_result);
   GNUNET_FS_share_tree_free (directory_scan_result);

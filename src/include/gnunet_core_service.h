@@ -252,7 +252,7 @@ struct EphemeralKeyMessage
   /**
    * Information about what is being signed.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * At what time was this key created (beginning of validity).

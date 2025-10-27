@@ -344,7 +344,7 @@ uri_ksk_parse (const char *s, char **emsg)
   ret->data.ksk.keywordCount = iret;
   ret->data.ksk.keywords = keywords;
   return ret;
-  CLEANUP:
+CLEANUP:
   for (i = 0; i < max; i++)
     GNUNET_free (keywords[i]);
   GNUNET_free (keywords);
@@ -460,7 +460,7 @@ struct LocUriAssembly
   /**
    * What is being signed (rest of this struct).
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Expiration time of the offer.
@@ -621,7 +621,7 @@ uri_loc_parse (const char *s, char **emsg)
   uri->data.loc.contentSignature = sig;
 
   return uri;
-  ERR:
+ERR:
   return NULL;
 }
 

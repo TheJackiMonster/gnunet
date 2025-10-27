@@ -34,7 +34,7 @@ struct GNUNET_MESSENGER_Contact
   size_t rc;
   size_t id;
 
-  struct GNUNET_CRYPTO_PublicKey public_key;
+  struct GNUNET_CRYPTO_BlindablePublicKey public_key;
 };
 
 /**
@@ -45,7 +45,7 @@ struct GNUNET_MESSENGER_Contact
  * @return New contact
  */
 struct GNUNET_MESSENGER_Contact*
-create_contact (const struct GNUNET_CRYPTO_PublicKey *key,
+create_contact (const struct GNUNET_CRYPTO_BlindablePublicKey *key,
                 size_t unique_id);
 
 /**
@@ -81,7 +81,7 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
  * @param[in] contact Contact
  * @return Public key of the contact
  */
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact);
 
 /**

@@ -43,7 +43,7 @@ static int
 testSignVerify (void)
 {
   struct GNUNET_CRYPTO_Edx25519Signature sig;
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_Edx25519PublicKey pkey;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
@@ -52,7 +52,7 @@ testSignVerify (void)
   GNUNET_CRYPTO_edx25519_key_get_public (&key,
                                          &pkey);
   start = GNUNET_TIME_absolute_get ();
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
 
   for (unsigned int i = 0; i < ITER; i++)
@@ -104,7 +104,7 @@ testSignVerify (void)
 static int
 testDeriveSignVerify (void)
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_Edx25519Signature sig;
   struct GNUNET_CRYPTO_Edx25519PrivateKey dkey;
   struct GNUNET_CRYPTO_Edx25519PublicKey pub;
@@ -128,7 +128,7 @@ testDeriveSignVerify (void)
     return GNUNET_SYSERR;
   }
 
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
 
   GNUNET_CRYPTO_edx25519_sign_ (&dkey,
@@ -153,7 +153,8 @@ testDeriveSignVerify (void)
                                       &pub))
   {
     fprintf (stderr,
-             "GNUNET_CRYPTO_edx25519_verify failed to fail after derivation!\n");
+             "GNUNET_CRYPTO_edx25519_verify failed to fail after derivation!\n")
+    ;
     return GNUNET_SYSERR;
   }
 
@@ -165,7 +166,8 @@ testDeriveSignVerify (void)
         &dpub))
   {
     fprintf (stderr,
-             "GNUNET_CRYPTO_edx25519_verify failed to fail after derivation!\n");
+             "GNUNET_CRYPTO_edx25519_verify failed to fail after derivation!\n")
+    ;
     return GNUNET_SYSERR;
   }
   return GNUNET_OK;
@@ -176,13 +178,13 @@ testDeriveSignVerify (void)
 static int
 testSignPerformance ()
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_Edx25519Signature sig;
   struct GNUNET_CRYPTO_Edx25519PublicKey pkey;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
 
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
   fprintf (stderr, "%s", "W");
   GNUNET_CRYPTO_edx25519_key_get_public (&key,

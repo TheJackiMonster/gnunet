@@ -45,7 +45,7 @@ struct GNUNET_MESSENGER_MemberStore
 typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_MemberIteratorCallback
                                         ) (
   void *cls,
-  const struct GNUNET_CRYPTO_PublicKey *public_key,
+  const struct GNUNET_CRYPTO_BlindablePublicKey *public_key,
   struct GNUNET_MESSENGER_MemberSession *session);
 
 /**

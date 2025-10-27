@@ -77,7 +77,7 @@ abd_value_to_string (void *cls,
       for (i = 0; i < ntohl (sets.set_count); i++)
       {
         subject_pkey =
-          GNUNET_CRYPTO_public_key_to_string (&set[i].subject_key);
+          GNUNET_CRYPTO_blindable_public_key_to_string (&set[i].subject_key);
 
         if (0 == set[i].subject_attribute_len)
         {
@@ -208,8 +208,9 @@ abd_string_to_value (void *cls,
 
         // sets the public key for the set entry
         if (GNUNET_SYSERR ==
-            GNUNET_CRYPTO_public_key_from_string (subject_pkey,
-                                                    &set[i].subject_key))
+            GNUNET_CRYPTO_blindable_public_key_from_string (subject_pkey,
+                                                            &set[i].subject_key)
+            )
         {
           GNUNET_free (tmp_str);
           return GNUNET_SYSERR;

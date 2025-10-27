@@ -58,8 +58,8 @@ static const char *test_did_document_format_str =
   \"authentication\":[\"#key-1\"],\
   \"assertionMethod\":[\"#key-1\"]}";
 
-static struct GNUNET_CRYPTO_PrivateKey test_skey;
-static struct GNUNET_CRYPTO_PublicKey test_pkey;
+static struct GNUNET_CRYPTO_BlindablePrivateKey test_skey;
+static struct GNUNET_CRYPTO_BlindablePublicKey test_pkey;
 static struct json_t *test_did_document;
 static char *test_did_document_str;
 
@@ -72,10 +72,11 @@ test_GNUNET_DID_pkey_to_did ()
   GNUNET_free (str_did);
 }
 
+
 static void
 test_GNUNET_DID_did_to_pkey ()
 {
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
   DID_did_to_pkey ((char *) test_did, &pkey);
 
   GNUNET_assert (test_pkey.type = pkey.type);
@@ -83,6 +84,7 @@ test_GNUNET_DID_did_to_pkey ()
                          &test_pkey.eddsa_key,
                          sizeof (test_pkey.eddsa_key)) == 0);
 }
+
 
 static void
 test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
@@ -93,6 +95,7 @@ test_GNUNET_DID_key_convert_gnunet_to_multibase_base64 ()
   GNUNET_assert (strcmp (test_multibase_key, multibase_key) == 0);
   GNUNET_free (multibase_key);
 }
+
 
 static void
 test_GNUNET_DID_pkey_to_did_document ()
@@ -105,6 +108,7 @@ test_GNUNET_DID_pkey_to_did_document ()
   GNUNET_free (did_document_str);
 }
 
+
 int
 main ()
 {
@@ -113,7 +117,7 @@ main ()
   memcpy (&(test_skey.eddsa_key),
           test_skey_bytes,
           sizeof(struct GNUNET_CRYPTO_EddsaPrivateKey));
-  GNUNET_CRYPTO_key_get_public (&test_skey, &test_pkey);
+  GNUNET_CRYPTO_blindable_key_get_public (&test_skey, &test_pkey);
 
   // Setup did document
   GNUNET_asprintf (&test_did_document_str,

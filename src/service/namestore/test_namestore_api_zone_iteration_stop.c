@@ -32,9 +32,9 @@
 
 static struct GNUNET_NAMESTORE_Handle *nsh;
 
-static struct GNUNET_CRYPTO_PrivateKey privkey;
+static struct GNUNET_CRYPTO_BlindablePrivateKey privkey;
 
-static struct GNUNET_CRYPTO_PrivateKey privkey2;
+static struct GNUNET_CRYPTO_BlindablePrivateKey privkey2;
 
 static struct GNUNET_NAMESTORE_ZoneIterator *zi;
 
@@ -110,7 +110,7 @@ fail_cb (void *cls)
 
 static void
 zone_proc (void *cls,
-           const struct GNUNET_CRYPTO_PrivateKey *zone,
+           const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
            const char *label,
            unsigned int rd_count,
            const struct GNUNET_GNSRECORD_Data *rd)
@@ -316,7 +316,7 @@ create_record (unsigned int count)
  */
 static void
 empty_zone_proc (void *cls,
-                 const struct GNUNET_CRYPTO_PrivateKey *zone,
+                 const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
                  const char *label,
                  unsigned int rd_count,
                  const struct GNUNET_GNSRECORD_Data *rd)

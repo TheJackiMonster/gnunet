@@ -1140,14 +1140,14 @@ skip_merge:
 
 static int
 compare_member_public_keys (const char *key_string,
-                            const struct GNUNET_CRYPTO_PublicKey *key)
+                            const struct GNUNET_CRYPTO_BlindablePublicKey *key)
 {
   char *str;
   int result;
 
   GNUNET_assert ((key_string) && (key));
 
-  str = GNUNET_CRYPTO_public_key_to_string (key);
+  str = GNUNET_CRYPTO_blindable_public_key_to_string (key);
   if (! str)
     return 0;
 
@@ -1162,7 +1162,7 @@ uint32_t
 get_epoch_member_position (const struct GNUNET_MESSENGER_Epoch *epoch,
                            const struct GNUNET_MESSENGER_Contact *contact)
 {
-  const struct GNUNET_CRYPTO_PublicKey *key;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key;
   char *key_string;
   uint32_t position;
   uint32_t i;
@@ -1171,7 +1171,7 @@ get_epoch_member_position (const struct GNUNET_MESSENGER_Epoch *epoch,
   GNUNET_assert ((epoch) && (contact));
 
   key = get_contact_key (contact);
-  key_string = GNUNET_CRYPTO_public_key_to_string (key);
+  key_string = GNUNET_CRYPTO_blindable_public_key_to_string (key);
 
   if (! key_string)
     return epoch->members_count;

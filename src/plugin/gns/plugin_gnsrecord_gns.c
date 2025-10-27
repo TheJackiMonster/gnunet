@@ -49,7 +49,7 @@ gns_value_to_string (void *cls,
                      size_t data_size)
 {
   const char *cdata;
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
 
   switch (type)
   {
@@ -61,7 +61,7 @@ gns_value_to_string (void *cls,
                                              type,
                                              &pk))
       return NULL;
-    return GNUNET_CRYPTO_public_key_to_string (&pk);
+    return GNUNET_CRYPTO_blindable_public_key_to_string (&pk);
 
   case GNUNET_GNSRECORD_TYPE_NICK:
   case GNUNET_GNSRECORD_TYPE_REDIRECT:
@@ -181,7 +181,7 @@ gns_string_to_value (void *cls,
                      void **data,
                      size_t *data_size)
 {
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   uint32_t record_type;
 
   if (NULL == s)
@@ -191,7 +191,7 @@ gns_string_to_value (void *cls,
   case GNUNET_GNSRECORD_TYPE_PKEY:
   case GNUNET_GNSRECORD_TYPE_EDKEY:
     if (GNUNET_OK !=
-        GNUNET_CRYPTO_public_key_from_string (s, &pk))
+        GNUNET_CRYPTO_blindable_public_key_from_string (s, &pk))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ ("Unable to parse zone key record `%s'\n"),

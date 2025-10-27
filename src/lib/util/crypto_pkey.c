@@ -44,7 +44,7 @@ check_key_type (uint32_t type)
 
 
 void
-GNUNET_CRYPTO_private_key_clear (struct GNUNET_CRYPTO_PrivateKey *key)
+GNUNET_CRYPTO_private_key_clear (struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -61,8 +61,8 @@ GNUNET_CRYPTO_private_key_clear (struct GNUNET_CRYPTO_PrivateKey *key)
 
 
 ssize_t
-GNUNET_CRYPTO_private_key_get_length (const struct
-                                      GNUNET_CRYPTO_PrivateKey *key)
+GNUNET_CRYPTO_blindable_sk_get_length (const struct
+                                       GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -83,7 +83,7 @@ GNUNET_CRYPTO_private_key_get_length (const struct
 
 ssize_t
 GNUNET_CRYPTO_public_key_get_length (const struct
-                                     GNUNET_CRYPTO_PublicKey *key)
+                                     GNUNET_CRYPTO_BlindablePublicKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -101,7 +101,8 @@ GNUNET_CRYPTO_public_key_get_length (const struct
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
                                            size_t len,
-                                           struct GNUNET_CRYPTO_PublicKey *
+                                           struct
+                                           GNUNET_CRYPTO_BlindablePublicKey *
                                            key,
                                            size_t *kb_read)
 {
@@ -125,10 +126,11 @@ GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
 
 
 ssize_t
-GNUNET_CRYPTO_write_public_key_to_buffer (const struct
-                                          GNUNET_CRYPTO_PublicKey *key,
-                                          void*buffer,
-                                          size_t len)
+GNUNET_CRYPTO_write_blindable_pk_to_buffer (const struct
+                                            GNUNET_CRYPTO_BlindablePublicKey *
+                                            key,
+                                            void*buffer,
+                                            size_t len)
 {
   const ssize_t length = GNUNET_CRYPTO_public_key_get_length (key);
   if (len < length)
@@ -146,7 +148,8 @@ enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_read_private_key_from_buffer (const void *buffer,
                                             size_t len,
                                             struct
-                                            GNUNET_CRYPTO_PrivateKey *key,
+                                            GNUNET_CRYPTO_BlindablePrivateKey *
+                                            key,
                                             size_t *kb_read)
 {
   ssize_t length;
@@ -155,7 +158,7 @@ GNUNET_CRYPTO_read_private_key_from_buffer (const void *buffer,
   GNUNET_memcpy (&key->type,
                  buffer,
                  sizeof (key->type));
-  length = GNUNET_CRYPTO_private_key_get_length (key);
+  length = GNUNET_CRYPTO_blindable_sk_get_length (key);
   if (len < length)
     return GNUNET_SYSERR;
   if (length < 0)
@@ -169,12 +172,13 @@ GNUNET_CRYPTO_read_private_key_from_buffer (const void *buffer,
 
 
 ssize_t
-GNUNET_CRYPTO_write_private_key_to_buffer (const struct
-                                           GNUNET_CRYPTO_PrivateKey *key,
-                                           void *buffer,
-                                           size_t len)
+GNUNET_CRYPTO_write_blindable_sk_to_buffer (const struct
+                                            GNUNET_CRYPTO_BlindablePrivateKey *
+                                            key,
+                                            void *buffer,
+                                            size_t len)
 {
-  const ssize_t length = GNUNET_CRYPTO_private_key_get_length (key);
+  const ssize_t length = GNUNET_CRYPTO_blindable_sk_get_length (key);
   if (len < length)
     return -1;
   if (length < 0)
@@ -187,8 +191,9 @@ GNUNET_CRYPTO_write_private_key_to_buffer (const struct
 
 
 ssize_t
-GNUNET_CRYPTO_signature_get_length (const struct
-                                    GNUNET_CRYPTO_Signature *sig)
+GNUNET_CRYPTO_blinded_key_signature_get_length (const struct
+                                                GNUNET_CRYPTO_BlindableKeySignature
+                                                *sig)
 {
   switch (ntohl (sig->type))
   {
@@ -206,7 +211,7 @@ GNUNET_CRYPTO_signature_get_length (const struct
 
 
 ssize_t
-GNUNET_CRYPTO_signature_get_raw_length_by_type (uint32_t type)
+GNUNET_CRYPTO_blinded_key_signature_get_length_by_type (uint32_t type)
 {
   switch (ntohl (type))
   {
@@ -224,16 +229,17 @@ GNUNET_CRYPTO_signature_get_raw_length_by_type (uint32_t type)
 
 
 ssize_t
-GNUNET_CRYPTO_read_signature_from_buffer (struct
-                                          GNUNET_CRYPTO_Signature *sig,
-                                          const void*buffer,
-                                          size_t len)
+GNUNET_CRYPTO_read_blinded_key_signature_from_buffer (struct
+                                                      GNUNET_CRYPTO_BlindableKeySignature
+                                                      *sig,
+                                                      const void*buffer,
+                                                      size_t len)
 {
   ssize_t length;
   if (len < sizeof (sig->type))
     return -1;
   GNUNET_memcpy (&(sig->type), buffer, sizeof (sig->type));
-  length = GNUNET_CRYPTO_signature_get_length (sig);
+  length = GNUNET_CRYPTO_blinded_key_signature_get_length (sig);
   if (len < length)
     return -1;
   if (length < 0)
@@ -245,12 +251,13 @@ GNUNET_CRYPTO_read_signature_from_buffer (struct
 
 
 ssize_t
-GNUNET_CRYPTO_write_signature_to_buffer (const struct
-                                         GNUNET_CRYPTO_Signature *sig,
-                                         void*buffer,
-                                         size_t len)
+GNUNET_CRYPTO_write_blinded_key_signature_to_buffer (const struct
+                                                     GNUNET_CRYPTO_BlindableKeySignature
+                                                     *sig,
+                                                     void*buffer,
+                                                     size_t len)
 {
-  const ssize_t length = GNUNET_CRYPTO_signature_get_length (sig);
+  const ssize_t length = GNUNET_CRYPTO_blinded_key_signature_get_length (sig);
   if (len < length)
     return -1;
   if (length < 0)
@@ -263,11 +270,11 @@ GNUNET_CRYPTO_write_signature_to_buffer (const struct
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_sign_raw_ (const struct
-                         GNUNET_CRYPTO_PrivateKey *priv,
-                         const struct
-                         GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                         unsigned char *sig)
+GNUNET_CRYPTO_blinded_key_sign_raw_ (const struct
+                                     GNUNET_CRYPTO_BlindablePrivateKey *priv,
+                                     const struct
+                                     GNUNET_CRYPTO_SignaturePurpose *purpose,
+                                     unsigned char *sig)
 {
   switch (ntohl (priv->type))
   {
@@ -290,11 +297,12 @@ GNUNET_CRYPTO_sign_raw_ (const struct
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_sign_ (const struct
-                     GNUNET_CRYPTO_PrivateKey *priv,
-                     const struct
-                     GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                     struct GNUNET_CRYPTO_Signature *sig)
+GNUNET_CRYPTO_blinded_key_sign_ (const struct
+                                 GNUNET_CRYPTO_BlindablePrivateKey *priv,
+                                 const struct
+                                 GNUNET_CRYPTO_SignaturePurpose *purpose,
+                                 struct GNUNET_CRYPTO_BlindableKeySignature *sig
+                                 )
 {
   sig->type = priv->type;
   switch (ntohl (priv->type))
@@ -316,11 +324,16 @@ GNUNET_CRYPTO_sign_ (const struct
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_signature_verify_ (uint32_t purpose,
-                                 const struct
-                                 GNUNET_CRYPTO_EccSignaturePurpose *validate,
-                                 const struct GNUNET_CRYPTO_Signature *sig,
-                                 const struct GNUNET_CRYPTO_PublicKey *pub)
+GNUNET_CRYPTO_blinded_key_signature_verify_ (uint32_t purpose,
+                                             const struct
+                                             GNUNET_CRYPTO_SignaturePurpose *
+                                             validate,
+                                             const struct
+                                             GNUNET_CRYPTO_BlindableKeySignature
+                                             *sig,
+                                             const struct
+                                             GNUNET_CRYPTO_BlindablePublicKey *
+                                             pub)
 {
   /* check type matching of 'sig' and 'pub' */
   GNUNET_assert (ntohl (pub->type) == ntohl (sig->type));
@@ -345,13 +358,15 @@ GNUNET_CRYPTO_signature_verify_ (uint32_t purpose,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_signature_verify_raw_ (uint32_t purpose,
-                                     const struct
-                                     GNUNET_CRYPTO_EccSignaturePurpose *
-                                     validate,
-                                     const unsigned char *sig,
-                                     const struct
-                                     GNUNET_CRYPTO_PublicKey *pub)
+GNUNET_CRYPTO_blinded_key_signature_verify_raw_ (uint32_t purpose,
+                                                 const struct
+                                                 GNUNET_CRYPTO_SignaturePurpose
+                                                 *
+                                                 validate,
+                                                 const unsigned char *sig,
+                                                 const struct
+                                                 GNUNET_CRYPTO_BlindablePublicKey
+                                                 *pub)
 {
   switch (ntohl (pub->type))
   {
@@ -376,8 +391,9 @@ GNUNET_CRYPTO_signature_verify_raw_ (uint32_t purpose,
 
 
 char *
-GNUNET_CRYPTO_public_key_to_string (const struct
-                                    GNUNET_CRYPTO_PublicKey *key)
+GNUNET_CRYPTO_blindable_public_key_to_string (const struct
+                                              GNUNET_CRYPTO_BlindablePublicKey *
+                                              key)
 {
   size_t size = GNUNET_CRYPTO_public_key_get_length (key);
   return GNUNET_STRINGS_data_to_string_alloc (key,
@@ -386,18 +402,21 @@ GNUNET_CRYPTO_public_key_to_string (const struct
 
 
 char *
-GNUNET_CRYPTO_private_key_to_string (const struct
-                                     GNUNET_CRYPTO_PrivateKey *key)
+GNUNET_CRYPTO_blindable_private_key_to_string (const struct
+                                               GNUNET_CRYPTO_BlindablePrivateKey
+                                               *key)
 {
-  size_t size = GNUNET_CRYPTO_private_key_get_length (key);
+  size_t size = GNUNET_CRYPTO_blindable_sk_get_length (key);
   return GNUNET_STRINGS_data_to_string_alloc (key,
                                               size);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_public_key_from_string (const char *str,
-                                      struct GNUNET_CRYPTO_PublicKey *key)
+GNUNET_CRYPTO_blindable_public_key_from_string (const char *str,
+                                                struct
+                                                GNUNET_CRYPTO_BlindablePublicKey
+                                                *key)
 {
   enum GNUNET_GenericReturnValue ret;
   ret = GNUNET_STRINGS_string_to_data (str,
@@ -412,8 +431,10 @@ GNUNET_CRYPTO_public_key_from_string (const char *str,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_private_key_from_string (const char *str,
-                                       struct GNUNET_CRYPTO_PrivateKey *key)
+GNUNET_CRYPTO_blindable_private_key_from_string (const char *str,
+                                                 struct
+                                                 GNUNET_CRYPTO_BlindablePrivateKey
+                                                 *key)
 {
   enum GNUNET_GenericReturnValue ret;
   ret = GNUNET_STRINGS_string_to_data (str,
@@ -427,9 +448,11 @@ GNUNET_CRYPTO_private_key_from_string (const char *str,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_key_get_public (const struct
-                              GNUNET_CRYPTO_PrivateKey *privkey,
-                              struct GNUNET_CRYPTO_PublicKey *key)
+GNUNET_CRYPTO_blindable_key_get_public (const struct
+                                        GNUNET_CRYPTO_BlindablePrivateKey *
+                                        privkey,
+                                        struct GNUNET_CRYPTO_BlindablePublicKey
+                                        *key)
 {
   key->type = privkey->type;
   switch (ntohl (privkey->type))

@@ -79,7 +79,7 @@ GNUNET_CRYPTO_eddsa_sign_derived (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *pkey,
   const char *label,
   const char *context,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  const struct GNUNET_CRYPTO_SignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
   struct GNUNET_CRYPTO_EddsaPrivateScalar priv;
@@ -182,7 +182,7 @@ GNUNET_CRYPTO_ecdsa_sign_derived (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
   const char *label,
   const char *context,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  const struct GNUNET_CRYPTO_SignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EcdsaSignature *sig)
 {
   struct GNUNET_CRYPTO_EcdsaPrivateKey *key;

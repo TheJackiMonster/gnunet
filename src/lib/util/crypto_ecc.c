@@ -528,7 +528,7 @@ GNUNET_CRYPTO_ecdsa_key_get_anonymous ()
  * @return converted s-expression
  */
 static gcry_sexp_t
-data_to_ecdsa_value (const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose)
+data_to_ecdsa_value (const struct GNUNET_CRYPTO_SignaturePurpose *purpose)
 {
   gcry_sexp_t data;
   int rc;
@@ -553,7 +553,7 @@ data_to_ecdsa_value (const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose)
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_sign_ (
   const struct GNUNET_CRYPTO_EcdsaPrivateKey *priv,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  const struct GNUNET_CRYPTO_SignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EcdsaSignature *sig)
 {
   gcry_sexp_t priv_sexp;
@@ -624,7 +624,7 @@ GNUNET_CRYPTO_eddsa_sign_raw (
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_sign_ (
   const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *purpose,
+  const struct GNUNET_CRYPTO_SignaturePurpose *purpose,
   struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
 
@@ -648,7 +648,7 @@ GNUNET_CRYPTO_eddsa_sign_ (
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_ecdsa_verify_ (
   uint32_t purpose,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const struct GNUNET_CRYPTO_SignaturePurpose *validate,
   const struct GNUNET_CRYPTO_EcdsaSignature *sig,
   const struct GNUNET_CRYPTO_EcdsaPublicKey *pub)
 {
@@ -707,7 +707,7 @@ GNUNET_CRYPTO_ecdsa_verify_ (
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_eddsa_verify_ (
   uint32_t purpose,
-  const struct GNUNET_CRYPTO_EccSignaturePurpose *validate,
+  const struct GNUNET_CRYPTO_SignaturePurpose *validate,
   const struct GNUNET_CRYPTO_EddsaSignature *sig,
   const struct GNUNET_CRYPTO_EddsaPublicKey *pub)
 {
@@ -774,7 +774,7 @@ GNUNET_CRYPTO_x25519_ecdh (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
   for (int i = 0; i < num_words; i++)
-    checkbyte |= ((uint64_t*)dh)[i];
+    checkbyte |= ((uint64_t*) dh)[i];
   return (0 == checkbyte) ? GNUNET_SYSERR : GNUNET_OK;
 }
 
@@ -790,7 +790,7 @@ GNUNET_CRYPTO_ecdh_x25519 (const struct GNUNET_CRYPTO_EcdhePrivateKey *sk,
     return GNUNET_SYSERR;
   // We need to check if this is the all-zero value
   for (int i = 0; i < num_words; i++)
-    checkbyte |= ((uint64_t*)dh)[i];
+    checkbyte |= ((uint64_t*) dh)[i];
   if (0 == checkbyte)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -834,7 +834,6 @@ GNUNET_CRYPTO_ecdh_eddsa (const struct GNUNET_CRYPTO_EcdhePrivateKey *priv,
   GNUNET_CRYPTO_hash (p, crypto_scalarmult_BYTES, key_material);
   return GNUNET_OK;
 }
-
 
 
 enum GNUNET_GenericReturnValue

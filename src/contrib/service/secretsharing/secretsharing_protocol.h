@@ -49,7 +49,7 @@ struct GNUNET_SECRETSHARING_KeygenCommitData
   /**
    * Signature purpose for signing the keygen commit data.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
   /**
    * Peer that inserts this element.
    */
@@ -75,7 +75,7 @@ struct GNUNET_SECRETSHARING_KeygenRevealData
   /*
    * Signature purpose for signing the keygen commit data.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
   /**
    * Peer that inserts this element.
    */
@@ -98,7 +98,7 @@ struct GNUNET_SECRETSHARING_DecryptData
   /*
    * Signature purpose for signing the keygen commit data.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
   /**
    * Ciphertext we want to decrypt.
    */

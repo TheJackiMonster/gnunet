@@ -31,10 +31,11 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-ecc", __VA_ARGS__)
 
 #define LOG_STRERROR(kind, syscall) \
-  GNUNET_log_from_strerror (kind, "util-crypto-ecc", syscall)
+        GNUNET_log_from_strerror (kind, "util-crypto-ecc", syscall)
 
 #define LOG_STRERROR_FILE(kind, syscall, filename) \
-  GNUNET_log_from_strerror_file (kind, "util-crypto-ecc", syscall, filename)
+        GNUNET_log_from_strerror_file (kind, "util-crypto-ecc", syscall, \
+                                       filename)
 
 /**
  * Log an error message at log-level 'level' that indicates
@@ -42,15 +43,15 @@
  * by gcry_strerror(rc).
  */
 #define LOG_GCRY(level, cmd, rc)                      \
-  do                                                  \
-  {                                                   \
-    LOG (level,                                       \
-         _ ("`%s' failed at %s:%d with error: %s\n"), \
-         cmd,                                         \
-         __FILE__,                                    \
-         __LINE__,                                    \
-         gcry_strerror (rc));                         \
-  } while (0)
+        do                                                  \
+        {                                                   \
+          LOG (level,                                       \
+               _ ("`%s' failed at %s:%d with error: %s\n"), \
+               cmd,                                         \
+               __FILE__,                                    \
+               __LINE__,                                    \
+               gcry_strerror (rc));                         \
+        } while (0)
 
 
 /**
@@ -290,11 +291,15 @@ GNUNET_CRYPTO_get_peer_identity (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_sign_by_peer_identity (const struct
-                                     GNUNET_CONFIGURATION_Handle *cfg,
-                                     const struct
-                                     GNUNET_CRYPTO_EccSignaturePurpose *purpose,
-                                     struct GNUNET_CRYPTO_EddsaSignature *sig)
+GNUNET_CRYPTO_blinded_key_sign_by_peer_identity (const struct
+                                                 GNUNET_CONFIGURATION_Handle *
+                                                 cfg,
+                                                 const struct
+                                                 GNUNET_CRYPTO_SignaturePurpose
+                                                 *purpose,
+                                                 struct
+                                                 GNUNET_CRYPTO_EddsaSignature *
+                                                 sig)
 {
   struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
   enum GNUNET_GenericReturnValue result;
@@ -315,7 +320,7 @@ GNUNET_CRYPTO_sign_by_peer_identity (const struct
 enum GNUNET_GenericReturnValue
 GNUNET_CRYPTO_verify_peer_identity (uint32_t purpose,
                                     const struct
-                                    GNUNET_CRYPTO_EccSignaturePurpose *validate,
+                                    GNUNET_CRYPTO_SignaturePurpose *validate,
                                     const struct
                                     GNUNET_CRYPTO_EddsaSignature *sig,
                                     const struct GNUNET_PeerIdentity *identity)

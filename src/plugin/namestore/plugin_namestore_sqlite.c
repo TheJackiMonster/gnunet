@@ -282,14 +282,14 @@ database_shutdown (struct Plugin *plugin)
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_store_records (void *cls,
                                 const struct
-                                GNUNET_CRYPTO_PrivateKey *zone_key,
+                                GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                                 const char *label,
                                 unsigned int rd_count,
                                 const struct GNUNET_GNSRECORD_Data *rd)
 {
   struct Plugin *plugin = cls;
   int n;
-  struct GNUNET_CRYPTO_PublicKey pkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pkey;
   uint64_t rvalue;
   ssize_t data_size;
 
@@ -440,7 +440,7 @@ static enum GNUNET_GenericReturnValue
 get_records_and_call_iterator (struct Plugin *plugin,
                                sqlite3_stmt *stmt,
                                const struct
-                               GNUNET_CRYPTO_PrivateKey *zone_key,
+                               GNUNET_CRYPTO_BlindablePrivateKey *zone_key,
                                uint64_t limit,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
@@ -476,7 +476,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
       void *data;
       char *label;
       char *editor_hint;
-      struct GNUNET_CRYPTO_PrivateKey zk;
+      struct GNUNET_CRYPTO_BlindablePrivateKey zk;
       struct GNUNET_SQ_ResultSpec rs[] = {
         GNUNET_SQ_result_spec_uint64 (&seq),
         GNUNET_SQ_result_spec_uint32 (&record_count),
@@ -561,7 +561,7 @@ get_records_and_call_iterator (struct Plugin *plugin,
 static enum GNUNET_GenericReturnValue
 lookup_records (void *cls,
                 const struct
-                GNUNET_CRYPTO_PrivateKey *zone,
+                GNUNET_CRYPTO_BlindablePrivateKey *zone,
                 const char *label,
                 GNUNET_NAMESTORE_RecordIterator iter,
                 void *iter_cls,
@@ -613,7 +613,7 @@ lookup_records (void *cls,
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_lookup_records (void *cls,
                                  const struct
-                                 GNUNET_CRYPTO_PrivateKey *zone,
+                                 GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                  const char *label,
                                  GNUNET_NAMESTORE_RecordIterator iter,
                                  void *iter_cls)
@@ -639,7 +639,7 @@ namestore_sqlite_editor_hint_clear (void *cls,
                                     const char *editor_hint,
                                     const char *editor_hint_replacement,
                                     const struct
-                                    GNUNET_CRYPTO_PrivateKey *zone,
+                                    GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                     const char *label)
 {
   struct Plugin *plugin = cls;
@@ -709,7 +709,7 @@ static enum GNUNET_GenericReturnValue
 namestore_sqlite_edit_records (void *cls,
                                const char *editor_hint,
                                const struct
-                               GNUNET_CRYPTO_PrivateKey *zone,
+                               GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                const char *label,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
@@ -733,7 +733,7 @@ namestore_sqlite_edit_records (void *cls,
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_iterate_records (void *cls,
                                   const struct
-                                  GNUNET_CRYPTO_PrivateKey *zone,
+                                  GNUNET_CRYPTO_BlindablePrivateKey *zone,
                                   uint64_t serial,
                                   uint64_t limit,
                                   GNUNET_NAMESTORE_RecordIterator iter,
@@ -800,9 +800,10 @@ namestore_sqlite_iterate_records (void *cls,
  */
 static enum GNUNET_GenericReturnValue
 namestore_sqlite_zone_to_name (void *cls,
-                               const struct GNUNET_CRYPTO_PrivateKey *zone,
+                               const struct GNUNET_CRYPTO_BlindablePrivateKey *
+                               zone,
                                const struct
-                               GNUNET_CRYPTO_PublicKey *value_zone,
+                               GNUNET_CRYPTO_BlindablePublicKey *value_zone,
                                GNUNET_NAMESTORE_RecordIterator iter,
                                void *iter_cls)
 {
@@ -1032,6 +1033,7 @@ database_connect (struct Plugin *plugin)
   return GNUNET_OK;
 }
 
+
 void *
 libgnunet_plugin_namestore_sqlite_init (void *cls);
 
@@ -1074,6 +1076,7 @@ libgnunet_plugin_namestore_sqlite_init (void *cls)
        _ ("SQlite database running\n"));
   return api;
 }
+
 
 void *
 libgnunet_plugin_namestore_sqlite_done (void *cls);

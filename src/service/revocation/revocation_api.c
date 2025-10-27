@@ -106,7 +106,7 @@ handle_revocation_query_response (void *cls,
  */
 struct GNUNET_REVOCATION_Query *
 GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
-                         const struct GNUNET_CRYPTO_PublicKey *key,
+                         const struct GNUNET_CRYPTO_BlindablePublicKey *key,
                          GNUNET_REVOCATION_Callback func,
                          void *func_cls)
 {
@@ -138,7 +138,7 @@ GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
   key_len = GNUNET_CRYPTO_public_key_get_length (key);
   env = GNUNET_MQ_msg_extra (qm, key_len,
                              GNUNET_MESSAGE_TYPE_REVOCATION_QUERY);
-  GNUNET_CRYPTO_write_public_key_to_buffer (key, &qm[1], key_len);
+  GNUNET_CRYPTO_write_blindable_pk_to_buffer (key, &qm[1], key_len);
   qm->key_len = htonl (key_len);
   GNUNET_MQ_send (q->mq,
                   env);

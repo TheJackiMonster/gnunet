@@ -52,7 +52,7 @@ struct GNUNET_DNS_Advertisement
    * Beginning of signed portion of the record, signs everything until
    * the end of the struct.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * When does this signature expire?

@@ -57,7 +57,7 @@ extern "C"
  * Default republication frequency for stored data in the DHT.
  */
 #define GNUNET_DHT_DEFAULT_REPUBLISH_FREQUENCY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MINUTES, 60)
+          GNUNET_TIME_UNIT_MINUTES, 60)
 
 
 /**
@@ -133,7 +133,7 @@ struct GNUNET_DHT_HopSignature
   /**
    * Must be #GNUNET_SIGNATURE_PURPOSE_DHT_HOP.
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Expiration time of the block.

@@ -41,7 +41,7 @@ static int
 testSignVerify (void)
 {
   struct GNUNET_CRYPTO_EcdsaSignature sig;
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
@@ -50,7 +50,7 @@ testSignVerify (void)
   GNUNET_CRYPTO_ecdsa_key_get_public (&key,
                                       &pkey);
   start = GNUNET_TIME_absolute_get ();
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
 
   for (unsigned int i = 0; i < ITER; i++)
@@ -104,7 +104,7 @@ static int
 testDeriveSignVerify (void)
 {
   struct GNUNET_CRYPTO_EcdsaSignature sig;
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_EcdsaPrivateKey *dpriv;
   struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
   struct GNUNET_CRYPTO_EcdsaPublicKey dpub;
@@ -120,7 +120,7 @@ testDeriveSignVerify (void)
                                          "test-CTX",
                                          &dpub);
   GNUNET_CRYPTO_ecdsa_key_get_public (dpriv, &dpub2);
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
 
   if (0 != GNUNET_memcmp (&dpub.q_y, &dpub2.q_y))
@@ -181,14 +181,14 @@ testDeriveSignVerify (void)
 static int
 testSignPerformance (void)
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purp;
+  struct GNUNET_CRYPTO_SignaturePurpose purp;
   struct GNUNET_CRYPTO_EcdsaSignature sig;
   struct GNUNET_CRYPTO_EcdsaPublicKey pkey;
   int i;
   struct GNUNET_TIME_Absolute start;
   int ok = GNUNET_OK;
 
-  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose));
+  purp.size = htonl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose));
   purp.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TEST);
   fprintf (stderr, "%s", "W");
   GNUNET_CRYPTO_ecdsa_key_get_public (key, &pkey);

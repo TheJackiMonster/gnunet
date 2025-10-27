@@ -250,7 +250,7 @@ struct RequestHandle
 
   /**
    * Success http status code
-   * 
+   *
    * Used to communicate happy path status codes to callbacks.
    */
   unsigned int success_code;
@@ -398,7 +398,7 @@ ego_get_all (struct GNUNET_REST_RequestHandle *con_handle,
         GNUNET_CONTAINER_multihashmap_contains (
           handle->rest_handle->url_param_map, &key))
     {
-      privkey_str = GNUNET_CRYPTO_private_key_to_string (
+      privkey_str = GNUNET_CRYPTO_blindable_private_key_to_string (
         GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego));
       json_object_set_new (json_ego,
                            GNUNET_REST_IDENTITY_PARAM_PRIVKEY,
@@ -453,7 +453,7 @@ ego_get_response (struct RequestHandle *handle, struct EgoEntry *ego_entry)
       GNUNET_CONTAINER_multihashmap_contains (
         handle->rest_handle->url_param_map, &key))
   {
-    privkey_str = GNUNET_CRYPTO_private_key_to_string (
+    privkey_str = GNUNET_CRYPTO_blindable_private_key_to_string (
       GNUNET_IDENTITY_ego_get_private_key (ego_entry->ego));
     json_object_set_new (json_ego,
                          GNUNET_REST_IDENTITY_PARAM_PRIVKEY,
@@ -591,7 +591,7 @@ do_finished (void *cls, enum GNUNET_ErrorCode ec)
  */
 static void
 do_finished_create (void *cls,
-                    const struct GNUNET_CRYPTO_PrivateKey *pk,
+                    const struct GNUNET_CRYPTO_BlindablePrivateKey *pk,
                     enum GNUNET_ErrorCode ec)
 {
   struct RequestHandle *handle = cls;
@@ -779,8 +779,8 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
   char *egoname;
   char *egotype;
   char *privkey;
-  struct GNUNET_CRYPTO_PrivateKey pk;
-  struct GNUNET_CRYPTO_PrivateKey *pk_ptr;
+  struct GNUNET_CRYPTO_BlindablePrivateKey pk;
+  struct GNUNET_CRYPTO_BlindablePrivateKey *pk_ptr;
   int json_unpack_state;
   int type;
   char term_data[handle->data_size + 1];
@@ -846,7 +846,7 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
                                    strlen (privkey),
                                    &pk,
                                    sizeof(struct
-                                          GNUNET_CRYPTO_PrivateKey));
+                                          GNUNET_CRYPTO_BlindablePrivateKey));
     pk_ptr = &pk;
   }
   else
@@ -1096,7 +1096,7 @@ list_ego (void *cls,
           const char *identifier)
 {
   struct EgoEntry *ego_entry;
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
 
   if ((NULL == ego) && (ID_REST_STATE_INIT == state))
   {
@@ -1113,7 +1113,7 @@ list_ego (void *cls,
   {
     ego_entry = GNUNET_new (struct EgoEntry);
     GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-    ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
+    ego_entry->keystring = GNUNET_CRYPTO_blindable_public_key_to_string (&pk);
     ego_entry->ego = ego;
     ego_entry->identifier = GNUNET_strdup (identifier);
     GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -1139,7 +1139,7 @@ list_ego (void *cls,
       /* Add */
       ego_entry = GNUNET_new (struct EgoEntry);
       GNUNET_IDENTITY_ego_get_public_key (ego, &pk);
-      ego_entry->keystring = GNUNET_CRYPTO_public_key_to_string (&pk);
+      ego_entry->keystring = GNUNET_CRYPTO_blindable_public_key_to_string (&pk);
       ego_entry->ego = ego;
       ego_entry->identifier = GNUNET_strdup (identifier);
       GNUNET_CONTAINER_DLL_insert_tail (ego_head,
@@ -1183,7 +1183,7 @@ list_ego (void *cls,
  * @return GNUNET_OK if request accepted
  */
 enum GNUNET_GenericReturnValue
-REST_identity_process_request (void* plugin,
+REST_identity_process_request (void*plugin,
                                struct GNUNET_REST_RequestHandle *rest_handle,
                                GNUNET_REST_ResultProcessor proc,
                                void *proc_cls)

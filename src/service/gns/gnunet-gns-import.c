@@ -168,7 +168,7 @@ check_pkey (unsigned int rd_len, const struct GNUNET_GNSRECORD_Data *rd,
             char *pk, int *found_rec)
 {
   int i;
-  struct GNUNET_CRYPTO_PublicKey pubkey;
+  struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
 
   for (i = 0; i < rd_len; i++)
   {

@@ -128,7 +128,8 @@ on_iteration (void *cls)
     return;
   }
 
-  const struct GNUNET_CRYPTO_PublicKey *key = GNUNET_MESSENGER_get_key (
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key = GNUNET_MESSENGER_get_key
+                                                       (
     handle);
 
   if (key)

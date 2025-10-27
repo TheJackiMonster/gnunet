@@ -53,7 +53,7 @@ struct PilsHelloSignaturePurpose
   /**
    * Purpose must be #GNUNET_SIGNATURE_PURPOSE_HELLO
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * When does the signature expire?
@@ -115,7 +115,7 @@ GNUNET_NETWORK_STRUCT_BEGIN
 
 struct BoxToSign
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
   struct GNUNET_TIME_Relative validity;
   char buffer[128];
 };

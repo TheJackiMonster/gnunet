@@ -248,7 +248,7 @@ handle_query_message (void *cls,
                       const struct QueryMessage *qm)
 {
   struct GNUNET_SERVICE_Client *client = cls;
-  struct GNUNET_CRYPTO_PublicKey zone;
+  struct GNUNET_CRYPTO_BlindablePublicKey zone;
   struct GNUNET_MQ_Envelope *env;
   struct QueryResponseMessage *qrm;
   struct GNUNET_HashCode hc;
@@ -342,8 +342,8 @@ publicize_rm (const struct RevokeMessage *rm)
   ssize_t pklen;
   const struct GNUNET_GNSRECORD_PowP *pow
     = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
-  const struct GNUNET_CRYPTO_PublicKey *pk
-    = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pk
+    = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
 
   /** FIXME yeah this works, but should we have a key length somewhere? */
   pklen = GNUNET_CRYPTO_public_key_get_length (pk);
@@ -881,9 +881,8 @@ run (void *cls,
   struct RevokeMessage *rm;
   struct GNUNET_HashCode hc;
   struct GNUNET_GNSRECORD_PowP *pow;
-  const struct GNUNET_CRYPTO_PublicKey *pk;
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pk;
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_REVOCATION,
     .version = { 1, 0 },
     .version_max = { 1, 0 },
@@ -990,7 +989,7 @@ run (void *cls,
       return;
     }
     pow = (struct GNUNET_GNSRECORD_PowP *) &rm[1];
-    pk = (const struct GNUNET_CRYPTO_PublicKey *) &pow[1];
+    pk = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
     ksize = GNUNET_CRYPTO_public_key_get_length (pk);
     if (0 > ksize)
     {
@@ -1034,8 +1033,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "revocation",
+  (GNUNET_OS_project_data_gnunet (),
+  "revocation",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,
@@ -1057,6 +1056,7 @@ GNUNET_SERVICE_MAIN
 
 void
 GNUNET_REVOCATION_memory_init (void);
+
 /**
  * MINIMIZE heap size (way below 128k) since this process doesn't need much.
  */

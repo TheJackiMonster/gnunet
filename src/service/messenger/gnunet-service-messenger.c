@@ -91,7 +91,7 @@ check_room_initial_key (const struct GNUNET_MESSENGER_RoomMessage *msg)
     return GNUNET_OK;
 
   {
-    struct GNUNET_CRYPTO_PublicKey key;
+    struct GNUNET_CRYPTO_BlindablePublicKey key;
     size_t key_len;
 
     if (GNUNET_OK != GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
@@ -120,7 +120,7 @@ initialize_handle_via_key (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   if (msg_length > 0)
   {
-    struct GNUNET_CRYPTO_PublicKey key;
+    struct GNUNET_CRYPTO_BlindablePublicKey key;
     size_t key_len;
 
     if (GNUNET_OK == GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
@@ -505,7 +505,7 @@ handle_get_message (void *cls,
   struct GNUNET_MESSENGER_SrvRoom *room;
   const struct GNUNET_ShortHashCode *member_id;
   struct GNUNET_MESSENGER_Member *member;
-  const struct GNUNET_CRYPTO_PublicKey *pubkey;
+  const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
   struct GNUNET_MESSENGER_MemberSession *session;
 
   GNUNET_assert ((cls) && (msg));

@@ -726,6 +726,7 @@ handle_client_audio_message (void *cls, const struct ClientAudioMessage *msg)
   GNUNET_SERVICE_client_continue (line->client);
 }
 
+
 /**
  * Function to handle a ring message incoming over cadet
  *
@@ -738,6 +739,7 @@ check_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
   // FIXME
   return GNUNET_OK;
 }
+
 
 /**
  * Function to handle a ring message incoming over cadet
@@ -753,8 +755,8 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
   struct GNUNET_MQ_Envelope *env;
   struct ClientPhoneRingMessage *cring;
   struct CadetPhoneRingInfoPS rs;
-  struct GNUNET_CRYPTO_PublicKey identity;
-  struct GNUNET_CRYPTO_Signature sig;
+  struct GNUNET_CRYPTO_BlindablePublicKey identity;
+  struct GNUNET_CRYPTO_BlindableKeySignature sig;
   size_t key_len;
   size_t sig_len;
   size_t read;
@@ -769,20 +771,20 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
 
   if ((GNUNET_SYSERR ==
        GNUNET_CRYPTO_read_public_key_from_buffer (&msg[1],
-                                                    key_len,
-                                                    &identity,
-                                                    &read)) ||
+                                                  key_len,
+                                                  &identity,
+                                                  &read)) ||
       (read != key_len))
   {
     GNUNET_break_op (0);
     destroy_line_cadet_channels (ch);
     return;
   }
-  GNUNET_CRYPTO_read_signature_from_buffer (&sig,
-                                              (char*) &msg[1] + read,
-                                              sig_len);
+  GNUNET_CRYPTO_read_blinded_key_signature_from_buffer (&sig,
+                                                        (char*) &msg[1] + read,
+                                                        sig_len);
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_signature_verify (
+      GNUNET_CRYPTO_blinded_key_signature_verify (
         GNUNET_SIGNATURE_PURPOSE_CONVERSATION_RING,
         &rs,
         &sig,
@@ -1113,6 +1115,7 @@ inbound_end (void *cls, const struct GNUNET_CADET_Channel *channel)
   clean_up_channel (ch);
 }
 
+
 /**
  * Function to handle call request from the client
  *
@@ -1125,6 +1128,7 @@ check_client_call_message (void *cls, const struct ClientCallMessage *msg)
   // FIXME
   return GNUNET_OK;
 }
+
 
 /**
  * Function to handle call request from the client
@@ -1162,9 +1166,9 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
   struct GNUNET_MQ_Envelope *e;
   struct CadetPhoneRingMessage *ring;
   struct CadetPhoneRingInfoPS rs;
-  struct GNUNET_CRYPTO_PrivateKey caller_id;
-  struct GNUNET_CRYPTO_PublicKey caller_id_pub;
-  struct GNUNET_CRYPTO_Signature sig;
+  struct GNUNET_CRYPTO_BlindablePrivateKey caller_id;
+  struct GNUNET_CRYPTO_BlindablePublicKey caller_id_pub;
+  struct GNUNET_CRYPTO_BlindableKeySignature sig;
   ssize_t written;
   size_t key_len;
   size_t pkey_len;
@@ -1181,9 +1185,9 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
   key_len = ntohl (msg->key_len);
   if (GNUNET_SYSERR ==
       GNUNET_CRYPTO_read_private_key_from_buffer (&msg[1],
-                                                    key_len,
-                                                    &caller_id,
-                                                    &read))
+                                                  key_len,
+                                                  &caller_id,
+                                                  &read))
   {
     GNUNET_break_op (0);
     GNUNET_free (ch);
@@ -1202,21 +1206,22 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
                                              cadet_handlers);
   ch->mq = GNUNET_CADET_get_mq (ch->channel);
   GNUNET_assert (read == key_len);
-  GNUNET_CRYPTO_sign (&caller_id, &rs, &sig);
-  sig_len = GNUNET_CRYPTO_signature_get_length (&sig);
-  GNUNET_CRYPTO_key_get_public (&caller_id, &caller_id_pub);
+  GNUNET_CRYPTO_blinded_key_sign (&caller_id, &rs, &sig);
+  sig_len = GNUNET_CRYPTO_blinded_key_signature_get_length (&sig);
+  GNUNET_CRYPTO_blindable_key_get_public (&caller_id, &caller_id_pub);
   pkey_len = GNUNET_CRYPTO_public_key_get_length (&caller_id_pub);
   e = GNUNET_MQ_msg_extra (ring, pkey_len + sig_len,
                            GNUNET_MESSAGE_TYPE_CONVERSATION_CADET_PHONE_RING);
-  written = GNUNET_CRYPTO_write_public_key_to_buffer (&caller_id_pub,
+  written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (&caller_id_pub,
                                                         &ring[1],
                                                         pkey_len);
   ring->expiration_time = rs.expiration_time;
   ring->key_len = htonl (pkey_len);
   ring->sig_len = htonl (sig_len);
-  GNUNET_CRYPTO_write_signature_to_buffer (&sig,
-                                             (char *) &ring[1] + written,
-                                             sig_len);
+  GNUNET_CRYPTO_write_blinded_key_signature_to_buffer (&sig,
+                                                       (char *) &ring[1]
+                                                       + written,
+                                                       sig_len);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending RING message via CADET\n");
   GNUNET_MQ_send (ch->mq, e);
   GNUNET_SERVICE_client_continue (line->client);
@@ -1418,7 +1423,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "conversation",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

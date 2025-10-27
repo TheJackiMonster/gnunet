@@ -102,17 +102,17 @@ print_bytes (void *buf,
 
 
 static void
-run_with_key (struct GNUNET_CRYPTO_PrivateKey *id_priv)
+run_with_key (struct GNUNET_CRYPTO_BlindablePrivateKey *id_priv)
 {
-  struct GNUNET_CRYPTO_PublicKey id_pub;
+  struct GNUNET_CRYPTO_BlindablePublicKey id_pub;
   struct GNUNET_GNSRECORD_PowP *pow;
   struct GNUNET_GNSRECORD_PowCalculationHandle *ph;
   struct GNUNET_TIME_Relative exp;
   char ztld[128];
   ssize_t key_len;
 
-  GNUNET_CRYPTO_key_get_public (id_priv,
-                                &id_pub);
+  GNUNET_CRYPTO_blindable_key_get_public (id_priv,
+                                          &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
                                  GNUNET_CRYPTO_public_key_get_length (
                                    &id_pub),
@@ -179,7 +179,7 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  struct GNUNET_CRYPTO_PrivateKey id_priv;
+  struct GNUNET_CRYPTO_BlindablePrivateKey id_priv;
 
   id_priv.type = htonl (GNUNET_PUBLIC_KEY_TYPE_ECDSA);
   parsehex (d_pkey,(char*) &id_priv.ecdsa_key, sizeof (id_priv.ecdsa_key), 1);

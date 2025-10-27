@@ -194,7 +194,7 @@ struct CadetConnectionCreatePS
   /**
    * Purpose is #GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR
    */
-  struct GNUNET_CRYPTO_EccSignaturePurpose purpose;
+  struct GNUNET_CRYPTO_SignaturePurpose purpose;
 
   /**
    * Time at the initiator when generating the signature.

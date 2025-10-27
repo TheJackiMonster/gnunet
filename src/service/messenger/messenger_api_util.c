@@ -83,7 +83,7 @@ generate_free_member_id (struct GNUNET_ShortHashCode *id,
 }
 
 
-const struct GNUNET_CRYPTO_PrivateKey*
+const struct GNUNET_CRYPTO_BlindablePrivateKey*
 get_anonymous_private_key (void)
 {
   const struct GNUNET_IDENTITY_Ego *ego;
@@ -92,10 +92,10 @@ get_anonymous_private_key (void)
 }
 
 
-const struct GNUNET_CRYPTO_PublicKey*
+const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_anonymous_public_key (void)
 {
-  static struct GNUNET_CRYPTO_PublicKey public_key;
+  static struct GNUNET_CRYPTO_BlindablePublicKey public_key;
   static struct GNUNET_IDENTITY_Ego *ego = NULL;
 
   if (! ego)

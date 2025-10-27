@@ -95,7 +95,7 @@ block_plugin_revocation_check_block (void *cls,
   const struct RevokeMessage *rm = block;
   const struct GNUNET_GNSRECORD_PowP *pow
     = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   size_t pklen;
   size_t left;
 
@@ -205,7 +205,7 @@ block_plugin_revocation_get_key (void *cls,
   const struct RevokeMessage *rm = block;
   const struct GNUNET_GNSRECORD_PowP *pow
     = (const struct GNUNET_GNSRECORD_PowP *) &rm[1];
-  struct GNUNET_CRYPTO_PublicKey pk;
+  struct GNUNET_CRYPTO_BlindablePublicKey pk;
   size_t pklen;
   size_t left;
 
@@ -243,6 +243,7 @@ block_plugin_revocation_get_key (void *cls,
                       key);
   return GNUNET_OK;
 }
+
 
 void *
 libgnunet_plugin_block_revocation_init (void *cls);
@@ -291,6 +292,7 @@ libgnunet_plugin_block_revocation_init (void *cls)
   api->cls = ic;
   return api;
 }
+
 
 void *
 libgnunet_plugin_block_revocation_done (void *cls);

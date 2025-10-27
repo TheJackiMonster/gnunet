@@ -172,7 +172,7 @@ block_plugin_regex_check_block (void *cls,
       }
       rba = block;
       if (ntohl (rba->purpose.size) !=
-          sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+          sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
           + sizeof(struct GNUNET_TIME_AbsoluteNBO)
           + sizeof(struct GNUNET_HashCode))
       {
@@ -269,7 +269,7 @@ block_plugin_regex_check_reply (
       GNUNET_assert (sizeof(struct RegexAcceptBlock) == reply_block_size);
       rba = reply_block;
       GNUNET_assert (ntohl (rba->purpose.size) ==
-                     sizeof(struct GNUNET_CRYPTO_EccSignaturePurpose)
+                     sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
                      + sizeof(struct GNUNET_TIME_AbsoluteNBO)
                      + sizeof(struct GNUNET_HashCode));
       GNUNET_CRYPTO_hash (reply_block,
@@ -339,6 +339,7 @@ block_plugin_regex_get_key (void *cls,
   }
 }
 
+
 void *
 libgnunet_plugin_block_regex_init (void *cls);
 
@@ -364,6 +365,7 @@ libgnunet_plugin_block_regex_init (void *cls)
   api->types = types;
   return api;
 }
+
 
 void *
 libgnunet_plugin_block_regex_done (void *cls);

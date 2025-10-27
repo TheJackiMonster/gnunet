@@ -378,22 +378,22 @@ handle_decaps (void *cls,
 static int
 check_sign (void *cls, const struct SignRequestMessage *msg)
 {
-  struct GNUNET_CRYPTO_EccSignaturePurpose *purp;
+  struct GNUNET_CRYPTO_SignaturePurpose *purp;
   size_t msg_size;
   (void) cls;
 
   msg_size = ntohs (msg->header.size);
   if (msg_size <= sizeof (*msg) + sizeof (struct
-                                          GNUNET_CRYPTO_EccSignaturePurpose))
+                                          GNUNET_CRYPTO_SignaturePurpose))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
          "The msg_size (%lu) is not big enough for msg (%lu) + purpose struct (%lu)\n",
          msg_size,
          sizeof (*msg),
-         sizeof (struct GNUNET_CRYPTO_EccSignaturePurpose));
+         sizeof (struct GNUNET_CRYPTO_SignaturePurpose));
     return GNUNET_SYSERR;
   }
-  purp = (struct GNUNET_CRYPTO_EccSignaturePurpose*) &msg[1];
+  purp = (struct GNUNET_CRYPTO_SignaturePurpose*) &msg[1];
   if (msg_size <= sizeof (*msg) + ntohs (purp->size))
   {
     LOG (GNUNET_ERROR_TYPE_ERROR,
@@ -420,13 +420,13 @@ handle_sign (void *cls,
   struct P_Client *client = cls;
   struct SignResultMessage *rmsg;
   struct GNUNET_MQ_Envelope *env;
-  struct GNUNET_CRYPTO_EccSignaturePurpose *purp;
+  struct GNUNET_CRYPTO_SignaturePurpose *purp;
   env = GNUNET_MQ_msg (rmsg, GNUNET_MESSAGE_TYPE_PILS_SIGN_RESULT);
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "PILS received SIGN message from client\n");
 
-  purp = (struct GNUNET_CRYPTO_EccSignaturePurpose*) &message[1];
+  purp = (struct GNUNET_CRYPTO_SignaturePurpose*) &message[1];
   if (GNUNET_OK != GNUNET_CRYPTO_eddsa_sign_ (&my_private_key,
                                               purp,
                                               &rmsg->sig))
