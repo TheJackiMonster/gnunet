@@ -992,8 +992,8 @@ GNUNET_TIME_round_up (struct GNUNET_TIME_Absolute at,
   if (GNUNET_TIME_RI_NONE == ri)
     return at;
   seconds = at.abs_value_us / 1000000;
-  if (NULL == gmtime_r (&seconds,
-                        &timeinfo))
+  if (NULL == localtime_r (&seconds,
+                           &timeinfo))
   {
     GNUNET_break (0);
     return at;
@@ -1112,7 +1112,7 @@ GNUNET_TIME_round_up (struct GNUNET_TIME_Absolute at,
     }
     break;
   }
-  result.abs_value_us = ((uint64_t) timegm (&timeinfo)) * 1000000ULL;
+  result.abs_value_us = ((uint64_t) mktime (&timeinfo)) * 1000000ULL;
   return result;
 }
 
@@ -1130,8 +1130,8 @@ GNUNET_TIME_round_down (struct GNUNET_TIME_Absolute at,
   if (GNUNET_TIME_RI_NONE == ri)
     return at;
   seconds = at.abs_value_us / 1000000;
-  if (NULL == gmtime_r (&seconds,
-                        &timeinfo))
+  if (NULL == localtime_r (&seconds,
+                           &timeinfo))
   {
     GNUNET_break (0);
     return at;
@@ -1196,7 +1196,7 @@ GNUNET_TIME_round_down (struct GNUNET_TIME_Absolute at,
     timeinfo.tm_mon = 0;
     break;
   }
-  result.abs_value_us = (uint64_t) timegm (&timeinfo) * 1000000ULL;
+  result.abs_value_us = (uint64_t) mktime (&timeinfo) * 1000000ULL;
   return result;
 }
 
