@@ -233,6 +233,97 @@ GNUNET_NETWORK_STRUCT_END
 
 
 /**
+ * Quantities by which we support round up absolute time values.
+ */
+enum GNUNET_TIME_RounderInterval
+{
+  /**
+   * No rounding up.
+   */
+  GNUNET_TIME_RI_NONE = 0,
+
+  /**
+   * Round up to a multiple of seconds.
+   */
+  GNUNET_TIME_RI_SECOND,
+
+  /**
+   * Round up to the next minute.
+   */
+  GNUNET_TIME_RI_MINUTE,
+
+  /**
+   * Round up to the next hour.
+   */
+  GNUNET_TIME_RI_HOUR,
+
+  /**
+   * Round up to the next day.
+   */
+  GNUNET_TIME_RI_DAY,
+
+  /**
+   * Round up to the next calendar week.
+   */
+  GNUNET_TIME_RI_WEEK,
+
+  /**
+   * Round up to the next month.
+   */
+  GNUNET_TIME_RI_MONTH,
+
+  /**
+   * Round up to the next quarter.
+   */
+  GNUNET_TIME_RI_QUARTER,
+
+  /**
+   * Round up to the next year.
+   */
+  GNUNET_TIME_RI_YEAR
+};
+
+
+/**
+ * Convert a relative time to the corresponding rounding
+ * interval.
+ *
+ * @param rel relative time to convert
+ * @return rounding interval, #GNUNET_TIME_RI_NONE if
+ *   either @a rel is zero or if the input does not match exactly
+ *   any of the supported rounding intervals
+ */
+enum GNUNET_TIME_RounderInterval
+GNUNET_TIME_relative_to_round_interval (struct GNUNET_TIME_Relative rel);
+
+
+/**
+ * Round up the given @a at to the interval @a ri.
+ * NEVER/FOREVER always remains NEVER/FOREVER.
+ *
+ * @param at some absolute time to round
+ * @param ri how much to round up
+ * @return rounded up value of @a at
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_round_up (struct GNUNET_TIME_Absolute at,
+                      enum GNUNET_TIME_RounderInterval ri);
+
+
+/**
+ * Round @at down to the start of the next interval @a ri.
+ * NEVER/FOREVER always remains NEVER/FOREVER.
+ *
+ * @param at some absolute time to round
+ * @param ri how much to round down
+ * @return rounded up value of @a at
+ */
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_round_down (struct GNUNET_TIME_Absolute at,
+                        enum GNUNET_TIME_RounderInterval ri);
+
+
+/**
  * Convert @a ts to human-readable timestamp.
  * Note that the returned value will be overwritten if this function
  * is called again.

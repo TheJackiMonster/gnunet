@@ -509,21 +509,17 @@ GNUNET_TIME_relative_multiply_double (struct GNUNET_TIME_Relative rel,
   struct GNUNET_TIME_Relative out;
   double m;
 
-  GNUNET_assert (0 <= factor);
-
-  if (0 == factor)
+  GNUNET_assert (0.0 <= factor);
+  if (0.0 >= factor)
     return GNUNET_TIME_UNIT_ZERO;
   if (GNUNET_TIME_relative_is_forever (rel))
     return GNUNET_TIME_UNIT_FOREVER_REL;
-
   m = ((double) rel.rel_value_us) * factor;
-
   if (m >= (double) (GNUNET_TIME_UNIT_FOREVER_REL).rel_value_us)
   {
     GNUNET_break (0);
     return GNUNET_TIME_UNIT_FOREVER_REL;
   }
-
   out.rel_value_us = (uint64_t) m;
   return out;
 }
@@ -980,6 +976,270 @@ GNUNET_TIME_absolute_get_monotonic (
 #endif
   }
   return now;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_round_up (struct GNUNET_TIME_Absolute at,
+                      enum GNUNET_TIME_RounderInterval ri)
+{
+  struct GNUNET_TIME_Absolute result;
+  time_t seconds;
+  struct tm timeinfo;
+
+  if (GNUNET_TIME_absolute_is_never (at))
+    return at;
+  if (GNUNET_TIME_RI_NONE == ri)
+    return at;
+  seconds = at.abs_value_us / 1000000;
+  if (NULL == gmtime_r (&seconds,
+                        &timeinfo))
+  {
+    GNUNET_break (0);
+    return at;
+  }
+  switch (ri)
+  {
+  case GNUNET_TIME_RI_NONE:
+    /* eh, we did this above!? */
+    GNUNET_break (0);
+    return at;
+  case GNUNET_TIME_RI_SECOND:
+    if (0 != at.abs_value_us % 1000000)
+      result.abs_value_us = (seconds + 1) * 1000000ULL;
+    else
+      result = at;
+    return result;
+  case GNUNET_TIME_RI_MINUTE:
+    if ( (timeinfo.tm_sec > 0) ||
+         (0 != at.abs_value_us % 1000000) )
+    {
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min += 1;
+    }
+    break;
+  case GNUNET_TIME_RI_HOUR:
+    /* Round up to next hour */
+    if ( (timeinfo.tm_min > 0) ||
+         (timeinfo.tm_sec > 0) ||
+         (0 != (at.abs_value_us % 1000000)) )
+    {
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour += 1;
+    }
+    break;
+  case GNUNET_TIME_RI_DAY:
+    if ( (timeinfo.tm_hour > 0) ||
+         (timeinfo.tm_min > 0) ||
+         (timeinfo.tm_sec > 0) ||
+         (0 != at.abs_value_us % 1000000) )
+    {
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday += 1;
+    }
+    break;
+  case GNUNET_TIME_RI_WEEK:
+    /* Round up to next Monday (ISO 8601 week starts on Monday) */
+    {
+      /* tm_way == 0 => Sunday */
+      int days_until_monday = (8 - timeinfo.tm_wday) % 7;
+
+      if ( (0 == days_until_monday) &&
+           ( (timeinfo.tm_hour > 0) ||
+             (timeinfo.tm_min > 0) ||
+             (timeinfo.tm_sec > 0) ||
+             (0 != at.abs_value_us % 1000000) ) )
+        days_until_monday = 7;
+      if (days_until_monday > 0)
+      {
+        timeinfo.tm_sec = 0;
+        timeinfo.tm_min = 0;
+        timeinfo.tm_hour = 0;
+        timeinfo.tm_mday += days_until_monday;
+      }
+    }
+    break;
+  case GNUNET_TIME_RI_MONTH:
+    if ( (timeinfo.tm_mday > 1) ||
+         (timeinfo.tm_hour > 0) ||
+         (timeinfo.tm_min > 0) ||
+         (timeinfo.tm_sec > 0) ||
+         (0 != (at.abs_value_us % 1000000)) )
+    {
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday = 1;
+      timeinfo.tm_mon += 1;
+    }
+    break;
+  case GNUNET_TIME_RI_QUARTER:
+    {
+      int next_quarter_month = ((timeinfo.tm_mon / 3) + 1) * 3;
+
+      if ( (next_quarter_month > timeinfo.tm_mon) ||
+           (timeinfo.tm_mday > 1) ||
+           (timeinfo.tm_hour > 0) ||
+           (timeinfo.tm_min > 0) ||
+           (timeinfo.tm_sec > 0) ||
+           (0 != (at.abs_value_us % 1000000)) )
+      {
+        timeinfo.tm_sec = 0;
+        timeinfo.tm_min = 0;
+        timeinfo.tm_hour = 0;
+        timeinfo.tm_mday = 1;
+        timeinfo.tm_mon = next_quarter_month;
+      }
+    }
+    break;
+  case GNUNET_TIME_RI_YEAR:
+    if ( (timeinfo.tm_mon > 0) ||
+         (timeinfo.tm_mday > 1) ||
+         (timeinfo.tm_hour > 0) ||
+         (timeinfo.tm_min > 0) ||
+         (timeinfo.tm_sec > 0) ||
+         (0 != (at.abs_value_us % 1000000)) )
+    {
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday = 1;
+      timeinfo.tm_mon = 0;
+      timeinfo.tm_year += 1;
+    }
+    break;
+  }
+  result.abs_value_us = ((uint64_t) timegm (&timeinfo)) * 1000000ULL;
+  return result;
+}
+
+
+struct GNUNET_TIME_Absolute
+GNUNET_TIME_round_down (struct GNUNET_TIME_Absolute at,
+                        enum GNUNET_TIME_RounderInterval ri)
+{
+  struct GNUNET_TIME_Absolute result;
+  time_t seconds;
+  struct tm timeinfo;
+
+  if (GNUNET_TIME_absolute_is_never (at))
+    return at;
+  if (GNUNET_TIME_RI_NONE == ri)
+    return at;
+  seconds = at.abs_value_us / 1000000;
+  if (NULL == gmtime_r (&seconds,
+                        &timeinfo))
+  {
+    GNUNET_break (0);
+    return at;
+  }
+  switch (ri)
+  {
+  case GNUNET_TIME_RI_NONE:
+    /* eh, we did this above!? */
+    GNUNET_break (0);
+    return at;
+  case GNUNET_TIME_RI_SECOND:
+    result.abs_value_us = seconds * 1000000ULL;
+    return result;
+  case GNUNET_TIME_RI_MINUTE:
+    timeinfo.tm_sec = 0;
+    break;
+  case GNUNET_TIME_RI_HOUR:
+    timeinfo.tm_sec = 0;
+    timeinfo.tm_min = 0;
+    break;
+  case GNUNET_TIME_RI_DAY:
+    timeinfo.tm_sec = 0;
+    timeinfo.tm_min = 0;
+    timeinfo.tm_hour = 0;
+    break;
+  case GNUNET_TIME_RI_WEEK:
+    /* Round down to Monday of current week (ISO 8601 week starts Monday) */
+    {
+      /* tm_way == 0 => Sunday */
+      int days_since_monday = (0 == timeinfo.tm_wday)
+        ? 6
+        : (timeinfo.tm_wday - 1);
+
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday -= days_since_monday;
+    }
+    break;
+  case GNUNET_TIME_RI_MONTH:
+    timeinfo.tm_sec = 0;
+    timeinfo.tm_min = 0;
+    timeinfo.tm_hour = 0;
+    timeinfo.tm_mday = 1;
+    break;
+  case GNUNET_TIME_RI_QUARTER:
+    {
+      int quarter_start_month = (timeinfo.tm_mon / 3) * 3;
+
+      timeinfo.tm_sec = 0;
+      timeinfo.tm_min = 0;
+      timeinfo.tm_hour = 0;
+      timeinfo.tm_mday = 1;
+      timeinfo.tm_mon = quarter_start_month;
+    }
+    break;
+  case GNUNET_TIME_RI_YEAR:
+    timeinfo.tm_sec = 0;
+    timeinfo.tm_min = 0;
+    timeinfo.tm_hour = 0;
+    timeinfo.tm_mday = 1;
+    timeinfo.tm_mon = 0;
+    break;
+  }
+  result.abs_value_us = (uint64_t) timegm (&timeinfo) * 1000000ULL;
+  return result;
+}
+
+
+enum GNUNET_TIME_RounderInterval
+GNUNET_TIME_relative_to_round_interval (struct GNUNET_TIME_Relative rel)
+{
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_YEARS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_YEAR;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_relative_multiply (
+                                  GNUNET_TIME_UNIT_MONTHS,
+                                  3),
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_QUARTER;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_MONTHS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_MONTH;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_WEEKS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_WEEK;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_DAYS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_DAY;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_HOURS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_HOUR;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_MINUTES,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_MINUTE;
+  if (GNUNET_TIME_relative_cmp (GNUNET_TIME_UNIT_SECONDS,
+                                ==,
+                                rel))
+    return GNUNET_TIME_RI_SECOND;
+  GNUNET_break (GNUNET_TIME_relative_is_zero (rel));
+  return GNUNET_TIME_RI_NONE;
 }
 
 
