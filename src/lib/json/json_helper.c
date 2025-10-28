@@ -25,6 +25,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
 #include "gnunet_common.h"
 
@@ -1830,6 +1831,92 @@ GNUNET_JSON_spec_unblinded_signature (const char *field,
 
   *ub_sig = NULL;
   return ret;
+}
+
+
+/**
+ * Parse given JSON object to `enum GNUNET_TIME_RounderInterval`
+ *
+ * @param cls closure, NULL
+ * @param root the json object representing data
+ * @param[out] spec where to write the data
+ * @return #GNUNET_OK upon successful parsing; #GNUNET_SYSERR upon error
+ */
+static enum GNUNET_GenericReturnValue
+parse_tri (void *cls,
+           json_t *root,
+           struct GNUNET_JSON_Specification *spec)
+{
+  static const struct Entry
+  {
+    const char *name;
+    enum GNUNET_TIME_RounderInterval val;
+  } lt [] = {
+    { .name = "NONE",
+      .val = GNUNET_TIME_RI_NONE },
+    { .name = "SECOND",
+      .val = GNUNET_TIME_RI_SECOND },
+    { .name = "MINUTE",
+      .val = GNUNET_TIME_RI_MINUTE },
+    { .name = "HOUR",
+      .val = GNUNET_TIME_RI_HOUR },
+    { .name = "DAY",
+      .val = GNUNET_TIME_RI_DAY },
+    { .name = "WEEK",
+      .val = GNUNET_TIME_RI_WEEK },
+    { .name = "MONTH",
+      .val = GNUNET_TIME_RI_MONTH },
+    { .name = "QUARTER",
+      .val = GNUNET_TIME_RI_QUARTER },
+    { .name = "YEAR",
+      .val = GNUNET_TIME_RI_YEAR },
+    { .name = NULL,
+      .val = GNUNET_TIME_RI_NONE },
+  };
+  enum GNUNET_TIME_RounderInterval *res
+    = (enum GNUNET_TIME_RounderInterval *) spec->ptr;
+
+  (void) cls;
+  if (json_is_string (root))
+  {
+    const char *str;
+
+    str = json_string_value (root);
+    if (NULL == str)
+    {
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
+    }
+    for (unsigned int i = 0; NULL != lt[i].name; i++)
+    {
+      if (0 == strcasecmp (str,
+                           lt[i].name))
+      {
+        *res = lt[i].val;
+        return GNUNET_OK;
+      }
+    }
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+  return GNUNET_SYSERR;
+}
+
+
+struct GNUNET_JSON_Specification
+GNUNET_JSON_spec_time_rounder_interval (
+  const char *name,
+  enum GNUNET_TIME_RounderInterval *ri)
+{
+  struct GNUNET_JSON_Specification ret = {
+    .parser = &parse_tri,
+    .field = name,
+    .ptr = ri
+  };
+
+  *ri = GNUNET_TIME_RI_NONE;
+  return ret;
+
 }
 
 

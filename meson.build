@@ -612,7 +612,7 @@ libltversions = [
     ['libgnunetgnsrecordjson', '0:0:0'],
     ['libgnunethello', '1:0:1'],
     ['libgnunetidentity', '1:0:0'],
-    ['libgnunetjson', '3:0:0'],
+    ['libgnunetjson', '4:0:1'],
     ['libgnunetmessenger', '0:0:0'],
     ['libgnunetmhd', '0:1:0'],
     ['libgnunetmicrophone', '0:0:0'],

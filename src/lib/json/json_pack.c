@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  */
 #include "platform.h"
+#include "gnunet_util_lib.h"
 #include "gnunet_json_lib.h"
 
 json_t *
@@ -494,6 +495,47 @@ GNUNET_JSON_pack_blinded_sig (
   }
   GNUNET_assert (0);
   return ps;
+}
+
+
+struct GNUNET_JSON_PackSpec
+GNUNET_JSON_pack_time_rounder_interval (const char *name,
+                                        enum GNUNET_TIME_RounderInterval ri)
+{
+  const char *str = "INVALID";
+
+  switch (ri)
+  {
+  case GNUNET_TIME_RI_NONE:
+    str = "NONE";
+    break;
+  case GNUNET_TIME_RI_SECOND:
+    str = "SECOND";
+    break;
+  case GNUNET_TIME_RI_MINUTE:
+    str = "MINUTE";
+    break;
+  case GNUNET_TIME_RI_HOUR:
+    str = "HOUR";
+    break;
+  case GNUNET_TIME_RI_DAY:
+    str = "DAY";
+    break;
+  case GNUNET_TIME_RI_WEEK:
+    str = "WEEK";
+    break;
+  case GNUNET_TIME_RI_MONTH:
+    str = "MONTH";
+    break;
+  case GNUNET_TIME_RI_QUARTER:
+    str = "QUARTER";
+    break;
+  case GNUNET_TIME_RI_YEAR:
+    str = "YEAR";
+    break;
+  }
+  return GNUNET_JSON_pack_string (name,
+                                  str);
 }
 
 
