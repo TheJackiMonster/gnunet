@@ -273,7 +273,7 @@ GNUNET_JSON_spec_json (const char *name,
 
 
 /**
- * JSON object, reference counter not incremented.
+ * JSON object, reference counter incremented.
  *
  * @param name name of the JSON field
  * @param[out] jsonp where to store the JSON found under @a name
@@ -284,7 +284,7 @@ GNUNET_JSON_spec_object_copy (const char *name,
 
 
 /**
- * JSON array, reference counter not incremented.
+ * JSON array, reference counter incremented.
  *
  * @param name name of the JSON field
  * @param[out] jsonp where to store the JSON found under @a name
