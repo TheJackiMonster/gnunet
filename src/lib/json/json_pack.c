@@ -504,35 +504,11 @@ GNUNET_JSON_pack_time_rounder_interval (const char *name,
 {
   const char *str = "INVALID";
 
-  switch (ri)
+  str = GNUNET_TIME_round_interval2s (ri);
+  if (NULL == str)
   {
-  case GNUNET_TIME_RI_NONE:
-    str = "NONE";
-    break;
-  case GNUNET_TIME_RI_SECOND:
-    str = "SECOND";
-    break;
-  case GNUNET_TIME_RI_MINUTE:
-    str = "MINUTE";
-    break;
-  case GNUNET_TIME_RI_HOUR:
-    str = "HOUR";
-    break;
-  case GNUNET_TIME_RI_DAY:
-    str = "DAY";
-    break;
-  case GNUNET_TIME_RI_WEEK:
-    str = "WEEK";
-    break;
-  case GNUNET_TIME_RI_MONTH:
-    str = "MONTH";
-    break;
-  case GNUNET_TIME_RI_QUARTER:
-    str = "QUARTER";
-    break;
-  case GNUNET_TIME_RI_YEAR:
-    str = "YEAR";
-    break;
+    GNUNET_break (0);
+    str = "INVALID";
   }
   return GNUNET_JSON_pack_string (name,
                                   str);

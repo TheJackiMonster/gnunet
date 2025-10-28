@@ -1243,6 +1243,67 @@ GNUNET_TIME_relative_to_round_interval (struct GNUNET_TIME_Relative rel)
 }
 
 
+/**
+ * Lookup table mapping rounding interval enum values to their string representations.
+ */
+static const struct
+{
+  enum GNUNET_TIME_RounderInterval ri;
+  const char *str;
+} ri_lookup_table[] = {
+  { GNUNET_TIME_RI_NONE, "NONE" },
+  { GNUNET_TIME_RI_SECOND, "SECOND" },
+  { GNUNET_TIME_RI_MINUTE, "MINUTE" },
+  { GNUNET_TIME_RI_HOUR, "HOUR" },
+  { GNUNET_TIME_RI_DAY, "DAY" },
+  { GNUNET_TIME_RI_WEEK, "WEEK" },
+  { GNUNET_TIME_RI_MONTH, "MONTH" },
+  { GNUNET_TIME_RI_QUARTER, "QUARTER" },
+  { GNUNET_TIME_RI_YEAR, "YEAR" },
+  { 0, NULL }
+};
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_TIME_string_to_round_interval (
+  const char *ri_str,
+  enum GNUNET_TIME_RounderInterval *ri)
+{
+  if (NULL == ri_str)
+  {
+    GNUNET_break (0);
+    return GNUNET_SYSERR;
+  }
+  for (unsigned int i = 0;
+       NULL != ri_lookup_table[i].str;
+       i++)
+  {
+    if (0 == strcasecmp (ri_str,
+                         ri_lookup_table[i].str))
+    {
+      *ri = ri_lookup_table[i].ri;
+      return GNUNET_OK;
+    }
+  }
+  return GNUNET_SYSERR;
+}
+
+
+const char *
+GNUNET_TIME_round_interval2s (enum GNUNET_TIME_RounderInterval ri)
+{
+  for (unsigned int i = 0;
+       NULL != ri_lookup_table[i].str;
+       i++)
+  {
+    if (ri == ri_lookup_table[i].ri)
+      return ri_lookup_table[i].str;
+  }
+  GNUNET_break (0);
+  return NULL;
+}
+
+
 void
 GNUNET_util_time_fini (void);
 

@@ -1847,32 +1847,6 @@ parse_tri (void *cls,
            json_t *root,
            struct GNUNET_JSON_Specification *spec)
 {
-  static const struct Entry
-  {
-    const char *name;
-    enum GNUNET_TIME_RounderInterval val;
-  } lt [] = {
-    { .name = "NONE",
-      .val = GNUNET_TIME_RI_NONE },
-    { .name = "SECOND",
-      .val = GNUNET_TIME_RI_SECOND },
-    { .name = "MINUTE",
-      .val = GNUNET_TIME_RI_MINUTE },
-    { .name = "HOUR",
-      .val = GNUNET_TIME_RI_HOUR },
-    { .name = "DAY",
-      .val = GNUNET_TIME_RI_DAY },
-    { .name = "WEEK",
-      .val = GNUNET_TIME_RI_WEEK },
-    { .name = "MONTH",
-      .val = GNUNET_TIME_RI_MONTH },
-    { .name = "QUARTER",
-      .val = GNUNET_TIME_RI_QUARTER },
-    { .name = "YEAR",
-      .val = GNUNET_TIME_RI_YEAR },
-    { .name = NULL,
-      .val = GNUNET_TIME_RI_NONE },
-  };
   enum GNUNET_TIME_RounderInterval *res
     = (enum GNUNET_TIME_RounderInterval *) spec->ptr;
 
@@ -1887,17 +1861,14 @@ parse_tri (void *cls,
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    for (unsigned int i = 0; NULL != lt[i].name; i++)
+    if (GNUNET_OK !=
+        GNUNET_TIME_string_to_round_interval (str,
+                                              res))
     {
-      if (0 == strcasecmp (str,
-                           lt[i].name))
-      {
-        *res = lt[i].val;
-        return GNUNET_OK;
-      }
+      GNUNET_break_op (0);
+      return GNUNET_SYSERR;
     }
-    GNUNET_break_op (0);
-    return GNUNET_SYSERR;
+    return GNUNET_OK;
   }
   return GNUNET_SYSERR;
 }

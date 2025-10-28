@@ -298,6 +298,28 @@ GNUNET_TIME_relative_to_round_interval (struct GNUNET_TIME_Relative rel);
 
 
 /**
+ * Convert rounding interval given as a string to the enum value.
+ *
+ * @param ri_str rounding interval as string
+ * @param[out] ri set to enum value
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on failure
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_TIME_string_to_round_interval (const char *ri_str,
+                                      enum GNUNET_TIME_RounderInterval *ri);
+
+
+/**
+ * Convert rounding interval to string.
+ *
+ * @param ri the rounding interval
+ * @return NULL on failure (invalid enum value)
+ */
+const char *
+GNUNET_TIME_round_interval2s (enum GNUNET_TIME_RounderInterval ri);
+
+
+/**
  * Round up the given @a at to the interval @a ri.
  * NEVER/FOREVER always remains NEVER/FOREVER.
  *
