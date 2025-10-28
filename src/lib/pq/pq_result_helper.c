@@ -1378,44 +1378,36 @@ extract_array_generic (
     case array_of_bool:
       HANDLE_ARRAY (bool, /* no conv */, DEREF);
       break;
-
     case array_of_uint16:
       HANDLE_ARRAY (uint16_t, ntohs, DEREF);
       break;
-
     case array_of_uint32:
       HANDLE_ARRAY (uint32_t, ntohl, DEREF);
       break;
-
     case array_of_uint64:
       HANDLE_ARRAY (uint64_t, GNUNET_ntohll, DEREF);
       break;
-
     case array_of_abs_time:
       HANDLE_ARRAY (struct GNUNET_TIME_Absolute,
                     GNUNET_ntohll,
                     ACCESS_ABS);
       break;
-
     case array_of_rel_time:
       HANDLE_ARRAY (struct GNUNET_TIME_Relative,
                     GNUNET_ntohll,
                     ACCESS_REL);
       break;
-
     case array_of_timestamp:
       HANDLE_ARRAY (struct GNUNET_TIME_Timestamp,
                     GNUNET_ntohll,
                     ACCESS_TSTMP);
       break;
-
     case array_of_byte:
       if (0 == info->same_size)
         *info->sizes = GNUNET_new_array (header.dim, size_t);
     /* fallthrough */
     case array_of_string:
       {
-        char *in = data + sizeof(header);
         size_t total_sz = 0;
         bool is_string = (array_of_string == info->typ);
         /**
@@ -2386,7 +2378,7 @@ extract_unblinded_sig (void *cls,
  */
 static void
 clean_unblinded_sig (void *cls,
-                   void *rd)
+                     void *rd)
 {
   struct GNUNET_CRYPTO_UnblindedSignature **ub_sig = rd;
 
@@ -2409,5 +2401,6 @@ GNUNET_PQ_result_spec_unblinded_sig (
 
   return res;
 }
+
 
 /* end of pq_result_helper.c */
