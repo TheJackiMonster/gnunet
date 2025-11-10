@@ -28,7 +28,7 @@
  * @author Florian Dold
  */
 
-#if !defined (__GNUNET_UTIL_LIB_H_INSIDE__)
+#if ! defined (__GNUNET_UTIL_LIB_H_INSIDE__)
 #error "Only <gnunet_util_lib.h> can be included directly."
 #endif
 
@@ -78,7 +78,18 @@ struct GNUNET_Buffer
  * @param capacity the capacity (in bytes) to allocate for @a buf
  */
 void
-GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf, size_t capacity);
+GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf,
+                        size_t capacity);
+
+
+/**
+ * Informs the buffer library to expect this buffer to be potentially
+ * very large (exceeding #GNUNET_malloc() limits).
+ *
+ * @param[in,out] buf buffer to set as large buffer
+ */
+void
+GNUNET_buffer_large (struct GNUNET_Buffer *buf);
 
 
 /**
@@ -88,7 +99,8 @@ GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf, size_t capacity);
  * @param n number of bytes that should be available to write
  */
 void
-GNUNET_buffer_ensure_remaining (struct GNUNET_Buffer *buf, size_t n);
+GNUNET_buffer_ensure_remaining (struct GNUNET_Buffer *buf,
+                                size_t n);
 
 
 /**
@@ -102,7 +114,9 @@ GNUNET_buffer_ensure_remaining (struct GNUNET_Buffer *buf, size_t n);
  *
  */
 void
-GNUNET_buffer_write (struct GNUNET_Buffer *buf, const char *data, size_t len);
+GNUNET_buffer_write (struct GNUNET_Buffer *buf,
+                     const char *data,
+                     size_t len);
 
 
 /**
@@ -114,7 +128,8 @@ GNUNET_buffer_write (struct GNUNET_Buffer *buf, const char *data, size_t len);
  * @param str the string to write to @a buf
  */
 void
-GNUNET_buffer_write_str (struct GNUNET_Buffer *buf, const char *str);
+GNUNET_buffer_write_str (struct GNUNET_Buffer *buf,
+                         const char *str);
 
 
 /**
@@ -141,7 +156,8 @@ GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
  * @param str string containing the new path component
  */
 void
-GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str);
+GNUNET_buffer_write_path (struct GNUNET_Buffer *buf,
+                          const char *str);
 
 
 /**
@@ -155,7 +171,9 @@ GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str);
  * @param ... format arguments
  */
 void
-GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf, const char *fmt, ...)
+GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf,
+                          const char *fmt,
+                          ...)
 __attribute__ ((format (printf, 2, 3)));
 
 
@@ -170,8 +188,9 @@ __attribute__ ((format (printf, 2, 3)));
  * @param args format argument list
  */
 void
-GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf, const char *fmt, va_list
-                           args);
+GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
+                           const char *fmt,
+                           va_list args);
 
 
 /**
@@ -198,13 +217,16 @@ GNUNET_buffer_reap_str (struct GNUNET_Buffer *buf);
  * @returns the data contained in the string
  */
 void *
-GNUNET_buffer_reap (struct GNUNET_Buffer *buf, size_t *size);
+GNUNET_buffer_reap (struct GNUNET_Buffer *buf,
+                    size_t *size);
 
 
 /**
  * Free the backing memory of the given buffer.
  * Does not free the memory of the buffer control structure,
  * which is typically stack-allocated.
+ *
+ * @param[in] buf buffer to clear
  */
 void
 GNUNET_buffer_clear (struct GNUNET_Buffer *buf);

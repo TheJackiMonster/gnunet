@@ -22,15 +22,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
-/**
- * Initialize a buffer with the given capacity.
- *
- * When a buffer is allocated with this function, a warning is logged
- * when the buffer exceeds the initial capacity.
- *
- * @param buf the buffer to initialize
- * @param capacity the capacity (in bytes) to allocate for @a buf
- */
 void
 GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf,
                         size_t capacity)
@@ -45,12 +36,6 @@ GNUNET_buffer_prealloc (struct GNUNET_Buffer *buf,
 }
 
 
-/**
- * Make sure that at least @a n bytes remaining in the buffer.
- *
- * @param buf buffer to potentially grow
- * @param n number of bytes that should be available to write
- */
 void
 GNUNET_buffer_ensure_remaining (struct GNUNET_Buffer *buf,
                                 size_t n)
@@ -67,118 +52,86 @@ GNUNET_buffer_ensure_remaining (struct GNUNET_Buffer *buf,
     new_capacity = buf->capacity * 2;
   buf->capacity = new_capacity;
   if (NULL != buf->mem)
-    buf->mem = GNUNET_realloc (buf->mem, new_capacity);
+    buf->mem = GNUNET_realloc (buf->mem,
+                               new_capacity);
   else
     buf->mem = GNUNET_malloc (new_capacity);
 }
 
 
-/**
- * Write bytes to the buffer.
- *
- * Grows the buffer if necessary.
- *
- * @param buf buffer to write to
- * @param data data to read from
- * @param len number of bytes to copy from @a data to @a buf
- */
 void
 GNUNET_buffer_write (struct GNUNET_Buffer *buf,
                      const char *data,
                      size_t len)
 {
-  GNUNET_buffer_ensure_remaining (buf, len);
-  memcpy (buf->mem + buf->position, data, len);
+  GNUNET_buffer_ensure_remaining (buf,
+                                  len);
+  memcpy (buf->mem + buf->position,
+          data,
+          len);
   buf->position += len;
 }
 
 
-/**
- * Write a 0-terminated string to a buffer, excluding the 0-terminator.
- *
- * @param buf the buffer to write to
- * @param str the string to write to @a buf
- */
 void
 GNUNET_buffer_write_str (struct GNUNET_Buffer *buf,
                          const char *str)
 {
   size_t len = strlen (str);
 
-  GNUNET_buffer_write (buf, str, len);
+  GNUNET_buffer_write (buf,
+                       str,
+                       len);
 }
 
 
-/**
- * Clear the buffer and return the string it contained.
- * The caller is responsible to eventually #GNUNET_free
- * the returned string.
- *
- * The returned string is always 0-terminated.
- *
- * @param buf the buffer to reap the string from
- * @returns the buffer contained in the string
- */
 char *
 GNUNET_buffer_reap_str (struct GNUNET_Buffer *buf)
 {
   char *res;
 
   /* ensure 0-termination */
-  if ( (0 == buf->position) || ('\0' != buf->mem[buf->position - 1]))
+  if ( (0 == buf->position) ||
+       ('\0' != buf->mem[buf->position - 1]) )
   {
     GNUNET_buffer_ensure_remaining (buf, 1);
     buf->mem[buf->position++] = '\0';
   }
   res = buf->mem;
-  memset (buf, 0, sizeof (struct GNUNET_Buffer));
+  memset (buf,
+          0,
+          sizeof (struct GNUNET_Buffer));
   return res;
 }
 
 
-/**
- * Clear the buffer and return its contents.
- * The caller is responsible to eventually #GNUNET_free
- * the returned data.
- *
- * @param buf the buffer to reap the contents from
- * @param size where to store the size of the returned data
- * @returns the data contained in the string
- */
 void *
-GNUNET_buffer_reap (struct GNUNET_Buffer *buf, size_t *size)
+GNUNET_buffer_reap (struct GNUNET_Buffer *buf,
+                    size_t *size)
 {
-  void *res;
+  void *res = buf->mem;
+
   *size = buf->position;
-  res = buf->mem;
-  memset (buf, 0, sizeof (struct GNUNET_Buffer));
+  memset (buf,
+          0,
+          sizeof (struct GNUNET_Buffer));
   return res;
 }
 
 
-/**
- * Free the backing memory of the given buffer.
- * Does not free the memory of the buffer control structure,
- * which is typically stack-allocated.
- */
 void
 GNUNET_buffer_clear (struct GNUNET_Buffer *buf)
 {
   GNUNET_free (buf->mem);
-  memset (buf, 0, sizeof (struct GNUNET_Buffer));
+  memset (buf,
+          0,
+          sizeof (struct GNUNET_Buffer));
 }
 
 
-/**
- * Write a path component to a buffer, ensuring that
- * there is exactly one slash between the previous contents
- * of the buffer and the new string.
- *
- * @param buf buffer to write to
- * @param str string containing the new path component
- */
 void
-GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str)
+GNUNET_buffer_write_path (struct GNUNET_Buffer *buf,
+                          const char *str)
 {
   size_t len = strlen (str);
 
@@ -187,7 +140,8 @@ GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str)
     str++;
     len--;
   }
-  if ( (0 == buf->position) || ('/' != buf->mem[buf->position - 1]) )
+  if ( (0 == buf->position) ||
+       ('/' != buf->mem[buf->position - 1]) )
   {
     GNUNET_buffer_ensure_remaining (buf, 1);
     buf->mem[buf->position++] = '/';
@@ -196,37 +150,21 @@ GNUNET_buffer_write_path (struct GNUNET_Buffer *buf, const char *str)
 }
 
 
-/**
- * Write a 0-terminated formatted string to a buffer, excluding the
- * 0-terminator.
- *
- * Grows the buffer if necessary.
- *
- * @param buf the buffer to write to
- * @param fmt format string
- * @param ... format arguments
- */
 void
-GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf, const char *fmt, ...)
+GNUNET_buffer_write_fstr (struct GNUNET_Buffer *buf,
+                          const char *fmt,
+                          ...)
 {
   va_list args;
 
   va_start (args, fmt);
-  GNUNET_buffer_write_vfstr (buf, fmt, args);
+  GNUNET_buffer_write_vfstr (buf,
+                             fmt,
+                             args);
   va_end (args);
 }
 
 
-/**
- * Write a 0-terminated formatted string to a buffer, excluding the
- * 0-terminator.
- *
- * Grows the buffer if necessary.
- *
- * @param buf the buffer to write to
- * @param fmt format string
- * @param args format argument list
- */
 void
 GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
                            const char *fmt,
@@ -236,14 +174,21 @@ GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
   va_list args2;
 
   va_copy (args2, args);
-  res = vsnprintf (NULL, 0, fmt, args2);
+  res = vsnprintf (NULL,
+                   0,
+                   fmt,
+                   args2);
   va_end (args2);
 
   GNUNET_assert (res >= 0);
-  GNUNET_buffer_ensure_remaining (buf, res + 1);
+  GNUNET_buffer_ensure_remaining (buf,
+                                  res + 1);
 
   va_copy (args2, args);
-  res = vsnprintf (buf->mem + buf->position, res + 1, fmt, args2);
+  res = vsnprintf (buf->mem + buf->position,
+                   res + 1,
+                   fmt,
+                   args2);
   va_end (args2);
 
   GNUNET_assert (res >= 0);
@@ -252,15 +197,6 @@ GNUNET_buffer_write_vfstr (struct GNUNET_Buffer *buf,
 }
 
 
-/**
- * Write data encoded via #GNUNET_STRINGS_data_to_string to the buffer.
- *
- * Grows the buffer if necessary.
- *
- * @param buf buffer to write to
- * @param data data to read from
- * @param data_len number of bytes to copy from @a data to @a buf
- */
 void
 GNUNET_buffer_write_data_encoded (struct GNUNET_Buffer *buf,
                                   const void *data,
