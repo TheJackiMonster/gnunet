@@ -44,6 +44,7 @@ executable(
         libgnunetgns_dep,
         libgnunetidentity_dep,
         libgnunetnamestore_dep,
+        libgnunetgnsrecord_dep,
     ],
     include_directories: [incdir, configuration_inc],
     install: true,
