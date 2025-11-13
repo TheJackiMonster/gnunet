@@ -1,3 +1,8 @@
+v0.26.0:
+  - util: Revise crypto API to prevent misuse of key material.
+  - util: Add various TIME related helper APIs.
+  - pils: Ship missing header.
+
 v0.25.2:
   - build: Various build system and detection logic improvements incl. compiler warnings.
   - reintroduce some flat file storages

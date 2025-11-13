@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gnunet 0.10.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-16 13:50+0200\n"
+"POT-Creation-Date: 2025-11-10 22:32+0100\n"
 "PO-Revision-Date: 2019-10-16 11:00+0200\n"
 "Last-Translator: Sebastiano Pistore <sebastianopistore.info@protonmail.ch>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
@@ -1075,7 +1075,7 @@ msgid "Cannot resolve using GNS: GNUnet peer not running\n"
 msgstr ""
 
 #: src/cli/gns/gnunet-gns.c:306
-#: src/contrib/service/abd/gnunet-service-abd.c:1751
+#: src/contrib/service/abd/gnunet-service-abd.c:1755
 #, c-format
 msgid "Failed to connect to GNS\n"
 msgstr ""
@@ -1142,62 +1142,62 @@ msgstr ""
 msgid "Failed to create ego: %s\n"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:554
+#: src/cli/identity/gnunet-identity.c:555
 msgid "create ego NAME"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:559
+#: src/cli/identity/gnunet-identity.c:560
 msgid "delete ego NAME "
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:565
+#: src/cli/identity/gnunet-identity.c:566
 msgid ""
 "set the private key for the identity to PRIVATE_KEY (use together with -C)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:571
+#: src/cli/identity/gnunet-identity.c:572
 msgid ""
 "Read and decrypt message encrypted for the given ego (use together with -e "
 "EGO)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:577
+#: src/cli/identity/gnunet-identity.c:578
 msgid ""
 "Encrypt and write message for recipient identity PULBIC_KEY, (use together "
 "with -k RECIPIENT_PUBLIC_KEY)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:582
+#: src/cli/identity/gnunet-identity.c:583
 msgid "generate an EdDSA identity. (use together with -C) EXPERIMENTAL"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:586
+#: src/cli/identity/gnunet-identity.c:587
 msgid "display all egos"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:590
+#: src/cli/identity/gnunet-identity.c:591
 msgid "reduce output"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:597
+#: src/cli/identity/gnunet-identity.c:598
 msgid ""
 "restrict results to NAME (use together with -d) or read and decrypt a "
 "message for NAME (use together with -R)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:603
+#: src/cli/identity/gnunet-identity.c:604
 msgid "The public key of the recipient (with -W)"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:607
+#: src/cli/identity/gnunet-identity.c:608
 msgid "run in monitor mode egos"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:611
+#: src/cli/identity/gnunet-identity.c:612
 msgid "display private keys as well"
 msgstr ""
 
-#: src/cli/identity/gnunet-identity.c:623
+#: src/cli/identity/gnunet-identity.c:624
 msgid "Maintain egos"
 msgstr ""
 
@@ -1228,7 +1228,7 @@ msgid "You must specify a name\n"
 msgstr "È necessario specificare un nome\n"
 
 #: src/cli/namecache/gnunet-namecache.c:213
-#: src/cli/namestore/gnunet-namestore.c:2178
+#: src/cli/namestore/gnunet-namestore.c:2181
 msgid "name of the record to add/delete/display"
 msgstr ""
 
@@ -1237,12 +1237,12 @@ msgid "specifies the public key of the zone to look in"
 msgstr ""
 
 #: src/cli/namecache/gnunet-namecache.c:231
-#: src/cli/namestore/gnunet-namestore.c:2271
+#: src/cli/namestore/gnunet-namestore.c:2274
 msgid "GNUnet zone manipulation tool"
 msgstr ""
 
 #: src/cli/namestore/gnunet-namestore-dbtool.c:87
-#: src/cli/namestore/gnunet-namestore.c:2110
+#: src/cli/namestore/gnunet-namestore.c:2113
 #, c-format
 msgid "Superfluous command line arguments (starting with `%s') ignored\n"
 msgstr ""
@@ -1311,7 +1311,7 @@ msgid "Failed to connect to IDENTITY\n"
 msgstr "Impossibile avviare il servizio.\n"
 
 #: src/cli/namestore/gnunet-namestore-zonefile.c:1063
-#: src/cli/namestore/gnunet-namestore.c:2257
+#: src/cli/namestore/gnunet-namestore.c:2260
 msgid "name of the ego controlling the zone"
 msgstr ""
 
@@ -1351,226 +1351,226 @@ msgstr ""
 msgid "Deleting record failed: %s\n"
 msgstr "Impossibile leggere il file"
 
-#: src/cli/namestore/gnunet-namestore.c:1182
+#: src/cli/namestore/gnunet-namestore.c:1185
 #, c-format
 msgid ""
 "A SOA record exists already under `%s', cannot add a second SOA to the same "
 "zone.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1305
+#: src/cli/namestore/gnunet-namestore.c:1308
 #, c-format
 msgid "There are no records under label `%s' that could be deleted.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1349
+#: src/cli/namestore/gnunet-namestore.c:1352
 #, c-format
 msgid ""
 "There are no records under label `%s' that match the request for deletion.\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1381
+#: src/cli/namestore/gnunet-namestore.c:1384
 #, c-format
 msgid "%s\n"
 msgstr ""
 
 #. nothing more to be done
-#: src/cli/namestore/gnunet-namestore.c:1446
+#: src/cli/namestore/gnunet-namestore.c:1449
 #, c-format
 msgid "No options given\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1460
+#: src/cli/namestore/gnunet-namestore.c:1463
 #, c-format
 msgid "Recordlines only work with option `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1469
-#: src/cli/namestore/gnunet-namestore.c:1521
-#: src/cli/namestore/gnunet-namestore.c:1531
-#: src/cli/namestore/gnunet-namestore.c:1541
-#: src/cli/namestore/gnunet-namestore.c:1572
-#: src/cli/namestore/gnunet-namestore.c:1593
-#: src/cli/namestore/gnunet-namestore.c:1620
-#: src/cli/namestore/gnunet-namestore.c:1630
-#: src/cli/namestore/gnunet-namestore.c:1664
-#: src/cli/namestore/gnunet-namestore.c:1689
-#: src/cli/namestore/gnunet-namestore.c:1726
-#: src/cli/namestore/gnunet-namestore.c:1760
-#: src/cli/namestore/gnunet-namestore.c:1783
+#: src/cli/namestore/gnunet-namestore.c:1472
+#: src/cli/namestore/gnunet-namestore.c:1524
+#: src/cli/namestore/gnunet-namestore.c:1534
+#: src/cli/namestore/gnunet-namestore.c:1544
+#: src/cli/namestore/gnunet-namestore.c:1575
+#: src/cli/namestore/gnunet-namestore.c:1596
+#: src/cli/namestore/gnunet-namestore.c:1623
+#: src/cli/namestore/gnunet-namestore.c:1633
+#: src/cli/namestore/gnunet-namestore.c:1667
+#: src/cli/namestore/gnunet-namestore.c:1692
+#: src/cli/namestore/gnunet-namestore.c:1729
+#: src/cli/namestore/gnunet-namestore.c:1763
+#: src/cli/namestore/gnunet-namestore.c:1786
 #, c-format
 msgid "Missing option `%s' for operation `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1471
+#: src/cli/namestore/gnunet-namestore.c:1474
 msgid "name"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1500
+#: src/cli/namestore/gnunet-namestore.c:1503
 #, c-format
 msgid "Invalid nick `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1523
-#: src/cli/namestore/gnunet-namestore.c:1533
-#: src/cli/namestore/gnunet-namestore.c:1543
-#: src/cli/namestore/gnunet-namestore.c:1574
-#: src/cli/namestore/gnunet-namestore.c:1595
-#: src/cli/namestore/gnunet-namestore.c:1785
+#: src/cli/namestore/gnunet-namestore.c:1526
+#: src/cli/namestore/gnunet-namestore.c:1536
+#: src/cli/namestore/gnunet-namestore.c:1546
+#: src/cli/namestore/gnunet-namestore.c:1577
+#: src/cli/namestore/gnunet-namestore.c:1598
+#: src/cli/namestore/gnunet-namestore.c:1788
 msgid "add"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1551
+#: src/cli/namestore/gnunet-namestore.c:1554
 #, c-format
 msgid "Unsupported type `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1563
+#: src/cli/namestore/gnunet-namestore.c:1566
 #, c-format
 msgid "For DNS record types `SRV', `TLSA', `SMIMEA' and `OPENPGPKEY'"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1583
+#: src/cli/namestore/gnunet-namestore.c:1586
 #, c-format
 msgid "Value `%s' invalid for record type `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1602
-#: src/cli/namestore/gnunet-namestore.c:1792
+#: src/cli/namestore/gnunet-namestore.c:1605
+#: src/cli/namestore/gnunet-namestore.c:1795
 #, c-format
 msgid "Invalid time format `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1622
-#: src/cli/namestore/gnunet-namestore.c:1632
+#: src/cli/namestore/gnunet-namestore.c:1625
+#: src/cli/namestore/gnunet-namestore.c:1635
 msgid "del"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1666
+#: src/cli/namestore/gnunet-namestore.c:1669
 msgid "purge-zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1691
+#: src/cli/namestore/gnunet-namestore.c:1694
 msgid "list"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1728
+#: src/cli/namestore/gnunet-namestore.c:1731
 msgid "reverse-pkey"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1738
+#: src/cli/namestore/gnunet-namestore.c:1741
 #, c-format
 msgid "Invalid public key for reverse lookup `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1762
+#: src/cli/namestore/gnunet-namestore.c:1765
 msgid "uri"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:1775
+#: src/cli/namestore/gnunet-namestore.c:1778
 #, c-format
 msgid "Invalid URI `%s'\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2117
-#: src/contrib/service/abd/gnunet-abd.c:559
-#: src/contrib/service/abd/gnunet-service-abd.c:1756
+#: src/cli/namestore/gnunet-namestore.c:2120
+#: src/contrib/service/abd/gnunet-abd.c:563
+#: src/contrib/service/abd/gnunet-service-abd.c:1760
 #, c-format
 msgid "Failed to connect to namestore\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2125
+#: src/cli/namestore/gnunet-namestore.c:2128
 #, c-format
 msgid "Cannot connect to identity service\n"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2143
+#: src/cli/namestore/gnunet-namestore.c:2146
 msgid "add record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2146
+#: src/cli/namestore/gnunet-namestore.c:2149
 msgid "delete record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2150
+#: src/cli/namestore/gnunet-namestore.c:2153
 msgid "display records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2154
+#: src/cli/namestore/gnunet-namestore.c:2157
 msgid "read commands from stdin"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2161
+#: src/cli/namestore/gnunet-namestore.c:2164
 msgid ""
 "expiration time for record to use (for adding only), \"never\" is possible"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2167
+#: src/cli/namestore/gnunet-namestore.c:2170
 msgid "set the desired nick name for the zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2172
+#: src/cli/namestore/gnunet-namestore.c:2175
 msgid "monitor changes in the namestore"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2182
+#: src/cli/namestore/gnunet-namestore.c:2185
 msgid "Output in recordline format"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2188
+#: src/cli/namestore/gnunet-namestore.c:2191
 msgid "determine our name for the given KEY"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2194
+#: src/cli/namestore/gnunet-namestore.c:2197
 msgid "type of the record to add/delete/display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2199
+#: src/cli/namestore/gnunet-namestore.c:2202
 msgid "URI to import into our zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2205
+#: src/cli/namestore/gnunet-namestore.c:2208
 msgid "value of the record to add/delete"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2209
+#: src/cli/namestore/gnunet-namestore.c:2212
 msgid "create or list public record"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2213
+#: src/cli/namestore/gnunet-namestore.c:2216
 msgid "omit private records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2218
+#: src/cli/namestore/gnunet-namestore.c:2221
 msgid "do not filter maintenance records"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2223
+#: src/cli/namestore/gnunet-namestore.c:2226
 msgid "purge namestore of all orphans"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2228
+#: src/cli/namestore/gnunet-namestore.c:2231
 msgid ""
 "show private key for orphaned records for recovery using `gnunet-identity -C "
 "-P <key>'. Use in combination with --display"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2233
+#: src/cli/namestore/gnunet-namestore.c:2236
 msgid "delete all records in specified zone"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2239
+#: src/cli/namestore/gnunet-namestore.c:2242
 msgid ""
 "number of records to buffer and send as batch (for use with --from-stdin)"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2245
+#: src/cli/namestore/gnunet-namestore.c:2248
 msgid ""
 "create shadow record (only valid if all other records of the same type have "
 "expired)"
 msgstr ""
 
-#: src/cli/namestore/gnunet-namestore.c:2251
+#: src/cli/namestore/gnunet-namestore.c:2254
 msgid "create maintenance record (e.g TOMBSTONEs)"
 msgstr ""
 
@@ -2264,8 +2264,8 @@ msgstr ""
 msgid "Loading hostkey from `%s' failed.\n"
 msgstr ""
 
-#: src/cli/util/gnunet-scrypt.c:243 src/service/nse/gnunet-service-nse.c:1512
-#: src/service/revocation/gnunet-service-revocation.c:931
+#: src/cli/util/gnunet-scrypt.c:243 src/service/nse/gnunet-service-nse.c:1511
+#: src/service/revocation/gnunet-service-revocation.c:930
 msgid "Value is too large.\n"
 msgstr ""
 
@@ -2378,124 +2378,124 @@ msgstr ""
 msgid "Setup tunnels via VPN."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:393
+#: src/contrib/service/abd/gnunet-abd.c:397
 #, c-format
 msgid "Ego `%s' not known to identity service\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:408
-#: src/contrib/service/abd/gnunet-abd.c:911
+#: src/contrib/service/abd/gnunet-abd.c:412
+#: src/contrib/service/abd/gnunet-abd.c:916
 #, c-format
 msgid "Issuer public key `%s' is not well-formed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:567
+#: src/contrib/service/abd/gnunet-abd.c:571
 msgid "Ego does not exist!\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:852
-#: src/contrib/service/abd/gnunet-abd.c:902
+#: src/contrib/service/abd/gnunet-abd.c:856
+#: src/contrib/service/abd/gnunet-abd.c:907
 #, c-format
 msgid "Issuer public key not well-formed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:861
-#: src/contrib/service/abd/gnunet-abd.c:920
+#: src/contrib/service/abd/gnunet-abd.c:865
+#: src/contrib/service/abd/gnunet-abd.c:925
 #, fuzzy, c-format
 msgid "Failed to connect to ABD\n"
 msgstr "Impossibile avviare il servizio.\n"
 
-#: src/contrib/service/abd/gnunet-abd.c:867
+#: src/contrib/service/abd/gnunet-abd.c:871
 #, c-format
 msgid "You must provide issuer the attribute\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:874
+#: src/contrib/service/abd/gnunet-abd.c:878
 #, c-format
 msgid "ego required\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:884
+#: src/contrib/service/abd/gnunet-abd.c:888
 #, c-format
 msgid "Subject public key needed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:892
+#: src/contrib/service/abd/gnunet-abd.c:897
 #, c-format
 msgid "Subject public key `%s' is not well-formed\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:926
+#: src/contrib/service/abd/gnunet-abd.c:931
 #, c-format
 msgid "You must provide issuer and subject attributes\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:987
+#: src/contrib/service/abd/gnunet-abd.c:992
 #, c-format
 msgid "Please specify name to lookup, subject key and issuer key!\n"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1008
+#: src/contrib/service/abd/gnunet-abd.c:1013
 msgid "verify credential against attribute"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1015
+#: src/contrib/service/abd/gnunet-abd.c:1020
 msgid ""
 "The public key of the subject to lookup thecredential for, or for issuer "
 "side storage: subject and its attributes"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1023
+#: src/contrib/service/abd/gnunet-abd.c:1028
 msgid "The private, signed delegate presented by the subject"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1030
+#: src/contrib/service/abd/gnunet-abd.c:1035
 msgid "The public key of the authority to verify the credential against"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1035
+#: src/contrib/service/abd/gnunet-abd.c:1040
 msgid "The ego/zone name to use"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1041
+#: src/contrib/service/abd/gnunet-abd.c:1046
 msgid "The issuer attribute to verify against or to issue"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1047
+#: src/contrib/service/abd/gnunet-abd.c:1052
 msgid ""
 "The time to live for the credential.e.g. 5m, 6h, \"1990-12-30 12:00:00\""
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1052
+#: src/contrib/service/abd/gnunet-abd.c:1057
 msgid "collect credentials"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1057
+#: src/contrib/service/abd/gnunet-abd.c:1062
 msgid "Create and issue a credential issuer side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1062
+#: src/contrib/service/abd/gnunet-abd.c:1067
 msgid "Issue a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1067
+#: src/contrib/service/abd/gnunet-abd.c:1072
 msgid "Create, sign and return a credential subject side."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1074
+#: src/contrib/service/abd/gnunet-abd.c:1079
 msgid "Import signed credentials that should be issued to a zone/ego"
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1078
+#: src/contrib/service/abd/gnunet-abd.c:1083
 msgid "Create private record entry."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1084
-#: src/contrib/service/abd/gnunet-abd.c:1090
+#: src/contrib/service/abd/gnunet-abd.c:1089
+#: src/contrib/service/abd/gnunet-abd.c:1095
 msgid "Indicates that the collect/verify process is done via forward search."
 msgstr ""
 
-#: src/contrib/service/abd/gnunet-abd.c:1101
+#: src/contrib/service/abd/gnunet-abd.c:1106
 msgid "GNUnet abd resolver tool"
 msgstr ""
 
@@ -2539,7 +2539,7 @@ msgstr ""
 msgid "create a new auction and start listening for bidders"
 msgstr ""
 
-#: src/contrib/service/conversation/conversation_api.c:549
+#: src/contrib/service/conversation/conversation_api.c:552
 #: src/contrib/service/conversation/conversation_api_call.c:521
 msgid "Connection to conversation service lost, trying to reconnect\n"
 msgstr ""
@@ -2682,143 +2682,143 @@ msgstr ""
 msgid "We are currently trying to locate the private key for the ego `%s'.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:678
+#: src/contrib/service/conversation/gnunet-conversation.c:679
 #, c-format
 msgid "We are listening for incoming calls for ego `%s' on line `%s'.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:685
-#: src/contrib/service/conversation/gnunet-conversation.c:715
+#: src/contrib/service/conversation/gnunet-conversation.c:686
+#: src/contrib/service/conversation/gnunet-conversation.c:716
 #, c-format
 msgid "You are having a conversation with `%s'.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:694
+#: src/contrib/service/conversation/gnunet-conversation.c:695
 #, c-format
 msgid ""
 "We had an internal error setting up our phone line. You can still make "
 "calls.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:703
+#: src/contrib/service/conversation/gnunet-conversation.c:704
 #, c-format
 msgid "We are trying to find the network address to call `%s'.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:709
+#: src/contrib/service/conversation/gnunet-conversation.c:710
 #, c-format
 msgid "We are calling `%s', their phone should be ringing.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:726
+#: src/contrib/service/conversation/gnunet-conversation.c:727
 msgid "Calls waiting:\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:732
+#: src/contrib/service/conversation/gnunet-conversation.c:733
 #, c-format
 msgid "#%u: `%s'\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:759
-#: src/contrib/service/conversation/gnunet-conversation.c:775
+#: src/contrib/service/conversation/gnunet-conversation.c:760
+#: src/contrib/service/conversation/gnunet-conversation.c:776
 msgid "There is no call that could be suspended right now.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:809
-#: src/contrib/service/conversation/gnunet-conversation.c:824
+#: src/contrib/service/conversation/gnunet-conversation.c:810
+#: src/contrib/service/conversation/gnunet-conversation.c:825
 msgid "There is no call that could be resumed right now.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:833
+#: src/contrib/service/conversation/gnunet-conversation.c:834
 #, c-format
 msgid "Already talking with `%s', cannot resume a call right now.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:841
+#: src/contrib/service/conversation/gnunet-conversation.c:842
 #, c-format
 msgid "There is no incoming call to resume here!\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:856
+#: src/contrib/service/conversation/gnunet-conversation.c:857
 #, c-format
 msgid "There is no incoming call `%s' to resume right now!\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:889
+#: src/contrib/service/conversation/gnunet-conversation.c:890
 msgid "There is no call that could be cancelled right now.\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:897
+#: src/contrib/service/conversation/gnunet-conversation.c:898
 #, c-format
 msgid "There is no incoming call to refuse here!\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:912
+#: src/contrib/service/conversation/gnunet-conversation.c:913
 #, c-format
 msgid "There is no incoming call `%s' to refuse right now!\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:939
+#: src/contrib/service/conversation/gnunet-conversation.c:940
 msgid "Use `/address' to find out which address this phone should have in GNS"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:940
+#: src/contrib/service/conversation/gnunet-conversation.c:942
 msgid "Use `/call USER.gnu' to call USER"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:943
+#: src/contrib/service/conversation/gnunet-conversation.c:945
 msgid "Use `/accept #NUM' to accept incoming call #NUM"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:946
+#: src/contrib/service/conversation/gnunet-conversation.c:948
 msgid "Use `/suspend' to suspend the active call"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:950
+#: src/contrib/service/conversation/gnunet-conversation.c:952
 msgid ""
 "Use `/resume [#NUM]' to resume a call, #NUM is needed to resume incoming "
 "calls, no argument is needed to resume the current outgoing call."
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:953
+#: src/contrib/service/conversation/gnunet-conversation.c:955
 msgid "Use `/cancel' to reject or terminate a call"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:956
+#: src/contrib/service/conversation/gnunet-conversation.c:958
 msgid "Use `/status' to print status information"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:959
+#: src/contrib/service/conversation/gnunet-conversation.c:961
 msgid "Use `/quit' to terminate gnunet-conversation"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:962
+#: src/contrib/service/conversation/gnunet-conversation.c:964
 msgid "Use `/help command' to get help for a specific command"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1122
+#: src/contrib/service/conversation/gnunet-conversation.c:1124
 #, c-format
 msgid "Name of our ego changed to `%s'\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1132
+#: src/contrib/service/conversation/gnunet-conversation.c:1134
 #, c-format
 msgid "Our ego `%s' was deleted!\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1164
+#: src/contrib/service/conversation/gnunet-conversation.c:1166
 msgid "You must specify the NAME of an ego to use\n"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1191
+#: src/contrib/service/conversation/gnunet-conversation.c:1193
 msgid "sets the NAME of the ego to use for the caller ID"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1197
+#: src/contrib/service/conversation/gnunet-conversation.c:1199
 msgid "sets the LINE to use for the phone"
 msgstr ""
 
-#: src/contrib/service/conversation/gnunet-conversation.c:1215
+#: src/contrib/service/conversation/gnunet-conversation.c:1217
 msgid "Enables having a conversation with other GNUnet users."
 msgstr ""
 
@@ -2947,7 +2947,7 @@ msgstr ""
 msgid "Failed to allocate %u bytes for second packet\n"
 msgstr "Generazione statistiche fallita\n"
 
-#: src/contrib/service/conversation/gnunet-service-conversation.c:1363
+#: src/contrib/service/conversation/gnunet-service-conversation.c:1368
 #, c-format
 msgid "Could not open line, port %s already in use!\n"
 msgstr ""
@@ -3088,32 +3088,32 @@ msgstr ""
 msgid "Label  contains `.' which is not allowed\n"
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:449
+#: src/lib/gnsrecord/gnsrecord_misc.c:451
 msgid "Zone delegation record not allowed in apex."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:457
+#: src/lib/gnsrecord/gnsrecord_misc.c:460
 msgid "Zone delegation record set contains mutually exclusive records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:467
+#: src/lib/gnsrecord/gnsrecord_misc.c:470
 msgid "Multiple REDIRECT records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:476
-#: src/lib/gnsrecord/gnsrecord_misc.c:502
+#: src/lib/gnsrecord/gnsrecord_misc.c:479
+#: src/lib/gnsrecord/gnsrecord_misc.c:505
 msgid "Redirection record set contains mutually exclusive records."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:483
+#: src/lib/gnsrecord/gnsrecord_misc.c:486
 msgid "Redirection records not allowed in apex."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:494
+#: src/lib/gnsrecord/gnsrecord_misc.c:497
 msgid "Redirection records not allowed in apex.."
 msgstr ""
 
-#: src/lib/gnsrecord/gnsrecord_misc.c:516
+#: src/lib/gnsrecord/gnsrecord_misc.c:519
 msgid "Mutually exclusive records."
 msgstr ""
 
@@ -3346,7 +3346,7 @@ msgstr ""
 #. * a failure of the command 'cmd' on file 'filename'
 #. * with the message given by strerror(errno).
 #.
-#: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:48
+#: src/lib/util/crypto_ecc.c:82 src/lib/util/crypto_ecc_setup.c:49
 #: src/lib/util/crypto_mpi.c:41
 #: src/plugin/datacache/plugin_datacache_sqlite.c:128
 #: src/plugin/datacache/plugin_datacache_sqlite.c:150
@@ -3369,7 +3369,7 @@ msgstr ""
 msgid "ECDSA signature verification failed at %s:%d: %s\n"
 msgstr ""
 
-#: src/lib/util/crypto_ecc_setup.c:282 src/lib/util/crypto_ecc_setup.c:305
+#: src/lib/util/crypto_ecc_setup.c:283 src/lib/util/crypto_ecc_setup.c:310
 msgid "Could not load peer's private key\n"
 msgstr ""
 
@@ -3939,12 +3939,12 @@ msgstr ""
 msgid "Wrong format `%s' for network\n"
 msgstr ""
 
-#: src/lib/util/time.c:905 src/lib/util/time.c:933
+#: src/lib/util/time.c:901 src/lib/util/time.c:929
 #, c-format
 msgid "Failed to map `%s', cannot assure monotonic time!\n"
 msgstr ""
 
-#: src/lib/util/time.c:942
+#: src/lib/util/time.c:938
 #, c-format
 msgid ""
 "Failed to setup monotonic time file `%s', cannot assure monotonic time!\n"
@@ -3981,7 +3981,7 @@ msgstr ""
 
 #: src/plugin/datastore/plugin_datastore_sqlite.c:311
 #: src/plugin/namecache/plugin_namecache_sqlite.c:178
-#: src/plugin/namestore/plugin_namestore_sqlite.c:1014
+#: src/plugin/namestore/plugin_namestore_sqlite.c:1015
 #: src/plugin/peerstore/plugin_peerstore_sqlite.c:567
 #, c-format
 msgid "Unable to initialize SQLite: %s.\n"
@@ -4171,7 +4171,7 @@ msgstr "Impossibile avviare il servizio ' %s'\n"
 #: src/plugin/namecache/plugin_namecache_flat.c:117
 #: src/plugin/namecache/plugin_namecache_flat.c:252
 #: src/plugin/namestore/plugin_namestore_flat.c:174
-#: src/plugin/namestore/plugin_namestore_flat.c:422
+#: src/plugin/namestore/plugin_namestore_flat.c:423
 #, fuzzy, c-format
 msgid "Unable to initialize file: %s.\n"
 msgstr "Generazione statistiche fallita\n"
@@ -4207,7 +4207,7 @@ msgstr ""
 msgid "Namestore database file `%s' malformed\n"
 msgstr ""
 
-#: src/plugin/namestore/plugin_namestore_flat.c:790
+#: src/plugin/namestore/plugin_namestore_flat.c:793
 msgid "Flat file database running\n"
 msgstr ""
 
@@ -4217,7 +4217,7 @@ msgstr ""
 msgid "Failed to setup database with: `%s'\n"
 msgstr "Impossibile avviare il servizio ' %s'\n"
 
-#: src/plugin/namestore/plugin_namestore_sqlite.c:1074
+#: src/plugin/namestore/plugin_namestore_sqlite.c:1076
 msgid "SQlite database running\n"
 msgstr ""
 
@@ -5630,25 +5630,25 @@ msgstr "Impossibile avviare il servizio ' %s'\n"
 msgid "Expected a base32-encoded public zone key\n"
 msgstr ""
 
-#: src/service/gns/gnunet-bcd.c:589
+#: src/service/gns/gnunet-bcd.c:590
 #, fuzzy, c-format
 msgid "Invalid port number %u\n"
 msgstr "# messaggi PONG ricevuti"
 
-#: src/service/gns/gnunet-bcd.c:632
+#: src/service/gns/gnunet-bcd.c:633
 #, fuzzy
 msgid "Unable to set up the daemon\n"
 msgstr "Generazione statistiche fallita\n"
 
-#: src/service/gns/gnunet-bcd.c:656
+#: src/service/gns/gnunet-bcd.c:657
 msgid "Failed to start HTTP server\n"
 msgstr "Impossibile avviare il server HTTP\n"
 
-#: src/service/gns/gnunet-bcd.c:680
+#: src/service/gns/gnunet-bcd.c:681
 msgid "Run HTTP server on port PORT (default is 8888)"
 msgstr ""
 
-#: src/service/gns/gnunet-bcd.c:690
+#: src/service/gns/gnunet-bcd.c:691
 msgid "GNUnet HTTP server to create business cards"
 msgstr ""
 
@@ -6621,11 +6621,11 @@ msgstr "arresta tutti i servizi GNUnet"
 msgid "Identity REST API initialized\n"
 msgstr ""
 
-#: src/service/rest/namestore_plugin.c:1309
+#: src/service/rest/namestore_plugin.c:1310
 msgid "Namestore REST API initialized\n"
 msgstr ""
 
-#: src/service/rest/openid_plugin.c:3130
+#: src/service/rest/openid_plugin.c:3135
 msgid "OpenID Connect REST API initialized\n"
 msgstr ""
 
@@ -6659,7 +6659,7 @@ msgstr ""
 msgid "SET service crashed, terminating revocation service\n"
 msgstr ""
 
-#: src/service/revocation/gnunet-service-revocation.c:968
+#: src/service/revocation/gnunet-service-revocation.c:967
 msgid "Could not open revocation database file!"
 msgstr ""
 
@@ -6730,11 +6730,11 @@ msgstr ""
 msgid "GNUnet QUIC communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-tcp.c:4300
+#: src/service/transport/gnunet-communicator-tcp.c:4305
 msgid "GNUnet TCP communicator"
 msgstr ""
 
-#: src/service/transport/gnunet-communicator-udp.c:4023
+#: src/service/transport/gnunet-communicator-udp.c:4028
 msgid "GNUnet UDP communicator"
 msgstr ""
 
