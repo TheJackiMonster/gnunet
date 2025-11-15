@@ -1,3 +1,6 @@
+v0.26.1:
+  - pq: fix consistency check errors that would occur in some cases.
+
 v0.26.0:
   - util: Revise crypto API to prevent misuse of key material.
   - util: Add various TIME related helper APIs.
