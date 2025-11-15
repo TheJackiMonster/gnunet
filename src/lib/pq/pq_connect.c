@@ -101,11 +101,9 @@ prepare_get_oid_by_name (struct GNUNET_PQ_Context *db)
     return GNUNET_OK;
   res = PQprepare (db->conn,
                    "gnunet_pq_get_oid_by_name",
-                   "SELECT"
-                   " typname, oid"
-                   " FROM pg_type"
-                   " WHERE typname = $1"
-                   " LIMIT 1",
+                   "SELECT typname, oid"
+                   "  FROM pg_type"
+                   " WHERE oid = to_regtype($1)",
                    1,
                    NULL);
   if (PGRES_COMMAND_OK != PQresultStatus (res))
