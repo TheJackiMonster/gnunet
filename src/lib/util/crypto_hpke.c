@@ -842,13 +842,13 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_BlindablePublicKey *
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->ecdhe_key.q_y,
                                                    pk->ecdsa_key.q_y))
       return GNUNET_SYSERR;
-    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
+    x25519->type = htonl (GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE);
     return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->ecdhe_key.q_y,
                                                    pk->eddsa_key.q_y))
       return GNUNET_SYSERR;
-    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
+    x25519->type = htonl (GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE);
     return GNUNET_OK;
   default:
     return GNUNET_SYSERR;
@@ -870,13 +870,13 @@ GNUNET_CRYPTO_hpke_sk_to_x25519 (const struct
     memcpy (x25519->ecdhe_key.d,
             sk->ecdsa_key.d,
             sizeof sk->ecdsa_key.d);
-    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
+    x25519->type = htonl (GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE);
     return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_sk_to_curve25519 (x25519->ecdhe_key.d,
                                                    sk->eddsa_key.d))
       return GNUNET_SYSERR;
-    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
+    x25519->type = htonl (GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE);
     return GNUNET_OK;
   default:
     return GNUNET_SYSERR;
