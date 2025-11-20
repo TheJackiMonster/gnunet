@@ -1104,6 +1104,7 @@ dequeue_message_from_room (void *cls)
   struct GNUNET_HashCode epoch;
   struct GNUNET_HashCode hash;
   struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
+  struct GNUNET_CRYPTO_HpkePublicKey hpke_key;
 
   GNUNET_assert (cls);
 
@@ -1148,7 +1149,10 @@ dequeue_message_from_room (void *cls)
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
                    &key, &pubkey));
 
-  if (GNUNET_YES == encrypt_message (transcript, &pubkey))
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
+                   &pubkey, &hpke_key));
+
+  if (GNUNET_YES == encrypt_message (transcript, &hpke_key))
   {
     struct GNUNET_HashCode other;
     send_message_to_room (room, transcript, &key, &epoch, &other);
@@ -1531,6 +1535,7 @@ send_message_to_room_with_key (struct GNUNET_MESSENGER_Room *room,
 {
   struct GNUNET_MESSENGER_Message *transcript;
   const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
+  struct GNUNET_CRYPTO_HpkePublicKey hpke_key;
   const char *handle_name;
   char *original_name;
 
@@ -1564,7 +1569,10 @@ skip_naming:
   if (0 != GNUNET_memcmp (pubkey, public_key))
     transcript = transcribe_message (message, public_key);
 
-  if (GNUNET_YES != encrypt_message (message, public_key))
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
+                   pubkey, &hpke_key));
+
+  if (GNUNET_YES != encrypt_message (message, &hpke_key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Sending message aborted: Encryption failed!\n");

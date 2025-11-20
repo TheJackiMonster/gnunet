@@ -392,6 +392,17 @@ enum GNUNET_CRYPTO_KeyType
 };
 
 /**
+ * Key type for the hpke public key union
+ */
+enum GNUNET_CRYPTO_HpkeKeyType
+{
+  /**
+   * ECDHE hybrid public key encryption.
+   */
+  GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE = 1
+};
+
+/**
  * A private key for an identity as per LSD0001.
  * Note that these types are NOT packed and MUST NOT be used in RPC
  * messages. Use the respective serialization functions.
@@ -4918,6 +4929,58 @@ GNUNET_CRYPTO_blindable_key_get_public (const struct
                                         privkey,
                                         struct GNUNET_CRYPTO_BlindablePublicKey
                                         *key);
+
+/**
+ * Get the compacted length of a #GNUNET_CRYPTO_HpkePublicKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_HpkePublicKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
+ssize_t
+GNUNET_CRYPTO_hpke_pk_get_length (
+  const struct GNUNET_CRYPTO_HpkePublicKey *key);
+
+/**
+ * Reads a #GNUNET_CRYPTO_HpkePublicKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_CRYPTO_HpkePublicKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the buffer does not contain a valid key, it returns -2 as error.
+ *
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_read_hpke_pk_from_buffer (
+  const void *buffer,
+  size_t len,
+  struct GNUNET_CRYPTO_HpkePublicKey *key,
+  size_t *read);
+
+/**
+ * Writes a #GNUNET_CRYPTO_HpkePublicKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_CRYPTO_HpkePublicKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_write_hpke_pk_to_buffer (
+  const struct GNUNET_CRYPTO_HpkePublicKey *key,
+  void*buffer,
+  size_t len);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

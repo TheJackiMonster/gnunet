@@ -486,12 +486,14 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
   {
   case GNUNET_MESSENGER_KIND_JOIN:
     length += GNUNET_CRYPTO_blindable_pk_get_length (&(body->join.key));
+    length += GNUNET_CRYPTO_hpke_pk_get_length (&(body->join.hpke_key));
     break;
   case GNUNET_MESSENGER_KIND_NAME:
     length += (body->name.name ? strlen (body->name.name) : 0);
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     length += GNUNET_CRYPTO_blindable_pk_get_length (&(body->key.key));
+    length += GNUNET_CRYPTO_hpke_pk_get_length (&(body->key.hpke_key));
     break;
   case GNUNET_MESSENGER_KIND_TEXT:
     length += (body->text.text ? strlen (body->text.text) : 0);
@@ -634,6 +636,15 @@ calc_padded_length (uint16_t length)
           offset += result;                                           \
 } while (0)
 
+#define encode_step_hpke_key(dst, offset, src, length) do {        \
+          ssize_t result = GNUNET_CRYPTO_write_hpke_pk_to_buffer ( \
+            src, dst + offset, length - offset);                   \
+          if (result < 0)                                          \
+          GNUNET_break (0);                                        \
+          else                                                     \
+          offset += result;                                        \
+} while (0)
+
 #define encode_step_signature(dst, offset, src, length) do {         \
           ssize_t result = GNUNET_CRYPTO_write_blinded_key_signature_to_buffer ( \
             src, dst + offset, length - offset);                     \
@@ -664,6 +675,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
   case GNUNET_MESSENGER_KIND_JOIN:
     encode_step (buffer, offset, &(body->join.epoch));
     encode_step_key (buffer, offset, &(body->join.key), length);
+    encode_step_hpke_key (buffer, offset, &(body->join.hpke_key), length);
     break;
   case GNUNET_MESSENGER_KIND_LEAVE:
     encode_step (buffer, offset, &(body->leave.epoch));
@@ -678,6 +690,7 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     encode_step_key (buffer, offset, &(body->key.key), length);
+    encode_step_hpke_key (buffer, offset, &(body->key.hpke_key), length);
     break;
   case GNUNET_MESSENGER_KIND_PEER:
     encode_step (buffer, offset, &(body->peer.peer));
@@ -930,6 +943,17 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
           offset += read;                                      \
 } while (0)
 
+#define decode_step_hpke_key(src, offset, dst, length) do { \
+          enum GNUNET_GenericReturnValue result;            \
+          size_t read;                                      \
+          result = GNUNET_CRYPTO_read_hpke_pk_from_buffer ( \
+            src + offset, length - offset, dst, &read);     \
+          if (GNUNET_SYSERR == result)                      \
+          GNUNET_break (0);                                 \
+          else                                              \
+          offset += read;                                   \
+} while (0)
+
 static uint16_t
 decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
                      struct GNUNET_MESSENGER_MessageBody *body,
@@ -969,6 +993,7 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
   case GNUNET_MESSENGER_KIND_JOIN:
     decode_step (buffer, offset, &(body->join.epoch));
     decode_step_key (buffer, offset, &(body->join.key), length);
+    decode_step_hpke_key (buffer, offset, &(body->join.hpke_key), length);
     break;
   case GNUNET_MESSENGER_KIND_LEAVE:
     decode_step (buffer, offset, &(body->leave.epoch));
@@ -981,6 +1006,7 @@ decode_message_body (enum GNUNET_MESSENGER_MessageKind *kind,
     break;
   case GNUNET_MESSENGER_KIND_KEY:
     decode_step_key (buffer, offset, &(body->key.key), length);
+    decode_step_hpke_key (buffer, offset, &(body->key.hpke_key), length);
     break;
   case GNUNET_MESSENGER_KIND_PEER:
     decode_step (buffer, offset, &(body->peer.peer));
@@ -1549,15 +1575,14 @@ verify_message_by_key (const struct GNUNET_MESSENGER_Message *message,
 
 enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_BlindablePublicKey *key)
+                 const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key)
 {
-  struct GNUNET_CRYPTO_HpkePublicKey hpke_key;
   enum GNUNET_GenericReturnValue result;
   struct GNUNET_MESSENGER_ShortMessage shortened;
   uint16_t length, padded_length, encoded_length;
   uint8_t *data;
 
-  GNUNET_assert ((message) && (key));
+  GNUNET_assert ((message) && (hpke_key));
 
   if (GNUNET_YES == is_service_message (message))
     return GNUNET_NO;
@@ -1573,8 +1598,6 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
   message->body.privacy.data = GNUNET_malloc (padded_length);
   message->body.privacy.length = padded_length;
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (key,
-                                                               &hpke_key));
   encoded_length = (padded_length - encryption_overhead);
 
   GNUNET_assert (padded_length == encoded_length + encryption_overhead);
@@ -1584,7 +1607,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
 
   encode_short_message (&shortened, encoded_length, (char *) data);
 
-  if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (&hpke_key,
+  if (GNUNET_OK != GNUNET_CRYPTO_hpke_seal_oneshot (hpke_key,
                                                     (const uint8_t*)
                                                     "messenger",
                                                     strlen ("messenger"),
@@ -1612,14 +1635,13 @@ cleanup:
 
 enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
+                 const struct GNUNET_CRYPTO_HpkePrivateKey *hpke_key)
 {
-  struct GNUNET_CRYPTO_HpkePrivateKey hpke_key;
   enum GNUNET_GenericReturnValue result;
   uint16_t padded_length, encoded_length;
   uint8_t *data;
 
-  GNUNET_assert ((message) && (key) &&
+  GNUNET_assert ((message) && (hpke_key) &&
                  (GNUNET_MESSENGER_KIND_PRIVATE == message->header.kind));
 
   padded_length = message->body.privacy.length;
@@ -1632,8 +1654,6 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
     return GNUNET_NO;
   }
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (key,
-                                                               &hpke_key));
   encoded_length = (padded_length - encryption_overhead);
 
   GNUNET_assert (padded_length == encoded_length + encryption_overhead);
@@ -1642,7 +1662,7 @@ decrypt_message (struct GNUNET_MESSENGER_Message *message,
   data = GNUNET_malloc (encoded_length);
 
   if (GNUNET_OK !=
-      GNUNET_CRYPTO_hpke_open_oneshot (&hpke_key,
+      GNUNET_CRYPTO_hpke_open_oneshot (hpke_key,
                                        (uint8_t*) "messenger",
                                        strlen ("messenger"),
                                        NULL, 0,

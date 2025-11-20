@@ -44,9 +44,9 @@ extern "C" {
 /**
  * Version number of GNUnet Messenger API.
  *
- * Current version of the Messenger: 0.6
+ * Current version of the Messenger: 0.7
  */
-#define GNUNET_MESSENGER_VERSION 0x00000006
+#define GNUNET_MESSENGER_VERSION 0x00000007
 
 /**
  * Identifier of GNUnet MESSENGER Service.
@@ -470,6 +470,11 @@ struct GNUNET_MESSENGER_MessageJoin
    * The senders blindable public key to verify its signatures.
    */
   struct GNUNET_CRYPTO_BlindablePublicKey key;
+
+  /**
+   * The senders HPKE public key to encrypt private messages with.
+   */
+  struct GNUNET_CRYPTO_HpkePublicKey hpke_key;
 };
 
 /**
@@ -512,6 +517,11 @@ struct GNUNET_MESSENGER_MessageKey
    * The new blindable public key which replaces the current senders public key.
    */
   struct GNUNET_CRYPTO_BlindablePublicKey key;
+
+  /**
+   * The new HPKE public key which replaces the current senders HPKE public key.
+   */
+  struct GNUNET_CRYPTO_HpkePublicKey hpke_key;
 };
 
 /**

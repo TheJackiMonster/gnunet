@@ -47,6 +47,9 @@ create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
                    key, &(message->body.join.key)));
 
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
+                   &(message->body.join.key), &(message->body.join.hpke_key)));
+
   return message;
 }
 
@@ -101,6 +104,9 @@ create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
                    key, &(message->body.key.key)));
+
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
+                   &(message->body.key.key), &(message->body.key.hpke_key)));
 
   return message;
 }

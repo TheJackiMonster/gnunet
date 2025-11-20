@@ -842,11 +842,13 @@ GNUNET_CRYPTO_hpke_pk_to_x25519 (const struct GNUNET_CRYPTO_BlindablePublicKey *
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->ecdhe_key.q_y,
                                                    pk->ecdsa_key.q_y))
       return GNUNET_SYSERR;
+    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
     return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_pk_to_curve25519 (x25519->ecdhe_key.q_y,
                                                    pk->eddsa_key.q_y))
       return GNUNET_SYSERR;
+    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
     return GNUNET_OK;
   default:
     return GNUNET_SYSERR;
@@ -868,15 +870,76 @@ GNUNET_CRYPTO_hpke_sk_to_x25519 (const struct
     memcpy (x25519->ecdhe_key.d,
             sk->ecdsa_key.d,
             sizeof sk->ecdsa_key.d);
+    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
     return GNUNET_OK;
   case GNUNET_PUBLIC_KEY_TYPE_EDDSA:
     if (0 != crypto_sign_ed25519_sk_to_curve25519 (x25519->ecdhe_key.d,
                                                    sk->eddsa_key.d))
       return GNUNET_SYSERR;
+    x25519->type = GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE;
     return GNUNET_OK;
   default:
     return GNUNET_SYSERR;
   }
   return GNUNET_SYSERR;
 
+}
+
+
+ssize_t
+GNUNET_CRYPTO_hpke_pk_get_length (
+  const struct GNUNET_CRYPTO_HpkePublicKey *key)
+{
+  switch (ntohl (key->type))
+  {
+  case GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE:
+    return sizeof (key->type) + sizeof (key->ecdhe_key);
+  default:
+    GNUNET_break (0);
+  }
+  return -1;
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_read_hpke_pk_from_buffer (const void *buffer,
+                                        size_t len,
+                                        struct
+                                        GNUNET_CRYPTO_HpkePublicKey *key,
+                                        size_t *read)
+{
+  ssize_t length;
+  if (len < sizeof (key->type))
+    return GNUNET_SYSERR;
+  GNUNET_memcpy (&key->type,
+                 buffer,
+                 sizeof (key->type));
+  length = GNUNET_CRYPTO_hpke_pk_get_length (key);
+  if (len < length)
+    return GNUNET_SYSERR;
+  if (length < 0)
+    return GNUNET_SYSERR;
+  GNUNET_memcpy (&key->ecdhe_key,
+                 buffer + sizeof (key->type),
+                 length - sizeof (key->type));
+  *read = length;
+  return GNUNET_OK;
+}
+
+
+ssize_t
+GNUNET_CRYPTO_write_hpke_pk_to_buffer (const struct
+                                       GNUNET_CRYPTO_HpkePublicKey *key,
+                                       void*buffer,
+                                       size_t len)
+{
+  const ssize_t length = GNUNET_CRYPTO_hpke_pk_get_length (key);
+  if (len < length)
+    return -1;
+  if (length < 0)
+    return -2;
+  GNUNET_memcpy (buffer, &(key->type), sizeof (key->type));
+  GNUNET_memcpy (buffer + sizeof (key->type), &(key->ecdhe_key), length
+                 - sizeof (key->type));
+  return length;
 }

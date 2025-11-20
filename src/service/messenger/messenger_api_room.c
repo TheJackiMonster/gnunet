@@ -1369,6 +1369,8 @@ handle_private_message (struct GNUNET_MESSENGER_Room *room,
                         struct GNUNET_MESSENGER_RoomMessageEntry *entry)
 {
   struct GNUNET_MESSENGER_Message *private_message;
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
+  struct GNUNET_CRYPTO_HpkePrivateKey hpke_key;
 
   GNUNET_assert ((room) && (hash) && (entry));
 
@@ -1377,12 +1379,22 @@ handle_private_message (struct GNUNET_MESSENGER_Room *room,
   if (! private_message)
     return;
 
+  key = get_handle_key (room->handle);
+
+  if (! key)
+    return;
+
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (
+                   key, &hpke_key));
+
   if (GNUNET_YES != decrypt_message (
-        private_message, get_handle_key (room->handle)))
+        private_message, &hpke_key))
   {
     destroy_message (private_message);
     private_message = NULL;
   }
+
+  memset (&hpke_key, 0, sizeof (hpke_key));
 
   if (! private_message)
     return;
