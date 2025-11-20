@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2025 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,6 +26,7 @@
 #ifndef GNUNET_MESSENGER_API_CONTACT_H
 #define GNUNET_MESSENGER_API_CONTACT_H
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 struct GNUNET_MESSENGER_Contact
@@ -35,6 +36,7 @@ struct GNUNET_MESSENGER_Contact
   size_t id;
 
   struct GNUNET_CRYPTO_BlindablePublicKey public_key;
+  struct GNUNET_CONTAINER_MultiHashMap *encryption_keys;
 };
 
 /**
@@ -76,13 +78,39 @@ set_contact_name (struct GNUNET_MESSENGER_Contact *contact,
                   const char *name);
 
 /**
- * Returns the public key of a given <i>contact</i>.
+ * Returns the blindable public key of a given <i>contact</i>.
  *
  * @param[in] contact Contact
  * @return Public key of the contact
  */
 const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_contact_key (const struct GNUNET_MESSENGER_Contact *contact);
+
+/**
+ * Returns the HPKE public key of a given <i>contact</i> for
+ * a specific room that is identified via its own room <i>key</i>.
+ *
+ * @param[in] contact Contact
+ * @param[in] key Room key
+ * @return Public key of the contact for encrypted messages
+ */
+const struct GNUNET_CRYPTO_HpkePublicKey*
+get_contact_encryption_key (const struct GNUNET_MESSENGER_Contact *contact,
+                            const struct GNUNET_HashCode *key);
+
+/**
+ * Sets or replaces the <i>encryption_key</i> of a given <i>contact</i> for a
+ * specified room that is identified via its own room <i>key</i>.
+ *
+ * @param[in,out] contact Contact
+ * @param[in] key Room key
+ * @param[in] encryption_key Public key of the contact for encrypted messages
+ */
+void
+set_contact_encryption_key (struct GNUNET_MESSENGER_Contact *contact,
+                            const struct GNUNET_HashCode *key,
+                            const struct GNUNET_CRYPTO_HpkePublicKey *
+                            encryption_key);
 
 /**
  * Increases the reference counter of a given <i>contact</i> which is zero as default.

@@ -44,7 +44,25 @@ create_contact (const struct GNUNET_CRYPTO_BlindablePublicKey *key,
 
   GNUNET_memcpy (&(contact->public_key), key, sizeof(contact->public_key));
 
+  contact->encryption_keys = GNUNET_CONTAINER_multihashmap_create (
+    8, GNUNET_NO);
+
   return contact;
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_free_contact_encryption_key (void *cls,
+                                     const struct GNUNET_HashCode *key,
+                                     void *value)
+{
+  struct GNUNET_CRYPTO_HpkePublicKey *encryption_key;
+
+  GNUNET_assert ((key) && (value));
+
+  encryption_key = value;
+  GNUNET_free (encryption_key);
+  return GNUNET_YES;
 }
 
 
@@ -55,6 +73,11 @@ destroy_contact (struct GNUNET_MESSENGER_Contact *contact)
 
   if (contact->name)
     GNUNET_free (contact->name);
+
+  GNUNET_CONTAINER_multihashmap_iterate (
+    contact->encryption_keys, iterate_free_contact_encryption_key, NULL);
+
+  GNUNET_CONTAINER_multihashmap_destroy (contact->encryption_keys);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Free contact: %lu\n",
               contact->id);
@@ -91,6 +114,60 @@ get_contact_key (const struct GNUNET_MESSENGER_Contact *contact)
   GNUNET_assert (contact);
 
   return &(contact->public_key);
+}
+
+
+const struct GNUNET_CRYPTO_HpkePublicKey*
+get_contact_encryption_key (const struct GNUNET_MESSENGER_Contact *contact,
+                            const struct GNUNET_HashCode *key)
+{
+  GNUNET_assert ((contact) && (key));
+
+  return GNUNET_CONTAINER_multihashmap_get (contact->encryption_keys, key);
+}
+
+
+void
+set_contact_encryption_key (struct GNUNET_MESSENGER_Contact *contact,
+                            const struct GNUNET_HashCode *key,
+                            const struct GNUNET_CRYPTO_HpkePublicKey *
+                            encryption_key)
+{
+  GNUNET_assert ((contact) && (key));
+
+  if (! encryption_key)
+  {
+    if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_contains (contact->
+                                                              encryption_keys,
+                                                              key))
+      return;
+
+    GNUNET_CONTAINER_multihashmap_get_multiple (
+      contact->encryption_keys, key, iterate_free_contact_encryption_key, NULL);
+    GNUNET_CONTAINER_multihashmap_remove_all (contact->encryption_keys, key);
+  }
+  else
+  {
+    struct GNUNET_CRYPTO_HpkePublicKey *hpke_key;
+
+    hpke_key = GNUNET_CONTAINER_multihashmap_get (contact->encryption_keys, key)
+    ;
+
+    if (! hpke_key)
+    {
+      hpke_key = GNUNET_malloc (sizeof (*hpke_key));
+
+      if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+            contact->encryption_keys, key, hpke_key,
+            GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+      {
+        GNUNET_free (hpke_key);
+        return;
+      }
+    }
+
+    GNUNET_memcpy (hpke_key, encryption_key, sizeof (*hpke_key));
+  }
 }
 
 

@@ -26,6 +26,7 @@
 #include "messenger_api_queue_messages.h"
 
 #include "gnunet_messenger_service.h"
+#include "gnunet_util_lib.h"
 #include "messenger_api_message.h"
 
 void
@@ -67,6 +68,7 @@ clear_queue_messages (struct GNUNET_MESSENGER_QueueMessages *messages)
 void
 enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                      const struct GNUNET_CRYPTO_BlindablePrivateKey *sender,
+                     const struct GNUNET_CRYPTO_HpkePublicKey *transcript_key,
                      const struct GNUNET_HashCode *epoch,
                      struct GNUNET_MESSENGER_Message *message,
                      struct GNUNET_MESSENGER_Message *transcript)
@@ -74,7 +76,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   struct GNUNET_MESSENGER_QueueMessage *element;
   enum GNUNET_MESSENGER_MessageKind kind;
 
-  GNUNET_assert ((messages) && (sender) && (message));
+  GNUNET_assert ((messages) && (sender) && (transcript_key) && (message));
 
   element = GNUNET_new (struct GNUNET_MESSENGER_QueueMessage);
   if (! element)
@@ -86,6 +88,8 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
   element->transcript = transcript;
 
   GNUNET_memcpy (&(element->sender), sender, sizeof (element->sender));
+  GNUNET_memcpy (&(element->transcript_key), transcript_key,
+                 sizeof (element->transcript_key));
   GNUNET_memcpy (&(element->epoch), epoch, sizeof (element->epoch));
 
   if (! element->message)
@@ -123,6 +127,7 @@ enqueue_to_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 struct GNUNET_MESSENGER_Message*
 dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
                        struct GNUNET_CRYPTO_BlindablePrivateKey *sender,
+                       struct GNUNET_CRYPTO_HpkePublicKey *transcript_key,
                        struct GNUNET_HashCode *epoch,
                        struct GNUNET_MESSENGER_Message **transcript)
 {
@@ -151,6 +156,10 @@ dequeue_from_messages (struct GNUNET_MESSENGER_QueueMessages *messages,
 
   if (sender)
     GNUNET_memcpy (sender, &(element->sender), sizeof (*sender));
+
+  if (transcript_key)
+    GNUNET_memcpy (transcript_key, &(element->transcript_key),
+                   sizeof (*transcript_key));
 
   if (epoch)
     GNUNET_memcpy (epoch, &(element->epoch), sizeof (*epoch));

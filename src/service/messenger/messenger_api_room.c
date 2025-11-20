@@ -32,6 +32,7 @@
 #include "gnunet_util_lib.h"
 
 #include "messenger_api.h"
+#include "messenger_api_contact.h"
 #include "messenger_api_contact_store.h"
 #include "messenger_api_epoch.h"
 #include "messenger_api_epoch_announcement.h"
@@ -1174,6 +1175,9 @@ handle_join_message (struct GNUNET_MESSENGER_Room *room,
                                        &(entry->message->body.join.key));
   }
 
+  if (! entry->sender)
+    return;
+
   if ((GNUNET_YES != GNUNET_CONTAINER_multishortmap_contains_value (
          room->members, &(entry->message->header.sender_id), entry->sender)) &&
       (GNUNET_OK == GNUNET_CONTAINER_multishortmap_put (
@@ -1182,6 +1186,9 @@ handle_join_message (struct GNUNET_MESSENGER_Room *room,
          entry->sender,
          GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE)))
     increase_contact_rc (entry->sender);
+
+  set_contact_encryption_key (
+    entry->sender, get_room_key (room), &(entry->message->body.join.hpke_key));
 
   if ((get_room_sender_id (room)) &&
       (0 == GNUNET_memcmp (&(entry->message->header.sender_id),
@@ -1290,6 +1297,9 @@ handle_key_message (struct GNUNET_MESSENGER_Room *room,
 
   update_store_contact (store, entry->sender, &context, &context,
                         &(entry->message->body.key.key));
+
+  set_contact_encryption_key (
+    entry->sender, get_room_key (room), &(entry->message->body.key.hpke_key));
 }
 
 
