@@ -374,7 +374,7 @@ struct GNUNET_CRYPTO_ElligatorRepresentative
 };
 
 /**
- * Key type for the generic public key union
+ * Key type for the blindable public key union
  */
 enum GNUNET_CRYPTO_KeyType
 {
@@ -4550,8 +4550,8 @@ GNUNET_CRYPTO_blind_sig_verify (
  * @return -1 on error, else the compacted length of the key.
  */
 ssize_t
-GNUNET_CRYPTO_public_key_get_length (const struct
-                                     GNUNET_CRYPTO_BlindablePublicKey *key);
+GNUNET_CRYPTO_blindable_pk_get_length (
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key);
 
 /**
  * Reads a #GNUNET_CRYPTO_BlindablePublicKey from a compact buffer.
@@ -4567,7 +4567,7 @@ GNUNET_CRYPTO_public_key_get_length (const struct
  * @return #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_read_public_key_from_buffer (
+GNUNET_CRYPTO_read_blindable_pk_from_buffer (
   const void *buffer,
   size_t len,
   struct GNUNET_CRYPTO_BlindablePublicKey *key,
@@ -4601,11 +4601,10 @@ GNUNET_CRYPTO_blindable_sk_get_length (
  * @return -1 or -2 on error, else the amount of bytes written to the buffer
  */
 ssize_t
-GNUNET_CRYPTO_write_blindable_pk_to_buffer (const struct
-                                            GNUNET_CRYPTO_BlindablePublicKey *
-                                            key,
-                                            void*buffer,
-                                            size_t len);
+GNUNET_CRYPTO_write_blindable_pk_to_buffer (
+  const struct GNUNET_CRYPTO_BlindablePublicKey *key,
+  void*buffer,
+  size_t len);
 
 
 /**

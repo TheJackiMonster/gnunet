@@ -198,7 +198,7 @@ gns_string_to_value (void *cls,
                   s);
       return GNUNET_SYSERR;
     }
-    *data_size = GNUNET_CRYPTO_public_key_get_length (&pk);
+    *data_size = GNUNET_CRYPTO_blindable_pk_get_length (&pk);
     if (GNUNET_OK !=
         GNUNET_GNSRECORD_data_from_identity (&pk,
                                              (char **) data,

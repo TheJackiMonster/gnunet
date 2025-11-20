@@ -1381,7 +1381,7 @@ GNUNET_NAMESTORE_zone_to_name (
   GNUNET_CONTAINER_DLL_insert_tail (h->op_head, h->op_tail, qe);
 
   key_len = GNUNET_CRYPTO_blindable_sk_get_length (zone);
-  pkey_len = GNUNET_CRYPTO_public_key_get_length (value_zone);
+  pkey_len = GNUNET_CRYPTO_blindable_pk_get_length (value_zone);
   env = GNUNET_MQ_msg_extra (msg, key_len + pkey_len,
                              GNUNET_MESSAGE_TYPE_NAMESTORE_ZONE_TO_NAME);
   msg->gns_header.r_id = htonl (rid);

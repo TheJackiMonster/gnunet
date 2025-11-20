@@ -107,7 +107,7 @@ GNR_create_signature_message (const struct GNUNET_GNSRECORD_PowP *pow)
   size_t ksize;
 
   pk = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
-  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
+  ksize = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   spurp = GNUNET_malloc (sizeof (*spurp) + ksize);
   spurp->timestamp = pow->timestamp;
   spurp->purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_GNS_REVOCATION);
@@ -128,7 +128,7 @@ check_signature_identity (const struct GNUNET_GNSRECORD_PowP *pow,
   size_t ksize;
   int ret;
 
-  ksize = GNUNET_CRYPTO_public_key_get_length (key);
+  ksize = GNUNET_CRYPTO_blindable_pk_get_length (key);
   spurp = GNR_create_signature_message (pow);
   sig = ((unsigned char*) &pow[1] + ksize);
   ret =
@@ -204,7 +204,7 @@ GNUNET_GNSRECORD_check_pow (const struct GNUNET_GNSRECORD_PowP *pow,
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pow->timestamp,
                  sizeof (uint64_t));
-  pklen = GNUNET_CRYPTO_public_key_get_length (pk);
+  pklen = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   if (0 > pklen)
   {
     GNUNET_break (0);
@@ -280,7 +280,7 @@ sign_pow_identity (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
   ts = GNUNET_TIME_absolute_subtract (ts,
                                       GNUNET_TIME_UNIT_WEEKS);
   pk = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
-  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
+  ksize = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   pow->timestamp = GNUNET_TIME_absolute_hton (ts);
   rp = GNR_create_signature_message (pow);
   sig = ((char*) &pow[1]) + ksize;
@@ -394,7 +394,7 @@ GNUNET_GNSRECORD_pow_round (struct GNUNET_GNSRECORD_PowCalculationHandle *pc)
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  &pc->pow->timestamp,
                  sizeof (uint64_t));
-  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
+  ksize = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   GNUNET_assert (0 < ksize);
   GNUNET_memcpy (&buf[sizeof(uint64_t) * 2],
                  pk,
@@ -438,7 +438,7 @@ GNUNET_GNSRECORD_proof_get_size (const struct GNUNET_GNSRECORD_PowP *pow)
 
   size = sizeof (struct GNUNET_GNSRECORD_PowP);
   pk = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
-  ksize = GNUNET_CRYPTO_public_key_get_length (pk);
+  ksize = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   size += ksize;
   size += GNUNET_CRYPTO_blinded_key_signature_get_length_by_type (pk->type);
   return size;

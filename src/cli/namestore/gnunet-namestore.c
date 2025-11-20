@@ -1799,7 +1799,7 @@ run_with_zone_pkey (const struct GNUNET_CONFIGURATION_Handle *cfg_)
     }
     memset (&rd, 0, sizeof(rd));
     rd.data = &pkey;
-    rd.data_size = GNUNET_CRYPTO_public_key_get_length (&pkey);
+    rd.data_size = GNUNET_CRYPTO_blindable_pk_get_length (&pkey);
     rd.record_type = ntohl (pkey.type);
     rd.expiration_time = etime;
     if (GNUNET_YES == etime_is_rel)

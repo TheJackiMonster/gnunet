@@ -2129,11 +2129,11 @@ handle_zone_to_name (void *cls, const struct ZoneToNameMessage *ztn_msg)
   }
   pkey_len = ntohs (ztn_msg->pkey_len);
   if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_public_key_from_buffer ((char*) &ztn_msg[1]
-                                                  + key_len,
-                                                  pkey_len,
-                                                  &value_zone,
-                                                  &kb_read)) ||
+       GNUNET_CRYPTO_read_blindable_pk_from_buffer ((char*) &ztn_msg[1]
+                                                    + key_len,
+                                                    pkey_len,
+                                                    &value_zone,
+                                                    &kb_read)) ||
       (kb_read != pkey_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

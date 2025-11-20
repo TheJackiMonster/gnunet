@@ -434,10 +434,10 @@ handle_lookup (void *cls,
   clh->gc = gc;
   clh->request_id = sh_msg->id;
   if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_public_key_from_buffer (&sh_msg[1],
-                                                  key_len,
-                                                  &zone,
-                                                  &read)) ||
+       GNUNET_CRYPTO_read_blindable_pk_from_buffer (&sh_msg[1],
+                                                    key_len,
+                                                    &zone,
+                                                    &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

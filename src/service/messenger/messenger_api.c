@@ -472,7 +472,7 @@ send_open_room (struct GNUNET_MESSENGER_Handle *handle,
               GNUNET_h2s (get_room_key (room)),
               GNUNET_CRYPTO_blindable_public_key_to_string (key));
 
-  len = GNUNET_CRYPTO_public_key_get_length (key);
+  len = GNUNET_CRYPTO_blindable_pk_get_length (key);
 
   env = GNUNET_MQ_msg_extra (msg, len > 0 ? len : 0,
                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
@@ -508,7 +508,7 @@ send_enter_room (struct GNUNET_MESSENGER_Handle *handle,
               GNUNET_i2s (door),
               GNUNET_CRYPTO_blindable_public_key_to_string (key));
 
-  len = GNUNET_CRYPTO_public_key_get_length (key);
+  len = GNUNET_CRYPTO_blindable_pk_get_length (key);
 
   env = GNUNET_MQ_msg_extra (msg, len > 0 ? len : 0,
                              GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY);
@@ -1145,7 +1145,8 @@ dequeue_message_from_room (void *cls)
   GNUNET_memcpy (&(transcript->body.transcript.hash), &hash, sizeof(hash));
 
   memset (&pubkey, 0, sizeof(pubkey));
-  GNUNET_CRYPTO_blindable_key_get_public (&key, &pubkey);
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
+                   &key, &pubkey));
 
   if (GNUNET_YES == encrypt_message (transcript, &pubkey))
   {

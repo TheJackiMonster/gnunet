@@ -620,10 +620,10 @@ handle_consume_ticket_result (void *cls,
     struct GNUNET_RECLAIM_PresentationListEntry *ple;
     read_ptr = (char *) &msg[1];
     GNUNET_assert (GNUNET_SYSERR !=
-                   GNUNET_CRYPTO_read_public_key_from_buffer (read_ptr,
-                                                              key_len,
-                                                              &identity,
-                                                              &read));
+                   GNUNET_CRYPTO_read_blindable_pk_from_buffer (read_ptr,
+                                                                key_len,
+                                                                &identity,
+                                                                &read));
     read_ptr += read;
     attrs =
       GNUNET_RECLAIM_attribute_list_deserialize (read_ptr, attrs_len);
@@ -765,10 +765,10 @@ handle_attribute_result (void *cls, const struct AttributeResultMessage *msg)
   {
     struct GNUNET_RECLAIM_Attribute *attr;
     GNUNET_assert (GNUNET_SYSERR !=
-                   GNUNET_CRYPTO_read_public_key_from_buffer (buf,
-                                                              key_len,
-                                                              &identity,
-                                                              &read));
+                   GNUNET_CRYPTO_read_blindable_pk_from_buffer (buf,
+                                                                key_len,
+                                                                &identity,
+                                                                &read));
     buf += read;
     GNUNET_RECLAIM_attribute_deserialize (buf, attr_len, &attr);
     if (NULL != it)
@@ -854,10 +854,10 @@ handle_credential_result (void *cls, const struct
   if (0 < key_len)
   {
     GNUNET_assert (GNUNET_SYSERR !=
-                   GNUNET_CRYPTO_read_public_key_from_buffer (buf,
-                                                              key_len,
-                                                              &identity,
-                                                              &read));
+                   GNUNET_CRYPTO_read_blindable_pk_from_buffer (buf,
+                                                                key_len,
+                                                                &identity,
+                                                                &read));
     buf += read;
   }
   if (0 == key_len)

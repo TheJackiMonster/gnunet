@@ -622,7 +622,7 @@ main ()
               (GNUNET_GNSRECORD_TYPE_PKEY == ntohl (pub_parsed.type)) ? 1 : 0);
     priv.type = pub_parsed.type;
     GNUNET_CRYPTO_blindable_key_get_public (&priv, &pub);
-    if (0 != memcmp (&pub, &pub_parsed, GNUNET_CRYPTO_public_key_get_length (
+    if (0 != memcmp (&pub, &pub_parsed, GNUNET_CRYPTO_blindable_pk_get_length (
                        &pub)))
     {
       printf ("Wrong pubkey.\n");
@@ -632,7 +632,7 @@ main ()
       break;
     }
     GNUNET_STRINGS_data_to_string (&pub,
-                                   GNUNET_CRYPTO_public_key_get_length (
+                                   GNUNET_CRYPTO_blindable_pk_get_length (
                                      &pub),
                                    ztld,
                                    sizeof (ztld));

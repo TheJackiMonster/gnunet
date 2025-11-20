@@ -116,10 +116,10 @@ block_plugin_revocation_check_block (void *cls,
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
   if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
-                                                 left,
-                                                 &pk,
-                                                 &pklen))
+      GNUNET_CRYPTO_read_blindable_pk_from_buffer (&pow[1],
+                                                   left,
+                                                   &pk,
+                                                   &pklen))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;
@@ -225,10 +225,10 @@ block_plugin_revocation_get_key (void *cls,
     return GNUNET_NO;
   }
   left = block_size - sizeof (*rm) - sizeof (*pow);
-  if (GNUNET_SYSERR == GNUNET_CRYPTO_read_public_key_from_buffer (&pow[1],
-                                                                  left,
-                                                                  &pk,
-                                                                  &pklen))
+  if (GNUNET_SYSERR == GNUNET_CRYPTO_read_blindable_pk_from_buffer (&pow[1],
+                                                                    left,
+                                                                    &pk,
+                                                                    &pklen))
   {
     GNUNET_break_op (0);
     return GNUNET_NO;

@@ -946,7 +946,7 @@ consume_result_cb (void *cls,
   attrs_len = GNUNET_RECLAIM_attribute_list_serialize_get_size (attrs);
   pres_len = GNUNET_RECLAIM_presentation_list_serialize_get_size (
     presentations);
-  key_len = GNUNET_CRYPTO_public_key_get_length (identity);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (identity);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CONSUME_TICKET_RESULT message\n");
   env = GNUNET_MQ_msg_extra (crm,
@@ -2059,7 +2059,7 @@ attr_iter_cb (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending ATTRIBUTE_RESULT message\n");
   GNUNET_CRYPTO_blindable_key_get_public (zone, &identity);
-  key_len = GNUNET_CRYPTO_public_key_get_length (&identity);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
                              rd->data_size + key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_ATTRIBUTE_RESULT);
@@ -2290,7 +2290,7 @@ cred_iter_cb (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending CREDENTIAL_RESULT message\n");
   GNUNET_CRYPTO_blindable_key_get_public (zone, &identity);
-  key_len = GNUNET_CRYPTO_public_key_get_length (&identity);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (&identity);
   env = GNUNET_MQ_msg_extra (arm,
                              rd->data_size + key_len,
                              GNUNET_MESSAGE_TYPE_RECLAIM_CREDENTIAL_RESULT);

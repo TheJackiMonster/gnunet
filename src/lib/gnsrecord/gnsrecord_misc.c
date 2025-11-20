@@ -301,7 +301,7 @@ GNUNET_GNSRECORD_data_from_identity (const struct
 {
   char *tmp;
   *type = ntohl (key->type);
-  *data_size = GNUNET_CRYPTO_public_key_get_length (key) - sizeof (key->type);
+  *data_size = GNUNET_CRYPTO_blindable_pk_get_length (key) - sizeof (key->type);
   if (0 == *data_size)
     return GNUNET_SYSERR;
   tmp = GNUNET_malloc (*data_size);

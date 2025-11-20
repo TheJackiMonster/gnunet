@@ -279,10 +279,10 @@ handle_phone_ring (void *cls,
 
   case PS_READY:
     if ((GNUNET_SYSERR ==
-         GNUNET_CRYPTO_read_public_key_from_buffer (&ring[1],
-                                                    key_len,
-                                                    &caller_id,
-                                                    &read)) ||
+         GNUNET_CRYPTO_read_blindable_pk_from_buffer (&ring[1],
+                                                      key_len,
+                                                      &caller_id,
+                                                      &read)) ||
         (read != key_len))
     {
       GNUNET_break (0);

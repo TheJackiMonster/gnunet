@@ -168,10 +168,10 @@ run_pkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char *label)
                 sizeof (struct GNUNET_CRYPTO_EcdsaPrivateKey), 8, 1);
   printf ("\n");
   printf ("Zone identifier (ztype|zkey):\n");
-  GNUNET_assert (0 < GNUNET_CRYPTO_public_key_get_length (&id_pub));
-  print_bytes (&id_pub, GNUNET_CRYPTO_public_key_get_length (&id_pub), 8);
+  GNUNET_assert (0 < GNUNET_CRYPTO_blindable_pk_get_length (&id_pub));
+  print_bytes (&id_pub, GNUNET_CRYPTO_blindable_pk_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_CRYPTO_public_key_get_length (
+                                 GNUNET_CRYPTO_blindable_pk_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
@@ -317,10 +317,10 @@ run_edkey (struct GNUNET_GNSRECORD_Data *rd, int rd_count, const char*label)
                                            GNUNET_CRYPTO_EddsaPrivateKey), 8);
   printf ("\n");
   printf ("Zone identifier (ztype|zkey):\n");
-  GNUNET_assert (0 < GNUNET_CRYPTO_public_key_get_length (&id_pub));
-  print_bytes (&id_pub, GNUNET_CRYPTO_public_key_get_length (&id_pub), 8);
+  GNUNET_assert (0 < GNUNET_CRYPTO_blindable_pk_get_length (&id_pub));
+  print_bytes (&id_pub, GNUNET_CRYPTO_blindable_pk_get_length (&id_pub), 8);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_CRYPTO_public_key_get_length (
+                                 GNUNET_CRYPTO_blindable_pk_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));

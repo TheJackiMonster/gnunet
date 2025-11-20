@@ -82,8 +82,8 @@ GNUNET_CRYPTO_blindable_sk_get_length (const struct
 
 
 ssize_t
-GNUNET_CRYPTO_public_key_get_length (const struct
-                                     GNUNET_CRYPTO_BlindablePublicKey *key)
+GNUNET_CRYPTO_blindable_pk_get_length (const struct
+                                       GNUNET_CRYPTO_BlindablePublicKey *key)
 {
   switch (ntohl (key->type))
   {
@@ -99,12 +99,12 @@ GNUNET_CRYPTO_public_key_get_length (const struct
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
-                                           size_t len,
-                                           struct
-                                           GNUNET_CRYPTO_BlindablePublicKey *
-                                           key,
-                                           size_t *kb_read)
+GNUNET_CRYPTO_read_blindable_pk_from_buffer (const void *buffer,
+                                             size_t len,
+                                             struct
+                                             GNUNET_CRYPTO_BlindablePublicKey *
+                                             key,
+                                             size_t *read)
 {
   ssize_t length;
   if (len < sizeof (key->type))
@@ -112,7 +112,7 @@ GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
   GNUNET_memcpy (&key->type,
                  buffer,
                  sizeof (key->type));
-  length = GNUNET_CRYPTO_public_key_get_length (key);
+  length = GNUNET_CRYPTO_blindable_pk_get_length (key);
   if (len < length)
     return GNUNET_SYSERR;
   if (length < 0)
@@ -120,7 +120,7 @@ GNUNET_CRYPTO_read_public_key_from_buffer (const void *buffer,
   GNUNET_memcpy (&key->ecdsa_key,
                  buffer + sizeof (key->type),
                  length - sizeof (key->type));
-  *kb_read = length;
+  *read = length;
   return GNUNET_OK;
 }
 
@@ -132,7 +132,7 @@ GNUNET_CRYPTO_write_blindable_pk_to_buffer (const struct
                                             void*buffer,
                                             size_t len)
 {
-  const ssize_t length = GNUNET_CRYPTO_public_key_get_length (key);
+  const ssize_t length = GNUNET_CRYPTO_blindable_pk_get_length (key);
   if (len < length)
     return -1;
   if (length < 0)
@@ -395,7 +395,7 @@ GNUNET_CRYPTO_blindable_public_key_to_string (const struct
                                               GNUNET_CRYPTO_BlindablePublicKey *
                                               key)
 {
-  size_t size = GNUNET_CRYPTO_public_key_get_length (key);
+  size_t size = GNUNET_CRYPTO_blindable_pk_get_length (key);
   return GNUNET_STRINGS_data_to_string_alloc (key,
                                               size);
 }

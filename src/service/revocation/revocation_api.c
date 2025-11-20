@@ -135,7 +135,7 @@ GNUNET_REVOCATION_query (const struct GNUNET_CONFIGURATION_Handle *cfg,
   }
   q->func = func;
   q->func_cls = func_cls;
-  key_len = GNUNET_CRYPTO_public_key_get_length (key);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (key);
   env = GNUNET_MQ_msg_extra (qm, key_len,
                              GNUNET_MESSAGE_TYPE_REVOCATION_QUERY);
   GNUNET_CRYPTO_write_blindable_pk_to_buffer (key, &qm[1], key_len);

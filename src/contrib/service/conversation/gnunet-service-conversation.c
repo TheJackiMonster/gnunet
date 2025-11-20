@@ -770,10 +770,10 @@ handle_cadet_ring_message (void *cls, const struct CadetPhoneRingMessage *msg)
   sig_len = ntohl (msg->sig_len);
 
   if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_public_key_from_buffer (&msg[1],
-                                                  key_len,
-                                                  &identity,
-                                                  &read)) ||
+       GNUNET_CRYPTO_read_blindable_pk_from_buffer (&msg[1],
+                                                    key_len,
+                                                    &identity,
+                                                    &read)) ||
       (read != key_len))
   {
     GNUNET_break_op (0);
@@ -1209,7 +1209,7 @@ handle_client_call_message (void *cls, const struct ClientCallMessage *msg)
   GNUNET_CRYPTO_blinded_key_sign (&caller_id, &rs, &sig);
   sig_len = GNUNET_CRYPTO_blinded_key_signature_get_length (&sig);
   GNUNET_CRYPTO_blindable_key_get_public (&caller_id, &caller_id_pub);
-  pkey_len = GNUNET_CRYPTO_public_key_get_length (&caller_id_pub);
+  pkey_len = GNUNET_CRYPTO_blindable_pk_get_length (&caller_id_pub);
   e = GNUNET_MQ_msg_extra (ring, pkey_len + sig_len,
                            GNUNET_MESSAGE_TYPE_CONVERSATION_CADET_PHONE_RING);
   written = GNUNET_CRYPTO_write_blindable_pk_to_buffer (&caller_id_pub,

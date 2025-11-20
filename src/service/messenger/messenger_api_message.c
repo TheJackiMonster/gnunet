@@ -485,13 +485,13 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
   switch (kind)
   {
   case GNUNET_MESSENGER_KIND_JOIN:
-    length += GNUNET_CRYPTO_public_key_get_length (&(body->join.key));
+    length += GNUNET_CRYPTO_blindable_pk_get_length (&(body->join.key));
     break;
   case GNUNET_MESSENGER_KIND_NAME:
     length += (body->name.name ? strlen (body->name.name) : 0);
     break;
   case GNUNET_MESSENGER_KIND_KEY:
-    length += GNUNET_CRYPTO_public_key_get_length (&(body->key.key));
+    length += GNUNET_CRYPTO_blindable_pk_get_length (&(body->key.key));
     break;
   case GNUNET_MESSENGER_KIND_TEXT:
     length += (body->text.text ? strlen (body->text.text) : 0);
@@ -506,7 +506,7 @@ get_message_body_size (enum GNUNET_MESSENGER_MessageKind kind,
     length += (body->ticket.identifier ? strlen (body->ticket.identifier) : 0);
     break;
   case GNUNET_MESSENGER_KIND_TRANSCRIPT:
-    length += GNUNET_CRYPTO_public_key_get_length (&(body->transcript.key));
+    length += GNUNET_CRYPTO_blindable_pk_get_length (&(body->transcript.key));
     length += body->transcript.length;
     break;
   case GNUNET_MESSENGER_KIND_TAG:
@@ -922,7 +922,7 @@ encode_short_message (const struct GNUNET_MESSENGER_ShortMessage *message,
 #define decode_step_key(src, offset, dst, length) do {         \
           enum GNUNET_GenericReturnValue result;               \
           size_t read;                                         \
-          result = GNUNET_CRYPTO_read_public_key_from_buffer ( \
+          result = GNUNET_CRYPTO_read_blindable_pk_from_buffer ( \
             src + offset, length - offset, dst, &read);        \
           if (GNUNET_SYSERR == result)                         \
           GNUNET_break (0);                                    \

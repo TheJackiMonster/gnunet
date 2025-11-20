@@ -258,8 +258,8 @@ handle_query_message (void *cls,
 
   key_len = ntohl (qm->key_len);
   if ((GNUNET_SYSERR ==
-       GNUNET_CRYPTO_read_public_key_from_buffer (&qm[1], key_len,
-                                                  &zone, &read)) ||
+       GNUNET_CRYPTO_read_blindable_pk_from_buffer (&qm[1], key_len,
+                                                    &zone, &read)) ||
       (read != key_len))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -346,7 +346,7 @@ publicize_rm (const struct RevokeMessage *rm)
     = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
 
   /** FIXME yeah this works, but should we have a key length somewhere? */
-  pklen = GNUNET_CRYPTO_public_key_get_length (pk);
+  pklen = GNUNET_CRYPTO_blindable_pk_get_length (pk);
   if (0 > pklen)
   {
     GNUNET_break_op (0);
@@ -990,7 +990,7 @@ run (void *cls,
     }
     pow = (struct GNUNET_GNSRECORD_PowP *) &rm[1];
     pk = (const struct GNUNET_CRYPTO_BlindablePublicKey *) &pow[1];
-    ksize = GNUNET_CRYPTO_public_key_get_length (pk);
+    ksize = GNUNET_CRYPTO_blindable_pk_get_length (pk);
     if (0 > ksize)
     {
       GNUNET_break_op (0);

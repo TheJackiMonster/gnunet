@@ -266,7 +266,7 @@ verify_message_by_key (const struct GNUNET_MESSENGER_Message *message,
  */
 enum GNUNET_GenericReturnValue
 encrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_BlindablePublicKey *key);
+                 const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key);
 
 /**
  * Decrypts a private <i>message</i> using a given private <i>key</i> and replaces its body
@@ -279,7 +279,7 @@ encrypt_message (struct GNUNET_MESSENGER_Message *message,
  */
 enum GNUNET_GenericReturnValue
 decrypt_message (struct GNUNET_MESSENGER_Message *message,
-                 const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
+                 const struct GNUNET_CRYPTO_HpkePrivateKey *hpke_key);
 
 /**
  * Transcribes a <i>message</i> as a new transcript message using a given public

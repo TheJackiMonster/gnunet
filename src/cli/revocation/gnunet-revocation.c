@@ -343,7 +343,7 @@ ego_callback (void *cls, struct GNUNET_IDENTITY_Ego *ego)
               GNUNET_DISK_fn_read (filename, proof_of_work,
                                    GNUNET_MAX_POW_SIZE))))
   {
-    ssize_t ksize = GNUNET_CRYPTO_public_key_get_length (&key);
+    ssize_t ksize = GNUNET_CRYPTO_blindable_pk_get_length (&key);
     if (0 > ksize)
     {
       fprintf (stderr,

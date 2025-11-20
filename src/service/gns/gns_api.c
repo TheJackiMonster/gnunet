@@ -376,7 +376,7 @@ GNUNET_GNS_lookup_limited (struct GNUNET_GNS_Handle *handle,
   lr->lookup_proc = proc;
   lr->proc_cls = proc_cls;
   lr->r_id = handle->r_id_gen++;
-  key_len = GNUNET_CRYPTO_public_key_get_length (zone);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (zone);
   lr->env = GNUNET_MQ_msg_extra (lookup_msg,
                                  nlen + key_len,
                                  GNUNET_MESSAGE_TYPE_GNS_LOOKUP);

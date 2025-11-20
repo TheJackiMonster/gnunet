@@ -114,13 +114,13 @@ run_with_key (struct GNUNET_CRYPTO_BlindablePrivateKey *id_priv)
   GNUNET_CRYPTO_blindable_key_get_public (id_priv,
                                           &id_pub);
   GNUNET_STRINGS_data_to_string (&id_pub,
-                                 GNUNET_CRYPTO_public_key_get_length (
+                                 GNUNET_CRYPTO_blindable_pk_get_length (
                                    &id_pub),
                                  ztld,
                                  sizeof (ztld));
   fprintf (stdout, "\n");
   fprintf (stdout, "Zone identifier (ztype|zkey):\n");
-  key_len = GNUNET_CRYPTO_public_key_get_length (&id_pub);
+  key_len = GNUNET_CRYPTO_blindable_pk_get_length (&id_pub);
   GNUNET_assert (0 < key_len);
   print_bytes (&id_pub, key_len, 8);
   fprintf (stdout, "\n");

@@ -467,7 +467,7 @@ struct GNUNET_MESSENGER_MessageJoin
   struct GNUNET_HashCode epoch;
 
   /**
-   * The senders public key to verify its signatures.
+   * The senders blindable public key to verify its signatures.
    */
   struct GNUNET_CRYPTO_BlindablePublicKey key;
 };
@@ -509,7 +509,7 @@ struct GNUNET_MESSENGER_MessageName
 struct GNUNET_MESSENGER_MessageKey
 {
   /**
-   * The new public key which replaces the current senders public key.
+   * The new blindable public key which replaces the current senders public key.
    */
   struct GNUNET_CRYPTO_BlindablePublicKey key;
 };

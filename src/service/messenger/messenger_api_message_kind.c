@@ -44,7 +44,9 @@ create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
   memset (&(message->body.leave.epoch), 0,
           sizeof (struct GNUNET_HashCode));
 
-  GNUNET_CRYPTO_blindable_key_get_public (key, &(message->body.join.key));
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
+                   key, &(message->body.join.key)));
+
   return message;
 }
 
@@ -97,7 +99,9 @@ create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
   if (! message)
     return NULL;
 
-  GNUNET_CRYPTO_blindable_key_get_public (key, &(message->body.key.key));
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
+                   key, &(message->body.key.key)));
+
   return message;
 }
 

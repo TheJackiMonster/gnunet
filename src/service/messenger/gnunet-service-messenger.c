@@ -94,9 +94,10 @@ check_room_initial_key (const struct GNUNET_MESSENGER_RoomMessage *msg)
     struct GNUNET_CRYPTO_BlindablePublicKey key;
     size_t key_len;
 
-    if (GNUNET_OK != GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
-                                                                msg_length,
-                                                                &key, &key_len))
+    if (GNUNET_OK != GNUNET_CRYPTO_read_blindable_pk_from_buffer (msg_buffer,
+                                                                  msg_length,
+                                                                  &key, &key_len
+                                                                  ))
       return GNUNET_NO;
 
     return key_len == msg_length ? GNUNET_OK : GNUNET_NO;
@@ -123,10 +124,10 @@ initialize_handle_via_key (struct GNUNET_MESSENGER_SrvHandle *handle,
     struct GNUNET_CRYPTO_BlindablePublicKey key;
     size_t key_len;
 
-    if (GNUNET_OK == GNUNET_CRYPTO_read_public_key_from_buffer (msg_buffer,
-                                                                msg_length,
-                                                                &key,
-                                                                &key_len))
+    if (GNUNET_OK == GNUNET_CRYPTO_read_blindable_pk_from_buffer (msg_buffer,
+                                                                  msg_length,
+                                                                  &key,
+                                                                  &key_len))
       set_srv_handle_key (handle, &key);
     else
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
