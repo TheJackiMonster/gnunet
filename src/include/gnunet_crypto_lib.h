@@ -397,9 +397,9 @@ enum GNUNET_CRYPTO_KeyType
 enum GNUNET_CRYPTO_HpkeKeyType
 {
   /**
-   * ECDHE hybrid public key encryption.
+   * Type for X25519 hybrid public key encryption.
    */
-  GNUNET_CRYPTO_HPKE_KEY_TYPE_ECDHE = 1
+  GNUNET_CRYPTO_HPKE_KEY_TYPE_X25519 = 0
 };
 
 /**
