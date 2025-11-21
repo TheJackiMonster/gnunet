@@ -42,6 +42,7 @@
 #include "messenger_api_message_control.h"
 #include "messenger_api_message_kind.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -57,6 +58,9 @@ create_room (struct GNUNET_MESSENGER_Handle *handle,
   room->handle = handle;
 
   GNUNET_memcpy (&(room->key), key, sizeof(*key));
+
+  room->keys_head = NULL;
+  room->keys_tail = NULL;
 
   memset (&(room->last_message), 0, sizeof(room->last_message));
   memset (&(room->last_epoch), 0, sizeof(room->last_epoch));
@@ -180,6 +184,26 @@ iterate_destroy_epoch (void *cls,
 }
 
 
+static void
+clear_room_encryption_keys (struct GNUNET_MESSENGER_RoomEncryptionKey *head,
+                            struct GNUNET_MESSENGER_RoomEncryptionKey *tail)
+{
+  struct GNUNET_MESSENGER_RoomEncryptionKey *encryption_key;
+
+  GNUNET_assert ((head) && (tail));
+
+  do
+  {
+    encryption_key = head;
+
+    GNUNET_CONTAINER_DLL_remove (head, tail, encryption_key);
+    GNUNET_CRYPTO_hpke_sk_clear (&(encryption_key->key));
+    GNUNET_free (encryption_key);
+  }
+  while (head);
+}
+
+
 void
 destroy_room (struct GNUNET_MESSENGER_Room *room)
 {
@@ -247,6 +271,9 @@ destroy_room (struct GNUNET_MESSENGER_Room *room)
   if (room->sender_id)
     GNUNET_free (room->sender_id);
 
+  if (room->keys_head)
+    clear_room_encryption_keys (room->keys_head, room->keys_tail);
+
   GNUNET_free (room);
 }
 
@@ -266,6 +293,61 @@ is_room_public (const struct GNUNET_MESSENGER_Room *room)
   GNUNET_assert (room);
 
   return room->key.code.public_bit? GNUNET_YES : GNUNET_NO;
+}
+
+
+const struct GNUNET_CRYPTO_HpkePublicKey*
+get_room_encryption_key (const struct GNUNET_MESSENGER_Room *room)
+{
+  static struct GNUNET_CRYPTO_HpkePublicKey public_key;
+
+  GNUNET_assert (room);
+
+  if (! room->keys_tail)
+    return NULL;
+
+  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_get_public (
+                   &(room->keys_tail->key), &public_key));
+
+  return &public_key;
+}
+
+
+enum GNUNET_GenericReturnValue
+add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
+                         const struct GNUNET_CRYPTO_HpkePrivateKey *key)
+{
+  struct GNUNET_MESSENGER_RoomEncryptionKey *encryption_key;
+
+  GNUNET_assert (room);
+
+  encryption_key = GNUNET_malloc (sizeof(struct
+                                         GNUNET_MESSENGER_RoomEncryptionKey));
+
+  if (! encryption_key)
+    return GNUNET_SYSERR;
+
+  if (key)
+    GNUNET_memcpy (&(encryption_key->key), key, sizeof (struct
+                                                        GNUNET_CRYPTO_HpkePrivateKey));
+  else if (GNUNET_OK != GNUNET_CRYPTO_hpke_sk_create (
+             GNUNET_CRYPTO_HPKE_KEY_TYPE_X25519, &(encryption_key->key)))
+  {
+    GNUNET_free (encryption_key);
+    return GNUNET_SYSERR;
+  }
+
+  encryption_key->prev = NULL;
+  encryption_key->next = NULL;
+
+  if (key)
+    GNUNET_CONTAINER_DLL_insert_before (room->keys_head, room->keys_tail, room->
+                                        keys_tail, encryption_key);
+  else
+    GNUNET_CONTAINER_DLL_insert_tail (room->keys_head, room->keys_tail,
+                                      encryption_key);
+
+  return GNUNET_OK;
 }
 
 
@@ -1378,33 +1460,34 @@ handle_private_message (struct GNUNET_MESSENGER_Room *room,
                         const struct GNUNET_HashCode *hash,
                         struct GNUNET_MESSENGER_RoomMessageEntry *entry)
 {
+  const struct GNUNET_MESSENGER_RoomEncryptionKey *encryption_key;
   struct GNUNET_MESSENGER_Message *private_message;
-  const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
-  struct GNUNET_CRYPTO_HpkePrivateKey hpke_key;
 
   GNUNET_assert ((room) && (hash) && (entry));
+
+  encryption_key = room->keys_tail;
+
+  if (! encryption_key)
+    return;
 
   private_message = copy_message (entry->message);
 
   if (! private_message)
     return;
 
-  key = get_handle_key (room->handle);
+  while (encryption_key)
+  {
+    if (GNUNET_YES == decrypt_message (private_message, &(encryption_key->key)))
+      break;
 
-  if (! key)
-    return;
+    encryption_key = encryption_key->prev;
+  }
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_sk_to_x25519 (
-                   key, &hpke_key));
-
-  if (GNUNET_YES != decrypt_message (
-        private_message, &hpke_key))
+  if (! encryption_key)
   {
     destroy_message (private_message);
     private_message = NULL;
   }
-
-  memset (&hpke_key, 0, sizeof (hpke_key));
 
   if (! private_message)
     return;

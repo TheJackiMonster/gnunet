@@ -33,11 +33,16 @@
  * Creates and allocates a new join message containing the clients public <i>key</i>.
  * (all values are stored as copy)
  *
+ * The message also include the public <i>hpke_key</i> to receive encrypted messages
+ * using hybrid public key encryption.
+ *
  * @param[in] key Private key
+ * @param[in] hpke_key Public key for HPKE
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
+create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                     const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key);
 
 /**
  * Creates and allocates a new leave message.
@@ -61,11 +66,16 @@ create_message_name (const char *name);
  * Creates and allocates a new key message containing the public <i>key</i> to change to derived
  * from its private counterpart. (all values are stored as copy)
  *
+ * The message also include the public <i>hpke_key</i> to receive encrypted messages
+ * using hybrid public key encryption.
+ *
  * @param[in] key Private key
+ * @param[in] hpke_key Public key for HPKE
  * @return New message
  */
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
+create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                    const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key);
 
 /**
  * Creates and allocates a new id message containing the unique member id to change to.

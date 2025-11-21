@@ -25,11 +25,14 @@
 
 #include "messenger_api_message_kind.h"
 
+#include "gnunet_common.h"
+#include "gnunet_util_lib.h"
 #include "messenger_api_message.h"
 #include <string.h>
 
 struct GNUNET_MESSENGER_Message*
-create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
+create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                     const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key)
 {
   struct GNUNET_MESSENGER_Message *message;
 
@@ -47,8 +50,8 @@ create_message_join (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
                    key, &(message->body.join.key)));
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
-                   &(message->body.join.key), &(message->body.join.hpke_key)));
+  GNUNET_memcpy (&(message->body.join.hpke_key), hpke_key,
+                 sizeof (message->body.join.hpke_key));
 
   return message;
 }
@@ -90,7 +93,8 @@ create_message_name (const char *name)
 
 
 struct GNUNET_MESSENGER_Message*
-create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
+create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                    const struct GNUNET_CRYPTO_HpkePublicKey *hpke_key)
 {
   struct GNUNET_MESSENGER_Message *message;
 
@@ -105,8 +109,8 @@ create_message_key (const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
   GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
                    key, &(message->body.key.key)));
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
-                   &(message->body.key.key), &(message->body.key.hpke_key)));
+  GNUNET_memcpy (&(message->body.join.hpke_key), hpke_key,
+                 sizeof (message->body.key.hpke_key));
 
   return message;
 }

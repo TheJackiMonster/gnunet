@@ -4982,6 +4982,94 @@ GNUNET_CRYPTO_write_hpke_pk_to_buffer (
   void*buffer,
   size_t len);
 
+/**
+ * Clear memory that was used to store a #GNUNET_CRYPTO_HpkePrivateKey.
+ *
+ * @param key location of the private key
+ */
+void
+GNUNET_CRYPTO_hpke_sk_clear (struct GNUNET_CRYPTO_HpkePrivateKey *key);
+
+/**
+ * Create a new #GNUNET_CRYPTO_HpkePrivateKey of specific type.
+ * Clear with #GNUNET_CRYPTO_hpke_sk_clear().
+ *
+ * @param[in] type type of the fresh private key
+ * @param[out] pk set to fresh private key;
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_create (enum GNUNET_CRYPTO_HpkeKeyType type,
+                              struct GNUNET_CRYPTO_HpkePrivateKey *pk);
+
+/**
+ * Get the compacted length of a #GNUNET_CRYPTO_HpkePrivateKey.
+ * Compacted means that it returns the minimum number of bytes this
+ * key is long, as opposed to the union structure inside
+ * #GNUNET_CRYPTO_HpkePrivateKey.
+ * Useful for compact serializations.
+ *
+ * @param key the key.
+ * @return -1 on error, else the compacted length of the key.
+ */
+ssize_t
+GNUNET_CRYPTO_hpke_sk_get_length (const struct
+                                  GNUNET_CRYPTO_HpkePrivateKey *key);
+
+/**
+ * Reads a #GNUNET_CRYPTO_HpkePrivateKey from a compact buffer.
+ * The buffer has to contain at least the compacted length of
+ * a #GNUNET_CRYPTO_HpkePrivateKey in bytes.
+ * If the buffer is too small, the function returns GNUNET_SYSERR as error.
+ *
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @param key the key
+ * @param the amount of bytes read from the buffer
+ * @return #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_read_hpke_sk_from_buffer (const void *buffer,
+                                        size_t len,
+                                        struct
+                                        GNUNET_CRYPTO_HpkePrivateKey *
+                                        key,
+                                        size_t *read);
+
+/**
+ * Writes a #GNUNET_CRYPTO_HpkePrivateKey to a compact buffer.
+ * The buffer requires space for at least the compacted length of
+ * a #GNUNET_CRYPTO_HpkePrivateKey in bytes.
+ * If the buffer is too small, the function returns -1 as error.
+ * If the key is not valid, it returns -2 as error.
+ *
+ * @param key the key
+ * @param buffer the buffer
+ * @param len the length of buffer
+ * @return -1 or -2 on error, else the amount of bytes written to the buffer
+ */
+ssize_t
+GNUNET_CRYPTO_write_hpke_sk_to_buffer (const struct
+                                       GNUNET_CRYPTO_HpkePrivateKey *
+                                       key,
+                                       void *buffer,
+                                       size_t len);
+
+/**
+ * Retrieves the #GNUNET_CRYPTO_HpkePublicKey representation of a
+ * #GNUNET_CRYPTO_HpkePrivateKey.
+ *
+ * @param privkey the private key.
+ * @param key the public key result.
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_get_public (const struct
+                                  GNUNET_CRYPTO_HpkePrivateKey *
+                                  privkey,
+                                  struct GNUNET_CRYPTO_HpkePublicKey
+                                  *key);
+
 #if 0 /* keep Emacsens' auto-indent happy */
 {
 #endif

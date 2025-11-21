@@ -43,6 +43,14 @@ struct GNUNET_MESSENGER_EpochAnnouncement;
 
 struct GNUNET_MESSENGER_Room;
 
+struct GNUNET_MESSENGER_RoomEncryptionKey
+{
+  struct GNUNET_CRYPTO_HpkePrivateKey key;
+
+  struct GNUNET_MESSENGER_RoomEncryptionKey *prev;
+  struct GNUNET_MESSENGER_RoomEncryptionKey *next;
+};
+
 struct GNUNET_MESSENGER_RoomAction
 {
   struct GNUNET_HashCode hash;
@@ -75,6 +83,9 @@ struct GNUNET_MESSENGER_Room
   struct GNUNET_MESSENGER_Handle *handle;
   union GNUNET_MESSENGER_RoomKey key;
 
+  struct GNUNET_MESSENGER_RoomEncryptionKey *keys_head;
+  struct GNUNET_MESSENGER_RoomEncryptionKey *keys_tail;
+
   struct GNUNET_HashCode last_message;
   struct GNUNET_HashCode last_epoch;
 
@@ -84,7 +95,6 @@ struct GNUNET_MESSENGER_Room
   enum GNUNET_GenericReturnValue wait_for_sync;
 
   struct GNUNET_ShortHashCode *sender_id;
-  struct GNUNET_DISK_FileHandle *keys_file;
 
   struct GNUNET_MESSENGER_ListTunnels entries;
 
@@ -149,6 +159,31 @@ get_room_key (const struct GNUNET_MESSENGER_Room *room);
  */
 enum GNUNET_GenericReturnValue
 is_room_public (const struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Returns the latest encryption key stored in memory by the current
+ * user for a given <i>room</i>.
+ *
+ * @param[in] room Room
+ * @return Public key for hybrid public key encryption
+ */
+const struct GNUNET_CRYPTO_HpkePublicKey*
+get_room_encryption_key (const struct GNUNET_MESSENGER_Room *room);
+
+/**
+ * Adds an encryption <i>key</i> by the current user to memory of a given
+ * <i>room</i> and will be placed to the second latest slot in the list if
+ * it's not empty. If the provided key is NULL, a new key will be generated
+ * and placed as latest key to be used for encryption purposes in the active
+ * member session.
+ *
+ * @param[in] room Room
+ * @param[in] key Private key for hybrid public key encryption or NULL
+ * @return #GNUNET_SYSERR on error, otherwise #GNUNET_OK
+ */
+enum GNUNET_GenericReturnValue
+add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
+                         const struct GNUNET_CRYPTO_HpkePrivateKey *key);
 
 /**
  * Enqueues delayed handling of a message in a <i>room</i> under a given <i>hash</i>

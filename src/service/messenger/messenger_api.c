@@ -158,7 +158,8 @@ handle_room_open (void *cls,
 
   open_handle_room (handle, key);
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
     return;
 
@@ -191,7 +192,8 @@ handle_room_entry (void *cls,
 
   entry_handle_room_at (handle, door, key);
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
     return;
 
@@ -218,7 +220,8 @@ handle_room_close (void *cls,
   prev = &(msg->previous);
   epoch = &(msg->epoch);
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (room)
     update_room_last_message (room, prev, epoch);
 
@@ -246,7 +249,8 @@ handle_room_sync (void *cls,
   prev = &(msg->previous);
   epoch = &(msg->epoch);
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
     return;
 
@@ -254,6 +258,33 @@ handle_room_sync (void *cls,
 
   room->wait_for_sync = GNUNET_NO;
   dequeue_messages_from_room (room);
+}
+
+
+static const struct GNUNET_CRYPTO_HpkePublicKey*
+get_valid_encryption_key_for_room (struct GNUNET_MESSENGER_Room *room)
+{
+  const struct GNUNET_CRYPTO_HpkePublicKey *key;
+
+  GNUNET_assert (room);
+
+  key = get_room_encryption_key (room);
+
+  if (! key)
+  {
+    if (GNUNET_OK != add_room_encryption_key (room, NULL))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Could not generate encryption key: %s\n",
+                  GNUNET_h2s (get_room_key (room)));
+      return NULL;
+    }
+
+    key = get_room_encryption_key (room);
+  }
+
+  GNUNET_assert (key);
+  return key;
 }
 
 
@@ -279,7 +310,8 @@ handle_member_id (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Changed member id in room: %s\n",
               GNUNET_h2s (key));
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Room is unknown to handle: %s\n",
@@ -290,7 +322,8 @@ handle_member_id (void *cls,
   if ((! get_room_sender_id (room)) || (GNUNET_YES == reset))
   {
     set_room_sender_id (room, id);
-    message = create_message_join (get_handle_key (handle));
+    message = create_message_join (
+      get_handle_key (handle), get_valid_encryption_key_for_room (room));
   }
   else
     message = create_message_id (id);
@@ -382,7 +415,8 @@ handle_recv_message (void *cls,
               GNUNET_MESSENGER_name_of_kind (message.header.kind),
               GNUNET_h2s (epoch));
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Unknown room for this client: %s\n",
@@ -427,7 +461,8 @@ handle_miss_message (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Missing message in room: %s\n",
               GNUNET_h2s (hash));
 
-  room = get_handle_room (handle, key);
+  room = get_handle_room (handle, key, GNUNET_NO);
+
   if (! room)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1069,8 +1104,7 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
                          enum GNUNET_GenericReturnValue sync)
 {
   const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
-  struct GNUNET_CRYPTO_BlindablePublicKey public_key;
-  struct GNUNET_CRYPTO_HpkePublicKey transcript_key;
+  const struct GNUNET_CRYPTO_HpkePublicKey *transcript_key;
 
   GNUNET_assert ((room) && (message));
 
@@ -1079,15 +1113,11 @@ enqueue_message_to_room (struct GNUNET_MESSENGER_Room *room,
   if (! epoch)
     epoch = &(room->last_epoch);
 
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_blindable_key_get_public (
-                   key, &public_key));
-
-  GNUNET_assert (GNUNET_OK == GNUNET_CRYPTO_hpke_pk_to_x25519 (
-                   &public_key, &transcript_key));
+  transcript_key = get_valid_encryption_key_for_room (room);
 
   enqueue_to_messages (&(room->queue),
                        key,
-                       &transcript_key,
+                       transcript_key,
                        epoch,
                        message,
                        transcript);
@@ -1283,7 +1313,7 @@ iterate_send_key_to_room (void *cls,
 
   key = cls;
 
-  message = create_message_key (key);
+  message = create_message_key (key, get_valid_encryption_key_for_room (room));
   if (! message)
     return GNUNET_NO;
 
@@ -1339,19 +1369,10 @@ GNUNET_MESSENGER_open_room (struct GNUNET_MESSENGER_Handle *handle,
     return NULL;
   }
 
-  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, &(key->hash));
-  if (! room)
-  {
-    room = create_room (handle, key);
+  room = get_handle_room (handle, &(key->hash), GNUNET_YES);
 
-    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
-          handle->rooms, &(key->hash), room,
-          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
-    {
-      destroy_room (room);
-      return NULL;
-    }
-  }
+  if (! room)
+    return NULL;
 
   send_open_room (handle, room);
   return room;
@@ -1368,19 +1389,10 @@ GNUNET_MESSENGER_enter_room (struct GNUNET_MESSENGER_Handle *handle,
   if ((! handle) || (! door) || (! key))
     return NULL;
 
-  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, &(key->hash));
-  if (! room)
-  {
-    room = create_room (handle, key);
+  room = get_handle_room (handle, &(key->hash), GNUNET_YES);
 
-    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
-          handle->rooms, &(key->hash), room,
-          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
-    {
-      destroy_room (room);
-      return NULL;
-    }
-  }
+  if (! room)
+    return NULL;
 
   send_enter_room (handle, room, door);
   return room;

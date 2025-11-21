@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include "messenger_api_handle.h"
 
+#include "gnunet_common.h"
 #include "messenger_api_epoch.h"
 #include "messenger_api_epoch_announcement.h"
 #include "messenger_api_epoch_group.h"
@@ -191,12 +192,14 @@ cb_key_monitor (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Monitor record with label: %s\n",
               label);
 
+  // TODO: read HPKE keys of rooms from entries!
+
   if ((GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY != rd->record_type) ||
       (sizeof (*record) != rd->data_size) || (! rd->data))
     goto monitor_next;
 
   record = rd->data;
-  room = get_handle_room (handle, &(record->key));
+  room = get_handle_room (handle, &(record->key), GNUNET_YES);
 
   if (! room)
     goto monitor_next;
@@ -279,7 +282,7 @@ monitor_next:
 
 
 static enum GNUNET_GenericReturnValue
-it_announcement_store_key (GNUNET_UNUSED void *cls,
+it_announcement_store_key (void *cls,
                            GNUNET_UNUSED const struct GNUNET_ShortHashCode *key,
                            void *value)
 {
@@ -299,7 +302,7 @@ it_announcement_store_key (GNUNET_UNUSED void *cls,
 
 
 static enum GNUNET_GenericReturnValue
-it_group_store_key (GNUNET_UNUSED void *cls,
+it_group_store_key (void *cls,
                     GNUNET_UNUSED const struct GNUNET_ShortHashCode *key,
                     void *value)
 {
@@ -499,7 +502,7 @@ open_handle_room (struct GNUNET_MESSENGER_Handle *handle,
 
   GNUNET_assert ((handle) && (key));
 
-  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  room = get_handle_room (handle, key, GNUNET_YES);
 
   if (room)
     room->opened = GNUNET_YES;
@@ -515,7 +518,7 @@ entry_handle_room_at (struct GNUNET_MESSENGER_Handle *handle,
 
   GNUNET_assert ((handle) && (door) && (key));
 
-  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  room = get_handle_room (handle, key, GNUNET_YES);
 
   if (room)
     add_to_list_tunnels (&(room->entries), door, NULL);
@@ -530,7 +533,7 @@ close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
 
   GNUNET_assert ((handle) && (key));
 
-  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  room = get_handle_room (handle, key, GNUNET_YES);
 
   if ((room) && (GNUNET_YES == GNUNET_CONTAINER_multihashmap_remove (
                    handle->rooms, key, room)))
@@ -540,11 +543,32 @@ close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
 
 struct GNUNET_MESSENGER_Room*
 get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
-                 const struct GNUNET_HashCode *key)
+                 const struct GNUNET_HashCode *key,
+                 enum GNUNET_GenericReturnValue init)
 {
+  struct GNUNET_MESSENGER_Room *room;
+
   GNUNET_assert ((handle) && (key));
 
-  return GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+  room = GNUNET_CONTAINER_multihashmap_get (handle->rooms, key);
+
+  if ((! room) && (GNUNET_YES == init))
+  {
+    union GNUNET_MESSENGER_RoomKey room_key;
+    GNUNET_memcpy (&(room_key.hash), key, sizeof (struct GNUNET_HashCode));
+
+    room = create_room (handle, &room_key);
+
+    if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+          handle->rooms, key, room,
+          GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+    {
+      destroy_room (room);
+      return NULL;
+    }
+  }
+
+  return room;
 }
 
 

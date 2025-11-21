@@ -188,11 +188,13 @@ close_handle_room (struct GNUNET_MESSENGER_Handle *handle,
  *
  * @param[in,out] handle handle Handle
  * @param[in] key Key of room
+ * @param[in] init Creates room if necessary when #GNUNET_YES is provided
  * @return Room or NULL
  */
 struct GNUNET_MESSENGER_Room*
 get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
-                 const struct GNUNET_HashCode *key);
+                 const struct GNUNET_HashCode *key,
+                 enum GNUNET_GenericReturnValue init);
 
 /**
  * Stores/deletes a <i>shared_key</i> for a given room from a <i>handle</i> identified by its
