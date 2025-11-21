@@ -1313,6 +1313,8 @@ iterate_send_key_to_room (void *cls,
 
   key = cls;
 
+  add_room_encryption_key (room, NULL);
+
   message = create_message_key (key, get_valid_encryption_key_for_room (room));
   if (! message)
     return GNUNET_NO;
