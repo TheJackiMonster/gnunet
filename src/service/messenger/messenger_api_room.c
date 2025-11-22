@@ -27,6 +27,7 @@
 
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_namestore_service.h"
 #include "gnunet_scheduler_lib.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
@@ -197,6 +198,10 @@ clear_room_encryption_keys (struct GNUNET_MESSENGER_RoomEncryptionKey *head,
     encryption_key = head;
 
     GNUNET_CONTAINER_DLL_remove (head, tail, encryption_key);
+
+    if (encryption_key->query)
+      GNUNET_NAMESTORE_cancel (encryption_key->query);
+
     GNUNET_CRYPTO_hpke_sk_clear (&(encryption_key->key));
     GNUNET_free (encryption_key);
   }
@@ -313,6 +318,24 @@ get_room_encryption_key (const struct GNUNET_MESSENGER_Room *room)
 }
 
 
+static void
+cont_write_encryption_key_record (void *cls,
+                                  enum GNUNET_ErrorCode ec)
+{
+  struct GNUNET_MESSENGER_RoomEncryptionKey *encryption_key;
+
+  GNUNET_assert (cls);
+
+  encryption_key = cls;
+
+  if (GNUNET_EC_NONE != ec)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Error writing encryption key record: %d\n", (int) ec);
+
+  encryption_key->query = NULL;
+}
+
+
 enum GNUNET_GenericReturnValue
 add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
                          const struct GNUNET_CRYPTO_HpkePrivateKey *key)
@@ -320,6 +343,19 @@ add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
   struct GNUNET_MESSENGER_RoomEncryptionKey *encryption_key;
 
   GNUNET_assert (room);
+
+  if (key)
+  {
+    encryption_key = room->keys_tail;
+
+    while (encryption_key)
+    {
+      if (0 == GNUNET_memcmp_priv (key, &(encryption_key->key)))
+        return GNUNET_SYSERR;
+
+      encryption_key = encryption_key->prev;
+    }
+  }
 
   encryption_key = GNUNET_malloc (sizeof(struct
                                          GNUNET_MESSENGER_RoomEncryptionKey));
@@ -337,6 +373,8 @@ add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
     return GNUNET_SYSERR;
   }
 
+  encryption_key->query = NULL;
+
   encryption_key->prev = NULL;
   encryption_key->next = NULL;
 
@@ -344,8 +382,18 @@ add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
     GNUNET_CONTAINER_DLL_insert_before (room->keys_head, room->keys_tail, room->
                                         keys_tail, encryption_key);
   else
+  {
+    store_handle_encryption_key (
+      get_room_handle (room),
+      get_room_key (room),
+      &(encryption_key->key),
+      &cont_write_encryption_key_record,
+      encryption_key,
+      &(encryption_key->query));
+
     GNUNET_CONTAINER_DLL_insert_tail (room->keys_head, room->keys_tail,
                                       encryption_key);
+  }
 
   return GNUNET_OK;
 }

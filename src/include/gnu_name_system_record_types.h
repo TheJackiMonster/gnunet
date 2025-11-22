@@ -200,10 +200,15 @@ extern "C" {
 
 
 /**
+ * Record type to store encryption keys used in messenger rooms
+ */
+#define GNUNET_GNSRECORD_TYPE_MESSENGER_ENCRYPTION_KEY 65564
+
+
+/**
  * Private metadata for a delegation registration
  */
 #define GNUNET_GNSRECORD_TYPE_GNS_REGISTRAR_METADATA 4294901760
-
 
 
 #if 0 /* keep Emacsens' auto-indent happy */

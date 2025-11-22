@@ -224,4 +224,25 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
                         void *cont_cls,
                         struct GNUNET_NAMESTORE_QueueEntry **query);
 
+/**
+ * Stores an <i>encryption_key</i> for a given room from a <i>handle</i> identified
+ * by its <i>key/i>.
+ *
+ * @param[in] handle Handle
+ * @param[in] key Room key
+ * @param[in] encryption_key Encryption key or NULL
+ * @param[in] cont Continuation status callback or NULL
+ * @param[in] cont_cls Continuation closure or NULL
+ * @param[out] query
+ * @return #GNUNET_OK on success, otherwise #GNUNET_SYSERR
+ */
+enum GNUNET_GenericReturnValue
+store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_HashCode *key,
+                             const struct GNUNET_CRYPTO_HpkePrivateKey
+                             *encryption_key,
+                             GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                             void *cont_cls,
+                             struct GNUNET_NAMESTORE_QueueEntry **query);
+
 #endif // GNUNET_MESSENGER_API_HANDLE_H

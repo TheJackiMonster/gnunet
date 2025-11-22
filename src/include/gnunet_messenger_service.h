@@ -220,6 +220,41 @@ union GNUNET_MESSENGER_EpochNonce
   struct GNUNET_MESSENGER_EpochNonceData data;
 };
 
+#define GNUNET_MESSENGER_ENCRYPTION_KEY_NONCE_BYTES \
+        (sizeof (struct GNUNET_ShortHashCode))
+#define GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES \
+        (sizeof (uint32_t) + 4096 / 8)
+
+/**
+ * An encryption key record specifies an encryption key for a given
+ * room that can be identified via a given key to enter it.
+ *
+ * Record-size: 616
+ */
+struct GNUNET_MESSENGER_EncryptionKeyRecord
+{
+  /**
+   * The hash identifying the port of the room.
+   */
+  struct GNUNET_HashCode key GNUNET_PACKED;
+
+  /**
+   * The unique nonce data to derive the secret for
+   * encryption/decryption of the HPKE private key.
+   */
+  uint8_t nonce_data[GNUNET_MESSENGER_ENCRYPTION_KEY_NONCE_BYTES];
+
+  /**
+   * The length of the raw HPKE private key data.
+   */
+  uint32_t encrypted_key_length;
+
+  /**
+   * The encrypted data from the HPKE private key.
+   */
+  uint8_t encrypted_key_data[GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
+};
+
 GNUNET_NETWORK_STRUCT_END
 
 /**

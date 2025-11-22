@@ -25,7 +25,10 @@
 #include <ctype.h>
 #include "messenger_api_handle.h"
 
+#include "gnu_name_system_record_types.h"
 #include "gnunet_common.h"
+#include "gnunet_messenger_service.h"
+#include "gnunet_util_lib.h"
 #include "messenger_api_epoch.h"
 #include "messenger_api_epoch_announcement.h"
 #include "messenger_api_epoch_group.h"
@@ -169,40 +172,22 @@ cb_key_error (void *cls)
 
 
 static void
-cb_key_monitor (void *cls,
-                const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
-                const char *label,
-                unsigned int rd_count,
-                const struct GNUNET_GNSRECORD_Data *rd,
-                struct GNUNET_TIME_Absolute expiry)
+read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
+                       const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                       const struct GNUNET_MESSENGER_RoomEpochKeyRecord *record)
 {
-  struct GNUNET_MESSENGER_Handle *handle;
-  const struct GNUNET_MESSENGER_RoomEpochKeyRecord *record;
   struct GNUNET_MESSENGER_Room *room;
   struct GNUNET_MESSENGER_Epoch *epoch;
   union GNUNET_MESSENGER_EpochIdentifier identifier;
   enum GNUNET_GenericReturnValue valid;
   struct GNUNET_CRYPTO_SymmetricSessionKey shared_key;
 
-  GNUNET_assert (
-    (cls) && (zone) && (label) && (rd_count) && (rd));
+  GNUNET_assert ((handle) && (zone) && (record));
 
-  handle = cls;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Monitor record with label: %s\n",
-              label);
-
-  // TODO: read HPKE keys of rooms from entries!
-
-  if ((GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY != rd->record_type) ||
-      (sizeof (*record) != rd->data_size) || (! rd->data))
-    goto monitor_next;
-
-  record = rd->data;
   room = get_handle_room (handle, &(record->key), GNUNET_YES);
 
   if (! room)
-    goto monitor_next;
+    return;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Monitor epoch key record of room: %s\n",
               GNUNET_h2s (get_room_key (room)));
@@ -210,7 +195,7 @@ cb_key_monitor (void *cls,
   epoch = get_room_epoch (room, &(record->hash), GNUNET_NO);
 
   if (! epoch)
-    goto monitor_next;
+    return;
 
   GNUNET_memcpy (
     &identifier,
@@ -233,7 +218,7 @@ cb_key_monitor (void *cls,
                                          &(identifier.hash),
                                          sizeof (identifier.hash),
                                          NULL))
-      goto monitor_next;
+      return;
 
     GNUNET_CRYPTO_symmetric_derive_iv (
       &iv,
@@ -248,7 +233,7 @@ cb_key_monitor (void *cls,
                                                &skey,
                                                &iv,
                                                &shared_key))
-      goto monitor_next;
+      return;
 
     GNUNET_CRYPTO_zero_keys (&skey, sizeof (skey));
   }
@@ -260,7 +245,7 @@ cb_key_monitor (void *cls,
     group = get_epoch_group (epoch, &identifier, valid);
 
     if (! group)
-      goto monitor_next;
+      return;
 
     set_epoch_group_key (group, &shared_key, GNUNET_NO);
   }
@@ -271,12 +256,115 @@ cb_key_monitor (void *cls,
     announcement = get_epoch_announcement (epoch, &identifier, valid);
 
     if (! announcement)
-      goto monitor_next;
+      return
 
-    set_epoch_announcement_key (announcement, &shared_key, GNUNET_NO);
+        set_epoch_announcement_key (announcement, &shared_key, GNUNET_NO);
+  }
+}
+
+
+static void
+read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
+                            const struct GNUNET_CRYPTO_BlindablePrivateKey
+                            *zone,
+                            const struct GNUNET_MESSENGER_EncryptionKeyRecord
+                            *record)
+{
+  struct GNUNET_MESSENGER_Room *room;
+  struct GNUNET_CRYPTO_HpkePrivateKey encryption_key;
+
+  GNUNET_assert ((handle) && (zone) && (record));
+
+  room = get_handle_room (handle, &(record->key), GNUNET_YES);
+
+  if (! room)
+    return;
+
+  {
+    struct GNUNET_CRYPTO_SymmetricSessionKey skey;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    uint8_t encryption_key_data[GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
+    size_t encryption_key_len;
+
+    if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
+                                         get_room_key (room),
+                                         sizeof (room->key),
+                                         zone,
+                                         sizeof (*zone),
+                                         record->nonce_data,
+                                         sizeof (record->nonce_data),
+                                         NULL))
+      return;
+
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      get_room_key (room), sizeof (room->key),
+      record->nonce_data, sizeof (record->nonce_data),
+      NULL);
+
+    if (-1 == GNUNET_CRYPTO_symmetric_decrypt (record->encrypted_key_data,
+                                               sizeof (encryption_key_data),
+                                               &skey,
+                                               &iv,
+                                               encryption_key_data))
+      return;
+
+    GNUNET_CRYPTO_zero_keys (&skey, sizeof (skey));
+
+    if (GNUNET_OK != GNUNET_CRYPTO_read_hpke_sk_from_buffer (
+          encryption_key_data, record->encrypted_key_length, &encryption_key, &
+          encryption_key_len))
+      return;
+
+    if (encryption_key_len < record->encrypted_key_length)
+      goto clear_key;
   }
 
-monitor_next:
+  add_room_encryption_key (room, &encryption_key);
+
+clear_key:
+  GNUNET_CRYPTO_hpke_sk_clear (&encryption_key);
+}
+
+
+static void
+cb_key_monitor (void *cls,
+                const struct GNUNET_CRYPTO_BlindablePrivateKey *zone,
+                const char *label,
+                unsigned int rd_count,
+                const struct GNUNET_GNSRECORD_Data *rd,
+                struct GNUNET_TIME_Absolute expiry)
+{
+  struct GNUNET_MESSENGER_Handle *handle;
+
+
+  GNUNET_assert (
+    (cls) && (zone) && (label) && (rd_count) && (rd));
+
+  handle = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Monitor record with label: %s\n",
+              label);
+
+  switch (rd->record_type)
+  {
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY:
+    if ((sizeof (struct GNUNET_MESSENGER_RoomEpochKeyRecord) != rd->data_size)
+        && (rd->data))
+      read_handle_epoch_key (handle, zone, rd->data);
+
+    break;
+  case GNUNET_GNSRECORD_TYPE_MESSENGER_ENCRYPTION_KEY:
+    if ((sizeof (struct GNUNET_MESSENGER_EncryptionKeyRecord) != rd->data_size)
+        && (rd->data))
+      read_handle_encryption_key (handle, zone, rd->data);
+
+    break;
+  default:
+    break;
+  }
+
   GNUNET_NAMESTORE_zone_monitor_next (handle->key_monitor, 1);
 }
 
@@ -705,6 +793,152 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
     zone,
     label,
     shared_key? 1 : 0,
+    &data,
+    cont,
+    cont_cls);
+
+  GNUNET_free (label);
+  return GNUNET_OK;
+}
+
+
+enum GNUNET_GenericReturnValue
+store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
+                             const struct GNUNET_HashCode *key,
+                             const struct GNUNET_CRYPTO_HpkePrivateKey
+                             *encryption_key,
+                             GNUNET_NAMESTORE_ContinuationWithStatus cont,
+                             void *cont_cls,
+                             struct GNUNET_NAMESTORE_QueueEntry **query)
+{
+  const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
+  struct GNUNET_TIME_Absolute expiration;
+  struct GNUNET_GNSRECORD_Data data;
+  struct GNUNET_MESSENGER_EncryptionKeyRecord record;
+  struct GNUNET_HashCode nonce_hash;
+  char *label;
+
+  GNUNET_assert ((handle) && (key) && (encryption_key) && (query));
+
+  if (! handle->namestore)
+    return GNUNET_SYSERR;
+
+  zone = get_handle_key (handle);
+
+  if (! zone)
+    return GNUNET_SYSERR;
+
+  expiration = GNUNET_TIME_absolute_get_forever_ ();
+
+  memset (&data, 0, sizeof (data));
+
+  {
+    struct GNUNET_CRYPTO_SymmetricSessionKey skey;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    uint8_t encryption_key_data [GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
+    size_t encryption_key_len;
+    ssize_t offset;
+
+    encryption_key_len = GNUNET_CRYPTO_hpke_sk_get_length (encryption_key);
+
+    if ((0 > encryption_key_len) || (encryption_key_len >
+                                     GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES)
+        )
+      return GNUNET_SYSERR;
+
+    GNUNET_memcpy (&(record.key), key, sizeof (record.key));
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, record.nonce_data,
+                                GNUNET_MESSENGER_ENCRYPTION_KEY_NONCE_BYTES);
+
+    if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
+                                         key, sizeof (*key),
+                                         zone, sizeof (*zone),
+                                         record.nonce_data, sizeof (record.
+                                                                    nonce_data),
+                                         NULL))
+      return GNUNET_SYSERR;
+
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      key, sizeof (*key),
+      record.nonce_data, sizeof (record.nonce_data),
+      NULL);
+
+    offset = GNUNET_CRYPTO_write_hpke_sk_to_buffer (
+      encryption_key, encryption_key_data, encryption_key_len);
+
+    if (offset < 0)
+      return GNUNET_SYSERR;
+
+    if (offset < encryption_key_len)
+      encryption_key_len = offset;
+
+    record.encrypted_key_length = encryption_key_len;
+
+    GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_WEAK, encryption_key_data
+                                + encryption_key_len,
+                                sizeof (encryption_key_data)
+                                - encryption_key_len);
+
+    if (-1 == GNUNET_CRYPTO_symmetric_encrypt (encryption_key_data,
+                                               sizeof (encryption_key_data),
+                                               &skey,
+                                               &iv,
+                                               record.encrypted_key_data))
+      return GNUNET_SYSERR;
+
+    GNUNET_CRYPTO_hash (record.nonce_data, sizeof (record.nonce_data), &
+                        nonce_hash);
+
+    data.record_type = GNUNET_GNSRECORD_TYPE_MESSENGER_ENCRYPTION_KEY;
+    data.data = &record;
+    data.data_size = sizeof (record);
+    data.expiration_time = expiration.abs_value_us;
+    data.flags = GNUNET_GNSRECORD_RF_PRIVATE;
+
+    GNUNET_CRYPTO_zero_keys (&skey, sizeof (skey));
+  }
+
+  {
+    char lower_key [9];
+    char lower_nonce [9];
+    const char *s;
+
+    memset (lower_key, 0, sizeof (lower_key));
+    memset (lower_nonce, 0, sizeof (lower_nonce));
+
+    s = GNUNET_h2s (key);
+    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_key))
+      GNUNET_memcpy (lower_key, s, sizeof (lower_key));
+
+    s = GNUNET_h2s (&nonce_hash);
+    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_nonce))
+      GNUNET_memcpy (lower_nonce, s, sizeof (lower_nonce));
+
+    GNUNET_asprintf (
+      &label,
+      "encryption_key_%s%s",
+      lower_key,
+      lower_nonce);
+  }
+
+  if (! label)
+    return GNUNET_SYSERR;
+
+  if (*query)
+    GNUNET_NAMESTORE_cancel (*query);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Store encryption key record with label: %s [%d]\n",
+              label,
+              encryption_key? 1 : 0);
+
+  *query = GNUNET_NAMESTORE_record_set_store (
+    handle->namestore,
+    zone,
+    label,
+    encryption_key? 1 : 0,
     &data,
     cont,
     cont_cls);

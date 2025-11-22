@@ -46,6 +46,7 @@ struct GNUNET_MESSENGER_Room;
 struct GNUNET_MESSENGER_RoomEncryptionKey
 {
   struct GNUNET_CRYPTO_HpkePrivateKey key;
+  struct GNUNET_NAMESTORE_QueueEntry *query;
 
   struct GNUNET_MESSENGER_RoomEncryptionKey *prev;
   struct GNUNET_MESSENGER_RoomEncryptionKey *next;
