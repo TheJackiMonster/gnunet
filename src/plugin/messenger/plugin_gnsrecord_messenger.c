@@ -173,6 +173,7 @@ messenger_value_to_string (void *cls,
         GNUNET_free (encryption_key_length);
         GNUNET_free (nonce);
         GNUNET_free (key);
+        return ret;
       }
     }
   default:
