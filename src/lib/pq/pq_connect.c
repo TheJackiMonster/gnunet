@@ -329,9 +329,10 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
   if (GNUNET_YES !=
       GNUNET_DISK_file_test_read (fn))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "SQL resource `%s' does not exist\n",
-                fn);
+    if (0 == (GNUNET_PQ_FLAG_CHECK_CURRENT & db->flags))
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Attempted to load SQL resource `%s', which does not exist. This could be perfectly normal.\n",
+                  fn);
     GNUNET_free (fn);
     return GNUNET_NO;
   }
