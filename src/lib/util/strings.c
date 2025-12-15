@@ -471,12 +471,12 @@ GNUNET_STRINGS_utf8_normalize (const char *input)
 }
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_STRINGS_utf8_tolower (const char *input,
-                             char *output)
+char *
+GNUNET_STRINGS_utf8_tolower (const char *input)
 {
   uint8_t *tmp_in;
   size_t len;
+  char *ret;
 
   tmp_in = u8_tolower ((uint8_t *) input,
                        strlen ((char *) input),
@@ -484,21 +484,24 @@ GNUNET_STRINGS_utf8_tolower (const char *input,
                        UNINORM_NFD,
                        NULL,
                        &len);
+
   if (NULL == tmp_in)
-    return GNUNET_SYSERR;
-  GNUNET_memcpy (output, tmp_in, len);
-  output[len] = '\0';
-  GNUNET_free (tmp_in);
-  return GNUNET_OK;
+    return NULL;
+  ret = GNUNET_malloc (len + 1);
+  memcpy (ret,
+          tmp_in,
+          len);
+  free (tmp_in);
+  return ret;
 }
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_STRINGS_utf8_toupper (const char *input,
-                             char *output)
+char *
+GNUNET_STRINGS_utf8_toupper (const char *input)
 {
   uint8_t *tmp_in;
   size_t len;
+  char *ret;
 
   tmp_in = u8_toupper ((uint8_t *) input,
                        strlen ((char *) input),
@@ -506,13 +509,15 @@ GNUNET_STRINGS_utf8_toupper (const char *input,
                        UNINORM_NFD,
                        NULL,
                        &len);
+
   if (NULL == tmp_in)
-    return GNUNET_SYSERR;
-  /* 0-terminator does not fit */
-  GNUNET_memcpy (output, tmp_in, len);
-  output[len] = '\0';
-  GNUNET_free (tmp_in);
-  return GNUNET_OK;
+    return NULL;
+  ret = GNUNET_malloc (len + 1);
+  memcpy (ret,
+          tmp_in,
+          len);
+  free (tmp_in);
+  return ret;
 }
 
 

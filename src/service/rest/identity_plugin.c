@@ -838,15 +838,14 @@ ego_create (struct GNUNET_REST_RequestHandle *con_handle,
     GNUNET_SCHEDULER_add_now (&do_error, handle);
     return;
   }
-  GNUNET_STRINGS_utf8_tolower (egoname, egoname);
-  handle->name = GNUNET_strdup (egoname);
+  handle->name = GNUNET_STRINGS_utf8_tolower (egoname);
   if (NULL != privkey)
   {
-    GNUNET_STRINGS_string_to_data (privkey,
-                                   strlen (privkey),
-                                   &pk,
-                                   sizeof(struct
-                                          GNUNET_CRYPTO_BlindablePrivateKey));
+    GNUNET_STRINGS_string_to_data (
+      privkey,
+      strlen (privkey),
+      &pk,
+      sizeof(struct GNUNET_CRYPTO_BlindablePrivateKey));
     pk_ptr = &pk;
   }
   else

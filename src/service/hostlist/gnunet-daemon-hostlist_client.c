@@ -1670,14 +1670,20 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
   /* Read proxy configuration */
   peerstore = GNUNET_PEERSTORE_connect (c);
   if (GNUNET_OK ==
-      GNUNET_CONFIGURATION_get_value_string (cfg, "HOSTLIST", "PROXY", &proxy))
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             "HOSTLIST",
+                                             "PROXY",
+                                             &proxy))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Found proxy host: `%s'\n", proxy);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Found proxy host: `%s'\n",
+                proxy);
     /* proxy username */
-    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                            "HOSTLIST",
-                                                            "PROXY_USERNAME",
-                                                            &proxy_username))
+    if (GNUNET_OK ==
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               "HOSTLIST",
+                                               "PROXY_USERNAME",
+                                               &proxy_username))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Found proxy username name: `%s'\n",
@@ -1685,10 +1691,11 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
     }
 
     /* proxy password */
-    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                            "HOSTLIST",
-                                                            "PROXY_PASSWORD",
-                                                            &proxy_password))
+    if (GNUNET_OK ==
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               "HOSTLIST",
+                                               "PROXY_PASSWORD",
+                                               &proxy_password))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "Found proxy password name: `%s'\n",
@@ -1696,28 +1703,31 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
     }
 
     /* proxy type */
-    if (GNUNET_OK == GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                            "HOSTLIST",
-                                                            "PROXY_TYPE",
-                                                            &proxytype_str))
+    if (GNUNET_OK ==
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               "HOSTLIST",
+                                               "PROXY_TYPE",
+                                               &proxytype_str))
     {
-      if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (proxytype_str,
-                                                    proxytype_str))
-        GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                    "Unable to convert `%s' to UTF-8 uppercase\n",
-                    proxytype_str);
+      char *pstr;
+
+      pstr = GNUNET_STRINGS_utf8_toupper (proxytype_str);
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Unable to convert `%s' to UTF-8 uppercase\n",
+                  proxytype_str);
+      GNUNET_free (proxytype_str);
       proxy_type = CURLPROXY_HTTP;
-      if (0 == strcmp (proxytype_str, "HTTP"))
+      if (0 == strcmp (pstr, "HTTP"))
         proxy_type = CURLPROXY_HTTP;
-      else if (0 == strcmp (proxytype_str, "HTTP_1_0"))
+      else if (0 == strcmp (pstr, "HTTP_1_0"))
         proxy_type = CURLPROXY_HTTP_1_0;
-      else if (0 == strcmp (proxytype_str, "SOCKS4"))
+      else if (0 == strcmp (pstr, "SOCKS4"))
         proxy_type = CURLPROXY_SOCKS4;
-      else if (0 == strcmp (proxytype_str, "SOCKS5"))
+      else if (0 == strcmp (pstr, "SOCKS5"))
         proxy_type = CURLPROXY_SOCKS5;
-      else if (0 == strcmp (proxytype_str, "SOCKS4A"))
+      else if (0 == strcmp (pstr, "SOCKS4A"))
         proxy_type = CURLPROXY_SOCKS4A;
-      else if (0 == strcmp (proxytype_str, "SOCKS5_HOSTNAME"))
+      else if (0 == strcmp (pstr, "SOCKS5_HOSTNAME"))
         proxy_type = CURLPROXY_SOCKS5_HOSTNAME;
       else
       {
@@ -1726,8 +1736,8 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
           _ (
             "Invalid proxy type: `%s', disabling proxy! Check configuration!\n")
           ,
-          proxytype_str);
-        GNUNET_free (proxytype_str);
+          pstr);
+        GNUNET_free (pstr);
         GNUNET_free (proxy);
         proxy = NULL;
         GNUNET_free (proxy_username);
@@ -1737,8 +1747,8 @@ GNUNET_HOSTLIST_client_start (const struct GNUNET_CONFIGURATION_Handle *c,
 
         return GNUNET_SYSERR;
       }
+      GNUNET_free (pstr);
     }
-    GNUNET_free (proxytype_str);
   }
 
   stat_learning = learn;

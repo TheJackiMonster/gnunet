@@ -73,15 +73,18 @@ GNUNET_CRYPTO_hash_from_string2 (const char *enc,
                                  size_t enclen,
                                  struct GNUNET_HashCode *result)
 {
-  char upper_enc[enclen + 1];
-  char *up_ptr = upper_enc;
+  enum GNUNET_GenericReturnValue ret;
+  char *up_ptr;
 
-  if (GNUNET_OK != GNUNET_STRINGS_utf8_toupper (enc, up_ptr))
+  up_ptr = GNUNET_STRINGS_utf8_toupper (enc);
+  if (NULL == up_ptr)
     return GNUNET_SYSERR;
-
-  return GNUNET_STRINGS_string_to_data (upper_enc, enclen,
-                                        (unsigned char *) result,
-                                        sizeof(struct GNUNET_HashCode));
+  ret = GNUNET_STRINGS_string_to_data (up_ptr,
+                                       strlen (up_ptr),
+                                       (unsigned char *) result,
+                                       sizeof(struct GNUNET_HashCode));
+  GNUNET_free (up_ptr);
+  return ret;
 }
 
 
@@ -100,7 +103,7 @@ void
 GNUNET_CRYPTO_hash_create_random (enum GNUNET_CRYPTO_Quality mode,
                                   struct GNUNET_HashCode *result)
 {
-  GNUNET_CRYPTO_random_block(mode, result, sizeof (*result));
+  GNUNET_CRYPTO_random_block (mode, result, sizeof (*result));
 }
 
 

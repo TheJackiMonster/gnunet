@@ -389,11 +389,15 @@ header_iterator (void *cls,
   char *val;
   char *lowerkey;
 
-  lowerkey = GNUNET_strdup (key);
-  GNUNET_STRINGS_utf8_tolower (key, lowerkey);
-  GNUNET_CRYPTO_hash (lowerkey, strlen (lowerkey), &hkey);
-  GNUNET_asprintf (&val, "%s", value);
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (
+  lowerkey = GNUNET_STRINGS_utf8_tolower (key);
+  GNUNET_CRYPTO_hash (lowerkey,
+                      strlen (lowerkey),
+                      &hkey);
+  GNUNET_asprintf (&val,
+                   "%s",
+                   value);
+  if (GNUNET_OK !=
+      GNUNET_CONTAINER_multihashmap_put (
         handle->header_param_map,
         &hkey,
         val,
@@ -1305,7 +1309,8 @@ run (void *cls,
   {
     // No origin specified
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "No CORS Access-Control-Allow-Headers Header will be sent...\n");
+                "No CORS Access-Control-Allow-Headers Header will be sent...\n")
+    ;
   }
 
 /* Open listen socket proxy */

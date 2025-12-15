@@ -22,7 +22,7 @@
  * @file src/messenger/messenger_api_handle.c
  * @brief messenger api: client implementation of GNUnet MESSENGER service
  */
-
+#include <ctype.h>
 #include "messenger_api_handle.h"
 
 #include "messenger_api_epoch.h"
@@ -638,16 +638,24 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
     memset (lower_id, 0, sizeof (lower_id));
 
     s = GNUNET_h2s (key);
-    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_key))
-      GNUNET_memcpy (lower_key, s, sizeof (lower_key));
-
+    for (size_t i=0; '\0' != s[i]; i++)
+    {
+      GNUNET_assert (i < sizeof (lower_key));
+      lower_key[i] = (char) tolower ((int) s[i]);
+    }
     s = GNUNET_h2s (hash);
-    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_hash))
-      GNUNET_memcpy (lower_hash, s, sizeof (lower_hash));
+    for (size_t i=0; '\0' != s[i]; i++)
+    {
+      GNUNET_assert (i < sizeof (lower_hash));
+      lower_hash[i] = (char) tolower ((int) s[i]);
+    }
 
     s = GNUNET_sh2s (identifier);
-    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_id))
-      GNUNET_memcpy (lower_id, s, sizeof (lower_id));
+    for (size_t i=0; '\0' != s[i]; i++)
+    {
+      GNUNET_assert (i < sizeof (lower_id));
+      lower_id[i] = (char) tolower ((int) s[i]);
+    }
 
     GNUNET_asprintf (
       &label,

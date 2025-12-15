@@ -505,8 +505,7 @@ handle_create_message (void *cls,
     GNUNET_SERVICE_client_drop (client);
     return;
   }
-  str = GNUNET_strdup ((const char *) &crm[1] + key_len);
-  GNUNET_STRINGS_utf8_tolower ((const char *) &crm[1] + key_len, str);
+  str = GNUNET_STRINGS_utf8_tolower ((const char *) &crm[1] + key_len);
   for (ego = ego_head; NULL != ego; ego = ego->next)
   {
     if (0 == strcmp (ego->identifier, str))
@@ -648,10 +647,8 @@ handle_rename_message (void *cls, const struct RenameMessage *rm)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received RENAME message from client\n");
   old_name_len = ntohs (rm->old_name_len);
   old_name_tmp = (const char *) &rm[1];
-  old_name = GNUNET_strdup (old_name_tmp);
-  GNUNET_STRINGS_utf8_tolower (old_name_tmp, old_name);
-  new_name = GNUNET_strdup (&old_name_tmp[old_name_len]);
-  GNUNET_STRINGS_utf8_tolower (&old_name_tmp[old_name_len], new_name);
+  old_name = GNUNET_STRINGS_utf8_tolower (old_name_tmp);
+  new_name = GNUNET_STRINGS_utf8_tolower (&old_name_tmp[old_name_len]);
 
   /* check if new name is already in use */
   for (ego = ego_head; NULL != ego; ego = ego->next)
@@ -785,9 +782,9 @@ handle_delete_message (void *cls, const struct DeleteMessage *dm)
   char *fn;
   struct GNUNET_SERVICE_Client *client = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received DELETE message from client\n");
-  name = GNUNET_strdup ((const char *) &dm[1]);
-  GNUNET_STRINGS_utf8_tolower ((const char *) &dm[1], name);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Received DELETE message from client\n");
+  name = GNUNET_STRINGS_utf8_tolower ((const char *) &dm[1]);
 
   for (ego = ego_head; NULL != ego; ego = ego->next)
   {

@@ -253,9 +253,9 @@ GNUNET_RECLAIM_attribute_new (const char *attr_name,
 {
   struct GNUNET_RECLAIM_Attribute *attr;
   char *write_ptr;
-  char *attr_name_tmp = GNUNET_strdup (attr_name);
+  char *attr_name_tmp;
 
-  GNUNET_STRINGS_utf8_tolower (attr_name, attr_name_tmp);
+  attr_name_tmp = GNUNET_STRINGS_utf8_tolower (attr_name);
 
   attr = GNUNET_malloc (sizeof(struct GNUNET_RECLAIM_Attribute)
                         + strlen (attr_name_tmp) + 1 + data_size);

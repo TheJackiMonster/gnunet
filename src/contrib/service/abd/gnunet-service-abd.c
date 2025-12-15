@@ -1459,16 +1459,22 @@ handle_verify (void *cls, const struct VerifyMessage *v_msg)
   struct DelegateRecordEntry *del_entry;
   uint32_t delegate_count;
   uint32_t delegate_data_size;
-  char attr[GNUNET_ABD_MAX_LENGTH + 1];
   char issuer_attribute[GNUNET_ABD_MAX_LENGTH + 1];
-  char *attrptr = attr;
   char *delegate_data;
   const char *utf_in;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received VERIFY message\n");
   utf_in = (const char *) &v_msg[1];
-  GNUNET_STRINGS_utf8_tolower (utf_in, attrptr);
-  GNUNET_memcpy (issuer_attribute, attr, ntohs (v_msg->issuer_attribute_len));
+
+  {
+    char *attr;
+
+    attr = GNUNET_STRINGS_utf8_tolower (utf_in);
+    GNUNET_memcpy (issuer_attribute,
+                   attr,
+                   ntohs (v_msg->issuer_attribute_len));
+    GNUNET_free (attr);
+  }
   issuer_attribute[ntohs (v_msg->issuer_attribute_len)] = '\0';
   vrh = GNUNET_new (struct VerifyRequestHandle);
   vrh->is_collect = false;
@@ -1635,19 +1641,23 @@ handle_delegate_collection_cb (void *cls,
 static void
 handle_collect (void *cls, const struct CollectMessage *c_msg)
 {
-  char attr[GNUNET_ABD_MAX_LENGTH + 1];
   char issuer_attribute[GNUNET_ABD_MAX_LENGTH + 1];
   struct VerifyRequestHandle *vrh;
   struct GNUNET_SERVICE_Client *client = cls;
-  char *attrptr = attr;
   const char *utf_in;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received COLLECT message\n");
 
   utf_in = (const char *) &c_msg[1];
-  GNUNET_STRINGS_utf8_tolower (utf_in, attrptr);
+  {
+    char *attr;
 
-  GNUNET_memcpy (issuer_attribute, attr, ntohs (c_msg->issuer_attribute_len));
+    attr = GNUNET_STRINGS_utf8_tolower (utf_in);
+    GNUNET_memcpy (issuer_attribute,
+                   attr,
+                   ntohs (c_msg->issuer_attribute_len));
+    GNUNET_free (attr);
+  }
   issuer_attribute[ntohs (c_msg->issuer_attribute_len)] = '\0';
   vrh = GNUNET_new (struct VerifyRequestHandle);
   vrh->is_collect = true;
