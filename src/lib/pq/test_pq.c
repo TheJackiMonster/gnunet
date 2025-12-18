@@ -456,7 +456,7 @@ run_queries (struct GNUNET_PQ_Context *db_)
  * @return 0 on success
  */
 static int
-run_array_with_nulls_results (struct GNUNET_PQ_Context *db_)
+run_array_with_null_entries_in_results (struct GNUNET_PQ_Context *db_)
 {
   struct test_case
   {
@@ -682,7 +682,7 @@ run_array_with_nulls_results (struct GNUNET_PQ_Context *db_)
                 const char *exp = test_cases[idx].expected.str[n];
                 char *str = (char *) data[t].ptr;
 
-                for (int i = 0; i < n; i++)
+                for (size_t i = 0; i < n; i++)
                   if (! data[t].is_null[i])
                     str += strlen (str) + 1;
 
@@ -865,6 +865,7 @@ run_array_with_nulls_str_queries (struct GNUNET_PQ_Context *db_)
 static void
 event_end (void *cls)
 {
+  (void) cls;
   GNUNET_PQ_event_listen_cancel (eh);
   eh = NULL;
   if (NULL != tt)
@@ -989,6 +990,13 @@ run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db)
                                                       &var1,
                                                       &var2},
     },
+    /* Test case 6: NULL pointer itself */
+    {
+      .id = 3006,
+      .num = 0,
+      .fixed_hashes = NULL,
+      .var_structs = NULL,
+    },
     /* Sentinel */
     {0},
   };
@@ -1029,12 +1037,16 @@ run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db)
     {
       struct GNUNET_PQ_QueryParam params_insert[] = {
         GNUNET_PQ_query_param_uint32 (&tc->id),
-        GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
+        tc->num == 0
+           ? GNUNET_PQ_query_param_null ()
+           : GNUNET_PQ_query_param_array_ptrs_bytes_same_size (
           tc->num,
           (const void **) fixed_bytes,
           sizeof(struct GNUNET_HashCode),
           db),
-        GNUNET_PQ_query_param_array_ptrs_bytes (
+        tc->num == 0
+           ? GNUNET_PQ_query_param_null ()
+           : GNUNET_PQ_query_param_array_ptrs_bytes (
           tc->num,
           (const void **) var_bytes,
           var_sizes,
@@ -1063,26 +1075,32 @@ run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db)
     /* Read back and verify */
     {
       enum GNUNET_DB_QueryStatus qs;
+      bool no_fixed;
+      bool no_var;
       struct GNUNET_PQ_QueryParam params_select[] = {
         GNUNET_PQ_query_param_uint32 (&tc->id),
         GNUNET_PQ_query_param_end
       };
       struct GNUNET_PQ_ResultSpec result_spec[] = {
-        GNUNET_PQ_result_spec_array_allow_nulls (
-          GNUNET_PQ_result_spec_array_fixed_size (db,
-                                                  "arr_fixed_bytes",
-                                                  sizeof(struct
-                                                         GNUNET_HashCode),
-                                                  &num_fixed_res,
-                                                  &arr_fixed_res),
-          &is_null_fixed),
-        GNUNET_PQ_result_spec_array_allow_nulls (
-          GNUNET_PQ_result_spec_array_variable_size (db,
-                                                     "arr_var_bytes",
-                                                     &num_var_res,
-                                                     &sizes_var_res,
-                                                     &arr_var_res),
-          &is_null_var),
+        GNUNET_PQ_result_spec_allow_null (
+          GNUNET_PQ_result_spec_array_allow_nulls (
+            GNUNET_PQ_result_spec_array_fixed_size (db,
+                                                    "arr_fixed_bytes",
+                                                    sizeof(struct
+                                                           GNUNET_HashCode),
+                                                    &num_fixed_res,
+                                                    &arr_fixed_res),
+            &is_null_fixed),
+          &no_fixed),
+        GNUNET_PQ_result_spec_allow_null (
+          GNUNET_PQ_result_spec_array_allow_nulls (
+            GNUNET_PQ_result_spec_array_variable_size (db,
+                                                       "arr_var_bytes",
+                                                       &num_var_res,
+                                                       &sizes_var_res,
+                                                       &arr_var_res),
+            &is_null_var),
+          &no_var),
         GNUNET_PQ_result_spec_end
       };
 
@@ -1100,6 +1118,19 @@ run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db)
                  qs);
         return 1;
       }
+
+      if (((tc->num == 0) && (! no_fixed || ! no_var)) ||
+          ((tc->num != 0) && (no_fixed || no_var)))
+      {
+        fprintf (stderr,
+                 "Expected null result for num=0 entries in test case %d: query status %d\n",
+                 tc->id,
+                 qs);
+        return 1;
+      }
+
+      if (no_fixed && no_var)
+        continue;
 
       /* Verify array sizes */
       if ((num_fixed_res != tc->num) || (num_var_res != tc->num))
@@ -1553,6 +1584,7 @@ run_time_arrays_with_nulls (struct GNUNET_PQ_Context *db)
 static void
 timeout_cb (void *cls)
 {
+  (void) cls;
   ret = 2;
   GNUNET_break (0);
   tt = NULL;
@@ -1570,6 +1602,7 @@ event_sched_cb (void *cls,
                 const void *extra,
                 size_t extra_size)
 {
+  (void) cls;
   GNUNET_assert (5 == extra_size);
   GNUNET_assert (0 ==
                  memcmp ("hello",
@@ -1587,6 +1620,7 @@ event_sched_cb (void *cls,
 static void
 sched_tests (void *cls)
 {
+  (void) cls;
   struct GNUNET_DB_EventHeaderP es = {
     .size = htons (sizeof (es)),
     .type = htons (42)
@@ -1668,6 +1702,8 @@ main (int argc,
     GNUNET_PQ_EXECUTE_STATEMENT_END
   };
 
+  (void) argc;
+  (void) argv;
   GNUNET_log_setup ("test-pq",
                     "INFO",
                     NULL);
@@ -1704,7 +1740,7 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return ret;
   }
-  ret = run_array_with_nulls_results (db);
+  ret = run_array_with_null_entries_in_results (db);
   if (0 != ret)
   {
     GNUNET_break (0);

@@ -251,6 +251,7 @@ extract_rsa_public_key (void *cls,
   int fnum;
 
   (void) cls;
+  (void) dst_size;
   *pk = NULL;
   fnum = PQfnumber (result,
                     fname);
@@ -347,6 +348,7 @@ extract_rsa_signature (void *cls,
   int fnum;
 
   (void) cls;
+  (void) dst_size;
   *sig = NULL;
   fnum = PQfnumber (result,
                     fname);
@@ -442,6 +444,7 @@ extract_string (void *cls,
   int fnum;
 
   (void) cls;
+  (void) dst_size;
   *str = NULL;
   fnum = PQfnumber (result,
                     fname);
@@ -537,6 +540,7 @@ extract_bool (void *cls,
   size_t len;
 
   (void) cls;
+  (void) dst_size;
   fnum = PQfnumber (result,
                     fname);
   if (fnum < 0)
@@ -860,6 +864,7 @@ extract_timestamp_nbo (void *cls,
   struct GNUNET_TIME_Timestamp t;
   enum GNUNET_GenericReturnValue r;
 
+  (void) cls;
   r = extract_timestamp (NULL,
                          result,
                          row,
@@ -1284,7 +1289,13 @@ extract_array_generic (
 
   data_sz = PQgetlength (result, row, col_num);
   FAIL_IF (0 > data_sz);
+
+  /* Report if this field is empty */
+  if (0 == (size_t) data_sz)
+    return GNUNET_NO;
+
   data = PQgetvalue (result, row, col_num);
+
   if (sizeof(header) > (size_t) data_sz)
   {
     uint32_t ndim;
