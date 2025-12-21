@@ -452,7 +452,7 @@ GNUNET_STRINGS_base64url_encode (const void *in,
 /**
  * Decode from Base64.
  *
- * @param data the data to encode
+ * @param data the data to decode
  * @param len the length of the input
  * @param[out] output where to write the output (*output should be NULL,
  *   is allocated)
