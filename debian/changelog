@@ -1,3 +1,9 @@
+gnunet (0.26.2) unstable; urgency=low
+
+  * Package for GNUnet v0.26.2.
+
+ -- Christian Grothoff <grothoff@gnunet.org>  Tue, 22 Dec 2025 00:09:00 +0100
+
 gnunet (0.26.1) unstable; urgency=low
 
   * Package for GNUnet v0.26.1.

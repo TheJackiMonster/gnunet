@@ -1,3 +1,7 @@
+v0.26.2:
+  - pq: fix NULL reporting in arrays
+  - util: fix UTF-8 uppercase/lowercase conversion API insanity
+
 v0.26.1:
   - pq: fix consistency check errors that would occur in some cases.
 
