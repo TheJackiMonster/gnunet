@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -763,6 +763,7 @@ struct GNUNET_MESSENGER_Handle*
 GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *name,
                           const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                          const struct GNUNET_HashCode *secret,
                           GNUNET_MESSENGER_MessageCallback msg_callback,
                           void *msg_cls)
 {
@@ -770,7 +771,7 @@ GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   GNUNET_assert (cfg);
 
-  handle = create_handle (cfg, msg_callback, msg_cls);
+  handle = create_handle (cfg, secret, msg_callback, msg_cls);
 
   reconnect (handle);
 

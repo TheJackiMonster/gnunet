@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -43,6 +43,8 @@ struct GNUNET_MESSENGER_Handle
   struct GNUNET_MQ_Handle *mq;
   struct GNUNET_NAMESTORE_Handle *namestore;
 
+  struct GNUNET_HashCode secret;
+
   GNUNET_MESSENGER_MessageCallback msg_callback;
   void *msg_cls;
 
@@ -61,16 +63,18 @@ struct GNUNET_MESSENGER_Handle
 };
 
 /**
- * Creates and allocates a new handle using a given configuration and a custom message callback
- * with a given closure for the client API.
+ * Creates and allocates a new handle using a given configuration, a secret and
+ * a custom message callback with a given closure for the client API.
  *
  * @param[in] cfg Configuration
+ * @param[in] secret Storage secret
  * @param[in] msg_callback Message callback
  * @param[in,out] msg_cls Closure
  * @return New handle
  */
 struct GNUNET_MESSENGER_Handle*
 create_handle (const struct GNUNET_CONFIGURATION_Handle *cfg,
+               const struct GNUNET_HashCode *secret,
                GNUNET_MESSENGER_MessageCallback msg_callback,
                void *msg_cls);
 

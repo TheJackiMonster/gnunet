@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -37,6 +37,7 @@
 
 struct GNUNET_MESSENGER_Handle*
 create_handle (const struct GNUNET_CONFIGURATION_Handle *config,
+               const struct GNUNET_HashCode *secret,
                GNUNET_MESSENGER_MessageCallback msg_callback,
                void *msg_cls)
 {
@@ -56,6 +57,11 @@ create_handle (const struct GNUNET_CONFIGURATION_Handle *config,
 
   if (handle->config)
     handle->namestore = GNUNET_NAMESTORE_connect (handle->config);
+
+  if (secret)
+    GNUNET_memcpy (&(handle->secret), secret, sizeof (handle->secret));
+  else
+    memset (&(handle->secret), 0, sizeof (handle->secret));
 
   handle->msg_callback = msg_callback;
   handle->msg_cls = msg_cls;
@@ -211,6 +217,8 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          get_room_key (room),
                                          sizeof (room->key),
+                                         &(handle->secret),
+                                         sizeof (handle->secret),
                                          zone,
                                          sizeof (*zone),
                                          &(epoch->hash),
@@ -289,6 +297,8 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          get_room_key (room),
                                          sizeof (room->key),
+                                         &(handle->secret),
+                                         sizeof (handle->secret),
                                          zone,
                                          sizeof (*zone),
                                          record->nonce_data,
@@ -337,7 +347,6 @@ cb_key_monitor (void *cls,
                 struct GNUNET_TIME_Absolute expiry)
 {
   struct GNUNET_MESSENGER_Handle *handle;
-
 
   GNUNET_assert (
     (cls) && (zone) && (label) && (rd_count) && (rd));
@@ -700,6 +709,8 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          key, sizeof (*key),
+                                         &(handle->secret),
+                                         sizeof (handle->secret),
                                          zone, sizeof (*zone),
                                          hash, sizeof (*hash),
                                          identifier, sizeof (*identifier),
@@ -852,6 +863,8 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          key, sizeof (*key),
+                                         &(handle->secret),
+                                         sizeof (handle->secret),
                                          zone, sizeof (*zone),
                                          record.nonce_data, sizeof (record.
                                                                     nonce_data),

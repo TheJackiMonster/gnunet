@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -1272,11 +1272,13 @@ typedef enum GNUNET_GenericReturnValue
 
 /**
  * Set up a handle for the messenger related functions and connects to all necessary services. It will use the
- * a custom name in combination of a private key provided for signing all messages from the handle.
+ * a custom name in combination of a private key provided for signing all messages from the handle and
+ * a secret that is used to encrypt/decrypt locally stored keys.
  *
  * @param[in] cfg Configuration to use
  * @param[in] name Name or NULL
  * @param[in] key Private key or NULL to stay anonymous
+ * @param[in] secret Private secret for local key storage or NULL
  * @param[in] msg_callback Function called when a new message is sent or received
  * @param[in,out] msg_cls Closure for the <i>msg_callback</i> handler
  * @return Messenger handle to use, NULL on error
@@ -1285,6 +1287,7 @@ struct GNUNET_MESSENGER_Handle*
 GNUNET_MESSENGER_connect (const struct GNUNET_CONFIGURATION_Handle *cfg,
                           const char *name,
                           const struct GNUNET_CRYPTO_BlindablePrivateKey *key,
+                          const struct GNUNET_HashCode *secret,
                           GNUNET_MESSENGER_MessageCallback msg_callback,
                           void *msg_cls);
 

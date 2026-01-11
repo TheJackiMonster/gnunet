@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include "gnunet_common.h"
 #include "gnunet_identity_service.h"
 #include "gnunet_messenger_service.h"
 #include "gnunet_util_lib.h"
@@ -562,6 +563,7 @@ idle (void *cls)
 char *door_id;
 char *ego_name;
 char *room_key;
+char *secret_value;
 
 int public_mode;
 
@@ -647,13 +649,18 @@ on_ego_lookup (void *cls,
                struct GNUNET_IDENTITY_Ego *ego)
 {
   const struct GNUNET_CRYPTO_BlindablePrivateKey *key;
+  struct GNUNET_HashCode secret;
 
   ego_lookup = NULL;
 
   key = ego ? GNUNET_IDENTITY_ego_get_private_key (ego) : NULL;
 
-  messenger = GNUNET_MESSENGER_connect (config, ego_name, key, &on_message,
-                                        NULL);
+  if (secret_value)
+    GNUNET_CRYPTO_hash_from_string (secret_value, &secret);
+
+  messenger = GNUNET_MESSENGER_connect (config, ego_name, key,
+                                        secret_value? &secret : NULL,
+                                        &on_message, NULL);
 
   on_identity (NULL, messenger);
 }
@@ -677,14 +684,15 @@ run (void *cls,
 
   if (ego_name)
   {
-    ego_lookup = GNUNET_IDENTITY_ego_lookup (cfg, ego_name, &on_ego_lookup,
-                                             NULL);
+    ego_lookup = GNUNET_IDENTITY_ego_lookup (cfg, ego_name,
+                                             &on_ego_lookup, NULL);
     messenger = NULL;
   }
   else
   {
     ego_lookup = NULL;
-    messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, &on_message, NULL);
+    messenger = GNUNET_MESSENGER_connect (cfg, NULL, NULL, NULL,
+                                          &on_message, NULL);
   }
 
   shutdown_task = GNUNET_SCHEDULER_add_shutdown (shutdown_hook, NULL);
@@ -730,6 +738,9 @@ main (int argc,
                                &talk_mode),
     GNUNET_GETOPT_option_flag ('P', "public", "flag to disable forward secrecy",
                                &public_mode),
+    GNUNET_GETOPT_option_string ('S', "secret", "SECRET",
+                                 "storage secret for local keys",
+                                 &secret_value),
     GNUNET_GETOPT_OPTION_END
   };
 
