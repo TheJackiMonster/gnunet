@@ -914,26 +914,30 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
   }
 
   {
-    char lower_key [9];
-    char lower_nonce [9];
+    char *lower_key;
+    char *lower_nonce;
     const char *s;
 
-    memset (lower_key, 0, sizeof (lower_key));
-    memset (lower_nonce, 0, sizeof (lower_nonce));
-
     s = GNUNET_h2s (key);
-    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_key))
-      GNUNET_memcpy (lower_key, s, sizeof (lower_key));
+    lower_key = GNUNET_STRINGS_utf8_tolower (s);
+    if (! lower_key)
+      lower_key = GNUNET_strdup (s);
 
     s = GNUNET_h2s (&nonce_hash);
-    if (GNUNET_OK != GNUNET_STRINGS_utf8_tolower (s, lower_nonce))
-      GNUNET_memcpy (lower_nonce, s, sizeof (lower_nonce));
+    lower_nonce = GNUNET_STRINGS_utf8_tolower (s);
+    if (! lower_nonce)
+      lower_nonce = GNUNET_strdup (s);
 
     GNUNET_asprintf (
       &label,
       "encryption_key_%s%s",
       lower_key,
       lower_nonce);
+
+    if (lower_nonce)
+      GNUNET_free (lower_nonce);
+    if (lower_key)
+      GNUNET_free (lower_key);
   }
 
   if (! label)
