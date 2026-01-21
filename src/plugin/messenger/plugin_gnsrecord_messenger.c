@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2025 GNUnet e.V.
+   Copyright (C) 2021--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -118,17 +118,22 @@ messenger_value_to_string (void *cls,
         char *flags = GNUNET_STRINGS_data_to_string_alloc (
           &(record->flags),
           sizeof(uint32_t));
+        char *checksum = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->checksum),
+          sizeof(int32_t));
 
         char *ret;
         GNUNET_asprintf (
           &ret,
-          "%s-%s-%s-%s-%s",
+          "%s-%s-%s-%s-%s-%s",
+          checksum,
           flags,
           shared_key,
           identifier,
           hash,
           key);
 
+        GNUNET_free (checksum);
         GNUNET_free (flags);
         GNUNET_free (shared_key);
         GNUNET_free (identifier);
@@ -156,6 +161,9 @@ messenger_value_to_string (void *cls,
         char *encryption_key_length = GNUNET_STRINGS_data_to_string_alloc (
           &(record->encrypted_key_length),
           sizeof(uint32_t));
+        char *encryption_key_checksum = GNUNET_STRINGS_data_to_string_alloc (
+          &(record->encrypted_key_checksum),
+          sizeof(int32_t));
         char *encryption_key = GNUNET_STRINGS_data_to_string_alloc (
           &(record->encrypted_key_data),
           sizeof(record->encrypted_key_data));
@@ -163,13 +171,15 @@ messenger_value_to_string (void *cls,
         char *ret;
         GNUNET_asprintf (
           &ret,
-          "%s-%s-%s-%s",
+          "%s-%s-%s-%s-%s",
           encryption_key,
+          encryption_key_checksum,
           encryption_key_length,
           nonce,
           key);
 
         GNUNET_free (encryption_key);
+        GNUNET_free (encryption_key_checksum);
         GNUNET_free (encryption_key_length);
         GNUNET_free (nonce);
         GNUNET_free (key);
@@ -297,10 +307,24 @@ messenger_string_to_value (void *cls,
       char identifier[53];
       char shared_key[104];
       char flags[8];
+      char checksum[8];
       const char *dash;
       const char *s0;
 
       s0 = s;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%7s-", checksum)) ||
+          (strlen (dash + 1) < 8))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ROOM_EPOCH_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      s0 = dash + 1;
       if ((NULL == (dash = strchr (s0, '-'))) ||
           (1 != sscanf (s0, "%7s-", flags)) ||
           (strlen (dash + 1) < 104))
@@ -360,6 +384,9 @@ messenger_string_to_value (void *cls,
           struct GNUNET_MESSENGER_RoomEpochKeyRecord);
 
         if ((GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               checksum, strlen (checksum),
+               &(record->checksum), sizeof(int32_t))) ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
                flags, strlen (flags),
                &(record->flags), sizeof(uint32_t))) ||
             (GNUNET_OK != GNUNET_STRINGS_string_to_data (
@@ -400,6 +427,7 @@ messenger_string_to_value (void *cls,
       char key[104];
       char nonce[53];
       char encryption_key_length[8];
+      char encryption_key_checksum[8];
       char encryption_key[827];
       const char *dash;
       const char *s0;
@@ -407,6 +435,19 @@ messenger_string_to_value (void *cls,
       s0 = s;
       if ((NULL == (dash = strchr (s0, '-'))) ||
           (1 != sscanf (s0, "%826s-", encryption_key)) ||
+          (strlen (dash + 1) < 8))
+      {
+        GNUNET_log (
+          GNUNET_ERROR_TYPE_ERROR,
+          _ ("Unable to parse MESSENGER_ENCRYPTION_KEY record `%s'\n"),
+          s);
+
+        return GNUNET_SYSERR;
+      }
+
+      s0 = dash + 1;
+      if ((NULL == (dash = strchr (s0, '-'))) ||
+          (1 != sscanf (s0, "%7s-", encryption_key_checksum)) ||
           (strlen (dash + 1) < 8))
       {
         GNUNET_log (
@@ -454,6 +495,11 @@ messenger_string_to_value (void *cls,
                encryption_key, strlen (encryption_key),
                record->encrypted_key_data,
                sizeof(record->encrypted_key_data)))
+            ||
+            (GNUNET_OK != GNUNET_STRINGS_string_to_data (
+               encryption_key_checksum, strlen (encryption_key_checksum),
+               &(record->encrypted_key_checksum),
+               sizeof(record->encrypted_key_checksum)))
             ||
             (GNUNET_OK != GNUNET_STRINGS_string_to_data (
                encryption_key_length, strlen (encryption_key_length),

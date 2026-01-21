@@ -22,7 +22,6 @@
  * @file src/messenger/messenger_api_handle.c
  * @brief messenger api: client implementation of GNUnet MESSENGER service
  */
-#include <ctype.h>
 #include "messenger_api_handle.h"
 
 #include "gnu_name_system_record_types.h"
@@ -34,6 +33,8 @@
 #include "messenger_api_epoch_group.h"
 #include "messenger_api_room.h"
 #include "messenger_api_util.h"
+
+#include <ctype.h>
 
 struct GNUNET_MESSENGER_Handle*
 create_handle (const struct GNUNET_CONFIGURATION_Handle *config,
@@ -213,6 +214,7 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    int32_t checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          get_room_key (room),
@@ -243,7 +245,28 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
                                                &shared_key))
       return;
 
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      &iv, sizeof (iv),
+      NULL);
+
+    if (-1 == GNUNET_CRYPTO_symmetric_decrypt (&(record->checksum),
+                                               sizeof (record->checksum),
+                                               &skey,
+                                               &iv,
+                                               &checksum))
+      return;
+
     GNUNET_CRYPTO_zero_keys (&skey, sizeof (skey));
+
+    if (checksum != GNUNET_CRYPTO_crc32_n (&shared_key, sizeof (shared_key)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Epoch key record failed checksum: %s\n",
+                  GNUNET_h2s (&(record->key)));
+      goto clear_key;
+    }
   }
 
   if (identifier.code.group_bit)
@@ -253,7 +276,7 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
     group = get_epoch_group (epoch, &identifier, valid);
 
     if (! group)
-      return;
+      goto clear_key;
 
     set_epoch_group_key (group, &shared_key, GNUNET_NO);
   }
@@ -264,10 +287,13 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
     announcement = get_epoch_announcement (epoch, &identifier, valid);
 
     if (! announcement)
-      return
+      goto clear_key;
 
-        set_epoch_announcement_key (announcement, &shared_key, GNUNET_NO);
+    set_epoch_announcement_key (announcement, &shared_key, GNUNET_NO);
   }
+
+clear_key:
+  GNUNET_CRYPTO_zero_keys (&shared_key, sizeof (shared_key));
 }
 
 
@@ -288,11 +314,16 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
   if (! room)
     return;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Monitor encryption key record of room: %s\n",
+              GNUNET_h2s (get_room_key (room)));
+
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
     uint8_t encryption_key_data[GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
     size_t encryption_key_len;
+    int32_t encrypted_key_checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          get_room_key (room),
@@ -320,7 +351,32 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
                                                encryption_key_data))
       return;
 
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      &iv, sizeof (iv),
+      NULL);
+
+    if (-1 == GNUNET_CRYPTO_symmetric_decrypt (&(record->encrypted_key_checksum)
+                                               ,
+                                               sizeof (encrypted_key_checksum),
+                                               &skey,
+                                               &iv,
+                                               &encrypted_key_checksum))
+      return;
+
     GNUNET_CRYPTO_zero_keys (&skey, sizeof (skey));
+
+    if (encrypted_key_checksum != GNUNET_CRYPTO_crc32_n (encryption_key_data,
+                                                         sizeof (
+                                                           encryption_key_data))
+        )
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Encryption key record failed checksum: %s\n",
+                  GNUNET_h2s (&(record->key)));
+      return;
+    }
 
     if (GNUNET_OK != GNUNET_CRYPTO_read_hpke_sk_from_buffer (
           encryption_key_data, record->encrypted_key_length, &encryption_key, &
@@ -359,13 +415,13 @@ cb_key_monitor (void *cls,
   switch (rd->record_type)
   {
   case GNUNET_GNSRECORD_TYPE_MESSENGER_ROOM_EPOCH_KEY:
-    if ((sizeof (struct GNUNET_MESSENGER_RoomEpochKeyRecord) != rd->data_size)
+    if ((sizeof (struct GNUNET_MESSENGER_RoomEpochKeyRecord) == rd->data_size)
         && (rd->data))
       read_handle_epoch_key (handle, zone, rd->data);
 
     break;
   case GNUNET_GNSRECORD_TYPE_MESSENGER_ENCRYPTION_KEY:
-    if ((sizeof (struct GNUNET_MESSENGER_EncryptionKeyRecord) != rd->data_size)
+    if ((sizeof (struct GNUNET_MESSENGER_EncryptionKeyRecord) == rd->data_size)
         && (rd->data))
       read_handle_encryption_key (handle, zone, rd->data);
 
@@ -468,7 +524,7 @@ cb_key_sync (void *cls)
   name = get_handle_name (handle);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Syncing epoch and group keys completed: %s\n",
+              "Syncing keys from records completed: %s\n",
               name);
 
   GNUNET_CONTAINER_multihashmap_iterate (
@@ -706,6 +762,7 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    int32_t checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_kdf (&skey, sizeof (skey),
                                          key, sizeof (*key),
@@ -737,6 +794,21 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
                                                &skey,
                                                &iv,
                                                &(record.shared_key)))
+      return GNUNET_SYSERR;
+
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      &iv, sizeof (iv),
+      NULL);
+
+    checksum = GNUNET_CRYPTO_crc32_n (shared_key, sizeof (*shared_key));
+
+    if (-1 == GNUNET_CRYPTO_symmetric_encrypt (&checksum,
+                                               sizeof (checksum),
+                                               &skey,
+                                               &iv,
+                                               &(record.checksum)))
       return GNUNET_SYSERR;
 
     record.flags = flags;
@@ -847,6 +919,7 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
     uint8_t encryption_key_data [GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
+    int32_t encryption_key_checksum;
     size_t encryption_key_len;
     ssize_t offset;
 
@@ -894,11 +967,29 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
                                 sizeof (encryption_key_data)
                                 - encryption_key_len);
 
+    encryption_key_checksum = GNUNET_CRYPTO_crc32_n (encryption_key_data,
+                                                     sizeof (encryption_key_data
+                                                             ));
+
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (encryption_key_data,
                                                sizeof (encryption_key_data),
                                                &skey,
                                                &iv,
                                                record.encrypted_key_data))
+      return GNUNET_SYSERR;
+
+    GNUNET_CRYPTO_symmetric_derive_iv (
+      &iv,
+      &skey,
+      &iv, sizeof (iv),
+      NULL);
+
+    if (-1 == GNUNET_CRYPTO_symmetric_encrypt (&encryption_key_checksum,
+                                               sizeof (encryption_key_checksum),
+                                               &skey,
+                                               &iv,
+                                               &(record.encrypted_key_checksum))
+        )
       return GNUNET_SYSERR;
 
     GNUNET_CRYPTO_hash (record.nonce_data, sizeof (record.nonce_data), &

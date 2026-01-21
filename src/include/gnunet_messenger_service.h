@@ -185,7 +185,7 @@ struct GNUNET_MESSENGER_RoomEpochKeyRecord
   struct GNUNET_ShortHashCode identifier GNUNET_PACKED;
 
   /**
-   * The shared epoch or group key in the room.
+   * The encrypted shared epoch or group key in the room.
    */
   struct GNUNET_CRYPTO_SymmetricSessionKey shared_key;
 
@@ -193,6 +193,11 @@ struct GNUNET_MESSENGER_RoomEpochKeyRecord
    * The flags of the epoch or group key.
    */
   uint32_t flags;
+
+  /**
+   * The encrypted checksum of the shared key.
+   */
+  int32_t checksum;
 };
 
 #define GNUNET_MESSENGER_EPOCH_NONCE_BYTES \
@@ -248,6 +253,11 @@ struct GNUNET_MESSENGER_EncryptionKeyRecord
    * The length of the raw HPKE private key data.
    */
   uint32_t encrypted_key_length;
+
+  /**
+   * The encrypted checksum of the HPKE private key.
+   */
+  int32_t encrypted_key_checksum;
 
   /**
    * The encrypted data from the HPKE private key.
