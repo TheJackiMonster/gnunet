@@ -1132,6 +1132,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   ssize_t size_total;
   char buffer[GNUNET_MAX_MESSAGE_SIZE - 1] GNUNET_ALIGN;
   const struct GNUNET_MessageHeader *hello;
+  struct GNUNET_MQ_Envelope *env;
   struct GNUNET_HELLO_Parser *parser;
   const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_TIME_Absolute et;
@@ -1154,14 +1155,15 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
                 "File has invalid size");
     return GNUNET_OK;
   }
-  hello = (const struct GNUNET_MessageHeader *) &buffer[0];
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_url (buffer);
   if (NULL == parser)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Unable to parse HELLO message\n");
+                "Unable to parse HELLO url\n");
     return GNUNET_OK;
   }
+  env = GNUNET_HELLO_parser_to_env (parser);
+  hello = GNUNET_MQ_env_get_msg (env);
   pid = GNUNET_HELLO_parser_get_id (parser);
   et = GNUNET_HELLO_get_expiration_time_from_msg (hello);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1181,6 +1183,7 @@ hosts_directory_scan_callback (void *cls, const char *fullname)
   {
     GNUNET_break (0);
   }
+  GNUNET_free (env);
   GNUNET_HELLO_parser_free (parser);
   return GNUNET_OK;
 }
