@@ -19,7 +19,7 @@
  */
 /**
  * @file util/scheduler.c
- * @brief main event loop we use for most processes, schedules computations 
+ * @brief main event loop we use for most processes, schedules computations
  *        based on time or network events with priorities
  * @author Christian Grothoff
  */
@@ -28,6 +28,11 @@
 #include "gnunet_util_lib.h"
 // DEBUG
 #include <inttypes.h>
+
+/**
+ * Add debug logging to scheduler that is usually totally excessive.
+ */
+#define EXTRA_DEBUG 0
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-scheduler", __VA_ARGS__)
 
@@ -620,10 +625,11 @@ dump_backtrace (struct GNUNET_SCHEDULER_Task *t)
 static void
 destroy_task (struct GNUNET_SCHEDULER_Task *t)
 {
+#if EXTRA_DEBUG
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "destroying task %p\n",
        t);
-
+#endif
   if (GNUNET_YES == t->own_handles)
   {
     for (unsigned int i = 0; i != t->fds_len; ++i)
@@ -2131,9 +2137,11 @@ GNUNET_SCHEDULER_do_work (struct GNUNET_SCHEDULER_Handle *sh)
       }
       tc.read_ready = sh->rs;
       tc.write_ready = sh->ws;
+#if EXTRA_DEBUG
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "Running task %p\n",
            pos);
+#endif
       GNUNET_assert (NULL != pos->callback);
       {
         struct GNUNET_AsyncScopeSave old_scope;
@@ -2326,10 +2334,11 @@ select_loop (struct GNUNET_SCHEDULER_Handle *sh,
   {
     struct GNUNET_TIME_Relative time_remaining;
 
+#if EXTRA_DEBUG
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "select timeout = %s\n",
          GNUNET_STRINGS_absolute_time_to_string (context->timeout));
-
+#endif
     GNUNET_NETWORK_fdset_zero (rs);
     GNUNET_NETWORK_fdset_zero (ws);
 
@@ -2442,8 +2451,10 @@ select_loop (struct GNUNET_SCHEDULER_Handle *sh,
     }
     if (GNUNET_YES == GNUNET_SCHEDULER_do_work (sh))
     {
+#if EXTRA_DEBUG
       LOG (GNUNET_ERROR_TYPE_DEBUG,
            "scheduler has more tasks ready!\n");
+#endif
     }
   }
   GNUNET_NETWORK_fdset_destroy (rs);

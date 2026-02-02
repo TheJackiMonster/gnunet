@@ -308,7 +308,7 @@ typedef void
 
 
 /**
- * Function to iterate over section.
+ * Function to iterate over all configuration sections.
  *
  * @param cls closure
  * @param section name of the section
@@ -387,9 +387,9 @@ GNUNET_CONFIGURATION_get_value_number (
  */
 void
 GNUNET_CONFIGURATION_set_value_float (struct GNUNET_CONFIGURATION_Handle *cfg,
-                                       const char *section,
-                                       const char *option,
-                                       float number);
+                                      const char *section,
+                                      const char *option,
+                                      float number);
 
 /**
  * Get a configuration value that should be a floating point number.
