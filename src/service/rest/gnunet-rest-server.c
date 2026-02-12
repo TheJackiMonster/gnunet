@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2012-2015 GNUnet e.V.
+   Copyright (C) 2012-2015, 2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -142,7 +142,7 @@ static char *basic_auth_secret;
 /**
  * User of the service
  */
-char cuser[_POSIX_LOGIN_NAME_MAX];
+char cuser[_SC_LOGIN_NAME_MAX];
 
 /**
  * Allowed Origins (CORS)
@@ -1221,6 +1221,10 @@ run (void *cls,
                                                              "BASIC_AUTH_ENABLED");
   if (basic_auth_enabled)
   {
+    struct passwd *pwd;
+
+    memset (cuser, 0, sizeof (cuser));
+
     if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (cfg,
                                                               "rest",
                                                               "BASIC_AUTH_SECRET_FILE",
@@ -1231,6 +1235,7 @@ run (void *cls,
       GNUNET_SCHEDULER_shutdown ();
       return;
     }
+
     if (GNUNET_YES != GNUNET_DISK_file_test (basic_auth_file))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -1266,15 +1271,19 @@ run (void *cls,
         return;
       }
       GNUNET_free (basic_auth_file);
-      if (0 != getlogin_r (cuser, _POSIX_LOGIN_NAME_MAX))
-      {
-        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                    "Unable to get user.\n");
-        GNUNET_SCHEDULER_shutdown ();
-        return;
-      }
       basic_auth_secret = GNUNET_strdup (basic_auth_secret_tmp);
     }
+
+    if (NULL == (pwd = getpwuid (getuid ())))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Unable to get user.\n");
+      GNUNET_SCHEDULER_shutdown ();
+      GNUNET_free (basic_auth_secret);
+      return;
+    }
+
+    strncpy (cuser, pwd->pw_name, sizeof (cuser) - 1);
   }
 
   /* Get CORS data from cfg */
