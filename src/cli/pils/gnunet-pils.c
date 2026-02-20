@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2025 GNUnet e.V.
+     Copyright (C) 2025--2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -60,16 +60,18 @@ shutdown_task (void *cls)
   }
 }
 
+
 void
 pid_change_cb (void *cls,
                const struct GNUNET_HELLO_Parser *hparser,
                const struct GNUNET_HashCode *addr_hash)
 {
   printf ("%s\n",
-          GNUNET_i2s (GNUNET_HELLO_parser_get_id(hparser)));
+          GNUNET_i2s_full (GNUNET_HELLO_parser_get_id (hparser)));
   if (once)
-    GNUNET_SCHEDULER_shutdown();
+    GNUNET_SCHEDULER_shutdown ();
 }
+
 
 /**
  * Main function that will be run by the scheduler.
@@ -116,8 +118,7 @@ int
 main (int argc, char *const *argv)
 {
   int res;
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  {
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_option_flag (
       '1',
       "once",
@@ -125,7 +126,8 @@ main (int argc, char *const *argv)
         "Show our current peer identity and exit"
         ),
       &once),
-    GNUNET_GETOPT_OPTION_END };
+    GNUNET_GETOPT_OPTION_END
+  };
 
   res = GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                             argc,
