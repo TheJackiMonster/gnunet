@@ -3213,6 +3213,7 @@ do_shutdown (void *cls)
   }
   if (NULL != ch)
   {
+    GNUNET_TRANSPORT_communicator_address_remove_all (ch);
     GNUNET_TRANSPORT_communicator_disconnect (ch);
     ch = NULL;
   }
