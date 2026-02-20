@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2003--2014 GNUnet e.V.
+     Copyright (C) 2003--2014, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -368,7 +368,7 @@ uri_sks_parse (const char *s, char **emsg)
   struct GNUNET_FS_Uri *ret;
   struct GNUNET_CRYPTO_EcdsaPublicKey ns;
   size_t pos;
-  char *end;
+  const char *end;
 
   pos = strlen (GNUNET_FS_URI_SKS_PREFIX);
   if ((strlen (s) <= pos) || (0 != strncmp (s, GNUNET_FS_URI_SKS_PREFIX, pos)))

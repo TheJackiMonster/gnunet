@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2006, 2007, 2008, 2009, 2013, 2020, 2021 GNUnet e.V.
+     Copyright (C) 2006, 2007, 2008, 2009, 2013, 2020, 2021, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -749,7 +749,7 @@ GNUNET_CONFIGURATION_deserialize (struct GNUNET_CONFIGURATION_Handle *cfg,
   r_bytes = 0;
   while (r_bytes < size)
   {
-    char *pos;
+    const char *pos;
     char *line;
     bool emptyline;
 
@@ -2554,7 +2554,7 @@ GNUNET_CONFIGURATION_load_from (
          &pstrcmp);
   for (unsigned int i = 0; i < files_context.files_length; i++)
   {
-    char *ext;
+    const char *ext;
     const char *filename = files_context.files[i];
 
     /* Examine file extension */

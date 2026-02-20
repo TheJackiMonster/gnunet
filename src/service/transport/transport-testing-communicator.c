@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2019 GNUnet e.V.
+     Copyright (C) 2019, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -844,7 +844,7 @@ communicator_start (
 {
   char *binary;
   char *loprefix;
-  char *section_name;
+  const char *section_name;
 
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "communicator_start\n");

@@ -26,7 +26,7 @@
 
 
    This code was heavily modified for GNUnet.
-   Copyright (C) 2006, 2017 Christian Grothoff
+   Copyright (C) 2006, 2017, 2026 Christian Grothoff
  */
 
 /**
@@ -192,13 +192,13 @@ static char *posixly_correct;
 char *
 getenv ();
 
-static char *
+static const char *
 my_index (const char *str, int chr)
 {
   while (*str)
   {
     if (*str == chr)
-      return (char *) str;
+      return str;
     str++;
   }
   return 0;
@@ -666,7 +666,7 @@ GN_getopt_internal (int argc,
 
   {
     char c = *nextchar++;
-    char *temp = my_index (optstring, c);
+    const char *temp = my_index (optstring, c);
 
     /* Increment `GNoptind' when we start to process its last character.  */
     if (*nextchar == '\0')
