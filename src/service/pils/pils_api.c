@@ -357,9 +357,8 @@ reconnect (void *cls)
     }
     return;
   }
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
-                           "pils-api",
-                           "Connection to service successful!.\n");
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Connection to service successful!\n");
 }
 
 
