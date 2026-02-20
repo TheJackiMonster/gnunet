@@ -66,8 +66,11 @@ private_config.set10('HAVE_BENCHMARKS', get_option('benchmarks'))
 
 private_config.set10('ENABLE_NSE_HISTOGRAM', get_option('nse-histogram'))
 logging_opt = get_option('logging')
+logging_verbosity = 0
+
 if logging_opt == 'yes'
     add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=0', language: 'c')
+    logging_verbosity = 1
 endif
 if logging_opt == 'no'
     add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=0', language: 'c')
@@ -75,9 +78,11 @@ if logging_opt == 'no'
 endif
 if logging_opt == 'verbose'
     add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=1', language: 'c')
+    logging_verbosity = 2
 endif
 if logging_opt == 'veryverbose'
     add_project_arguments('-DGNUNET_GTK_EXTRA_LOGGING=2', language: 'c')
+    logging_verbosity = 3
 endif
 
 
@@ -740,6 +745,7 @@ summary(
         'http3': http3_enabled,
         'quic': quic_dep.found(),
         'TUN/TAP': tun_found,
+        'logging verbosity': logging_verbosity,
     },
     section: 'Detected features',
 )
