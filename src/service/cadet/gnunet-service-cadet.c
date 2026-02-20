@@ -34,6 +34,7 @@
  */
 #include "cadet.h"
 
+#include "gnunet_pils_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
@@ -123,14 +124,9 @@ struct GNUNET_STATISTICS_Handle *stats;
 struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
- * Local peer own ID.
+ * PILS key ring.
  */
-struct GNUNET_PeerIdentity my_full_id;
-
-/**
- * Own private key.
- */
-struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Signal that shutdown is happening: prevent recovery measures.
@@ -417,8 +413,8 @@ shutdown_rest ()
   }
   GCD_shutdown ();
   GCH_shutdown ();
-  GNUNET_free (my_private_key);
-  my_private_key = NULL;
+  GNUNET_PILS_destroy_key_ring (key_ring);
+  key_ring = NULL;
 }
 
 
@@ -480,6 +476,7 @@ static void
 handle_port_open (void *cls,
                   const struct GNUNET_CADET_PortMessage *pmsg)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetClient *c = cls;
   struct OpenPort *op;
 
@@ -487,6 +484,11 @@ handle_port_open (void *cls,
        "Open port %s requested by %s\n",
        GNUNET_h2s (&pmsg->port),
        GSC_2s (c));
+  
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (!my_identity)
+    return;
+  
   if (NULL == c->ports)
     c->ports = GNUNET_CONTAINER_multihashmap_create (4,
                                                      GNUNET_NO);
@@ -495,7 +497,7 @@ handle_port_open (void *cls,
   op->port = pmsg->port;
   GCCH_hash_port (&op->h_port,
                   &pmsg->port,
-                  &my_full_id);
+                  my_identity);
   if (GNUNET_OK !=
       GNUNET_CONTAINER_multihashmap_put (c->ports,
                                          &op->port,
@@ -1288,15 +1290,13 @@ run (void *cls,
     LOG (GNUNET_ERROR_TYPE_WARNING, "Remove DROP_PERCENT from config file.\n");
     LOG (GNUNET_ERROR_TYPE_WARNING, "**************************************\n");
   }
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (c);
-  if (NULL == my_private_key)
+  key_ring = GNUNET_PILS_create_key_ring (c);
+  if (NULL == key_ring)
   {
     GNUNET_break (0);
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
-                                      &my_full_id.public_key);
   stats = GNUNET_STATISTICS_create ("cadet",
                                     c);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
@@ -1316,7 +1316,7 @@ run (void *cls,
   GCO_init (c);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "CADET started for peer %s\n",
-              GNUNET_i2s (&my_full_id));
+              GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
 }
 
 

@@ -29,6 +29,9 @@
  * TODO:
  * - Optimization: given BROKEN messages, destroy paths (?)
  */
+#include "gnunet-service-cadet.h"
+#include "gnunet_common.h"
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet-service-cadet_core.h"
 #include "gnunet-service-cadet_paths.h"
@@ -316,11 +319,16 @@ route_message (struct CadetPeer *prev,
                const struct GNUNET_MessageHeader *msg,
                const enum GNUNET_MQ_PriorityPreferences priority)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetRoute *route;
   struct RouteDirection *dir;
   struct Rung *rung;
   struct Rung *nxt;
   struct GNUNET_MQ_Envelope *env;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (!my_identity)
+    return;
 
   route = get_route (cid);
   if (NULL == route)
@@ -341,7 +349,7 @@ route_message (struct CadetPeer *prev,
     }
     env = GNUNET_MQ_msg (bm, GNUNET_MESSAGE_TYPE_CADET_CONNECTION_BROKEN);
     bm->cid = *cid;
-    bm->peer1 = my_full_id;
+    bm->peer1 = *my_identity;
     GCP_send_ooo (prev, env);
     return;
   }
@@ -620,9 +628,14 @@ timeout_cb (void *cls)
 static void
 dir_ready_cb (void *cls, int ready)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct RouteDirection *dir = cls;
   struct CadetRoute *route = dir->my_route;
   struct RouteDirection *odir;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (!my_identity)
+    return;
 
   if (GNUNET_YES == ready)
   {
@@ -642,7 +655,7 @@ dir_ready_cb (void *cls, int ready)
   }
   odir = (dir == &route->next) ? &route->prev : &route->next;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending BROKEN due to MQ going down\n");
-  send_broken (&route->next, &route->cid, GCP_get_id (odir->hop), &my_full_id);
+  send_broken (&route->next, &route->cid, GCP_get_id (odir->hop), my_identity);
   destroy_route (route);
 }
 
@@ -684,12 +697,16 @@ send_broken_without_mqm (
   const struct GNUNET_CADET_ConnectionTunnelIdentifier *cid,
   const struct GNUNET_PeerIdentity *failure_at)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_CADET_ConnectionBrokenMessage *bm;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   env = GNUNET_MQ_msg (bm, GNUNET_MESSAGE_TYPE_CADET_CONNECTION_BROKEN);
   bm->cid = *cid;
-  bm->peer1 = my_full_id;
+  bm->peer1 = *my_identity;
   if (NULL != failure_at)
     bm->peer2 = *failure_at;
   GCP_send_ooo (target, env);
@@ -707,6 +724,7 @@ handle_connection_create (
   void *cls,
   const struct GNUNET_CADET_ConnectionCreateMessage *msg)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetPeer *sender = cls;
   struct CadetPeer *next;
   const struct GNUNET_PeerIdentity *pids =
@@ -716,6 +734,10 @@ handle_connection_create (
   unsigned int path_length;
   unsigned int off;
   struct CadetTunnel *t;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (!my_identity)
+    return;
 
   path_length = size / sizeof(struct GNUNET_PeerIdentity);
   if (0 == path_length)
@@ -760,7 +782,7 @@ handle_connection_create (
   }
   /* Initiator is at offset 0, find us */
   for (off = 1; off < path_length; off++)
-    if (0 == GNUNET_memcmp (&my_full_id, &pids[off]))
+    if (0 == GNUNET_memcmp (my_identity, &pids[off]))
       break;
   if (off == path_length)
   {
@@ -1200,14 +1222,23 @@ handle_tunnel_encrypted (void *cls,
  * @param my_identity ID of this peer, NULL if we failed
  */
 static void
-core_init_cb (void *cls, const struct GNUNET_PeerIdentity *my_identity)
+core_init_cb (void *cls, const struct GNUNET_PeerIdentity *identity)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
   if (NULL == my_identity)
   {
     GNUNET_break (0);
     return;
   }
-  GNUNET_break (0 == GNUNET_memcmp (my_identity, &my_full_id));
+
+  if (NULL == identity)
+  {
+    GNUNET_break (0);
+    return;
+  }
+  GNUNET_break (0 == GNUNET_memcmp (identity, my_identity));
 }
 
 

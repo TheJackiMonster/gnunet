@@ -24,6 +24,7 @@
  * @author Bartlomiej Polot
  * @author Christian Grothoff
  */
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
@@ -106,7 +107,6 @@ sign_hello_cb (void *cls,
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Received new PID information with address hash `%s'\n",
        GNUNET_h2s (hash));
-  my_full_id = *GNUNET_HELLO_parser_get_id (parser);
   GCD_hello_update ();
 }
 
@@ -124,8 +124,13 @@ got_hello (void *cls,
            const struct GNUNET_PEERSTORE_Record *record,
            const char *err_msg)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetPeer *peer;
   struct GNUNET_MessageHeader *hello;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (!my_identity)
+    return;
 
   if (NULL == record->value)
   {
@@ -133,8 +138,7 @@ got_hello (void *cls,
     return;
   }
   hello = record->value;
-  if (0 == GNUNET_memcmp (&record->peer,
-                          &my_full_id))
+  if (0 == GNUNET_memcmp (&record->peer, my_identity))
   {
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Ignoring own HELLOs\n");

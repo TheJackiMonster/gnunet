@@ -466,11 +466,14 @@ struct CadetTunnel
 int
 GCT_alice_or_betty (const struct GNUNET_PeerIdentity *other)
 {
-  if (0 > GNUNET_memcmp (&my_full_id,
-                         other))
+  const struct GNUNET_PeerIdentity *my_identity;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
+  if (0 > GNUNET_memcmp (my_identity, other))
     return GNUNET_YES;
-  else if (0 < GNUNET_memcmp (&my_full_id,
-                              other))
+  else if (0 < GNUNET_memcmp (my_identity, other))
     return GNUNET_NO;
   else
   {
@@ -1380,7 +1383,7 @@ send_kx (struct CadetTunnel *t,
                                       &msg->ephemeral_key);
 #if DEBUG_KX
   msg->ephemeral_key_XXX = ax->kx_0;
-  msg->private_key_XXX = *my_private_key;
+  msg->private_key_XXX = *GNUNET_PILS_key_ring_get_private_key (key_ring);
 #endif
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Sending KX message to %s with ephemeral %s on CID %s\n",
@@ -1455,7 +1458,7 @@ send_kx_auth (struct CadetTunnel *t,
                                       &msg->kx.ratchet_key);
 #if DEBUG_KX
   msg->kx.ephemeral_key_XXX = ax->kx_0;
-  msg->kx.private_key_XXX = *my_private_key;
+  msg->kx.private_key_XXX = *GNUNET_PILS_key_ring_get_private_key (key_ring);
   msg->r_ephemeral_key_XXX = ax->last_ephemeral;
 #endif
   LOG (GNUNET_ERROR_TYPE_DEBUG,
@@ -1519,7 +1522,7 @@ cleanup_ax (struct CadetTunnelAxolotl *ax)
  * @param ratchet_key senders next ephemeral public key
  * @return #GNUNET_OK on success, #GNUNET_NO if the resulting
  *       root key is already in @a ax and thus the KX is useless;
- *       #GNUNET_SYSERR on hard errors (i.e. @a pid is #my_full_id)
+ *       #GNUNET_SYSERR on hard errors (i.e. @a pid is from #key_ring)
  */
 static int
 update_ax_by_kx (struct CadetTunnelAxolotl *ax,
@@ -1537,6 +1540,16 @@ update_ax_by_kx (struct CadetTunnelAxolotl *ax,
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  if (!my_private_key)
+  {
+    GNUNET_break_op (0);
+    return GNUNET_SYSERR;
+  }
+
   if (0 == GNUNET_memcmp (&ax->DHRr,
                           ratchet_key))
   {
@@ -2005,6 +2018,11 @@ GCT_handle_kx_auth (struct CadetTConnection *ct,
       }
       else
       {
+        const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+
+        my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+        GNUNET_assert (my_private_key);
+
         test_crypto_bug (&ax_tmp.kx_0,
                          &msg->kx.ephemeral_key_XXX,
                          my_private_key,
@@ -2073,12 +2091,16 @@ static struct GNUNET_CADET_ChannelTunnelNumber
 get_next_free_ctn (struct CadetTunnel *t)
 {
 #define HIGH_BIT 0x8000000
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_CADET_ChannelTunnelNumber ret;
   uint32_t ctn;
   int cmp;
   uint32_t highbit;
 
-  cmp = GNUNET_memcmp (&my_full_id,
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
+  cmp = GNUNET_memcmp (my_identity,
                        GCP_get_id (GCT_get_destination (t)));
   if (0 < cmp)
     highbit = HIGH_BIT;

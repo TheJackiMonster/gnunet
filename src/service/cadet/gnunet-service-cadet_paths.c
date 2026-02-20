@@ -23,6 +23,7 @@
  * @author Bartlomiej Polot
  * @author Christian Grothoff
  */
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet-service-cadet_connection.h"
 #include "gnunet-service-cadet_tunnels.h"
@@ -473,11 +474,14 @@ GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
                         const struct GNUNET_DHT_PathElement *put_path,
                         unsigned int put_path_length)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetPeer *cpath[get_path_length + put_path_length];
   struct CheckMatchContext cm_ctx;
   struct CadetPeerPath *path;
   unsigned int skip;
   unsigned int total_len;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
 
   /* precompute 'cpath' so we can avoid doing the lookups lots of times */
   skip = 0;
@@ -493,8 +497,7 @@ GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
           ? &get_path[get_path_length - off - 1].pred
           : &put_path[get_path_length + put_path_length - off - 1].pred;
     /* Check that I am not in the path */
-    if (0 == GNUNET_memcmp (&my_full_id,
-                            pid))
+    if (0 == GNUNET_memcmp (my_identity, pid))
     {
       skip = off + 1;
       continue;

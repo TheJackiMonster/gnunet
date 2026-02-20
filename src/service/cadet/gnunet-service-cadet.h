@@ -27,6 +27,7 @@
 #ifndef GNUNET_SERVICE_CADET_H
 #define GNUNET_SERVICE_CADET_H
 
+#include "gnunet_pils_service.h"
 #include "gnunet_util_lib.h"
 #include "cadet_protocol.h"
 
@@ -202,14 +203,9 @@ extern struct GNUNET_STATISTICS_Handle *stats;
 extern struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
- * Local peer own ID.
+ * PILS key ring.
  */
-extern struct GNUNET_PeerIdentity my_full_id;
-
-/**
- * Own private key.
- */
-extern struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+extern struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * All ports clients of this peer have opened.  Maps from

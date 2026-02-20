@@ -33,6 +33,7 @@
  * - revisit handling of 'buffered' traffic: 4 is a rather small buffer; maybe
  *   reserve more bits in 'options' to allow for buffer size control?
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "cadet.h"
 #include "gnunet_statistics_service.h"
@@ -662,8 +663,12 @@ GCCH_channel_local_new (struct CadetClient *owner,
                         const struct GNUNET_HashCode *port,
                         uint32_t options)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetChannel *ch;
   struct CadetChannelClient *ccco;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   ccco = GNUNET_new (struct CadetChannelClient);
   ccco->c = owner;
@@ -680,7 +685,7 @@ GCCH_channel_local_new (struct CadetClient *owner,
   ch->owner = ccco;
   ch->port = *port;
   GCCH_hash_port (&ch->h_port, port, GCP_get_id (destination));
-  if (0 == GNUNET_memcmp (&my_full_id, GCP_get_id (destination)))
+  if (0 == GNUNET_memcmp (my_identity, GCP_get_id (destination)))
   {
     struct OpenPort *op;
 
@@ -941,6 +946,7 @@ GCCH_bind (struct CadetChannel *ch,
            struct CadetClient *c,
            const struct GNUNET_HashCode *port)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   uint32_t options;
   struct CadetChannelClient *cccd;
 
@@ -950,6 +956,10 @@ GCCH_bind (struct CadetChannel *ch,
        GCT_2s (ch->t),
        GNUNET_h2s (&ch->port),
        GSC_2s (c));
+  
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+  
   if (NULL != ch->retry_control_task)
   {
     /* there might be a timeout task here */
@@ -966,7 +976,7 @@ GCCH_bind (struct CadetChannel *ch,
   cccd->ccn = GSC_bind (c,
                         ch,
                         (GNUNET_YES == ch->is_loopback)
-                        ? GCP_get (&my_full_id, GNUNET_YES)
+                        ? GCP_get (my_identity, GNUNET_YES)
                         : GCT_get_destination (ch->t),
                         port,
                         options);

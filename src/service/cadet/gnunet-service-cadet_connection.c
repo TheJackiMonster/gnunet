@@ -25,6 +25,9 @@
  * @author Bartlomiej Polot
  * @author Christian Grothoff
  */
+#include "gnunet-service-cadet.h"
+#include "gnunet_common.h"
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet-service-cadet_connection.h"
@@ -588,11 +591,14 @@ GCC_handle_encrypted (struct CadetConnection *cc,
 static void
 set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
 {
-
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct CadetConnectionCreatePS cp = { .purpose.purpose = htonl (
                                           GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR),
                                         .purpose.size = htonl (sizeof(cp)),
                                         .monotonic_time = msg->monotime};
+  
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert (my_private_key);
 
   GNUNET_CRYPTO_eddsa_sign (my_private_key, &cp,
                             &msg->monotime_sig);
@@ -609,6 +615,7 @@ set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
 static void
 send_create (void *cls)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetConnection *cc = cls;
   struct GNUNET_CADET_ConnectionCreateMessage *create_msg;
   struct GNUNET_PeerIdentity *pids;
@@ -617,6 +624,10 @@ send_create (void *cls)
 
   cc->task = NULL;
   GNUNET_assert (GNUNET_YES == cc->mqm_ready);
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   env =
     GNUNET_MQ_msg_extra (create_msg,
                          (2 + cc->off) * sizeof(struct GNUNET_PeerIdentity),
@@ -637,7 +648,7 @@ send_create (void *cls)
   }
 
   pids = (struct GNUNET_PeerIdentity *) &create_msg[1];
-  pids[0] = my_full_id;
+  pids[0] = *my_identity;
   for (unsigned int i = 0; i <= cc->off; i++)
     pids[i + 1] = *GCP_get_id (GCPP_get_peer_at_offset (cc->path, i));
   LOG (GNUNET_ERROR_TYPE_DEBUG,

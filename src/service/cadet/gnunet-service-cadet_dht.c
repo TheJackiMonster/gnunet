@@ -24,6 +24,7 @@
  * @author Christian Grothoff
  */
 
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_pils_service.h"
@@ -143,6 +144,7 @@ dht_get_id_handler (void *cls, struct GNUNET_TIME_Absolute exp,
 static void
 announce_id (void*cls)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_HashCode phash;
   const struct GNUNET_MessageHeader *hello;
   size_t size;
@@ -150,6 +152,9 @@ announce_id (void*cls)
   void *block;
   struct GNUNET_TIME_Absolute expiration;
   struct GNUNET_TIME_Relative next_put;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   hello = GCH_get_mine ();
   size = (NULL != hello) ? ntohs (hello->size) : 0;
@@ -186,12 +191,11 @@ announce_id (void*cls)
   memset (&phash,
           0,
           sizeof(phash));
-  GNUNET_memcpy (&phash,
-                 &my_full_id,
-                 sizeof(my_full_id));
+  GNUNET_memcpy (&phash, my_identity,
+                 sizeof(*my_identity));
   if ((0 == size) ||
       (GNUNET_OK != GNUNET_HELLO_dht_msg_to_block (hello,
-                                                   &my_full_id,
+                                                   my_identity,
                                                    &block,
                                                    &block_size,
                                                    &expiration)))
