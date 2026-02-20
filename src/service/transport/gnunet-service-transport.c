@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2010-2016, 2018, 2019 GNUnet e.V.
+   Copyright (C) 2010-2016, 2018, 2019, 2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -4280,7 +4280,7 @@ client_disconnect_cb (void *cls,
   GNUNET_free (tc);
   if ((GNUNET_YES == in_shutdown) && (NULL == clients_head))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Our last client disconnected\n");
     do_shutdown (cls);
   }
@@ -6331,7 +6331,7 @@ handle_add_address (void *cls,
          iter = iter->next)
     {
       char *address_uri;
-      char *dash = strchr (ale->address, '-');
+      const char *dash = strchr (ale->address, '-');
       char *prefix = GNUNET_HELLO_address_to_prefix (ale->address);
       GNUNET_assert (NULL != dash);
       dash++;
@@ -13480,6 +13480,25 @@ do_shutdown (void *cls)
 }
 
 
+static const char*
+get_client_type_name (enum ClientType type)
+{
+  switch (type)
+  {
+  case CT_CORE:
+    return "CORE";
+  case CT_MONITOR:
+    return "MONITOR";
+  case CT_COMMUNICATOR:
+    return "COMMUNICATOR";
+  case CT_APPLICATION:
+    return "APPLICATION";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+
 static void
 shutdown_task (void *cls)
 {
@@ -13491,9 +13510,9 @@ shutdown_task (void *cls)
   {
     for (struct TransportClient *tc = clients_head; NULL != tc; tc = tc->next)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "client still connected: %u\n",
-                  tc->type);
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Client still connected: %s\n",
+                  get_client_type_name (tc->type));
     }
   }
   else
