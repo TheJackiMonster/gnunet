@@ -756,14 +756,9 @@ struct BroadcastInterface
 };
 
 /**
- * The initial key material for the peer
- */
-static unsigned char ikm[256 / 8];
-
-/**
  * For PILS.
  */
-static struct GNUNET_PILS_Handle *pils;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * The rekey interval
@@ -851,21 +846,6 @@ static struct GNUNET_NETWORK_Handle *default_v4_sock;
 static struct GNUNET_NETWORK_Handle *default_v6_sock;
 
 /**
- * Our public key.
- */
-static struct GNUNET_PeerIdentity my_identity;
-
-/**
- * Our private key.
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-
-/**
- * Our private key for HPKE.
- */
-static struct GNUNET_CRYPTO_HpkePrivateKey my_x25519_private_key;
-
-/**
  * Our configuration.
  */
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
@@ -904,7 +884,7 @@ static struct GNUNET_SCHEDULER_Task *burst_task;
 
 
 static void
-eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
+eddsa_priv_to_hpke_key (const struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
                         struct GNUNET_CRYPTO_HpkePrivateKey *pk)
 {
   struct GNUNET_CRYPTO_BlindablePrivateKey key;
@@ -916,7 +896,7 @@ eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
 
 
 static void
-eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
+eddsa_pub_to_hpke_key (const struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
                        struct GNUNET_CRYPTO_HpkePublicKey *pk)
 {
   struct GNUNET_CRYPTO_BlindablePublicKey key;
@@ -1419,7 +1399,11 @@ static struct SharedSecret *
 setup_shared_secret_dec (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral
                          )
 {
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct SharedSecret *ss;
+
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert (my_private_key);
 
   ss = GNUNET_new (struct SharedSecret);
   GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key,
@@ -1440,10 +1424,17 @@ static struct SharedSecret *
 setup_initial_shared_secret_dec (const struct
                                  GNUNET_CRYPTO_HpkeEncapsulation *c)
 {
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+  struct GNUNET_CRYPTO_HpkePrivateKey my_hpke_key;
   struct SharedSecret *ss;
 
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert (my_private_key);
+
+  eddsa_priv_to_hpke_key (my_private_key, &my_hpke_key);
+
   ss = GNUNET_new (struct SharedSecret);
-  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key, c,
+  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_hpke_key, c,
                                            &ss->master);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "New receiver SS master: %s\n", GNUNET_sh2s (&ss->master));
@@ -2021,13 +2012,17 @@ static int
 verify_confirmation (const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
                      const struct UDPConfirmation *uc)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct UdpHandshakeSignature uhs;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   uhs.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
   uhs.purpose.size = htonl (sizeof(uhs));
   uhs.sender = uc->sender;
-  uhs.receiver = my_identity;
+  uhs.receiver = *my_identity;
   uhs.enc = *enc;
   uhs.monotonic_time = uc->monotonic_time;
   return GNUNET_CRYPTO_eddsa_verify (
@@ -2438,9 +2433,13 @@ sock_read (void *cls)
     /* next, check if it is a broadcast */
     if (sizeof(struct UDPBroadcast) == rcvd)
     {
+      const struct GNUNET_PeerIdentity *my_identity;
       const struct UDPBroadcast *ub;
       struct UdpBroadcastSignature uhs;
       struct GNUNET_PeerIdentity sender;
+
+      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      GNUNET_assert (my_identity);
 
       addr_verify = GNUNET_memdup (&sa, salen);
       addr_verify->sin_port = 0;
@@ -2453,7 +2452,7 @@ sock_read (void *cls)
       uhs.purpose.size = htonl (sizeof(uhs));
       uhs.sender = ub->sender;
       sender = ub->sender;
-      if (0 == memcmp (&sender, &my_identity, sizeof (struct
+      if (0 == memcmp (&sender, my_identity, sizeof (struct
                                                       GNUNET_PeerIdentity)))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -2494,7 +2493,7 @@ sock_read (void *cls)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "VerifyingPeer %s is verifying UDPBroadcast\n",
-                    GNUNET_i2s (&my_identity));
+                    GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "Verifying UDPBroadcast from %s failed\n",
                     GNUNET_i2s (&ub->sender));
@@ -2628,6 +2627,8 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
                   ReceiverAddress *receiver,
                   struct GNUNET_MQ_Handle *mq)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   uint16_t msize = ntohs (msg->size);
   struct UdpHandshakeSignature uhs;
   struct UDPConfirmation uc;
@@ -2636,6 +2637,10 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   size_t dpos;
   gcry_cipher_hd_t out_cipher;
   struct SharedSecret *ss;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
 
   if (msize > receiver->kx_mtu)
   {
@@ -2660,13 +2665,13 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
 
   setup_cipher (&ss->master, 0, &out_cipher);
   /* compute 'uc' */
-  uc.sender = my_identity;
+  uc.sender = *my_identity;
   uc.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
   uhs.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_HANDSHAKE);
   uhs.purpose.size = htonl (sizeof(uhs));
-  uhs.sender = my_identity;
+  uhs.sender = *my_identity;
   uhs.receiver = receiver->target;
   uhs.monotonic_time = uc.monotonic_time;
   GNUNET_CRYPTO_eddsa_sign (my_private_key,
@@ -3222,20 +3227,15 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
-  if (NULL != pils)
+  if (NULL != key_ring)
   {
-    GNUNET_PILS_disconnect (pils);
-    pils = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != stats)
   {
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
-  }
-  if (NULL != my_private_key)
-  {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
   }
   if (NULL != is)
   {
@@ -3460,13 +3460,19 @@ iface_proc (void *cls,
             const struct sockaddr *netmask,
             socklen_t addrlen)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct BroadcastInterface *bi;
   enum GNUNET_NetworkType network;
   struct UdpBroadcastSignature ubs;
 
   (void) cls;
   (void) netmask;
-  if (NULL == my_private_key)
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+
+  if ((NULL == my_identity) || (NULL == my_private_key))
     return GNUNET_YES;
   if (NULL == addr)
     return GNUNET_YES; /* need to know our address! */
@@ -3505,11 +3511,11 @@ iface_proc (void *cls,
   }
   bi->salen = addrlen;
   bi->found = GNUNET_YES;
-  bi->bcm.sender = my_identity;
+  bi->bcm.sender = *my_identity;
   ubs.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_UDP_BROADCAST);
   ubs.purpose.size = htonl (sizeof(ubs));
-  ubs.sender = my_identity;
+  ubs.sender = *my_identity;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "creating UDPBroadcastSignature for %s\n",
               GNUNET_a2s (addr, addrlen));
@@ -3740,82 +3746,6 @@ shutdown_run (struct sockaddr *addrs[2])
 }
 
 
-/**
- * Get the initial secret key for generating the peer id. This is supposed to be generated at
- * random once in the lifetime of a peer, so all generated peer ids use the
- * same initial secret key to obtain the same peer id per set of addresses.
- *
- * First check whether there's already a initial secret key. If so: return it. If no initial secret key
- * exists yet, generate at random and store it where it will be found.
- *
- * @param initial secret key the memory the initial secret key can be written to.
- */
-static void
-load_ikm ()
-{
-  char *keyfile;
-  struct GNUNET_CRYPTO_EddsaPrivateKey key;
-
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               "PEER",
-                                               "PRIVATE_KEY",
-                                               &keyfile))
-  {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               "PEER",
-                               "PRIVATE_KEY");
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to setup peer's private key\n");
-    GNUNET_free (keyfile);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_free (keyfile);
-  GNUNET_assert (sizeof ikm == sizeof key.d);
-  memcpy (ikm, key.d, sizeof ikm);
-}
-
-
-void
-pid_change_cb (void *cls,
-               const struct GNUNET_HELLO_Parser *parser,
-               const struct GNUNET_HashCode *addr_hash)
-{
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Got PID to derive from `%s':\n",
-       GNUNET_h2s (addr_hash));
-  if (NULL == my_private_key)
-    my_private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
-
-  GNUNET_PILS_derive_pid (sizeof ikm,
-                          (uint8_t*) ikm,
-                          addr_hash,
-                          my_private_key);
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
-                                      &my_identity.public_key);
-  eddsa_priv_to_hpke_key (my_private_key,
-                          &my_x25519_private_key);
-  /* start broadcasting */
-  if (GNUNET_YES !=
-      GNUNET_CONFIGURATION_get_value_yesno (cfg,
-                                            COMMUNICATOR_CONFIG_SECTION,
-                                            "DISABLE_BROADCAST"))
-  {
-    if (NULL == broadcast_task)
-      broadcast_task = GNUNET_SCHEDULER_add_now (&do_broadcast, NULL);
-  }
-}
-
-
 static void
 run (void *cls,
      char *const *args,
@@ -3995,9 +3925,8 @@ run (void *cls,
   {
     broadcast_task = GNUNET_SCHEDULER_add_now (&do_broadcast, NULL);
   }
-  load_ikm ();
-  pils = GNUNET_PILS_connect (cfg, &pid_change_cb, NULL);
-  GNUNET_assert (NULL != pils);
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  GNUNET_assert (NULL != key_ring);
 
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,
