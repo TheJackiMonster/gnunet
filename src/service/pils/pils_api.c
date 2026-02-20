@@ -32,7 +32,6 @@
  */
 #include <string.h>
 #include <stdint.h>
-#include "platform.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
@@ -119,6 +118,33 @@ struct GNUNET_PILS_Handle
    */
   uint32_t op_id_counter;
 
+};
+
+
+/**
+ * @brief A simplified handle for using the peer identity key.
+ */
+struct GNUNET_PILS_KeyRing
+{
+  /**
+   * PILS handle
+   */
+  struct GNUNET_PILS_Handle *pils;
+
+  /**
+   * Initial key material
+   */
+  unsigned char initial_key_material [256 / 8];
+
+  /**
+   * Private key
+   */
+  struct GNUNET_CRYPTO_EddsaPrivateKey *private_key;
+
+  /**
+   * Peer identity
+   */
+  struct GNUNET_PeerIdentity identity;
 };
 
 /**
@@ -301,9 +327,8 @@ mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
   (void) error;
 
   // TODO logging
-  GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_ERROR,
-                           "pils-api",
-                           "(mq_error_handler) Connection to service failed!.\n");
+  LOG (GNUNET_ERROR_TYPE_ERROR,
+       "(mq_error_handler) Connection to service failed!\n");
   GNUNET_MQ_destroy (h->mq);
   h->mq = NULL;
   h->reconnect_task =
@@ -591,6 +616,154 @@ GNUNET_PILS_sign_hello (struct GNUNET_PILS_Handle *handle,
                                             &hsp.purpose,
                                             cb,
                                             cb_cls);
+}
+
+
+void
+pid_change_cb (void *cls,
+               GNUNET_UNUSED const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *addr_hash)
+{
+  struct GNUNET_PILS_KeyRing *key_ring;
+
+  GNUNET_assert ((cls) && (addr_hash));
+
+  key_ring = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Got PID to derive from `%s':\n",
+              GNUNET_h2s (addr_hash));
+  if (NULL == key_ring->private_key)
+    key_ring->private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
+
+  GNUNET_PILS_derive_pid (sizeof (key_ring->initial_key_material),
+                          key_ring->initial_key_material,
+                          addr_hash,
+                          key_ring->private_key);
+  GNUNET_CRYPTO_eddsa_key_get_public (key_ring->private_key,
+                                      &(key_ring->identity.public_key));
+}
+
+
+/**
+ * Get the initial secret key for generating the peer id. This is supposed to be generated at
+ * random once in the lifetime of a peer, so all generated peer ids use the
+ * same initial secret key to obtain the same peer id per set of addresses.
+ *
+ * First check whether there's already a initial secret key. If so: return it. If no initial secret key
+ * exists yet, generate at random and store it where it will be found.
+ *
+ */
+struct GNUNET_PILS_KeyRing*
+GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg)
+{
+  char *keyfile;
+  struct GNUNET_CRYPTO_EddsaPrivateKey key;
+
+  GNUNET_assert (cfg);
+
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_filename (cfg,
+                                               "PEER",
+                                               "PRIVATE_KEY",
+                                               &keyfile))
+  {
+    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
+                               "PEER",
+                               "PRIVATE_KEY");
+    return NULL;
+  }
+
+  if (GNUNET_SYSERR ==
+      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
+                                         GNUNET_YES,
+                                         &key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to setup peer's private key\n");
+    GNUNET_free (keyfile);
+    return NULL;
+  }
+
+  GNUNET_free (keyfile);
+
+  struct GNUNET_PILS_KeyRing *key_ring = GNUNET_new(struct GNUNET_PILS_KeyRing);
+  if (NULL == key_ring)
+    return NULL;
+
+  GNUNET_assert (sizeof (key_ring->initial_key_material) == sizeof key.d);
+
+  memset (key_ring, 0, sizeof (*key_ring));
+
+  key_ring->pils = GNUNET_PILS_connect(cfg, &pid_change_cb, key_ring);
+  if (NULL == key_ring->pils)
+  {
+    GNUNET_free (key_ring);
+    return NULL;
+  }
+
+  memcpy (key_ring->initial_key_material, key.d,
+          sizeof (key_ring->initial_key_material));
+
+  return key_ring;
+}
+
+
+void
+GNUNET_PILS_destroy_key_ring (struct GNUNET_PILS_KeyRing *key_ring)
+{
+  GNUNET_assert (key_ring);
+
+  if (key_ring->pils)
+    GNUNET_PILS_disconnect (key_ring->pils);
+
+  if (key_ring->private_key)
+  {
+    GNUNET_CRYPTO_zero_keys (key_ring->private_key,
+                             sizeof (*(key_ring->private_key)));
+    GNUNET_free (key_ring->private_key);
+  }
+
+  GNUNET_CRYPTO_zero_keys (key_ring->initial_key_material,
+                           sizeof (key_ring->initial_key_material));
+  GNUNET_free (key_ring);
+}
+
+
+const struct GNUNET_PeerIdentity*
+GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring)
+{
+  GNUNET_assert (key_ring);
+
+  if (NULL == key_ring->private_key)
+    return NULL;
+
+  return &(key_ring->identity);
+}
+
+
+const struct GNUNET_CRYPTO_EddsaPrivateKey*
+GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring)
+{
+  GNUNET_assert (key_ring);
+
+  return key_ring->private_key;
+}
+
+
+const struct GNUNET_CRYPTO_EddsaPublicKey*
+GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring)
+{
+  const struct GNUNET_PeerIdentity *identity;
+
+  GNUNET_assert (key_ring);
+
+  identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+
+  if (!identity)
+    return NULL;
+
+  return &(identity->public_key);
 }
 
 

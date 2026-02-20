@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010-2014, 2018, 2019 GNUnet e.V.
+     Copyright (C) 2010-2014, 2018, 2019, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -825,7 +825,7 @@ static unsigned long long max_queue_length;
 /**
  * For PILS.
  */
-static struct GNUNET_PILS_Handle *pils;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * For logging statistics.
@@ -848,11 +848,6 @@ static struct GNUNET_CONTAINER_MultiHashMap *queue_map;
 static struct GNUNET_CONTAINER_MultiHashMap *lt_map;
 
 /**
- * Our public key.
- */
-static struct GNUNET_PeerIdentity my_identity;
-
-/**
  * The rekey byte maximum
  */
 static unsigned long long rekey_max_bytes;
@@ -861,16 +856,6 @@ static unsigned long long rekey_max_bytes;
  * The rekey interval
  */
 static struct GNUNET_TIME_Relative rekey_interval;
-
-/**
- * Our private key.
- */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-
-/**
- * Our private key.
- */
-static struct GNUNET_CRYPTO_HpkePrivateKey my_x25519_private_key;
 
 /**
  * Our configuration.
@@ -943,11 +928,6 @@ static unsigned int bind_port;
 static struct GNUNET_CONTAINER_MultiHashMap *pending_reversals;
 
 /**
- * The initial key material for the peer
- */
-static unsigned char ikm[256 / 8];
-
-/**
  * We have been notified that our listen socket has something to
  * read. Do the read and reschedule this function to be called again
  * once more is available.
@@ -958,7 +938,7 @@ static void
 listen_cb (void *cls);
 
 static void
-eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
+eddsa_priv_to_hpke_key (const struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
                         struct GNUNET_CRYPTO_HpkePrivateKey *pk)
 {
   struct GNUNET_CRYPTO_BlindablePrivateKey key;
@@ -970,7 +950,7 @@ eddsa_priv_to_hpke_key (struct GNUNET_CRYPTO_EddsaPrivateKey *edpk,
 
 
 static void
-eddsa_pub_to_hpke_key (struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
+eddsa_pub_to_hpke_key (const struct GNUNET_CRYPTO_EddsaPublicKey *edpk,
                        struct GNUNET_CRYPTO_HpkePublicKey *pk)
 {
   struct GNUNET_CRYPTO_BlindablePublicKey key;
@@ -1391,12 +1371,21 @@ setup_in_cipher_elligator (
   const struct GNUNET_CRYPTO_HpkeEncapsulation *c,
   struct Queue *queue)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+  struct GNUNET_CRYPTO_HpkePrivateKey my_hpke_key;
   struct GNUNET_ShortHashCode k;
 
-  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_x25519_private_key,
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
+
+  eddsa_priv_to_hpke_key (my_private_key, &my_hpke_key);
+
+  GNUNET_CRYPTO_hpke_elligator_kem_decaps (&my_hpke_key,
                                            c,
                                            &k);
-  setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
+  setup_cipher (&k, my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
 
@@ -1410,10 +1399,16 @@ static void
 setup_in_cipher (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
                  struct Queue *queue)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct GNUNET_ShortHashCode k;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
+
   GNUNET_CRYPTO_eddsa_kem_decaps (my_private_key, ephemeral, &k);
-  setup_cipher (&k, &my_identity, &queue->in_cipher, &queue->in_hmac);
+  setup_cipher (&k, my_identity, &queue->in_cipher, &queue->in_hmac);
 }
 
 
@@ -1428,7 +1423,11 @@ setup_in_cipher (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
 static void
 do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TcpRekeySignature thp;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   thp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY);
   thp.purpose.size = htonl (sizeof(thp));
@@ -1442,7 +1441,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "sender %s\n",
               GNUNET_p2s (&queue->target.public_key));
-  thp.receiver = my_identity;
+  thp.receiver = *my_identity;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "receiver %s\n",
               GNUNET_p2s (&thp.receiver.public_key));
@@ -1575,8 +1574,14 @@ static void
 send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
                 struct Queue *queue)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "sending challenge\n");
@@ -1585,13 +1590,13 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
     GNUNET_MESSAGE_TYPE_COMMUNICATOR_TCP_CONFIRMATION_ACK);
   tca.header.size = ntohs (sizeof(tca));
   tca.challenge = challenge;
-  tca.sender = my_identity;
+  tca.sender = *my_identity;
   tca.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
   thas.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
   thas.purpose.size = htonl (sizeof(thas));
-  thas.sender = my_identity;
+  thas.sender = *my_identity;
   thas.receiver = queue->target;
   thas.monotonic_time = tca.monotonic_time;
   thas.challenge = tca.challenge;
@@ -1635,9 +1640,15 @@ setup_out_cipher (struct Queue *queue, struct GNUNET_ShortHashCode *dh)
 static void
 inject_rekey (struct Queue *queue)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct TCPRekey rekey;
   struct TcpRekeySignature thp;
   struct GNUNET_ShortHashCode k;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
 
   GNUNET_assert (0 == queue->pwrite_off);
   memset (&rekey, 0, sizeof(rekey));
@@ -1652,7 +1663,7 @@ inject_rekey (struct Queue *queue)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "inject_rekey size %u\n",
               thp.purpose.size);
-  thp.sender = my_identity;
+  thp.sender = *my_identity;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "sender %s\n",
               GNUNET_p2s (&thp.sender.public_key));
@@ -1941,6 +1952,7 @@ try_handle_plaintext (struct Queue *queue)
   uint16_t type;
   size_t size = 0;
   struct TcpHandshakeAckSignature thas;
+  const struct GNUNET_PeerIdentity *my_identity;
   const struct GNUNET_CRYPTO_ChallengeNonceP challenge = queue->challenge;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1989,11 +2001,14 @@ try_handle_plaintext (struct Queue *queue)
       return 0;
     }
 
+    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+    GNUNET_assert (my_identity);
+
     thas.purpose.purpose = htonl (
       GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE_ACK);
     thas.purpose.size = htonl (sizeof(thas));
     thas.sender = tca->sender;
-    thas.receiver = my_identity;
+    thas.receiver = *my_identity;
     thas.monotonic_time = tca->monotonic_time;
     thas.challenge = tca->challenge;
 
@@ -2758,13 +2773,19 @@ static void
 transmit_kx (struct Queue *queue,
              const struct GNUNET_CRYPTO_HpkeEncapsulation *c)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct TcpHandshakeSignature ths;
   struct TCPConfirmation tc;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
 
   memcpy (queue->cwrite_buf, c, sizeof(*c));
   queue->cwrite_off = sizeof(*c);
   /* compute 'tc' and append in encrypted format to cwrite_buf */
-  tc.sender = my_identity;
+  tc.sender = *my_identity;
   tc.monotonic_time =
     GNUNET_TIME_absolute_hton (GNUNET_TIME_absolute_get_monotonic (cfg));
   GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
@@ -2773,7 +2794,7 @@ transmit_kx (struct Queue *queue,
   ths.purpose.purpose = htonl (
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
-  ths.sender = my_identity;
+  ths.sender = *my_identity;
   ths.receiver = queue->target;
   ths.ephemeral = *c;
   ths.monotonic_time = tc.monotonic_time;
@@ -2858,7 +2879,7 @@ handshake_monotime_cb (void *cls,
   pid = &queue->target;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "tcp handshake with us %s\n",
-              GNUNET_i2s (&my_identity));
+              GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
   if (NULL == record)
   {
     queue->handshake_monotime_get = NULL;
@@ -2918,8 +2939,12 @@ decrypt_and_check_tc (struct Queue *queue,
                       struct TCPConfirmation *tc,
                       char *ibuf)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TcpHandshakeSignature ths;
   enum GNUNET_GenericReturnValue ret;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   GNUNET_assert (
     0 ==
@@ -2932,7 +2957,7 @@ decrypt_and_check_tc (struct Queue *queue,
     GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_HANDSHAKE);
   ths.purpose.size = htonl (sizeof(ths));
   ths.sender = tc->sender;
-  ths.receiver = my_identity;
+  ths.receiver = *my_identity;
   memcpy (&ths.ephemeral, ibuf, sizeof(struct GNUNET_CRYPTO_EcdhePublicKey));
   ths.monotonic_time = tc->monotonic_time;
   ths.challenge = tc->challenge;
@@ -3287,10 +3312,14 @@ try_connection_reversal (void *cls,
                          const struct sockaddr *addr,
                          socklen_t addrlen)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TCPNATProbeMessage pm;
   struct ProtoQueue *pq;
   struct sockaddr *in_addr;
   (void) cls;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "addr->sa_family %d\n",
@@ -3306,7 +3335,7 @@ try_connection_reversal (void *cls,
   {
     pm.header.size = htons (sizeof(struct TCPNATProbeMessage));
     pm.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_TCP_NAT_PROBE);
-    pm.clientIdentity = my_identity;
+    pm.clientIdentity = *my_identity;
     memcpy (pq->write_buf, &pm, sizeof(struct TCPNATProbeMessage));
     pq->write_off = sizeof(struct TCPNATProbeMessage);
     pq->write_task = GNUNET_SCHEDULER_add_write_net (PROTO_QUEUE_TIMEOUT,
@@ -3661,20 +3690,15 @@ do_shutdown (void *cls)
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
   }
-  if (NULL != my_private_key)
-  {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
-  }
   if (NULL != is)
   {
     GNUNET_NT_scanner_done (is);
     is = NULL;
   }
-  if (NULL != pils)
+  if (NULL != key_ring)
   {
-    GNUNET_PILS_disconnect (pils);
-    pils = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != peerstore)
   {
@@ -3796,51 +3820,6 @@ add_addr (struct sockaddr *in, socklen_t in_len)
               GNUNET_a2s (saddrs->addr, saddrs->addr_len));
 
   addrs_lens++;
-}
-
-
-/**
- * Get the initial secret key for generating the peer id. This is supposed to be generated at
- * random once in the lifetime of a peer, so all generated peer ids use the
- * same initial secret key to obtain the same peer id per set of addresses.
- *
- * First check whether there's already a initial secret key. If so: return it. If no initial secret key
- * exists yet, generate at random and store it where it will be found.
- *
- * @param initial secret key the memory the initial secret key can be written to.
- */
-static void
-load_ikm ()
-{
-  char *keyfile;
-  struct GNUNET_CRYPTO_EddsaPrivateKey key;
-
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (cfg,
-                                               "PEER",
-                                               "PRIVATE_KEY",
-                                               &keyfile))
-  {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               "PEER",
-                               "PRIVATE_KEY");
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to setup peer's private key\n");
-    GNUNET_free (keyfile);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_free (keyfile);
-  GNUNET_assert (sizeof ikm == sizeof key.d);
-  memcpy (ikm, key.d, sizeof ikm);
 }
 
 
@@ -4099,28 +4078,6 @@ init_socket_resolv (void *cls,
 }
 
 
-void
-pid_change_cb (void *cls,
-               const struct GNUNET_HELLO_Parser *parser,
-               const struct GNUNET_HashCode *addr_hash)
-{
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
-       "Got PID to derive from `%s':\n",
-       GNUNET_h2s (addr_hash));
-  if (NULL == my_private_key)
-    my_private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
-
-  GNUNET_PILS_derive_pid (sizeof ikm,
-                          (uint8_t*) ikm,
-                          addr_hash,
-                          my_private_key);
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key,
-                                      &my_identity.public_key);
-  eddsa_priv_to_hpke_key (my_private_key,
-                          &my_x25519_private_key);
-}
-
-
 /**
  * Setup communicator and launch network interactions.
  *
@@ -4198,9 +4155,8 @@ run (void *cls,
   {
     disable_v6 = GNUNET_YES;
   }
-  load_ikm ();
-  pils = GNUNET_PILS_connect (cfg, &pid_change_cb, NULL);
-  GNUNET_assert (NULL != pils);
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  GNUNET_assert (NULL != key_ring);
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)
   {

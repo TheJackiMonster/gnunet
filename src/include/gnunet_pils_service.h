@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2024 GNUnet e.V.
+     Copyright (C) 2024, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -104,6 +104,12 @@ typedef void (*GNUNET_PILS_PidChangeCallback) (
  * @brief A handle for the PILS service.
  */
 struct GNUNET_PILS_Handle;
+
+
+/**
+ * @brief A simplified handle for using the peer identity key.
+ */
+struct GNUNET_PILS_KeyRing;
 
 
 /**
@@ -241,6 +247,51 @@ GNUNET_PILS_sign_hello (struct GNUNET_PILS_Handle *handle,
  */
 void
 GNUNET_PILS_cancel (struct GNUNET_PILS_Operation *op);
+
+/**
+ * Create a key ring handle to use the current
+ * peer identity key.
+ *
+ * @param cfg configuration to use
+ * @return Handle to the PILS key ring or NULL on failure
+ */
+struct GNUNET_PILS_KeyRing*
+GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg);
+
+/**
+ * Destroy a key ring handle and free its memory.
+ *
+ * @param key_ring key ring handle
+ */
+void
+GNUNET_PILS_destroy_key_ring (struct GNUNET_PILS_KeyRing *key_ring);
+
+/**
+ * Return the current peer identity of a given key ring handle.
+ *
+ * @param key_ring key ring handle
+ * @return Peer identity or NULL on failure
+ */
+const struct GNUNET_PeerIdentity*
+GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring);
+
+/**
+ * Return the current private key of a given key ring handle.
+ *
+ * @param key_ring key ring handle
+ * @return Private key or NULL on failure
+ */
+const struct GNUNET_CRYPTO_EddsaPrivateKey*
+GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring);
+
+/**
+ * Return the current public key of a given key ring handle.
+ *
+ * @param key_ring key ring handle
+ * @return Public key or NULL on failure
+ */
+const struct GNUNET_CRYPTO_EddsaPublicKey*
+GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring);
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {
