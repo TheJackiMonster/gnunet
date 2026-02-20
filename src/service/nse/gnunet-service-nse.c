@@ -1410,7 +1410,8 @@ pils_id_change_cb (void *cls,
 static void
 core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
 {
-  (void) cls;
+  if (identity)
+    my_identity = *identity;
   identity_changed (identity);
 }
 
