@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2016 GNUnet e.V.
+   Copyright (C) 2009, 2010, 2011, 2012, 2013, 2016, 2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,6 +35,7 @@
  * every peer should receive the same nearest peer message, and from
  * this can calculate the expected number of peers in the network.
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include <math.h>
 #include "gnunet_util_lib.h"
@@ -317,14 +318,9 @@ static struct GNUNET_TIME_Absolute next_timestamp;
 static struct GNUNET_TIME_Absolute current_timestamp;
 
 /**
- * The private key of this peer.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-
-/**
- * The peer identity of this peer.
- */
-static struct GNUNET_PeerIdentity my_identity;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Proof of work for this peer.
@@ -696,10 +692,16 @@ update_network_size_estimate ()
 static void
 setup_flood_message (unsigned int slot, struct GNUNET_TIME_Absolute ts)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct GNUNET_NSE_FloodMessage *fm;
   uint32_t matching_bits;
 
-  matching_bits = get_matching_bits (ts, &my_identity);
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert ((my_identity) && (my_private_key));
+
+  matching_bits = get_matching_bits (ts, my_identity);
   fm = &size_estimate_messages[slot];
   fm->header.size = htons (sizeof(struct GNUNET_NSE_FloodMessage));
   fm->header.type = htons (GNUNET_MESSAGE_TYPE_NSE_P2P_FLOOD);
@@ -711,18 +713,15 @@ setup_flood_message (unsigned int slot, struct GNUNET_TIME_Absolute ts)
            - sizeof(struct GNUNET_CRYPTO_EddsaSignature));
   fm->matching_bits = htonl (matching_bits);
   fm->timestamp = GNUNET_TIME_absolute_hton (ts);
-  fm->origin = my_identity;
+  fm->origin = *my_identity;
   fm->proof_of_work = my_proof;
-  /* FIXME: We now sign asyncronuously later per sent message because
-   * of PILS. This is probably inefficient. But it may also cause race
-   * conditions wrt the signature (?)
-   * if (nse_work_required > 0)
+  if (nse_work_required > 0)
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
                                               &fm->purpose,
                                               &fm->signature));
   else
-    memset (&fm->signature, 0, sizeof(fm->signature));*/
+    memset (&fm->signature, 0, sizeof(fm->signature));
 }
 
 
@@ -776,10 +775,15 @@ schedule_current_round (void *cls,
 static void
 update_flood_message (void *cls)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_TIME_Relative offset;
 
   (void) cls;
   flood_task = NULL;
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (! my_identity)
+    return;
+
   offset = GNUNET_TIME_absolute_get_remaining (next_timestamp);
   if (0 != offset.rel_value_us)
   {
@@ -796,7 +800,7 @@ update_flood_message (void *cls)
     GNUNET_TIME_absolute_add (current_timestamp, gnunet_nse_interval);
   if ((current_timestamp.abs_value_us ==
        GNUNET_TIME_absolute_ntoh (next_message.timestamp).abs_value_us) &&
-      (get_matching_bits (current_timestamp, &my_identity) <
+      (get_matching_bits (current_timestamp, my_identity) <
        ntohl (next_message.matching_bits)))
   {
     /* we received a message for this round way early, use it! */
@@ -889,12 +893,15 @@ find_proof (void *cls)
   char buf[sizeof(struct GNUNET_CRYPTO_EddsaPublicKey)
            + sizeof(uint64_t)] GNUNET_ALIGN;
   struct GNUNET_HashCode result;
+  const struct GNUNET_PeerIdentity *my_identity;
   unsigned int i;
 
   (void) cls;
   proof_task = NULL;
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
-                 &my_identity,
+                 my_identity,
                  sizeof(struct GNUNET_PeerIdentity));
   i = 0;
   counter = my_proof;
@@ -1029,10 +1036,15 @@ static void
 handle_p2p_estimate (void *cls,
                      const struct GNUNET_NSE_FloodMessage *incoming_flood)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct NSEPeerEntry *peer_entry = cls;
   struct GNUNET_TIME_Absolute ts;
   uint32_t matching_bits;
   unsigned int idx;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (! my_identity)
+    return;
 
 #if ENABLE_NSE_HISTOGRAM
   {
@@ -1105,10 +1117,10 @@ handle_p2p_estimate (void *cls,
                               GNUNET_NO);
     return;
   }
-  if (0 == (GNUNET_memcmp (peer_entry->id, &my_identity)))
+  if (0 == (GNUNET_memcmp (peer_entry->id, my_identity)))
   {
     /* send to self, update our own estimate IF this also comes from us! */
-    if (0 == GNUNET_memcmp (&incoming_flood->origin, &my_identity))
+    if (0 == GNUNET_memcmp (&incoming_flood->origin, my_identity))
       update_network_size_estimate ();
     return;
   }
@@ -1325,10 +1337,10 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_multipeermap_destroy (peers);
     peers = NULL;
   }
-  if (NULL != my_private_key)
+  if (NULL != key_ring)
   {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != pils)
   {
@@ -1375,7 +1387,7 @@ identity_changed (const struct GNUNET_PeerIdentity *identity)
     GNUNET_TIME_absolute_add (current_timestamp, gnunet_nse_interval);
   estimate_index = HISTORY_SIZE - 1;
   estimate_count = 0;
-  if (GNUNET_YES == check_proof_of_work (&my_identity.public_key, my_proof))
+  if (GNUNET_YES == check_proof_of_work (&(identity->public_key), my_proof))
   {
     int idx = (estimate_index + HISTORY_SIZE - 1) % HISTORY_SIZE;
     prev_time.abs_value_us =
@@ -1396,8 +1408,12 @@ pils_id_change_cb (void *cls,
                    const struct GNUNET_HELLO_Parser *parser,
                    const struct GNUNET_HashCode *addr_hash)
 {
-  my_identity = *GNUNET_HELLO_parser_get_id (parser);
-  identity_changed (&my_identity);
+  const struct GNUNET_PeerIdentity *my_identity;
+  struct GNUNET_PeerIdentity identity;
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  identity = *GNUNET_HELLO_parser_get_id (parser);
+  GNUNET_assert (0 == GNUNET_memcmp (my_identity, &identity));
+  identity_changed (my_identity);
 }
 
 
@@ -1410,9 +1426,18 @@ pils_id_change_cb (void *cls,
 static void
 core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   if (identity)
-    my_identity = *identity;
-  identity_changed (identity);
+  {
+    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+    GNUNET_assert (0 == GNUNET_memcmp (my_identity, identity));
+    proof_task = GNUNET_SCHEDULER_add_with_priority (
+      GNUNET_SCHEDULER_PRIORITY_IDLE,
+      &find_proof, NULL);
+  }
+  else
+    my_identity = NULL;
+  identity_changed (my_identity);
 }
 
 
@@ -1466,7 +1491,6 @@ run (void *cls,
                              NULL),
     GNUNET_MQ_handler_end () };
   char *proof;
-  struct GNUNET_CRYPTO_EddsaPrivateKey *pk;
   const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_NSE,
     .version = { 1, 0 },
@@ -1543,16 +1567,14 @@ run (void *cls,
 #endif
 
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  pk = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  GNUNET_assert (NULL != pk);
-  my_private_key = pk;
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  GNUNET_assert (NULL != key_ring);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg, "NSE", "PROOFFILE", &proof))
   {
     GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR, "NSE", "PROOFFILE");
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -1561,10 +1583,6 @@ run (void *cls,
        GNUNET_DISK_fn_read (proof, &my_proof, sizeof(my_proof))))
     my_proof = 0;
   GNUNET_free (proof);
-  proof_task =
-    GNUNET_SCHEDULER_add_with_priority (GNUNET_SCHEDULER_PRIORITY_IDLE,
-                                        &find_proof,
-                                        NULL);
 
   peers = GNUNET_CONTAINER_multipeermap_create (128, GNUNET_YES);
   nc = GNUNET_notification_context_create (1);

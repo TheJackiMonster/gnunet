@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010-2013, 2017 Christian Grothoff
+     Copyright (C) 2010-2013, 2017, 2026 Christian Grothoff
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -34,6 +34,8 @@
  *   the service's existence; maybe the daemon should turn into a
  *   service with an API to add local-exit services dynamically?
  */
+#include "gnunet_common.h"
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_protocols.h"
@@ -380,9 +382,9 @@ static struct GNUNET_DNS_Advertisement dns_advertisement;
 static struct GNUNET_HashCode dht_put_key;
 
 /**
- * Private key for this peer.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *peer_key;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Port for DNS exit.
@@ -3316,10 +3318,10 @@ cleanup (void *cls)
     GNUNET_DNSSTUB_stop (dnsstub);
     dnsstub = NULL;
   }
-  if (NULL != peer_key)
+  if (NULL != key_ring)
   {
-    GNUNET_free (peer_key);
-    peer_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != dht_task)
   {
@@ -3599,11 +3601,14 @@ do_dht_put (void *cls)
   if (GNUNET_TIME_absolute_get_remaining (expiration).rel_value_us <
       GNUNET_TIME_UNIT_HOURS.rel_value_us)
   {
+    const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
     /* refresh advertisement */
+    my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+    GNUNET_assert (my_private_key);
     expiration = GNUNET_TIME_relative_to_absolute (DNS_ADVERTISEMENT_TIMEOUT);
     dns_advertisement.expiration_time = GNUNET_TIME_absolute_hton (expiration);
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_sign_ (peer_key,
+                   GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
                                               &dns_advertisement.purpose,
                                               &dns_advertisement.signature));
   }
@@ -3619,6 +3624,33 @@ do_dht_put (void *cls)
                             expiration,
                             &dht_put_cont,
                             NULL);
+}
+
+
+static void
+do_initial_dht_put (void *cls)
+{
+  const struct GNUNET_CRYPTO_EddsaPublicKey *my_public_key;
+
+  dht_task = NULL;
+  my_public_key = GNUNET_PILS_key_ring_get_public_key (key_ring);
+  GNUNET_assert (my_public_key);
+
+  GNUNET_memcpy (&dns_advertisement.peer.public_key,
+                 my_public_key, sizeof (*my_public_key));
+  dns_advertisement.purpose.size = htonl (sizeof(struct
+                                                 GNUNET_DNS_Advertisement)
+                                          - sizeof(struct
+                                                   GNUNET_CRYPTO_EddsaSignature)
+                                          );
+  dns_advertisement.purpose.purpose = htonl (
+    GNUNET_SIGNATURE_PURPOSE_DNS_RECORD);
+  GNUNET_CRYPTO_hash ("dns",
+                      strlen ("dns"),
+                      &dht_put_key);
+
+  dht_task = GNUNET_SCHEDULER_add_now (&do_dht_put,
+                                       NULL);
 }
 
 
@@ -3734,20 +3766,8 @@ advertise_dns_exit ()
   /* advertise exit */
   dht = GNUNET_DHT_connect (cfg,
                             1);
-  peer_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  GNUNET_CRYPTO_eddsa_key_get_public (peer_key,
-                                      &dns_advertisement.peer.public_key);
-  dns_advertisement.purpose.size = htonl (sizeof(struct
-                                                 GNUNET_DNS_Advertisement)
-                                          - sizeof(struct
-                                                   GNUNET_CRYPTO_EddsaSignature)
-                                          );
-  dns_advertisement.purpose.purpose = htonl (
-    GNUNET_SIGNATURE_PURPOSE_DNS_RECORD);
-  GNUNET_CRYPTO_hash ("dns",
-                      strlen ("dns"),
-                      &dht_put_key);
-  dht_task = GNUNET_SCHEDULER_add_now (&do_dht_put,
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  dht_task = GNUNET_SCHEDULER_add_now (&do_initial_dht_put,
                                        NULL);
   GNUNET_free (dns_exit);
 }

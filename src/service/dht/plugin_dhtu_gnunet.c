@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2021 GNUnet e.V.
+     Copyright (C) 2021, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -24,9 +24,11 @@
  * @file plugin_dhtu_gnunet.c
  * @brief plain IP based DHT network underlay
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_dhtu_plugin.h"
 #include "gnunet_core_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_hello_uri_lib.h"
 #include "gnunet_peerstore_service.h"
@@ -165,14 +167,9 @@ struct Plugin
   struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
   /**
-   * Identity of this peer.
+   * PILS key ring.
    */
-  struct GNUNET_PeerIdentity my_identity;
-
-  /**
-   * Our private key.
-   */
-  struct GNUNET_CRYPTO_EddsaPrivateKey *my_priv;
+  struct GNUNET_PILS_KeyRing *key_ring;
 
 };
 
@@ -409,6 +406,7 @@ peerinfo_cb (void *cls,
              const struct GNUNET_PEERSTORE_Record *record,
              const char *emsg)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct Plugin *plugin = cls;
   struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
@@ -416,9 +414,10 @@ peerinfo_cb (void *cls,
   hello = record->value;
   if (NULL == hello)
     return;
-  if (0 !=
-      GNUNET_memcmp (&record->peer,
-                     &plugin->my_identity))
+  my_identity = GNUNET_PILS_key_ring_get_identity (plugin->key_ring);
+  if (! my_identity)
+    return;
+  if (0 != GNUNET_memcmp (&record->peer, my_identity))
   {
     GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
     return;
@@ -462,11 +461,15 @@ sync_cb (void *cls)
  */
 static void
 core_init_cb (void *cls,
-              const struct GNUNET_PeerIdentity *my_identity)
+              const struct GNUNET_PeerIdentity *identity)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct Plugin *plugin = cls;
 
-  plugin->my_identity = *my_identity;
+  my_identity = GNUNET_PILS_key_ring_get_identity (plugin->key_ring);
+  GNUNET_assert ((my_identity) &&
+                 (0 == GNUNET_memcmp (my_identity, identity)));
+
   plugin->peerstore_notify = GNUNET_PEERSTORE_monitor_start (plugin->env->cfg,
                                                              GNUNET_YES,
                                                              "peerstore",
@@ -569,7 +572,8 @@ DHTU_gnunet_done (struct GNUNET_DHTU_PluginFunctions *api)
   if (NULL != plugin->peerstore)
     GNUNET_PEERSTORE_disconnect (plugin->peerstore);
   // GPI_plugins_unload ();
-  GNUNET_free (plugin->my_priv);
+  if (plugin->key_ring)
+    GNUNET_PILS_destroy_key_ring (plugin->key_ring);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -594,8 +598,7 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
                            NULL),
     GNUNET_MQ_handler_end ()
   };
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_DHT,
     .version = { 1, 0 },
     .version_max = { 1, 0 },
@@ -603,7 +606,7 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
   };
 
   plugin = GNUNET_new (struct Plugin);
-  plugin->my_priv = GNUNET_CRYPTO_eddsa_key_create_from_configuration (
+  plugin->key_ring = GNUNET_PILS_create_key_ring (
     env->cfg);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);

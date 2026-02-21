@@ -26,6 +26,7 @@ executable(
         libgnunetdht_dep,
         libgnunetutil_dep,
         libgnunetstatistics_dep,
+        libgnunetpils_dep,
         libgnunetregex_dep,
         libgnunetcadet_dep,
     ],
