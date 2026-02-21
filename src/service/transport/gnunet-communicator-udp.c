@@ -2453,7 +2453,7 @@ sock_read (void *cls)
       uhs.sender = ub->sender;
       sender = ub->sender;
       if (0 == memcmp (&sender, my_identity, sizeof (struct
-                                                      GNUNET_PeerIdentity)))
+                                                     GNUNET_PeerIdentity)))
       {
         GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                     "Received our own broadcast\n");
@@ -2704,7 +2704,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
                                           receiver->address_len))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "send");
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Sending KX with payload size %u to %s family %d failed sock %p\n",
                 msize,
                 GNUNET_a2s (receiver->address,
