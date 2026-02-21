@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010-2014, 2018, 2019 GNUnet e.V.
+     Copyright (C) 2010-2014, 2018, 2019, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -34,17 +34,18 @@
  * - Performance testing
  * - Check for memory leaks with coverity/valgrind
  */
+#include <quiche.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
-#include "quiche.h"
-#include "platform.h"
 #include "gnunet_constants.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_communication_service.h"
 #include "gnunet_nat_service.h"
-#include "stdint.h"
-#include "inttypes.h"
 
 #define COMMUNICATOR_CONFIG_SECTION "communicator-quic"
 #define COMMUNICATOR_ADDRESS_PREFIX "quic"
@@ -123,14 +124,9 @@ static uint16_t my_port;
 static quiche_config *config = NULL;
 
 /**
- * Our peer identity
-*/
-struct GNUNET_PeerIdentity my_identity;
-
-/**
- * Our private key.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Connection to NAT service.
@@ -1200,10 +1196,10 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
-  if (NULL != my_private_key)
+  if (NULL != key_ring)
   {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown finished\n");
@@ -1455,14 +1451,19 @@ sock_read (void *cls)
     if (quiche_conn_is_established (peer->conn->conn) && ! peer->id_sent &&
         peer->is_receiver)
     {
+      const struct GNUNET_PeerIdentity *my_identity;
       ssize_t send_len;
       uint64_t err_code;
 
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "handshake established with peer, sending our peer id\n");
+
+      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      GNUNET_assert (my_identity);
+
       send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI,
-                                          (const uint8_t *) &my_identity,
-                                          sizeof(my_identity),
+                                          (const uint8_t *) my_identity,
+                                          sizeof(*my_identity),
                                           false, &err_code);
       if (0 > send_len)
       {
@@ -1656,17 +1657,17 @@ run (void *cls,
   /**
    * Get our public key for initial packet
   */
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  if (NULL == my_private_key)
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  if (NULL == key_ring)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,
       _ (
-        "Transport service is lacking key configuration settings. Exiting.\n"));
+        "Transport service is lacking PILS connection. Exiting.\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
+
   /* start reading */
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
@@ -1727,7 +1728,8 @@ main (int argc, char *const *argv)
   GNUNET_log_from_nocheck (GNUNET_ERROR_TYPE_DEBUG,
                            "transport",
                            "Starting quic communicator\n");
-  ret = (GNUNET_OK == GNUNET_PROGRAM_run (argc,
+  ret = (GNUNET_OK == GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
+                                          argc,
                                           argv,
                                           "gnunet-communicator-quic",
                                           _ ("GNUnet QUIC communicator"),

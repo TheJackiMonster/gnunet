@@ -216,6 +216,7 @@ if quic_dep.found() and get_option('experimental')
             libgnunettransportapplication_dep,
             libgnunetpeerstore_dep,
             libgnunetstatistics_dep,
+            libgnunetpils_dep,
             libgnunetnat_dep,
             gcrypt_dep,
             quic_dep,
