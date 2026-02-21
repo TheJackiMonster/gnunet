@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2010-2014, 2018 GNUnet e.V.
+     Copyright (C) 2010-2014, 2018, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -26,9 +26,11 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_constants.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_transport_communication_service.h"
 
@@ -145,9 +147,9 @@ struct Queue
 };
 
 /**
- * My Peer Identity
+ * PILS key ring
  */
-static struct GNUNET_PeerIdentity my_identity;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * ID of read task
@@ -525,15 +527,19 @@ mq_send (struct GNUNET_MQ_Handle *mq,
          const struct GNUNET_MessageHeader *msg,
          void *impl_state)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct Queue *queue = impl_state;
   size_t msize = ntohs (msg->size);
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   GNUNET_assert (mq == queue->mq);
   GNUNET_assert (NULL == queue->msg);
   // Convert to UNIXMessage
   queue->msg = GNUNET_malloc (msize + sizeof (struct UNIXMessage));
   queue->msg->header.size = htons (msize + sizeof (struct UNIXMessage));
-  queue->msg->sender = my_identity;
+  queue->msg->sender = *my_identity;
   memcpy (&queue->msg[1], msg, msize);
   GNUNET_CONTAINER_DLL_insert (queue_head, queue_tail, queue);
   GNUNET_assert (NULL != unix_sock);
@@ -951,6 +957,11 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_communicator_disconnect (ch);
     ch = NULL;
   }
+  if (NULL != key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
+  }
   if (NULL != stats)
   {
     GNUNET_STATISTICS_destroy (stats, GNUNET_NO);
@@ -1000,22 +1011,21 @@ run (void *cls,
   struct sockaddr_un *un;
   socklen_t un_len;
   char *my_addr;
-  struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
   (void) cls;
   delivering_messages = 0;
 
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  if (NULL == my_private_key)
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+
+  if (NULL == key_ring)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,
       _ (
-        "UNIX communicator is lacking key configuration settings. Exiting.\n"));
+        "UNIX communicator is lacking PILS connection. Exiting.\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg,

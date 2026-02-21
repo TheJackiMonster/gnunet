@@ -161,6 +161,7 @@ executable(
     dependencies: [
         libgnunettransportcommunicator_dep,
         libgnunetpeerstore_dep,
+        libgnunetpils_dep,
         libgnunetstatistics_dep,
         libgnunetnat_dep,
         gcrypt_dep,
