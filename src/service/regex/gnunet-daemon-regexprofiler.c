@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2012, 2013 Christian Grothoff
+     Copyright (C) 2012, 2013, 2026 Christian Grothoff
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -32,6 +32,7 @@
 #include "regex_internal_lib.h"
 #include "regex_test_lib.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 
 /**
@@ -96,9 +97,9 @@ static char *rx_with_pfx;
 static unsigned int rounds = 3;
 
 /**
- * Private key for this peer.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 
 /**
@@ -126,8 +127,8 @@ shutdown_task (void *cls)
     GNUNET_DHT_disconnect (dht_handle);
     dht_handle = NULL;
   }
-  GNUNET_free (my_private_key);
-  my_private_key = NULL;
+  GNUNET_PILS_destroy_key_ring (key_ring);
+  key_ring = NULL;
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Daemon for %s shutting down\n",
@@ -143,6 +144,7 @@ shutdown_task (void *cls)
 static void
 reannounce_regex (void *cls)
 {
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   char *regex = cls;
   struct GNUNET_TIME_Relative random_delay;
 
@@ -154,6 +156,9 @@ reannounce_regex (void *cls)
     GNUNET_free (regex);
     return;
   }
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  if (! my_private_key)
+    return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Announcing regex: %s\n", regex);
   GNUNET_STATISTICS_update (stats_handle, "# regexes announced", 1, GNUNET_NO);
   if ((NULL == announce_handle) && (NULL != regex))
@@ -255,8 +260,8 @@ run (void *cls, char *const *args GNUNET_UNUSED,
 
   cfg = cfg_;
 
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  GNUNET_assert (NULL != my_private_key);
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  GNUNET_assert (NULL != key_ring);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg, "REGEXPROFILER",
                                              "MAX_PATH_COMPRESSION",

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013 GNUnet e.V.
+     Copyright (C) 2013, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -24,6 +24,7 @@
  *        lookup capabilities by regex
  * @author Christian Grothoff
  */
+#include "gnunet_pils_service.h"
 #include "regex_internal_lib.h"
 #include "regex_ipc.h"
 
@@ -78,9 +79,9 @@ static struct GNUNET_DHT_Handle *dht;
 static struct GNUNET_STATISTICS_Handle *stats;
 
 /**
- * Private key for this peer.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 
 /**
@@ -96,8 +97,8 @@ cleanup_task (void *cls)
   GNUNET_STATISTICS_destroy (stats,
                              GNUNET_NO);
   stats = NULL;
-  GNUNET_free (my_private_key);
-  my_private_key = NULL;
+  GNUNET_PILS_destroy_key_ring (key_ring);
+  key_ring = NULL;
 }
 
 
@@ -153,8 +154,12 @@ static void
 handle_announce (void *cls,
                  const struct AnnounceMessage *am)
 {
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct ClientEntry *ce = cls;
   const char *regex;
+
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
+  GNUNET_assert (my_private_key);
 
   regex = (const char *) &am[1];
   ce->frequency = GNUNET_TIME_relative_ntoh (am->refresh_delay);
@@ -309,8 +314,8 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_SERVICE_Handle *service)
 {
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  if (NULL == my_private_key)
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  if (NULL == key_ring)
   {
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -318,8 +323,8 @@ run (void *cls,
   dht = GNUNET_DHT_connect (cfg, 1024);
   if (NULL == dht)
   {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -388,8 +393,8 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "regex",
+  (GNUNET_OS_project_data_gnunet (),
+  "regex",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,
