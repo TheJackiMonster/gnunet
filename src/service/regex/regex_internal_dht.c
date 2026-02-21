@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2012, 2015 GNUnet e.V.
+     Copyright (C) 2012, 2015, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -23,12 +23,16 @@
  * against published regexes.
  * @author Bartlomiej Polot
  */
+#include "gnunet_common.h"
+#include "gnunet_util_lib.h"
 #include "platform.h"
 #include "regex_internal_lib.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_constants.h"
 #include "gnunet_signatures.h"
+#include "src/service/cadet/gnunet-service-cadet.h"
 
 
 #define LOG(kind, ...) GNUNET_log_from (kind, "regex-dht", __VA_ARGS__)
@@ -70,9 +74,9 @@ struct REGEX_INTERNAL_Announcement
   struct REGEX_INTERNAL_Automaton *dfa;
 
   /**
-   * Our private key.
+   * Our PILS key ring.
    */
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *priv;
+  const struct GNUNET_PILS_KeyRing *key_ring;
 
   /**
    * Optional statistics handle to report usage. Can be NULL.
@@ -99,10 +103,17 @@ regex_iterator (void *cls,
                 unsigned int num_edges,
                 const struct REGEX_BLOCK_Edge *edges)
 {
+  const struct GNUNET_CRYPTO_EddsaPublicKey *my_public_key;
+  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct REGEX_INTERNAL_Announcement *h = cls;
   struct RegexBlock *block;
   size_t size;
   unsigned int i;
+
+  my_public_key = GNUNET_PILS_key_ring_get_public_key (h->key_ring);
+  my_private_key = GNUNET_PILS_key_ring_get_private_key (h->key_ring);
+  if ((! my_public_key) || (! my_private_key))
+    return;
 
   LOG (GNUNET_ERROR_TYPE_INFO,
        "DHT PUT for state %s with proof `%s' and %u edges:\n",
@@ -120,7 +131,6 @@ regex_iterator (void *cls,
   if (GNUNET_YES == accepting)
   {
     struct RegexAcceptBlock ab;
-
     LOG (GNUNET_ERROR_TYPE_INFO,
          "State %s is accepting, putting own id\n",
          GNUNET_h2s (key));
@@ -132,10 +142,10 @@ regex_iterator (void *cls,
     ab.expiration_time = GNUNET_TIME_absolute_hton (
       GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_DHT_MAX_EXPIRATION));
     ab.key = *key;
-    GNUNET_CRYPTO_eddsa_key_get_public (h->priv,
-                                        &ab.peer.public_key);
+    GNUNET_memcpy (&(ab.peer.public_key), my_public_key,
+                   sizeof (*my_public_key));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_sign_ (h->priv,
+                   GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
                                               &ab.purpose,
                                               &ab.signature));
 
@@ -187,7 +197,7 @@ regex_iterator (void *cls,
  * Does not free resources, must call #REGEX_INTERNAL_announce_cancel() for that.
  *
  * @param dht An existing and valid DHT service handle. CANNOT be NULL.
- * @param priv our private key, must remain valid until the announcement is cancelled
+ * @param key_ring our key ring, must remain valid until the announcement is cancelled
  * @param regex Regular expression to announce.
  * @param compression How many characters per edge can we squeeze?
  * @param stats Optional statistics handle to report usage. Can be NULL.
@@ -196,7 +206,7 @@ regex_iterator (void *cls,
  */
 struct REGEX_INTERNAL_Announcement *
 REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
-                         const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                         const struct GNUNET_PILS_KeyRing *key_ring,
                          const char *regex,
                          uint16_t compression,
                          struct GNUNET_STATISTICS_Handle *stats)
@@ -208,7 +218,7 @@ REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
   h->regex = regex;
   h->dht = dht;
   h->stats = stats;
-  h->priv = priv;
+  h->key_ring = key_ring;
   h->dfa = REGEX_INTERNAL_construct_dfa (regex, strlen (regex), compression);
   REGEX_INTERNAL_reannounce (h);
   return h;

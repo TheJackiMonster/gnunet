@@ -144,7 +144,6 @@ shutdown_task (void *cls)
 static void
 reannounce_regex (void *cls)
 {
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   char *regex = cls;
   struct GNUNET_TIME_Relative random_delay;
 
@@ -156,9 +155,6 @@ reannounce_regex (void *cls)
     GNUNET_free (regex);
     return;
   }
-  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-  if (! my_private_key)
-    return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Announcing regex: %s\n", regex);
   GNUNET_STATISTICS_update (stats_handle, "# regexes announced", 1, GNUNET_NO);
   if ((NULL == announce_handle) && (NULL != regex))
@@ -167,7 +163,7 @@ reannounce_regex (void *cls)
                 "First time, creating regex: %s\n",
                 regex);
     announce_handle = REGEX_INTERNAL_announce (dht_handle,
-                                               my_private_key,
+                                               key_ring,
                                                regex,
                                                (unsigned
                                                 int) max_path_compression,

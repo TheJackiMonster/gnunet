@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2012, 2013 GNUnet e.V.
+     Copyright (C) 2012, 2013, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -27,6 +27,7 @@
 #define REGEX_INTERNAL_LIB_H
 #include "../../plugin/regex/regex_block_lib.h"
 
+#include "gnunet_pils_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_dht_service.h"
 #include "gnunet_statistics_service.h"
@@ -173,7 +174,7 @@ struct REGEX_INTERNAL_Search;
  * Does not free resources, must call #REGEX_INTERNAL_announce_cancel() for that.
  *
  * @param dht An existing and valid DHT service handle. CANNOT be NULL.
- * @param priv our private key, must remain valid until the announcement is cancelled
+ * @param key_ring our key ring, must remain valid until the announcement is cancelled
  * @param regex Regular expression to announce.
  * @param compression How many characters per edge can we squeeze?
  * @param stats Optional statistics handle to report usage. Can be NULL.
@@ -182,7 +183,7 @@ struct REGEX_INTERNAL_Search;
  */
 struct REGEX_INTERNAL_Announcement *
 REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
-                         const struct GNUNET_CRYPTO_EddsaPrivateKey *priv,
+                         const struct GNUNET_PILS_KeyRing *key_ring,
                          const char *regex,
                          uint16_t compression,
                          struct GNUNET_STATISTICS_Handle *stats);

@@ -154,12 +154,8 @@ static void
 handle_announce (void *cls,
                  const struct AnnounceMessage *am)
 {
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct ClientEntry *ce = cls;
   const char *regex;
-
-  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-  GNUNET_assert (my_private_key);
 
   regex = (const char *) &am[1];
   ce->frequency = GNUNET_TIME_relative_ntoh (am->refresh_delay);
@@ -172,7 +168,7 @@ handle_announce (void *cls,
               GNUNET_STRINGS_relative_time_to_string (ce->frequency,
                                                       GNUNET_NO));
   ce->ah = REGEX_INTERNAL_announce (dht,
-                                    my_private_key,
+                                    key_ring,
                                     regex,
                                     ntohs (am->compression),
                                     stats);
