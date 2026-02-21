@@ -748,7 +748,7 @@ main (int argc,
           GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                               argc,
                               argv,
-                              "gnunet-messenger\0",
+                              "gnunet-messenger [OPTIONS]\0",
                               gettext_noop (description), options,
                               &run,
                               NULL) ? EXIT_SUCCESS : EXIT_FAILURE);
