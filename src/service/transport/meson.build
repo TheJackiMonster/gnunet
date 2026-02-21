@@ -236,6 +236,7 @@ if http3_enabled
             libgnunettransportcommunicator_dep,
             libgnunetpeerstore_dep,
             libgnunetstatistics_dep,
+            libgnunetpils_dep,
             gnutls_dep,
             gcrypt_dep,
             libgnunetnat_dep,

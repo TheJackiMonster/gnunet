@@ -1,6 +1,7 @@
 #include "platform.h"
 #include "gnunet_common.h"
 #include "gnunet_util_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_transport_application_service.h"
 #include "gnunet_transport_communication_service.h"
 #include "gnunet_nat_service.h"
@@ -79,14 +80,9 @@ static struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
- * Our private key.
+ * PILS key ring.
  */
-static struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-
-/**
- * Our peer identity
- */
-static struct GNUNET_PeerIdentity my_identity;
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * IPv6 disabled or not.
@@ -2340,12 +2336,17 @@ recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
   if (GNUNET_YES == connection->is_initiator &&
       GNUNET_NO == connection->id_sent)
   {
+    const struct GNUNET_PeerIdentity *my_identity;
+
+    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+    GNUNET_assert (my_identity);
+
     stream = create_stream (connection, -1);
     rv = ngtcp2_conn_open_bidi_stream (conn, &stream->stream_id, NULL);
 
     submit_post_request (connection, stream,
-                         (uint8_t *) &my_identity,
-                         sizeof (my_identity));
+                         (uint8_t *) my_identity,
+                         sizeof (*my_identity));
 
     connection->id_sent = GNUNET_YES;
     setup_connection_mq (connection);
@@ -3187,10 +3188,10 @@ do_shutdown (void *cls)
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
   }
-  if (NULL != my_private_key)
+  if (NULL != key_ring)
   {
-    GNUNET_free (my_private_key);
-    my_private_key = NULL;
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != is)
   {
@@ -3889,17 +3890,16 @@ run (void *cls,
   /**
    * Get our public key for initial packet
    */
-  my_private_key = GNUNET_CRYPTO_eddsa_key_create_from_configuration (cfg);
-  if (NULL == my_private_key)
+  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  if (NULL == key_ring)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,
       _ (
-        "Transport service is lacking key configuration settings. Exiting.\n"));
+        "Transport service is lacking PILS connection. Exiting.\n"));
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_CRYPTO_eddsa_key_get_public (my_private_key, &my_identity.public_key);
 
   read_task = GNUNET_SCHEDULER_add_read_net (GNUNET_TIME_UNIT_FOREVER_REL,
                                              udp_sock,
