@@ -89,17 +89,18 @@ regex_found (GNUNET_UNUSED void *cls,
              unsigned int put_path_length)
 {
   struct GNUNET_HashCode hash;
+  size_t get_path_size, put_path_size;
   unsigned int i;
+
+  get_path_size = sizeof (struct GNUNET_PeerIdentity) * get_path_length;
+  put_path_size = sizeof (struct GNUNET_PeerIdentity) * put_path_length;
 
   if (GNUNET_YES != GNUNET_CRYPTO_kdf (&hash, sizeof (hash),
                                        "regex_match", 11,
                                        id, sizeof (*id),
-                                       get_path, sizeof (struct
-                                                         GNUNET_PeerIdentity)
-                                       * get_path_length,
-                                       put_path, sizeof (struct
-                                                         GNUNET_PeerIdentity)
-                                       * put_path_length))
+                                       get_path, get_path_size,
+                                       put_path, put_path_size,
+                                       NULL))
     return;
 
   if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (matches, &hash))
@@ -128,8 +129,9 @@ print_announcement (void *cls)
   printf ("> %s\n", expression);
 
   if (cls)
-    delay_task = GNUNET_SCHEDULER_add_delayed (refresh_delay, print_announcement
-                                               , cls);
+    delay_task = GNUNET_SCHEDULER_add_delayed (refresh_delay,
+                                               print_announcement,
+                                               cls);
 }
 
 
