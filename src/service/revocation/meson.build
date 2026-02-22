@@ -51,6 +51,7 @@ executable(
         libgnunetsetu_dep,
         libgnunetgnsrecord_dep,
         libgnunetidentity_dep,
+        libgnunetpils_dep,
     ],
     include_directories: [incdir, configuration_inc],
     install: true,
