@@ -23,6 +23,7 @@
  * @brief code for managing of 'encrypted' sessions (key exchange done)
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet-service-core.h"
 #include "gnunet-service-core_kx.h"
@@ -364,10 +365,14 @@ GSC_SESSIONS_queue_request (struct GSC_ClientActiveRequest *car)
 void
 GSC_SESSIONS_dequeue_request (struct GSC_ClientActiveRequest *car)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct Session *session;
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  if (NULL == my_identity)
+    return;
 
   if (0 == memcmp (&car->target,
-                   &GSC_my_identity,
+                   my_identity,
                    sizeof(struct GNUNET_PeerIdentity)))
     return;
   session = find_session (&car->target);

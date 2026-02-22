@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -28,6 +28,7 @@
 
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
+#include "gnunet_pils_service.h"
 #include "core.h"
 
 
@@ -198,9 +199,9 @@ extern const struct GNUNET_CONFIGURATION_Handle *GSC_cfg;
 extern struct GNUNET_STATISTICS_Handle *GSC_stats;
 
 /**
- * Our identity.
+ * Our PILS key ring.
  */
-extern struct GNUNET_PeerIdentity GSC_my_identity;
+extern struct GNUNET_PILS_KeyRing *GSC_key_ring;
 
 /**
  * Our peer class

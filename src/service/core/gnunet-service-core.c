@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2016 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -23,6 +23,7 @@
  * @brief high-level P2P messaging
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include <gcrypt.h>
 #include "gnunet_util_lib.h"
@@ -30,6 +31,7 @@
 #include "gnunet-service-core_kx.h"
 #include "gnunet-service-core_sessions.h"
 #include "gnunet_constants.h"
+#include "gnunet_pils_service.h"
 
 /**
  * How many messages do we queue up at most for any client? This can
@@ -115,7 +117,7 @@ struct GSC_Client
 /**
  * Our identity.
  */
-struct GNUNET_PeerIdentity GSC_my_identity;
+struct GNUNET_PILS_KeyRing *GSC_key_ring;
 
 /**
  * Our configuration.
@@ -326,11 +328,15 @@ check_client_init (void *cls, const struct InitMessage *im)
 static void
 handle_client_init (void *cls, const struct InitMessage *im)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GSC_Client *c = cls;
   struct GNUNET_MQ_Envelope *env;
   struct InitReplyMessage *irm;
   uint16_t msize;
   const uint16_t *types;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
 
   /* check that we don't have an entry already */
   msize = ntohs (im->header.size) - sizeof(struct InitMessage);
@@ -343,7 +349,7 @@ handle_client_init (void *cls, const struct InitMessage *im)
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multipeermap_put (
                    c->connectmap,
-                   &GSC_my_identity,
+                   my_identity,
                    NULL,
                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
   for (unsigned int i = 0; i < c->tcnt; i++)
@@ -362,7 +368,7 @@ handle_client_init (void *cls, const struct InitMessage *im)
   /* send init reply message */
   env = GNUNET_MQ_msg (irm, GNUNET_MESSAGE_TYPE_CORE_INIT_REPLY);
   irm->reserved = htonl (0);
-  irm->my_identity = GSC_my_identity;
+  irm->my_identity = *my_identity;
   irm->class = GSC_peer_class;
   GNUNET_MQ_send (c->mq, env);
   GSC_SESSIONS_notify_client_about_sessions (c);
@@ -417,10 +423,13 @@ GSC_CLIENTS_solicit_request (struct GSC_ClientActiveRequest *car)
   if (GNUNET_YES !=
       GNUNET_CONTAINER_multipeermap_contains (c->connectmap, &car->target))
   {
+    const struct GNUNET_PeerIdentity *my_identity;
+    my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+    GNUNET_assert (NULL != my_identity);
     /* connection has gone down since, drop request */
     GNUNET_assert (0 !=
                    GNUNET_memcmp (&car->target,
-                                  &GSC_my_identity));
+                                  my_identity));
     GSC_SESSIONS_dequeue_request (car);
     GSC_CLIENTS_reject_request (car, GNUNET_NO);
     return;
@@ -452,17 +461,20 @@ GSC_CLIENTS_solicit_request (struct GSC_ClientActiveRequest *car)
 static void
 handle_client_send_request (void *cls, const struct SendMessageRequest *req)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GSC_Client *c = cls;
   struct GSC_ClientActiveRequest *car;
   int is_loopback;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
 
   if (NULL == c->requests)
     c->requests = GNUNET_CONTAINER_multipeermap_create (16, GNUNET_NO);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Client asked for transmission to `%s'\n",
               GNUNET_i2s (&req->peer));
-  is_loopback = (0 == GNUNET_memcmp (&req->peer,
-                                     &GSC_my_identity));
+  is_loopback = (0 == GNUNET_memcmp (&req->peer, my_identity));
   if ((! is_loopback) &&
       (GNUNET_YES !=
        GNUNET_CONTAINER_multipeermap_contains (c->connectmap, &req->peer)))
@@ -556,34 +568,37 @@ struct TokenizerContext
 static int
 tokenized_cb (void *cls, const struct GNUNET_MessageHeader *message)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TokenizerContext *tc = cls;
   struct GSC_ClientActiveRequest *car = tc->car;
   char buf[92];
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
 
   GNUNET_snprintf (buf,
                    sizeof(buf),
                    gettext_noop ("# bytes of messages of type %u received"),
                    (unsigned int) ntohs (message->type));
   GNUNET_STATISTICS_update (GSC_stats, buf, ntohs (message->size), GNUNET_NO);
-  if (0 == GNUNET_memcmp (&car->target,
-                          &GSC_my_identity))
+  if (0 == GNUNET_memcmp (&car->target, my_identity))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Delivering message of type %u to myself\n",
                 ntohs (message->type));
-    GSC_CLIENTS_deliver_message (&GSC_my_identity,
+    GSC_CLIENTS_deliver_message (my_identity,
                                  message,
                                  ntohs (message->size),
                                  GNUNET_CORE_OPTION_SEND_FULL_OUTBOUND);
-    GSC_CLIENTS_deliver_message (&GSC_my_identity,
+    GSC_CLIENTS_deliver_message (my_identity,
                                  message,
                                  sizeof(struct GNUNET_MessageHeader),
                                  GNUNET_CORE_OPTION_SEND_HDR_OUTBOUND);
-    GSC_CLIENTS_deliver_message (&GSC_my_identity,
+    GSC_CLIENTS_deliver_message (my_identity,
                                  message,
                                  ntohs (message->size),
                                  GNUNET_CORE_OPTION_SEND_FULL_INBOUND);
-    GSC_CLIENTS_deliver_message (&GSC_my_identity,
+    GSC_CLIENTS_deliver_message (my_identity,
                                  message,
                                  sizeof(struct GNUNET_MessageHeader),
                                  GNUNET_CORE_OPTION_SEND_HDR_INBOUND);
@@ -833,11 +848,14 @@ GSC_CLIENTS_notify_client_about_neighbour (
 void
 GSC_complete_initialization_cb (void)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   GSC_SESSIONS_init ();
   GNUNET_SERVICE_resume (service_h);
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               _ ("Core service of `%s' ready.\n"),
-              GNUNET_i2s (&GSC_my_identity));
+              GNUNET_i2s (my_identity));
 }
 
 

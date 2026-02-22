@@ -650,6 +650,7 @@ deliver_message (void *cls, const struct GNUNET_MessageHeader *m)
 static void
 restart_kx (struct GSC_KeyExchangeInfo *kx)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_HashCode h1;
   struct GNUNET_HashCode h2;
 
@@ -667,8 +668,10 @@ restart_kx (struct GSC_KeyExchangeInfo *kx)
                             GNUNET_NO);
 
   monitor_notify_all (kx);
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
   GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
-  GNUNET_CRYPTO_hash (&GSC_my_identity,
+  GNUNET_CRYPTO_hash (my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &h2);
   if (NULL != kx->transcript_hash_ctx)
@@ -712,9 +715,12 @@ handle_transport_notify_connect (void *cls,
                                  const struct GNUNET_PeerIdentity *peer_id,
                                  struct GNUNET_MQ_Handle *mq)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GSC_KeyExchangeInfo *kx;
   (void) cls;
-  if (0 == memcmp (peer_id, &GSC_my_identity, sizeof *peer_id))
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
+  if (0 == memcmp (peer_id, my_identity, sizeof *peer_id))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Ignoring connection to self\n");
@@ -1397,6 +1403,7 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
 static void
 handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct InitiatorHelloCtx *ihm_ctx = cls;
   struct GSC_KeyExchangeInfo *kx = ihm_ctx->kx;
   uint32_t ihm_len = ntohs (ihm_ctx->ihm_e->header.size);
@@ -1480,10 +1487,14 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
                    &ihmp->pk_I,
                    sizeof (struct GNUNET_PeerIdentity));
   }
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
   // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
   /* Check that we are actually in the receiving role */
   GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
-  GNUNET_CRYPTO_hash (&GSC_my_identity,
+  GNUNET_CRYPTO_hash (my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &h2);
   if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
@@ -1543,6 +1554,7 @@ check_initiator_hello (void *cls, const struct InitiatorHello *m)
 static void
 handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GSC_KeyExchangeInfo *kx = cls;
   struct GNUNET_HashCode hash_compare = { 0 };
   struct InitiatorHelloCtx *initiator_hello_cls;
@@ -1584,13 +1596,16 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
   //      1. verify type _INITIATOR_HELLO
   //         - This is implicytly done by arriving within this handler
   //         - or is this about verifying the 'additional data' part of aead?
   //           should it check the encryption + mac? (is this implicitly done
   //           while decrypting?)
   //      2. verify H(pk_R) matches pk_R
-  GNUNET_CRYPTO_hash (&GSC_my_identity,
+  GNUNET_CRYPTO_hash (my_identity,
                       sizeof (struct GNUNET_PeerIdentity),
                       &hash_compare); /* result */
   if (0 != memcmp (&ihm_e->h_pk_R,
@@ -2602,6 +2617,7 @@ resend_initiator_hello (void *cls)
 static void
 send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_ShortHashCode es;
   struct GNUNET_ShortHashCode ets;
@@ -2614,6 +2630,9 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   enum GNUNET_GenericReturnValue ret;
   size_t pt_len;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
   pt_len = sizeof (*ihmp) + strlen (my_services_info);
   c_len = pt_len + AEAD_TAG_BYTES;
   env = GNUNET_MQ_msg_extra (ihm_e,
@@ -2622,8 +2641,8 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   ihmp = (struct InitiatorHelloPayload*) &ihm_e[1];
   ihmp->peer_class = htons (GNUNET_CORE_CLASS_UNKNOWN); // TODO set this to a meaningful
   GNUNET_memcpy (&ihmp->pk_I,
-                 &GSC_my_identity,
-                 sizeof (GSC_my_identity));
+                 my_identity,
+                 sizeof (struct GNUNET_PeerIdentity));
   GNUNET_CRYPTO_hash (&kx->peer, /* what to hash */ // TODO do we do this twice?
                       sizeof (struct GNUNET_PeerIdentity),
                       &ihm_e->h_pk_R); /* result */
@@ -2857,17 +2876,59 @@ peer_id_change_cb (void *cls,
                    const struct GNUNET_HELLO_Parser *parser,
                    const struct GNUNET_HashCode *hash)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   (void) cls;
-  GSC_my_identity = *GNUNET_HELLO_parser_get_id (parser);
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity);
   // TODO check that hash matches last fed hash
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "This peer has now a new peer id: %s\n",
-              GNUNET_i2s (&GSC_my_identity));
-  // TODO if changing from old peer_id to new peer_id: tear down old
-  //      connections, try restart connections over kept addresses?
+              GNUNET_i2s (my_identity));
   /* Continue initialisation of core */
   if (GNUNET_YES == init_phase)
   {
+    struct GNUNET_MQ_MessageHandler handlers[] = {
+      GNUNET_MQ_hd_var_size (initiator_hello,
+                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
+                             struct InitiatorHello,
+                             NULL),
+      GNUNET_MQ_hd_var_size (initiator_done,
+                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE,
+                             struct InitiatorDone,
+                             NULL),
+      GNUNET_MQ_hd_var_size (responder_hello,
+                             GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO,
+                             struct ResponderHello,
+                             NULL),
+      GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
+                               GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE, // TODO rename!
+                               struct EncryptedMessage,
+                               NULL),
+      GNUNET_MQ_handler_end ()
+    };
+
+    nc = GNUNET_notification_context_create (1);
+    transport =
+      GNUNET_TRANSPORT_core_connect (GSC_cfg,
+                                     my_identity,
+                                     handlers,
+                                     NULL, // cls - this connection-independant
+                                           // cls seems not to be needed.
+                                           // the connection-specific cls
+                                           // will be set as a return value
+                                           // of
+                                           // handle_transport_notify_connect
+                                     &handle_transport_notify_connect,
+                                     &handle_transport_notify_disconnect);
+    if (NULL == transport)
+    {
+      GSC_KX_done ();
+      return;
+    }
+
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Connected to TRANSPORT\n");
+
     GSC_complete_initialization_cb ();
     init_phase = GNUNET_NO;
   }
@@ -2882,59 +2943,24 @@ peer_id_change_cb (void *cls,
 int
 GSC_KX_init (void)
 {
-  struct GNUNET_MQ_MessageHandler handlers[] = {
-    GNUNET_MQ_hd_var_size (initiator_hello,
-                           GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
-                           struct InitiatorHello,
-                           NULL),
-    GNUNET_MQ_hd_var_size (initiator_done,
-                           GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE,
-                           struct InitiatorDone,
-                           NULL),
-    GNUNET_MQ_hd_var_size (responder_hello,
-                           GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO,
-                           struct ResponderHello,
-                           NULL),
-    GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
-                             GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE, // TODO rename!
-                             struct EncryptedMessage,
-                             NULL),
-    GNUNET_MQ_handler_end ()
-  };
-
   init_phase = GNUNET_YES;
+  GSC_key_ring = GNUNET_PILS_create_key_ring (GSC_cfg);
+
+  if (NULL == GSC_key_ring)
+  {
+    GSC_KX_done ();
+    return GNUNET_SYSERR;
+  }
+
   pils = GNUNET_PILS_connect (GSC_cfg,
                               peer_id_change_cb,
-                              NULL); // TODO potentially wait
-  // until we have a peer_id?
-  // pay attention to whether
-  // we have one anyways
+                              NULL);
   if (NULL == pils)
   {
     GSC_KX_done ();
     return GNUNET_SYSERR;
   }
 
-  nc = GNUNET_notification_context_create (1);
-  transport =
-    GNUNET_TRANSPORT_core_connect (GSC_cfg,
-                                   &GSC_my_identity,
-                                   handlers,
-                                   NULL, // cls - this connection-independant
-                                         // cls seems not to be needed.
-                                         // the connection-specific cls
-                                         // will be set as a return value
-                                         // of
-                                         // handle_transport_notify_connect
-                                   &handle_transport_notify_connect,
-                                   &handle_transport_notify_disconnect);
-  if (NULL == transport)
-  {
-    GSC_KX_done ();
-    return GNUNET_SYSERR;
-  }
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Connected to TRANSPORT\n");
   return GNUNET_OK;
 }
 
@@ -2959,6 +2985,11 @@ GSC_KX_done ()
   {
     GNUNET_PILS_disconnect (pils);
     pils = NULL;
+  }
+  if (NULL != GSC_key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (GSC_key_ring);
+    GSC_key_ring = NULL;
   }
   if (NULL != transport)
   {
