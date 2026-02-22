@@ -29,6 +29,7 @@
 #include "gnunet-service-messenger_room.h"
 
 #include "gnunet_common.h"
+#include "gnunet_pils_service.h"
 #include "messenger_api_util.h"
 
 static void
@@ -65,7 +66,7 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
   service->shutdown = GNUNET_SCHEDULER_add_shutdown (&callback_shutdown_service,
                                                      service);
 
-  service->peer = NULL;
+  service->key_ring = GNUNET_PILS_create_key_ring (service->config, NULL, NULL);
   service->dir = NULL;
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (service->config,
@@ -186,10 +187,10 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
     service->dir = NULL;
   }
 
-  if (service->peer)
+  if (service->key_ring)
   {
-    GNUNET_free (service->peer);
-    service->peer = NULL;
+    GNUNET_PILS_destroy_key_ring (service->key_ring);
+    service->key_ring = NULL;
   }
 
   GNUNET_SERVICE_shutdown (service->service);
@@ -255,26 +256,17 @@ enum GNUNET_GenericReturnValue
 get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer)
 {
-  enum GNUNET_GenericReturnValue result;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   GNUNET_assert ((service) && (peer));
 
-  if (service->peer)
-  {
-    GNUNET_memcpy (peer, service->peer, sizeof(struct GNUNET_PeerIdentity));
-    return GNUNET_OK;
-  }
+  my_identity = GNUNET_PILS_key_ring_get_identity (service->key_ring);
 
-  result = GNUNET_CRYPTO_get_peer_identity (service->config, peer);
+  if (NULL == my_identity)
+    return GNUNET_SYSERR;
 
-  if (GNUNET_OK != result)
-    return result;
-
-  if (! service->peer)
-    service->peer = GNUNET_new (struct GNUNET_PeerIdentity);
-
-  GNUNET_memcpy (service->peer, peer, sizeof(struct GNUNET_PeerIdentity));
-  return result;
+  GNUNET_memcpy (peer, my_identity, sizeof(struct GNUNET_PeerIdentity));
+  return GNUNET_OK;
 }
 
 

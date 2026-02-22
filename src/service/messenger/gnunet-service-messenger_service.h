@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,6 +27,7 @@
 #define GNUNET_SERVICE_MESSENGER_SERVICE_H
 
 #include "gnunet_util_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 
 #include "gnunet-service-messenger_list_handles.h"
@@ -43,7 +44,7 @@ struct GNUNET_MESSENGER_Service
 
   struct GNUNET_SCHEDULER_Task *shutdown;
 
-  struct GNUNET_PeerIdentity *peer;
+  struct GNUNET_PILS_KeyRing *key_ring;
   char *dir;
 
   enum GNUNET_GenericReturnValue auto_connecting;

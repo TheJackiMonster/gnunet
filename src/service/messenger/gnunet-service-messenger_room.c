@@ -698,7 +698,8 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
     if (GNUNET_YES != new_message)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Sending duplicate message failed!\n");
+                  "Sending duplicate message failed: %s\n",
+                  GNUNET_h2s (&hash));
       return GNUNET_SYSERR;
     }
   }

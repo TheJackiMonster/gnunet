@@ -86,6 +86,7 @@ executable(
         libgnunetmessenger_dep,
         libgnunetutil_dep,
         libgnunetidentity_dep,
+        libgnunetpils_dep,
         libgnunetstatistics_dep,
         libgnunetcadet_dep,
     ],
