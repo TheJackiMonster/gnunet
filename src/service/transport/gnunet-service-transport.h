@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010,2011 GNUnet e.V.
+     Copyright (C) 2010,2011, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -52,11 +52,6 @@ extern struct GNUNET_PeerIdentity GST_my_identity;
  * Handle to peerinfo service.
  */
 extern struct GNUNET_PEERINFO_Handle *GST_peerinfo;
-
-/**
- * Our private key.
- */
-extern struct GNUNET_CRYPTO_EddsaPrivateKey GST_my_private_key;
 
 /**
  * ATS handle.

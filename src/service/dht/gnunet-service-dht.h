@@ -79,11 +79,6 @@ extern struct GNUNET_PILS_KeyRing *GDS_key_ring;
  */
 extern struct GNUNET_HashCode GDS_my_identity_hash;
 
-/**
- * Our private key.
- */
-extern struct GNUNET_CRYPTO_EddsaPrivateKey GDS_my_private_key;
-
 
 /**
  * Ask all underlays to connect to peer @a pid at @a address.

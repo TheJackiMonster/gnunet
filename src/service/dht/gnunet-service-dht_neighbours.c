@@ -34,6 +34,7 @@
 #include "gnunet-service-dht_routing.h"
 #include "dht.h"
 #include "dht_helper.h"
+#include "gnunet_util_lib.h"
 
 #define LOG_TRAFFIC(kind, ...) GNUNET_log_from (kind, "dht-traffic", \
                                                 __VA_ARGS__)
@@ -1299,13 +1300,17 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   }
   for (unsigned int i = 0; i < target_count; i++)
   {
+    const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
     struct PeerInfo *target = targets[i];
     struct PeerPutMessage *ppm;
     char buf[msize] GNUNET_ALIGN;
 
+    my_private_key = GNUNET_PILS_key_ring_get_private_key (GDS_key_ring);
+    GNUNET_assert (my_private_key);
+
     ppm = (struct PeerPutMessage *) buf;
     GDS_helper_make_put_message (ppm, msize,
-                                 &GDS_my_private_key,
+                                 my_private_key,
                                  &target->id,
                                  &target->phash,
                                  bf,
@@ -1614,9 +1619,13 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     }
     if (tracking)
     {
+      const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
       struct GNUNET_CRYPTO_EddsaSignature sig;
       void *tgt = &paths[get_path_length + ppl];
       const struct GNUNET_PeerIdentity *pred;
+
+      my_private_key = GNUNET_PILS_key_ring_get_private_key (GDS_key_ring);
+      GNUNET_assert (my_private_key);
 
       if (ppl + get_path_length > 0)
         pred = &paths[ppl + get_path_length - 1].pred;
@@ -1628,7 +1637,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
          so this is crucial to avoid sending garbage. */
       GDS_helper_sign_path (bd->data,
                             bd->data_size,
-                            &GDS_my_private_key,
+                            my_private_key,
                             bd->expiration_time,
                             pred,
                             &pi->id,

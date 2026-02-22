@@ -162,11 +162,6 @@ struct GNUNET_PILS_KeyRing *GDS_key_ring;
 struct GNUNET_HashCode GDS_my_identity_hash;
 
 /**
- * Our private key.
- */
-struct GNUNET_CRYPTO_EddsaPrivateKey GDS_my_private_key;
-
-/**
  * Handles for the DHT underlays.
  */
 static struct GDS_Underlay *u_head;
