@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2014, 2016 GNUnet e.V.
+     Copyright (C) 2009-2014, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -206,8 +206,6 @@ GSC_SESSIONS_end (const struct GNUNET_PeerIdentity *pid)
 }
 
 
-
-
 /**
  * Create a session, a key exchange was just completed.
  *
@@ -227,7 +225,7 @@ GSC_SESSIONS_create (const struct GNUNET_PeerIdentity *peer,
               GNUNET_i2s (peer));
   session = GNUNET_new (struct Session);
   // TODO
-  //session->services = GSC_SVCI_init ();
+  // session->services = GSC_SVCI_init ();
   session->peer = peer;
   session->kx = kx;
   session->class = class;
@@ -268,8 +266,6 @@ GSC_SESSIONS_reinit (const struct GNUNET_PeerIdentity *peer)
     return;
   }
 }
-
-
 
 
 /**
@@ -655,7 +651,10 @@ GSC_SESSIONS_transmit (struct GSC_ClientActiveRequest *car,
 
   session = find_session (&car->target);
   if (NULL == session)
+  {
+    GSC_CLIENTS_reject_request (car, GNUNET_YES);
     return;
+  }
   msize = ntohs (msg->size);
   sme = GNUNET_malloc (sizeof(struct SessionMessageEntry) + msize);
   GNUNET_memcpy (&sme[1], msg, msize);

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2013, 2016, 2024-2025 GNUnet e.V.
+     Copyright (C) 2009-2013, 2016, 2024-2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -34,6 +34,8 @@
  * peers
  * @author Christian Grothoff, ch3
  */
+#include "gnunet_common.h"
+#include "gnunet_util_lib.h"
 #include "platform.h"
 #include "gnunet-service-core_kx.h"
 #include "gnunet_transport_core_service.h"
@@ -692,7 +694,6 @@ restart_kx (struct GSC_KeyExchangeInfo *kx)
     kx->role = ROLE_RESPONDER;
     monitor_notify_all (kx);
   }
-
 }
 
 
@@ -1381,7 +1382,8 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
   GNUNET_MQ_send_copy (kx->mq, env);
   kx->resend_env = env;
   kx->resend_tries_left = RESEND_MAX_TRIES;
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent ResponderHello\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent ResponderHello: %d %d\n", kx->role,
+              kx->status);
 
   kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
                                                   &resend_responder_hello,
@@ -1466,8 +1468,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
       GNUNET_break_op (0);
       GNUNET_free (ihm_ctx->ihm_e);
       GNUNET_free (ihm_ctx);
-      GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
-      kx->transcript_hash_ctx = NULL;
+      restart_kx (kx);
       return;
     }
     /* now forward it considering the encrypted messages that the initiator was
@@ -1558,14 +1559,24 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
   {
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Already received InitiatorHello)\n");
+                "Already received InitiatorHello: %d %d\n", kx->role, kx->status
+                );
     return;
   }
-  GNUNET_assert (NULL == kx->transcript_hash_ctx); // FIXME this triggers sometimes - why?
+  else if ((kx->status > GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED) &&
+           (NULL != kx->transcript_hash_ctx))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Already received InitiatorHello and sent ResponderHello: %d %d\n",
+                kx->role, kx->status);
+    return;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received InitiatorHello: %d %d\n", kx->
+              role, kx->status);
+  GNUNET_assert (NULL == kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_assert (NULL != kx->transcript_hash_ctx);
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received InitiatorHello\n");
   GNUNET_STATISTICS_update (GSC_stats,
                             gettext_noop ("# key exchanges initiated"),
                             1,
@@ -1723,9 +1734,10 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Could not verify \"responder finished\"\n");
     GNUNET_free (rh_ctx->rhp);
-    GNUNET_free (rh_ctx->hc);
+    GNUNET_CRYPTO_hash_context_abort (rh_ctx->hc);
     GNUNET_free (rh_ctx);
     GNUNET_assert (0);
+    return;
   }
 
 
@@ -1782,10 +1794,10 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
   generate_initiator_finished (&transcript,
                                &kx->master_secret,
                                &idm_p->finished);
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-              "Ifinished: `%s'\n",
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "InteratorFinished: `%s'\n",
               GNUNET_h2s (&idm_p->finished));
-  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Transcript `%s'\n",
               GNUNET_h2s (&transcript));
   // 7. Send InteratorFinished message encrypted with the key derived from IHTS to R
@@ -1840,7 +1852,8 @@ handle_responder_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_I)
                    enc_key)); // k - key RHTS
 
   GNUNET_MQ_send_copy (kx->mq, env);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent InitiatorDone\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sent InitiatorDone: %d %d\n", kx->role,
+              kx->status);
 
 
   kx->resend_env = env;
@@ -1887,7 +1900,8 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   unsigned char enc_nonce[AEAD_NONCE_BYTES];
   enum GNUNET_GenericReturnValue ret;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ResponderHello\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received ResponderHello: %d %d\n", kx->
+              role, kx->status);
 
   hc = GNUNET_CRYPTO_hash_context_copy (kx->transcript_hash_ctx);
   if (NULL != kx->resend_task)
@@ -1907,6 +1921,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
     GNUNET_break_op (0);
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "I am the responder! Ignoring.\n");
+    GNUNET_CRYPTO_hash_context_abort (hc);
     return;
   }
   GNUNET_CRYPTO_hash_context_read (hc,
@@ -1926,7 +1941,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Something went wrong decapsulating ss_e\n");
-    GNUNET_free (hc);
+    GNUNET_CRYPTO_hash_context_abort (hc);
     return;
   }
   // 3. Generate IHTS and RHTS from Section 5 and decrypt ServicesInfo, cI and ResponderFinished.
@@ -1988,7 +2003,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
                   "Something went wrong decrypting: %d\n", ret);
       GNUNET_free (rh_ctx->rhp);
       GNUNET_free (rh_ctx);
-      GNUNET_free (hc);
+      GNUNET_CRYPTO_hash_context_abort (hc);
       return;
     }
     // FIXME nonce reuse (see encryption)
@@ -2015,7 +2030,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
                   "Something went wrong decrypting finished field: %d\n", ret);
       GNUNET_free (rh_ctx->rhp);
       GNUNET_free (rh_ctx);
-      GNUNET_free (hc);
+      GNUNET_CRYPTO_hash_context_abort (hc);
       return;
     }
     GNUNET_memcpy (rh_ctx->finished_enc,
@@ -2069,7 +2084,8 @@ handle_initiator_done (void *cls, const struct InitiatorDone *idm_e)
   struct ConfirmationAck ack_r;
   int8_t ret;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received InitiatorDone\n");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Received InitiatorDone: %d %d\n", kx->
+              role, kx->status);
   if (NULL != kx->resend_task)
   {
     GNUNET_SCHEDULER_cancel (kx->resend_task);
@@ -2551,6 +2567,11 @@ handle_transport_notify_disconnect (void *cls,
   }
   kx->status = GNUNET_CORE_KX_PEER_DISCONNECT;
   monitor_notify_all (kx);
+  if (kx->transcript_hash_ctx)
+  {
+    GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
+    kx->transcript_hash_ctx = NULL;
+  }
   GNUNET_CONTAINER_DLL_remove (kx_head, kx_tail, kx);
   GNUNET_MST_destroy (kx->mst);
   GNUNET_free (kx);
@@ -2564,7 +2585,7 @@ resend_initiator_hello (void *cls)
 
   kx->resend_task = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-              "Resending initiator hello.\n");
+              "Resending InitiatorHello.\n");
   GNUNET_MQ_send_copy (kx->mq, kx->resend_env);
   // FIXME (Exponential) backoff?
   kx->resend_task = GNUNET_SCHEDULER_add_delayed (RESEND_TIMEOUT,
@@ -2607,6 +2628,8 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
                       sizeof (struct GNUNET_PeerIdentity),
                       &ihm_e->h_pk_R); /* result */
   // TODO init hashcontext/transcript_hash
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Send InitiatorHello: %d %d\n", kx->role,
+              kx->status);
   GNUNET_assert (NULL == kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = GNUNET_CRYPTO_hash_context_start ();
   GNUNET_assert (NULL != kx->transcript_hash_ctx);
