@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2016 GNUnet e.V.
+     Copyright (C) 2009-2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -28,6 +28,7 @@
 
 #include "gnunet-service-dht_datacache.h"
 #include "gnunet-service-dht_neighbours.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 
 
@@ -71,7 +72,7 @@ extern struct GNUNET_MessageHeader *GDS_my_hello;
 /**
  * Identity of this peer.
  */
-extern struct GNUNET_PeerIdentity GDS_my_identity;
+extern struct GNUNET_PILS_KeyRing *GDS_key_ring;
 
 /**
  * Hash of the identity of this peer.

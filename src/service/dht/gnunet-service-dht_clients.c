@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2016, 2017, 2022 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2016, 2017, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -1001,18 +1001,23 @@ forward_reply (void *cls,
     xsize += sizeof (struct GNUNET_PeerIdentity);
 
 #if SUPER_REDUNDANT_CHECK
-  GNUNET_break (0 ==
-                GNUNET_DHT_verify_path (bd->data,
-                                        bd->data_size,
-                                        bd->expiration_time,
-                                        truncated
-                                        ? &bd->trunc_peer
-                                        : NULL,
-                                        bd->put_path,
-                                        bd->put_path_length,
-                                        frc->get_path,
-                                        frc->get_path_length,
-                                        &GDS_my_identity));
+  {
+    const struct GNUNET_PeerIdentity *my_identity;
+    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    GNUNET_assert (NULL != my_identity);
+    GNUNET_break (0 ==
+                  GNUNET_DHT_verify_path (bd->data,
+                                          bd->data_size,
+                                          bd->expiration_time,
+                                          truncated
+                                          ? &bd->trunc_peer
+                                          : NULL,
+                                          bd->put_path,
+                                          bd->put_path_length,
+                                          frc->get_path,
+                                          frc->get_path_length,
+                                          my_identity));
+  }
 #endif
 
   env = GNUNET_MQ_msg_extra (reply,
@@ -1083,21 +1088,26 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
     return false;
   }
 #if SANITY_CHECKS > 1
-  if (0 !=
-      GNUNET_DHT_verify_path (bd->data,
-                              bd->data_size,
-                              bd->expiration_time,
-                              truncated
-                              ? &bd->trunc_peer
-                              : NULL,
-                              bd->put_path,
-                              bd->put_path_length,
-                              get_path,
-                              get_path_length,
-                              &GDS_my_identity))
   {
-    GNUNET_break (0);
-    return false;
+    const struct GNUNET_PeerIdentity *my_identity;
+    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    GNUNET_assert (NULL != my_identity);
+    if (0 !=
+        GNUNET_DHT_verify_path (bd->data,
+                                bd->data_size,
+                                bd->expiration_time,
+                                truncated
+                                ? &bd->trunc_peer
+                                : NULL,
+                                bd->put_path,
+                                bd->put_path_length,
+                                get_path,
+                                get_path_length,
+                                my_identity))
+    {
+      GNUNET_break (0);
+      return false;
+    }
   }
 #endif
   frc.bd = bd;

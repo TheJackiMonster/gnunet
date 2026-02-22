@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2017, 2021, 2022 GNUnet e.V.
+     Copyright (C) 2009-2017, 2021, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -646,14 +646,17 @@ GDS_u_connect (void *cls,
                const struct GNUNET_PeerIdentity *pid,
                void **ctx)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GDS_Underlay *u = cls;
   struct PeerInfo *pi;
   struct PeerBucket *bucket;
   bool do_hold = false;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
   /* Check for connect to self message */
-  if (0 == GNUNET_memcmp (&GDS_my_identity,
-                          pid))
+  if (0 == GNUNET_memcmp (my_identity, pid))
     return;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Connected to peer %s\n",
@@ -1223,6 +1226,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                            uint16_t hop_count,
                            struct GNUNET_CONTAINER_BloomFilter *bf)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
@@ -1237,8 +1241,11 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   struct GNUNET_PeerIdentity trunc_peer_out;
   enum GNUNET_GenericReturnValue ret;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
   ret = GDS_helper_put_message_get_size (&msize,
-                                         &GDS_my_identity,
+                                         my_identity,
                                          bd->ro, &ro,
                                          bd->expiration_time,
                                          bd->data, bd->data_size,
@@ -1252,7 +1259,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   /* Path may have been truncated by the call above */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding myself (%s) to PUT bloomfilter for %s with RO(%s/%s)\n",
-              GNUNET_i2s (&GDS_my_identity),
+              GNUNET_i2s (my_identity),
               GNUNET_h2s (&bd->key),
               (bd->ro & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE) ? "x" : "-",
               (bd->ro & GNUNET_DHT_RO_RECORD_ROUTE) ? "R" : "-");
@@ -1280,7 +1287,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                 "Routing PUT for %s terminates after %u hops at %s\n",
                 GNUNET_h2s (&bd->key),
                 (unsigned int) hop_count,
-                GNUNET_i2s (&GDS_my_identity));
+                GNUNET_i2s (my_identity));
     return GNUNET_NO;
   }
   for (unsigned int i = 0; i < target_count; i++)
@@ -1339,11 +1346,14 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                            struct GNUNET_BLOCK_Group *bg,
                            struct GNUNET_CONTAINER_BloomFilter *peer_bf)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
   size_t result_filter_size;
   void *result_filter;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
 
   GNUNET_assert (NULL != peer_bf);
   GNUNET_STATISTICS_update (GDS_stats,
@@ -1357,7 +1367,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                                    &targets);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Adding myself (%s) to GET bloomfilter for %s with RO(%s/%s)\n",
-              GNUNET_i2s (&GDS_my_identity),
+              GNUNET_i2s (my_identity),
               GNUNET_h2s (key),
               (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE) ? "x" : "-",
               (options & GNUNET_DHT_RO_RECORD_ROUTE) ? "R" : "-");
@@ -1370,7 +1380,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                 "Routing GET for %s terminates after %u hops at %s\n",
                 GNUNET_h2s (key),
                 (unsigned int) hop_count,
-                GNUNET_i2s (&GDS_my_identity));
+                GNUNET_i2s (my_identity));
     return GNUNET_NO;
   }
   if (GNUNET_OK !=
@@ -1470,7 +1480,11 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
     : NULL;
   bool tracking = (0 != (ro & GNUNET_DHT_RO_RECORD_ROUTE));
 #if SANITY_CHECKS > 1
+  const struct GNUNET_PeerIdentity *my_identity;
   unsigned int failure_offset;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity);
 
   failure_offset
     = GNUNET_DHT_verify_path (bd->data,
@@ -1481,7 +1495,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                               ppl,
                               get_path,
                               get_path_length,
-                              &GDS_my_identity);
+                              my_identity);
   if (0 != failure_offset)
   {
     GNUNET_assert (failure_offset <= ppl + get_path_length);
@@ -1631,13 +1645,17 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                   GNUNET_B2S (&sig));
 #if SANITY_CHECKS > 1
       {
+        const struct GNUNET_PeerIdentity *my_identity;
         struct GNUNET_DHT_PathElement xpaths[get_path_length + 1];
+
+        my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+        GNUNET_assert (NULL != my_identity);
 
         memcpy (xpaths,
                 &paths[ppl],
                 get_path_length * sizeof (struct GNUNET_DHT_PathElement));
         xpaths[get_path_length].sig = sig;
-        xpaths[get_path_length].pred = GDS_my_identity;
+        xpaths[get_path_length].pred = *my_identity;
         if (0 !=
             GNUNET_DHT_verify_path (bd->data,
                                     bd->data_size,
@@ -1879,17 +1897,22 @@ handle_dht_p2p_put (void *cls,
       pp[putlen].pred = peer->id;
       pp[putlen].sig = *last_sig;
 #if SANITY_CHECKS
-      /* TODO: might want to eventually implement probabilistic
-         load-based path verification, but for now it is all or nothing */
-      failure_offset
-        = GNUNET_DHT_verify_path (bd.data,
-                                  bd.data_size,
-                                  bd.expiration_time,
-                                  trunc_peer,
-                                  pp,
-                                  putlen + 1,
-                                  NULL, 0,   /* get_path */
-                                  &GDS_my_identity);
+      {
+        const struct GNUNET_PeerIdentity *my_identity;
+        my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+        GNUNET_assert (NULL != my_identity);
+        /* TODO: might want to eventually implement probabilistic
+          load-based path verification, but for now it is all or nothing */
+        failure_offset
+          = GNUNET_DHT_verify_path (bd.data,
+                                    bd.data_size,
+                                    bd.expiration_time,
+                                    trunc_peer,
+                                    pp,
+                                    putlen + 1,
+                                    NULL, 0,   /* get_path */
+                                    my_identity);
+      }
 #else
       failure_offset = 0;
 #endif
@@ -2140,8 +2163,12 @@ handle_dht_p2p_get (void *cls,
   }
 
   {
+    const struct GNUNET_PeerIdentity *my_identity;
     struct GNUNET_BLOCK_Group *bg;
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
+
+    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    GNUNET_assert (NULL != my_identity);
 
     peer_bf = GNUNET_CONTAINER_bloomfilter_init (get->bloomfilter,
                                                  DHT_BLOOM_SIZE,
@@ -2160,7 +2187,7 @@ handle_dht_p2p_get (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "GET for %s at %s after %u hops\n",
                 GNUNET_h2s (&get->key),
-                GNUNET_i2s (&GDS_my_identity),
+                GNUNET_i2s (my_identity),
                 (unsigned int) hop_count);
     /* local lookup (this may update the bg) */
     if ( (0 != (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE)) ||
@@ -2455,18 +2482,23 @@ handle_dht_p2p_result (void *cls,
             last_sig,
             sizeof (*last_sig));
 #if SANITY_CHECKS
-    /* TODO: might want to eventually implement probabilistic
-       load-based path verification, but for now it is all or nothing */
-    failure_offset
-      = GNUNET_DHT_verify_path (bd.data,
-                                bd.data_size,
-                                bd.expiration_time,
-                                trunc_peer,
-                                put_path,
-                                put_path_length,
-                                gp,
-                                get_path_length + 1,
-                                &GDS_my_identity);
+    {
+      const struct GNUNET_PeerIdentity *my_identity;
+      my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+      GNUNET_assert (NULL != my_identity);
+      /* TODO: might want to eventually implement probabilistic
+        load-based path verification, but for now it is all or nothing */
+      failure_offset
+        = GNUNET_DHT_verify_path (bd.data,
+                                  bd.data_size,
+                                  bd.expiration_time,
+                                  trunc_peer,
+                                  put_path,
+                                  put_path_length,
+                                  gp,
+                                  get_path_length + 1,
+                                  my_identity);
+    }
 #else
     failure_offset = 0;
 #endif
@@ -2657,13 +2689,16 @@ GDS_try_connect (void *cls,
                  const struct GNUNET_PeerIdentity *pid,
                  const char *uri)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_HashCode phash;
   int peer_bucket;
   struct PeerBucket *bucket;
   (void) cls;
 
-  if (0 == GNUNET_memcmp (&GDS_my_identity,
-                          pid))
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity);
+
+  if (0 == GNUNET_memcmp (my_identity, pid))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Got a HELLO for my own PID, ignoring it\n");
@@ -2769,10 +2804,10 @@ GDS_NEIGHBOURS_done ()
 }
 
 
-struct GNUNET_PeerIdentity *
+const struct GNUNET_PeerIdentity *
 GDS_NEIGHBOURS_get_id ()
 {
-  return &GDS_my_identity;
+  return GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
 }
 
 

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2016 GNUnet e.V.
+     Copyright (C) 2009, 2010, 2011, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -152,9 +152,9 @@ static struct PilsRequest *pils_requests_tail;
 struct GNUNET_MessageHeader *GDS_my_hello;
 
 /**
- * Identity of this peer.
+ * PILS key ring.
  */
-struct GNUNET_PeerIdentity GDS_my_identity;
+struct GNUNET_PILS_KeyRing *GDS_key_ring;
 
 /**
  * Hash of the identity of this peer.
@@ -477,10 +477,12 @@ pid_change_cb (void *cls,
                const struct GNUNET_HELLO_Parser *parser,
                const struct GNUNET_HashCode *hash)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   (void) cls;
 
-  GDS_my_identity = *GNUNET_HELLO_parser_get_id (parser);
-  GNUNET_CRYPTO_hash (&GDS_my_identity,
+  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity);
+  GNUNET_CRYPTO_hash (my_identity,
                       sizeof(struct GNUNET_PeerIdentity),
                       &GDS_my_identity_hash);
   if (NULL != GDS_my_hello)
@@ -510,43 +512,12 @@ run (void *cls,
 {
   GDS_cfg = c;
   GDS_service = service;
+  GDS_key_ring = GNUNET_PILS_create_key_ring (GDS_cfg);
+  GNUNET_assert (NULL != GDS_key_ring);
   GDS_pils = GNUNET_PILS_connect (GDS_cfg, pid_change_cb, NULL);
   GNUNET_assert (NULL != GDS_pils);
-  /* Wait until we get the first peer id until we actually start other parts of
-   * the service */
-  char *keyfile;
+  memset (&GDS_my_identity_hash, 0, sizeof (GDS_my_identity_hash));
 
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (GDS_cfg,
-                                               "PEER",
-                                               "PRIVATE_KEY",
-                                               &keyfile))
-  {
-    GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
-                               "PEER",
-                               "PRIVATE_KEY");
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &GDS_my_private_key))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to setup peer's private key\n");
-    GNUNET_free (keyfile);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_free (keyfile);
-
-
-  GNUNET_CRYPTO_eddsa_key_get_public (&GDS_my_private_key,
-                                      &GDS_my_identity.public_key);
-  GNUNET_CRYPTO_hash (&GDS_my_identity,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &GDS_my_identity_hash);
   GDS_block_context = GNUNET_BLOCK_context_create (GDS_cfg);
   GDS_stats = GNUNET_STATISTICS_create ("dht",
                                         GDS_cfg);

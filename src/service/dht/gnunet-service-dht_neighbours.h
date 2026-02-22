@@ -219,7 +219,7 @@ GDS_NEIGHBOURS_done (void);
  *
  * @return identity of the local node
  */
-struct GNUNET_PeerIdentity *
+const struct GNUNET_PeerIdentity *
 GDS_NEIGHBOURS_get_id (void);
 
 
