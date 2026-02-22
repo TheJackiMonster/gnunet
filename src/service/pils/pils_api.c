@@ -133,6 +133,16 @@ struct GNUNET_PILS_KeyRing
   struct GNUNET_PILS_Handle *pils;
 
   /**
+   * Initial callback
+   */
+  GNUNET_SCHEDULER_TaskCallback init_cb;
+
+  /**
+   * Closure for initial callback
+   */
+  void *cls;
+
+  /**
    * Initial key material
    */
   unsigned char initial_key_material[256 / 8];
@@ -631,6 +641,7 @@ pid_change_cb (void *cls,
                const struct GNUNET_HashCode *addr_hash)
 {
   struct GNUNET_PILS_KeyRing *key_ring;
+  enum GNUNET_GenericReturnValue initialized;
 
   GNUNET_assert ((cls) && (addr_hash));
 
@@ -640,7 +651,12 @@ pid_change_cb (void *cls,
               "Got PID to derive from `%s':\n",
               GNUNET_h2s (addr_hash));
   if (NULL == key_ring->private_key)
+  {
     key_ring->private_key = GNUNET_new (struct GNUNET_CRYPTO_EddsaPrivateKey);
+    initialized = GNUNET_YES;
+  }
+  else
+    initialized = GNUNET_NO;
 
   GNUNET_PILS_derive_pid (sizeof (key_ring->initial_key_material),
                           key_ring->initial_key_material,
@@ -651,6 +667,14 @@ pid_change_cb (void *cls,
   GNUNET_CRYPTO_hash (&(key_ring->identity),
                       sizeof (key_ring->identity),
                       &(key_ring->hash));
+
+  if (GNUNET_YES != initialized)
+    return;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Initialize key ring\n");
+
+  if (key_ring->init_cb)
+    key_ring->init_cb (key_ring->cls);
 }
 
 
@@ -664,7 +688,9 @@ pid_change_cb (void *cls,
  *
  */
 struct GNUNET_PILS_KeyRing*
-GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg)
+GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                             GNUNET_SCHEDULER_TaskCallback init_cb,
+                             void *cls)
 {
   char *keyfile;
   struct GNUNET_CRYPTO_EddsaPrivateKey key;
@@ -696,10 +722,12 @@ GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
   GNUNET_free (keyfile);
 
-  struct GNUNET_PILS_KeyRing *key_ring = GNUNET_new (struct GNUNET_PILS_KeyRing)
-  ;
+  struct GNUNET_PILS_KeyRing *key_ring =
+    GNUNET_new (struct GNUNET_PILS_KeyRing);
   if (NULL == key_ring)
     return NULL;
+  key_ring->init_cb = init_cb;
+  key_ring->cls = cls;
 
   GNUNET_assert (sizeof (key_ring->initial_key_material) == sizeof key.d);
 

@@ -463,12 +463,10 @@ static void
 core_init_cb (void *cls,
               const struct GNUNET_PeerIdentity *identity)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
   struct Plugin *plugin = cls;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (plugin->key_ring);
-  GNUNET_assert ((my_identity) &&
-                 (0 == GNUNET_memcmp (my_identity, identity)));
+  if (NULL == identity)
+    return;
 
   plugin->peerstore_notify = GNUNET_PEERSTORE_monitor_start (plugin->env->cfg,
                                                              GNUNET_YES,
@@ -607,7 +605,7 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
 
   plugin = GNUNET_new (struct Plugin);
   plugin->key_ring = GNUNET_PILS_create_key_ring (
-    env->cfg);
+    env->cfg, NULL, NULL);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);
   api->cls = plugin;

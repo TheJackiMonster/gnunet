@@ -1015,7 +1015,7 @@ run (void *cls,
   (void) cls;
   delivering_messages = 0;
 
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
 
   if (NULL == key_ring)
   {

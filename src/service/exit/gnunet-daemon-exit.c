@@ -3764,11 +3764,9 @@ advertise_dns_exit ()
                                      &clean_channel,
                                      handlers);
   /* advertise exit */
-  dht = GNUNET_DHT_connect (cfg,
-                            1);
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
-  dht_task = GNUNET_SCHEDULER_add_now (&do_initial_dht_put,
-                                       NULL);
+  dht = GNUNET_DHT_connect (cfg, 1);
+  dht_task = NULL;
+  key_ring = GNUNET_PILS_create_key_ring (cfg, &do_initial_dht_put, NULL);
   GNUNET_free (dns_exit);
 }
 

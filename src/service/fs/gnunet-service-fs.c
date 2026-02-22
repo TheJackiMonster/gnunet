@@ -1213,7 +1213,7 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
                                                         "fs",
                                                         "DISABLE_ANON_TRANSFER")
                   );
-  GSF_key_ring = GNUNET_PILS_create_key_ring (GSF_cfg);
+  GSF_key_ring = GNUNET_PILS_create_key_ring (GSF_cfg, NULL, NULL);
   if (NULL == GSF_key_ring)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,

@@ -1567,7 +1567,7 @@ run (void *cls,
 #endif
 
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   GNUNET_assert (NULL != key_ring);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg, "NSE", "PROOFFILE", &proof))

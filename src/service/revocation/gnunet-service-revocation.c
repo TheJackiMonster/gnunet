@@ -1023,7 +1023,7 @@ run (void *cls,
 
   peers = GNUNET_CONTAINER_multipeermap_create (128,
                                                 GNUNET_YES);
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   /* Connect to core service and register core handlers */
   core_api = GNUNET_CORE_connect (cfg,    /* Main configuration */
                                   NULL,       /* Closure passed to functions */

@@ -3925,7 +3925,7 @@ run (void *cls,
   {
     broadcast_task = GNUNET_SCHEDULER_add_now (&do_broadcast, NULL);
   }
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   GNUNET_assert (NULL != key_ring);
 
   nat = GNUNET_NAT_register (cfg,

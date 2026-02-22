@@ -253,10 +253,14 @@ GNUNET_PILS_cancel (struct GNUNET_PILS_Operation *op);
  * peer identity key.
  *
  * @param cfg configuration to use
+ * @param init_cb initial callback or NULL
+ * @param cls closure of callback or NULL
  * @return Handle to the PILS key ring or NULL on failure
  */
 struct GNUNET_PILS_KeyRing*
-GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg);
+GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg,
+                             GNUNET_SCHEDULER_TaskCallback init_cb,
+                             void *cls);
 
 /**
  * Destroy a key ring handle and free its memory.

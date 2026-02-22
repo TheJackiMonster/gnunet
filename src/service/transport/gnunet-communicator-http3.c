@@ -3890,7 +3890,7 @@ run (void *cls,
   /**
    * Get our public key for initial packet
    */
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   if (NULL == key_ring)
   {
     GNUNET_log (

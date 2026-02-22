@@ -501,7 +501,7 @@ run (void *cls,
 {
   GDS_cfg = c;
   GDS_service = service;
-  GDS_key_ring = GNUNET_PILS_create_key_ring (GDS_cfg);
+  GDS_key_ring = GNUNET_PILS_create_key_ring (GDS_cfg, NULL, NULL);
   GNUNET_assert (NULL != GDS_key_ring);
   GDS_pils = GNUNET_PILS_connect (GDS_cfg, pid_change_cb, NULL);
   GNUNET_assert (NULL != GDS_pils);

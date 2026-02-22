@@ -442,12 +442,6 @@ static struct GNUNET_SCHEDULER_Task *rekey_task;
 static struct GNUNET_NotificationContext *nc;
 
 /**
- * Indicates whether we are still in the initialisation phase (waiting for our
- * peer id).
- */
-static enum GNUNET_GenericReturnValue init_phase;
-
-/**
  * Our services info string TODO
  */
 static char *my_services_info = "";
@@ -2853,73 +2847,56 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 }
 
 
-/**
- * Callback for PILS to be called once the peer id changes
- * @param cls unused
- * @param peer_id the new peer id
- * @param hash the hash of the addresses corresponding to the fed addresses
- */
-static void
-peer_id_change_cb (void *cls,
-                   const struct GNUNET_HELLO_Parser *parser,
-                   const struct GNUNET_HashCode *hash)
+void
+GSC_KX_start (GNUNET_UNUSED void *cls)
 {
   const struct GNUNET_PeerIdentity *my_identity;
-  (void) cls;
+  struct GNUNET_MQ_MessageHandler handlers[] = {
+    GNUNET_MQ_hd_var_size (initiator_hello,
+                           GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
+                           struct InitiatorHello,
+                           NULL),
+    GNUNET_MQ_hd_var_size (initiator_done,
+                           GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE,
+                           struct InitiatorDone,
+                           NULL),
+    GNUNET_MQ_hd_var_size (responder_hello,
+                           GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO,
+                           struct ResponderHello,
+                           NULL),
+    GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
+                             GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE,  // TODO rename!
+                             struct EncryptedMessage,
+                             NULL),
+    GNUNET_MQ_handler_end ()
+  };
+
   my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
   GNUNET_assert (NULL != my_identity);
-  // TODO check that hash matches last fed hash
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "This peer has now a new peer id: %s\n",
-              GNUNET_i2s (my_identity));
-  /* Continue initialisation of core */
-  if (GNUNET_YES == init_phase)
+
+  nc = GNUNET_notification_context_create (1);
+  transport =
+    GNUNET_TRANSPORT_core_connect (GSC_cfg,
+                                   my_identity,
+                                   handlers,
+                                   NULL, // cls - this connection-independant
+                                         // cls seems not to be needed.
+                                         // the connection-specific cls
+                                         // will be set as a return value
+                                         // of
+                                         // handle_transport_notify_connect
+                                   &handle_transport_notify_connect,
+                                   &handle_transport_notify_disconnect);
+  if (NULL == transport)
   {
-    struct GNUNET_MQ_MessageHandler handlers[] = {
-      GNUNET_MQ_hd_var_size (initiator_hello,
-                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_HELLO,
-                             struct InitiatorHello,
-                             NULL),
-      GNUNET_MQ_hd_var_size (initiator_done,
-                             GNUNET_MESSAGE_TYPE_CORE_INITIATOR_DONE,
-                             struct InitiatorDone,
-                             NULL),
-      GNUNET_MQ_hd_var_size (responder_hello,
-                             GNUNET_MESSAGE_TYPE_CORE_RESPONDER_HELLO,
-                             struct ResponderHello,
-                             NULL),
-      GNUNET_MQ_hd_var_size   (encrypted_message, // TODO rename?
-                               GNUNET_MESSAGE_TYPE_CORE_ENCRYPTED_MESSAGE_CAKE, // TODO rename!
-                               struct EncryptedMessage,
-                               NULL),
-      GNUNET_MQ_handler_end ()
-    };
-
-    nc = GNUNET_notification_context_create (1);
-    transport =
-      GNUNET_TRANSPORT_core_connect (GSC_cfg,
-                                     my_identity,
-                                     handlers,
-                                     NULL, // cls - this connection-independant
-                                           // cls seems not to be needed.
-                                           // the connection-specific cls
-                                           // will be set as a return value
-                                           // of
-                                           // handle_transport_notify_connect
-                                     &handle_transport_notify_connect,
-                                     &handle_transport_notify_disconnect);
-    if (NULL == transport)
-    {
-      GSC_KX_done ();
-      return;
-    }
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Connected to TRANSPORT\n");
-
-    GSC_complete_initialization_cb ();
-    init_phase = GNUNET_NO;
+    GSC_KX_done ();
+    return;
   }
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Connected to TRANSPORT\n");
+
+  GSC_complete_initialization_cb ();
 }
 
 
@@ -2931,8 +2908,8 @@ peer_id_change_cb (void *cls,
 int
 GSC_KX_init (void)
 {
-  init_phase = GNUNET_YES;
-  GSC_key_ring = GNUNET_PILS_create_key_ring (GSC_cfg);
+  GSC_key_ring = GNUNET_PILS_create_key_ring (
+    GSC_cfg, &GSC_KX_start, NULL);
 
   if (NULL == GSC_key_ring)
   {
@@ -2941,7 +2918,7 @@ GSC_KX_init (void)
   }
 
   pils = GNUNET_PILS_connect (GSC_cfg,
-                              peer_id_change_cb,
+                              NULL,
                               NULL);
   if (NULL == pils)
   {

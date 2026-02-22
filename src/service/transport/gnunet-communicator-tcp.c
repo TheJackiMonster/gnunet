@@ -4155,7 +4155,7 @@ run (void *cls,
   {
     disable_v6 = GNUNET_YES;
   }
-  key_ring = GNUNET_PILS_create_key_ring (cfg);
+  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   GNUNET_assert (NULL != key_ring);
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)

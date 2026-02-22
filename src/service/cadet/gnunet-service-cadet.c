@@ -484,11 +484,11 @@ handle_port_open (void *cls,
        "Open port %s requested by %s\n",
        GNUNET_h2s (&pmsg->port),
        GSC_2s (c));
-  
+
   my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  if (!my_identity)
+  if (! my_identity)
     return;
-  
+
   if (NULL == c->ports)
     c->ports = GNUNET_CONTAINER_multihashmap_create (4,
                                                      GNUNET_NO);
@@ -1096,7 +1096,8 @@ GSC_handle_remote_channel_destroy (struct CadetClient *c,
   GNUNET_assert (GNUNET_YES ==
                  GNUNET_CONTAINER_multihashmap32_remove (c->channels,
                                                          ntohl (
-                                                           ccn.channel_of_client),
+                                                           ccn.channel_of_client
+                                                           ),
                                                          ch));
 }
 
@@ -1290,7 +1291,7 @@ run (void *cls,
     LOG (GNUNET_ERROR_TYPE_WARNING, "Remove DROP_PERCENT from config file.\n");
     LOG (GNUNET_ERROR_TYPE_WARNING, "**************************************\n");
   }
-  key_ring = GNUNET_PILS_create_key_ring (c);
+  key_ring = GNUNET_PILS_create_key_ring (c, NULL, NULL);
   if (NULL == key_ring)
   {
     GNUNET_break (0);
@@ -1324,8 +1325,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "cadet",
+  (GNUNET_OS_project_data_gnunet (),
+  "cadet",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,
