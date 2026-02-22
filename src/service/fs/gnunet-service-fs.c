@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2014, 2016 GNUnet e.V.
+     Copyright (C) 2009-2014, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -289,20 +289,15 @@ struct GNUNET_BLOCK_Context *GSF_block_ctx;
 struct GNUNET_CORE_Handle *GSF_core;
 
 /**
- * Pointer to handle to the pils service (points to NULL until we've
+ * Pointer to handle of the pils key ring (points to NULL until we've
  * connected to it).
  */
-struct GNUNET_PILS_Handle *GSF_pils;
+struct GNUNET_PILS_KeyRing *GSF_key_ring;
 
 /**
  * Are we introducing randomized delays for better anonymity?
  */
 int GSF_enable_randomized_delays;
-
-/**
- * Identity of this peer.
- */
-struct GNUNET_PeerIdentity GSF_my_id;
 
 /* ***************************** locals ******************************* */
 
@@ -1138,15 +1133,15 @@ static void
 shutdown_task (void *cls)
 {
   GSF_cadet_stop_server ();
-  if (NULL != GSF_pils)
-  {
-    GNUNET_PILS_disconnect (GSF_pils);
-    GSF_pils = NULL;
-  }
   if (NULL != GSF_core)
   {
     GNUNET_CORE_disconnect (GSF_core);
     GSF_core = NULL;
+  }
+  if (NULL != GSF_key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (GSF_key_ring);
+    GSF_key_ring = NULL;
   }
   GSF_put_done_ ();
   GSF_push_done_ ();
@@ -1178,35 +1173,6 @@ shutdown_task (void *cls)
 
 
 /**
- * Function called after GNUNET_PILS_connect has succeeded
- * (or failed for good).  Note that the private key of the
- * peer is intentionally not exposed here; if you need it,
- * your process should try to read the private key file
- * directly (which should work if you are authorized...).
- *
- * @param cls closure
- * @param my_identity ID of this peer, NULL if we failed
- * @param cls closure given to #GNUNET_PILS_connect
- * @param parser the new HELLO from which the PID can be extracted
- * @param hash The hash of addresses the peer id is based on.
- *             This hash is also returned by #GNUNET_PILS_feed_address.
- */
-static void
-pils_pid_change_cb (void *cls,
-                    const struct GNUNET_HELLO_Parser *parser,
-                    const struct GNUNET_HashCode *hash)
-{
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "My current identity is `%s'\n",
-              GNUNET_i2s_full (&GSF_my_id));
-  GSF_my_id = *GNUNET_HELLO_parser_get_id (parser);
-  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-              "My new identity is `%s'\n",
-              GNUNET_i2s_full (&GSF_my_id));
-}
-
-
-/**
  * Process fs requests.
  *
  * @param c configuration to use
@@ -1233,7 +1199,6 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
     GNUNET_MQ_handler_end ()
   };
   int anon_p2p_off;
-  char *keyfile;
   struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_FS,
     .version = { 1, 0 },
@@ -1248,37 +1213,14 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
                                                         "fs",
                                                         "DISABLE_ANON_TRANSFER")
                   );
-
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_filename (GSF_cfg,
-                                               "PEER",
-                                               "PRIVATE_KEY",
-                                               &keyfile))
+  GSF_key_ring = GNUNET_PILS_create_key_ring (GSF_cfg);
+  if (NULL == GSF_key_ring)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ (
-                  "FS service is lacking HOSTKEY configuration setting.  Exiting.\n"));
-    GNUNET_SCHEDULER_shutdown ();
+                _ ("Failed to connect to `%s' service.\n"),
+                "pils");
     return GNUNET_SYSERR;
   }
-  if (GNUNET_SYSERR ==
-      GNUNET_CRYPTO_eddsa_key_from_file (keyfile,
-                                         GNUNET_YES,
-                                         &pk))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to setup peer's private key\n");
-    GNUNET_SCHEDULER_shutdown ();
-    GNUNET_free (keyfile);
-    return GNUNET_SYSERR;
-  }
-  GNUNET_free (keyfile);
-  GNUNET_CRYPTO_eddsa_key_get_public (&pk,
-                                      &GSF_my_id.public_key);
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "I am peer %s\n",
-              GNUNET_i2s (&GSF_my_id));
   GSF_core
     = GNUNET_CORE_connect (GSF_cfg,
                            NULL,
@@ -1294,17 +1236,6 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to connect to `%s' service.\n"),
                 "core");
-    return GNUNET_SYSERR;
-  }
-  GSF_pils
-    = GNUNET_PILS_connect (GSF_cfg,
-                           &pils_pid_change_cb,
-                           NULL);
-  if (NULL == GSF_pils)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Failed to connect to `%s' service.\n"),
-                "pils");
     return GNUNET_SYSERR;
   }
   cover_age_task =

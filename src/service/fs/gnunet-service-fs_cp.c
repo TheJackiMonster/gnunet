@@ -22,6 +22,8 @@
  * @brief API to handle 'connected peers'
  * @author Christian Grothoff
  */
+#include "gnunet_common.h"
+#include "gnunet_pils_service.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_load_lib.h"
@@ -458,11 +460,13 @@ GSF_peer_connect_handler (void *cls,
                           struct GNUNET_MQ_Handle *mq,
                           enum GNUNET_CORE_PeerClass class)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GSF_ConnectedPeer *cp;
 
-  if (0 ==
-      GNUNET_memcmp (&GSF_my_id,
-                     peer))
+  my_identity = GNUNET_PILS_key_ring_get_identity (GSF_key_ring);
+  GNUNET_assert (my_identity);
+
+  if (0 == GNUNET_memcmp (my_identity, peer))
     return NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Connected to peer %s\n",
@@ -477,7 +481,8 @@ GSF_peer_connect_handler (void *cls,
                                                           GNUNET_YES);
   GNUNET_break (GNUNET_OK ==
                 GNUNET_CONTAINER_multipeermap_put (cp_map,
-                                                   GSF_connected_peer_get_identity2_ (
+                                                   GSF_connected_peer_get_identity2_
+                                                   (
                                                      cp),
                                                    cp,
                                                    GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
@@ -487,11 +492,11 @@ GSF_peer_connect_handler (void *cls,
                          GNUNET_NO);
   cp->respect_iterate_req
     = GNUNET_PEERSTORE_iteration_start (peerstore,
-                                      "fs",
-                                      peer,
-                                      "respect",
-                                      &peer_respect_cb,
-                                      cp);
+                                        "fs",
+                                        peer,
+                                        "respect",
+                                        &peer_respect_cb,
+                                        cp);
   GSF_iterate_pending_requests_ (&consider_peer_for_forwarding,
                                  cp);
   return cp;
@@ -1007,7 +1012,8 @@ test_exist_cb (void *cls,
                 "Have existing request with higher TTL, dropping new request.\n");
     GNUNET_STATISTICS_update (GSF_stats,
                               gettext_noop
-                                ("# requests dropped due to higher-TTL request"),
+                                ("# requests dropped due to higher-TTL request")
+                              ,
                               1, GNUNET_NO);
     tec->finished = GNUNET_YES;
     return GNUNET_NO;

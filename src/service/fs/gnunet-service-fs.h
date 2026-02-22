@@ -26,6 +26,7 @@
 #ifndef GNUNET_SERVICE_FS_H
 #define GNUNET_SERVICE_FS_H
 
+#include "gnunet_pils_service.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_core_service.h"
@@ -47,7 +48,7 @@
  * load must be going down).
  */
 #define DATASTORE_LOAD_AUTODECLINE GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 250)
+          GNUNET_TIME_UNIT_MILLISECONDS, 250)
 
 /**
  * Only the (mandatory) query is included.
@@ -217,9 +218,9 @@ extern struct GNUNET_TIME_Relative GSF_avg_latency;
 extern struct GNUNET_ATS_PerformanceHandle *GSF_ats;
 
 /**
- * Identity of this peer.
+ * PILS key ring.
  */
-extern struct GNUNET_PeerIdentity GSF_my_id;
+extern struct GNUNET_PILS_KeyRing *GSF_key_ring;
 
 /**
  * Typical priorities we're seeing from other peers right now.  Since
