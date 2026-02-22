@@ -411,6 +411,11 @@ shutdown_task (void *cls)
     GNUNET_PILS_disconnect (GDS_pils);
     GDS_pils = NULL;
   }
+  if (NULL != GDS_key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (GDS_key_ring);
+    GDS_key_ring = NULL;
+  }
 }
 
 
