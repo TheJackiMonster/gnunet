@@ -343,8 +343,8 @@ mq_error_handler (void *cls, enum GNUNET_MQ_Error error)
   (void) error;
 
   // TODO logging
-  LOG (GNUNET_ERROR_TYPE_ERROR,
-       "(mq_error_handler) Connection to service failed!\n");
+  LOG (GNUNET_ERROR_TYPE_WARNING,
+       "Connection to pils service failed!\n");
   GNUNET_MQ_destroy (h->mq);
   h->mq = NULL;
   h->reconnect_task =
@@ -697,6 +697,8 @@ GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg,
 
   GNUNET_assert (cfg);
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Create key ring!\n");
+
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg,
                                                "PEER",
@@ -749,6 +751,8 @@ void
 GNUNET_PILS_destroy_key_ring (struct GNUNET_PILS_KeyRing *key_ring)
 {
   GNUNET_assert (key_ring);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG, "Destroy key ring!\n");
 
   if (key_ring->pils)
     GNUNET_PILS_disconnect (key_ring->pils);
