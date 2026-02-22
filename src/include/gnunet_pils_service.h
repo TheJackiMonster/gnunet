@@ -276,13 +276,23 @@ const struct GNUNET_PeerIdentity*
 GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring);
 
 /**
+ * Return the hash from the current peer identity of a given key ring handle.
+ *
+ * @param key_ring key ring handle
+ * @return Hash or NULL on failure
+ */
+const struct GNUNET_HashCode*
+GNUNET_PILS_key_ring_get_hash (const struct GNUNET_PILS_KeyRing *key_ring);
+
+/**
  * Return the current private key of a given key ring handle.
  *
  * @param key_ring key ring handle
  * @return Private key or NULL on failure
  */
 const struct GNUNET_CRYPTO_EddsaPrivateKey*
-GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring);
+GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring
+                                      );
 
 /**
  * Return the current public key of a given key ring handle.
@@ -291,7 +301,8 @@ GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring
  * @return Public key or NULL on failure
  */
 const struct GNUNET_CRYPTO_EddsaPublicKey*
-GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring);
+GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring)
+;
 
 #if 0 /* keep Emacsens' auto-indent happy */
 {

@@ -74,11 +74,6 @@ extern struct GNUNET_MessageHeader *GDS_my_hello;
  */
 extern struct GNUNET_PILS_KeyRing *GDS_key_ring;
 
-/**
- * Hash of the identity of this peer.
- */
-extern struct GNUNET_HashCode GDS_my_identity_hash;
-
 
 /**
  * Ask all underlays to connect to peer @a pid at @a address.

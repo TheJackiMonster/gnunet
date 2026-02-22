@@ -157,11 +157,6 @@ struct GNUNET_MessageHeader *GDS_my_hello;
 struct GNUNET_PILS_KeyRing *GDS_key_ring;
 
 /**
- * Hash of the identity of this peer.
- */
-struct GNUNET_HashCode GDS_my_identity_hash;
-
-/**
  * Handles for the DHT underlays.
  */
 static struct GDS_Underlay *u_head;
@@ -477,14 +472,8 @@ pid_change_cb (void *cls,
                const struct GNUNET_HELLO_Parser *parser,
                const struct GNUNET_HashCode *hash)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
   (void) cls;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
-  GNUNET_assert (NULL != my_identity);
-  GNUNET_CRYPTO_hash (my_identity,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &GDS_my_identity_hash);
   if (NULL != GDS_my_hello)
     GNUNET_free (GDS_my_hello);
   GDS_my_hello = GNUNET_HELLO_parser_to_dht_hello_msg (parser);
@@ -516,7 +505,6 @@ run (void *cls,
   GNUNET_assert (NULL != GDS_key_ring);
   GDS_pils = GNUNET_PILS_connect (GDS_cfg, pid_change_cb, NULL);
   GNUNET_assert (NULL != GDS_pils);
-  memset (&GDS_my_identity_hash, 0, sizeof (GDS_my_identity_hash));
 
   GDS_block_context = GNUNET_BLOCK_context_create (GDS_cfg);
   GDS_stats = GNUNET_STATISTICS_create ("dht",

@@ -650,9 +650,8 @@ deliver_message (void *cls, const struct GNUNET_MessageHeader *m)
 static void
 restart_kx (struct GSC_KeyExchangeInfo *kx)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_HashCode *my_identity_hash;
   struct GNUNET_HashCode h1;
-  struct GNUNET_HashCode h2;
 
   // TODO what happens if we're in the middle of a peer id change?
   // TODO there's a small chance this gets already called when we don't have a
@@ -668,16 +667,13 @@ restart_kx (struct GSC_KeyExchangeInfo *kx)
                             GNUNET_NO);
 
   monitor_notify_all (kx);
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
-  GNUNET_assert (NULL != my_identity);
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity_hash);
   GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
-  GNUNET_CRYPTO_hash (my_identity,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &h2);
   if (NULL != kx->transcript_hash_ctx)
     GNUNET_CRYPTO_hash_context_abort (kx->transcript_hash_ctx);
   kx->transcript_hash_ctx = NULL;
-  if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
+  if (0 < GNUNET_CRYPTO_hash_cmp (&h1, my_identity_hash))
   {
     /* peer with "lower" identity starts KX, otherwise we typically end up
        with both peers starting the exchange and transmit the 'set key'
@@ -1403,14 +1399,13 @@ send_responder_hello (struct GSC_KeyExchangeInfo *kx)
 static void
 handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_HashCode *my_identity_hash;
   struct InitiatorHelloCtx *ihm_ctx = cls;
   struct GSC_KeyExchangeInfo *kx = ihm_ctx->kx;
   uint32_t ihm_len = ntohs (ihm_ctx->ihm_e->header.size);
   unsigned char enc_key[AEAD_KEY_BYTES];
   unsigned char enc_nonce[AEAD_NONCE_BYTES];
   struct GNUNET_HashCode h1;
-  struct GNUNET_HashCode h2;
   struct GNUNET_HashCode transcript;
   struct GNUNET_ShortHashCode es;
   struct GNUNET_ShortHashCode ets;
@@ -1488,16 +1483,13 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
                    sizeof (struct GNUNET_PeerIdentity));
   }
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
-  GNUNET_assert (NULL != my_identity);
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity_hash);
 
   // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
   /* Check that we are actually in the receiving role */
   GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
-  GNUNET_CRYPTO_hash (my_identity,
-                      sizeof(struct GNUNET_PeerIdentity),
-                      &h2);
-  if (0 < GNUNET_CRYPTO_hash_cmp (&h1, &h2))
+  if (0 < GNUNET_CRYPTO_hash_cmp (&h1, my_identity_hash))
   {
     /* peer with "lower" identity starts KX, otherwise we typically end up
        with both peers starting the exchange and transmit the 'set key'
@@ -1554,9 +1546,8 @@ check_initiator_hello (void *cls, const struct InitiatorHello *m)
 static void
 handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_HashCode *my_identity_hash;
   struct GSC_KeyExchangeInfo *kx = cls;
-  struct GNUNET_HashCode hash_compare = { 0 };
   struct InitiatorHelloCtx *initiator_hello_cls;
   size_t ihm_len;
 
@@ -1596,8 +1587,8 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
-  GNUNET_assert (NULL != my_identity);
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  GNUNET_assert (NULL != my_identity_hash);
 
   //      1. verify type _INITIATOR_HELLO
   //         - This is implicytly done by arriving within this handler
@@ -1605,11 +1596,8 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
   //           should it check the encryption + mac? (is this implicitly done
   //           while decrypting?)
   //      2. verify H(pk_R) matches pk_R
-  GNUNET_CRYPTO_hash (my_identity,
-                      sizeof (struct GNUNET_PeerIdentity),
-                      &hash_compare); /* result */
   if (0 != memcmp (&ihm_e->h_pk_R,
-                   &hash_compare,
+                   my_identity_hash,
                    sizeof (struct GNUNET_HashCode)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

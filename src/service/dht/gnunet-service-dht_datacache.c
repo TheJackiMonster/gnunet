@@ -23,6 +23,7 @@
  * @author Christian Grothoff
  * @author Nathan Evans
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_datacache_lib.h"
 #include "gnunet-service-dht_datacache.h"
@@ -48,9 +49,16 @@ static struct GNUNET_DATACACHE_Handle *datacache;
 void
 GDS_DATACACHE_handle_put (const struct GNUNET_DATACACHE_Block *bd)
 {
+  const struct GNUNET_HashCode *my_identity_hash;
   struct GNUNET_HashCode xor;
   enum GNUNET_GenericReturnValue r;
-
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  if (NULL == my_identity_hash)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "PUT request received, but have no identity hash!\n");
+    return;
+  }
   if (NULL == datacache)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -68,7 +76,7 @@ GDS_DATACACHE_handle_put (const struct GNUNET_DATACACHE_Block *bd)
                             1,
                             GNUNET_NO);
   GNUNET_CRYPTO_hash_xor (&bd->key,
-                          &GDS_my_identity_hash,
+                          my_identity_hash,
                           &xor);
   r = GNUNET_DATACACHE_put (datacache,
                             GNUNET_CRYPTO_hash_count_leading_zeros (&xor),

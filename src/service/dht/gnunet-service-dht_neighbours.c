@@ -477,11 +477,15 @@ do_send (struct PeerInfo *pi,
 static int
 find_bucket (const struct GNUNET_HashCode *hc)
 {
+  const struct GNUNET_HashCode *my_identity_hash;
   struct GNUNET_HashCode xor;
   unsigned int bits;
 
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity_hash);
+
   GNUNET_CRYPTO_hash_xor (hc,
-                          &GDS_my_identity_hash,
+                          my_identity_hash,
                           &xor);
   bits = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
   if (bits == MAX_BUCKETS)
@@ -562,8 +566,12 @@ send_find_peer_message (void *cls)
 
   /* actually send 'find peer' request */
   {
+    const struct GNUNET_HashCode *my_identity_hash;
     struct GNUNET_BLOCK_Group *bg;
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
+
+    my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+    GNUNET_assert (NULL != my_identity_hash);
 
     bg = GNUNET_BLOCK_group_create (GDS_block_context,
                                     GNUNET_BLOCK_TYPE_DHT_HELLO,
@@ -586,7 +594,7 @@ send_find_peer_message (void *cls)
                                    | GNUNET_DHT_RO_RECORD_ROUTE,
                                    FIND_PEER_REPLICATION_LEVEL,
                                    0, /* hop count */
-                                   &GDS_my_identity_hash,
+                                   my_identity_hash,
                                    NULL, 0, /* xquery */
                                    bg,
                                    peer_bf))
@@ -858,16 +866,17 @@ enum GNUNET_GenericReturnValue
 GDS_am_closest_peer (const struct GNUNET_HashCode *key,
                      const struct GNUNET_CONTAINER_BloomFilter *bloom)
 {
+  const struct GNUNET_HashCode *my_identity_hash;
   int delta;
-  if (0 == GNUNET_memcmp (&GDS_my_identity_hash,
-                          key))
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  GNUNET_assert (NULL != my_identity_hash);
+  if (0 == GNUNET_memcmp (my_identity_hash, key))
     return GNUNET_YES;
   for (int bucket_num = find_bucket (key);
        bucket_num < closest_bucket;
        bucket_num++)
   {
     unsigned int count = 0;
-
     GNUNET_assert (bucket_num >= 0);
     for (struct PeerInfo *pos = k_buckets[bucket_num].head;
          NULL != pos;
@@ -886,7 +895,7 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
          because an unfiltered peer exists, we are not the
          closest. */
       delta = GNUNET_CRYPTO_hash_xorcmp (&pos->phash,
-                                         &GDS_my_identity_hash,
+                                         my_identity_hash,
                                          key);
       switch (delta)
       {
@@ -947,10 +956,12 @@ select_peer (const struct GNUNET_HashCode *key,
     int bucket_offset;
 
     {
+      const struct GNUNET_HashCode *my_identity_hash;
       struct GNUNET_HashCode xor;
-
+      my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+      GNUNET_assert (NULL != my_identity_hash);
       GNUNET_CRYPTO_hash_xor (key,
-                              &GDS_my_identity_hash,
+                              my_identity_hash,
                               &xor);
       best_bucket = GNUNET_CRYPTO_hash_count_leading_zeros (&xor);
     }
@@ -1228,6 +1239,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                            struct GNUNET_CONTAINER_BloomFilter *bf)
 {
   const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_HashCode *my_identity_hash;
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
@@ -1243,6 +1255,7 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   enum GNUNET_GenericReturnValue ret;
 
   my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
   GNUNET_assert (NULL != my_identity);
 
   ret = GDS_helper_put_message_get_size (&msize,
@@ -1267,9 +1280,8 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
 
   /* if we got a HELLO, consider it for our own routing table */
   hello_check (bd);
-  GNUNET_assert (NULL != bf);
-  GNUNET_CONTAINER_bloomfilter_add (bf,
-                                    &GDS_my_identity_hash);
+  GNUNET_assert ((NULL != bf) && (NULL != my_identity_hash));
+  GNUNET_CONTAINER_bloomfilter_add (bf, my_identity_hash);
   GNUNET_STATISTICS_update (GDS_stats,
                             "# PUT requests routed",
                             1,
@@ -1352,6 +1364,7 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
                            struct GNUNET_CONTAINER_BloomFilter *peer_bf)
 {
   const struct GNUNET_PeerIdentity *my_identity;
+  const struct GNUNET_HashCode *my_identity_hash;
   unsigned int target_count;
   struct PeerInfo **targets;
   size_t msize;
@@ -1359,6 +1372,10 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   void *result_filter;
 
   my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+
+  if (NULL == my_identity_hash)
+    return GNUNET_NO;
 
   GNUNET_assert (NULL != peer_bf);
   GNUNET_STATISTICS_update (GDS_stats,
@@ -1376,9 +1393,8 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
               GNUNET_h2s (key),
               (options & GNUNET_DHT_RO_DEMULTIPLEX_EVERYWHERE) ? "x" : "-",
               (options & GNUNET_DHT_RO_RECORD_ROUTE) ? "R" : "-");
-
-  GNUNET_CONTAINER_bloomfilter_add (peer_bf,
-                                    &GDS_my_identity_hash);
+  GNUNET_assert (NULL != my_identity_hash);
+  GNUNET_CONTAINER_bloomfilter_add (peer_bf, my_identity_hash);
   if (0 == target_count)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -1996,7 +2012,8 @@ handle_find_my_hello (struct PeerInfo *pi,
                       const struct GNUNET_HashCode *query_hash,
                       struct GNUNET_BLOCK_Group *bg)
 {
-
+  const struct GNUNET_HashCode *my_identity_hash;
+  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
   if (NULL == GDS_my_hello)
   {
     GNUNET_STATISTICS_update (GDS_stats,
@@ -2008,7 +2025,7 @@ handle_find_my_hello (struct PeerInfo *pi,
            GNUNET_BLOCK_check_reply (GDS_block_context,
                                      GNUNET_BLOCK_TYPE_DHT_HELLO,
                                      bg,
-                                     &GDS_my_identity_hash,
+                                     my_identity_hash,
                                      NULL, 0,
                                      GDS_my_hello,
                                      ntohs (GDS_my_hello->size)))
@@ -2018,7 +2035,7 @@ handle_find_my_hello (struct PeerInfo *pi,
       .expiration_time
         = GNUNET_TIME_relative_to_absolute (
             GNUNET_HELLO_ADDRESS_EXPIRATION),
-      .key = GDS_my_identity_hash,
+      .key = *my_identity_hash,
       .data = GDS_my_hello,
       .data_size = ntohs (GDS_my_hello->size)
     };

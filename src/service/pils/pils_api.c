@@ -32,6 +32,7 @@
  */
 #include <string.h>
 #include <stdint.h>
+#include "gnunet_common.h"
 #include "gnunet_protocols.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
@@ -134,7 +135,7 @@ struct GNUNET_PILS_KeyRing
   /**
    * Initial key material
    */
-  unsigned char initial_key_material [256 / 8];
+  unsigned char initial_key_material[256 / 8];
 
   /**
    * Private key
@@ -145,6 +146,11 @@ struct GNUNET_PILS_KeyRing
    * Peer identity
    */
   struct GNUNET_PeerIdentity identity;
+
+  /**
+   * Hash of peer identity
+   */
+  struct GNUNET_HashCode hash;
 };
 
 /**
@@ -642,6 +648,9 @@ pid_change_cb (void *cls,
                           key_ring->private_key);
   GNUNET_CRYPTO_eddsa_key_get_public (key_ring->private_key,
                                       &(key_ring->identity.public_key));
+  GNUNET_CRYPTO_hash (&(key_ring->identity),
+                      sizeof (key_ring->identity),
+                      &(key_ring->hash));
 }
 
 
@@ -687,15 +696,14 @@ GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg)
 
   GNUNET_free (keyfile);
 
-  struct GNUNET_PILS_KeyRing *key_ring = GNUNET_new(struct GNUNET_PILS_KeyRing);
+  struct GNUNET_PILS_KeyRing *key_ring = GNUNET_new (struct GNUNET_PILS_KeyRing)
+  ;
   if (NULL == key_ring)
     return NULL;
 
   GNUNET_assert (sizeof (key_ring->initial_key_material) == sizeof key.d);
 
-  memset (key_ring, 0, sizeof (*key_ring));
-
-  key_ring->pils = GNUNET_PILS_connect(cfg, &pid_change_cb, key_ring);
+  key_ring->pils = GNUNET_PILS_connect (cfg, &pid_change_cb, key_ring);
   if (NULL == key_ring->pils)
   {
     GNUNET_free (key_ring);
@@ -742,8 +750,21 @@ GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring)
 }
 
 
+const struct GNUNET_HashCode*
+GNUNET_PILS_key_ring_get_hash (const struct GNUNET_PILS_KeyRing *key_ring)
+{
+  GNUNET_assert (key_ring);
+
+  if (NULL == key_ring->private_key)
+    return NULL;
+
+  return &(key_ring->hash);
+}
+
+
 const struct GNUNET_CRYPTO_EddsaPrivateKey*
-GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring)
+GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring
+                                      )
 {
   GNUNET_assert (key_ring);
 
@@ -760,7 +781,7 @@ GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring)
 
   identity = GNUNET_PILS_key_ring_get_identity (key_ring);
 
-  if (!identity)
+  if (! identity)
     return NULL;
 
   return &(identity->public_key);
