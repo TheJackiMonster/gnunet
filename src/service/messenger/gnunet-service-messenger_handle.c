@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,9 +25,12 @@
 
 #include "platform.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_protocols.h"
+#include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger.h"
 #include "gnunet-service-messenger_handle.h"
+#include "gnunet-service-messenger_message_state.h"
 #include "gnunet-service-messenger_room.h"
 
 #include "messenger_api_util.h"
@@ -54,6 +57,7 @@ create_srv_handle (struct GNUNET_MESSENGER_Service *service,
   handle->member_ids = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
   handle->next_ids = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
   handle->routing = GNUNET_CONTAINER_multihashmap_create (4, GNUNET_NO);
+  handle->syncing = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_NO);
 
   handle->notify = NULL;
 
@@ -104,10 +108,13 @@ destroy_srv_handle (struct GNUNET_MESSENGER_SrvHandle *handle)
                                          iterate_free_values, NULL);
   GNUNET_CONTAINER_multihashmap_iterate (handle->member_ids,
                                          iterate_free_values, NULL);
+  GNUNET_CONTAINER_multihashmap_iterate (handle->syncing,
+                                         iterate_free_values, NULL);
 
   GNUNET_CONTAINER_multihashmap_destroy (handle->next_ids);
   GNUNET_CONTAINER_multihashmap_destroy (handle->member_ids);
   GNUNET_CONTAINER_multihashmap_destroy (handle->routing);
+  GNUNET_CONTAINER_multihashmap_destroy (handle->syncing);
 
   GNUNET_free (handle);
 }
@@ -319,43 +326,174 @@ is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
 }
 
 
-void
-sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
-                          const struct GNUNET_HashCode *key,
-                          const struct GNUNET_HashCode *prev,
-                          struct GNUNET_HashCode *hash,
-                          struct GNUNET_HashCode *epoch)
+static enum GNUNET_GenericReturnValue
+iterate_srv_handle_sync_finished (void *cls,
+                                  const struct GNUNET_HashCode *key,
+                                  void *value)
 {
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+  struct GNUNET_MESSENGER_SrvHandleSync *sync;
   struct GNUNET_MESSENGER_SrvRoom *room;
+  const struct GNUNET_ShortHashCode *member_id;
   struct GNUNET_MESSENGER_MessageStore *store;
 
-  GNUNET_assert ((handle) && (key) && (prev) && (hash) && (epoch));
+  GNUNET_assert ((cls) && (key) && (value));
+
+  handle = cls;
+  sync = value;
 
   room = get_service_room (handle->service, key);
+  member_id = get_srv_handle_member_id (handle, key);
 
-  if ((! room) || (! get_srv_handle_member_id (handle, key)))
-  {
-    GNUNET_memcpy (hash, prev, sizeof(*hash));
+  if ((! room) || (! member_id))
     goto sync_epoch;
-  }
 
-  merge_srv_room_last_messages (room, handle);
-  get_message_state_chain_hash (&(room->state), hash);
+  get_message_state_chain_hash (&(room->state), &(sync->hash));
 
 sync_epoch:
   if (! room)
   {
-    GNUNET_memcpy (epoch, hash, sizeof(*epoch));
-    return;
+    GNUNET_memcpy (&(sync->epoch), &(sync->hash),
+                   sizeof(sync->epoch));
+    goto send_response;
   }
 
   store = get_srv_room_message_store (room);
 
   if (! store)
-    return;
+    goto send_response;
 
-  GNUNET_memcpy (epoch, get_store_message_epoch (store, hash),
-                 sizeof(*epoch));
+  GNUNET_memcpy (&(sync->epoch),
+                 get_store_message_epoch (store, &(sync->hash)),
+                 sizeof(sync->epoch));
+
+send_response:
+  {
+    struct GNUNET_MESSENGER_RoomMessage *response;
+    struct GNUNET_MQ_Envelope *envelope;
+
+    switch (sync->response_type)
+    {
+    case GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Opening room with member id: %s\n",
+                  GNUNET_sh2s (member_id));
+      break;
+    case GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Entering room with member id: %s\n",
+                  GNUNET_sh2s (member_id));
+      break;
+    case GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closing room succeeded: %s\n",
+                  GNUNET_h2s (key));
+      break;
+    case GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC:
+      GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Synced room: %s\n",
+                  GNUNET_h2s (key));
+      break;
+    default:
+      break;
+    }
+
+    envelope = GNUNET_MQ_msg (response, sync->response_type);
+
+    GNUNET_memcpy (&(response->door), &(sync->door), sizeof(response->door));
+    GNUNET_memcpy (&(response->key), key, sizeof(response->key));
+    GNUNET_memcpy (&(response->previous), &(sync->hash), sizeof(response->
+                                                                previous));
+    GNUNET_memcpy (&(response->epoch), &(sync->epoch), sizeof(response->epoch));
+
+    GNUNET_MQ_send (handle->mq, envelope);
+  }
+
+  GNUNET_free (sync);
+  return GNUNET_YES;
+}
+
+
+void
+merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
+                               struct GNUNET_MESSENGER_SrvRoom *room)
+{
+  enum GNUNET_GenericReturnValue result;
+
+  GNUNET_assert ((handle) && (room));
+
+  result = merge_srv_room_last_messages (room, handle);
+
+  if (GNUNET_NO == result)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Finish syncing room: %s\n",
+                GNUNET_h2s (&(room->key)));
+
+    GNUNET_CONTAINER_multihashmap_get_multiple (handle->syncing,
+                                                &(room->key),
+                                                &
+                                                iterate_srv_handle_sync_finished,
+                                                handle);
+    GNUNET_CONTAINER_multihashmap_remove_all (handle->syncing, &(room->key));
+  }
+  else if (GNUNET_YES != result)
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Merging messages failed while syncing: %s\n",
+                GNUNET_h2s (&(room->key)));
+}
+
+
+void
+sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                      uint16_t response_type,
+                      const struct GNUNET_HashCode *key,
+                      const struct GNUNET_HashCode *previous,
+                      const struct GNUNET_HashCode *epoch,
+                      const struct GNUNET_PeerIdentity *door)
+{
+  struct GNUNET_MESSENGER_SrvHandleSync *sync;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+
+  GNUNET_assert ((handle) && (key) && (previous));
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Start syncing room: %s\n",
+              GNUNET_h2s (key));
+
+  sync = GNUNET_new (struct GNUNET_MESSENGER_SrvHandleSync);
+
+  GNUNET_assert (sync);
+  sync->response_type = response_type;
+
+  if (door)
+    GNUNET_memcpy (&(sync->door), door, sizeof(sync->door));
+  else if (GNUNET_OK != get_service_peer_identity (handle->service, &(sync->door
+                                                                      )))
+    memset (&(sync->door), 0, sizeof(sync->door));
+
+  GNUNET_memcpy (&(sync->hash), previous, sizeof(sync->hash));
+  GNUNET_memcpy (&(sync->epoch), epoch, sizeof(sync->epoch));
+
+  room = get_service_room (handle->service, key);
+
+  if ((! room) || (! get_srv_handle_member_id (handle, key)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Finish syncing room quickly: %s\n",
+                GNUNET_h2s (key));
+
+    iterate_srv_handle_sync_finished (handle, key, sync);
+    return;
+  }
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (handle->syncing, key, sync
+                                                      ,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Could not wait for syncing room: %s\n",
+                GNUNET_h2s (key));
+    GNUNET_free (sync);
+  }
+
+  merge_srv_handle_room_to_sync (handle, room);
 }
 
 
@@ -414,7 +552,7 @@ send_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
 
 static const struct GNUNET_HashCode*
 get_next_member_session_context (const struct
-                                 GNUNET_MESSENGER_MemberSession *session)
+                                 GNUNET_MESSENGER_SrvMemberSession *session)
 {
   GNUNET_assert (session);
 
@@ -425,7 +563,7 @@ get_next_member_session_context (const struct
 }
 
 
-static const struct GNUNET_MESSENGER_MemberSession*
+static const struct GNUNET_MESSENGER_SrvMemberSession*
 get_handle_member_session (struct GNUNET_MESSENGER_SrvHandle *handle,
                            struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *key)
@@ -496,7 +634,14 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
                 "Notifying client is missing a message queue!\n");
     return;
   }
-  else if (! id)
+
+  if ((GNUNET_MESSENGER_KIND_MERGE == message->header.kind) &&
+      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (handle->syncing,
+                                                             key)) &&
+      (NULL == get_message_state_merge_hash (&(room->state))))
+    merge_srv_handle_room_to_sync (handle, room);
+
+  if (! id)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Notifying client about message requires membership!\n");

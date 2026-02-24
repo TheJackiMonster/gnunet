@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -33,7 +33,7 @@
 struct GNUNET_MESSENGER_SrvRoom;
 
 struct GNUNET_MESSENGER_Member;
-struct GNUNET_MESSENGER_MemberSession;
+struct GNUNET_MESSENGER_SrvMemberSession;
 
 struct GNUNET_MESSENGER_MemberStore
 {
@@ -46,7 +46,7 @@ typedef enum GNUNET_GenericReturnValue (*GNUNET_MESSENGER_MemberIteratorCallback
                                         ) (
   void *cls,
   const struct GNUNET_CRYPTO_BlindablePublicKey *public_key,
-  struct GNUNET_MESSENGER_MemberSession *session);
+  struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Initializes a member <i>store</i> as fully empty connected to a <i>room</i>.

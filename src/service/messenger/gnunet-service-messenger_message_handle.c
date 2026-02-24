@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -28,11 +28,11 @@
 #include "gnunet-service-messenger_room.h"
 
 static void
-handle_member_session_switch (struct GNUNET_MESSENGER_MemberSession *session,
+handle_member_session_switch (struct GNUNET_MESSENGER_SrvMemberSession *session,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash)
 {
-  struct GNUNET_MESSENGER_MemberSession *next;
+  struct GNUNET_MESSENGER_SrvMemberSession *next;
 
   GNUNET_assert ((session) && (message) && (hash));
 

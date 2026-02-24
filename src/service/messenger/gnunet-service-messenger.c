@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -163,24 +163,9 @@ handle_room_open (void *cls,
 
   if (GNUNET_YES == open_srv_handle_room (msg_client->handle, &(msg->key)))
   {
-    struct GNUNET_HashCode prev, epoch;
-    const struct GNUNET_ShortHashCode *member_id;
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
-
-    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev, &epoch);
-
-    member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Opening room with member id: %s\n",
-                GNUNET_sh2s (member_id));
-
-    env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN);
-    GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
-    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
-    GNUNET_MQ_send (msg_client->handle->mq, env);
+    sync_srv_handle_room (msg_client->handle,
+                          GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_OPEN,
+                          &(msg->key), &(msg->previous), &(msg->epoch), NULL);
   }
   else
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Opening room failed: %s\n",
@@ -216,25 +201,11 @@ handle_room_entry (void *cls,
   if (GNUNET_YES == entry_srv_handle_room (msg_client->handle, &(msg->door),
                                            &(msg->key)))
   {
-    struct GNUNET_HashCode prev, epoch;
-    const struct GNUNET_ShortHashCode *member_id;
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
-
-    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev, &epoch);
-
-    member_id = get_srv_handle_member_id (msg_client->handle, &(msg->key));
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Entering room with member id: %s\n",
-                GNUNET_sh2s (member_id));
-
-    env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY);
-    GNUNET_memcpy (&(response->door), &(msg->door), sizeof(response->door));
-    GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
-    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
-    GNUNET_MQ_send (msg_client->handle->mq, env);
+    sync_srv_handle_room (msg_client->handle,
+                          GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_ENTRY,
+                          &(msg->key), &(msg->previous), &(msg->epoch), &(msg->
+                                                                          door))
+    ;
   }
   else
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Entrance into room failed: %s, %s\n",
@@ -260,18 +231,9 @@ handle_room_close (void *cls,
 
   if (GNUNET_YES == close_srv_handle_room (msg_client->handle, &(msg->key)))
   {
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
-
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Closing room succeeded: %s\n",
-                GNUNET_h2s (&(msg->key)));
-
-    env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE);
-    GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy (&(response->previous), &(msg->previous),
-                   sizeof(response->previous));
-    GNUNET_memcpy (&(response->epoch), &(msg->epoch), sizeof(response->epoch));
-    GNUNET_MQ_send (msg_client->handle->mq, env);
+    sync_srv_handle_room (msg_client->handle,
+                          GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_CLOSE,
+                          &(msg->key), &(msg->previous), &(msg->epoch), NULL);
   }
   else
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Closing room failed: %s\n",
@@ -291,23 +253,12 @@ handle_room_sync (void *cls,
 
   msg_client = cls;
 
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Syncing room: %s\n", GNUNET_h2s (
-                &(msg->key)));
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Syncing room: %s\n",
+              GNUNET_h2s (&(msg->key)));
 
-  {
-    struct GNUNET_HashCode prev, epoch;
-    struct GNUNET_MESSENGER_RoomMessage *response;
-    struct GNUNET_MQ_Envelope *env;
-
-    sync_srv_handle_messages (msg_client->handle, &(msg->key), &(msg->previous),
-                              &prev, &epoch);
-
-    env = GNUNET_MQ_msg (response, GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC);
-    GNUNET_memcpy (&(response->key), &(msg->key), sizeof(response->key));
-    GNUNET_memcpy (&(response->previous), &prev, sizeof(response->previous));
-    GNUNET_memcpy (&(response->epoch), &epoch, sizeof(response->epoch));
-    GNUNET_MQ_send (msg_client->handle->mq, env);
-  }
+  sync_srv_handle_room (msg_client->handle,
+                        GNUNET_MESSAGE_TYPE_MESSENGER_ROOM_SYNC,
+                        &(msg->key), &(msg->previous), &(msg->epoch), NULL);
 
   GNUNET_SERVICE_client_continue (msg_client->client);
 }
@@ -507,7 +458,7 @@ handle_get_message (void *cls,
   const struct GNUNET_ShortHashCode *member_id;
   struct GNUNET_MESSENGER_Member *member;
   const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert ((cls) && (msg));
 

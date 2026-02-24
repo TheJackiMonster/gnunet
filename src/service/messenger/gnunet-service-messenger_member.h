@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2024 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -127,7 +127,7 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member);
  * @param[in] public_key Public key
  * @return Member session
  */
-struct GNUNET_MESSENGER_MemberSession*
+struct GNUNET_MESSENGER_SrvMemberSession*
 get_member_session (const struct GNUNET_MESSENGER_Member *member,
                     const struct GNUNET_CRYPTO_BlindablePublicKey *public_key);
 
@@ -141,7 +141,7 @@ get_member_session (const struct GNUNET_MESSENGER_Member *member,
  * @param[in] hash Hash of message
  * @return Member session
  */
-struct GNUNET_MESSENGER_MemberSession*
+struct GNUNET_MESSENGER_SrvMemberSession*
 get_member_session_of (struct GNUNET_MESSENGER_Member *member,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash);
@@ -154,7 +154,7 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member,
  */
 void
 add_member_session (struct GNUNET_MESSENGER_Member *member,
-                    struct GNUNET_MESSENGER_MemberSession *session);
+                    struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Removes a given member <i>session</i> from its <i>member</i>.
@@ -164,7 +164,7 @@ add_member_session (struct GNUNET_MESSENGER_Member *member,
  */
 void
 remove_member_session (struct GNUNET_MESSENGER_Member *member,
-                       struct GNUNET_MESSENGER_MemberSession *session);
+                       struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Iterate through all member sessions currently connected to a given <i>member</i>

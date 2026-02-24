@@ -1058,7 +1058,9 @@ send_message:
   encode_message (message, msg_length, msg_buffer, GNUNET_YES);
 
   hash_message (message, msg_length, msg_buffer, hash);
-  sign_message (message, msg_length, msg_buffer, hash, key);
+  sign_message (message, hash, key);
+
+  encode_message_signature (message, msg_length, msg_buffer);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Send message (%s)!\n",
               GNUNET_h2s (hash));

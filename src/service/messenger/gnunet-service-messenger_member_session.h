@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2021--2024 GNUnet e.V.
+   Copyright (C) 2021--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -34,7 +34,7 @@
 
 #include "messenger_api_contact.h"
 
-struct GNUNET_MESSENGER_MemberSession
+struct GNUNET_MESSENGER_SrvMemberSession
 {
   struct GNUNET_MESSENGER_Member *member;
 
@@ -46,8 +46,8 @@ struct GNUNET_MESSENGER_MemberSession
   struct GNUNET_CONTAINER_MultiHashMap *history;
   struct GNUNET_MESSENGER_ListMessages messages;
 
-  struct GNUNET_MESSENGER_MemberSession *prev;
-  struct GNUNET_MESSENGER_MemberSession *next;
+  struct GNUNET_MESSENGER_SrvMemberSession *prev;
+  struct GNUNET_MESSENGER_SrvMemberSession *next;
 
   struct GNUNET_TIME_Absolute start;
 
@@ -65,7 +65,7 @@ struct GNUNET_MESSENGER_MemberSession
  * @param[in] pubkey Public key
  * @return New member session
  */
-struct GNUNET_MESSENGER_MemberSession*
+struct GNUNET_MESSENGER_SrvMemberSession*
 create_member_session (struct GNUNET_MESSENGER_Member *member,
                        const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey);
 
@@ -81,8 +81,8 @@ create_member_session (struct GNUNET_MESSENGER_Member *member,
  * @param[in] hash Hash of message
  * @return New member session
  */
-struct GNUNET_MESSENGER_MemberSession*
-switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
+struct GNUNET_MESSENGER_SrvMemberSession*
+switch_member_session (struct GNUNET_MESSENGER_SrvMemberSession *session,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash);
 
@@ -92,7 +92,7 @@ switch_member_session (struct GNUNET_MESSENGER_MemberSession *session,
  * @param[in,out] session Member session
  */
 void
-destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session);
+destroy_member_session (struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Resets a given member <i>session</i> which re-opens a member
@@ -105,7 +105,7 @@ destroy_member_session (struct GNUNET_MESSENGER_MemberSession *session);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
  */
 enum GNUNET_GenericReturnValue
-reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
+reset_member_session (struct GNUNET_MESSENGER_SrvMemberSession *session,
                       const struct GNUNET_HashCode *hash);
 
 /**
@@ -118,7 +118,7 @@ reset_member_session (struct GNUNET_MESSENGER_MemberSession *session,
  * @param[in,out] session Member session
  */
 void
-close_member_session (struct GNUNET_MESSENGER_MemberSession *session);
+close_member_session (struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Returns if the given member <i>session</i> has been closed.
@@ -127,7 +127,8 @@ close_member_session (struct GNUNET_MESSENGER_MemberSession *session);
  * @return #GNUNET_YES or #GNUNET_NO
  */
 enum GNUNET_GenericReturnValue
-is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session);
+is_member_session_closed (const struct GNUNET_MESSENGER_SrvMemberSession *
+                          session);
 
 /**
  * Returns if the given member <i>session</i> has been completed.
@@ -140,7 +141,7 @@ is_member_session_closed (const struct GNUNET_MESSENGER_MemberSession *session);
  */
 enum GNUNET_GenericReturnValue
 is_member_session_completed (const struct
-                             GNUNET_MESSENGER_MemberSession *session);
+                             GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Returns the timestamp of the member <i>session</i>'s start.
@@ -149,7 +150,8 @@ is_member_session_completed (const struct
  * @return Absolute timestamp
  */
 struct GNUNET_TIME_Absolute
-get_member_session_start (const struct GNUNET_MESSENGER_MemberSession *session);
+get_member_session_start (const struct GNUNET_MESSENGER_SrvMemberSession *
+                          session);
 
 /**
  * Returns the key of the room a given member <i>session</i> belongs to.
@@ -158,7 +160,8 @@ get_member_session_start (const struct GNUNET_MESSENGER_MemberSession *session);
  * @return Key of room
  */
 const struct GNUNET_HashCode*
-get_member_session_key (const struct GNUNET_MESSENGER_MemberSession *session);
+get_member_session_key (const struct GNUNET_MESSENGER_SrvMemberSession *session)
+;
 
 /**
  * Returns the member id of a given member <i>session</i>.
@@ -167,7 +170,7 @@ get_member_session_key (const struct GNUNET_MESSENGER_MemberSession *session);
  * @return Member id
  */
 const struct GNUNET_ShortHashCode*
-get_member_session_id (const struct GNUNET_MESSENGER_MemberSession *session);
+get_member_session_id (const struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Returns the public key of a given member <i>session</i>.
@@ -177,7 +180,7 @@ get_member_session_id (const struct GNUNET_MESSENGER_MemberSession *session);
  */
 const struct GNUNET_CRYPTO_BlindablePublicKey*
 get_member_session_public_key (const struct
-                               GNUNET_MESSENGER_MemberSession *session);
+                               GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Returns the member context of a given member <i>session</i>.
@@ -187,7 +190,7 @@ get_member_session_public_key (const struct
  */
 const struct GNUNET_HashCode*
 get_member_session_context (const struct
-                            GNUNET_MESSENGER_MemberSession *session);
+                            GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Returns the contact which is connected to a given member <i>session</i>.
@@ -196,7 +199,7 @@ get_member_session_context (const struct
  * @return Contact
  */
 struct GNUNET_MESSENGER_Contact*
-get_member_session_contact (struct GNUNET_MESSENGER_MemberSession *session);
+get_member_session_contact (struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 /**
  * Verifies a given member <i>session</i> as sender of a selected <i>message</i> and
@@ -212,7 +215,7 @@ get_member_session_contact (struct GNUNET_MESSENGER_MemberSession *session);
  */
 enum GNUNET_GenericReturnValue
 verify_member_session_as_sender (const struct
-                                 GNUNET_MESSENGER_MemberSession *session,
+                                 GNUNET_MESSENGER_SrvMemberSession *session,
                                  const struct GNUNET_MESSENGER_Message *message,
                                  const struct GNUNET_HashCode *hash);
 
@@ -228,7 +231,7 @@ verify_member_session_as_sender (const struct
  */
 enum GNUNET_GenericReturnValue
 check_member_session_history (const struct
-                              GNUNET_MESSENGER_MemberSession *session,
+                              GNUNET_MESSENGER_SrvMemberSession *session,
                               const struct GNUNET_HashCode *hash,
                               enum GNUNET_GenericReturnValue ownership);
 
@@ -243,7 +246,8 @@ check_member_session_history (const struct
  * @param[in] hash Hash of message
  */
 void
-update_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
+update_member_session_history (struct GNUNET_MESSENGER_SrvMemberSession *session
+                               ,
                                const struct GNUNET_MESSENGER_Message *message,
                                const struct GNUNET_HashCode *hash);
 
@@ -255,7 +259,7 @@ update_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
  * @param[in] hash Hash of message
  */
 void
-clear_member_session_history (struct GNUNET_MESSENGER_MemberSession *session,
+clear_member_session_history (struct GNUNET_MESSENGER_SrvMemberSession *session,
                               const struct GNUNET_HashCode *hash);
 
 /**
@@ -279,7 +283,7 @@ load_member_session (struct GNUNET_MESSENGER_Member *member,
  * @param[in] directory Path to a directory
  */
 void
-load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
+load_member_session_next (struct GNUNET_MESSENGER_SrvMemberSession *session,
                           const char *directory);
 
 /**
@@ -290,7 +294,7 @@ load_member_session_next (struct GNUNET_MESSENGER_MemberSession *session,
  * @param[in] directory Path to a directory
  */
 void
-save_member_session (struct GNUNET_MESSENGER_MemberSession *session,
+save_member_session (struct GNUNET_MESSENGER_SrvMemberSession *session,
                      const char *directory);
 
 #endif // GNUNET_SERVICE_MESSENGER_MEMBER_SESSION_H

@@ -65,6 +65,7 @@ libgnunetmessenger = library(
         libgnunetutil_dep,
         libgnunetcadet_dep,
         libgnunetidentity_dep,
+        libgnunetpils_dep,
         libgnunetnamestore_dep,
     ],
     include_directories: [incdir, configuration_inc],
@@ -85,6 +86,7 @@ executable(
     dependencies: [
         libgnunetmessenger_dep,
         libgnunetutil_dep,
+        libgnunethello_dep,
         libgnunetidentity_dep,
         libgnunetpils_dep,
         libgnunetstatistics_dep,

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -37,14 +37,14 @@ struct GNUNET_MESSENGER_MemberNotify
 {
   struct GNUNET_MESSENGER_SrvRoom *room;
   struct GNUNET_MESSENGER_SrvHandle *handle;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
   struct GNUNET_CONTAINER_MultiHashMap *map;
   uint32_t epoch_counter;
 };
 
 static void
 notify_about_members (struct GNUNET_MESSENGER_MemberNotify *notify,
-                      struct GNUNET_MESSENGER_MemberSession *session,
+                      struct GNUNET_MESSENGER_SrvMemberSession *session,
                       enum GNUNET_GenericReturnValue check_permission)
 {
   struct GNUNET_MESSENGER_MessageStore *message_store;
@@ -119,7 +119,7 @@ static enum GNUNET_GenericReturnValue
 iterate_notify_about_members (void *cls,
                               const struct
                               GNUNET_CRYPTO_BlindablePublicKey *public_key,
-                              struct GNUNET_MESSENGER_MemberSession *session)
+                              struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   struct GNUNET_MESSENGER_MemberNotify *notify;
 
@@ -143,7 +143,8 @@ static enum GNUNET_GenericReturnValue
 iterate_epoch_session_members (void *cls,
                                const struct
                                GNUNET_CRYPTO_BlindablePublicKey *public_key,
-                               struct GNUNET_MESSENGER_MemberSession *session)
+                               struct GNUNET_MESSENGER_SrvMemberSession *session
+                               )
 {
   struct GNUNET_MESSENGER_MemberNotify *notify;
   struct GNUNET_MESSENGER_MessageStore *message_store;
@@ -196,7 +197,7 @@ traverse_epoch_session_message (struct GNUNET_MESSENGER_MemberNotify *notify,
                                 const struct GNUNET_HashCode *hash,
                                 const struct GNUNET_MESSENGER_Message *message)
 {
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
   enum GNUNET_GenericReturnValue notification;
   struct GNUNET_PeerIdentity *peer_identity;
 
@@ -344,7 +345,7 @@ send_message_join (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   struct GNUNET_MESSENGER_MemberStore *member_store;
   struct GNUNET_MESSENGER_Member *member;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   set_srv_handle_key (handle, &(message->body.join.key));
 

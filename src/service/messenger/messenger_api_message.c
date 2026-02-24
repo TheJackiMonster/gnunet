@@ -27,6 +27,7 @@
 
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_signatures.h"
 #include "gnunet_util_lib.h"
 
@@ -859,6 +860,20 @@ encode_message_body (enum GNUNET_MESSENGER_MessageKind kind,
 
 
 void
+encode_message_signature (const struct GNUNET_MESSENGER_Message *message,
+                          uint16_t length,
+                          char *buffer)
+{
+  uint16_t offset = 0;
+
+  GNUNET_assert ((message) && (buffer));
+
+  encode_step_signature (buffer, offset, &(message->header.signature),
+                         length);
+}
+
+
+void
 encode_message (const struct GNUNET_MESSENGER_Message *message,
                 uint16_t length,
                 char *buffer,
@@ -1313,74 +1328,55 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
 
 void
 sign_message (struct GNUNET_MESSENGER_Message *message,
-              uint16_t length,
-              char *buffer,
               const struct GNUNET_HashCode *hash,
               const struct GNUNET_CRYPTO_BlindablePrivateKey *key)
 {
-  GNUNET_assert ((message) && (buffer) && (hash) && (key));
+  struct GNUNET_MESSENGER_MessageSignature signature;
+
+  GNUNET_assert ((message) && (hash) && (key));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sign message by member: %s\n",
               GNUNET_h2s (hash));
 
-  {
-    struct GNUNET_MESSENGER_MessageSignature signature;
+  signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
+  signature.purpose.size = htonl (sizeof(signature));
 
-    signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
-    signature.purpose.size = htonl (sizeof(signature));
+  GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
 
-    GNUNET_memcpy (&(signature.hash), hash, sizeof(signature.hash));
-    GNUNET_CRYPTO_blinded_key_sign (key, &signature, &(message->header.signature
-                                                       ));
-  }
-
+  GNUNET_CRYPTO_blinded_key_sign (key, &signature,
+                                  &(message->header.signature));
   message->header.signature.type = key->type;
-
-  {
-    uint16_t offset = 0;
-    encode_step_signature (
-      buffer,
-      offset,
-      &(message->header.signature),
-      length);
-  }
 }
 
 
-void
+struct GNUNET_PILS_Operation*
 sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
-                      uint16_t length,
-                      char *buffer,
                       const struct GNUNET_HashCode *hash,
-                      const struct GNUNET_CONFIGURATION_Handle *cfg)
+                      struct GNUNET_PILS_Handle *pils,
+                      const GNUNET_PILS_SignResultCallback sign_cb,
+                      void *cls)
 {
-  GNUNET_assert ((message) && (buffer) && (hash) && (cfg));
+  struct GNUNET_MESSENGER_MessageSignature signature;
+  struct GNUNET_PILS_Operation *operation;
+
+  GNUNET_assert ((message) && (hash) && (pils));
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sign message by peer: %s\n",
               GNUNET_h2s (hash));
 
-  {
-    struct GNUNET_MESSENGER_MessageSignature signature;
-    signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
-    signature.purpose.size = htonl (sizeof (signature));
+  signature.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_CHAT_MESSAGE);
+  signature.purpose.size = htonl (sizeof (signature));
 
-    GNUNET_memcpy (&(signature.hash), hash, sizeof (signature.hash));
-    GNUNET_CRYPTO_blinded_key_sign_by_peer_identity (cfg, &(signature.purpose),
-                                                     &(message->header.signature
-                                                       .
-                                                       eddsa_signature));
-  }
+  GNUNET_memcpy (&(signature.hash), hash, sizeof (signature.hash));
+
+  operation = GNUNET_PILS_sign_by_peer_identity (pils, &(signature.purpose),
+                                                 sign_cb, cls);
+
+  if (! operation)
+    return NULL;
 
   message->header.signature.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
-
-  {
-    uint16_t offset = 0;
-    encode_step_signature (
-      buffer,
-      offset,
-      &(message->header.signature),
-      length);
-  }
+  return operation;
 }
 
 
@@ -2071,9 +2067,7 @@ get_message_timeout (const struct GNUNET_MESSENGER_Message *message)
 struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
-              const GNUNET_MESSENGER_SignFunction sign,
-              enum GNUNET_MESSENGER_PackMode mode,
-              const void *cls)
+              enum GNUNET_MESSENGER_PackMode mode)
 {
   struct GNUNET_MessageHeader *header;
   uint16_t length, padded_length;
@@ -2104,12 +2098,7 @@ pack_message (struct GNUNET_MESSENGER_Message *message,
   encode_message (message, padded_length, buffer, GNUNET_YES);
 
   if (hash)
-  {
     hash_message (message, length, buffer, hash);
-
-    if (sign)
-      sign (cls, message, length, buffer, hash);
-  }
 
   if (GNUNET_MESSENGER_PACK_MODE_ENVELOPE != mode)
     GNUNET_free (buffer);

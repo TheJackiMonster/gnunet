@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -29,7 +29,9 @@
 #include "gnunet-service-messenger_room.h"
 
 #include "gnunet_common.h"
+#include "gnunet_hello_uri_lib.h"
 #include "gnunet_pils_service.h"
+#include "gnunet_util_lib.h"
 #include "messenger_api_util.h"
 
 static void
@@ -45,6 +47,57 @@ callback_shutdown_service (void *cls)
 
     destroy_service (service);
   }
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_update_rooms (void *cls,
+                      const struct GNUNET_HashCode *key,
+                      void *value)
+{
+  struct GNUNET_MESSENGER_Service *service;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_MESSENGER_Message *message;
+
+  GNUNET_assert ((cls) && (key) && (value));
+
+  service = cls;
+  room = value;
+
+  if (! room->port)
+    return GNUNET_YES;
+
+  message = create_message_peer (service);
+
+  if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Peer message could not be sent!\n");
+    return GNUNET_NO;
+  }
+
+  return send_srv_room_message (room, room->host, message);
+}
+
+
+static void
+callback_peer_id_changed (void *cls,
+                          const struct GNUNET_HELLO_Parser *parser,
+                          const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_Service *service;
+
+  GNUNET_assert (cls);
+
+  service = cls;
+
+  GNUNET_assert (0 == GNUNET_memcmp (
+                   GNUNET_PILS_key_ring_get_identity (service->key_ring),
+                   GNUNET_HELLO_parser_get_id (parser)));
+
+  GNUNET_CONTAINER_multihashmap_iterate (service->rooms,
+                                         &iterate_update_rooms,
+                                         service);
 }
 
 
@@ -120,6 +173,9 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
     service->min_routers = 0;
 
   service->cadet = GNUNET_CADET_connect (service->config);
+  service->pils = GNUNET_PILS_connect (service->config,
+                                       &callback_peer_id_changed,
+                                       service);
   service->statistics = GNUNET_STATISTICS_create (GNUNET_MESSENGER_SERVICE_NAME,
                                                   service->config);
 
@@ -172,6 +228,12 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
   {
     GNUNET_CADET_disconnect (service->cadet);
     service->cadet = NULL;
+  }
+
+  if (service->pils)
+  {
+    GNUNET_PILS_disconnect (service->pils);
+    service->pils = NULL;
   }
 
   if (service->statistics)
@@ -291,7 +353,7 @@ static enum GNUNET_GenericReturnValue
 find_member_session_in_room (void *cls,
                              const struct GNUNET_CRYPTO_BlindablePublicKey *
                              public_key,
-                             struct GNUNET_MESSENGER_MemberSession *session)
+                             struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   struct HandleInitializationClosure *init;
   const struct GNUNET_ShortHashCode *id;

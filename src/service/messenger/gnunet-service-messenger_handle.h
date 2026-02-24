@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -26,10 +26,22 @@
 #ifndef GNUNET_SERVICE_MESSENGER_HANDLE_H
 #define GNUNET_SERVICE_MESSENGER_HANDLE_H
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet-service-messenger_service.h"
 #include "gnunet-service-messenger_sender_session.h"
+#include <stdint.h>
+
+struct GNUNET_MESSENGER_SrvHandleSync
+{
+  uint16_t response_type;
+
+  struct GNUNET_PeerIdentity door;
+
+  struct GNUNET_HashCode hash;
+  struct GNUNET_HashCode epoch;
+};
 
 struct GNUNET_MESSENGER_SrvHandle
 {
@@ -41,6 +53,7 @@ struct GNUNET_MESSENGER_SrvHandle
   struct GNUNET_CONTAINER_MultiHashMap *member_ids;
   struct GNUNET_CONTAINER_MultiHashMap *next_ids;
   struct GNUNET_CONTAINER_MultiHashMap *routing;
+  struct GNUNET_CONTAINER_MultiHashMap *syncing;
 
   struct GNUNET_SCHEDULER_Task *notify;
 };
@@ -177,23 +190,39 @@ is_srv_handle_routing (const struct GNUNET_MESSENGER_SrvHandle *handle,
 
 
 /**
- * Returns the latest merged hash from a room of a given <i>handle</i> using a specific <i>key</i>
- * and the handles own latest known <i>hash</i> and <i>epoch</i> of a message. If the room does
- * not contain other messages being accessible to the handle and older than the provided hash, the
- * function returns the originally provided hash as fallback.
+ * Merges the latest hash from a specific <i>room</i> by a given <i>handle</i> until the message
+ * graph of the room is fully synced. The function will be called automatically in case the
+ * given handle is actively syncing.
  *
  * @param[in,out] handle Handle
- * @param[in] key Key of a room
- * @param[in] prev Known hash of a message
- * @param[out] hash Hash of the latest merged message in a room available to the handle
- * @param[out] epoch Hash of the latest epoch in a room available to the handle
+ * @param[in,out] room Room
  */
 void
-sync_srv_handle_messages (struct GNUNET_MESSENGER_SrvHandle *handle,
-                          const struct GNUNET_HashCode *key,
-                          const struct GNUNET_HashCode *prev,
-                          struct GNUNET_HashCode *hash,
-                          struct GNUNET_HashCode *epoch);
+merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
+                               struct GNUNET_MESSENGER_SrvRoom *room);
+
+/**
+ * Starts merging message hashes until the state from a room of a given <i>handle</i> using a
+ * specific <i>key</i> is fully synced to then send a response using a specified
+ * <i>response_type</i> to the handles client with the latest known <i>hash</i> and <i>epoch</i>
+ * of a message in that room. If the room does not contain other messages being accessible to
+ * the handle and older than the provided <i>hash</i>, the function returns the originally provided
+ * hash as fallback. Similar goes for the provided <i>epoch</i> and <i>door</i> identifier.
+ *
+ * @param[in,out] handle Handle
+ * @param[in] response_type Type of response
+ * @param[in] key Key of a room
+ * @param[in] prev Known hash of a message
+ * @param[in] epoch Known epoch in a room
+ * @param[in] door Known door identity or NULL
+ */
+void
+sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
+                      uint16_t response_type,
+                      const struct GNUNET_HashCode *key,
+                      const struct GNUNET_HashCode *hash,
+                      const struct GNUNET_HashCode *epoch,
+                      const struct GNUNET_PeerIdentity *door);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> to the room using a specific <i>key</i>.

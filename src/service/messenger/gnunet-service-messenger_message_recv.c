@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -32,7 +32,7 @@
 static void
 forward_about_members (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                       struct GNUNET_MESSENGER_MemberSession *session,
+                       struct GNUNET_MESSENGER_SrvMemberSession *session,
                        struct GNUNET_CONTAINER_MultiHashMap *map)
 {
   struct GNUNET_MESSENGER_MessageStore *message_store;
@@ -73,7 +73,7 @@ static enum GNUNET_GenericReturnValue
 iterate_forward_members (void *cls,
                          const struct GNUNET_CRYPTO_BlindablePublicKey *
                          public_key,
-                         struct GNUNET_MESSENGER_MemberSession *session)
+                         struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
 
@@ -239,7 +239,7 @@ recv_message_request (struct GNUNET_MESSENGER_SrvRoom *room,
 {
   struct GNUNET_MESSENGER_MemberStore *member_store;
   struct GNUNET_MESSENGER_Member *member;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   member_store = get_srv_room_member_store (room);
   member = get_store_member_of (member_store, message);

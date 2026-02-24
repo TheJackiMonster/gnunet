@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -65,7 +65,7 @@ iterate_destroy_session (void *cls,
                          const struct GNUNET_HashCode *key,
                          void *value)
 {
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert (value);
 
@@ -218,7 +218,7 @@ iterate_load_next_session (void *cls,
                    DIR_SEPARATOR);
 
   {
-    struct GNUNET_MESSENGER_MemberSession *session;
+    struct GNUNET_MESSENGER_SrvMemberSession *session;
 
     GNUNET_assert (value);
 
@@ -266,7 +266,7 @@ iterate_save_session (void *cls,
                    DIR_SEPARATOR);
 
   {
-    struct GNUNET_MESSENGER_MemberSession *session;
+    struct GNUNET_MESSENGER_SrvMemberSession *session;
 
     GNUNET_assert (value);
 
@@ -333,8 +333,9 @@ free_config:
 
 
 static void
-sync_session_contact_from_next (struct GNUNET_MESSENGER_MemberSession *session,
-                                struct GNUNET_MESSENGER_MemberSession *next)
+sync_session_contact_from_next (struct GNUNET_MESSENGER_SrvMemberSession *
+                                session,
+                                struct GNUNET_MESSENGER_SrvMemberSession *next)
 {
   GNUNET_assert ((session) && (next));
 
@@ -353,7 +354,7 @@ iterate_sync_session_contact (void *cls,
                               const struct GNUNET_HashCode *key,
                               void *value)
 {
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert (value);
 
@@ -376,7 +377,7 @@ sync_member_contacts (struct GNUNET_MESSENGER_Member *member)
 }
 
 
-struct GNUNET_MESSENGER_MemberSession*
+struct GNUNET_MESSENGER_SrvMemberSession*
 get_member_session (const struct GNUNET_MESSENGER_Member *member,
                     const struct GNUNET_CRYPTO_BlindablePublicKey *public_key)
 {
@@ -395,7 +396,7 @@ struct GNUNET_MESSENGER_ClosureSearchSession
   const struct GNUNET_MESSENGER_Message *message;
   const struct GNUNET_HashCode *hash;
 
-  struct GNUNET_MESSENGER_MemberSession *match;
+  struct GNUNET_MESSENGER_SrvMemberSession *match;
 };
 
 static enum GNUNET_GenericReturnValue
@@ -404,7 +405,7 @@ iterate_search_session (void *cls,
                         void *value)
 {
   struct GNUNET_MESSENGER_ClosureSearchSession *search;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert ((cls) && (value));
 
@@ -420,11 +421,11 @@ iterate_search_session (void *cls,
 }
 
 
-static struct GNUNET_MESSENGER_MemberSession*
+static struct GNUNET_MESSENGER_SrvMemberSession*
 try_member_session (struct GNUNET_MESSENGER_Member *member,
                     const struct GNUNET_CRYPTO_BlindablePublicKey *public_key)
 {
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert ((member) && (public_key));
 
@@ -442,7 +443,7 @@ try_member_session (struct GNUNET_MESSENGER_Member *member,
 }
 
 
-struct GNUNET_MESSENGER_MemberSession*
+struct GNUNET_MESSENGER_SrvMemberSession*
 get_member_session_of (struct GNUNET_MESSENGER_Member *member,
                        const struct GNUNET_MESSENGER_Message *message,
                        const struct GNUNET_HashCode *hash)
@@ -471,7 +472,7 @@ get_member_session_of (struct GNUNET_MESSENGER_Member *member,
 
 void
 add_member_session (struct GNUNET_MESSENGER_Member *member,
-                    struct GNUNET_MESSENGER_MemberSession *session)
+                    struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
   struct GNUNET_HashCode hash;
@@ -495,7 +496,7 @@ add_member_session (struct GNUNET_MESSENGER_Member *member,
 
 void
 remove_member_session (struct GNUNET_MESSENGER_Member *member,
-                       struct GNUNET_MESSENGER_MemberSession *session)
+                       struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   const struct GNUNET_CRYPTO_BlindablePublicKey *public_key;
   struct GNUNET_HashCode hash;
@@ -525,7 +526,7 @@ iterate_member_sessions_it (void *cls,
                             void *value)
 {
   struct GNUNET_MESSENGER_ClosureIterateSessions *iterate;
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 
   GNUNET_assert ((cls) && (value));
 

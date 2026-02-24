@@ -54,6 +54,7 @@ struct GNUNET_MESSENGER_Service
   unsigned long long min_routers;
 
   struct GNUNET_CADET_Handle *cadet;
+  struct GNUNET_PILS_Handle *pils;
   struct GNUNET_STATISTICS_Handle *statistics;
 
   struct GNUNET_MESSENGER_ContactStore contact_store;

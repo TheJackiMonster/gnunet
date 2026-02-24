@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -150,8 +150,8 @@ set_contact_encryption_key (struct GNUNET_MESSENGER_Contact *contact,
   {
     struct GNUNET_CRYPTO_HpkePublicKey *hpke_key;
 
-    hpke_key = GNUNET_CONTAINER_multihashmap_get (contact->encryption_keys, key)
-    ;
+    hpke_key = GNUNET_CONTAINER_multihashmap_get (contact->encryption_keys,
+                                                  key);
 
     if (! hpke_key)
     {

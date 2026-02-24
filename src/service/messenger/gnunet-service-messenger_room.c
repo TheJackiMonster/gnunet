@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -25,6 +25,9 @@
 
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_pils_service.h"
+#include "gnunet_util_lib.h"
+#include "messenger_api_message.h"
 #include "platform.h"
 #include "gnunet-service-messenger_room.h"
 
@@ -40,6 +43,8 @@
 #include "gnunet-service-messenger_tunnel.h"
 
 #include "messenger_api_util.h"
+#include <stdint.h>
+#include <string.h>
 
 static void
 idle_request_room_messages (void *cls);
@@ -83,6 +88,8 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   get_room_data_subdir (room, &room_dir);
 
+  room->signatures = GNUNET_CONTAINER_multihashmap_create (8, GNUNET_YES);
+
   init_peer_store (get_srv_room_peer_store (room), room->service);
   init_member_store (get_srv_room_member_store (room), room);
   init_message_store (get_srv_room_message_store (room), room_dir);
@@ -109,8 +116,8 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 
 
 static enum GNUNET_GenericReturnValue
-iterate_destroy_tunnels (void *cls,
-                         const struct GNUNET_PeerIdentity *key,
+iterate_destroy_tunnels (GNUNET_UNUSED void *cls,
+                         GNUNET_UNUSED const struct GNUNET_PeerIdentity *key,
                          void *value)
 {
   struct GNUNET_MESSENGER_SrvTunnel *tunnel;
@@ -120,6 +127,31 @@ iterate_destroy_tunnels (void *cls,
   tunnel = value;
 
   destroy_tunnel (tunnel);
+  return GNUNET_YES;
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_cancel_signature (GNUNET_UNUSED void *cls,
+                          GNUNET_UNUSED const struct GNUNET_HashCode *key,
+                          void *value)
+{
+  struct GNUNET_MESSENGER_SrvRoomSignature *signature;
+
+  GNUNET_assert (value);
+
+  signature = value;
+
+  if (signature->operation)
+    GNUNET_PILS_cancel (signature->operation);
+
+  if (signature->message)
+    destroy_message (signature->message);
+
+  if (signature->envelope)
+    GNUNET_free (signature->envelope);
+
+  GNUNET_free (signature);
   return GNUNET_YES;
 }
 
@@ -161,6 +193,11 @@ skip_saving:
   clear_member_store (get_srv_room_member_store (room));
   clear_message_store (get_srv_room_message_store (room));
   clear_operation_store (get_srv_room_operation_store (room));
+
+  GNUNET_CONTAINER_multihashmap_iterate (room->signatures,
+                                         &iterate_cancel_signature,
+                                         room);
+  GNUNET_CONTAINER_multihashmap_destroy (room->signatures);
 
   GNUNET_CONTAINER_multipeermap_destroy (room->tunnels);
   clear_list_tunnels (&(room->basement));
@@ -513,41 +550,96 @@ enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
 
 
 static void
-sign_srv_room_message_by_peer (const void *cls,
-                               struct GNUNET_MESSENGER_Message *message,
-                               uint16_t length,
-                               char *buffer,
-                               const struct GNUNET_HashCode *hash)
+callback_srv_room_sign_result (void *cls,
+                               const struct GNUNET_PeerIdentity *identity,
+                               const struct GNUNET_CRYPTO_EddsaSignature *
+                               peer_signature)
 {
-  const struct GNUNET_MESSENGER_Service *service;
+  struct GNUNET_MESSENGER_SrvRoomSignature *signature;
+  struct GNUNET_MessageHeader *header;
+  uint16_t padded_length;
+  char *buffer;
 
-  GNUNET_assert ((cls) && (message) && (buffer) && (hash));
+  GNUNET_assert ((cls) && (peer_signature));
 
-  service = cls;
+  signature = cls;
 
-  if (! service->config)
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Signature operation with peer identity (%s) completed: %s\n",
+              GNUNET_i2s (identity),
+              GNUNET_h2s (&(signature->hash)));
+
+  GNUNET_assert (signature->operation);
+  signature->operation = NULL;
+
+  GNUNET_assert ((signature->room) && (signature->message) && (signature->
+                                                               envelope));
+
+  GNUNET_memcpy (&(signature->message->header.signature.eddsa_signature),
+                 peer_signature, sizeof (*peer_signature));
+
+  header = (struct GNUNET_MessageHeader *) GNUNET_MQ_env_get_msg (signature->
+                                                                  envelope);
+  padded_length = header->size - sizeof (*header);
+  buffer = (char *) &(header[1]);
+
+  encode_message_signature (signature->message, padded_length, buffer);
+
+  GNUNET_assert (signature->callback);
+  signature->callback (signature->closure,
+                       signature->room,
+                       signature->message,
+                       signature->envelope,
+                       &(signature->hash));
+
+  if (GNUNET_YES != GNUNET_CONTAINER_multihashmap_remove (signature->room->
+                                                          signatures,
+                                                          &(signature->hash),
+                                                          signature))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Signing message by peer identity failed!\n");
+    signature->message = NULL;
+    signature->envelope = NULL;
+
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Signature operation could not be removed: %s\n",
+                GNUNET_h2s (&(signature->hash)));
     return;
   }
 
-  sign_message_by_peer (message, length, buffer, hash, service->config);
+  GNUNET_free (signature);
 }
 
 
-struct GNUNET_MQ_Envelope*
-pack_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+enum GNUNET_GenericReturnValue
+sign_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_Message *message,
-                       struct GNUNET_HashCode *hash,
-                       enum GNUNET_MESSENGER_PackMode mode)
+                       GNUNET_MESSENGER_SignedCallback callback,
+                       void *closure)
 {
-  struct GNUNET_PeerIdentity peer;
+  struct GNUNET_MESSENGER_SrvRoomSignature *signature;
+  struct GNUNET_PeerIdentity identity;
 
-  GNUNET_assert ((room) && (message) && (hash));
+  GNUNET_assert ((room) && (message) && (callback));
 
   if (GNUNET_YES != is_peer_message (message))
-    return pack_message (message, hash, NULL, mode, NULL);
+  {
+    struct GNUNET_MQ_Envelope *envelope;
+    struct GNUNET_HashCode hash;
+
+    envelope = pack_message (message, &hash,
+                             GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
+
+    if (! envelope)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "Packing message into envelope failed: %s\n",
+                  GNUNET_MESSENGER_name_of_kind (message->header.kind));
+      return GNUNET_SYSERR;
+    }
+
+    callback (closure, room, message, envelope, &hash);
+    return GNUNET_YES;
+  }
 
   if (GNUNET_YES == is_epoch_message (message))
     message->header.timestamp = GNUNET_TIME_absolute_hton (
@@ -556,10 +648,13 @@ pack_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
     message->header.timestamp = GNUNET_TIME_absolute_hton (
       GNUNET_TIME_absolute_get ());
 
-  if (GNUNET_OK != get_service_peer_identity (room->service, &peer))
-    return NULL;
+  if (GNUNET_OK != get_service_peer_identity (room->service, &identity))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Peer identity is missing!\n");
+    return GNUNET_SYSERR;
+  }
 
-  convert_peer_identity_to_id (&peer, &(message->header.sender_id));
+  convert_peer_identity_to_id (&identity, &(message->header.sender_id));
   get_message_state_chain_hash (&(room->state), &(message->header.previous));
 
   if (GNUNET_MESSENGER_KIND_MERGE == message->header.kind)
@@ -581,66 +676,66 @@ pack_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                      sizeof (struct GNUNET_HashCode));
   }
 
+  signature = GNUNET_new (struct GNUNET_MESSENGER_SrvRoomSignature);
+  GNUNET_assert (signature);
+
+  signature->room = room;
+  signature->message = message;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Packing message with peer signature: %s\n",
-              GNUNET_sh2s (&(message->header.sender_id)));
+              GNUNET_sh2s (&(signature->message->header.sender_id)));
 
   message->header.signature.type = htonl (GNUNET_PUBLIC_KEY_TYPE_EDDSA);
-  return pack_message (message, hash, sign_srv_room_message_by_peer, mode,
-                       room->service);
-}
+  signature->envelope = pack_message (signature->message, &(signature->hash),
+                                      GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
 
-
-struct GNUNET_MESSENGER_ClosureSendRoom
-{
-  struct GNUNET_MESSENGER_SrvRoom *room;
-  struct GNUNET_MESSENGER_SrvHandle *handle;
-  struct GNUNET_MESSENGER_SrvTunnel *exclude;
-  struct GNUNET_MESSENGER_Message *message;
-  struct GNUNET_HashCode *hash;
-  enum GNUNET_GenericReturnValue packed;
-};
-
-static enum GNUNET_GenericReturnValue
-iterate_send_room_message (void *cls,
-                           const struct GNUNET_PeerIdentity *key,
-                           void *value)
-{
-  struct GNUNET_MESSENGER_SrvTunnel *tunnel;
-  struct GNUNET_MESSENGER_ClosureSendRoom *closure;
-  struct GNUNET_MQ_Envelope *env;
-
-  GNUNET_assert ((cls) && (value));
-
-  tunnel = value;
-
-  if ((! is_tunnel_connected (tunnel)) ||
-      (get_tunnel_messenger_version (tunnel) < GNUNET_MESSENGER_VERSION))
-    return GNUNET_YES;
-
-  closure = cls;
-
-  if (tunnel == closure->exclude)
-    return GNUNET_YES;
-
-  env = NULL;
-
-  if (closure->packed == GNUNET_NO)
+  if (! signature->envelope)
   {
-    env = pack_srv_room_message (closure->room,
-                                 closure->message,
-                                 closure->hash,
-                                 GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
-
-    if (env)
-      closure->packed = GNUNET_YES;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Packing message into envelope failed: %s\n",
+                GNUNET_MESSENGER_name_of_kind (signature->message->header.kind))
+    ;
+    destroy_message (signature->message);
+    GNUNET_free (signature);
+    return GNUNET_SYSERR;
   }
-  else
-    env = pack_message (closure->message, NULL, NULL,
-                        GNUNET_MESSENGER_PACK_MODE_ENVELOPE, NULL);
 
-  if (env)
-    send_tunnel_envelope (tunnel, env, closure->hash);
+  signature->callback = callback;
+  signature->closure = closure;
+
+  signature->operation = sign_message_by_peer (signature->message,
+                                               &(signature->hash),
+                                               room->service->pils,
+                                               &callback_srv_room_sign_result,
+                                               signature);
+
+  if (! signature->operation)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Signing message by peer identity (%s) failed: %s\n",
+                GNUNET_i2s (&identity),
+                GNUNET_h2s (&(signature->hash)));
+
+    destroy_message (signature->message);
+    GNUNET_free (signature->envelope);
+    GNUNET_free (signature);
+    return GNUNET_SYSERR;
+  }
+
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (room->signatures,
+                                                      &(signature->hash),
+                                                      signature,
+                                                      GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_FAST))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Signature operation could not be stored: %s\n",
+                GNUNET_h2s (&(signature->hash)));
+
+    iterate_cancel_signature (NULL, &(signature->hash),
+                              signature);
+    return GNUNET_SYSERR;
+  }
 
   return GNUNET_YES;
 }
@@ -656,13 +751,69 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
                               const struct GNUNET_MESSENGER_Message *message,
                               const struct GNUNET_HashCode *hash);
 
+static void
+callback_srv_room_message_signed (void *cls,
+                                  struct GNUNET_MESSENGER_SrvRoom *room,
+                                  struct GNUNET_MESSENGER_Message *message,
+                                  struct GNUNET_MQ_Envelope *envelope,
+                                  const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_SrvHandle *handle;
+  enum GNUNET_GenericReturnValue new_message;
+
+  GNUNET_assert ((cls) && (room) && (message) && (envelope) && (hash));
+
+  handle = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending room message: %s\n",
+              GNUNET_h2s (hash));
+
+  send_srv_room_envelope (room, NULL, envelope, hash);
+  new_message = update_room_message (room, message, hash);
+
+  if (GNUNET_YES != new_message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Sending duplicate message failed: %s\n",
+                GNUNET_h2s (hash));
+    return;
+  }
+
+  switch (message->header.kind)
+  {
+  case GNUNET_MESSENGER_KIND_JOIN:
+    send_message_join (room, handle, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_KEY:
+    send_message_key (room, handle, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_PEER:
+    send_message_peer (room, handle, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_ID:
+    send_message_id (room, handle, message, hash);
+    break;
+  case GNUNET_MESSENGER_KIND_REQUEST:
+    send_message_request (room, handle, message, hash);
+    break;
+  default:
+    break;
+  }
+
+  callback_room_handle_message (room, message, hash);
+
+  if ((GNUNET_MESSENGER_KIND_MERGE == message->header.kind) &&
+      (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (handle->syncing, &(
+                                                               room->key))))
+    merge_srv_handle_room_to_sync (handle, room);
+}
+
+
 enum GNUNET_GenericReturnValue
 send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_SrvHandle *handle,
                        struct GNUNET_MESSENGER_Message *message)
 {
-  struct GNUNET_HashCode hash;
-
   GNUNET_assert ((room) && (handle));
 
   if (! message)
@@ -673,88 +824,73 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
               GNUNET_h2s (&(room->key)),
               GNUNET_MESSENGER_name_of_kind (message->header.kind));
 
-  {
-    struct GNUNET_MESSENGER_ClosureSendRoom closure;
+  return sign_srv_room_message (room, message,
+                                &callback_srv_room_message_signed,
+                                handle);
+}
 
-    closure.room = room;
-    closure.handle = handle;
-    closure.exclude = NULL;
-    closure.message = message;
-    closure.hash = &hash;
-    closure.packed = GNUNET_NO;
 
-    GNUNET_CONTAINER_multipeermap_iterate (room->tunnels,
-                                           iterate_send_room_message, &closure);
+struct GNUNET_MESSENGER_ClosureSendRoom
+{
+  struct GNUNET_MESSENGER_SrvTunnel *exclude;
 
-    if (GNUNET_NO == closure.packed)
-      pack_srv_room_message (room, message, &hash,
-                             GNUNET_MESSENGER_PACK_MODE_UNKNOWN);
-  }
+  struct GNUNET_MQ_Envelope *envelope;
+  const struct GNUNET_HashCode *hash;
 
-  {
-    enum GNUNET_GenericReturnValue new_message;
-    new_message = update_room_message (room, message, &hash);
+  uint32_t counter;
+};
 
-    if (GNUNET_YES != new_message)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Sending duplicate message failed: %s\n",
-                  GNUNET_h2s (&hash));
-      return GNUNET_SYSERR;
-    }
-  }
+static enum GNUNET_GenericReturnValue
+iterate_send_room_envelope (void *cls,
+                            GNUNET_UNUSED const struct GNUNET_PeerIdentity *key,
+                            void *value)
+{
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel;
+  struct GNUNET_MESSENGER_ClosureSendRoom *closure;
+  struct GNUNET_MQ_Envelope *envelope;
 
-  switch (message->header.kind)
-  {
-  case GNUNET_MESSENGER_KIND_JOIN:
-    send_message_join (room, handle, message, &hash);
-    break;
-  case GNUNET_MESSENGER_KIND_KEY:
-    send_message_key (room, handle, message, &hash);
-    break;
-  case GNUNET_MESSENGER_KIND_PEER:
-    send_message_peer (room, handle, message, &hash);
-    break;
-  case GNUNET_MESSENGER_KIND_ID:
-    send_message_id (room, handle, message, &hash);
-    break;
-  case GNUNET_MESSENGER_KIND_REQUEST:
-    send_message_request (room, handle, message, &hash);
-    break;
-  default:
-    break;
-  }
+  GNUNET_assert ((cls) && (value));
 
-  callback_room_handle_message (room, message, &hash);
+  closure = cls;
+  tunnel = value;
+
+  GNUNET_assert ((closure->envelope) && (closure->hash));
+
+  if ((! is_tunnel_connected (tunnel)) ||
+      (get_tunnel_messenger_version (tunnel) < GNUNET_MESSENGER_VERSION))
+    return GNUNET_YES;
+
+  if (tunnel == closure->exclude)
+    return GNUNET_YES;
+
+  envelope = GNUNET_MQ_env_copy (closure->envelope);
+
+  if (envelope)
+    send_tunnel_envelope (tunnel, envelope, closure->hash);
+
   return GNUNET_YES;
 }
 
 
 void
-forward_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                          struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                          struct GNUNET_MESSENGER_Message *message,
-                          const struct GNUNET_HashCode *hash)
+send_srv_room_envelope (struct GNUNET_MESSENGER_SrvRoom *room,
+                        struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                        struct GNUNET_MQ_Envelope *envelope,
+                        const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_ClosureSendRoom closure;
-  struct GNUNET_HashCode message_hash;
 
-  GNUNET_assert ((room) && (tunnel));
+  GNUNET_assert ((room) && (envelope));
 
-  if (! message)
-    return;
-
-  GNUNET_memcpy (&message_hash, hash, sizeof(struct GNUNET_HashCode));
-
-  closure.room = room;
-  closure.handle = NULL;
   closure.exclude = tunnel;
-  closure.message = message;
-  closure.hash = &message_hash;
-  closure.packed = GNUNET_YES;
+  closure.envelope = envelope;
+  closure.hash = hash;
 
   GNUNET_CONTAINER_multipeermap_iterate (room->tunnels,
-                                         iterate_send_room_message, &closure);
+                                         &iterate_send_room_envelope,
+                                         &closure);
+
+  GNUNET_free (envelope);
 }
 
 
@@ -783,48 +919,44 @@ check_srv_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-void
+enum GNUNET_GenericReturnValue
 merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
                               struct GNUNET_MESSENGER_SrvHandle *handle)
 {
   const struct GNUNET_HashCode *hash;
+  struct GNUNET_MESSENGER_Message *message;
 
   GNUNET_assert (room);
 
   if (! handle)
-    return;
+    return GNUNET_SYSERR;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Merging messages by handle in room: %s\n",
               GNUNET_h2s (&(room->key)));
 
-  do
+  hash = get_message_state_merge_hash (&(room->state));
+
+  if ((! hash) || (GNUNET_is_zero (hash)))
+    return GNUNET_NO;
+
+  message = create_message_merge (hash);
+
+  if (! message)
   {
-    struct GNUNET_MESSENGER_Message *message;
-
-    hash = get_message_state_merge_hash (&(room->state));
-
-    if ((! hash) || (GNUNET_is_zero (hash)))
-      break;
-
-    message = create_message_merge (hash);
-
-    if (! message)
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                  "Merging messages failed: %s\n",
-                  GNUNET_h2s (&(room->key)));
-    }
-
-    send_srv_room_message (room, handle, message);
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Merging messages failed: %s\n",
+                GNUNET_h2s (&(room->key)));
+    return GNUNET_SYSERR;
   }
-  while (hash);
+
+  return send_srv_room_message (room, handle, message);
 }
 
 
 enum GNUNET_GenericReturnValue
 delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                         struct GNUNET_MESSENGER_MemberSession *session,
+                         struct GNUNET_MESSENGER_SrvMemberSession *session,
                          const struct GNUNET_HashCode *hash,
                          const struct GNUNET_TIME_Relative delay)
 {
@@ -911,7 +1043,8 @@ get_srv_room_tunnel (const struct GNUNET_MESSENGER_SrvRoom *room,
 static enum GNUNET_GenericReturnValue
 request_room_message_step (struct GNUNET_MESSENGER_SrvRoom *room,
                            const struct GNUNET_HashCode *hash,
-                           const struct GNUNET_MESSENGER_MemberSession *session,
+                           const struct GNUNET_MESSENGER_SrvMemberSession *
+                           session,
                            GNUNET_MESSENGER_MessageRequestCallback callback,
                            void *cls)
 {
@@ -978,7 +1111,8 @@ skip_member_session:
 enum GNUNET_GenericReturnValue
 request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_HashCode *hash,
-                          const struct GNUNET_MESSENGER_MemberSession *session,
+                          const struct GNUNET_MESSENGER_SrvMemberSession *
+                          session,
                           GNUNET_MESSENGER_MessageRequestCallback callback,
                           void *cls)
 {
@@ -1053,7 +1187,7 @@ solve_srv_room_member_collisions (struct GNUNET_MESSENGER_SrvRoom *room,
   for (element = handles->head; element; element = element->next)
   {
     const struct GNUNET_CRYPTO_BlindablePublicKey *pubkey;
-    struct GNUNET_MESSENGER_MemberSession *session;
+    struct GNUNET_MESSENGER_SrvMemberSession *session;
 
     if (0 != GNUNET_memcmp (member_id, get_srv_handle_member_id (
                               element->handle, get_srv_room_key (room))))
@@ -1321,7 +1455,8 @@ static enum GNUNET_GenericReturnValue
 iterate_member_for_subscription (void *cls,
                                  const struct GNUNET_CRYPTO_BlindablePublicKey *
                                  public_key,
-                                 struct GNUNET_MESSENGER_MemberSession *session)
+                                 struct GNUNET_MESSENGER_SrvMemberSession *
+                                 session)
 {
   struct GNUNET_MESSENGER_MemberSubscriptionIteration *it;
   struct GNUNET_MESSENGER_Member *member;
@@ -1369,12 +1504,12 @@ cleanup_srv_room_discourse_messages (struct GNUNET_MESSENGER_SrvRoom *room,
 }
 
 
-struct GNUNET_MESSENGER_MemberSessionCompletion
+struct GNUNET_MESSENGER_SrvMemberSessionCompletion
 {
-  struct GNUNET_MESSENGER_MemberSessionCompletion *prev;
-  struct GNUNET_MESSENGER_MemberSessionCompletion *next;
+  struct GNUNET_MESSENGER_SrvMemberSessionCompletion *prev;
+  struct GNUNET_MESSENGER_SrvMemberSessionCompletion *next;
 
-  struct GNUNET_MESSENGER_MemberSession *session;
+  struct GNUNET_MESSENGER_SrvMemberSession *session;
 };
 
 struct GNUNET_MESSENGER_MemberUpdate
@@ -1382,15 +1517,16 @@ struct GNUNET_MESSENGER_MemberUpdate
   const struct GNUNET_MESSENGER_Message *message;
   const struct GNUNET_HashCode *hash;
 
-  struct GNUNET_MESSENGER_MemberSessionCompletion *head;
-  struct GNUNET_MESSENGER_MemberSessionCompletion *tail;
+  struct GNUNET_MESSENGER_SrvMemberSessionCompletion *head;
+  struct GNUNET_MESSENGER_SrvMemberSessionCompletion *tail;
 };
 
 static enum GNUNET_GenericReturnValue
 iterate_update_member_sessions (void *cls,
                                 const struct
                                 GNUNET_CRYPTO_BlindablePublicKey *public_key,
-                                struct GNUNET_MESSENGER_MemberSession *session)
+                                struct GNUNET_MESSENGER_SrvMemberSession *
+                                session)
 {
   struct GNUNET_MESSENGER_MemberUpdate *update;
 
@@ -1402,12 +1538,12 @@ iterate_update_member_sessions (void *cls,
 
   if (GNUNET_YES == is_member_session_completed (session))
   {
-    struct GNUNET_MESSENGER_MemberSessionCompletion *element;
+    struct GNUNET_MESSENGER_SrvMemberSessionCompletion *element;
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Add member session completion to queue!\n");
 
-    element = GNUNET_new (struct GNUNET_MESSENGER_MemberSessionCompletion);
+    element = GNUNET_new (struct GNUNET_MESSENGER_SrvMemberSessionCompletion);
     element->session = session;
 
     GNUNET_CONTAINER_DLL_insert_tail (update->head, update->tail, element);
@@ -1419,7 +1555,7 @@ iterate_update_member_sessions (void *cls,
 
 static void
 remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
-                            struct GNUNET_MESSENGER_MemberSession *session);
+                            struct GNUNET_MESSENGER_SrvMemberSession *session);
 
 void
 callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
@@ -1487,7 +1623,7 @@ callback_room_handle_message (struct GNUNET_MESSENGER_SrvRoom *room,
 
     while (update.head)
     {
-      struct GNUNET_MESSENGER_MemberSessionCompletion *element = update.head;
+      struct GNUNET_MESSENGER_SrvMemberSessionCompletion *element = update.head;
 
       remove_room_member_session (room, element->session);
 
@@ -1643,7 +1779,7 @@ remove_srv_room (struct GNUNET_MESSENGER_SrvRoom *room)
 
 static void
 remove_room_member_session (struct GNUNET_MESSENGER_SrvRoom *room,
-                            struct GNUNET_MESSENGER_MemberSession *session)
+                            struct GNUNET_MESSENGER_SrvMemberSession *session)
 {
   struct GNUNET_HashCode hash;
   char *session_dir;

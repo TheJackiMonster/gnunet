@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -35,6 +35,8 @@
 
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
+#include "gnunet_util_lib.h"
+#include "messenger_api_message.h"
 #include "messenger_api_util.h"
 
 struct GNUNET_MESSENGER_SrvTunnel*
@@ -399,7 +401,20 @@ handle_tunnel_message (void *cls, const struct GNUNET_MessageHeader *header)
 
     if (GNUNET_YES == forward_message)
     {
-      forward_srv_room_message (tunnel->room, tunnel, &message, &hash);
+      struct GNUNET_MQ_Envelope *envelope;
+
+      envelope = pack_message (&message, NULL,
+                               GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
+
+      if (! envelope)
+      {
+        GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                    "Packing message into envelope failed: %s\n",
+                    GNUNET_h2s (&hash));
+        goto receive_done;
+      }
+
+      send_srv_room_envelope (tunnel->room, tunnel, envelope, &hash);
       callback_room_handle_message (tunnel->room, &message, &hash);
     }
   }
@@ -546,35 +561,46 @@ send_tunnel_envelope (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
 }
 
 
+static void
+callback_tunnel_message_signed (void *cls,
+                                GNUNET_UNUSED struct GNUNET_MESSENGER_SrvRoom *
+                                room,
+                                struct GNUNET_MESSENGER_Message *message,
+                                struct GNUNET_MQ_Envelope *envelope,
+                                const struct GNUNET_HashCode *hash)
+{
+  struct GNUNET_MESSENGER_SrvTunnel *tunnel;
+
+  GNUNET_assert ((cls) && (message) && (envelope) && (hash));
+
+  tunnel = cls;
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending tunnel message: %s\n",
+              GNUNET_h2s (hash));
+
+  destroy_message (message);
+  send_tunnel_envelope (tunnel, envelope, hash);
+}
+
+
 enum GNUNET_GenericReturnValue
 send_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                      GNUNET_UNUSED void *handle,
                      struct GNUNET_MESSENGER_Message *message)
 {
-  struct GNUNET_HashCode hash;
-  struct GNUNET_MQ_Envelope *env;
-
-  GNUNET_assert (tunnel);
+  GNUNET_assert ((tunnel) && (tunnel->room));
 
   if (! message)
     return GNUNET_NO;
 
-  env = pack_srv_room_message (
-    tunnel->room,
-    message,
-    &hash,
-    GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Sending message from tunnel in room: %s (%s)\n",
+              GNUNET_h2s (&(tunnel->room->key)),
+              GNUNET_MESSENGER_name_of_kind (message->header.kind));
 
-  destroy_message (message);
-
-  if (! env)
-    return GNUNET_NO;
-
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Sending tunnel message: %s\n",
-              GNUNET_h2s (&hash));
-
-  send_tunnel_envelope (tunnel, env, &hash);
-  return GNUNET_YES;
+  return sign_srv_room_message (tunnel->room, message,
+                                &callback_tunnel_message_signed,
+                                tunnel);
 }
 
 
@@ -584,23 +610,23 @@ forward_tunnel_message (struct GNUNET_MESSENGER_SrvTunnel *tunnel,
                         const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_Message *copy;
-  struct GNUNET_MQ_Envelope *env;
+  struct GNUNET_MQ_Envelope *envelope;
 
   GNUNET_assert ((tunnel) && (message) && (hash));
 
   copy = copy_message (message);
-  env = pack_message (copy, NULL, NULL, GNUNET_MESSENGER_PACK_MODE_ENVELOPE,
-                      NULL);
+  envelope = pack_message (copy, NULL,
+                           GNUNET_MESSENGER_PACK_MODE_ENVELOPE);
 
   destroy_message (copy);
 
-  if (! env)
+  if (! envelope)
     return;
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Forwarding tunnel message: %s\n",
               GNUNET_h2s (hash));
 
-  send_tunnel_envelope (tunnel, env, hash);
+  send_tunnel_envelope (tunnel, envelope, hash);
 }
 
 

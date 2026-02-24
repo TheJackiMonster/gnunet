@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -27,9 +27,12 @@
 #define GNUNET_SERVICE_MESSENGER_ROOM_H
 
 #include "gnunet_cadet_service.h"
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
 #include "gnunet_messenger_service.h"
+#include "gnunet_pils_service.h"
+
 #include "gnunet-service-messenger_handle.h"
 #include "gnunet-service-messenger_message_state.h"
 #include "gnunet-service-messenger_list_messages.h"
@@ -51,7 +54,32 @@
           (GNUNET_TIME_relative_get_second_ (), 30)
 
 struct GNUNET_MESSENGER_SrvTunnel;
-struct GNUNET_MESSENGER_MemberSession;
+struct GNUNET_MESSENGER_SrvMemberSession;
+struct GNUNET_MESSENGER_SrvRoom;
+
+typedef void (*GNUNET_MESSENGER_SignedCallback)(void *cls,
+                                                struct GNUNET_MESSENGER_SrvRoom
+                                                *room,
+                                                struct GNUNET_MESSENGER_Message
+                                                *message,
+                                                struct GNUNET_MQ_Envelope *
+                                                envelope,
+                                                const struct GNUNET_HashCode *
+                                                hash);
+
+struct GNUNET_MESSENGER_SrvRoomSignature
+{
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_PILS_Operation *operation;
+
+  struct GNUNET_MESSENGER_Message *message;
+  struct GNUNET_MQ_Envelope *envelope;
+
+  GNUNET_MESSENGER_SignedCallback callback;
+  void *closure;
+
+  struct GNUNET_HashCode hash;
+};
 
 struct GNUNET_MESSENGER_SrvRoom
 {
@@ -62,6 +90,7 @@ struct GNUNET_MESSENGER_SrvRoom
   struct GNUNET_HashCode key;
 
   struct GNUNET_CONTAINER_MultiPeerMap *tunnels;
+  struct GNUNET_CONTAINER_MultiHashMap *signatures;
 
   struct GNUNET_MESSENGER_PeerStore peer_store;
   struct GNUNET_MESSENGER_MemberStore member_store;
@@ -169,26 +198,24 @@ enter_srv_room_at (struct GNUNET_MESSENGER_SrvRoom *room,
                    const struct GNUNET_PeerIdentity *door);
 
 /**
- * Packs a <i>message</i> depending on the selected <i>mode</i> into a newly allocated envelope. It will set the
- * timestamp of the message, the sender id and the previous messages hash automatically before packing. The message
+ * Packs a <i>message</i> depending on its kind into a newly allocated envelope. It will set the timestamp
+ * of the message, the sender id and the previous messages hash automatically before packing. The message
  * will be signed by the peers private key if necessary.
  *
- * If the optional <i>hash</i> parameter is a valid pointer, its value will be overridden by the signed messages hash.
- *
- * If <i>mode</i> is set to #GNUNET_MESSENGER_PACK_MODE_ENVELOPE, the function returns a valid envelope to send
- * through a message queue, otherwise NULL.
+ * When the message has been signed, the message and the packed envelope are passed into the
+ * provided <i>callback</i> which is required.
  *
  * @param[in,out] room Room
  * @param[in,out] message Message
- * @param[out] hash Hash of message
- * @param[in] mode Packing mode
- * @return New envelope or NULL
+ * @param[in] callback Callback of signature
+ * @param[in,out] closure Closure
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR on failure and #GNUNET_NO otherwise.
  */
-struct GNUNET_MQ_Envelope*
-pack_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
+enum GNUNET_GenericReturnValue
+sign_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_Message *message,
-                       struct GNUNET_HashCode *hash,
-                       enum GNUNET_MESSENGER_PackMode mode);
+                       GNUNET_MESSENGER_SignedCallback callback,
+                       void *closure);
 
 /**
  * Sends a <i>message</i> from a given <i>handle</i> into a <i>room</i>. The <i>hash</i> parameter will be
@@ -211,7 +238,10 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                        struct GNUNET_MESSENGER_Message *message);
 
 /**
- * Forwards a <i>message</i> with a given <i>hash</i> to a specific <i>tunnel</i> inside of a <i>room</i>.
+ * Sends an <i>envelope</i> from a message with a given <i>hash</i> excluding a specific <i>tunnel</i>
+ * inside of a <i>room</i>.
+ *
+ * The function will send copies from the given envelope and frees the original afterwards.
  *
  * @param[in,out] room Room
  * @param[in,out] tunnel Tunnel
@@ -219,10 +249,10 @@ send_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
  * @param[in] hash Hash of message
  */
 void
-forward_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                          struct GNUNET_MESSENGER_SrvTunnel *tunnel,
-                          struct GNUNET_MESSENGER_Message *message,
-                          const struct GNUNET_HashCode *hash);
+send_srv_room_envelope (struct GNUNET_MESSENGER_SrvRoom *room,
+                        struct GNUNET_MESSENGER_SrvTunnel *tunnel,
+                        struct GNUNET_MQ_Envelope *envelope,
+                        const struct GNUNET_HashCode *hash);
 
 /**
  * Checks the current state of opening a given <i>room</i> from this peer and re-publishes it
@@ -240,10 +270,15 @@ check_srv_room_peer_status (struct GNUNET_MESSENGER_SrvRoom *room,
  * Reduces all current forks inside of the message history of a <i>room</i> to one remaining last message
  * by merging them down. All merge messages will be sent from a given <i>handle</i>.
  *
+ * The function will only try to merge one existing fork of the message graph and continue automatically
+ * if any active handle inside the room is syncing. Should there be no existing fork in the message
+ * graph it returns #GNUNET_NO.
+ *
  * @param[in,out] room Room
  * @param[in,out] handle Handle
+ * @return #GNUNET_YES on success, #GNUNET_SYSERR on failure, otherwise #GNUNET_NO
  */
-void
+enum GNUNET_GenericReturnValue
 merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
                               struct GNUNET_MESSENGER_SrvHandle *handle);
 
@@ -259,7 +294,7 @@ merge_srv_room_last_messages (struct GNUNET_MESSENGER_SrvRoom *room,
  */
 enum GNUNET_GenericReturnValue
 delete_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
-                         struct GNUNET_MESSENGER_MemberSession *session,
+                         struct GNUNET_MESSENGER_SrvMemberSession *session,
                          const struct GNUNET_HashCode *hash,
                          const struct GNUNET_TIME_Relative delay);
 
@@ -325,7 +360,8 @@ typedef void (GNUNET_MESSENGER_MessageRequestCallback) (
 enum GNUNET_GenericReturnValue
 request_srv_room_message (struct GNUNET_MESSENGER_SrvRoom *room,
                           const struct GNUNET_HashCode *hash,
-                          const struct GNUNET_MESSENGER_MemberSession *session,
+                          const struct GNUNET_MESSENGER_SrvMemberSession *
+                          session,
                           GNUNET_MESSENGER_MessageRequestCallback callback,
                           void *cls);
 

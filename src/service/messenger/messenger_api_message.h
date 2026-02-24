@@ -26,8 +26,10 @@
 #ifndef GNUNET_MESSENGER_API_MESSAGE_H
 #define GNUNET_MESSENGER_API_MESSAGE_H
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 
+#include "gnunet_pils_service.h"
 #include "gnunet_messenger_service.h"
 
 #define GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY \
@@ -52,6 +54,12 @@
 #define GNUNET_MESSENGER_PADDING_LEVEL0 (512)
 #define GNUNET_MESSENGER_PADDING_LEVEL1 (4096)
 #define GNUNET_MESSENGER_PADDING_LEVEL2 (32768)
+
+enum GNUNET_MESSENGER_PackMode
+{
+  GNUNET_MESSENGER_PACK_MODE_ENVELOPE = 0x1,
+  GNUNET_MESSENGER_PACK_MODE_UNKNOWN = 0x0,
+};
 
 /**
  * Creates and allocates a new message with a specific <i>kind</i>.
@@ -130,7 +138,20 @@ get_message_size (const struct GNUNET_MESSENGER_Message *message,
                   enum GNUNET_GenericReturnValue include_header);
 
 /**
- * Encodes a given <i>message</i> into a <i>buffer</i> of a maximal <i>length</i> in bytes.
+ * Encodes the signature of a given <i>message</i> into a <i>buffer</i> of a maximum
+ * <i>length</i> in bytes.
+ *
+ * @param[in] message Message
+ * @param[in] length Maximal length to encode
+ * @param[out] buffer Buffer
+ */
+void
+encode_message_signature (const struct GNUNET_MESSENGER_Message *message,
+                          uint16_t length,
+                          char *buffer);
+
+/**
+ * Encodes a given <i>message</i> into a <i>buffer</i> of a maximum <i>length</i> in bytes.
  *
  * @param[in] message Message
  * @param[in] length Maximal length to encode
@@ -144,7 +165,7 @@ encode_message (const struct GNUNET_MESSENGER_Message *message,
                 enum GNUNET_GenericReturnValue include_header);
 
 /**
- * Decodes a <i>message</i> from a given <i>buffer</i> of a maximal <i>length</i> in bytes.
+ * Decodes a <i>message</i> from a given <i>buffer</i> of a maximum <i>length</i> in bytes.
  *
  * If the buffer is too small for a message of its decoded kind the function fails with
  * resulting #GNUNET_NO after decoding only the messages header.
@@ -181,38 +202,34 @@ hash_message (const struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash);
 
 /**
- * Signs the <i>hash</i> of a <i>message</i> with a given private <i>key</i> and writes
- * the signature into the <i>buffer</i> as well.
+ * Signs the <i>hash</i> of a <i>message</i> with a given private <i>key</i>.
  *
  * @param[in,out] message Message
- * @param[in] length Length of buffer
- * @param[out] buffer Buffer
  * @param[in] hash Hash of message
  * @param[in] key Private key
  */
 void
 sign_message (struct GNUNET_MESSENGER_Message *message,
-              uint16_t length,
-              char *buffer,
               const struct GNUNET_HashCode *hash,
               const struct GNUNET_CRYPTO_BlindablePrivateKey *key);
 
 /**
- * Signs the <i>hash</i> of a <i>message</i> with the peer identity of a given <i>config</i>
- * and writes the signature into the <i>buffer</i> as well.
+ * Signs the <i>hash</i> of a <i>message</i> with the peer identity of a given <i>pils</i>
+ * service going into a callback with a custom closure on success.
  *
  * @param[in,out] message Message
- * @param[in] length Length of buffer
- * @param[out] buffer Buffer
  * @param[in] hash Hash of message
- * @param[in] cfg Peer configuration
+ * @param[in,out] pils Pils handle
+ * @param[in] sign_cb Signature callback
+ * @param[in,out] cls Closure
+ * @return Signature operation or NULL on failure
  */
-void
+struct GNUNET_PILS_Operation*
 sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
-                      uint16_t length,
-                      char *buffer,
                       const struct GNUNET_HashCode *hash,
-                      const struct GNUNET_CONFIGURATION_Handle *cfg);
+                      struct GNUNET_PILS_Handle *pils,
+                      const GNUNET_PILS_SignResultCallback sign_cb,
+                      void *cls);
 
 /**
  * Signs the <i>message</i> body via it's own hmac with a specific shared <i>key</i>.
@@ -395,38 +412,20 @@ extract_authorization_message_key (struct GNUNET_MESSENGER_Message *message,
 struct GNUNET_TIME_Relative
 get_message_timeout (const struct GNUNET_MESSENGER_Message *message);
 
-typedef void (*GNUNET_MESSENGER_SignFunction)(
-  const void *cls,
-  struct GNUNET_MESSENGER_Message *message,
-  uint16_t length,
-  char *buffer,
-  const struct GNUNET_HashCode *hash);
-
-enum GNUNET_MESSENGER_PackMode
-{
-  GNUNET_MESSENGER_PACK_MODE_ENVELOPE = 0x1,
-  GNUNET_MESSENGER_PACK_MODE_UNKNOWN = 0x0,
-};
-
 /**
  * Encodes the <i>message</i> to pack it into a newly allocated envelope if <i>mode</i>
  * is equal to #GNUNET_MESSENGER_PACK_MODE_ENVELOPE. Independent of the mode the message
- * will be hashed if <i>hash</i> is not NULL and it will be signed if the <i>sign</i>
- * function is not NULL.
+ * will be hashed if <i>hash</i> is not NULL.
  *
  * @param[out] message Message
  * @param[out] hash Hash of message
- * @param[in] sign Function to sign
  * @param[in] mode Mode of packing
- * @param[in,out] cls Closure for signing
  * @return Envelope or NULL
  */
 struct GNUNET_MQ_Envelope*
 pack_message (struct GNUNET_MESSENGER_Message *message,
               struct GNUNET_HashCode *hash,
-              const GNUNET_MESSENGER_SignFunction sign,
-              enum GNUNET_MESSENGER_PackMode mode,
-              const void *cls);
+              enum GNUNET_MESSENGER_PackMode mode);
 
 /**
  * Returns whether a specific kind of message can be sent by the service without usage of a
