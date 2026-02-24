@@ -80,6 +80,7 @@ create_srv_room (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   room->service = handle->service;
   room->host = handle;
+  room->sync = NULL;
   room->port = NULL;
 
   GNUNET_memcpy (&(room->key), key, sizeof(struct GNUNET_HashCode));

@@ -85,6 +85,7 @@ struct GNUNET_MESSENGER_SrvRoom
 {
   struct GNUNET_MESSENGER_Service *service;
   struct GNUNET_MESSENGER_SrvHandle *host;
+  struct GNUNET_MESSENGER_SrvHandle *sync;
   struct GNUNET_CADET_Port *port;
 
   struct GNUNET_HashCode key;

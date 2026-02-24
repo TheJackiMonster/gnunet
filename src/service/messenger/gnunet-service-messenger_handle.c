@@ -418,6 +418,14 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   GNUNET_assert ((handle) && (room));
 
+  if ((NULL != room->sync) && (handle != room->sync))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Wait for syncing: %s\n",
+                GNUNET_h2s (&(room->key)));
+    return;
+  }
+
   result = merge_srv_room_last_messages (room, handle);
 
   if (GNUNET_NO == result)
@@ -425,6 +433,8 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Finish syncing room: %s\n",
                 GNUNET_h2s (&(room->key)));
+
+    room->sync = NULL;
 
     GNUNET_CONTAINER_multihashmap_get_multiple (handle->syncing,
                                                 &(room->key),
@@ -437,6 +447,8 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Merging messages failed while syncing: %s\n",
                 GNUNET_h2s (&(room->key)));
+  else if (NULL == room->sync)
+    room->sync = handle;
 }
 
 

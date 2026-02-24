@@ -579,6 +579,9 @@ close_service_room (struct GNUNET_MESSENGER_Service *service,
       return GNUNET_NO;
   }
 
+  if (room->sync == handle)
+    room->sync = NULL;
+
   if (room->host == handle)
   {
     struct GNUNET_MESSENGER_Message *message;
