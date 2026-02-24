@@ -571,7 +571,7 @@ iterate_save_messages (void *cls,
   if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (
         save->store->entries, key))
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_BULK,
                 "Skipping storage of message: %s\n", GNUNET_h2s (key));
     return GNUNET_YES;
   }

@@ -804,6 +804,7 @@ callback_srv_room_message_signed (void *cls,
   callback_room_handle_message (room, message, hash);
 
   if ((GNUNET_MESSENGER_KIND_MERGE == message->header.kind) &&
+      (room->sync == handle) &&
       (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (handle->syncing, &(
                                                                room->key))))
     merge_srv_handle_room_to_sync (handle, room);

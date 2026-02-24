@@ -51,9 +51,40 @@ callback_shutdown_service (void *cls)
 
 
 static enum GNUNET_GenericReturnValue
-iterate_update_rooms (void *cls,
-                      const struct GNUNET_HashCode *key,
-                      void *value)
+iterate_service_miss_rooms (void *cls,
+                            const struct GNUNET_HashCode *key,
+                            void *value)
+{
+  const struct GNUNET_PeerIdentity *identity;
+  struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_MESSENGER_Message *message;
+
+  GNUNET_assert ((cls) && (key) && (value));
+
+  identity = cls;
+  room = value;
+
+  if (! room->port)
+    return GNUNET_YES;
+
+  message = create_message_miss (identity);
+
+  if (! message)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Miss message could not be sent: %s\n",
+                GNUNET_h2s (key));
+    return GNUNET_NO;
+  }
+
+  return send_srv_room_message (room, room->host, message);
+}
+
+
+static enum GNUNET_GenericReturnValue
+iterate_service_update_rooms (void *cls,
+                              const struct GNUNET_HashCode *key,
+                              void *value)
 {
   struct GNUNET_MESSENGER_Service *service;
   struct GNUNET_MESSENGER_SrvRoom *room;
@@ -72,7 +103,8 @@ iterate_update_rooms (void *cls,
   if (! message)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Peer message could not be sent!\n");
+                "Peer message could not be sent: %s\n",
+                GNUNET_h2s (key));
     return GNUNET_NO;
   }
 
@@ -83,21 +115,43 @@ iterate_update_rooms (void *cls,
 static void
 callback_peer_id_changed (void *cls,
                           const struct GNUNET_HELLO_Parser *parser,
-                          const struct GNUNET_HashCode *hash)
+                          GNUNET_UNUSED const struct GNUNET_HashCode *hash)
 {
   struct GNUNET_MESSENGER_Service *service;
+  const struct GNUNET_PeerIdentity *new_id;
+  struct GNUNET_PeerIdentity old_id;
 
-  GNUNET_assert (cls);
+  GNUNET_assert ((cls) && (parser));
 
   service = cls;
 
-  GNUNET_assert (0 == GNUNET_memcmp (
-                   GNUNET_PILS_key_ring_get_identity (service->key_ring),
-                   GNUNET_HELLO_parser_get_id (parser)));
+  new_id = GNUNET_HELLO_parser_get_id (parser);
+
+  if (NULL == service->identity)
+  {
+    service->identity = GNUNET_new (struct GNUNET_PeerIdentity);
+    GNUNET_assert (service->identity);
+    GNUNET_memcpy (service->identity, new_id, sizeof (*new_id));
+    new_id = service->identity;
+  }
+  else if (0 == GNUNET_memcmp (new_id, service->identity))
+    return;
+  else
+  {
+    GNUNET_memcpy (&old_id, service->identity, sizeof (old_id));
+    GNUNET_memcpy (service->identity, new_id, sizeof (*new_id));
+  }
+
+  GNUNET_assert (0 == GNUNET_memcmp (service->identity, new_id));
 
   GNUNET_CONTAINER_multihashmap_iterate (service->rooms,
-                                         &iterate_update_rooms,
+                                         &iterate_service_update_rooms,
                                          service);
+
+  if (new_id != service->identity)
+    GNUNET_CONTAINER_multihashmap_iterate (service->rooms,
+                                           &iterate_service_miss_rooms,
+                                           &old_id);
 }
 
 
@@ -119,7 +173,7 @@ create_service (const struct GNUNET_CONFIGURATION_Handle *config,
   service->shutdown = GNUNET_SCHEDULER_add_shutdown (&callback_shutdown_service,
                                                      service);
 
-  service->key_ring = GNUNET_PILS_create_key_ring (service->config, NULL, NULL);
+  service->identity = NULL;
   service->dir = NULL;
 
   if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_filename (service->config,
@@ -249,10 +303,10 @@ destroy_service (struct GNUNET_MESSENGER_Service *service)
     service->dir = NULL;
   }
 
-  if (service->key_ring)
+  if (service->identity)
   {
-    GNUNET_PILS_destroy_key_ring (service->key_ring);
-    service->key_ring = NULL;
+    GNUNET_free (service->identity);
+    service->identity = NULL;
   }
 
   GNUNET_SERVICE_shutdown (service->service);
@@ -318,16 +372,16 @@ enum GNUNET_GenericReturnValue
 get_service_peer_identity (struct GNUNET_MESSENGER_Service *service,
                            struct GNUNET_PeerIdentity *peer)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
-
   GNUNET_assert ((service) && (peer));
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (service->key_ring);
-
-  if (NULL == my_identity)
+  if (NULL == service->identity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Service does not know its peer's identity!\n");
     return GNUNET_SYSERR;
+  }
 
-  GNUNET_memcpy (peer, my_identity, sizeof(struct GNUNET_PeerIdentity));
+  GNUNET_memcpy (peer, service->identity, sizeof(*peer));
   return GNUNET_OK;
 }
 

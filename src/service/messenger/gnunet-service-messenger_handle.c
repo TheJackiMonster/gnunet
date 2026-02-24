@@ -418,13 +418,10 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
 
   GNUNET_assert ((handle) && (room));
 
-  if ((NULL != room->sync) && (handle != room->sync))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Wait for syncing: %s\n",
-                GNUNET_h2s (&(room->key)));
-    return;
-  }
+  GNUNET_assert (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (handle->
+                                                                       syncing,
+                                                                       &(room->
+                                                                         key)));
 
   result = merge_srv_room_last_messages (room, handle);
 
@@ -434,14 +431,13 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
                 "Finish syncing room: %s\n",
                 GNUNET_h2s (&(room->key)));
 
-    room->sync = NULL;
-
     GNUNET_CONTAINER_multihashmap_get_multiple (handle->syncing,
                                                 &(room->key),
                                                 &
                                                 iterate_srv_handle_sync_finished,
                                                 handle);
     GNUNET_CONTAINER_multihashmap_remove_all (handle->syncing, &(room->key));
+    room->sync = NULL;
   }
   else if (GNUNET_YES != result)
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -460,13 +456,16 @@ sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
                       const struct GNUNET_HashCode *epoch,
                       const struct GNUNET_PeerIdentity *door)
 {
-  struct GNUNET_MESSENGER_SrvHandleSync *sync;
   struct GNUNET_MESSENGER_SrvRoom *room;
+  struct GNUNET_MESSENGER_SrvHandleSync *sync;
 
   GNUNET_assert ((handle) && (key) && (previous));
 
+  room = get_service_room (handle->service, key);
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Start syncing room: %s\n",
+              "%s syncing room: %s\n",
+              (room) && (room->sync)? "Continue" : "Start",
               GNUNET_h2s (key));
 
   sync = GNUNET_new (struct GNUNET_MESSENGER_SrvHandleSync);
@@ -483,9 +482,8 @@ sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
   GNUNET_memcpy (&(sync->hash), previous, sizeof(sync->hash));
   GNUNET_memcpy (&(sync->epoch), epoch, sizeof(sync->epoch));
 
-  room = get_service_room (handle->service, key);
-
-  if ((! room) || (! get_srv_handle_member_id (handle, key)))
+  if ((! room) || (! get_srv_handle_member_id (handle, key)) ||
+      (NULL == get_message_state_merge_hash (&(room->state))))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Finish syncing room quickly: %s\n",
@@ -505,7 +503,12 @@ sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
     GNUNET_free (sync);
   }
 
-  merge_srv_handle_room_to_sync (handle, room);
+  if ((NULL != room->sync) && (handle != room->sync))
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Wait for syncing: %s\n",
+                GNUNET_h2s (&(room->key)));
+  else
+    merge_srv_handle_room_to_sync (handle, room);
 }
 
 
@@ -675,12 +678,23 @@ notify_srv_handle_message (struct GNUNET_MESSENGER_SrvHandle *handle,
     member_store = get_srv_room_member_store (room);
 
     if (! member_store)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Room does not offer a member store: %s\n",
+                  GNUNET_h2s (key));
       return;
+    }
 
     member = get_store_member (member_store, id);
 
     if (! member)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Could not find member in store with given id: %s (%s)\n",
+                  GNUNET_sh2s (id),
+                  GNUNET_h2s (key));
       return;
+    }
 
     subscription = get_member_subscription (member, discourse);
   }

@@ -44,7 +44,7 @@ struct GNUNET_MESSENGER_Service
 
   struct GNUNET_SCHEDULER_Task *shutdown;
 
-  struct GNUNET_PILS_KeyRing *key_ring;
+  struct GNUNET_PeerIdentity *identity;
   char *dir;
 
   enum GNUNET_GenericReturnValue auto_connecting;
