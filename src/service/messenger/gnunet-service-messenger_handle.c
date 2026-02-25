@@ -440,9 +440,12 @@ merge_srv_handle_room_to_sync (struct GNUNET_MESSENGER_SrvHandle *handle,
     room->sync = NULL;
   }
   else if (GNUNET_YES != result)
+  {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Merging messages failed while syncing: %s\n",
                 GNUNET_h2s (&(room->key)));
+    room->sync = NULL;
+  }
   else if (NULL == room->sync)
     room->sync = handle;
 }
@@ -493,8 +496,8 @@ sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
     return;
   }
 
-  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (handle->syncing, key, sync
-                                                      ,
+  if (GNUNET_OK != GNUNET_CONTAINER_multihashmap_put (handle->syncing,
+                                                      key, sync,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -503,7 +506,7 @@ sync_srv_handle_room (struct GNUNET_MESSENGER_SrvHandle *handle,
     GNUNET_free (sync);
   }
 
-  if ((NULL != room->sync) && (handle != room->sync))
+  if (NULL != room->sync)
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Wait for syncing: %s\n",
                 GNUNET_h2s (&(room->key)));
