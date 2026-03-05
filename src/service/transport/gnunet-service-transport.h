@@ -27,6 +27,7 @@
 #define GNUNET_SERVICE_TRANSPORT_H
 
 #include "gnunet_util_lib.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_transport_service.h"
@@ -44,9 +45,9 @@ extern struct GNUNET_STATISTICS_Handle *GST_stats;
 extern const struct GNUNET_CONFIGURATION_Handle *GST_cfg;
 
 /**
- * Configuration handle.
+ * PILS key ring
  */
-extern struct GNUNET_PeerIdentity GST_my_identity;
+extern struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Handle to peerinfo service.

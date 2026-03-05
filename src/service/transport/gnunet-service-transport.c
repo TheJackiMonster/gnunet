@@ -72,6 +72,7 @@
  *   fully build fragments just before transmission (optimization, should
  *   reduce CPU and memory use) [CPU, MEMORY]
  */
+#include "gnunet_common.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
@@ -2921,11 +2922,6 @@ static struct GNUNET_STATISTICS_Handle *GST_stats;
 static const struct GNUNET_CONFIGURATION_Handle *GST_cfg;
 
 /**
- * Our public key.
- */
-static struct GNUNET_PeerIdentity *GST_my_identity;
-
-/**
  * Our HELLO
  */
 struct GNUNET_HELLO_Builder *GST_my_hello;
@@ -3009,6 +3005,11 @@ struct GNUNET_NAT_Handle *nh;
  * Database for peer's HELLOs.
  */
 static struct GNUNET_PEERSTORE_Handle *peerstore;
+
+/**
+ * PILS key ring
+ */
+static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Service that manages our peer id
@@ -4355,14 +4356,18 @@ resume_communicators (void *cls,
 static void
 handle_client_start (void *cls, const struct StartMessage *start)
 {
+  // const struct GNUNET_PeerIdentity *my_identity;
   struct TransportClient *tc = cls;
   // uint32_t options;
+  //
+  // my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  // GNUNET_assert (my_identity);
   //
   // FIXME ignore the check of the peer ids for now.
   //       (also deprecate the old way of obtaining our own peer ID)
   // options = ntohl (start->options);
   // if ((0 != (1 & options)) &&
-  //    (0 != GNUNET_memcmp (&start->self, &GST_my_identity)))
+  //    (0 != GNUNET_memcmp (&start->self, my_identity)))
   // {
   //  /* client thinks this is a different peer, reject */
   //  GNUNET_break (0);
@@ -4666,8 +4671,12 @@ handle_communicator_available (
   void *cls,
   const struct GNUNET_TRANSPORT_CommunicatorAvailableMessage *cam)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TransportClient *tc = cls;
   uint16_t size;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   size = ntohs (cam->header.size) - sizeof(*cam);
   if (0 == size)
@@ -4682,7 +4691,7 @@ handle_communicator_available (
   tc->details.communicator.can_burst = ntohl (cam->can_burst);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Communicator for peer %s with prefix '%s' connected %s\n",
-              GNUNET_i2s (GST_my_identity),
+              GNUNET_i2s (my_identity),
               tc->details.communicator.address_prefix,
               tc->details.communicator.can_burst ? "can burst" :
               "can not burst");
@@ -5235,6 +5244,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
                     enum RouteMessageOptions options,
                     enum GNUNET_GenericReturnValue without_fc)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct TransportDVBoxMessage box_hdr;
   struct TransportDVBoxPayloadP payload_hdr;
   uint16_t enc_body_size = ntohs (hdr->size);
@@ -5242,6 +5252,9 @@ encapsulate_for_dv (struct DistanceVector *dv,
   struct DVKeyState *key;
   struct GNUNET_TIME_Relative rtt;
   struct GNUNET_ShortHashCode km;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   key = GNUNET_new (struct DVKeyState);
   /* Encrypt payload */
@@ -5269,7 +5282,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   // FIXME: Possibly also add return values here. We are processing
   // Input from other peers...
   dv_setup_key_state_from_km (dv->km, &box_hdr.iv, key);
-  payload_hdr.sender = *GST_my_identity;
+  payload_hdr.sender = *my_identity;
   payload_hdr.monotonic_time = GNUNET_TIME_absolute_hton (dv->monotime);
   dv_encrypt (key, &payload_hdr, enc, sizeof(payload_hdr));
   dv_encrypt (key,
@@ -5304,7 +5317,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
     {
       char *path;
 
-      path = GNUNET_strdup (GNUNET_i2s (GST_my_identity));
+      path = GNUNET_strdup (GNUNET_i2s (my_identity));
       for (unsigned int j = 0; j < num_hops; j++)
       {
         char *tmp;
@@ -6111,7 +6124,7 @@ pils_sign_addr_cb (void *cls,
   expiration = GNUNET_TIME_relative_to_absolute (pc->ale->expiration);
   pc->ale->sc = GNUNET_PEERSTORE_store (peerstore,
                                         "transport",
-                                        GST_my_identity, // FIXME
+                                        pid,
                                         GNUNET_PEERSTORE_TRANSPORT_HELLO_KEY,
                                         result,
                                         result_size,
@@ -6197,7 +6210,7 @@ store_pi (void *cls)
   char *prefix;
   unsigned int add_success;
 
-  if (NULL == GST_my_identity)
+  if (NULL == GNUNET_PILS_key_ring_get_identity (key_ring))
   {
     ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
                                             &store_pi,
@@ -7415,6 +7428,7 @@ handle_backchannel_encapsulation (
   void *cls,
   const struct TransportBackchannelEncapsulationMessage *be)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct CommunicatorMessageContext *cmc = cls;
   struct GNUNET_TRANSPORT_CommunicatorBackchannelIncoming *cbi;
   struct GNUNET_MQ_Envelope *env;
@@ -7426,12 +7440,15 @@ handle_backchannel_encapsulation (
   char *sender;
   char *self;
 
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   GNUNET_asprintf (&sender,
                    "%s",
                    GNUNET_i2s (&cmc->im.sender));
   GNUNET_asprintf (&self,
                    "%s",
-                   GNUNET_i2s (GST_my_identity));
+                   GNUNET_i2s (my_identity));
 
   /* Find client providing this communicator */
   for (tc = clients_head; NULL != tc; tc = tc->next)
@@ -7743,6 +7760,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
                struct GNUNET_TIME_Relative network_latency,
                struct GNUNET_TIME_Absolute path_valid_until)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct DistanceVectorHop *hop;
   struct DistanceVector *dv;
   struct Neighbour *next_hop;
@@ -7754,7 +7772,11 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
-  GNUNET_assert (0 == GNUNET_memcmp (GST_my_identity, &path[0]));
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
+  GNUNET_assert (0 == GNUNET_memcmp (my_identity, &path[0]));
   next_hop = lookup_neighbour (&path[1]);
   if (NULL == next_hop)
   {
@@ -7920,6 +7942,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
 static int
 check_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   uint16_t size = ntohs (dvl->header.size);
   uint16_t num_hops = ntohs (dvl->num_hops);
   const struct DVPathEntryP *hops = (const struct DVPathEntryP *) &dvl[1];
@@ -7935,6 +7958,10 @@ check_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   for (unsigned int i = 0; i < num_hops; i++)
   {
     if (0 == GNUNET_memcmp (&dvl->initiator, &hops[i].hop))
@@ -7942,7 +7969,7 @@ check_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
     }
-    if (0 == GNUNET_memcmp (GST_my_identity, &hops[i].hop))
+    if (0 == GNUNET_memcmp (my_identity, &hops[i].hop))
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
@@ -8030,6 +8057,7 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
            + (nhops + 1) * sizeof(struct DVPathEntryP)] GNUNET_ALIGN;
   struct TransportDVLearnMessage *fwd = (struct TransportDVLearnMessage *) buf;
   struct GNUNET_TIME_Relative nnd;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   /* compute message for forwarding */
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -8050,9 +8078,13 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
   fwd->initiator = msg->initiator;
   fwd->challenge = msg->challenge;
   fwd->monotonic_time = msg->monotonic_time;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   dhops = (struct DVPathEntryP *) &fwd[1];
   GNUNET_memcpy (dhops, hops, sizeof(struct DVPathEntryP) * nhops);
-  dhops[nhops].hop = *GST_my_identity;
+  dhops[nhops].hop = *my_identity;
   {
     struct DvHopPS dhp = {
       .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP),
@@ -8383,6 +8415,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
   int did_initiator;
   struct GNUNET_TIME_Absolute in_time;
   struct Neighbour *n;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   nhops = ntohs (dvl->num_hops);  /* 0 = sender is initiator */
   bi_history = ntohs (dvl->bidirectional);
@@ -8469,6 +8502,10 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                                 n);
     }
   }
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   /* OPTIMIZE-FIXME: asynchronously (!) verify signatures!,
      If signature verification load too high, implement random drop strategy */
   for (unsigned int i = 0; i < nhops; i++)
@@ -8477,7 +8514,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                              htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_DV_HOP),
                            .purpose.size = htonl (sizeof(dhp)),
                            .pred = (0 == i) ? dvl->initiator : hops[i - 1].hop,
-                           .succ = (nhops == i + 1) ? *GST_my_identity
+                           .succ = (nhops == i + 1) ? *my_identity
                                    : hops[i + 1].hop,
                            .challenge = dvl->challenge };
 
@@ -8528,17 +8565,17 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
                 "Received DVInit via %s%s%s\n",
                 path,
                 bi_hop ? "<->" : "-->",
-                GNUNET_i2s (GST_my_identity));
+                GNUNET_i2s (my_identity));
     GNUNET_free (path);
   }
   do_fwd = GNUNET_YES;
-  if (0 == GNUNET_memcmp (GST_my_identity, &dvl->initiator))
+  if (0 == GNUNET_memcmp (my_identity, &dvl->initiator))
   {
     struct GNUNET_PeerIdentity path[nhops + 1];
     struct GNUNET_TIME_Relative network_latency;
 
     /* We initiated this, learn the forward path! */
-    path[0] = *GST_my_identity;
+    path[0] = *my_identity;
     path[1] = hops[0].hop;
 
     network_latency = get_network_latency (dvl);
@@ -8572,7 +8609,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     struct GNUNET_TIME_Relative ilat;
     struct GNUNET_TIME_Relative network_latency;
 
-    path[0] = *GST_my_identity;
+    path[0] = *my_identity;
     path[1] = hops[nhops - 1].hop;   /* direct neighbour == predecessor! */
     for (unsigned int i = 0; i < nhops; i++)
     {
@@ -8702,6 +8739,7 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   uint16_t num_hops = ntohs (dvb->num_hops);
   const struct GNUNET_PeerIdentity *hops =
     (const struct GNUNET_PeerIdentity *) &dvb[1];
+  const struct GNUNET_PeerIdentity *my_identity;
 
   (void) cls;
   if (size < sizeof(*dvb) + num_hops * sizeof(struct GNUNET_PeerIdentity)
@@ -8710,9 +8748,13 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
   }
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   /* This peer must not be on the path */
   for (unsigned int i = 0; i < num_hops; i++)
-    if (0 == GNUNET_memcmp (&hops[i], GST_my_identity))
+    if (0 == GNUNET_memcmp (&hops[i], my_identity))
     {
       GNUNET_break_op (0);
       return GNUNET_SYSERR;
@@ -9161,10 +9203,14 @@ decaps_dv_box_cb (void *cls, const struct GNUNET_ShortHashCode *km)
         (0 != GNUNET_memcmp (&b->last_ephemeral, &dvb->ephemeral_key)))
     {
       /* Check signature */
+      const struct GNUNET_PeerIdentity *my_identity;
       struct EphemeralConfirmationPS ec;
 
+      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      GNUNET_assert (my_identity);
+
       ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
-      ec.target = *GST_my_identity;
+      ec.target = *my_identity;
       ec.ephemeral_key = dvb->ephemeral_key;
       ec.purpose.size =  htonl (sizeof(ec));
       ec.sender_monotonic_time = ppay.monotonic_time;
@@ -9248,12 +9294,16 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   uint16_t enc_payload_size =
     size - (num_hops * sizeof(struct GNUNET_PeerIdentity));
   struct DecapsDvBoxCls *decaps_dv_box_cls;
+  const struct GNUNET_PeerIdentity *my_identity;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   if (GNUNET_EXTRA_LOGGING > 0)
   {
     char *path;
 
-    path = GNUNET_strdup (GNUNET_i2s (GST_my_identity));
+    path = GNUNET_strdup (GNUNET_i2s (my_identity));
     for (unsigned int i = 0; i < num_hops; i++)
     {
       char *tmp;
@@ -9276,7 +9326,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
     {
       struct Neighbour *n;
 
-      if (0 == GNUNET_memcmp (&hops[i], GST_my_identity))
+      if (0 == GNUNET_memcmp (&hops[i], my_identity))
       {
         GNUNET_break_op (0);
         finish_cmc_handling (cmc);
@@ -9573,6 +9623,7 @@ handle_hello_for_incoming (void *cls,
   struct IncomingRequest *ir = cls;
   struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   if (NULL != emsg)
   {
@@ -9582,7 +9633,9 @@ handle_hello_for_incoming (void *cls,
     return;
   }
   hello = record->value;
-  if (0 == GNUNET_memcmp (&record->peer, GST_my_identity))
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+  if (0 == GNUNET_memcmp (&record->peer, my_identity))
   {
     GNUNET_PEERSTORE_monitor_next (ir->nc, 1);
     return;
@@ -12212,10 +12265,14 @@ sign_dv_init_cb (void *cls,
                  const struct GNUNET_PeerIdentity *pid,
                  const struct GNUNET_CRYPTO_EddsaSignature *sig)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct SignDvInitCls *sign_dv_init_cls = cls;
   struct TransportDVLearnMessage dvl = sign_dv_init_cls->dvl;
   struct LearnLaunchEntry *lle = sign_dv_init_cls->lle;
   struct QueueQualityContext qqc = sign_dv_init_cls->qqc;
+
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
   sign_dv_init_cls->pr->op = NULL;
   GNUNET_CONTAINER_DLL_remove (pils_requests_head,
@@ -12224,7 +12281,7 @@ sign_dv_init_cb (void *cls,
   GNUNET_free (sign_dv_init_cls->pr);
 
   dvl.init_sig = *sig;
-  dvl.initiator = *GST_my_identity;
+  dvl.initiator = *my_identity;
   dvl.challenge = lle->challenge;
 
   qqc.quality_count = 0;
@@ -12266,6 +12323,7 @@ start_dv_learn (void *cls)
   struct LearnLaunchEntry *lle;
   struct QueueQualityContext qqc;
   struct TransportDVLearnMessage dvl;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   (void) cls;
   dvlearn_task = NULL;
@@ -12319,6 +12377,8 @@ start_dv_learn (void *cls)
                   &lle->challenge.value,
                   lle,
                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
   dvl.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_DV_LEARN);
   dvl.header.size = htons (sizeof(dvl));
   dvl.num_hops = htons (0);
@@ -12329,7 +12389,7 @@ start_dv_learn (void *cls)
   // We will set the below again later
   memset (&dvl.init_sig, 0, sizeof dvl.init_sig);
   dvl.challenge = lle->challenge;
-  dvl.initiator = *GST_my_identity;
+  dvl.initiator = *my_identity;
   {
     struct DvInitPS dvip = {
       .purpose.purpose = htonl (
@@ -13077,6 +13137,7 @@ handle_hello_for_client (void *cls,
                          const struct GNUNET_PEERSTORE_Record *record,
                          const char *emsg)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct PeerRequest *pr = cls;
   struct GNUNET_HELLO_Parser *parser;
   struct GNUNET_MessageHeader *hello;
@@ -13088,14 +13149,15 @@ handle_hello_for_client (void *cls,
                 emsg);
     return;
   }
-  if (NULL == GST_my_identity)
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  if (NULL == my_identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "No identity given yet!\n");
     return;
   }
   hello = record->value;
-  if (0 == GNUNET_memcmp (&record->peer, GST_my_identity))
+  if (0 == GNUNET_memcmp (&record->peer, my_identity))
   {
     GNUNET_PEERSTORE_monitor_next (pr->nc, 1);
     return;
@@ -13144,6 +13206,7 @@ static void
 handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
 {
   struct TransportClient *tc = cls;
+  const struct GNUNET_PeerIdentity *my_identity;
   struct PeerRequest *pr;
 
   if (CT_NONE == tc->type)
@@ -13170,7 +13233,9 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
               GNUNET_i2s (&msg->peer),
               (int) ntohl (msg->pk),
               (int) ntohl (msg->bw.value__));
-  if (0 == GNUNET_memcmp (GST_my_identity, &msg->peer))
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+  if (0 == GNUNET_memcmp (my_identity, &msg->peer))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Client suggested connection to ourselves, ignoring...\n");
@@ -13407,11 +13472,6 @@ do_shutdown (void *cls)
     GNUNET_HELLO_builder_free (GST_my_hello);
     GST_my_hello = NULL;
   }
-  if (NULL != GST_my_identity)
-  {
-    GNUNET_free (GST_my_identity);
-    GST_my_identity = NULL;
-  }
   GNUNET_CONTAINER_multipeermap_iterate (ack_cummulators,
                                          &free_ack_cummulator_cb,
                                          NULL);
@@ -13468,6 +13528,11 @@ do_shutdown (void *cls)
   {
     GNUNET_PILS_disconnect (pils);
     pils = NULL;
+  }
+  if (NULL != key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
   }
   if (NULL != peerstore)
   {
@@ -13566,19 +13631,21 @@ pils_pid_change_cb (void *cls,
                     const struct GNUNET_HELLO_Parser *parser,
                     const struct GNUNET_HashCode *hash)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_MQ_Envelope *env;
   const struct GNUNET_MessageHeader *msg;
   struct UpdateHelloFromPidCtx *sc;
   struct GNUNET_HELLO_Builder *nbuilder;
   struct GNUNET_PeerIdentity npid;
 
-  if (NULL == GST_my_identity)
-    GST_my_identity = GNUNET_new (struct GNUNET_PeerIdentity);
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
+
   if (NULL == GST_my_hello)
     GST_my_hello = GNUNET_HELLO_builder_new ();
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "My current identity is `%s'\n",
-              GNUNET_i2s_full (GST_my_identity));
+              GNUNET_i2s_full (my_identity));
   /**
    * FIXME we may want to have a sanity check here
    * that verifies that our address list in the builder
@@ -13607,10 +13674,9 @@ pils_pid_change_cb (void *cls,
   }
   GNUNET_HELLO_builder_free (GST_my_hello);
   GST_my_hello = nbuilder;
-  memcpy (GST_my_identity, &npid, sizeof npid);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "My new identity is `%s'\n",
-              GNUNET_i2s_full (GST_my_identity));
+              GNUNET_i2s_full (my_identity));
   env = GNUNET_HELLO_parser_to_env (parser);
   msg = GNUNET_MQ_env_get_msg (env);
   sc = GNUNET_new (struct UpdateHelloFromPidCtx);
@@ -13662,6 +13728,13 @@ run (void *cls,
   GST_my_hello = GNUNET_HELLO_builder_new ();
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
+  key_ring = GNUNET_PILS_create_key_ring (GST_cfg, NULL, NULL);
+  if (NULL == key_ring)
+  {
+    GNUNET_break (0);
+    GNUNET_SCHEDULER_shutdown ();
+    return;
+  }
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);
   nh = GNUNET_NAT_register (GST_cfg,
                             "transport",
@@ -13678,7 +13751,6 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GST_my_identity = NULL;
   pils = GNUNET_PILS_connect (GST_cfg,
                               pils_pid_change_cb,
                               NULL);          // FIXME we need to wait for
