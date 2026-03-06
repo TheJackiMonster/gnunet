@@ -1003,7 +1003,7 @@ forward_reply (void *cls,
 #if SUPER_REDUNDANT_CHECK
   {
     const struct GNUNET_PeerIdentity *my_identity;
-    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    my_identity = GNUNET_PILS_get_identity (GDS_pils);
     GNUNET_assert (NULL != my_identity);
     GNUNET_break (0 ==
                   GNUNET_DHT_verify_path (bd->data,
@@ -1090,7 +1090,7 @@ GDS_CLIENTS_handle_reply (const struct GNUNET_DATACACHE_Block *bd,
 #if SANITY_CHECKS > 1
   {
     const struct GNUNET_PeerIdentity *my_identity;
-    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    my_identity = GNUNET_PILS_get_identity (GDS_pils);
     GNUNET_assert (NULL != my_identity);
     if (0 !=
         GNUNET_DHT_verify_path (bd->data,

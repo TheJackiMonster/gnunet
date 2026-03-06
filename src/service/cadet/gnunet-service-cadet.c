@@ -129,6 +129,11 @@ struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
+ * Handle to the pils service.
+ */
+struct GNUNET_PILS_Handle *pils;
+
+/**
  * Signal that shutdown is happening: prevent recovery measures.
  */
 int shutting_down;
@@ -413,8 +418,11 @@ shutdown_rest ()
   }
   GCD_shutdown ();
   GCH_shutdown ();
-  GNUNET_PILS_destroy_key_ring (key_ring);
-  key_ring = NULL;
+  if (NULL != key_ring)
+  {
+    GNUNET_PILS_destroy_key_ring (key_ring);
+    key_ring = NULL;
+  }
 }
 
 
@@ -485,7 +493,7 @@ handle_port_open (void *cls,
        GNUNET_h2s (&pmsg->port),
        GSC_2s (c));
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   if (! my_identity)
     return;
 
@@ -1317,7 +1325,7 @@ run (void *cls,
   GCO_init (c);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "CADET started for peer %s\n",
-              GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
+              GNUNET_i2s (GNUNET_PILS_get_identity (pils)));
 }
 
 

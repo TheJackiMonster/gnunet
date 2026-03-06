@@ -410,12 +410,6 @@ static struct PilsRequest *pils_requests_tail;
 
 
 /**
- * Pils service.
- */
-static struct GNUNET_PILS_Handle *pils;
-
-
-/**
  * Transport service.
  */
 static struct GNUNET_TRANSPORT_CoreHandle *transport;
@@ -661,7 +655,7 @@ restart_kx (struct GSC_KeyExchangeInfo *kx)
                             GNUNET_NO);
 
   monitor_notify_all (kx);
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GSC_pils);
   GNUNET_assert (NULL != my_identity_hash);
   GNUNET_CRYPTO_hash (&kx->peer, sizeof(struct GNUNET_PeerIdentity), &h1);
   if (NULL != kx->transcript_hash_ctx)
@@ -708,7 +702,7 @@ handle_transport_notify_connect (void *cls,
   const struct GNUNET_PeerIdentity *my_identity;
   struct GSC_KeyExchangeInfo *kx;
   (void) cls;
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
   if (0 == memcmp (peer_id, my_identity, sizeof *peer_id))
   {
@@ -1477,7 +1471,7 @@ handle_initiator_hello_cont (void *cls, const struct GNUNET_ShortHashCode *ss_R)
                    sizeof (struct GNUNET_PeerIdentity));
   }
 
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GSC_pils);
   GNUNET_assert (NULL != my_identity_hash);
 
   // We could follow with the rest of the Key Schedule (dES, HS, ...) for now
@@ -1581,7 +1575,7 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
 
   kx->status = GNUNET_CORE_KX_STATE_INITIATOR_HELLO_RECEIVED;
 
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GSC_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GSC_pils);
   GNUNET_assert (NULL != my_identity_hash);
 
   //      1. verify type _INITIATOR_HELLO
@@ -1612,7 +1606,7 @@ handle_initiator_hello (void *cls, const struct InitiatorHello *ihm_e)
                                pils_requests_tail,
                                initiator_hello_cls->req);
   initiator_hello_cls->req->op =
-    GNUNET_PILS_kem_decaps (pils,
+    GNUNET_PILS_kem_decaps (GSC_pils,
                             &ihm_e->c_R,
                             // encapsulated key
                             &handle_initiator_hello_cont,
@@ -2040,7 +2034,7 @@ handle_responder_hello (void *cls, const struct ResponderHello *rhm_e)
   GNUNET_CONTAINER_DLL_insert (pils_requests_head,
                                pils_requests_tail,
                                req);
-  req->op = GNUNET_PILS_kem_decaps (pils,
+  req->op = GNUNET_PILS_kem_decaps (GSC_pils,
                                     &rh_ctx->rhp->c_I, // encapsulated key
                                     &handle_responder_hello_cont, // continuation
                                     rh_ctx);
@@ -2612,7 +2606,7 @@ send_initiator_hello (struct GSC_KeyExchangeInfo *kx)
   enum GNUNET_GenericReturnValue ret;
   size_t pt_len;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
 
   pt_len = sizeof (*ihmp) + strlen (my_services_info);
@@ -2848,7 +2842,7 @@ GSC_KX_encrypt_and_transmit (struct GSC_KeyExchangeInfo *kx,
 
 
 void
-GSC_KX_start (GNUNET_UNUSED void *cls)
+GSC_KX_start (void)
 {
   const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_MQ_MessageHandler handlers[] = {
@@ -2871,7 +2865,7 @@ GSC_KX_start (GNUNET_UNUSED void *cls)
     GNUNET_MQ_handler_end ()
   };
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
 
   nc = GNUNET_notification_context_create (1);
@@ -2900,6 +2894,18 @@ GSC_KX_start (GNUNET_UNUSED void *cls)
 }
 
 
+void
+pid_change_cb (void *cls,
+               const struct GNUNET_HELLO_Parser *parser,
+               const struct GNUNET_HashCode *hash)
+{
+  if (NULL != transport)
+    return;
+
+  GSC_KX_start ();
+}
+
+
 /**
  * Initialize KX subsystem.
  *
@@ -2908,19 +2914,10 @@ GSC_KX_start (GNUNET_UNUSED void *cls)
 int
 GSC_KX_init (void)
 {
-  GSC_key_ring = GNUNET_PILS_create_key_ring (
-    GSC_cfg, &GSC_KX_start, NULL);
-
-  if (NULL == GSC_key_ring)
-  {
-    GSC_KX_done ();
-    return GNUNET_SYSERR;
-  }
-
-  pils = GNUNET_PILS_connect (GSC_cfg,
-                              NULL,
-                              NULL);
-  if (NULL == pils)
+  GSC_pils = GNUNET_PILS_connect (GSC_cfg,
+                                  &pid_change_cb,
+                                  NULL);
+  if (NULL == GSC_pils)
   {
     GSC_KX_done ();
     return GNUNET_SYSERR;
@@ -2946,15 +2943,10 @@ GSC_KX_done ()
       GNUNET_PILS_cancel (pr->op);
     GNUNET_free (pr);
   }
-  if (NULL != pils)
+  if (NULL != GSC_pils)
   {
-    GNUNET_PILS_disconnect (pils);
-    pils = NULL;
-  }
-  if (NULL != GSC_key_ring)
-  {
-    GNUNET_PILS_destroy_key_ring (GSC_key_ring);
-    GSC_key_ring = NULL;
+    GNUNET_PILS_disconnect (GSC_pils);
+    GSC_pils = NULL;
   }
   if (NULL != transport)
   {

@@ -463,7 +463,7 @@ GSF_peer_connect_handler (void *cls,
   const struct GNUNET_PeerIdentity *my_identity;
   struct GSF_ConnectedPeer *cp;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSF_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSF_pils);
   GNUNET_assert (my_identity);
 
   if (0 == GNUNET_memcmp (my_identity, peer))

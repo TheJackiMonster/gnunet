@@ -52,7 +52,7 @@ GDS_DATACACHE_handle_put (const struct GNUNET_DATACACHE_Block *bd)
   const struct GNUNET_HashCode *my_identity_hash;
   struct GNUNET_HashCode xor;
   enum GNUNET_GenericReturnValue r;
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
   if (NULL == my_identity_hash)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

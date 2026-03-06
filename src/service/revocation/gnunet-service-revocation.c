@@ -108,9 +108,9 @@ static struct GNUNET_CORE_Handle *core_api;
 static struct GNUNET_CONTAINER_MultiPeerMap *peers;
 
 /**
- * The pils key ring.
+ * Handle to the pils service.
  */
-static struct GNUNET_PILS_KeyRing *key_ring;
+static struct GNUNET_PILS_Handle *pils;
 
 /**
  * File handle for the revocation database.
@@ -623,11 +623,11 @@ handle_core_connect (void *cls,
                      enum GNUNET_CORE_PeerClass class)
 {
   const struct GNUNET_PeerIdentity *my_identity;
-  const struct GNUNET_HashCode *my_identity_hash;
+  struct GNUNET_HashCode my_identity_hash;
   struct PeerEntry *peer_entry;
   struct GNUNET_HashCode peer_hash;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (NULL != my_identity);
 
   if (0 == GNUNET_memcmp (peer, my_identity))
@@ -653,12 +653,13 @@ handle_core_connect (void *cls,
   }
   peer_entry = new_peer_entry (peer);
   peer_entry->mq = mq;
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (key_ring);
-  GNUNET_assert (NULL != my_identity_hash);
+  GNUNET_CRYPTO_hash (my_identity,
+                      sizeof(*my_identity),
+                      &my_identity_hash);
   GNUNET_CRYPTO_hash (peer,
                       sizeof(*peer),
                       &peer_hash);
-  if (0 < GNUNET_CRYPTO_hash_cmp (my_identity_hash,
+  if (0 < GNUNET_CRYPTO_hash_cmp (&my_identity_hash,
                                   &peer_hash))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -689,7 +690,7 @@ handle_core_disconnect (void *cls,
   const struct GNUNET_PeerIdentity *my_identity;
   struct PeerEntry *peer_entry = internal_cls;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (NULL != my_identity);
 
   if (0 == GNUNET_memcmp (peer, my_identity))
@@ -761,10 +762,10 @@ shutdown_task (void *cls)
     GNUNET_CORE_disconnect (core_api);
     core_api = NULL;
   }
-  if (NULL != key_ring)
+  if (NULL != pils)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != stats)
   {
@@ -798,7 +799,6 @@ static void
 core_init (void *cls,
            const struct GNUNET_PeerIdentity *identity)
 {
-  const struct GNUNET_PeerIdentity *my_identity;
   if (NULL == identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -806,8 +806,6 @@ core_init (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  GNUNET_assert (0 == GNUNET_memcmp (identity, my_identity));
 }
 
 
@@ -1023,7 +1021,7 @@ run (void *cls,
 
   peers = GNUNET_CONTAINER_multipeermap_create (128,
                                                 GNUNET_YES);
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
   /* Connect to core service and register core handlers */
   core_api = GNUNET_CORE_connect (cfg,    /* Main configuration */
                                   NULL,       /* Closure passed to functions */

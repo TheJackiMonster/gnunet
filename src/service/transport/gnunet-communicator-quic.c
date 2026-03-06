@@ -124,9 +124,9 @@ static uint16_t my_port;
 static quiche_config *config = NULL;
 
 /**
- * PILS key ring.
+ * Handle to PILS service.
  */
-struct GNUNET_PILS_KeyRing *key_ring;
+struct GNUNET_PILS_Handle *pils;
 
 /**
  * Connection to NAT service.
@@ -1196,10 +1196,10 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
-  if (NULL != key_ring)
+  if (NULL != pils)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "do_shutdown finished\n");
@@ -1458,7 +1458,7 @@ sock_read (void *cls)
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                   "handshake established with peer, sending our peer id\n");
 
-      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      my_identity = GNUNET_PILS_get_identity (pils);
       GNUNET_assert (my_identity);
 
       send_len = quiche_conn_stream_send (peer->conn->conn, STREAMID_BI,
@@ -1657,8 +1657,8 @@ run (void *cls,
   /**
    * Get our public key for initial packet
   */
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
-  if (NULL == key_ring)
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
+  if (NULL == pils)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,

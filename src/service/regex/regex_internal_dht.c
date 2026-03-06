@@ -74,15 +74,58 @@ struct REGEX_INTERNAL_Announcement
   struct REGEX_INTERNAL_Automaton *dfa;
 
   /**
-   * Our PILS key ring.
+   * Our PILS service handle.
    */
-  const struct GNUNET_PILS_KeyRing *key_ring;
+  struct GNUNET_PILS_Handle *pils;
 
   /**
    * Optional statistics handle to report usage. Can be NULL.
    */
   struct GNUNET_STATISTICS_Handle *stats;
+
+  /**
+   * Accepting block in memory during signature operation.
+   */
+  struct RegexAcceptBlock *ab;
+
+  /**
+   * Signature operation.
+   */
+  struct GNUNET_PILS_Operation *sign;
 };
+
+
+static void
+sign_accept_block (void *cls,
+                   const struct GNUNET_PeerIdentity *pid,
+                   const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct REGEX_INTERNAL_Announcement *h = cls;
+  size_t size;
+
+  GNUNET_assert ((NULL != h->sign) && (NULL != h->ab));
+
+  h->sign = NULL;
+
+  GNUNET_memcpy (&(h->ab->signature), sig, sizeof (h->ab->signature));
+  size = sizeof(struct RegexAcceptBlock);
+
+  GNUNET_STATISTICS_update (h->stats, "# regex accepting blocks stored",
+                            1, GNUNET_NO);
+  GNUNET_STATISTICS_update (h->stats, "# regex accepting block bytes stored",
+                            sizeof(struct RegexAcceptBlock), GNUNET_NO);
+  (void)
+  GNUNET_DHT_put (h->dht, &(h->ab->key),
+                  DHT_REPLICATION,
+                  DHT_OPT | GNUNET_DHT_RO_RECORD_ROUTE,
+                  GNUNET_BLOCK_TYPE_REGEX_ACCEPT,
+                  size,
+                  h->ab,
+                  GNUNET_TIME_relative_to_absolute (DHT_TTL),
+                  NULL, NULL);
+  GNUNET_free (h->ab);
+  h->ab = NULL;
+}
 
 
 /**
@@ -104,15 +147,13 @@ regex_iterator (void *cls,
                 const struct REGEX_BLOCK_Edge *edges)
 {
   const struct GNUNET_PeerIdentity *my_identity;
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct REGEX_INTERNAL_Announcement *h = cls;
   struct RegexBlock *block;
   size_t size;
   unsigned int i;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (h->key_ring);
-  my_private_key = GNUNET_PILS_key_ring_get_private_key (h->key_ring);
-  if ((! my_identity) || (! my_private_key))
+  my_identity = GNUNET_PILS_get_identity (h->pils);
+  if (NULL == my_identity)
     return;
 
   LOG (GNUNET_ERROR_TYPE_INFO,
@@ -130,38 +171,29 @@ regex_iterator (void *cls,
   }
   if (GNUNET_YES == accepting)
   {
-    struct RegexAcceptBlock ab;
+    if (NULL != h->sign)
+    {
+      GNUNET_PILS_cancel (h->sign);
+      h->sign = NULL;
+    }
+    if (NULL != h->ab)
+      GNUNET_free (h->ab);
+    h->ab = GNUNET_new (struct RegexAcceptBlock);
     LOG (GNUNET_ERROR_TYPE_INFO,
          "State %s is accepting, putting own id\n",
          GNUNET_h2s (key));
-    size = sizeof(struct RegexAcceptBlock);
-    ab.purpose.size = ntohl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
-                             + sizeof(struct GNUNET_TIME_AbsoluteNBO)
-                             + sizeof(struct GNUNET_HashCode));
-    ab.purpose.purpose = ntohl (GNUNET_SIGNATURE_PURPOSE_REGEX_ACCEPT);
-    ab.expiration_time = GNUNET_TIME_absolute_hton (
+    h->ab->purpose.size = ntohl (sizeof(struct GNUNET_CRYPTO_SignaturePurpose)
+                                 + sizeof(struct GNUNET_TIME_AbsoluteNBO)
+                                 + sizeof(struct GNUNET_HashCode));
+    h->ab->purpose.purpose = ntohl (GNUNET_SIGNATURE_PURPOSE_REGEX_ACCEPT);
+    h->ab->expiration_time = GNUNET_TIME_absolute_hton (
       GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_DHT_MAX_EXPIRATION));
-    ab.key = *key;
-    GNUNET_memcpy (&(ab.peer), my_identity,
+    h->ab->key = *key;
+    GNUNET_memcpy (&(h->ab->peer), my_identity,
                    sizeof (*my_identity));
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
-                                              &ab.purpose,
-                                              &ab.signature));
-
-    GNUNET_STATISTICS_update (h->stats, "# regex accepting blocks stored",
-                              1, GNUNET_NO);
-    GNUNET_STATISTICS_update (h->stats, "# regex accepting block bytes stored",
-                              sizeof(struct RegexAcceptBlock), GNUNET_NO);
-    (void)
-    GNUNET_DHT_put (h->dht, key,
-                    DHT_REPLICATION,
-                    DHT_OPT | GNUNET_DHT_RO_RECORD_ROUTE,
-                    GNUNET_BLOCK_TYPE_REGEX_ACCEPT,
-                    size,
-                    &ab,
-                    GNUNET_TIME_relative_to_absolute (DHT_TTL),
-                    NULL, NULL);
+    h->sign = GNUNET_PILS_sign_by_peer_identity (h->pils, &(h->ab->purpose),
+                                                 &sign_accept_block, h);
+    GNUNET_assert (NULL != h->sign);
   }
   block = REGEX_BLOCK_create (proof,
                               num_edges,
@@ -197,7 +229,7 @@ regex_iterator (void *cls,
  * Does not free resources, must call #REGEX_INTERNAL_announce_cancel() for that.
  *
  * @param dht An existing and valid DHT service handle. CANNOT be NULL.
- * @param key_ring our key ring, must remain valid until the announcement is cancelled
+ * @param pils our pils service handle, must remain valid until the announcement is cancelled
  * @param regex Regular expression to announce.
  * @param compression How many characters per edge can we squeeze?
  * @param stats Optional statistics handle to report usage. Can be NULL.
@@ -206,19 +238,19 @@ regex_iterator (void *cls,
  */
 struct REGEX_INTERNAL_Announcement *
 REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
-                         const struct GNUNET_PILS_KeyRing *key_ring,
+                         struct GNUNET_PILS_Handle *pils,
                          const char *regex,
                          uint16_t compression,
                          struct GNUNET_STATISTICS_Handle *stats)
 {
   struct REGEX_INTERNAL_Announcement *h;
 
-  GNUNET_assert (NULL != dht);
+  GNUNET_assert ((NULL != dht) && (NULL != pils));
   h = GNUNET_new (struct REGEX_INTERNAL_Announcement);
   h->regex = regex;
   h->dht = dht;
   h->stats = stats;
-  h->key_ring = key_ring;
+  h->pils = pils;
   h->dfa = REGEX_INTERNAL_construct_dfa (regex, strlen (regex), compression);
   REGEX_INTERNAL_reannounce (h);
   return h;

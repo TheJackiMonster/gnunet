@@ -218,9 +218,9 @@ extern struct GNUNET_TIME_Relative GSF_avg_latency;
 extern struct GNUNET_ATS_PerformanceHandle *GSF_ats;
 
 /**
- * PILS key ring.
+ * Handle to PILS service.
  */
-extern struct GNUNET_PILS_KeyRing *GSF_key_ring;
+extern struct GNUNET_PILS_Handle *GSF_pils;
 
 /**
  * Typical priorities we're seeing from other peers right now.  Since

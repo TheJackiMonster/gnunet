@@ -481,7 +481,7 @@ GCPP_try_path_from_dht (const struct GNUNET_DHT_PathElement *get_path,
   unsigned int skip;
   unsigned int total_len;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
 
   /* precompute 'cpath' so we can avoid doing the lookups lots of times */
   skip = 0;

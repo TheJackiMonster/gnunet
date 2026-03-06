@@ -326,8 +326,8 @@ route_message (struct CadetPeer *prev,
   struct Rung *nxt;
   struct GNUNET_MQ_Envelope *env;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  if (!my_identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (! my_identity)
     return;
 
   route = get_route (cid);
@@ -633,8 +633,8 @@ dir_ready_cb (void *cls, int ready)
   struct CadetRoute *route = dir->my_route;
   struct RouteDirection *odir;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  if (!my_identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (! my_identity)
     return;
 
   if (GNUNET_YES == ready)
@@ -701,7 +701,7 @@ send_broken_without_mqm (
   struct GNUNET_MQ_Envelope *env;
   struct GNUNET_CADET_ConnectionBrokenMessage *bm;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   env = GNUNET_MQ_msg (bm, GNUNET_MESSAGE_TYPE_CADET_CONNECTION_BROKEN);
@@ -735,8 +735,8 @@ handle_connection_create (
   unsigned int off;
   struct CadetTunnel *t;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  if (!my_identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (! my_identity)
     return;
 
   path_length = size / sizeof(struct GNUNET_PeerIdentity);
@@ -1226,7 +1226,7 @@ core_init_cb (void *cls, const struct GNUNET_PeerIdentity *identity)
 {
   const struct GNUNET_PeerIdentity *my_identity;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   if (NULL == my_identity)
   {
     GNUNET_break (0);
@@ -1324,8 +1324,7 @@ GCO_init (const struct GNUNET_CONFIGURATION_Handle *c)
                            struct GNUNET_CADET_TunnelEncryptedMessage,
                            NULL),
     GNUNET_MQ_handler_end () };
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_CADET,
     .version = { 1, 0 },
     .version_max = { 1, 0 },

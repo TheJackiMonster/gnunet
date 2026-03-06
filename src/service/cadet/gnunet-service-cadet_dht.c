@@ -153,7 +153,7 @@ announce_id (void*cls)
   struct GNUNET_TIME_Absolute expiration;
   struct GNUNET_TIME_Relative next_put;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   hello = GCH_get_mine ();

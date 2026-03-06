@@ -367,7 +367,7 @@ GSC_SESSIONS_dequeue_request (struct GSC_ClientActiveRequest *car)
 {
   const struct GNUNET_PeerIdentity *my_identity;
   struct Session *session;
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   if (NULL == my_identity)
     return;
 

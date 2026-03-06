@@ -3007,11 +3007,6 @@ struct GNUNET_NAT_Handle *nh;
 static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
- * PILS key ring
- */
-static struct GNUNET_PILS_KeyRing *key_ring;
-
-/**
  * Service that manages our peer id
  */
 static struct GNUNET_PILS_Handle *pils;
@@ -4360,7 +4355,7 @@ handle_client_start (void *cls, const struct StartMessage *start)
   struct TransportClient *tc = cls;
   // uint32_t options;
   //
-  // my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  // my_identity = GNUNET_PILS_get_identity (pils);
   // GNUNET_assert (my_identity);
   //
   // FIXME ignore the check of the peer ids for now.
@@ -4675,7 +4670,7 @@ handle_communicator_available (
   struct TransportClient *tc = cls;
   uint16_t size;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   size = ntohs (cam->header.size) - sizeof(*cam);
@@ -5253,7 +5248,7 @@ encapsulate_for_dv (struct DistanceVector *dv,
   struct GNUNET_TIME_Relative rtt;
   struct GNUNET_ShortHashCode km;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   key = GNUNET_new (struct DVKeyState);
@@ -6210,7 +6205,7 @@ store_pi (void *cls)
   char *prefix;
   unsigned int add_success;
 
-  if (NULL == GNUNET_PILS_key_ring_get_identity (key_ring))
+  if (NULL == GNUNET_PILS_get_identity (pils))
   {
     ale->st = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MILLISECONDS,
                                             &store_pi,
@@ -7440,7 +7435,7 @@ handle_backchannel_encapsulation (
   char *sender;
   char *self;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_asprintf (&sender,
@@ -7773,7 +7768,7 @@ learn_dv_path (const struct GNUNET_PeerIdentity *path,
     return GNUNET_SYSERR;
   }
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_assert (0 == GNUNET_memcmp (my_identity, &path[0]));
@@ -7959,7 +7954,7 @@ check_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     return GNUNET_SYSERR;
   }
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   for (unsigned int i = 0; i < num_hops; i++)
@@ -8079,7 +8074,7 @@ forward_dv_learn (const struct GNUNET_PeerIdentity *next_hop,
   fwd->challenge = msg->challenge;
   fwd->monotonic_time = msg->monotonic_time;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   dhops = (struct DVPathEntryP *) &fwd[1];
@@ -8503,7 +8498,7 @@ handle_dv_learn (void *cls, const struct TransportDVLearnMessage *dvl)
     }
   }
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   /* OPTIMIZE-FIXME: asynchronously (!) verify signatures!,
@@ -8749,7 +8744,7 @@ check_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
     return GNUNET_SYSERR;
   }
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   /* This peer must not be on the path */
@@ -9206,7 +9201,7 @@ decaps_dv_box_cb (void *cls, const struct GNUNET_ShortHashCode *km)
       const struct GNUNET_PeerIdentity *my_identity;
       struct EphemeralConfirmationPS ec;
 
-      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      my_identity = GNUNET_PILS_get_identity (pils);
       GNUNET_assert (my_identity);
 
       ec.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_TRANSPORT_EPHEMERAL);
@@ -9296,7 +9291,7 @@ handle_dv_box (void *cls, const struct TransportDVBoxMessage *dvb)
   struct DecapsDvBoxCls *decaps_dv_box_cls;
   const struct GNUNET_PeerIdentity *my_identity;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   if (GNUNET_EXTRA_LOGGING > 0)
@@ -9633,7 +9628,7 @@ handle_hello_for_incoming (void *cls,
     return;
   }
   hello = record->value;
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
   if (0 == GNUNET_memcmp (&record->peer, my_identity))
   {
@@ -12271,7 +12266,7 @@ sign_dv_init_cb (void *cls,
   struct LearnLaunchEntry *lle = sign_dv_init_cls->lle;
   struct QueueQualityContext qqc = sign_dv_init_cls->qqc;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   sign_dv_init_cls->pr->op = NULL;
@@ -12377,7 +12372,7 @@ start_dv_learn (void *cls)
                   &lle->challenge.value,
                   lle,
                   GNUNET_CONTAINER_MULTIHASHMAPOPTION_UNIQUE_ONLY));
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
   dvl.header.type = htons (GNUNET_MESSAGE_TYPE_TRANSPORT_DV_LEARN);
   dvl.header.size = htons (sizeof(dvl));
@@ -13149,7 +13144,7 @@ handle_hello_for_client (void *cls,
                 emsg);
     return;
   }
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   if (NULL == my_identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
@@ -13233,7 +13228,7 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
               GNUNET_i2s (&msg->peer),
               (int) ntohl (msg->pk),
               (int) ntohl (msg->bw.value__));
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
   if (0 == GNUNET_memcmp (my_identity, &msg->peer))
   {
@@ -13529,11 +13524,6 @@ do_shutdown (void *cls)
     GNUNET_PILS_disconnect (pils);
     pils = NULL;
   }
-  if (NULL != key_ring)
-  {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
-  }
   if (NULL != peerstore)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -13638,7 +13628,7 @@ pils_pid_change_cb (void *cls,
   struct GNUNET_HELLO_Builder *nbuilder;
   struct GNUNET_PeerIdentity npid;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   if (NULL == GST_my_hello)
@@ -13728,13 +13718,6 @@ run (void *cls,
   GST_my_hello = GNUNET_HELLO_builder_new ();
   GST_stats = GNUNET_STATISTICS_create ("transport", GST_cfg);
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  key_ring = GNUNET_PILS_create_key_ring (GST_cfg, NULL, NULL);
-  if (NULL == key_ring)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
   peerstore = GNUNET_PEERSTORE_connect (GST_cfg);
   nh = GNUNET_NAT_register (GST_cfg,
                             "transport",

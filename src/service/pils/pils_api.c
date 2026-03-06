@@ -99,7 +99,10 @@ struct GNUNET_PILS_Handle
   struct GNUNET_MQ_Handle *mq;
 
   /* The current peer_id */
-  struct GNUNET_PeerIdentity peer_id;
+  struct GNUNET_PeerIdentity *peer_id;
+
+  /* The current peer id hash */
+  struct GNUNET_HashCode peer_hash;
 
   /* The hash from the last set of addresses fed to PILS. */
   struct GNUNET_HashCode hash;
@@ -237,7 +240,15 @@ handle_peer_id (void *cls, const struct PeerIdUpdateMessage *pid_msg)
          "Error parsing Hello block from PILS!\n");
     return;
   }
+
+  if (NULL == h->peer_id)
+    h->peer_id = GNUNET_new (struct GNUNET_PeerIdentity);
+
   memcpy (&h->hash, &pid_msg->hash, sizeof (struct GNUNET_HashCode));
+  memcpy (h->peer_id, GNUNET_HELLO_parser_get_id (parser),
+          sizeof (struct GNUNET_PeerIdentity));
+  GNUNET_CRYPTO_hash (h->peer_id, sizeof (struct GNUNET_PeerIdentity),
+                      &h->peer_hash);
 
   if (NULL != h->pid_change_cb)
   {
@@ -450,6 +461,8 @@ GNUNET_PILS_disconnect (struct GNUNET_PILS_Handle *handle)
     GNUNET_CONTAINER_DLL_remove (handle->op_head, handle->op_tail, op);
     GNUNET_free (op);
   }
+  if (handle->peer_id)
+    GNUNET_free (handle->peer_id);
   GNUNET_free (handle);
 }
 
@@ -635,6 +648,27 @@ GNUNET_PILS_sign_hello (struct GNUNET_PILS_Handle *handle,
 }
 
 
+const struct GNUNET_PeerIdentity*
+GNUNET_PILS_get_identity (const struct GNUNET_PILS_Handle *handle)
+{
+  GNUNET_assert (handle);
+
+  return handle->peer_id;
+}
+
+
+const struct GNUNET_HashCode*
+GNUNET_PILS_get_identity_hash (const struct GNUNET_PILS_Handle *handle)
+{
+  GNUNET_assert (handle);
+
+  if (NULL == handle->peer_id)
+    return NULL;
+
+  return &handle->peer_hash;
+}
+
+
 void
 pid_change_cb (void *cls,
                GNUNET_UNUSED const struct GNUNET_HELLO_Parser *parser,
@@ -667,6 +701,10 @@ pid_change_cb (void *cls,
   GNUNET_CRYPTO_hash (&(key_ring->identity),
                       sizeof (key_ring->identity),
                       &(key_ring->hash));
+
+
+  GNUNET_assert (0 == GNUNET_memcmp (GNUNET_PILS_get_identity (key_ring->pils),
+                                     &(key_ring->identity)));
 
   if (GNUNET_YES != initialized)
     return;
@@ -767,30 +805,6 @@ GNUNET_PILS_destroy_key_ring (struct GNUNET_PILS_KeyRing *key_ring)
   GNUNET_CRYPTO_zero_keys (key_ring->initial_key_material,
                            sizeof (key_ring->initial_key_material));
   GNUNET_free (key_ring);
-}
-
-
-const struct GNUNET_PeerIdentity*
-GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring)
-{
-  GNUNET_assert (key_ring);
-
-  if (NULL == key_ring->private_key)
-    return NULL;
-
-  return &(key_ring->identity);
-}
-
-
-const struct GNUNET_HashCode*
-GNUNET_PILS_key_ring_get_hash (const struct GNUNET_PILS_KeyRing *key_ring)
-{
-  GNUNET_assert (key_ring);
-
-  if (NULL == key_ring->private_key)
-    return NULL;
-
-  return &(key_ring->hash);
 }
 
 

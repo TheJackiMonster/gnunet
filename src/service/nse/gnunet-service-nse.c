@@ -318,11 +318,6 @@ static struct GNUNET_TIME_Absolute next_timestamp;
 static struct GNUNET_TIME_Absolute current_timestamp;
 
 /**
- * PILS key ring.
- */
-static struct GNUNET_PILS_KeyRing *key_ring;
-
-/**
  * Proof of work for this peer.
  */
 static uint64_t my_proof;
@@ -693,13 +688,11 @@ static void
 setup_flood_message (unsigned int slot, struct GNUNET_TIME_Absolute ts)
 {
   const struct GNUNET_PeerIdentity *my_identity;
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct GNUNET_NSE_FloodMessage *fm;
   uint32_t matching_bits;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-  GNUNET_assert ((my_identity) && (my_private_key));
+  my_identity = GNUNET_PILS_get_identity (pils);
+  GNUNET_assert (my_identity);
 
   matching_bits = get_matching_bits (ts, my_identity);
   fm = &size_estimate_messages[slot];
@@ -715,13 +708,7 @@ setup_flood_message (unsigned int slot, struct GNUNET_TIME_Absolute ts)
   fm->timestamp = GNUNET_TIME_absolute_hton (ts);
   fm->origin = *my_identity;
   fm->proof_of_work = my_proof;
-  if (nse_work_required > 0)
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
-                                              &fm->purpose,
-                                              &fm->signature));
-  else
-    memset (&fm->signature, 0, sizeof(fm->signature));
+  memset (&fm->signature, 0, sizeof(fm->signature));
 }
 
 
@@ -780,7 +767,7 @@ update_flood_message (void *cls)
 
   (void) cls;
   flood_task = NULL;
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   if (! my_identity)
     return;
 
@@ -898,7 +885,7 @@ find_proof (void *cls)
 
   (void) cls;
   proof_task = NULL;
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
   GNUNET_memcpy (&buf[sizeof(uint64_t)],
                  my_identity,
@@ -1042,7 +1029,7 @@ handle_p2p_estimate (void *cls,
   uint32_t matching_bits;
   unsigned int idx;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   if (! my_identity)
     return;
 
@@ -1337,11 +1324,6 @@ shutdown_task (void *cls)
     GNUNET_CONTAINER_multipeermap_destroy (peers);
     peers = NULL;
   }
-  if (NULL != key_ring)
-  {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
-  }
   if (NULL != pils)
   {
     GNUNET_PILS_disconnect (pils);
@@ -1367,18 +1349,33 @@ shutdown_task (void *cls)
 
 
 static void
-identity_changed (const struct GNUNET_PeerIdentity *identity)
+pils_id_change_cb (void *cls,
+                   const struct GNUNET_HELLO_Parser *parser,
+                   const struct GNUNET_HashCode *addr_hash)
 {
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_TIME_Absolute now;
   struct GNUNET_TIME_Absolute prev_time;
 
-  if (NULL == identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+
+  if (NULL != proof_task)
+  {
+    GNUNET_SCHEDULER_cancel (proof_task);
+    proof_task = NULL;
+  }
+
+  if (NULL == my_identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Connection to core FAILED!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
+  proof_task =
+    GNUNET_SCHEDULER_add_with_priority (GNUNET_SCHEDULER_PRIORITY_IDLE,
+                                        &find_proof,
+                                        NULL);
   now = GNUNET_TIME_absolute_get ();
   current_timestamp.abs_value_us =
     (now.abs_value_us / gnunet_nse_interval.rel_value_us)
@@ -1387,7 +1384,7 @@ identity_changed (const struct GNUNET_PeerIdentity *identity)
     GNUNET_TIME_absolute_add (current_timestamp, gnunet_nse_interval);
   estimate_index = HISTORY_SIZE - 1;
   estimate_count = 0;
-  if (GNUNET_YES == check_proof_of_work (&(identity->public_key), my_proof))
+  if (GNUNET_YES == check_proof_of_work (&(my_identity->public_key), my_proof))
   {
     int idx = (estimate_index + HISTORY_SIZE - 1) % HISTORY_SIZE;
     prev_time.abs_value_us =
@@ -1400,44 +1397,6 @@ identity_changed (const struct GNUNET_PeerIdentity *identity)
     GNUNET_SCHEDULER_cancel (flood_task);
   flood_task =
     GNUNET_SCHEDULER_add_at (next_timestamp, &update_flood_message, NULL);
-}
-
-
-static void
-pils_id_change_cb (void *cls,
-                   const struct GNUNET_HELLO_Parser *parser,
-                   const struct GNUNET_HashCode *addr_hash)
-{
-  const struct GNUNET_PeerIdentity *my_identity;
-  struct GNUNET_PeerIdentity identity;
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  identity = *GNUNET_HELLO_parser_get_id (parser);
-  GNUNET_assert (0 == GNUNET_memcmp (my_identity, &identity));
-  identity_changed (my_identity);
-}
-
-
-/**
- * Called on core init/fail.
- *
- * @param cls service closure
- * @param identity the public identity of this peer
- */
-static void
-core_init (void *cls, const struct GNUNET_PeerIdentity *identity)
-{
-  const struct GNUNET_PeerIdentity *my_identity;
-  if (identity)
-  {
-    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-    GNUNET_assert (0 == GNUNET_memcmp (my_identity, identity));
-    proof_task = GNUNET_SCHEDULER_add_with_priority (
-      GNUNET_SCHEDULER_PRIORITY_IDLE,
-      &find_proof, NULL);
-  }
-  else
-    my_identity = NULL;
-  identity_changed (my_identity);
 }
 
 
@@ -1567,14 +1526,10 @@ run (void *cls,
 #endif
 
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
-  GNUNET_assert (NULL != key_ring);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (cfg, "NSE", "PROOFFILE", &proof))
   {
     GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR, "NSE", "PROOFFILE");
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
@@ -1590,7 +1545,7 @@ run (void *cls,
   core_api =
     GNUNET_CORE_connect (cfg,  /* Main configuration */
                          NULL, /* Closure passed to functions */
-                         &core_init, /* Call core_init once connected */
+                         NULL, /* Call core_init once connected */
                          &handle_core_connect, /* Handle connects */
                          &handle_core_disconnect, /* Handle disconnects */
                          core_handlers, /* Register these handlers */

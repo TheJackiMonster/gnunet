@@ -47,7 +47,7 @@
  * TODO: replace by 2 RTT if/once we have connection-level RTT data!
  */
 #define INITIAL_CONNECTION_CREATE_RETRY_DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 200)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 200)
 
 
 /**
@@ -596,7 +596,7 @@ set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
                                           GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR),
                                         .purpose.size = htonl (sizeof(cp)),
                                         .monotonic_time = msg->monotime};
-  
+
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert (my_private_key);
 
@@ -625,7 +625,7 @@ send_create (void *cls)
   cc->task = NULL;
   GNUNET_assert (GNUNET_YES == cc->mqm_ready);
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   env =
@@ -1049,7 +1049,7 @@ GCC_2s (const struct CadetConnection *cc)
 
 
 #define LOG2(level, ...) \
-  GNUNET_log_from_nocheck (level, "cadet-con", __VA_ARGS__)
+        GNUNET_log_from_nocheck (level, "cadet-con", __VA_ARGS__)
 
 
 /**

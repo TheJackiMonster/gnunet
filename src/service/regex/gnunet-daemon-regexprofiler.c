@@ -46,6 +46,11 @@ static int global_ret;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
+ * Handle to the pils service.
+ */
+static struct GNUNET_PILS_Handle *pils_handle;
+
+/**
  * Handle to the statistics service.
  */
 static struct GNUNET_STATISTICS_Handle *stats_handle;
@@ -96,11 +101,6 @@ static char *rx_with_pfx;
  */
 static unsigned int rounds = 3;
 
-/**
- * PILS key ring.
- */
-static struct GNUNET_PILS_KeyRing *key_ring;
-
 
 /**
  * Task run during shutdown.
@@ -127,8 +127,11 @@ shutdown_task (void *cls)
     GNUNET_DHT_disconnect (dht_handle);
     dht_handle = NULL;
   }
-  GNUNET_PILS_destroy_key_ring (key_ring);
-  key_ring = NULL;
+  if (NULL != pils_handle)
+  {
+    GNUNET_PILS_disconnect (pils_handle);
+    pils_handle = NULL;
+  }
 
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Daemon for %s shutting down\n",
@@ -163,7 +166,7 @@ reannounce_regex (void *cls)
                 "First time, creating regex: %s\n",
                 regex);
     announce_handle = REGEX_INTERNAL_announce (dht_handle,
-                                               key_ring,
+                                               pils_handle,
                                                regex,
                                                (unsigned
                                                 int) max_path_compression,
@@ -256,8 +259,6 @@ run (void *cls, char *const *args GNUNET_UNUSED,
 
   cfg = cfg_;
 
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
-  GNUNET_assert (NULL != key_ring);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_number (cfg, "REGEXPROFILER",
                                              "MAX_PATH_COMPRESSION",
@@ -316,8 +317,8 @@ run (void *cls, char *const *args GNUNET_UNUSED,
       GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 10);
   }
 
+  pils_handle = GNUNET_PILS_connect (cfg, NULL, NULL);
   stats_handle = GNUNET_STATISTICS_create ("regexprofiler", cfg);
-
   dht_handle = GNUNET_DHT_connect (cfg, 1);
 
   if (NULL == dht_handle)

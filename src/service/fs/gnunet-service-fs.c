@@ -289,10 +289,10 @@ struct GNUNET_BLOCK_Context *GSF_block_ctx;
 struct GNUNET_CORE_Handle *GSF_core;
 
 /**
- * Pointer to handle of the pils key ring (points to NULL until we've
+ * Pointer to handle of the pils service (points to NULL until we've
  * connected to it).
  */
-struct GNUNET_PILS_KeyRing *GSF_key_ring;
+struct GNUNET_PILS_Handle *GSF_pils;
 
 /**
  * Are we introducing randomized delays for better anonymity?
@@ -1138,10 +1138,10 @@ shutdown_task (void *cls)
     GNUNET_CORE_disconnect (GSF_core);
     GSF_core = NULL;
   }
-  if (NULL != GSF_key_ring)
+  if (NULL != GSF_pils)
   {
-    GNUNET_PILS_destroy_key_ring (GSF_key_ring);
-    GSF_key_ring = NULL;
+    GNUNET_PILS_disconnect (GSF_pils);
+    GSF_pils = NULL;
   }
   GSF_put_done_ ();
   GSF_push_done_ ();
@@ -1213,8 +1213,8 @@ main_init (const struct GNUNET_CONFIGURATION_Handle *c)
                                                         "fs",
                                                         "DISABLE_ANON_TRANSFER")
                   );
-  GSF_key_ring = GNUNET_PILS_create_key_ring (GSF_cfg, NULL, NULL);
-  if (NULL == GSF_key_ring)
+  GSF_pils = GNUNET_PILS_connect (GSF_cfg, NULL, NULL);
+  if (NULL == GSF_pils)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to connect to `%s' service.\n"),

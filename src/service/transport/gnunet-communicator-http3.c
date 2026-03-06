@@ -80,9 +80,9 @@ static struct GNUNET_CONTAINER_MultiHashMap *addr_map;
 static const struct GNUNET_CONFIGURATION_Handle *cfg;
 
 /**
- * PILS key ring.
+ * Handle to the pils service.
  */
-static struct GNUNET_PILS_KeyRing *key_ring;
+static struct GNUNET_PILS_Handle *pils;
 
 /**
  * IPv6 disabled or not.
@@ -2338,7 +2338,7 @@ recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
   {
     const struct GNUNET_PeerIdentity *my_identity;
 
-    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+    my_identity = GNUNET_PILS_get_identity (pils);
     GNUNET_assert (my_identity);
 
     stream = create_stream (connection, -1);
@@ -3188,10 +3188,10 @@ do_shutdown (void *cls)
     GNUNET_STATISTICS_destroy (stats, GNUNET_YES);
     stats = NULL;
   }
-  if (NULL != key_ring)
+  if (NULL != pils)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != is)
   {
@@ -3890,8 +3890,8 @@ run (void *cls,
   /**
    * Get our public key for initial packet
    */
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
-  if (NULL == key_ring)
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
+  if (NULL == pils)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,

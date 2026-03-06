@@ -115,11 +115,6 @@ struct GSC_Client
 
 
 /**
- * Our identity.
- */
-struct GNUNET_PILS_KeyRing *GSC_key_ring;
-
-/**
  * Our configuration.
  */
 const struct GNUNET_CONFIGURATION_Handle *GSC_cfg;
@@ -133,6 +128,11 @@ struct GNUNET_SERVICE_Handle *service_h;
  * For creating statistics.
  */
 struct GNUNET_STATISTICS_Handle *GSC_stats;
+
+/**
+ * For peer identity access.
+ */
+struct GNUNET_PILS_Handle *GSC_pils;
 
 /**
  * Our peer class
@@ -335,7 +335,7 @@ handle_client_init (void *cls, const struct InitMessage *im)
   uint16_t msize;
   const uint16_t *types;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
 
   /* check that we don't have an entry already */
@@ -424,7 +424,7 @@ GSC_CLIENTS_solicit_request (struct GSC_ClientActiveRequest *car)
       GNUNET_CONTAINER_multipeermap_contains (c->connectmap, &car->target))
   {
     const struct GNUNET_PeerIdentity *my_identity;
-    my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+    my_identity = GNUNET_PILS_get_identity (GSC_pils);
     GNUNET_assert (NULL != my_identity);
     /* connection has gone down since, drop request */
     GNUNET_assert (0 !=
@@ -466,7 +466,7 @@ handle_client_send_request (void *cls, const struct SendMessageRequest *req)
   struct GSC_ClientActiveRequest *car;
   int is_loopback;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
 
   if (NULL == c->requests)
@@ -573,7 +573,7 @@ tokenized_cb (void *cls, const struct GNUNET_MessageHeader *message)
   struct GSC_ClientActiveRequest *car = tc->car;
   char buf[92];
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
 
   GNUNET_snprintf (buf,
@@ -851,7 +851,7 @@ GSC_complete_initialization_cb (void)
   const struct GNUNET_PeerIdentity *my_identity;
   GSC_SESSIONS_init ();
   GNUNET_SERVICE_resume (service_h);
-  my_identity = GNUNET_PILS_key_ring_get_identity (GSC_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GSC_pils);
   GNUNET_assert (NULL != my_identity);
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               _ ("Core service of `%s' ready.\n"),

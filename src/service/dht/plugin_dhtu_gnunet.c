@@ -167,9 +167,9 @@ struct Plugin
   struct GNUNET_PEERSTORE_Monitor *peerstore_notify;
 
   /**
-   * PILS key ring.
+   * Handle to the PILS service.
    */
-  struct GNUNET_PILS_KeyRing *key_ring;
+  struct GNUNET_PILS_Handle *pils;
 
 };
 
@@ -414,7 +414,7 @@ peerinfo_cb (void *cls,
   hello = record->value;
   if (NULL == hello)
     return;
-  my_identity = GNUNET_PILS_key_ring_get_identity (plugin->key_ring);
+  my_identity = GNUNET_PILS_get_identity (plugin->pils);
   if (! my_identity)
     return;
   if (0 != GNUNET_memcmp (&record->peer, my_identity))
@@ -570,8 +570,8 @@ DHTU_gnunet_done (struct GNUNET_DHTU_PluginFunctions *api)
   if (NULL != plugin->peerstore)
     GNUNET_PEERSTORE_disconnect (plugin->peerstore);
   // GPI_plugins_unload ();
-  if (plugin->key_ring)
-    GNUNET_PILS_destroy_key_ring (plugin->key_ring);
+  if (plugin->pils)
+    GNUNET_PILS_disconnect (plugin->pils);
   GNUNET_free (plugin);
   GNUNET_free (api);
   return NULL;
@@ -604,7 +604,7 @@ DHTU_gnunet_init (struct GNUNET_DHTU_PluginEnvironment *env)
   };
 
   plugin = GNUNET_new (struct Plugin);
-  plugin->key_ring = GNUNET_PILS_create_key_ring (
+  plugin->pils = GNUNET_PILS_connect (
     env->cfg, NULL, NULL);
   plugin->env = env;
   api = GNUNET_new (struct GNUNET_DHTU_PluginFunctions);

@@ -208,6 +208,11 @@ extern struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 extern struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
+ * Handle to Pils service.
+ */
+extern struct GNUNET_PILS_Handle *pils;
+
+/**
  * All ports clients of this peer have opened.  Maps from
  * a hashed port to a `struct OpenPort`.
  */

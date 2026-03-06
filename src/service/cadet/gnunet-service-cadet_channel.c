@@ -48,20 +48,20 @@
  * How long do we initially wait before retransmitting?
  */
 #define CADET_INITIAL_RETRANSMIT_TIME \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 250)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 250)
 
 /**
  * How long do we wait before dropping state about incoming
  * connection to closed port?
  */
 #define TIMEOUT_CLOSED_PORT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 30)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 30)
 
 /**
  * How long do we wait at least before retransmitting ever?
  */
 #define MIN_RTT_DELAY \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 75)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MILLISECONDS, 75)
 
 /**
  * Maximum message ID into the future we accept for out-of-order messages.
@@ -667,7 +667,7 @@ GCCH_channel_local_new (struct CadetClient *owner,
   struct CadetChannel *ch;
   struct CadetChannelClient *ccco;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   ccco = GNUNET_new (struct CadetChannelClient);
@@ -956,10 +956,10 @@ GCCH_bind (struct CadetChannel *ch,
        GCT_2s (ch->t),
        GNUNET_h2s (&ch->port),
        GSC_2s (c));
-  
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
-  
+
   if (NULL != ch->retry_control_task)
   {
     /* there might be a timeout task here */
@@ -1961,7 +1961,7 @@ GCCH_handle_local_ack (struct CadetChannel *ch,
 
 
 #define LOG2(level, ...) \
-  GNUNET_log_from_nocheck (level, "cadet-chn", __VA_ARGS__)
+        GNUNET_log_from_nocheck (level, "cadet-chn", __VA_ARGS__)
 
 
 /**

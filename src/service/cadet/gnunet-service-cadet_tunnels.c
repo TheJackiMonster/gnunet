@@ -468,7 +468,7 @@ GCT_alice_or_betty (const struct GNUNET_PeerIdentity *other)
 {
   const struct GNUNET_PeerIdentity *my_identity;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   if (0 > GNUNET_memcmp (my_identity, other))
@@ -1544,7 +1544,7 @@ update_ax_by_kx (struct CadetTunnelAxolotl *ax,
   const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
 
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-  if (!my_private_key)
+  if (! my_private_key)
   {
     GNUNET_break_op (0);
     return GNUNET_SYSERR;
@@ -2097,7 +2097,7 @@ get_next_free_ctn (struct CadetTunnel *t)
   int cmp;
   uint32_t highbit;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   cmp = GNUNET_memcmp (my_identity,

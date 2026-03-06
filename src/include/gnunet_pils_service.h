@@ -249,6 +249,24 @@ void
 GNUNET_PILS_cancel (struct GNUNET_PILS_Operation *op);
 
 /**
+ * Return the current peer identity of a given handle.
+ *
+ * @param handle handle to the pils service
+ * @return Peer identity or NULL on failure
+ */
+const struct GNUNET_PeerIdentity*
+GNUNET_PILS_get_identity (const struct GNUNET_PILS_Handle *handle);
+
+/**
+ * Return the hash of the current peer identity from a given handle.
+ *
+ * @param handle handle to the pils service
+ * @return Peer identity hash or NULL on failure
+ */
+const struct GNUNET_HashCode*
+GNUNET_PILS_get_identity_hash (const struct GNUNET_PILS_Handle *handle);
+
+/**
  * Create a key ring handle to use the current
  * peer identity key.
  *
@@ -269,24 +287,6 @@ GNUNET_PILS_create_key_ring (const struct GNUNET_CONFIGURATION_Handle *cfg,
  */
 void
 GNUNET_PILS_destroy_key_ring (struct GNUNET_PILS_KeyRing *key_ring);
-
-/**
- * Return the current peer identity of a given key ring handle.
- *
- * @param key_ring key ring handle
- * @return Peer identity or NULL on failure
- */
-const struct GNUNET_PeerIdentity*
-GNUNET_PILS_key_ring_get_identity (const struct GNUNET_PILS_KeyRing *key_ring);
-
-/**
- * Return the hash from the current peer identity of a given key ring handle.
- *
- * @param key_ring key ring handle
- * @return Hash or NULL on failure
- */
-const struct GNUNET_HashCode*
-GNUNET_PILS_key_ring_get_hash (const struct GNUNET_PILS_KeyRing *key_ring);
 
 /**
  * Return the current private key of a given key ring handle.

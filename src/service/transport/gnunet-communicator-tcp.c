@@ -828,6 +828,11 @@ static unsigned long long max_queue_length;
 static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
+ * For PILS.
+ */
+static struct GNUNET_PILS_Handle *pils;
+
+/**
  * For logging statistics.
  */
 static struct GNUNET_STATISTICS_Handle *stats;
@@ -1376,7 +1381,7 @@ setup_in_cipher_elligator (
   struct GNUNET_CRYPTO_HpkePrivateKey my_hpke_key;
   struct GNUNET_ShortHashCode k;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -1403,7 +1408,7 @@ setup_in_cipher (const struct GNUNET_CRYPTO_HpkeEncapsulation *ephemeral,
   const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct GNUNET_ShortHashCode k;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -1426,7 +1431,7 @@ do_rekey (struct Queue *queue, const struct TCPRekey *rekey)
   const struct GNUNET_PeerIdentity *my_identity;
   struct TcpRekeySignature thp;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   thp.purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_COMMUNICATOR_TCP_REKEY);
@@ -1579,7 +1584,7 @@ send_challenge (struct GNUNET_CRYPTO_ChallengeNonceP challenge,
   struct TCPConfirmationAck tca;
   struct TcpHandshakeAckSignature thas;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -1646,7 +1651,7 @@ inject_rekey (struct Queue *queue)
   struct TcpRekeySignature thp;
   struct GNUNET_ShortHashCode k;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -2001,7 +2006,7 @@ try_handle_plaintext (struct Queue *queue)
       return 0;
     }
 
-    my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+    my_identity = GNUNET_PILS_get_identity (pils);
     GNUNET_assert (my_identity);
 
     thas.purpose.purpose = htonl (
@@ -2778,7 +2783,7 @@ transmit_kx (struct Queue *queue,
   struct TcpHandshakeSignature ths;
   struct TCPConfirmation tc;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -2879,7 +2884,7 @@ handshake_monotime_cb (void *cls,
   pid = &queue->target;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "tcp handshake with us %s\n",
-              GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
+              GNUNET_i2s (GNUNET_PILS_get_identity (pils)));
   if (NULL == record)
   {
     queue->handshake_monotime_get = NULL;
@@ -2943,7 +2948,7 @@ decrypt_and_check_tc (struct Queue *queue,
   struct TcpHandshakeSignature ths;
   enum GNUNET_GenericReturnValue ret;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_assert (
@@ -3318,7 +3323,7 @@ try_connection_reversal (void *cls,
   struct sockaddr *in_addr;
   (void) cls;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
@@ -3694,6 +3699,11 @@ do_shutdown (void *cls)
   {
     GNUNET_NT_scanner_done (is);
     is = NULL;
+  }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != key_ring)
   {
@@ -4157,6 +4167,8 @@ run (void *cls,
   }
   key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   GNUNET_assert (NULL != key_ring);
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
+  GNUNET_assert (NULL != pils);
   peerstore = GNUNET_PEERSTORE_connect (cfg);
   if (NULL == peerstore)
   {

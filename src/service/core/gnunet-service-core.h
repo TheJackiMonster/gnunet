@@ -199,9 +199,9 @@ extern const struct GNUNET_CONFIGURATION_Handle *GSC_cfg;
 extern struct GNUNET_STATISTICS_Handle *GSC_stats;
 
 /**
- * Our PILS key ring.
+ * Our Pils service.
  */
-extern struct GNUNET_PILS_KeyRing *GSC_key_ring;
+extern struct GNUNET_PILS_Handle *GSC_pils;
 
 /**
  * Our peer class

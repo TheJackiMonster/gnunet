@@ -79,9 +79,9 @@ static struct GNUNET_DHT_Handle *dht;
 static struct GNUNET_STATISTICS_Handle *stats;
 
 /**
- * PILS key ring.
+ * Handle for pils service.
  */
-static struct GNUNET_PILS_KeyRing *key_ring;
+static struct GNUNET_PILS_Handle *pils;
 
 
 /**
@@ -92,13 +92,22 @@ static struct GNUNET_PILS_KeyRing *key_ring;
 static void
 cleanup_task (void *cls)
 {
-  GNUNET_DHT_disconnect (dht);
-  dht = NULL;
-  GNUNET_STATISTICS_destroy (stats,
-                             GNUNET_NO);
-  stats = NULL;
-  GNUNET_PILS_destroy_key_ring (key_ring);
-  key_ring = NULL;
+  if (NULL != dht)
+  {
+    GNUNET_DHT_disconnect (dht);
+    dht = NULL;
+  }
+  if (NULL != stats)
+  {
+    GNUNET_STATISTICS_destroy (stats,
+                               GNUNET_NO);
+    stats = NULL;
+  }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
 }
 
 
@@ -168,7 +177,7 @@ handle_announce (void *cls,
               GNUNET_STRINGS_relative_time_to_string (ce->frequency,
                                                       GNUNET_NO));
   ce->ah = REGEX_INTERNAL_announce (dht,
-                                    key_ring,
+                                    pils,
                                     regex,
                                     ntohs (am->compression),
                                     stats);
@@ -310,8 +319,8 @@ run (void *cls,
      const struct GNUNET_CONFIGURATION_Handle *cfg,
      struct GNUNET_SERVICE_Handle *service)
 {
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
-  if (NULL == key_ring)
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
+  if (NULL == pils)
   {
     GNUNET_SCHEDULER_shutdown ();
     return;
@@ -319,8 +328,8 @@ run (void *cls,
   dht = GNUNET_DHT_connect (cfg, 1024);
   if (NULL == dht)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
     GNUNET_SCHEDULER_shutdown ();
     return;
   }

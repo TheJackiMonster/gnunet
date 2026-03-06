@@ -761,6 +761,11 @@ struct BroadcastInterface
 static struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
+ * For PILS.
+ */
+static struct GNUNET_PILS_Handle *pils;
+
+/**
  * The rekey interval
  */
 static struct GNUNET_TIME_Relative rekey_interval;
@@ -2015,7 +2020,7 @@ verify_confirmation (const struct GNUNET_CRYPTO_HpkeEncapsulation *enc,
   const struct GNUNET_PeerIdentity *my_identity;
   struct UdpHandshakeSignature uhs;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   uhs.purpose.purpose = htonl (
@@ -2438,7 +2443,7 @@ sock_read (void *cls)
       struct UdpBroadcastSignature uhs;
       struct GNUNET_PeerIdentity sender;
 
-      my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+      my_identity = GNUNET_PILS_get_identity (pils);
       GNUNET_assert (my_identity);
 
       addr_verify = GNUNET_memdup (&sa, salen);
@@ -2493,7 +2498,7 @@ sock_read (void *cls)
       {
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "VerifyingPeer %s is verifying UDPBroadcast\n",
-                    GNUNET_i2s (GNUNET_PILS_key_ring_get_identity (key_ring)));
+                    GNUNET_i2s (GNUNET_PILS_get_identity (pils)));
         GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                     "Verifying UDPBroadcast from %s failed\n",
                     GNUNET_i2s (&ub->sender));
@@ -2638,7 +2643,7 @@ send_msg_with_kx (const struct GNUNET_MessageHeader *msg, struct
   gcry_cipher_hd_t out_cipher;
   struct SharedSecret *ss;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
   GNUNET_assert ((my_identity) && (my_private_key));
 
@@ -3227,6 +3232,11 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_application_done (ah);
     ah = NULL;
   }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
+  }
   if (NULL != key_ring)
   {
     GNUNET_PILS_destroy_key_ring (key_ring);
@@ -3469,7 +3479,7 @@ iface_proc (void *cls,
   (void) cls;
   (void) netmask;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
 
   if ((NULL == my_identity) || (NULL == my_private_key))
@@ -3927,6 +3937,8 @@ run (void *cls,
   }
   key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
   GNUNET_assert (NULL != key_ring);
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
+  GNUNET_assert (NULL != pils);
 
   nat = GNUNET_NAT_register (cfg,
                              COMMUNICATOR_CONFIG_SECTION,

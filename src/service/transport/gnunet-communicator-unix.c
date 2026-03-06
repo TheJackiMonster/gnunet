@@ -147,9 +147,9 @@ struct Queue
 };
 
 /**
- * PILS key ring
+ * PILS handle
  */
-static struct GNUNET_PILS_KeyRing *key_ring;
+static struct GNUNET_PILS_Handle *pils;
 
 /**
  * ID of read task
@@ -531,7 +531,7 @@ mq_send (struct GNUNET_MQ_Handle *mq,
   struct Queue *queue = impl_state;
   size_t msize = ntohs (msg->size);
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_assert (mq == queue->mq);
@@ -957,10 +957,10 @@ do_shutdown (void *cls)
     GNUNET_TRANSPORT_communicator_disconnect (ch);
     ch = NULL;
   }
-  if (NULL != key_ring)
+  if (NULL != pils)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != stats)
   {
@@ -1015,9 +1015,9 @@ run (void *cls,
   (void) cls;
   delivering_messages = 0;
 
-  key_ring = GNUNET_PILS_create_key_ring (cfg, NULL, NULL);
+  pils = GNUNET_PILS_connect (cfg, NULL, NULL);
 
-  if (NULL == key_ring)
+  if (NULL == pils)
   {
     GNUNET_log (
       GNUNET_ERROR_TYPE_ERROR,

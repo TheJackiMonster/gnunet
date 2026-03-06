@@ -174,7 +174,7 @@ struct REGEX_INTERNAL_Search;
  * Does not free resources, must call #REGEX_INTERNAL_announce_cancel() for that.
  *
  * @param dht An existing and valid DHT service handle. CANNOT be NULL.
- * @param key_ring our key ring, must remain valid until the announcement is cancelled
+ * @param pils our pils service handle, must remain valid until the announcement is cancelled
  * @param regex Regular expression to announce.
  * @param compression How many characters per edge can we squeeze?
  * @param stats Optional statistics handle to report usage. Can be NULL.
@@ -183,7 +183,7 @@ struct REGEX_INTERNAL_Search;
  */
 struct REGEX_INTERNAL_Announcement *
 REGEX_INTERNAL_announce (struct GNUNET_DHT_Handle *dht,
-                         const struct GNUNET_PILS_KeyRing *key_ring,
+                         struct GNUNET_PILS_Handle *pils,
                          const char *regex,
                          uint16_t compression,
                          struct GNUNET_STATISTICS_Handle *stats);

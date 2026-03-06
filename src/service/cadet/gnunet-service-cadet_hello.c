@@ -85,11 +85,6 @@ static struct GNUNET_MessageHeader *mine;
 static struct GNUNET_PEERSTORE_Handle *peerstore;
 
 /**
- * Handle to the PILS service.
- */
-static struct GNUNET_PILS_Handle *pils;
-
-/**
  * Our peerstore notification context.  We use notification
  * to instantly learn about new peers as they are discovered.
  */
@@ -128,8 +123,8 @@ got_hello (void *cls,
   struct CadetPeer *peer;
   struct GNUNET_MessageHeader *hello;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-  if (!my_identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (! my_identity)
     return;
 
   if (NULL == record->value)

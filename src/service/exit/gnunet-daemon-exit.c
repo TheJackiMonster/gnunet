@@ -382,9 +382,14 @@ static struct GNUNET_DNS_Advertisement dns_advertisement;
 static struct GNUNET_HashCode dht_put_key;
 
 /**
- * PILS key ring.
+ * The pils service handle.
  */
-static struct GNUNET_PILS_KeyRing *key_ring;
+static struct GNUNET_PILS_Handle *pils;
+
+/**
+ * Operation for signing the dns advertisement.
+ */
+static struct GNUNET_PILS_Operation *sign_op;
 
 /**
  * Port for DNS exit.
@@ -3318,10 +3323,15 @@ cleanup (void *cls)
     GNUNET_DNSSTUB_stop (dnsstub);
     dnsstub = NULL;
   }
-  if (NULL != key_ring)
+  if (NULL != sign_op)
   {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
+    GNUNET_PILS_cancel (sign_op);
+    sign_op = NULL;
+  }
+  if (NULL != pils)
+  {
+    GNUNET_PILS_disconnect (pils);
+    pils = NULL;
   }
   if (NULL != dht_task)
   {
@@ -3583,6 +3593,22 @@ dht_put_cont (void *cls)
 }
 
 
+static void
+sign_dns_advertisement (void *cls,
+                        const struct GNUNET_PeerIdentity *pid,
+                        const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  GNUNET_assert (sig);
+
+  sign_op = NULL;
+
+  GNUNET_memcpy (&dns_advertisement.signature, sig,
+                 sizeof (dns_advertisement.signature));
+
+  do_dht_put (cls);
+}
+
+
 /**
  * We are running a DNS exit service, advertise it in the
  * DHT.  This task is run periodically to do the DHT PUT.
@@ -3601,16 +3627,17 @@ do_dht_put (void *cls)
   if (GNUNET_TIME_absolute_get_remaining (expiration).rel_value_us <
       GNUNET_TIME_UNIT_HOURS.rel_value_us)
   {
-    const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
     /* refresh advertisement */
-    my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-    GNUNET_assert (my_private_key);
     expiration = GNUNET_TIME_relative_to_absolute (DNS_ADVERTISEMENT_TIMEOUT);
     dns_advertisement.expiration_time = GNUNET_TIME_absolute_hton (expiration);
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
-                                              &dns_advertisement.purpose,
-                                              &dns_advertisement.signature));
+
+    if (NULL != sign_op)
+      GNUNET_PILS_cancel (sign_op);
+
+    sign_op = GNUNET_PILS_sign_by_peer_identity (pils, &dns_advertisement.
+                                                 purpose,
+                                                 &sign_dns_advertisement, cls);
+    return;
   }
   if (NULL != dht_put)
     GNUNET_DHT_put_cancel (dht_put);
@@ -3628,12 +3655,13 @@ do_dht_put (void *cls)
 
 
 static void
-do_initial_dht_put (void *cls)
+do_initial_dht_put (void *cls,
+                    const struct GNUNET_HELLO_Parser *parser,
+                    const struct GNUNET_HashCode *hash)
 {
   const struct GNUNET_PeerIdentity *my_identity;
 
-  dht_task = NULL;
-  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   GNUNET_memcpy (&dns_advertisement.peer,
@@ -3648,6 +3676,15 @@ do_initial_dht_put (void *cls)
   GNUNET_CRYPTO_hash ("dns",
                       strlen ("dns"),
                       &dht_put_key);
+
+  if (NULL != sign_op)
+  {
+    GNUNET_PILS_cancel (sign_op);
+    sign_op = NULL;
+  }
+
+  if (NULL != dht_task)
+    GNUNET_SCHEDULER_cancel (dht_task);
 
   dht_task = GNUNET_SCHEDULER_add_now (&do_dht_put,
                                        NULL);
@@ -3766,7 +3803,8 @@ advertise_dns_exit ()
   /* advertise exit */
   dht = GNUNET_DHT_connect (cfg, 1);
   dht_task = NULL;
-  key_ring = GNUNET_PILS_create_key_ring (cfg, &do_initial_dht_put, NULL);
+  pils = GNUNET_PILS_connect (cfg, &do_initial_dht_put, NULL);
+  sign_op = NULL;
   GNUNET_free (dns_exit);
 }
 

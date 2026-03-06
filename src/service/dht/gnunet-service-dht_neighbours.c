@@ -481,7 +481,7 @@ find_bucket (const struct GNUNET_HashCode *hc)
   struct GNUNET_HashCode xor;
   unsigned int bits;
 
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
   GNUNET_assert (NULL != my_identity_hash);
 
   GNUNET_CRYPTO_hash_xor (hc,
@@ -570,7 +570,7 @@ send_find_peer_message (void *cls)
     struct GNUNET_BLOCK_Group *bg;
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
 
-    my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+    my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
     GNUNET_assert (NULL != my_identity_hash);
 
     bg = GNUNET_BLOCK_group_create (GDS_block_context,
@@ -661,7 +661,7 @@ GDS_u_connect (void *cls,
   struct PeerBucket *bucket;
   bool do_hold = false;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
   GNUNET_assert (NULL != my_identity);
 
   /* Check for connect to self message */
@@ -868,7 +868,7 @@ GDS_am_closest_peer (const struct GNUNET_HashCode *key,
 {
   const struct GNUNET_HashCode *my_identity_hash;
   int delta;
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
   GNUNET_assert (NULL != my_identity_hash);
   if (0 == GNUNET_memcmp (my_identity_hash, key))
     return GNUNET_YES;
@@ -958,7 +958,7 @@ select_peer (const struct GNUNET_HashCode *key,
     {
       const struct GNUNET_HashCode *my_identity_hash;
       struct GNUNET_HashCode xor;
-      my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+      my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
       GNUNET_assert (NULL != my_identity_hash);
       GNUNET_CRYPTO_hash_xor (key,
                               my_identity_hash,
@@ -1254,8 +1254,8 @@ GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
   struct GNUNET_PeerIdentity trunc_peer_out;
   enum GNUNET_GenericReturnValue ret;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
   GNUNET_assert (NULL != my_identity);
 
   ret = GDS_helper_put_message_get_size (&msize,
@@ -1371,8 +1371,8 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
   size_t result_filter_size;
   void *result_filter;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
 
   if (NULL == my_identity_hash)
     return GNUNET_NO;
@@ -1504,7 +1504,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
   const struct GNUNET_PeerIdentity *my_identity;
   unsigned int failure_offset;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
   GNUNET_assert (NULL != my_identity);
 
   failure_offset
@@ -1673,7 +1673,7 @@ GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
         const struct GNUNET_PeerIdentity *my_identity;
         struct GNUNET_DHT_PathElement xpaths[get_path_length + 1];
 
-        my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+        my_identity = GNUNET_PILS_get_identity (GDS_pils);
         GNUNET_assert (NULL != my_identity);
 
         memcpy (xpaths,
@@ -1924,7 +1924,7 @@ handle_dht_p2p_put (void *cls,
 #if SANITY_CHECKS
       {
         const struct GNUNET_PeerIdentity *my_identity;
-        my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+        my_identity = GNUNET_PILS_get_identity (GDS_pils);
         GNUNET_assert (NULL != my_identity);
         /* TODO: might want to eventually implement probabilistic
           load-based path verification, but for now it is all or nothing */
@@ -2013,7 +2013,7 @@ handle_find_my_hello (struct PeerInfo *pi,
                       struct GNUNET_BLOCK_Group *bg)
 {
   const struct GNUNET_HashCode *my_identity_hash;
-  my_identity_hash = GNUNET_PILS_key_ring_get_hash (GDS_key_ring);
+  my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
   if (NULL == GDS_my_hello)
   {
     GNUNET_STATISTICS_update (GDS_stats,
@@ -2193,7 +2193,7 @@ handle_dht_p2p_get (void *cls,
     struct GNUNET_BLOCK_Group *bg;
     struct GNUNET_CONTAINER_BloomFilter *peer_bf;
 
-    my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+    my_identity = GNUNET_PILS_get_identity (GDS_pils);
     GNUNET_assert (NULL != my_identity);
 
     peer_bf = GNUNET_CONTAINER_bloomfilter_init (get->bloomfilter,
@@ -2510,7 +2510,7 @@ handle_dht_p2p_result (void *cls,
 #if SANITY_CHECKS
     {
       const struct GNUNET_PeerIdentity *my_identity;
-      my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+      my_identity = GNUNET_PILS_get_identity (GDS_pils);
       GNUNET_assert (NULL != my_identity);
       /* TODO: might want to eventually implement probabilistic
         load-based path verification, but for now it is all or nothing */
@@ -2721,7 +2721,7 @@ GDS_try_connect (void *cls,
   struct PeerBucket *bucket;
   (void) cls;
 
-  my_identity = GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
   GNUNET_assert (NULL != my_identity);
 
   if (0 == GNUNET_memcmp (my_identity, pid))
@@ -2833,7 +2833,7 @@ GDS_NEIGHBOURS_done ()
 const struct GNUNET_PeerIdentity *
 GDS_NEIGHBOURS_get_id ()
 {
-  return GNUNET_PILS_key_ring_get_identity (GDS_key_ring);
+  return GNUNET_PILS_get_identity (GDS_pils);
 }
 
 
