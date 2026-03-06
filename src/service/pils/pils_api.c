@@ -804,20 +804,4 @@ GNUNET_PILS_key_ring_get_private_key (const struct GNUNET_PILS_KeyRing *key_ring
 }
 
 
-const struct GNUNET_CRYPTO_EddsaPublicKey*
-GNUNET_PILS_key_ring_get_public_key (const struct GNUNET_PILS_KeyRing *key_ring)
-{
-  const struct GNUNET_PeerIdentity *identity;
-
-  GNUNET_assert (key_ring);
-
-  identity = GNUNET_PILS_key_ring_get_identity (key_ring);
-
-  if (! identity)
-    return NULL;
-
-  return &(identity->public_key);
-}
-
-
 /* end of pils_api.c */

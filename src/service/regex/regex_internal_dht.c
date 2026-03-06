@@ -103,16 +103,16 @@ regex_iterator (void *cls,
                 unsigned int num_edges,
                 const struct REGEX_BLOCK_Edge *edges)
 {
-  const struct GNUNET_CRYPTO_EddsaPublicKey *my_public_key;
+  const struct GNUNET_PeerIdentity *my_identity;
   const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
   struct REGEX_INTERNAL_Announcement *h = cls;
   struct RegexBlock *block;
   size_t size;
   unsigned int i;
 
-  my_public_key = GNUNET_PILS_key_ring_get_public_key (h->key_ring);
+  my_identity = GNUNET_PILS_key_ring_get_identity (h->key_ring);
   my_private_key = GNUNET_PILS_key_ring_get_private_key (h->key_ring);
-  if ((! my_public_key) || (! my_private_key))
+  if ((! my_identity) || (! my_private_key))
     return;
 
   LOG (GNUNET_ERROR_TYPE_INFO,
@@ -142,8 +142,8 @@ regex_iterator (void *cls,
     ab.expiration_time = GNUNET_TIME_absolute_hton (
       GNUNET_TIME_relative_to_absolute (GNUNET_CONSTANTS_DHT_MAX_EXPIRATION));
     ab.key = *key;
-    GNUNET_memcpy (&(ab.peer.public_key), my_public_key,
-                   sizeof (*my_public_key));
+    GNUNET_memcpy (&(ab.peer), my_identity,
+                   sizeof (*my_identity));
     GNUNET_assert (GNUNET_OK ==
                    GNUNET_CRYPTO_eddsa_sign_ (my_private_key,
                                               &ab.purpose,

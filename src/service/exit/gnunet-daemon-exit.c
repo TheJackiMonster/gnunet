@@ -3630,14 +3630,14 @@ do_dht_put (void *cls)
 static void
 do_initial_dht_put (void *cls)
 {
-  const struct GNUNET_CRYPTO_EddsaPublicKey *my_public_key;
+  const struct GNUNET_PeerIdentity *my_identity;
 
   dht_task = NULL;
-  my_public_key = GNUNET_PILS_key_ring_get_public_key (key_ring);
-  GNUNET_assert (my_public_key);
+  my_identity = GNUNET_PILS_key_ring_get_identity (key_ring);
+  GNUNET_assert (my_identity);
 
-  GNUNET_memcpy (&dns_advertisement.peer.public_key,
-                 my_public_key, sizeof (*my_public_key));
+  GNUNET_memcpy (&dns_advertisement.peer,
+                 my_identity, sizeof (*my_identity));
   dns_advertisement.purpose.size = htonl (sizeof(struct
                                                  GNUNET_DNS_Advertisement)
                                           - sizeof(struct
