@@ -3670,7 +3670,6 @@ extern "C" {
 #define GNUNET_MESSAGE_TYPE_CORE_PEER_ID 1811
 
 
-
 /*********************************************************************************/
 /*************************************  PILS  ************************************/
 /*********************************************************************************/
@@ -3708,6 +3707,16 @@ extern "C" {
  * Decaps result.
  */
 #define GNUNET_MESSAGE_TYPE_PILS_DECAPS_RESULT 1836
+
+/**
+ * Ecdh request.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_ECDH 1837
+
+/**
+ * Ecdh result.
+ */
+#define GNUNET_MESSAGE_TYPE_PILS_ECDH_RESULT 1838
 
 
 /*********************************************************************************/

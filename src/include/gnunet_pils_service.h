@@ -36,6 +36,7 @@
 #ifndef GNUNET_PILS_SERVICE_H
 #define GNUNET_PILS_SERVICE_H
 
+#include "gnunet_common.h"
 #ifdef __cplusplus
 extern "C" {
 #if 0 /* keep Emacsens' auto-indent happy */
@@ -85,6 +86,16 @@ typedef void (*GNUNET_PILS_SignAddrResultCallback) (
 typedef void (*GNUNET_PILS_DecapsResultCallback) (
   void *cls,
   const struct GNUNET_ShortHashCode *key);
+
+/**
+ * @brief A handler/callback to be called for ecdh.
+ *
+ * @param cls The closure given to #GNUNET_PILS_ecdh
+ * @param key The derived key material
+ */
+typedef void (*GNUNET_PILS_EcdhResultCallback) (
+  void *cls,
+  const struct GNUNET_HashCode *key);
 
 /**
  * @brief A handler/callback to be called on the change of the peer id.
@@ -180,6 +191,23 @@ GNUNET_PILS_kem_decaps (struct GNUNET_PILS_Handle *handle,
                         const struct GNUNET_CRYPTO_HpkeEncapsulation *c, // TODO rename
                         GNUNET_PILS_DecapsResultCallback cb, // TODO rename
                         void *cb_cls);
+
+
+/**
+ * @brief Derive key material from a ECDH public key and our private key
+ *
+ * @param handle handle to the PILS service
+ * @param pub the public key
+ * @param cb the callback to call with the derived key material
+ * @param cb_cls callback closure
+ *
+ * @return handle to the operation, NULL on error
+ */
+struct GNUNET_PILS_Operation*
+GNUNET_PILS_ecdh (struct GNUNET_PILS_Handle *handle,
+                  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                  GNUNET_PILS_EcdhResultCallback cb,
+                  void *cb_cls);
 
 
 /**

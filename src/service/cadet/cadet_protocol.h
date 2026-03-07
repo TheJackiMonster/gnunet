@@ -266,13 +266,6 @@ struct GNUNET_CADET_TunnelKeyExchangeMessage
    * using 'gcry_sexp_sprint'.
    */
   struct GNUNET_CRYPTO_EcdhePrivateKey ephemeral_key_XXX; // for debugging KX-crypto!
-
-  /**
-   * Sender's ephemeral public ECC key encoded in a
-   * format suitable for network transmission, as created
-   * using 'gcry_sexp_sprint'.
-   */
-  struct GNUNET_CRYPTO_EddsaPrivateKey private_key_XXX; // for debugging KX-crypto!
 #endif
 
   /**

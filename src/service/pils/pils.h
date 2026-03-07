@@ -177,6 +177,42 @@ struct DecapsResultMessage
   uint32_t rid;
 };
 
+struct EcdhMessage
+{
+  /**
+   * Type: GNUNET_MESSAGE_TYPE_PILS_ECDH
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * The public key
+   */
+  struct GNUNET_CRYPTO_EcdhePublicKey pub;
+
+  /**
+   * Request ID
+   */
+  uint32_t rid;
+};
+
+struct EcdhResultMessage
+{
+  /**
+   * Type: GNUNET_MESSAGE_TYPE_PILS_ECDH_RESULT
+   */
+  struct GNUNET_MessageHeader header;
+
+  /**
+   * The derived key material
+   */
+  struct GNUNET_HashCode key;
+
+  /**
+   * Request ID
+   */
+  uint32_t rid;
+};
+
 /**
  * Message containing the signature
  */

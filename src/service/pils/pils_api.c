@@ -58,14 +58,14 @@ struct GNUNET_PILS_Operation
   // Decaps callback
   GNUNET_PILS_DecapsResultCallback decaps_cb;
 
-  // Decaps callback closure
-  void *decaps_cb_cls;
+  // Ecdh callback
+  GNUNET_PILS_EcdhResultCallback ecdh_cb;
 
   // Sign callback
   GNUNET_PILS_SignResultCallback sign_cb;
 
   // Decaps callback closure
-  void *sign_cb_cls;
+  void *cb_cls;
 
   // Current message to send
   struct GNUNET_MQ_Envelope *env;
@@ -289,7 +289,7 @@ handle_sign_result (void *cls, const struct SignResultMessage *msg)
   {
     // FIXME maybe return NULL of key is 0ed
     // as this indicates an error
-    op->sign_cb (op->sign_cb_cls,
+    op->sign_cb (op->cb_cls,
                  &msg->peer_id,
                  &msg->sig);
   }
@@ -321,9 +321,36 @@ handle_decaps_result (void *cls, const struct DecapsResultMessage *msg)
   {
     // FIXME maybe return NULL of key is 0ed
     // as this indicates an error
-    op->decaps_cb (op->decaps_cb_cls,
+    op->decaps_cb (op->cb_cls,
                    &msg->key);
   }
+  GNUNET_CONTAINER_DLL_remove (h->op_head,
+                               h->op_tail,
+                               op);
+  GNUNET_free (op);
+}
+
+
+/**
+ * Handles ecdh result.
+ *
+ * @param cls closure - Handle to the PILS service
+ * @param msg the message containing the ecdh result
+ */
+static void
+handle_ecdh_result (void *cls, const struct EcdhResultMessage *msg)
+{
+  struct GNUNET_PILS_Handle *h = cls;
+  struct GNUNET_PILS_Operation *op;
+
+  h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
+  op = find_op (h, ntohl (msg->rid));
+
+  if (NULL == op)
+    return;
+  if (NULL != op->decaps_cb)
+    op->ecdh_cb (op->cb_cls,
+                 &msg->key);
   GNUNET_CONTAINER_DLL_remove (h->op_head,
                                h->op_tail,
                                op);
@@ -381,6 +408,10 @@ reconnect (void *cls)
     GNUNET_MQ_hd_fixed_size (decaps_result,
                              GNUNET_MESSAGE_TYPE_PILS_DECAPS_RESULT,
                              struct DecapsResultMessage,
+                             h),
+    GNUNET_MQ_hd_fixed_size (ecdh_result,
+                             GNUNET_MESSAGE_TYPE_PILS_ECDH_RESULT,
+                             struct EcdhResultMessage,
                              h),
     GNUNET_MQ_hd_fixed_size (sign_result,
                              GNUNET_MESSAGE_TYPE_PILS_SIGN_RESULT,
@@ -494,7 +525,7 @@ GNUNET_PILS_sign_by_peer_identity (struct GNUNET_PILS_Handle *handle,
                                  GNUNET_MESSAGE_TYPE_PILS_SIGN_REQUEST);
   op->h = handle;
   op->sign_cb = cb;
-  op->sign_cb_cls = cb_cls;
+  op->cb_cls = cb_cls;
   msg->rid = htonl (handle->op_id_counter++);
   op->op_id = ntohl (msg->rid);
   memcpy (&msg[1], purpose, ntohl (purpose->size));
@@ -531,13 +562,41 @@ GNUNET_PILS_kem_decaps (struct GNUNET_PILS_Handle *handle,
   msg->c = *c;
   op->h = handle;
   op->decaps_cb = cb;
-  op->decaps_cb_cls = cb_cls;
+  op->cb_cls = cb_cls;
   msg->rid = htonl (handle->op_id_counter++);
   op->op_id = ntohl (msg->rid);
   GNUNET_CONTAINER_DLL_insert (handle->op_head,
                                handle->op_tail,
                                op);
   // FIXME resend?
+  GNUNET_MQ_send (handle->mq, op->env);
+  op->env = NULL;
+  return op;
+}
+
+
+struct GNUNET_PILS_Operation*
+GNUNET_PILS_ecdh (struct GNUNET_PILS_Handle *handle,
+                  const struct GNUNET_CRYPTO_EcdhePublicKey *pub,
+                  GNUNET_PILS_EcdhResultCallback cb,
+                  void *cb_cls)
+{
+  struct GNUNET_PILS_Operation *op;
+  struct EcdhMessage *msg;
+
+  GNUNET_assert ((handle) && (pub));
+
+  op = GNUNET_new (struct GNUNET_PILS_Operation);
+  op->env = GNUNET_MQ_msg (msg, GNUNET_MESSAGE_TYPE_PILS_ECDH);
+  msg->pub = *pub;
+  op->h = handle;
+  op->ecdh_cb = cb;
+  op->cb_cls = cb_cls;
+  msg->rid = htonl (handle->op_id_counter++);
+  op->op_id = ntohl (msg->rid);
+  GNUNET_CONTAINER_DLL_insert (handle->op_head,
+                               handle->op_tail,
+                               op);
   GNUNET_MQ_send (handle->mq, op->env);
   op->env = NULL;
   return op;

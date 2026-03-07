@@ -124,11 +124,6 @@ struct GNUNET_STATISTICS_Handle *stats;
 struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
- * PILS key ring.
- */
-struct GNUNET_PILS_KeyRing *key_ring;
-
-/**
  * Handle to the pils service.
  */
 struct GNUNET_PILS_Handle *pils;
@@ -418,11 +413,6 @@ shutdown_rest ()
   }
   GCD_shutdown ();
   GCH_shutdown ();
-  if (NULL != key_ring)
-  {
-    GNUNET_PILS_destroy_key_ring (key_ring);
-    key_ring = NULL;
-  }
 }
 
 
@@ -1298,13 +1288,6 @@ run (void *cls,
     LOG (GNUNET_ERROR_TYPE_WARNING, "This is NOT a good idea!\n");
     LOG (GNUNET_ERROR_TYPE_WARNING, "Remove DROP_PERCENT from config file.\n");
     LOG (GNUNET_ERROR_TYPE_WARNING, "**************************************\n");
-  }
-  key_ring = GNUNET_PILS_create_key_ring (c, NULL, NULL);
-  if (NULL == key_ring)
-  {
-    GNUNET_break (0);
-    GNUNET_SCHEDULER_shutdown ();
-    return;
   }
   stats = GNUNET_STATISTICS_create ("cadet",
                                     c);

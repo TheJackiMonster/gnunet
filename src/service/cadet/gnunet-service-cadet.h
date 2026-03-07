@@ -203,11 +203,6 @@ extern struct GNUNET_STATISTICS_Handle *stats;
 extern struct GNUNET_TRANSPORT_ApplicationHandle *transport;
 
 /**
- * PILS key ring.
- */
-extern struct GNUNET_PILS_KeyRing *key_ring;
-
-/**
  * Handle to Pils service.
  */
 extern struct GNUNET_PILS_Handle *pils;

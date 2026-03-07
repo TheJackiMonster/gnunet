@@ -28,6 +28,7 @@
 #include "gnunet-service-cadet.h"
 #include "gnunet_common.h"
 #include "gnunet_pils_service.h"
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_signatures.h"
 #include "gnunet-service-cadet_connection.h"
@@ -121,6 +122,16 @@ struct CadetConnection
    * Task for connection maintenance.
    */
   struct GNUNET_SCHEDULER_Task *task;
+
+  /**
+   * Latest monotonic timestamp to be signed.
+   */
+  struct GNUNET_TIME_Absolute monotime;
+
+  /**
+   * Operation for signature handling.
+   */
+  struct GNUNET_PILS_Operation *sign_op;
 
   /**
    * Queue entry for keepalive messages.
@@ -583,49 +594,16 @@ GCC_handle_encrypted (struct CadetConnection *cc,
 }
 
 
-/**
- * Set the signature for a monotime value on a GNUNET_CADET_ConnectionCreateMessage.
- *
- * @param msg The GNUNET_CADET_ConnectionCreateMessage.
- */
 static void
-set_monotime_sig (struct GNUNET_CADET_ConnectionCreateMessage *msg)
+cont_send_create (void *cls,
+                  const struct GNUNET_PeerIdentity *my_identity,
+                  const struct GNUNET_CRYPTO_EddsaSignature *signature)
 {
-  const struct GNUNET_CRYPTO_EddsaPrivateKey *my_private_key;
-  struct CadetConnectionCreatePS cp = { .purpose.purpose = htonl (
-                                          GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR),
-                                        .purpose.size = htonl (sizeof(cp)),
-                                        .monotonic_time = msg->monotime};
-
-  my_private_key = GNUNET_PILS_key_ring_get_private_key (key_ring);
-  GNUNET_assert (my_private_key);
-
-  GNUNET_CRYPTO_eddsa_sign (my_private_key, &cp,
-                            &msg->monotime_sig);
-
-}
-
-
-/**
- * Send a #GNUNET_MESSAGE_TYPE_CADET_CONNECTION_CREATE message to the
- * first hop.
- *
- * @param cls the `struct CadetConnection` to initiate
- */
-static void
-send_create (void *cls)
-{
-  const struct GNUNET_PeerIdentity *my_identity;
   struct CadetConnection *cc = cls;
   struct GNUNET_CADET_ConnectionCreateMessage *create_msg;
   struct GNUNET_PeerIdentity *pids;
   struct GNUNET_MQ_Envelope *env;
-  struct CadetTunnel *t;
 
-  cc->task = NULL;
-  GNUNET_assert (GNUNET_YES == cc->mqm_ready);
-
-  my_identity = GNUNET_PILS_get_identity (pils);
   GNUNET_assert (my_identity);
 
   env =
@@ -636,15 +614,11 @@ send_create (void *cls)
   create_msg->options = 2;
   create_msg->cid = cc->cid;
 
-  // check for tunnel state and set signed monotime (xrs,t3ss)
-  t = GCP_get_tunnel (cc->destination, GNUNET_YES);
-  if ((NULL != t) && (GCT_get_estate (t) == CADET_TUNNEL_KEY_UNINITIALIZED) &&
-      (GCT_alice_or_betty (GCP_get_id (cc->destination)) == GNUNET_NO))
+  if (signature)
   {
     create_msg->has_monotime = GNUNET_YES;
-    create_msg->monotime = GNUNET_TIME_absolute_hton (
-      GNUNET_TIME_absolute_get_monotonic (cfg));
-    set_monotime_sig (create_msg);
+    create_msg->monotime = GNUNET_TIME_absolute_hton (cc->monotime);
+    create_msg->monotime_sig = *signature;
   }
 
   pids = (struct GNUNET_PeerIdentity *) &create_msg[1];
@@ -660,6 +634,43 @@ send_create (void *cls)
   cc->create_at = GNUNET_TIME_relative_to_absolute (cc->retry_delay);
   update_state (cc, CADET_CONNECTION_SENT, GNUNET_NO);
   GCP_send (cc->mq_man, env);
+}
+
+
+/**
+ * Send a #GNUNET_MESSAGE_TYPE_CADET_CONNECTION_CREATE message to the
+ * first hop.
+ *
+ * @param cls the `struct CadetConnection` to initiate
+ */
+static void
+send_create (void *cls)
+{
+  struct CadetConnection *cc = cls;
+  struct CadetTunnel *t;
+
+  cc->task = NULL;
+  GNUNET_assert (GNUNET_YES == cc->mqm_ready);
+
+  // check for tunnel state and set signed monotime (xrs,t3ss)
+  t = GCP_get_tunnel (cc->destination, GNUNET_YES);
+  if ((NULL != t) && (GCT_get_estate (t) == CADET_TUNNEL_KEY_UNINITIALIZED) &&
+      (GCT_alice_or_betty (GCP_get_id (cc->destination)) == GNUNET_NO))
+  {
+    struct CadetConnectionCreatePS cp;
+
+    cc->monotime = GNUNET_TIME_absolute_get_monotonic (cfg);
+
+    cp.purpose.purpose = htonl (
+      GNUNET_SIGNATURE_PURPOSE_CADET_CONNECTION_INITIATOR);
+    cp.purpose.size = htonl (sizeof(cp));
+    cp.monotonic_time = GNUNET_TIME_absolute_hton (cc->monotime);
+
+    GNUNET_PILS_sign_by_peer_identity (pils, &cp.purpose,
+                                       &cont_send_create, cc);
+  }
+  else
+    cont_send_create (cc, GNUNET_PILS_get_identity (pils), NULL);
 }
 
 

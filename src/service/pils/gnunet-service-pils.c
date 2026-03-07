@@ -368,6 +368,33 @@ handle_decaps (void *cls,
 }
 
 
+static void
+handle_ecdh (void *cls,
+             const struct EcdhMessage *message)
+{
+  struct P_Client *client = cls;
+  struct EcdhResultMessage *rmsg;
+  struct GNUNET_MQ_Envelope *env;
+  env = GNUNET_MQ_msg (rmsg, GNUNET_MESSAGE_TYPE_PILS_ECDH_RESULT);
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "PILS received ECDH message from client\n");
+
+  if (GNUNET_OK != GNUNET_CRYPTO_eddsa_ecdh (&my_private_key,
+                                             &message->pub,
+                                             &rmsg->key))
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "PILS failed to derive key material received from client\n");
+    memset (&rmsg->key, 0, sizeof (rmsg->key));
+  }
+
+  rmsg->rid = message->rid;
+  GNUNET_MQ_send (client->mq, env);
+  GNUNET_SERVICE_client_continue (client->client);
+}
+
+
 /**
  * @brief Handler for sign request message from client.
  *
@@ -587,6 +614,10 @@ GNUNET_SERVICE_MAIN (GNUNET_OS_project_data_gnunet (),
                      GNUNET_MQ_hd_fixed_size (decaps,
                                               GNUNET_MESSAGE_TYPE_PILS_KEM_DECAPS,
                                               struct DecapsMessage,
+                                              NULL),
+                     GNUNET_MQ_hd_fixed_size (ecdh,
+                                              GNUNET_MESSAGE_TYPE_PILS_ECDH,
+                                              struct EcdhMessage,
                                               NULL),
                      GNUNET_MQ_hd_var_size (sign,
                                             GNUNET_MESSAGE_TYPE_PILS_SIGN_REQUEST,
