@@ -2336,6 +2336,11 @@ destroy_tunnel (void *cls)
     GNUNET_SCHEDULER_cancel (t->kx_task);
     t->kx_task = NULL;
   }
+  if (NULL != t->as.ecdh_op)
+  {
+    GNUNET_PILS_cancel (t->as.ecdh_op);
+    t->as.ecdh_op = NULL;
+  }
   GNUNET_MST_destroy (t->mst);
   GNUNET_MQ_destroy (t->mq);
   if (NULL != t->unverified_ax)

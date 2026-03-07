@@ -268,6 +268,11 @@ GCC_destroy (struct CadetConnection *cc)
     GNUNET_SCHEDULER_cancel (cc->task);
     cc->task = NULL;
   }
+  if (NULL != cc->sign_op)
+  {
+    GNUNET_PILS_cancel (cc->sign_op);
+    cc->sign_op = NULL;
+  }
   if (NULL != cc->keepalive_qe)
   {
     GCT_send_cancel (cc->keepalive_qe);
@@ -604,6 +609,8 @@ cont_send_create (void *cls,
   struct GNUNET_PeerIdentity *pids;
   struct GNUNET_MQ_Envelope *env;
 
+  cc->sign_op = NULL;
+
   GNUNET_assert (my_identity);
 
   env =
@@ -666,8 +673,11 @@ send_create (void *cls)
     cp.purpose.size = htonl (sizeof(cp));
     cp.monotonic_time = GNUNET_TIME_absolute_hton (cc->monotime);
 
-    GNUNET_PILS_sign_by_peer_identity (pils, &cp.purpose,
-                                       &cont_send_create, cc);
+    if (NULL != cc->sign_op)
+      GNUNET_PILS_cancel (cc->sign_op);
+
+    cc->sign_op = GNUNET_PILS_sign_by_peer_identity (pils, &cp.purpose,
+                                                     &cont_send_create, cc);
   }
   else
     cont_send_create (cc, GNUNET_PILS_get_identity (pils), NULL);
