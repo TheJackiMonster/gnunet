@@ -390,10 +390,13 @@ get_ibf_key (const struct GNUNET_HashCode *src)
   uint16_t salt = 0;
 
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_kdf (&key, sizeof(key),
-                                    src, sizeof *src,
-                                    &salt, sizeof(salt),
-                                    NULL, 0));
+                 GNUNET_CRYPTO_hkdf_gnunet (
+                   &key,
+                   sizeof(key),
+                   src,
+                   sizeof *src,
+                   &salt,
+                   sizeof(salt)));
   return key;
 }
 
@@ -464,7 +467,8 @@ op_get_element (struct Operation *op,
 
   ibf_key = get_ibf_key (element_hash);
   ret = GNUNET_CONTAINER_multihashmap32_get_multiple (op->state->key_to_element,
-                                                      (uint32_t) ibf_key.key_val,
+                                                      (uint32_t) ibf_key.key_val
+                                                      ,
                                                       op_get_element_iterator,
                                                       &ctx);
 
@@ -507,7 +511,8 @@ op_register_element (struct Operation *op,
   k->received = received;
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONTAINER_multihashmap32_put (op->state->key_to_element,
-                                                      (uint32_t) ibf_key.key_val,
+                                                      (uint32_t) ibf_key.key_val
+                                                      ,
                                                       k,
                                                       GNUNET_CONTAINER_MULTIHASHMAPOPTION_MULTIPLE));
 }

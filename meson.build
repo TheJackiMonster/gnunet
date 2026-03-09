@@ -643,7 +643,7 @@ libltversions = [
     ['libgnunettransportcore', '0:0:0'],
     ['libgnunettransportcommunicator', '0:0:0'],
     ['libgnunettransportmonitor', '0:0:0'],
-    ['libgnunetutil', '20:0:0'],
+    ['libgnunetutil', '21:0:0'],
     ['libgnunetvpn', '0:0:0'],
 ]
 

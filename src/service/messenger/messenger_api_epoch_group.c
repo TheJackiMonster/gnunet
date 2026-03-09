@@ -60,15 +60,14 @@ derive_epoch_group_key (const struct GNUNET_MESSENGER_EpochGroup *group,
   if (! previous_key)
     return GNUNET_SYSERR;
 
-  if (GNUNET_YES != GNUNET_CRYPTO_kdf (key,
-                                       sizeof (*key),
-                                       &(group->epoch->hash),
-                                       sizeof (group->epoch->hash),
-                                       previous_key,
-                                       sizeof (*previous_key),
-                                       &(group->identifier),
-                                       sizeof (group->identifier),
-                                       NULL))
+  if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+        key,
+        sizeof (*key),
+        &(group->epoch->hash),
+        sizeof (group->epoch->hash),
+        previous_key,
+        sizeof (*previous_key),
+        GNUNET_CRYPTO_kdf_arg_auto (&group->identifier)))
     return GNUNET_SYSERR;
   else
     return GNUNET_OK;

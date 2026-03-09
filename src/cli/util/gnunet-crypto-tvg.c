@@ -449,15 +449,15 @@ checkvec (const char *operation,
     }
 
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_kdf (out_comp,
-                                      out_len_comp,
-                                      salt,
-                                      salt_len,
-                                      ikm,
-                                      ikm_len,
-                                      ctx,
-                                      ctx_len,
-                                      NULL));
+                   GNUNET_CRYPTO_hkdf_gnunet (
+                     out_comp,
+                     out_len_comp,
+                     salt,
+                     salt_len,
+                     ikm,
+                     ikm_len,
+                     GNUNET_CRYPTO_kdf_arg (ctx,
+                                            ctx_len)));
 
     if (0 != memcmp (out, out_comp, out_len))
     {
@@ -1184,15 +1184,14 @@ output_vectors ()
     const char *ctx = "I'm a context chunk, also known as 'info' in the RFC";
 
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_CRYPTO_kdf (&out,
-                                      out_len,
-                                      salt,
-                                      strlen (salt),
-                                      ikm,
-                                      strlen (ikm),
-                                      ctx,
-                                      strlen (ctx),
-                                      NULL));
+                   GNUNET_CRYPTO_hkdf_gnunet (
+                     &out,
+                     out_len,
+                     salt,
+                     strlen (salt),
+                     ikm,
+                     strlen (ikm),
+                     GNUNET_CRYPTO_kdf_arg_string (ctx)));
 
     d2j (vec,
          "salt",
@@ -1401,14 +1400,13 @@ output_vectors ()
     GNUNET_CRYPTO_cs_private_key_get_public (&priv,
                                              &pub);
     GNUNET_assert (GNUNET_YES ==
-                   GNUNET_CRYPTO_hkdf_gnunet (&snonce,
-                                              sizeof(snonce),
-                                              "nonce",
-                                              strlen ("nonce"),
-                                              "nonce_secret",
-                                              strlen ("nonce_secret"),
-                                              NULL,
-                                              0));
+                   GNUNET_CRYPTO_hkdf_gnunet (
+                     &snonce,
+                     sizeof(snonce),
+                     "nonce",
+                     strlen ("nonce"),
+                     "nonce_secret",
+                     strlen ("nonce_secret")));
     /* NOTE: historically, we made the bad choice of
        making both nonces the same. Maybe barely OK
        for the TGV, not good for production! */

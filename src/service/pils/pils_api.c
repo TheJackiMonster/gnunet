@@ -529,12 +529,11 @@ GNUNET_PILS_derive_pid (size_t seed_key_bytes,
    * For that, we may want to add a counter to the initial secret key
    * to the above PRF.
    */
-  GNUNET_CRYPTO_hkdf_expand (outkey,
-                             sizeof *outkey,
-                             &prk,
-                             "gnunet-pils-ephemeral-peer-key",
-                             strlen ("gnunet-pils-ephemeral-peer-key"),
-                             NULL, 0);
+  GNUNET_CRYPTO_hkdf_expand_fixed (
+    outkey,
+    sizeof *outkey,
+    &prk,
+    GNUNET_CRYPTO_kdf_arg_string ("gnunet-pils-ephemeral-peer-key"));
 }
 
 

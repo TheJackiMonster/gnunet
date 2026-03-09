@@ -114,30 +114,18 @@ setup_cipher_twofish (gcry_cipher_hd_t *handle,
 }
 
 
-/**
- * Encrypt a block with a symmetric session key.
- *
- * @param block the block to encrypt
- * @param size the size of the @a block
- * @param sessionkey the key used to encrypt
- * @param iv the initialization vector to use, use INITVALUE for streams
- * @param result the output parameter in which to store the encrypted result
- *               can be the same or overlap with @c block
- * @returns the size of the encrypted block, -1 for errors.
- *          Due to the use of CFB and therefore an effective stream cipher,
- *          this size should be the same as @c len.
- */
 ssize_t
 GNUNET_CRYPTO_symmetric_encrypt (const void *block,
                                  size_t size,
                                  const struct
                                  GNUNET_CRYPTO_SymmetricSessionKey *sessionkey,
                                  const struct
-                                 GNUNET_CRYPTO_SymmetricInitializationVector *iv,
+                                 GNUNET_CRYPTO_SymmetricInitializationVector *iv
+                                 ,
                                  void *result)
 {
   gcry_cipher_hd_t handle;
-  char tmp[GNUNET_NZL(size)];
+  char tmp[GNUNET_NZL (size)];
 
   if (GNUNET_OK != setup_cipher_aes (&handle, sessionkey, iv))
     return -1;
@@ -152,26 +140,14 @@ GNUNET_CRYPTO_symmetric_encrypt (const void *block,
 }
 
 
-/**
- * Decrypt a given block with the session key.
- *
- * @param block the data to decrypt, encoded as returned by encrypt
- * @param size the size of the @a block to decrypt
- * @param sessionkey the key used to decrypt
- * @param iv the initialization vector to use, use INITVALUE for streams
- * @param result address to store the result at
- *               can be the same or overlap with @c block
- * @return -1 on failure, size of decrypted block on success.
- *         Due to the use of CFB and therefore an effective stream cipher,
- *         this size should be the same as @c size.
- */
 ssize_t
 GNUNET_CRYPTO_symmetric_decrypt (const void *block,
                                  size_t size,
                                  const struct
                                  GNUNET_CRYPTO_SymmetricSessionKey *sessionkey,
                                  const struct
-                                 GNUNET_CRYPTO_SymmetricInitializationVector *iv,
+                                 GNUNET_CRYPTO_SymmetricInitializationVector *iv
+                                 ,
                                  void *result)
 {
   gcry_cipher_hd_t handle;
@@ -187,67 +163,6 @@ GNUNET_CRYPTO_symmetric_decrypt (const void *block,
   gcry_cipher_close (handle);
   memset (tmp, 0, sizeof(tmp));
   return size;
-}
-
-
-/**
- * @brief Derive an IV
- *
- * @param iv initialization vector
- * @param skey session key
- * @param salt salt for the derivation
- * @param salt_len size of the @a salt
- * @param ... pairs of void * & size_t for context chunks, terminated by NULL
- */
-void
-GNUNET_CRYPTO_symmetric_derive_iv (struct
-                                   GNUNET_CRYPTO_SymmetricInitializationVector *
-                                   iv,
-                                   const struct
-                                   GNUNET_CRYPTO_SymmetricSessionKey *skey,
-                                   const void *salt,
-                                   size_t salt_len,
-                                   ...)
-{
-  va_list argp;
-
-  va_start (argp, salt_len);
-  GNUNET_CRYPTO_symmetric_derive_iv_v (iv, skey, salt, salt_len, argp);
-  va_end (argp);
-}
-
-
-void
-GNUNET_CRYPTO_symmetric_derive_iv_v (struct
-                                     GNUNET_CRYPTO_SymmetricInitializationVector
-                                     *iv,
-                                     const struct
-                                     GNUNET_CRYPTO_SymmetricSessionKey *skey,
-                                     const void *salt,
-                                     size_t salt_len,
-                                     va_list argp)
-{
-  char aes_salt[salt_len + 4];
-  char twofish_salt[salt_len + 4];
-
-  GNUNET_memcpy (aes_salt, salt, salt_len);
-  GNUNET_memcpy (&aes_salt[salt_len], "AES!", 4);
-  GNUNET_memcpy (twofish_salt, salt, salt_len);
-  GNUNET_memcpy (&twofish_salt[salt_len], "FISH", 4);
-  GNUNET_CRYPTO_kdf_v (iv->aes_iv,
-                       sizeof(iv->aes_iv),
-                       aes_salt,
-                       salt_len + 4,
-                       skey->aes_key,
-                       sizeof(skey->aes_key),
-                       argp);
-  GNUNET_CRYPTO_kdf_v (iv->twofish_iv,
-                       sizeof(iv->twofish_iv),
-                       twofish_salt,
-                       salt_len + 4,
-                       skey->twofish_key,
-                       sizeof(skey->twofish_key),
-                       argp);
 }
 
 

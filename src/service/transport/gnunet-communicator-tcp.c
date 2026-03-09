@@ -1275,33 +1275,27 @@ setup_cipher (const struct GNUNET_ShortHashCode *prk,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand (key,
-                                            sizeof(key),
-                                            prk,
-                                            "gnunet-communicator-tcp-key",
-                                            strlen (
-                                              "gnunet-communicator-tcp-key"),
-                                            NULL,
-                                            0));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   key,
+                   sizeof(key),
+                   prk,
+                   GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-tcp-key"))
+                 );
   GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand (ctr,
-                                            sizeof(ctr),
-                                            prk,
-                                            "gnunet-communicator-tcp-ctr",
-                                            strlen (
-                                              "gnunet-communicator-tcp-ctr"),
-                                            NULL,
-                                            0));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   ctr,
+                   sizeof(ctr),
+                   prk,
+                   GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-tcp-ctr"))
+                 );
   gcry_cipher_setctr (*cipher, ctr, sizeof(ctr));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand (hmac_key,
-                                            sizeof(struct GNUNET_HashCode),
-                                            prk,
-                                            "gnunet-communicator-hmac",
-                                            strlen ("gnunet-communicator-hmac"),
-                                            NULL,
-                                            0));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   hmac_key,
+                   sizeof(struct GNUNET_HashCode),
+                   prk,
+                   GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-hmac")));
 }
 
 

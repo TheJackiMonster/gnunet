@@ -34,55 +34,6 @@
 #define LOG(kind, ...) GNUNET_log_from (kind, "util-crypto-kdf", __VA_ARGS__)
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kdf_v (void *result,
-                     size_t out_len,
-                     const void *xts,
-                     size_t xts_len,
-                     const void *skm,
-                     size_t skm_len,
-                     va_list argp)
-{
-  /*
-   * "Finally, we point out to a particularly advantageous instantiation using
-   * HMAC-SHA512 as XTR and HMAC-SHA256 in PRF* (in which case the output from SHA-512 is
-   * truncated to 256 bits). This makes sense in two ways: First, the extraction part is where we need a
-   * stronger hash function due to the unconventional demand from the hash function in the extraction
-   * setting. Second, as shown in Section 6, using HMAC with a truncated output as an extractor
-   * allows to prove the security of HKDF under considerably weaker assumptions on the underlying
-   * hash function."
-   *
-   * http://eprint.iacr.org/2010/264
-   */
-  return GNUNET_CRYPTO_hkdf_gnunet_v (result, out_len, xts, xts_len, skm, skm_len, argp);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kdf (void *result,
-                   size_t out_len,
-                   const void *xts,
-                   size_t xts_len,
-                   const void *skm,
-                   size_t skm_len, ...)
-{
-  va_list argp;
-  int ret;
-
-  va_start (argp, skm_len);
-  ret = GNUNET_CRYPTO_kdf_v (result,
-                             out_len,
-                             xts,
-                             xts_len,
-                             skm,
-                             skm_len,
-                             argp);
-  va_end (argp);
-
-  return ret;
-}
-
-
 void
 GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
                            gcry_mpi_t n,
@@ -105,13 +56,13 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
     uint8_t buf[bsize];
     uint16_t ctr_nbo = htons (ctr);
 
-    rc = GNUNET_CRYPTO_kdf (buf,
-                            bsize,
-                            xts, xts_len,
-                            skm, skm_len,
-                            ctx, strlen (ctx),
-                            &ctr_nbo, sizeof(ctr_nbo),
-                            NULL, 0);
+    rc = GNUNET_CRYPTO_hkdf_gnunet (buf,
+                                    bsize,
+                                    xts, xts_len,
+                                    skm, skm_len,
+                                    GNUNET_CRYPTO_kdf_arg_string (ctx),
+                                    GNUNET_CRYPTO_kdf_arg_auto (&ctr_nbo))
+    ;
     GNUNET_assert (GNUNET_YES == rc);
     rc = gcry_mpi_scan (r,
                         GCRYMPI_FMT_USG,

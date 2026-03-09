@@ -1,3 +1,8 @@
+v0.27.0:
+  - util: Removed GNUNET_CRYPTO_symmetric_derive_iv API
+  - util: Deprecate GNUNET_CRYPTO_symmetric_* APIs
+  - util: Revise GNUNET_CRYPTO_hkdf_* APIs for safe variadic arguments. Fixes #10898
+
 v0.26.2:
   - pq: fix NULL reporting in arrays
   - util: fix UTF-8 uppercase/lowercase conversion API insanity

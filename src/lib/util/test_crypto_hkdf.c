@@ -53,9 +53,12 @@ tc1 (void)
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
-                   (result, l, &prk, info, sizeof(info),
-                   NULL) == GNUNET_YES);
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+                   (result,
+                   l,
+                   &prk,
+                   GNUNET_CRYPTO_kdf_arg (info, sizeof(info)))
+                 == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
 }
@@ -102,9 +105,9 @@ tc2 ()
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
-                   (result, l, &prk, info, sizeof(info),
-                   NULL) == GNUNET_YES);
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+                   (result, l, &prk,
+                   GNUNET_CRYPTO_kdf_arg (info, sizeof(info))) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
 }
@@ -127,8 +130,8 @@ tc3 ()
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
-                   (result, l, &prk, NULL, 0, NULL) == GNUNET_YES);
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+                   (result, l, &prk) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
 }
@@ -160,8 +163,8 @@ tc8 ()
   memset (result, 0, sizeof(result));
   GNUNET_assert (GNUNET_CRYPTO_hkdf_gnunet
                    (result, l, salt, sizeof(salt),
-                   ikm, sizeof(ikm), info, sizeof(info),
-                   NULL) == GNUNET_YES);
+                   ikm, sizeof(ikm),
+                   GNUNET_CRYPTO_kdf_arg (info, sizeof(info))) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
 }

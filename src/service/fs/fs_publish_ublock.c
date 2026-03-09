@@ -53,11 +53,11 @@ derive_ublock_encryption_key (struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
 
   /* derive key from 'label' and public key of the namespace */
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (&key, sizeof(key),
-                                    "UBLOCK-ENC", strlen ("UBLOCK-ENC"),
-                                    label, strlen (label),
-                                    pub, sizeof(*pub),
-                                    NULL, 0));
+                 GNUNET_CRYPTO_hkdf_gnunet (
+                   &key, sizeof(key),
+                   "UBLOCK-ENC", strlen ("UBLOCK-ENC"),
+                   label, strlen (label),
+                   GNUNET_CRYPTO_kdf_arg_auto (pub)));
   GNUNET_CRYPTO_hash_to_aes_key (&key, skey, iv);
 }
 

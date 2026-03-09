@@ -1,5 +1,5 @@
 /*
-     This file is part of GNUnet.
+ file is part of GNUnet.
      Copyright (C) 2001-2023 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
@@ -941,6 +941,7 @@ GNUNET_CRYPTO_symmetric_create_session_key (
  *        for streams.
  * @return the size of the encrypted block, -1 for errors
  */
+[[ deprecated ( "Use HPKE or other AEAD schemes for encryption" ) ]]
 ssize_t
 GNUNET_CRYPTO_symmetric_encrypt (
   const void *block,
@@ -961,6 +962,7 @@ GNUNET_CRYPTO_symmetric_encrypt (
  * @param result address to store the result at
  * @return -1 on failure, size of decrypted block on success
  */
+[[ deprecated ( "Use HPKE or other AEAD schemes for encryption" ) ]]
 ssize_t
 GNUNET_CRYPTO_symmetric_decrypt (
   const void *block,
@@ -968,41 +970,6 @@ GNUNET_CRYPTO_symmetric_decrypt (
   const struct GNUNET_CRYPTO_SymmetricSessionKey *sessionkey,
   const struct GNUNET_CRYPTO_SymmetricInitializationVector *iv,
   void *result);
-
-
-/**
- * @ingroup crypto
- * @brief Derive an IV
- * @param iv initialization vector
- * @param skey session key
- * @param salt salt for the derivation
- * @param salt_len size of the @a salt
- * @param ... pairs of void * & size_t for context chunks, terminated by NULL
- */
-void
-GNUNET_CRYPTO_symmetric_derive_iv (
-  struct GNUNET_CRYPTO_SymmetricInitializationVector *iv,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
-  const void *salt,
-  size_t salt_len,
-  ...);
-
-
-/**
- * @brief Derive an IV
- * @param iv initialization vector
- * @param skey session key
- * @param salt salt for the derivation
- * @param salt_len size of the @a salt
- * @param argp pairs of void * & size_t for context chunks, terminated by NULL
- */
-void
-GNUNET_CRYPTO_symmetric_derive_iv_v (
-  struct GNUNET_CRYPTO_SymmetricInitializationVector *iv,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *skey,
-  const void *salt,
-  size_t salt_len,
-  va_list argp);
 
 
 /**
@@ -1360,42 +1327,6 @@ GNUNET_CRYPTO_hash_xorcmp (const struct GNUNET_HashCode *h1,
 
 /**
  * @ingroup hash
- * @brief Derive an authentication key
- * @param key authentication key
- * @param rkey root key
- * @param salt salt
- * @param salt_len size of the salt
- * @param argp pair of void * & size_t for context chunks, terminated by NULL
- */
-void
-GNUNET_CRYPTO_hmac_derive_key_v (
-  struct GNUNET_CRYPTO_AuthKey *key,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-  const void *salt,
-  size_t salt_len,
-  va_list argp);
-
-
-/**
- * @ingroup hash
- * @brief Derive an authentication key
- * @param key authentication key
- * @param rkey root key
- * @param salt salt
- * @param salt_len size of the salt
- * @param ... pair of void * & size_t for context chunks, terminated by NULL
- */
-void
-GNUNET_CRYPTO_hmac_derive_key (
-  struct GNUNET_CRYPTO_AuthKey *key,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-  const void *salt,
-  size_t salt_len,
-  ...);
-
-
-/**
- * @ingroup hash
  * @brief HKDF-Extract using SHA256. RFC 5869
  * @param prk the PRK
  * @param salt salt
@@ -1412,33 +1343,77 @@ GNUNET_CRYPTO_hkdf_extract (struct GNUNET_ShortHashCode *prk,
                             size_t ikm_len);
 
 /**
- * @ingroup hash
- * @brief HKDF-Expand using SHA256. RFC 5869
- * @param result buffer for the derived key, allocated by caller
- * @param out_len desired length of the derived key
- * @param prk pesudorandom key
- * @param ... pair of void * & size_t for context chunks, terminated by NULL
- * @return #GNUNET_YES on success
+ * As input for variadic HKDF API.
+ * See also https://bugs.gnunet.org/view.php?id=10898
  */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand (void *result,
-                           size_t out_len,
-                           const struct GNUNET_ShortHashCode *prk,
-                           ...);
+struct GNUNET_CRYPTO_KdfInputArgument
+{
+
+  // The data that is input into HKDF-Expand
+  void*data;
+
+  // The length of data in bytes
+  size_t data_length;
+
+};
+
+#define GNUNET_CRYPTO_kdf_arg_string(d) \
+        ((struct GNUNET_CRYPTO_KdfInputArgument) \
+  {                                   \
+    (void*) d,                                \
+    strlen (d)                        \
+  })
+
+
+#define GNUNET_CRYPTO_kdf_arg_auto(d) \
+        ((struct GNUNET_CRYPTO_KdfInputArgument) \
+  {                                   \
+    (void*) d,                                \
+    sizeof (*d)                        \
+  })
+
+
+#define GNUNET_CRYPTO_kdf_arg(d,s) \
+        ((struct GNUNET_CRYPTO_KdfInputArgument) \
+  {                                   \
+    (void*) d,                                \
+    s                                 \
+  })
+
+
+#define _HKDF_ARGS_VEC_HELPER(...) \
+        (struct \
+         GNUNET_CRYPTO_KdfInputArgument[]) { __VA_ARGS__ }
+
+#define _HKDF_ARGS_VECLEN_HELPER(...) \
+        sizeof(_HKDF_ARGS_VEC_HELPER (__VA_ARGS__)) / sizeof ( \
+          struct GNUNET_CRYPTO_KdfInputArgument)
+
 
 /**
  * @ingroup hash
- * @brief HKDF-Expand using SHA256. See #GNUNET_CRYPTO_hkdf_expand
+ * @brief Derive key. See #GNUNET_CRYPTO_hkdf_gnunet
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
- * @param argp va_list of void * & size_t pairs for context chunks
+ * @param xts salt
+ * @param xts_len length of @a xts
+ * @param skm source key material
+ * @param skm_len length of @a skm
+ * @param hkdf_args_count size of the input argument array that follows
+ * @param hkdf_args array of struct GNUNET_CRYPTO_KdfInputArgument for context chunks
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand_v (void *result,
+GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
                              size_t out_len,
-                             const struct GNUNET_ShortHashCode *prk,
-                             va_list argp);
+                             const void *xts,
+                             size_t xts_len,
+                             const void *skm,
+                             size_t skm_len,
+                             size_t hkdf_args_count,
+                             const struct
+                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                               hkdf_args_count]);
 
 
 /**
@@ -1452,66 +1427,75 @@ GNUNET_CRYPTO_hkdf_expand_v (void *result,
  * Use the more standard #GNUNET_CRYPTO_hkdf_extract and
  * #GNUNET_CRYPTO_HKDF_expand instead!
  *
+ * "Finally, we point out to a particularly advantageous instantiation using
+ * HMAC-SHA512 as XTR and HMAC-SHA256 in PRF* (in which case the output from SHA-512 is
+ * truncated to 256 bits). This makes sense in two ways: First, the extraction part is where we need a
+ * stronger hash function due to the unconventional demand from the hash function in the extraction
+ * setting. Second, as shown in Section 6, using HMAC with a truncated output as an extractor
+ * allows to prove the security of HKDF under considerably weaker assumptions on the underlying
+ * hash function."
+ *
+ * http://eprint.iacr.org/2010/264
+ *
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
  * @param xts salt
  * @param xts_len length of @a xts
  * @param skm source key material
  * @param skm_len length of @a skm
- * @param ... pair of void * & size_t for context chunks, terminated by NULL
+ * @param ... set of struct GNUNET_CRYPTO_KdfInputArgument for context chunks
  * @return #GNUNET_YES on success
  */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_gnunet (void *result,
-                           size_t out_len,
-                           const void *xts,
-                           size_t xts_len,
-                           const void *skm,
-                           size_t skm_len,
-                           ...);
-
+#define GNUNET_CRYPTO_hkdf_gnunet(result, \
+                                  out_len, \
+                                  xts, \
+                                  xts_len, \
+                                  skm, \
+                                  skm_len, ...) \
+        GNUNET_CRYPTO_hkdf_gnunet_v (result, out_len, xts, xts_len, skm, \
+                                     skm_len, \
+                                     _HKDF_ARGS_VECLEN_HELPER (__VA_ARGS__ \
+                                                               ), \
+                                     _HKDF_ARGS_VEC_HELPER (__VA_ARGS__))
 
 /**
  * @ingroup hash
- * @brief Derive key. See #GNUNET_CRYPTO_hkdf_gnunet
+ * @brief HKDF-Expand using SHA256. See #GNUNET_CRYPTO_hkdf_expand
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param argp va_list of void * & size_t pairs for context chunks
+ * @param prk pesudorandom key
+ * @param hkdf_args_count size of the input argument array that follows
+ * @param hkdf_args array of struct GNUNET_CRYPTO_KdfInputArgument for context chunks
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
-                             size_t out_len,
-                             const void *xts,
-                             size_t xts_len,
-                             const void *skm,
-                             size_t skm_len,
-                             va_list argp);
-
+GNUNET_CRYPTO_hkdf_expand_fixed_v (void *result,
+                                   size_t out_len,
+                                   const struct GNUNET_ShortHashCode *prk,
+                                   size_t hkdf_args_count,
+                                   const struct
+                                   GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                                     hkdf_args_count]);
 
 /**
- * @brief Derive key
+ * @ingroup hash
+ * @brief HKDF-Expand using SHA256. RFC 5869
  * @param result buffer for the derived key, allocated by caller
  * @param out_len desired length of the derived key
- * @param xts salt
- * @param xts_len length of @a xts
- * @param skm source key material
- * @param skm_len length of @a skm
- * @param argp va_list of void * & size_t pairs for context chunks
+ * @param prk pesudorandom key
+ * @param ... set of struct GNUNET_CRYPTO_KdfInputArgument for context chunks
  * @return #GNUNET_YES on success
  */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kdf_v (void *result,
-                     size_t out_len,
-                     const void *xts,
-                     size_t xts_len,
-                     const void *skm,
-                     size_t skm_len,
-                     va_list argp);
+
+#define GNUNET_CRYPTO_hkdf_expand_fixed(result, \
+                                        out_len, \
+                                        prk, \
+                                        ...) \
+        GNUNET_CRYPTO_hkdf_expand_fixed_v (result, out_len, \
+                                           prk, \
+                                           _HKDF_ARGS_VECLEN_HELPER (__VA_ARGS__ \
+                                                                     ), \
+                                           _HKDF_ARGS_VEC_HELPER (__VA_ARGS__))
 
 
 /**
@@ -1548,14 +1532,7 @@ GNUNET_CRYPTO_kdf_mod_mpi (gcry_mpi_t *r,
  * @param ... void * & size_t pairs for context chunks
  * @return #GNUNET_YES on success
  */
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_kdf (void *result,
-                   size_t out_len,
-                   const void *xts,
-                   size_t xts_len,
-                   const void *skm,
-                   size_t skm_len,
-                   ...);
+// #define GNUNET_CRYPTO_kdf GNUNET_CRYPTO_hkdf_gnunet
 
 
 /**

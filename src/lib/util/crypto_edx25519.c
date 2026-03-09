@@ -228,15 +228,14 @@ derive_h (
    */
   static const char *const salt = "edx25519-derivation";
 
-  GNUNET_CRYPTO_kdf (/* output*/
+  GNUNET_CRYPTO_hkdf_gnunet (/* output*/
     phc, sizeof(*phc),
     /* salt */
     salt, strlen (salt),
     /* ikm */
     pub, sizeof(*pub),
     /* ctx chunks*/
-    seed, seedsize,
-    NULL, 0);
+    GNUNET_CRYPTO_kdf_arg (seed, seedsize));
 
 }
 

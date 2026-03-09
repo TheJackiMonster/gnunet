@@ -5099,17 +5099,13 @@ dv_setup_key_state_from_km (const struct GNUNET_ShortHashCode *km,
 {
   /* must match what we defive from decapsulated key */
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand (&key->material,
-                                            sizeof(key->material),
-                                            km,
-                                            "gnunet-transport-dv-key",
-                                            strlen ("gnunet-transport-dv-key")
-                                            ,
-                                            km,
-                                            sizeof(*km),
-                                            iv,
-                                            sizeof(*iv),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   &key->material,
+                   sizeof(key->material),
+                   km,
+                   GNUNET_CRYPTO_kdf_arg_string ("gnunet-transport-dv-key"),
+                   GNUNET_CRYPTO_kdf_arg_auto (km),
+                   GNUNET_CRYPTO_kdf_arg_auto (iv)));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Deriving backchannel key based on KM %s and IV %s\n",
               GNUNET_sh2s (km),

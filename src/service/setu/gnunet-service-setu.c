@@ -1861,10 +1861,10 @@ get_ibf_key (const struct GNUNET_HashCode *src)
   uint16_t salt = 0;
 
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_kdf (&key, sizeof(key),
-                                    src, sizeof *src,
-                                    &salt, sizeof(salt),
-                                    NULL, 0));
+                 GNUNET_CRYPTO_hkdf_gnunet (
+                   &key, sizeof(key),
+                   src, sizeof *src,
+                   &salt, sizeof(salt)));
   return key;
 }
 
@@ -5448,7 +5448,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "set",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

@@ -517,14 +517,13 @@ main (int argc,
 
   // set nonce
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (&nonce,
-                                    sizeof(nonce),
-                                    "nonce",
-                                    strlen ("nonce"),
-                                    "nonce_secret",
-                                    strlen ("nonce_secret"),
-                                    NULL,
-                                    0));
+                 GNUNET_CRYPTO_hkdf_gnunet (
+                   &nonce,
+                   sizeof(nonce),
+                   "nonce",
+                   strlen ("nonce"),
+                   "nonce_secret",
+                   strlen ("nonce_secret")));
 
   {
     struct GNUNET_CRYPTO_CsRSecret r_secrets[2];

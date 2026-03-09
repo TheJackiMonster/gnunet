@@ -111,8 +111,7 @@ perfHKDF (void)
     GNUNET_CRYPTO_hkdf_gnunet (res, sizeof(res),
                                buf, sizeof(buf),
                                skm, sizeof(skm),
-                               "test", (size_t) 4,
-                               NULL, 0);
+                               GNUNET_CRYPTO_kdf_arg_string ("test"));
 }
 
 

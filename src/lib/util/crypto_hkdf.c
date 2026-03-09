@@ -45,38 +45,34 @@
 #include "gnunet_util_lib.h"
 #include "sodium/crypto_auth_hmacsha256.h"
 
+
 static enum GNUNET_GenericReturnValue
-hkdf_expand (void *result,
-             size_t out_len,
-             const unsigned char *prk,
-             size_t prk_len,
-             va_list argp)
+hkdf_expand_fixed (void *result,
+                   size_t out_len,
+                   const unsigned char *prk,
+                   size_t prk_len,
+                   size_t hkdf_args_len,
+                   const struct GNUNET_CRYPTO_KdfInputArgument *hkdf_args)
 {
   unsigned char *outbuf = (unsigned char*) result;
   size_t i;
   size_t ctx_len;
-  va_list args;
 
   if (out_len > (0xff * crypto_auth_hmacsha256_BYTES))
     return GNUNET_SYSERR;
 
-  va_copy (args, argp);
-
   ctx_len = 0;
-  while (NULL != va_arg (args, void *))
+  for (i = 0; i < hkdf_args_len; i++)
   {
-    size_t nxt = va_arg (args, size_t);
+    size_t nxt = hkdf_args[i].data_length;
     if (nxt + ctx_len < nxt)
     {
       /* integer overflow */
       GNUNET_break (0);
-      va_end (args);
       return GNUNET_SYSERR;
     }
     ctx_len += nxt;
   }
-
-  va_end (args);
 
   if ( (crypto_auth_hmacsha256_BYTES + ctx_len < ctx_len) ||
        (crypto_auth_hmacsha256_BYTES + ctx_len + 1 < ctx_len) )
@@ -90,7 +86,6 @@ hkdf_expand (void *result,
 
   {
     size_t left = out_len;
-    const void *ctx_arg;
     unsigned char tmp[crypto_auth_hmacsha256_BYTES];
     unsigned char ctx[ctx_len];
     unsigned char *dst = ctx;
@@ -98,73 +93,41 @@ hkdf_expand (void *result,
     unsigned char counter = 1U;
 
     sodium_memzero (ctx, sizeof ctx);
-    va_copy (args, argp);
-    while ((ctx_arg = va_arg (args, void *)))
+    for (i = 0; i < hkdf_args_len; i++)
     {
-      size_t len;
-
-      len = va_arg (args, size_t);
-      GNUNET_memcpy (dst, ctx_arg, len);
-      dst += len;
+      GNUNET_memcpy (dst, hkdf_args[i].data, hkdf_args[i].data_length);
+      dst += hkdf_args[i].data_length;
     }
-    va_end (args);
 
     for (i = 0; left > 0; i += crypto_auth_hmacsha256_BYTES)
     {
-      crypto_auth_hmacsha256_init(&st, prk, prk_len);
+      crypto_auth_hmacsha256_init (&st, prk, prk_len);
       if (0 != i)
       {
-        crypto_auth_hmacsha256_update(&st,
-                                      &outbuf[i - crypto_auth_hmacsha256_BYTES],
-                                      crypto_auth_hmacsha256_BYTES);
+        crypto_auth_hmacsha256_update (&st,
+                                       &outbuf[i - crypto_auth_hmacsha256_BYTES]
+                                       ,
+                                       crypto_auth_hmacsha256_BYTES);
       }
-      crypto_auth_hmacsha256_update(&st, ctx, ctx_len);
-      crypto_auth_hmacsha256_update(&st, &counter, 1);
+      crypto_auth_hmacsha256_update (&st, ctx, ctx_len);
+      crypto_auth_hmacsha256_update (&st, &counter, 1);
       if (left >= crypto_auth_hmacsha256_BYTES)
       {
-        crypto_auth_hmacsha256_final(&st, &outbuf[i]);
+        crypto_auth_hmacsha256_final (&st, &outbuf[i]);
         left -= crypto_auth_hmacsha256_BYTES;
       }
       else
       {
-        crypto_auth_hmacsha256_final(&st, tmp);
+        crypto_auth_hmacsha256_final (&st, tmp);
         memcpy (&outbuf[i], tmp, left);
-        sodium_memzero(tmp, sizeof tmp);
+        sodium_memzero (tmp, sizeof tmp);
         left = 0;
       }
       counter++;
     }
-    sodium_memzero(&st, sizeof st);
+    sodium_memzero (&st, sizeof st);
   }
   return GNUNET_YES;
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand_v (void *result,
-                             size_t out_len,
-                             const struct GNUNET_ShortHashCode *prk,
-                             va_list argp)
-{
-  return hkdf_expand (result, out_len,
-                      (unsigned char*) prk, sizeof *prk,
-                      argp);
-}
-
-
-enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand (void *result,
-                           size_t out_len,
-                           const struct GNUNET_ShortHashCode *prk,
-                           ...)
-{
-  va_list argp;
-  enum GNUNET_GenericReturnValue ret;
-
-  va_start (argp, prk);
-  ret = GNUNET_CRYPTO_hkdf_expand_v (result, out_len, prk, argp);
-  va_end (argp);
-  return ret;
 }
 
 
@@ -175,7 +138,10 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
                              size_t xts_len,
                              const void *skm,
                              size_t skm_len,
-                             va_list argp)
+                             size_t hkdf_args_len,
+                             const struct
+                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                               hkdf_args_len])
 {
   unsigned char prk[crypto_auth_hmacsha512_BYTES];
   crypto_auth_hmacsha512_state st;
@@ -188,35 +154,27 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
   crypto_auth_hmacsha512_final (&st, (unsigned char*) prk);
   sodium_memzero (&st, sizeof st);
 
-  return hkdf_expand (result, out_len,
-                      prk,
-                      sizeof prk,
-                      argp);
+  return hkdf_expand_fixed (result, out_len,
+                            prk,
+                            sizeof prk,
+                            hkdf_args_len,
+                            hkdf_args);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_gnunet (void *result,
-                           size_t out_len,
-                           const void *xts,
-                           size_t xts_len,
-                           const void *skm,
-                           size_t skm_len, ...)
+GNUNET_CRYPTO_hkdf_expand_fixed_v (void *result,
+                                   size_t out_len,
+                                   const struct GNUNET_ShortHashCode *prk,
+                                   size_t hkdf_args_len,
+                                   const struct
+                                   GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                                     hkdf_args_len])
 {
-  va_list argp;
-  enum GNUNET_GenericReturnValue ret;
-
-  va_start (argp, skm_len);
-  ret =
-    GNUNET_CRYPTO_hkdf_gnunet_v (result,
-                                 out_len,
-                                 xts,
-                                 xts_len,
-                                 skm,
-                                 skm_len,
-                                 argp);
-  va_end (argp);
-  return ret;
+  return hkdf_expand_fixed (result, out_len,
+                            (unsigned char*) prk, sizeof *prk,
+                            hkdf_args_len,
+                            hkdf_args);
 }
 
 

@@ -1050,13 +1050,11 @@ get_kid (const struct GNUNET_ShortHashCode *msec,
                               &sid, sizeof (sid),
                               msec, sizeof (*msec));
 
-  GNUNET_CRYPTO_hkdf_expand (kid,
-                             sizeof(*kid),
-                             &prk,
-                             "gnunet-communicator-udp-kid",
-                             strlen ("gnunet-communicator-udp-kid"),
-                             NULL,
-                             0);
+  GNUNET_CRYPTO_hkdf_expand_fixed (
+    kid,
+    sizeof(*kid),
+    &prk,
+    GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-udp-kid"));
 }
 
 
@@ -1188,22 +1186,18 @@ get_iv_key (const struct GNUNET_ShortHashCode *msec,
 {
   uint32_t sid = htonl (serial);
 
-  GNUNET_CRYPTO_hkdf_expand (key,
-                             AES_KEY_SIZE,
-                             msec,
-                             "gnunet-communicator-udp-key",
-                             strlen ("gnunet-communicator-udp-key"),
-                             &sid, sizeof (sid),
-                             NULL,
-                             0);
-  GNUNET_CRYPTO_hkdf_expand (iv,
-                             AES_IV_SIZE,
-                             msec,
-                             "gnunet-communicator-udp-iv",
-                             strlen ("gnunet-communicator-udp-iv"),
-                             &sid, sizeof (sid),
-                             NULL,
-                             0);
+  GNUNET_CRYPTO_hkdf_expand_fixed (
+    key,
+    AES_KEY_SIZE,
+    msec,
+    GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-udp-key"),
+    GNUNET_CRYPTO_kdf_arg_auto (&sid));
+  GNUNET_CRYPTO_hkdf_expand_fixed (
+    iv,
+    AES_IV_SIZE,
+    msec,
+    GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-udp-iv"),
+    GNUNET_CRYPTO_kdf_arg_auto (&sid));
 }
 
 
@@ -1287,13 +1281,11 @@ check_timeouts (void *cls)
 static void
 calculate_cmac (struct SharedSecret *ss)
 {
-  GNUNET_CRYPTO_hkdf_expand (&ss->cmac,
-                             sizeof(ss->cmac),
-                             &ss->master,
-                             "gnunet-communicator-udp-cmac",
-                             strlen ("gnunet-communicator-udp-cmac"),
-                             NULL,
-                             0);
+  GNUNET_CRYPTO_hkdf_expand_fixed (
+    &ss->cmac,
+    sizeof(ss->cmac),
+    &ss->master,
+    GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-udp-cmac"));
 }
 
 

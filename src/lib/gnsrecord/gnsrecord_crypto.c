@@ -135,18 +135,18 @@ GNR_derive_block_aes_key (unsigned char *ctr,
   static const char ctx_key[] = "gns-aes-ctx-key";
   static const char ctx_iv[] = "gns-aes-ctx-iv";
 
-  GNUNET_CRYPTO_kdf (key, GNUNET_CRYPTO_AES_KEY_LENGTH,
-                     ctx_key, strlen (ctx_key),
-                     pub, sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
-                     label, strlen (label),
-                     NULL, 0);
+  GNUNET_CRYPTO_hkdf_gnunet (key, GNUNET_CRYPTO_AES_KEY_LENGTH,
+                             ctx_key, strlen (ctx_key),
+                             pub, sizeof(struct
+                                         GNUNET_CRYPTO_EcdsaPublicKey),
+                             GNUNET_CRYPTO_kdf_arg_string (label));
   memset (ctr, 0, GNUNET_CRYPTO_AES_KEY_LENGTH / 2);
   /** 4 byte nonce **/
-  GNUNET_CRYPTO_kdf (ctr, 4,
-                     ctx_iv, strlen (ctx_iv),
-                     pub, sizeof(struct GNUNET_CRYPTO_EcdsaPublicKey),
-                     label, strlen (label),
-                     NULL, 0);
+  GNUNET_CRYPTO_hkdf_gnunet (ctr, 4,
+                             ctx_iv, strlen (ctx_iv),
+                             pub, sizeof(struct
+                                         GNUNET_CRYPTO_EcdsaPublicKey),
+                             GNUNET_CRYPTO_kdf_arg_string (label));
   /** Expiration time 64 bit. **/
   memcpy (ctr + 4, &exp, sizeof (exp));
   /** Set counter part to 1 **/
@@ -164,18 +164,18 @@ GNR_derive_block_xsalsa_key (unsigned char *nonce,
   static const char ctx_key[] = "gns-xsalsa-ctx-key";
   static const char ctx_iv[] = "gns-xsalsa-ctx-iv";
 
-  GNUNET_CRYPTO_kdf (key, crypto_secretbox_KEYBYTES,
-                     ctx_key, strlen (ctx_key),
-                     pub, sizeof(struct GNUNET_CRYPTO_EddsaPublicKey),
-                     label, strlen (label),
-                     NULL, 0);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    key, crypto_secretbox_KEYBYTES,
+    ctx_key, strlen (ctx_key),
+    pub, sizeof(struct GNUNET_CRYPTO_EddsaPublicKey),
+    GNUNET_CRYPTO_kdf_arg_string (label));
   memset (nonce, 0, crypto_secretbox_NONCEBYTES);
   /** 16 byte nonce **/
-  GNUNET_CRYPTO_kdf (nonce, (crypto_secretbox_NONCEBYTES - sizeof (exp)),
-                     ctx_iv, strlen (ctx_iv),
-                     pub, sizeof(struct GNUNET_CRYPTO_EddsaPublicKey),
-                     label, strlen (label),
-                     NULL, 0);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    nonce, (crypto_secretbox_NONCEBYTES - sizeof (exp)),
+    ctx_iv, strlen (ctx_iv),
+    pub, sizeof(struct GNUNET_CRYPTO_EddsaPublicKey),
+    GNUNET_CRYPTO_kdf_arg_string (label));
   /** Expiration time 64 bit. **/
   memcpy (nonce + (crypto_secretbox_NONCEBYTES - sizeof (exp)),
           &exp, sizeof (exp));

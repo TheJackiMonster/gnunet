@@ -400,10 +400,13 @@ create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
   if (! message)
     return NULL;
 
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv, group_key,
-                                     event, sizeof (*event),
-                                     identifier, sizeof (*identifier),
-                                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             event,
+                             sizeof *event,
+                             group_key,
+                             sizeof *group_key,
+                             GNUNET_CRYPTO_kdf_arg_auto (identifier));
 
   if (-1 == GNUNET_CRYPTO_symmetric_encrypt (shared_key,
                                              GNUNET_MESSENGER_AUTHORIZATION_KEY_BYTES,

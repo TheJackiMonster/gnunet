@@ -2540,16 +2540,15 @@ compute_global_id (struct ConsensusSession *session,
   const char *salt = "gnunet-service-consensus/session_id";
 
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (&session->global_id,
-                                    sizeof(struct GNUNET_HashCode),
-                                    salt,
-                                    strlen (salt),
-                                    session->peers,
-                                    session->num_peers * sizeof(struct
-                                                                GNUNET_PeerIdentity),
-                                    local_session_id,
-                                    sizeof(struct GNUNET_HashCode),
-                                    NULL));
+                 GNUNET_CRYPTO_hkdf_gnunet (
+                   &session->global_id,
+                   sizeof(struct GNUNET_HashCode),
+                   salt,
+                   strlen (salt),
+                   session->peers,
+                   session->num_peers * sizeof(struct
+                                               GNUNET_PeerIdentity),
+                   GNUNET_CRYPTO_kdf_arg_auto (local_session_id)));
 }
 
 
@@ -3553,7 +3552,7 @@ client_disconnect_cb (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "consensus",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

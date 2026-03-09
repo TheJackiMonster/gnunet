@@ -751,13 +751,13 @@ static void
 hash_from_share_val (const char *share_val,
                      struct GNUNET_HashCode *hash)
 {
-  GNUNET_CRYPTO_kdf (hash,
-                     sizeof(struct GNUNET_HashCode),
-                     "rps",
-                     strlen ("rps"),
-                     share_val,
-                     strlen (share_val),
-                     NULL, 0);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    hash,
+    sizeof(struct GNUNET_HashCode),
+    "rps",
+    strlen ("rps"),
+    share_val,
+    strlen (share_val));
 }
 
 

@@ -155,21 +155,19 @@ GNUNET_CRYPTO_hash_to_aes_key (
   struct GNUNET_CRYPTO_SymmetricInitializationVector *iv)
 {
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (
+                 GNUNET_CRYPTO_hkdf_gnunet (
                    skey,
                    sizeof(*skey),
                    "Hash key derivation",
                    strlen ("Hash key derivation"),
-                   hc, sizeof(*hc),
-                   NULL, 0));
+                   hc, sizeof(*hc)));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_kdf (
+                 GNUNET_CRYPTO_hkdf_gnunet (
                    iv,
                    sizeof(*iv),
                    "Initialization vector derivation",
                    strlen ("Initialization vector derivation"),
-                   hc, sizeof(*hc),
-                   NULL, 0));
+                   hc, sizeof(*hc)));
 }
 
 
@@ -260,39 +258,6 @@ GNUNET_CRYPTO_hash_xorcmp (const struct GNUNET_HashCode *h1,
       return -1;
   }
   return 0;
-}
-
-
-void
-GNUNET_CRYPTO_hmac_derive_key (
-  struct GNUNET_CRYPTO_AuthKey *key,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-  const void *salt, size_t salt_len,
-  ...)
-{
-  va_list argp;
-
-  va_start (argp,
-            salt_len);
-  GNUNET_CRYPTO_hmac_derive_key_v (key,
-                                   rkey,
-                                   salt, salt_len,
-                                   argp);
-  va_end (argp);
-}
-
-
-void
-GNUNET_CRYPTO_hmac_derive_key_v (
-  struct GNUNET_CRYPTO_AuthKey *key,
-  const struct GNUNET_CRYPTO_SymmetricSessionKey *rkey,
-  const void *salt, size_t salt_len,
-  va_list argp)
-{
-  GNUNET_CRYPTO_kdf_v (key->key, sizeof(key->key),
-                       salt, salt_len,
-                       rkey, sizeof(struct GNUNET_CRYPTO_SymmetricSessionKey),
-                       argp);
 }
 
 

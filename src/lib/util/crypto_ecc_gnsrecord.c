@@ -59,18 +59,15 @@ derive_h (const void *pub,
    */
   static const char *const salt = "key-derivation";
 
-  GNUNET_CRYPTO_kdf (hc,
-                     sizeof(*hc),
-                     salt,
-                     strlen (salt),
-                     pub,
-                     pubsize,
-                     label,
-                     strlen (label),
-                     context,
-                     strlen (context),
-                     NULL,
-                     0);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    hc,
+    sizeof(*hc),
+    salt,
+    strlen (salt),
+    pub,
+    pubsize,
+    GNUNET_CRYPTO_kdf_arg_string (label),
+    GNUNET_CRYPTO_kdf_arg_string (context));
 }
 
 

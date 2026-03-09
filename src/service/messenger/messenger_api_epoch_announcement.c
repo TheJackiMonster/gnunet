@@ -63,15 +63,14 @@ derive_epoch_announcement_key (const struct GNUNET_MESSENGER_EpochAnnouncement *
   if (! previous_key)
     return GNUNET_SYSERR;
 
-  if (GNUNET_YES != GNUNET_CRYPTO_kdf (key,
-                                       sizeof (*key),
-                                       &(announcement->epoch->hash),
-                                       sizeof (announcement->epoch->hash),
-                                       previous_key,
-                                       sizeof (*previous_key),
-                                       &(announcement->identifier),
-                                       sizeof (announcement->identifier),
-                                       NULL))
+  if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+        key,
+        sizeof (*key),
+        &(announcement->epoch->hash),
+        sizeof (announcement->epoch->hash),
+        previous_key,
+        sizeof (*previous_key),
+        GNUNET_CRYPTO_kdf_arg_auto (&announcement->identifier)))
     return GNUNET_SYSERR;
   else
     return GNUNET_OK;

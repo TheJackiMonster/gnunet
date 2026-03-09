@@ -33,7 +33,6 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_statistics_service.h"
-#include "gnunet_signatures.h"
 #include "cadet_protocol.h"
 #include "gnunet-service-cadet_channel.h"
 #include "gnunet-service-cadet_connection.h"
@@ -55,14 +54,14 @@
  * How long do we wait until tearing down an idle tunnel?
  */
 #define IDLE_DESTROY_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_SECONDS, 90)
+          GNUNET_TIME_UNIT_SECONDS, 90)
 
 /**
  * How long do we wait initially before retransmitting the KX?
  * TODO: replace by 2 RTT if/once we have connection-level RTT data!
  */
 #define INITIAL_KX_RETRY_DELAY GNUNET_TIME_relative_multiply ( \
-    GNUNET_TIME_UNIT_MILLISECONDS, 250)
+          GNUNET_TIME_UNIT_MILLISECONDS, 250)
 
 /**
  * Maximum number of skipped keys we keep in memory per tunnel.
@@ -687,12 +686,18 @@ t_hmac (const void *plaintext,
   struct GNUNET_CRYPTO_AuthKey auth_key;
   struct GNUNET_HashCode hash;
 
-  GNUNET_CRYPTO_hmac_derive_key (&auth_key,
-                                 key,
-                                 &iv, sizeof(iv),
-                                 key, sizeof(*key),
-                                 ctx, sizeof(ctx),
-                                 NULL);
+  // FIXME now that we directly invoke HKDF instead of a
+  // thin wrapper we can clearly see the sillyness of adding
+  // the key parameter twice...
+  GNUNET_CRYPTO_hkdf_gnunet (
+    &auth_key,
+    sizeof auth_key,
+    &iv,
+    sizeof(iv),
+    key,
+    sizeof(*key),
+    GNUNET_CRYPTO_kdf_arg_auto (key),
+    GNUNET_CRYPTO_kdf_arg_string (ctx));
   /* Two step: GNUNET_ShortHash is only 256 bits,
      GNUNET_HashCode is 512, so we truncate. */
   GNUNET_CRYPTO_hmac (&auth_key,
@@ -722,10 +727,13 @@ t_ax_hmac_hash (const struct GNUNET_CRYPTO_SymmetricSessionKey *key,
   static const char ctx[] = "axolotl HMAC-HASH";
   struct GNUNET_CRYPTO_AuthKey auth_key;
 
-  GNUNET_CRYPTO_hmac_derive_key (&auth_key,
-                                 key,
-                                 ctx, sizeof(ctx),
-                                 NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    &auth_key,
+    sizeof auth_key,
+    ctx,
+    sizeof(ctx),
+    key,
+    sizeof *key);
   GNUNET_CRYPTO_hmac (&auth_key,
                       source,
                       len,
@@ -754,10 +762,10 @@ t_hmac_derive_key (const struct GNUNET_CRYPTO_SymmetricSessionKey *key,
                   &h,
                   source,
                   len);
-  GNUNET_CRYPTO_kdf (out, sizeof(*out),
-                     ctx, sizeof(ctx),
-                     &h, sizeof(h),
-                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    out, sizeof(*out),
+    ctx, sizeof(ctx),
+    &h, sizeof(h));
 }
 
 
@@ -806,10 +814,10 @@ t_ax_encrypt (struct CadetTunnelAxolotl *ax,
                     &hmac,
                     &dh,
                     sizeof(dh));
-    GNUNET_CRYPTO_kdf (keys, sizeof(keys),
-                       ctx, sizeof(ctx),
-                       &hmac, sizeof(hmac),
-                       NULL);
+    GNUNET_CRYPTO_hkdf_gnunet (
+      keys, sizeof(keys),
+      ctx, sizeof(ctx),
+      &hmac, sizeof(hmac));
     ax->RK = keys[0];
     ax->NHKs = keys[1];
     ax->CKs = keys[2];
@@ -828,10 +836,13 @@ t_ax_encrypt (struct CadetTunnelAxolotl *ax,
                      &MK,
                      "0",
                      1);
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &MK,
-                                     NULL, 0,
-                                     NULL);
+
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &MK,
+                             sizeof MK);
 
   out_size = GNUNET_CRYPTO_symmetric_encrypt (src,
                                               size,
@@ -868,10 +879,13 @@ t_ax_decrypt (struct CadetTunnelAxolotl *ax,
                      &MK,
                      "0",
                      1);
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &MK,
-                                     NULL, 0,
-                                     NULL);
+
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &MK,
+                             sizeof MK);
   GNUNET_assert (size >= sizeof(struct GNUNET_MessageHeader));
   out_size = GNUNET_CRYPTO_symmetric_decrypt (src,
                                               size,
@@ -899,10 +913,12 @@ t_h_encrypt (struct CadetTunnelAxolotl *ax,
   struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   size_t out_size;
 
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &ax->HKs,
-                                     NULL, 0,
-                                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &ax->HKs,
+                             sizeof ax->HKs);
   out_size = GNUNET_CRYPTO_symmetric_encrypt (&msg->ax_header,
                                               sizeof(struct
                                                      GNUNET_CADET_AxHeader),
@@ -928,10 +944,14 @@ t_h_decrypt (struct CadetTunnelAxolotl *ax,
   struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
   size_t out_size;
 
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &ax->HKr,
-                                     NULL, 0,
-                                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &ax->HKr,
+                             sizeof ax->HKr);
+
+
   out_size = GNUNET_CRYPTO_symmetric_decrypt (&src->ax_header.Ns,
                                               sizeof(struct
                                                      GNUNET_CADET_AxHeader),
@@ -1016,10 +1036,13 @@ try_old_ax_keys (struct CadetTunnelAxolotl *ax,
   GNUNET_assert (len >= sizeof(struct GNUNET_MessageHeader));
 
   /* Decrypt header */
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &key->HK,
-                                     NULL, 0,
-                                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &key->HK,
+                             sizeof key->HK);
+
   res = GNUNET_CRYPTO_symmetric_decrypt (&src->ax_header.Ns,
                                          sizeof(struct GNUNET_CADET_AxHeader),
                                          &key->HK,
@@ -1038,11 +1061,13 @@ try_old_ax_keys (struct CadetTunnelAxolotl *ax,
     return -1;
 
   /* Decrypt payload */
-  GNUNET_CRYPTO_symmetric_derive_iv (&iv,
-                                     &key->MK,
-                                     NULL,
-                                     0,
-                                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (&iv,
+                             sizeof iv,
+                             NULL,
+                             0,
+                             &key->MK,
+                             sizeof key->MK);
+
   res = GNUNET_CRYPTO_symmetric_decrypt (&src[1],
                                          len,
                                          &key->MK,
@@ -1210,10 +1235,10 @@ t_ax_decrypt_and_validate (struct CadetTunnelAxolotl *ax,
     t_ax_hmac_hash (&ax->RK,
                     &hmac,
                     &dh, sizeof(dh));
-    GNUNET_CRYPTO_kdf (keys, sizeof(keys),
-                       ctx, sizeof(ctx),
-                       &hmac, sizeof(hmac),
-                       NULL);
+    GNUNET_CRYPTO_hkdf_gnunet (
+      keys, sizeof(keys),
+      ctx, sizeof(ctx),
+      &hmac, sizeof(hmac));
 
     /* Commit "purported" keys */
     ax->RK = keys[0];
@@ -1558,10 +1583,10 @@ update_ax_by_kx (struct CadetTunnelAxolotl *ax,
                           ephemeral_key,         /* B0 or A0 */
                           &key_material[2]);
   /* KDF */
-  GNUNET_CRYPTO_kdf (keys, sizeof(keys),
-                     salt, sizeof(salt),
-                     &key_material, sizeof(key_material),
-                     NULL);
+  GNUNET_CRYPTO_hkdf_gnunet (
+    keys, sizeof(keys),
+    salt, sizeof(salt),
+    &key_material, sizeof(key_material));
 
   if (0 == memcmp (&ax->RK,
                    &keys[0],

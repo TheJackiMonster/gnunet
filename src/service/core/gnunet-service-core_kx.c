@@ -799,15 +799,13 @@ derive_es_ets (const struct GNUNET_HashCode *transcript,
     ;
     GNUNET_assert (0);
   }
-  ret = GNUNET_CRYPTO_hkdf_expand (
-    ets,   // result
-    sizeof (*ets),   // result len
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    ets,
+    sizeof (*ets),
     es,
-    CAKE_LABEL, strlen (CAKE_LABEL),
-    EARLY_DATA_STR, strlen (EARLY_DATA_STR),
-    transcript,
-    sizeof (*transcript),
-    NULL, 0);
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (EARLY_DATA_STR),
+    GNUNET_CRYPTO_kdf_arg_auto (transcript));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong expanding ETS\n")
@@ -827,12 +825,12 @@ derive_sn (const struct GNUNET_ShortHashCode *secret,
            size_t sn_len)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (sn, // result
-                                            sn_len,
-                                            secret,
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            "sn", strlen ("sn"),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   sn,
+                   sn_len,
+                   secret,
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string ("sn")));
 }
 
 
@@ -852,12 +850,12 @@ derive_hs (const struct GNUNET_ShortHashCode *es,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ES: %s\n", GNUNET_B2S (es)
               );
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ss_e: %s\n", GNUNET_B2S (ss_e));
-  ret = GNUNET_CRYPTO_hkdf_expand (&derived_early_secret, // result
-                                   sizeof (derived_early_secret),
-                                   es,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   DERIVED_STR, strlen (DERIVED_STR),
-                                   NULL);
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    &derived_early_secret,
+    sizeof (derived_early_secret),
+    es,
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (DERIVED_STR));
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "dES: %s\n", GNUNET_B2S (&
                                                                 derived_early_secret));
   if (GNUNET_OK != ret)
@@ -892,15 +890,13 @@ derive_ihts (const struct GNUNET_HashCode *transcript,
              struct GNUNET_ShortHashCode *ihts)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (ihts, // result
-                                            sizeof (*ihts), // result len
-                                            hs, // prk?
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            I_HS_TRAFFIC_STR,
-                                            strlen (I_HS_TRAFFIC_STR),
-                                            transcript,
-                                            sizeof (*transcript),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   ihts,                                           // result
+                   sizeof (*ihts),                          // result len
+                   hs,                          // prk?
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string (I_HS_TRAFFIC_STR),
+                   GNUNET_CRYPTO_kdf_arg_auto  (transcript)));
 }
 
 
@@ -914,15 +910,13 @@ derive_rhts (const struct GNUNET_HashCode *transcript,
              struct GNUNET_ShortHashCode *rhts)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (rhts, // result
-                                            sizeof (*rhts), // result len
-                                            hs, // prk? TODO
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            R_HS_TRAFFIC_STR,
-                                            strlen (R_HS_TRAFFIC_STR),
-                                            transcript,
-                                            sizeof (*transcript),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   rhts,
+                   sizeof (*rhts),
+                   hs,                          // prk? TODO
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string (R_HS_TRAFFIC_STR),
+                   GNUNET_CRYPTO_kdf_arg_auto (transcript)));
 }
 
 
@@ -938,12 +932,12 @@ derive_ms (const struct GNUNET_ShortHashCode *hs,
   uint64_t ret;
   struct GNUNET_ShortHashCode derived_handshake_secret;
 
-  ret = GNUNET_CRYPTO_hkdf_expand (&derived_handshake_secret, // result
-                                   sizeof (derived_handshake_secret), // result len
-                                   hs, // prk? TODO
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   DERIVED_STR, strlen (DERIVED_STR),
-                                   NULL);
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    &derived_handshake_secret,
+    sizeof (derived_handshake_secret),
+    hs,
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (DERIVED_STR));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Something went wrong expanding dHS\n")
@@ -1005,23 +999,21 @@ derive_per_message_secrets (
   unsigned char nonce_tmp[AEAD_NONCE_BYTES];
   /* derive actual key */
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (key,
-                                            AEAD_KEY_BYTES,
-                                            ts,
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            KEY_STR,
-                                            strlen (KEY_STR),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   key,
+                   AEAD_KEY_BYTES,
+                   ts,
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string (KEY_STR)));
 
   /* derive nonce */
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (nonce_tmp,
-                                            AEAD_NONCE_BYTES,
-                                            ts,
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            IV_STR,
-                                            strlen (IV_STR),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   nonce_tmp,
+                   AEAD_NONCE_BYTES,
+                   ts,
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string (IV_STR)));
   generate_per_record_nonce (seq,
                              nonce_tmp,
                              nonce);
@@ -1039,12 +1031,12 @@ derive_next_ats (const struct GNUNET_ShortHashCode *old_ats,
   int8_t ret;
 
   // FIXME: Not sure of PRK and output may overlap here!
-  ret = GNUNET_CRYPTO_hkdf_expand (new_ats, // result
-                                   sizeof (*new_ats), // result len
-                                   old_ats,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   TRAFFIC_UPD_STR, strlen (TRAFFIC_UPD_STR),
-                                   NULL);
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    new_ats,
+    sizeof (*new_ats),
+    old_ats,
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (TRAFFIC_UPD_STR));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1071,15 +1063,13 @@ derive_initial_ats (const struct GNUNET_HashCode *transcript,
   else
     traffic_str = R_AP_TRAFFIC_STR;
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand (initial_ats, // result
-                                            sizeof (*initial_ats), // result len
-                                            ms,
-                                            CAKE_LABEL, strlen (CAKE_LABEL),
-                                            traffic_str,
-                                            strlen (traffic_str),
-                                            transcript,
-                                            sizeof (*transcript),
-                                            NULL));
+                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                   initial_ats,                                           // result
+                   sizeof (*initial_ats),                          // result len
+                   ms,
+                   GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+                   GNUNET_CRYPTO_kdf_arg_string (traffic_str),
+                   GNUNET_CRYPTO_kdf_arg_auto (transcript)));
 }
 
 
@@ -1097,12 +1087,12 @@ generate_responder_finished (const struct GNUNET_HashCode *transcript,
   enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_R; // We might want to save this in kx?
 
-  ret = GNUNET_CRYPTO_hkdf_expand (&fk_R, // result
-                                   sizeof (fk_R),
-                                   ms,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   R_FINISHED_STR, strlen (R_FINISHED_STR),
-                                   NULL);
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    &fk_R,                                // result
+    sizeof (fk_R),
+    ms,
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (R_FINISHED_STR));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -1131,12 +1121,12 @@ generate_initiator_finished (const struct GNUNET_HashCode *transcript,
   enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_I; // We might want to save this in kx?
 
-  ret = GNUNET_CRYPTO_hkdf_expand (&fk_I, // result
-                                   sizeof (fk_I),
-                                   ms,
-                                   CAKE_LABEL, strlen (CAKE_LABEL),
-                                   I_FINISHED_STR, strlen (I_FINISHED_STR),
-                                   NULL);
+  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+    &fk_I,                                      // result
+    sizeof (fk_I),
+    ms,
+    GNUNET_CRYPTO_kdf_arg_string (CAKE_LABEL),
+    GNUNET_CRYPTO_kdf_arg_string (I_FINISHED_STR));
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
