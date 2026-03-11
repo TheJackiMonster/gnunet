@@ -26,6 +26,7 @@
 #include "messenger_api_epoch_announcement.h"
 
 #include "gnunet_common.h"
+#include "gnunet_util_lib.h"
 #include "messenger_api_epoch.h"
 #include "messenger_api_epoch_membership.h"
 #include "messenger_api_message.h"
@@ -66,10 +67,11 @@ derive_epoch_announcement_key (const struct GNUNET_MESSENGER_EpochAnnouncement *
   if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
         key,
         sizeof (*key),
-        &(announcement->epoch->hash),
-        sizeof (announcement->epoch->hash),
+        GNUNET_MESSENGER_SALT_EPOCH_KEY,
+        sizeof (GNUNET_MESSENGER_SALT_EPOCH_KEY),
         previous_key,
         sizeof (*previous_key),
+        GNUNET_CRYPTO_kdf_arg_auto (&announcement->epoch->hash),
         GNUNET_CRYPTO_kdf_arg_auto (&announcement->identifier)))
     return GNUNET_SYSERR;
   else

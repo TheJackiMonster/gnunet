@@ -416,10 +416,12 @@ create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
 
   if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
         &iv, sizeof (iv),
-        event, sizeof (*event),
+        GNUNET_MESSENGER_SALT_GROUP_KEY,
+        sizeof (GNUNET_MESSENGER_SALT_GROUP_KEY),
         group_key,
         sizeof (*group_key),
-        GNUNET_CRYPTO_kdf_arg_auto (identifier)))
+        GNUNET_CRYPTO_kdf_arg_auto (identifier),
+      GNUNET_CRYPTO_kdf_arg_auto (event)))
   {
     destroy_message (message);
     return NULL;

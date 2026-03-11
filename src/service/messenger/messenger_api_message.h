@@ -30,6 +30,16 @@
 
 #include "gnunet_messenger_service.h"
 
+#define GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY "gnunet-messenger-announcement-key"
+#define GNUNET_MESSENGER_SALT_EPOCH_KEY "gnunet-messenger-epoch-key"
+#define GNUNET_MESSENGER_SALT_GROUP_KEY "gnunet-messenger-group-key"
+#define GNUNET_MESSENGER_SALT_SECRET_KEY "gnunet-messenger-secret-key"
+#define GNUNET_MESSENGER_SALT_ENCRYPTION_KEY "gnunet-messenger-encryption-key"
+
+#define GNUNET_MESSENGER_SALT_EPOCH_IV "gnunet-messenger-epoch-iv"
+#define GNUNET_MESSENGER_SALT_ENCRYPTION_IV "gnunet-messenger-encryption-iv"
+#define GNUNET_MESSENGER_SALT_SECRET_IV "gnunet-messenger-secret-iv"
+
 #define GNUNET_MESSENGER_MAX_MESSAGE_SIZE (GNUNET_MAX_MESSAGE_SIZE \
                                            - GNUNET_MIN_MESSAGE_SIZE)
 

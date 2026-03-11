@@ -61,12 +61,12 @@ derive_epoch_group_key (const struct GNUNET_MESSENGER_EpochGroup *group,
     return GNUNET_SYSERR;
 
   if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
-        key,
-        sizeof (*key),
-        &(group->epoch->hash),
-        sizeof (group->epoch->hash),
+        key, sizeof (*key),
+        GNUNET_MESSENGER_SALT_GROUP_KEY,
+        sizeof (GNUNET_MESSENGER_SALT_GROUP_KEY),
         previous_key,
         sizeof (*previous_key),
+        GNUNET_CRYPTO_kdf_arg_auto (&group->epoch->hash),
         GNUNET_CRYPTO_kdf_arg_auto (&group->identifier)))
     return GNUNET_SYSERR;
   else

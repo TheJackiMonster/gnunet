@@ -28,6 +28,7 @@
 #include "gnunet_common.h"
 #include "gnunet_messenger_service.h"
 #include "gnunet_signatures.h"
+#include "gnunet_util_lib.h"
 
 const uint16_t encryption_overhead =
   GNUNET_CRYPTO_HPKE_SEAL_ONESHOT_OVERHEAD_BYTES;
@@ -1397,10 +1398,11 @@ calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
   case GNUNET_MESSENGER_KIND_ANNOUNCEMENT:
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          &(message->body.announcement.nonce),
-          GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
+          GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_auto (&message->body.announcement.identifier)))
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.announcement.identifier),
+          GNUNET_CRYPTO_kdf_arg (&(message->body.announcement.nonce), GNUNET_MESSENGER_EPOCH_NONCE_BYTES)))
       return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.announcement),
@@ -1411,9 +1413,10 @@ calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
   case GNUNET_MESSENGER_KIND_ACCESS:
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          &(message->body.access.event),
-          sizeof (message->body.access.event),
-          key, sizeof (*key)))
+          GNUNET_MESSENGER_SALT_EPOCH_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_EPOCH_KEY),
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.access.event)))
       return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.access),
@@ -1424,10 +1427,11 @@ calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
   case GNUNET_MESSENGER_KIND_REVOLUTION:
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          &(message->body.revolution.nonce),
-          GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
+          GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_auto (&message->body.revolution.identifier)))
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.revolution.identifier),
+          GNUNET_CRYPTO_kdf_arg (&(message->body.revolution.nonce), GNUNET_MESSENGER_EPOCH_NONCE_BYTES)))
       return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.revolution),
@@ -1438,10 +1442,11 @@ calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
   case GNUNET_MESSENGER_KIND_AUTHORIZATION:
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          &(message->body.authorization.event),
-          sizeof (message->body.authorization.event),
+          GNUNET_MESSENGER_SALT_GROUP_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_GROUP_KEY),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier)))
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier),
+        GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.event)))
       return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.authorization),
@@ -1785,11 +1790,10 @@ encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          message->body.secret.iv,
-          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          GNUNET_MESSENGER_SALT_SECRET_IV,
+          sizeof (GNUNET_MESSENGER_SALT_SECRET_IV),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_string (
-            "gnunet-messenger-iv")))
+          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
       unfold_short_message (&shortened, message);
@@ -1810,11 +1814,10 @@ encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          message->body.secret.iv,
-          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          GNUNET_MESSENGER_SALT_SECRET_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_SECRET_KEY),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_string (
-            "gnunet-messenger-key")))
+          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
       unfold_short_message (&shortened, message);
@@ -1855,12 +1858,11 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          message->body.secret.iv,
-          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          GNUNET_MESSENGER_SALT_SECRET_IV,
+          sizeof (GNUNET_MESSENGER_SALT_SECRET_IV),
           key,
           sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_string (
-            "gnunet-messenger-iv")))
+          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
       goto cleanup;
@@ -1881,11 +1883,10 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &auth_key, sizeof (auth_key),
-          message->body.secret.iv,
-          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          GNUNET_MESSENGER_SALT_SECRET_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_SECRET_KEY),
           key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg_string (
-            "gnunet-messenger-key")))
+          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
       goto cleanup;
@@ -1996,11 +1997,12 @@ extract_authorization_message_key (struct GNUNET_MESSENGER_Message *message,
 
   if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
         &iv, sizeof (iv),
-        &(message->body.authorization.event),
-        sizeof (message->body.authorization.event),
+        GNUNET_MESSENGER_SALT_GROUP_KEY,
+        sizeof (GNUNET_MESSENGER_SALT_GROUP_KEY),
         key,
         sizeof (*key),
-        GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier)))
+        GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier),
+      GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.event)))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
     return GNUNET_NO;

@@ -31,6 +31,7 @@
 #include "messenger_api_epoch.h"
 #include "messenger_api_epoch_announcement.h"
 #include "messenger_api_epoch_group.h"
+#include "messenger_api_message.h"
 #include "messenger_api_room.h"
 #include "messenger_api_util.h"
 
@@ -221,21 +222,23 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          room_key,
-          sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_EPOCH_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_EPOCH_KEY),
           &(handle->secret),
           sizeof (handle->secret),
-          GNUNET_CRYPTO_kdf_arg (zone, sizeof (*zone)),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
+          GNUNET_CRYPTO_kdf_arg_auto (zone),
           GNUNET_CRYPTO_kdf_arg_auto (&epoch->hash),
           GNUNET_CRYPTO_kdf_arg_auto (&identifier.hash)))
       return;
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          room_key,
-          sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_EPOCH_IV,
+          sizeof (GNUNET_MESSENGER_SALT_EPOCH_IV),
           &skey,
           sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg_auto (&epoch->hash),
           GNUNET_CRYPTO_kdf_arg_auto (&identifier.hash)))
       return;
@@ -326,10 +329,11 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          room_key,
-          sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_ENCRYPTION_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_ENCRYPTION_KEY),
           &(handle->secret),
           sizeof (handle->secret),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
           GNUNET_CRYPTO_kdf_arg (record->nonce_data,
                                  sizeof (record->nonce_data))))
@@ -337,10 +341,11 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          room_key,
-          sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_ENCRYPTION_IV,
+          sizeof (GNUNET_MESSENGER_SALT_ENCRYPTION_IV),
           &skey,
           sizeof skey,
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg (record->nonce_data, sizeof (record->nonce_data))))
       return;
 
@@ -764,9 +769,11 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          room_key, sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_EPOCH_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_EPOCH_KEY),
           &(handle->secret),
           sizeof (handle->secret),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
           GNUNET_CRYPTO_kdf_arg_auto (hash),
           GNUNET_CRYPTO_kdf_arg_auto (identifier)))
@@ -774,9 +781,11 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          room_key, sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_EPOCH_IV,
+          sizeof (GNUNET_MESSENGER_SALT_EPOCH_IV),
           &skey,
           sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg_auto (hash),
           GNUNET_CRYPTO_kdf_arg_auto (identifier)))
       return GNUNET_SYSERR;
@@ -931,9 +940,11 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          room_key, sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_ENCRYPTION_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_ENCRYPTION_KEY),
           &(handle->secret),
           sizeof (handle->secret),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
           GNUNET_CRYPTO_kdf_arg (record.nonce_data,
                                  sizeof (record.nonce_data))))
@@ -941,9 +952,11 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &iv, sizeof (iv),
-          room_key, sizeof (*room_key),
+          GNUNET_MESSENGER_SALT_ENCRYPTION_IV,
+          sizeof (GNUNET_MESSENGER_SALT_ENCRYPTION_IV),
           &skey,
           sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg_auto (room_key),
           GNUNET_CRYPTO_kdf_arg (record.nonce_data,
                                 sizeof record.nonce_data)))
       return GNUNET_SYSERR;
