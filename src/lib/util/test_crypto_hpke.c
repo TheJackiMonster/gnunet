@@ -26,8 +26,13 @@
 #include "platform.h"
 #include "gnunet_util_lib.h"
 
+static const char *rfc9180_a2_1_ikmE_str =
+  "909a9b35d3dc4713a5e72a4da274b55d3d3821a37e5d099e74a647db583a904b";
+// https://www.rfc-editor.org/errata/eid7121
+// static const char *rfc9180_a2_1_skEm_str =
+//  "f4ec9b33b792c372c1d2c2063507b684ef925b8c75a42dbcbf57d63ccd381600";
 static const char *rfc9180_a2_1_skEm_str =
-  "f4ec9b33b792c372c1d2c2063507b684ef925b8c75a42dbcbf57d63ccd381600";
+  "f0ec9b33b792c372c1d2c2063507b684ef925b8c75a42dbcbf57d63ccd381640";
 static const char *rfc9180_a2_1_skRm_str =
   "8057991eef8f1f1af18f4a9491d16a1ce333f695d4db8e38da75975c4478e0fb";
 static const char *rfc9180_a2_1_enc_str =
@@ -119,6 +124,7 @@ static int
 test_mode_base ()
 {
 
+  struct GNUNET_CRYPTO_HpkePrivateKey rfc9180_a2_skEm_hpke_derived;
   struct GNUNET_CRYPTO_HpkePrivateKey rfc9180_a2_skEm_hpke;
   struct GNUNET_CRYPTO_HpkePublicKey rfc9180_a2_pkEm_hpke;
   struct GNUNET_CRYPTO_HpkePrivateKey rfc9180_a2_skRm_hpke;
@@ -144,6 +150,7 @@ test_mode_base ()
   uint8_t rfc9180_a2_ct_seq255[strlen (rfc9180_a2_1_ct_seq255_str) / 2];
   uint8_t test_ct[strlen (rfc9180_a2_1_ct_seq0_str) / 2];
   uint8_t test_pt[strlen (rfc9180_a2_1_pt_str) / 2];
+  uint8_t rfc9180_a2_1_ikmE[strlen (rfc9180_a2_1_ikmE_str) / 2];
 
   rfc9180_a2_skEm = &rfc9180_a2_skEm_hpke.ecdhe_key;
   rfc9180_a2_pkEm = &rfc9180_a2_pkEm_hpke.ecdhe_key;
@@ -151,6 +158,9 @@ test_mode_base ()
   rfc9180_a2_pkRm = &rfc9180_a2_pkRm_hpke.ecdhe_key;
   GNUNET_log_setup ("test-crypto-kem", "WARNING", NULL);
 
+  parsehex (rfc9180_a2_1_ikmE_str,
+            (char *) rfc9180_a2_1_ikmE,
+            sizeof rfc9180_a2_1_ikmE, 0);
   parsehex (rfc9180_a2_1_skEm_str,
             (char*) &rfc9180_a2_skEm->d,
             sizeof *rfc9180_a2_skEm, 0);
@@ -187,17 +197,33 @@ test_mode_base ()
   parsehex (rfc9180_a2_1_ct_seq255_str,
             (char*) &rfc9180_a2_ct_seq255,
             sizeof rfc9180_a2_ct_seq255, 0);
+  GNUNET_CRYPTO_hpke_sk_create2 (GNUNET_CRYPTO_HPKE_KEY_TYPE_X25519,
+                                 (char *) rfc9180_a2_1_ikmE,
+                                 sizeof rfc9180_a2_1_ikmE,
+                                 &rfc9180_a2_skEm_hpke_derived);
+  printf ("ikmE: ");
+  print_bytes (rfc9180_a2_1_ikmE,
+               sizeof rfc9180_a2_1_ikmE,
+               0);
+  printf ("\n");
+  printf ("skEm: ");
+  print_bytes (&rfc9180_a2_skEm_hpke_derived.ecdhe_key,
+               sizeof rfc9180_a2_skEm_hpke_derived.ecdhe_key,
+               0);
+  printf ("\n");
+  GNUNET_assert (0 == GNUNET_memcmp (&rfc9180_a2_skEm_hpke_derived.ecdhe_key,
+                                     rfc9180_a2_skEm));
   GNUNET_CRYPTO_ecdhe_key_get_public (rfc9180_a2_skEm,
                                       rfc9180_a2_pkEm);
   GNUNET_CRYPTO_ecdhe_key_get_public (rfc9180_a2_skRm,
                                       rfc9180_a2_pkRm);
   printf ("pkRm: ");
-  print_bytes (&rfc9180_a2_pkRm,
+  print_bytes (rfc9180_a2_pkRm,
                sizeof *rfc9180_a2_pkRm,
                0);
   printf ("\n");
   printf ("pkEm: ");
-  print_bytes (&rfc9180_a2_pkEm,
+  print_bytes (rfc9180_a2_pkEm,
                sizeof *rfc9180_a2_pkEm,
                0);
   printf ("\n");

@@ -964,21 +964,65 @@ GNUNET_CRYPTO_hpke_sk_clear (struct GNUNET_CRYPTO_HpkePrivateKey *key)
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hpke_sk_create (enum GNUNET_CRYPTO_HpkeKeyType type,
-                              struct GNUNET_CRYPTO_HpkePrivateKey *pk)
+GNUNET_CRYPTO_hpke_sk_create2 (enum GNUNET_CRYPTO_HpkeKeyType type,
+                               const char *ikm,
+                               size_t ikm_len,
+                               struct GNUNET_CRYPTO_HpkePrivateKey *sk)
 {
-  switch (type)
+  struct GNUNET_ShortHashCode dkp_prk;
+
+  if (type != GNUNET_CRYPTO_HPKE_KEY_TYPE_X25519)
   {
-  case GNUNET_CRYPTO_HPKE_KEY_TYPE_X25519:
-    GNUNET_CRYPTO_ecdhe_key_create (&(pk->ecdhe_key));
-    break;
-  default:
     GNUNET_break (0);
     return GNUNET_SYSERR;
   }
+  sk->type = htonl (type);
 
-  pk->type = htonl (type);
+  labeled_extract ("HPKE-v1",
+                   "",
+                   0,
+                   "dkp_prk",
+                   strlen ("dkp_prk"),
+                   ikm,
+                   ikm_len,
+                   GNUNET_CRYPTO_HPKE_KEM_SUITE_ID,
+                   sizeof GNUNET_CRYPTO_HPKE_KEM_SUITE_ID,
+                   &dkp_prk);
+  labeled_expand ("HPKE-v1",
+                  &dkp_prk,
+                  "sk",
+                  strlen ("sk"),
+                  "",
+                  0,
+                  GNUNET_CRYPTO_HPKE_KEM_SUITE_ID,
+                  sizeof GNUNET_CRYPTO_HPKE_KEM_SUITE_ID,
+                  &sk->ecdhe_key,
+                  sizeof sk->ecdhe_key);
+  // RFC 9180 Section 7.1.2 states SerializePrivateKey() MUST clamp its output for X25519.
+  // https://www.rfc-editor.org/errata/eid7121
+  sk->ecdhe_key.d[0] &= 248;
+  sk->ecdhe_key.d[31] &= 127;
+  sk->ecdhe_key.d[31] |= 64;
+
   return GNUNET_OK;
+
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_create (enum GNUNET_CRYPTO_HpkeKeyType type,
+                              struct GNUNET_CRYPTO_HpkePrivateKey *pk)
+{
+  char ikm[64];
+
+  GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE,
+                              ikm,
+                              sizeof(ikm));
+
+  return GNUNET_CRYPTO_hpke_sk_create2 (type,
+                                        ikm,
+                                        sizeof ikm,
+                                        pk);
 }
 
 

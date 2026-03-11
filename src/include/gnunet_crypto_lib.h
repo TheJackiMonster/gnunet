@@ -4970,6 +4970,24 @@ GNUNET_CRYPTO_hpke_sk_clear (struct GNUNET_CRYPTO_HpkePrivateKey *key);
 /**
  * Create a new #GNUNET_CRYPTO_HpkePrivateKey of specific type.
  * Clear with #GNUNET_CRYPTO_hpke_sk_clear().
+ * Uses ikm as initial key material and derives it according to spec.
+ *
+ * @param[in] type type of the fresh private key
+ * @param[in] ikm initial key material
+ * @param[ikm_len] number of bytes in ikm
+ * @param[out] pk set to fresh private key;
+ * @return GNUNET_SYSERR on error.
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_CRYPTO_hpke_sk_create2 (enum GNUNET_CRYPTO_HpkeKeyType type,
+                               const char *ikm,
+                               size_t ikm_len,
+                               struct GNUNET_CRYPTO_HpkePrivateKey *sk);
+
+
+/**
+ * Create a new #GNUNET_CRYPTO_HpkePrivateKey of specific type.
+ * Clear with #GNUNET_CRYPTO_hpke_sk_clear().
  *
  * @param[in] type type of the fresh private key
  * @param[out] pk set to fresh private key;
