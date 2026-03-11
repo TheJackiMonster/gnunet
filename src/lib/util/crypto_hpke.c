@@ -115,7 +115,7 @@ labeled_expand (const char *ctx_str,
   memcpy (tmp, label, label_len);
   tmp += label_len;
   memcpy (tmp, info, info_len);
-  return GNUNET_CRYPTO_hkdf_expand_fixed (
+  return GNUNET_CRYPTO_hkdf_expand (
     out_buf,
     out_len,
     prk,

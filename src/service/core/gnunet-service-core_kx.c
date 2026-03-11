@@ -799,7 +799,7 @@ derive_es_ets (const struct GNUNET_HashCode *transcript,
     ;
     GNUNET_assert (0);
   }
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     ets,
     sizeof (*ets),
     es,
@@ -825,7 +825,7 @@ derive_sn (const struct GNUNET_ShortHashCode *secret,
            size_t sn_len)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    sn,
                    sn_len,
                    secret,
@@ -850,7 +850,7 @@ derive_hs (const struct GNUNET_ShortHashCode *es,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ES: %s\n", GNUNET_B2S (es)
               );
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "ss_e: %s\n", GNUNET_B2S (ss_e));
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     &derived_early_secret,
     sizeof (derived_early_secret),
     es,
@@ -890,7 +890,7 @@ derive_ihts (const struct GNUNET_HashCode *transcript,
              struct GNUNET_ShortHashCode *ihts)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    ihts,                                           // result
                    sizeof (*ihts),                          // result len
                    hs,                          // prk?
@@ -910,7 +910,7 @@ derive_rhts (const struct GNUNET_HashCode *transcript,
              struct GNUNET_ShortHashCode *rhts)
 {
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    rhts,
                    sizeof (*rhts),
                    hs,                          // prk? TODO
@@ -932,7 +932,7 @@ derive_ms (const struct GNUNET_ShortHashCode *hs,
   uint64_t ret;
   struct GNUNET_ShortHashCode derived_handshake_secret;
 
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     &derived_handshake_secret,
     sizeof (derived_handshake_secret),
     hs,
@@ -999,7 +999,7 @@ derive_per_message_secrets (
   unsigned char nonce_tmp[AEAD_NONCE_BYTES];
   /* derive actual key */
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    key,
                    AEAD_KEY_BYTES,
                    ts,
@@ -1008,7 +1008,7 @@ derive_per_message_secrets (
 
   /* derive nonce */
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    nonce_tmp,
                    AEAD_NONCE_BYTES,
                    ts,
@@ -1031,7 +1031,7 @@ derive_next_ats (const struct GNUNET_ShortHashCode *old_ats,
   int8_t ret;
 
   // FIXME: Not sure of PRK and output may overlap here!
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     new_ats,
     sizeof (*new_ats),
     old_ats,
@@ -1063,7 +1063,7 @@ derive_initial_ats (const struct GNUNET_HashCode *transcript,
   else
     traffic_str = R_AP_TRAFFIC_STR;
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    initial_ats,                                           // result
                    sizeof (*initial_ats),                          // result len
                    ms,
@@ -1087,7 +1087,7 @@ generate_responder_finished (const struct GNUNET_HashCode *transcript,
   enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_R; // We might want to save this in kx?
 
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     &fk_R,                                // result
     sizeof (fk_R),
     ms,
@@ -1121,7 +1121,7 @@ generate_initiator_finished (const struct GNUNET_HashCode *transcript,
   enum GNUNET_GenericReturnValue ret;
   struct GNUNET_CRYPTO_AuthKey fk_I; // We might want to save this in kx?
 
-  ret = GNUNET_CRYPTO_hkdf_expand_fixed (
+  ret = GNUNET_CRYPTO_hkdf_expand (
     &fk_I,                                      // result
     sizeof (fk_I),
     ms,

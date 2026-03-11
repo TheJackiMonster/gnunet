@@ -529,7 +529,7 @@ GNUNET_PILS_derive_pid (size_t seed_key_bytes,
    * For that, we may want to add a counter to the initial secret key
    * to the above PRF.
    */
-  GNUNET_CRYPTO_hkdf_expand_fixed (
+  GNUNET_CRYPTO_hkdf_expand (
     outkey,
     sizeof *outkey,
     &prk,

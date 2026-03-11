@@ -5099,7 +5099,7 @@ dv_setup_key_state_from_km (const struct GNUNET_ShortHashCode *km,
 {
   /* must match what we defive from decapsulated key */
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    &key->material,
                    sizeof(key->material),
                    km,

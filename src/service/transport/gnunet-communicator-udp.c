@@ -1050,7 +1050,7 @@ get_kid (const struct GNUNET_ShortHashCode *msec,
                               &sid, sizeof (sid),
                               msec, sizeof (*msec));
 
-  GNUNET_CRYPTO_hkdf_expand_fixed (
+  GNUNET_CRYPTO_hkdf_expand (
     kid,
     sizeof(*kid),
     &prk,
@@ -1186,13 +1186,13 @@ get_iv_key (const struct GNUNET_ShortHashCode *msec,
 {
   uint32_t sid = htonl (serial);
 
-  GNUNET_CRYPTO_hkdf_expand_fixed (
+  GNUNET_CRYPTO_hkdf_expand (
     key,
     AES_KEY_SIZE,
     msec,
     GNUNET_CRYPTO_kdf_arg_string ("gnunet-communicator-udp-key"),
     GNUNET_CRYPTO_kdf_arg_auto (&sid));
-  GNUNET_CRYPTO_hkdf_expand_fixed (
+  GNUNET_CRYPTO_hkdf_expand (
     iv,
     AES_IV_SIZE,
     msec,
@@ -1281,7 +1281,7 @@ check_timeouts (void *cls)
 static void
 calculate_cmac (struct SharedSecret *ss)
 {
-  GNUNET_CRYPTO_hkdf_expand_fixed (
+  GNUNET_CRYPTO_hkdf_expand (
     &ss->cmac,
     sizeof(ss->cmac),
     &ss->master,

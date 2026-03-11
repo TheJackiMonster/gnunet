@@ -163,13 +163,13 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand_fixed_v (void *result,
-                                   size_t out_len,
-                                   const struct GNUNET_ShortHashCode *prk,
-                                   size_t hkdf_args_len,
-                                   const struct
-                                   GNUNET_CRYPTO_KdfInputArgument hkdf_args[
-                                     hkdf_args_len])
+GNUNET_CRYPTO_hkdf_expand_v (void *result,
+                             size_t out_len,
+                             const struct GNUNET_ShortHashCode *prk,
+                             size_t hkdf_args_len,
+                             const struct
+                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                               hkdf_args_len])
 {
   return hkdf_expand_fixed (result, out_len,
                             (unsigned char*) prk, sizeof *prk,

@@ -1469,13 +1469,13 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand_fixed_v (void *result,
-                                   size_t out_len,
-                                   const struct GNUNET_ShortHashCode *prk,
-                                   size_t hkdf_args_count,
-                                   const struct
-                                   GNUNET_CRYPTO_KdfInputArgument hkdf_args[
-                                     hkdf_args_count]);
+GNUNET_CRYPTO_hkdf_expand_v (void *result,
+                             size_t out_len,
+                             const struct GNUNET_ShortHashCode *prk,
+                             size_t hkdf_args_count,
+                             const struct
+                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+                               hkdf_args_count]);
 
 /**
  * @ingroup hash
@@ -1487,15 +1487,15 @@ GNUNET_CRYPTO_hkdf_expand_fixed_v (void *result,
  * @return #GNUNET_YES on success
  */
 
-#define GNUNET_CRYPTO_hkdf_expand_fixed(result, \
-                                        out_len, \
-                                        prk, \
-                                        ...) \
-        GNUNET_CRYPTO_hkdf_expand_fixed_v (result, out_len, \
-                                           prk, \
-                                           _HKDF_ARGS_VECLEN_HELPER (__VA_ARGS__ \
-                                                                     ), \
-                                           _HKDF_ARGS_VEC_HELPER (__VA_ARGS__))
+#define GNUNET_CRYPTO_hkdf_expand(result, \
+                                  out_len, \
+                                  prk, \
+                                  ...) \
+        GNUNET_CRYPTO_hkdf_expand_v (result, out_len, \
+                                     prk, \
+                                     _HKDF_ARGS_VECLEN_HELPER (__VA_ARGS__ \
+                                                               ), \
+                                     _HKDF_ARGS_VEC_HELPER (__VA_ARGS__))
 
 
 /**

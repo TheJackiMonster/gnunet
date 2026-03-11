@@ -1275,7 +1275,7 @@ setup_cipher (const struct GNUNET_ShortHashCode *prk,
                                         GCRY_CIPHER_MODE_CTR,
                                         0 /* flags */));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    key,
                    sizeof(key),
                    prk,
@@ -1283,7 +1283,7 @@ setup_cipher (const struct GNUNET_ShortHashCode *prk,
                  );
   GNUNET_assert (0 == gcry_cipher_setkey (*cipher, key, sizeof(key)));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    ctr,
                    sizeof(ctr),
                    prk,
@@ -1291,7 +1291,7 @@ setup_cipher (const struct GNUNET_ShortHashCode *prk,
                  );
   gcry_cipher_setctr (*cipher, ctr, sizeof(ctr));
   GNUNET_assert (GNUNET_YES ==
-                 GNUNET_CRYPTO_hkdf_expand_fixed (
+                 GNUNET_CRYPTO_hkdf_expand (
                    hmac_key,
                    sizeof(struct GNUNET_HashCode),
                    prk,

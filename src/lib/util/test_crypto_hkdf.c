@@ -53,7 +53,7 @@ tc1 (void)
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
                    (result,
                    l,
                    &prk,
@@ -105,7 +105,7 @@ tc2 ()
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, salt, sizeof(salt), ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
                    (result, l, &prk,
                    GNUNET_CRYPTO_kdf_arg (info, sizeof(info))) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
@@ -130,7 +130,7 @@ tc3 ()
 
   memset (result, 0, sizeof(result));
   GNUNET_CRYPTO_hkdf_extract (&prk, NULL, 0, ikm, sizeof(ikm));
-  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand_fixed
+  GNUNET_assert (GNUNET_CRYPTO_hkdf_expand
                    (result, l, &prk) == GNUNET_YES);
   GNUNET_assert (memcmp (result, okm, l) == 0);
   GNUNET_assert (memcmp (result + l, "\0", 2) == 0);
