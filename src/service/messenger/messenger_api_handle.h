@@ -201,12 +201,12 @@ get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
                  enum GNUNET_GenericReturnValue init);
 
 /**
- * Stores/deletes a <i>shared_key</i> for a given room from a <i>handle</i> identified by its
- * <i>key</i> in an epoch with certain <i>hash</i> using a specific <i>identifier</i> for this
- * epoch key.
+ * Stores/deletes a <i>shared_key</i> for a given <i>room</i> from a <i>handle</i> in an
+ * epoch with certain <i>hash</i> using a specific <i>identifier</i> for this epoch
+ * key.
  *
  * @param[in] handle Handle
- * @param[in] key Room key
+ * @param[in] room Room
  * @param[in] hash Epoch hash
  * @param[in] identifier Epoch key identifier
  * @param[in] shared_key Shared epoch key or NULL
@@ -218,7 +218,7 @@ get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
  */
 enum GNUNET_GenericReturnValue
 store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
-                        const struct GNUNET_HashCode *key,
+                        const struct GNUNET_MESSENGER_Room *room,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_ShortHashCode *identifier,
                         const struct GNUNET_CRYPTO_SymmetricSessionKey *
@@ -229,11 +229,10 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
                         struct GNUNET_NAMESTORE_QueueEntry **query);
 
 /**
- * Stores an <i>encryption_key</i> for a given room from a <i>handle</i> identified
- * by its <i>key/i>.
+ * Stores an <i>encryption_key</i> for a given <i>room</i> from a <i>handle</i>.
  *
  * @param[in] handle Handle
- * @param[in] key Room key
+ * @param[in] room Room
  * @param[in] encryption_key Encryption key or NULL
  * @param[in] cont Continuation status callback or NULL
  * @param[in] cont_cls Continuation closure or NULL
@@ -242,7 +241,7 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
  */
 enum GNUNET_GenericReturnValue
 store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
-                             const struct GNUNET_HashCode *key,
+                             const struct GNUNET_MESSENGER_Room *room,
                              const struct GNUNET_CRYPTO_HpkePrivateKey
                              *encryption_key,
                              GNUNET_NAMESTORE_ContinuationWithStatus cont,

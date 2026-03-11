@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -385,7 +385,7 @@ add_room_encryption_key (struct GNUNET_MESSENGER_Room *room,
   {
     store_handle_encryption_key (
       get_room_handle (room),
-      get_room_key (room),
+      room,
       &(encryption_key->key),
       &cont_write_encryption_key_record,
       encryption_key,

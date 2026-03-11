@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2024--2025 GNUnet e.V.
+   Copyright (C) 2024--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -1042,7 +1042,6 @@ write_epoch_announcement_record (struct GNUNET_MESSENGER_EpochAnnouncement *
                                  enum GNUNET_GenericReturnValue deleted)
 {
   const struct GNUNET_MESSENGER_Handle *handle;
-  const struct GNUNET_HashCode *key;
   const struct GNUNET_HashCode *hash;
   const struct GNUNET_ShortHashCode *identifier;
   const struct GNUNET_CRYPTO_SymmetricSessionKey *shared_key;
@@ -1054,7 +1053,6 @@ write_epoch_announcement_record (struct GNUNET_MESSENGER_EpochAnnouncement *
   if (! handle)
     return;
 
-  key = get_room_key (announcement->epoch->room);
   hash = &(announcement->epoch->hash);
   identifier = &(announcement->identifier.hash);
 
@@ -1071,7 +1069,8 @@ write_epoch_announcement_record (struct GNUNET_MESSENGER_EpochAnnouncement *
   }
 
   store_handle_epoch_key (
-    handle, key, hash, identifier, shared_key,
+    handle, announcement->epoch->room,
+    hash, identifier, shared_key,
     GNUNET_YES == announcement->valid?
     GNUNET_MESSENGER_FLAG_EPOCH_VALID :
     GNUNET_MESSENGER_FLAG_EPOCH_NONE,

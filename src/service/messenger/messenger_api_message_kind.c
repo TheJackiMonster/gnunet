@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -242,7 +242,12 @@ create_message_announcement (const union GNUNET_MESSENGER_EpochIdentifier *
 
   message->body.announcement.timeout = GNUNET_TIME_relative_hton (timeout);
 
-  sign_message_by_key (message, shared_key);
+  if (GNUNET_YES != sign_message_by_key (message, shared_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Signing message failed!\n");
+    destroy_message (message);
+    return NULL;
+  }
 
   return message;
 }
@@ -307,7 +312,6 @@ create_message_access (const struct GNUNET_HashCode *event,
                                                     NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting key failed!\n");
-
     destroy_message (message);
     return NULL;
   }
@@ -315,7 +319,12 @@ create_message_access (const struct GNUNET_HashCode *event,
   GNUNET_memcpy (&(message->body.access.event), event,
                  sizeof (message->body.access.event));
 
-  sign_message_by_key (message, shared_key);
+  if (GNUNET_YES != sign_message_by_key (message, shared_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Signing message failed!\n");
+    destroy_message (message);
+    return NULL;
+  }
 
   return message;
 }
@@ -344,7 +353,12 @@ create_message_revolution (const union GNUNET_MESSENGER_EpochIdentifier *
                               message->body.revolution.nonce.data.nonce,
                               GNUNET_MESSENGER_EPOCH_NONCE_BYTES);
 
-  sign_message_by_key (message, shared_key);
+  if (GNUNET_YES != sign_message_by_key (message, shared_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Signing message failed!\n");
+    destroy_message (message);
+    return NULL;
+  }
 
   return message;
 }
@@ -400,13 +414,16 @@ create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
   if (! message)
     return NULL;
 
-  GNUNET_CRYPTO_hkdf_gnunet (&iv,
-                             sizeof iv,
-                             event,
-                             sizeof *event,
-                             group_key,
-                             sizeof *group_key,
-                             GNUNET_CRYPTO_kdf_arg_auto (identifier));
+  if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+        &iv, sizeof (iv),
+        event, sizeof (*event),
+        group_key,
+        sizeof (*group_key),
+        GNUNET_CRYPTO_kdf_arg_auto (identifier)))
+  {
+    destroy_message (message);
+    return NULL;
+  }
 
   if (-1 == GNUNET_CRYPTO_symmetric_encrypt (shared_key,
                                              GNUNET_MESSENGER_AUTHORIZATION_KEY_BYTES,
@@ -415,7 +432,6 @@ create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
                                              message->body.authorization.key))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting key failed!\n");
-
     destroy_message (message);
     return NULL;
   }
@@ -425,7 +441,12 @@ create_message_authorization (const union GNUNET_MESSENGER_EpochIdentifier *
   GNUNET_memcpy (&(message->body.authorization.event), event,
                  sizeof (message->body.authorization.event));
 
-  sign_message_by_key (message, shared_key);
+  if (GNUNET_YES != sign_message_by_key (message, shared_key))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Signing message failed!\n");
+    destroy_message (message);
+    return NULL;
+  }
 
   return message;
 }

@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -1383,7 +1383,7 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
 }
 
 
-static void
+static enum GNUNET_GenericReturnValue
 calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
                    const struct GNUNET_CRYPTO_SymmetricSessionKey *key,
                    struct GNUNET_HashCode *hmac)
@@ -1395,66 +1395,67 @@ calc_message_hmac (const struct GNUNET_MESSENGER_Message *message,
   switch (message->header.kind)
   {
   case GNUNET_MESSENGER_KIND_ANNOUNCEMENT:
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &auth_key, sizeof auth_key,
-      &(message->body.announcement.nonce),
-      GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
-      key, sizeof *key,
-      GNUNET_CRYPTO_kdf_arg_auto (&message->body.announcement.identifier));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          &(message->body.announcement.nonce),
+          GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.announcement.identifier)))
+      return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.announcement),
                         sizeof (message->body.announcement)
                         - sizeof (*hmac),
                         hmac);
-    break;
+    return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_ACCESS:
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &auth_key,
-      sizeof auth_key,
-      &(message->body.access.event),
-      sizeof (message->body.access.event),
-      key, sizeof *key);
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          &(message->body.access.event),
+          sizeof (message->body.access.event),
+          key, sizeof (*key)))
+      return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.access),
                         sizeof (message->body.access)
                         - sizeof (*hmac),
                         hmac);
-    break;
+    return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_REVOLUTION:
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &auth_key,
-      sizeof auth_key,
-      &(message->body.revolution.nonce),
-      GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
-      key, sizeof *key,
-      GNUNET_CRYPTO_kdf_arg_auto (&message->body.revolution.identifier));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          &(message->body.revolution.nonce),
+          GNUNET_MESSENGER_EPOCH_NONCE_BYTES,
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.revolution.identifier)))
+      return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.revolution),
                         sizeof (message->body.revolution)
                         - sizeof (*hmac),
                         hmac);
-    break;
+    return GNUNET_YES;
   case GNUNET_MESSENGER_KIND_AUTHORIZATION:
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &auth_key,
-      sizeof auth_key,
-      &(message->body.authorization.event),
-      sizeof (message->body.authorization.event),
-      key, sizeof *key,
-      GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          &(message->body.authorization.event),
+          sizeof (message->body.authorization.event),
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier)))
+      return GNUNET_NO;
 
     GNUNET_CRYPTO_hmac (&auth_key, &(message->body.authorization),
                         sizeof (message->body.authorization)
                         - sizeof (*hmac),
                         hmac);
-    break;
+    return GNUNET_YES;
   default:
-    break;
+    return GNUNET_SYSERR;
   }
 }
 
 
-void
+enum GNUNET_GenericReturnValue
 sign_message_by_key (struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_CRYPTO_SymmetricSessionKey *key)
 {
@@ -1482,9 +1483,9 @@ sign_message_by_key (struct GNUNET_MESSENGER_Message *message,
   }
 
   if (! hmac)
-    return;
+    return GNUNET_SYSERR;
 
-  calc_message_hmac (message, key, hmac);
+  return calc_message_hmac (message, key, hmac);
 }
 
 
@@ -1566,7 +1567,8 @@ verify_message_by_key (const struct GNUNET_MESSENGER_Message *message,
   if (! msg_hmac)
     return GNUNET_SYSERR;
 
-  calc_message_hmac (message, key, &hmac);
+  if (GNUNET_YES != calc_message_hmac (message, key, &hmac))
+    return GNUNET_SYSERR;
 
   if (0 == GNUNET_CRYPTO_hash_cmp (&hmac, msg_hmac))
     return GNUNET_OK;
@@ -1781,18 +1783,23 @@ encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
   {
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
-    GNUNET_CRYPTO_hkdf_gnunet (&iv, sizeof iv,
-                               message->body.secret.iv,
-                               GNUNET_MESSENGER_SECRET_IV_BYTES,
-                               key, sizeof *key,
-                               GNUNET_CRYPTO_kdf_arg_string (
-                                 "gnunet-messenger-iv"));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          message->body.secret.iv,
+          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_string (
+            "gnunet-messenger-iv")))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
+      unfold_short_message (&shortened, message);
+      goto cleanup;
+    }
 
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (data, padded_length, key,
                                                &iv, message->body.secret.data))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Encrypting message failed!\n");
-
       unfold_short_message (&shortened, message);
       goto cleanup;
     }
@@ -1801,12 +1808,18 @@ encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
   {
     struct GNUNET_CRYPTO_AuthKey auth_key;
 
-    GNUNET_CRYPTO_hkdf_gnunet (&auth_key, sizeof auth_key,
-                               message->body.secret.iv,
-                               GNUNET_MESSENGER_SECRET_IV_BYTES,
-                               key, sizeof *key,
-                               GNUNET_CRYPTO_kdf_arg_string (
-                                 "gnunet-messenger-key"));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          message->body.secret.iv,
+          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_string (
+            "gnunet-messenger-key")))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
+      unfold_short_message (&shortened, message);
+      goto cleanup;
+    }
 
     GNUNET_CRYPTO_hmac (&auth_key, data, padded_length, &(message->body.secret.
                                                           hmac));
@@ -1840,21 +1853,24 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
   {
     struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
 
-    GNUNET_CRYPTO_hkdf_gnunet (&iv,
-                               sizeof iv,
-                               message->body.secret.iv,
-                               GNUNET_MESSENGER_SECRET_IV_BYTES,
-                               key,
-                               sizeof *key,
-                               GNUNET_CRYPTO_kdf_arg_string (
-                                 "gnunet-messenger-iv"));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          message->body.secret.iv,
+          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          key,
+          sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_string (
+            "gnunet-messenger-iv")))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
+      goto cleanup;
+    }
 
     if (-1 == GNUNET_CRYPTO_symmetric_decrypt (message->body.secret.data,
                                                padded_length,
                                                key, &iv, data))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decrypting message failed!\n");
-
       goto cleanup;
     }
   }
@@ -1863,12 +1879,17 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
     struct GNUNET_CRYPTO_AuthKey auth_key;
     struct GNUNET_HashCode hmac;
 
-    GNUNET_CRYPTO_hkdf_gnunet (&auth_key, sizeof auth_key,
-                               message->body.secret.iv,
-                               GNUNET_MESSENGER_SECRET_IV_BYTES,
-                               key, sizeof *key,
-                               GNUNET_CRYPTO_kdf_arg_string (
-                                 "gnunet-messenger-key"));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          message->body.secret.iv,
+          GNUNET_MESSENGER_SECRET_IV_BYTES,
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg_string (
+            "gnunet-messenger-key")))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
+      goto cleanup;
+    }
 
     GNUNET_CRYPTO_hmac (&auth_key, data, padded_length, &hmac);
 
@@ -1876,7 +1897,6 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                   "Decrypted message does not match HMAC!\n");
-
       goto cleanup;
     }
   }
@@ -1973,14 +1993,18 @@ extract_authorization_message_key (struct GNUNET_MESSENGER_Message *message,
 
   GNUNET_assert ((message) && (key) && (shared_key) &&
                  (GNUNET_MESSENGER_KIND_AUTHORIZATION == message->header.kind));
-  GNUNET_CRYPTO_hkdf_gnunet (
-    &iv,
-    sizeof iv,
-    &(message->body.authorization.event),
-    sizeof (message->body.authorization.event),
-    key,
-    sizeof *key,
-    GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier));
+
+  if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+        &iv, sizeof (iv),
+        &(message->body.authorization.event),
+        sizeof (message->body.authorization.event),
+        key,
+        sizeof (*key),
+        GNUNET_CRYPTO_kdf_arg_auto (&message->body.authorization.identifier)))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
+    return GNUNET_NO;
+  }
 
 
   if (-1 == GNUNET_CRYPTO_symmetric_decrypt (message->body.authorization.key,

@@ -184,6 +184,7 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
                        const struct GNUNET_MESSENGER_RoomEpochKeyRecord *record)
 {
   struct GNUNET_MESSENGER_Room *room;
+  const struct GNUNET_HashCode *room_key;
   struct GNUNET_MESSENGER_Epoch *epoch;
   union GNUNET_MESSENGER_EpochIdentifier identifier;
   enum GNUNET_GenericReturnValue valid;
@@ -196,8 +197,10 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
   if (! room)
     return;
 
+  room_key = get_room_key (room);
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Monitor epoch key record of room: %s\n",
-              GNUNET_h2s (get_room_key (room)));
+              GNUNET_h2s (room_key));
 
   epoch = get_room_epoch (room, &(record->hash), GNUNET_NO);
 
@@ -213,13 +216,13 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
 
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
-    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv [2];
     int32_t checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          get_room_key (room),
-          sizeof (room->key),
+          room_key,
+          sizeof (*room_key),
           &(handle->secret),
           sizeof (handle->secret),
           GNUNET_CRYPTO_kdf_arg (zone, sizeof (*zone)),
@@ -227,36 +230,27 @@ read_handle_epoch_key (struct GNUNET_MESSENGER_Handle *handle,
           GNUNET_CRYPTO_kdf_arg_auto (&identifier.hash)))
       return;
 
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      get_room_key (room),
-      sizeof (room->key),
-      &skey,
-      sizeof skey,
-      GNUNET_CRYPTO_kdf_arg_auto (&epoch->hash),
-      GNUNET_CRYPTO_kdf_arg_auto (&identifier.hash));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          room_key,
+          sizeof (*room_key),
+          &skey,
+          sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg_auto (&epoch->hash),
+          GNUNET_CRYPTO_kdf_arg_auto (&identifier.hash)))
+      return;
 
     if (-1 == GNUNET_CRYPTO_symmetric_decrypt (&(record->shared_key),
                                                sizeof (record->shared_key),
                                                &skey,
-                                               &iv,
+                                               &iv[0],
                                                &shared_key))
       return;
-
-    // FIXME this looks very odd
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      &iv,
-      sizeof iv,
-      &skey,
-      sizeof skey);
 
     if (-1 == GNUNET_CRYPTO_symmetric_decrypt (&(record->checksum),
                                                sizeof (record->checksum),
                                                &skey,
-                                               &iv,
+                                               &iv[1],
                                                &checksum))
       return;
 
@@ -307,6 +301,7 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
                             *record)
 {
   struct GNUNET_MESSENGER_Room *room;
+  const struct GNUNET_HashCode *room_key;
   struct GNUNET_CRYPTO_HpkePrivateKey encryption_key;
 
   GNUNET_assert ((handle) && (zone) && (record));
@@ -316,21 +311,23 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
   if (! room)
     return;
 
+  room_key = get_room_key (room);
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Monitor encryption key record of room: %s\n",
-              GNUNET_h2s (get_room_key (room)));
+              GNUNET_h2s (room_key));
 
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
-    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv [2];
     uint8_t encryption_key_data[GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
     size_t encryption_key_len;
     int32_t encrypted_key_checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          get_room_key (room),
-          sizeof (room->key),
+          room_key,
+          sizeof (*room_key),
           &(handle->secret),
           sizeof (handle->secret),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
@@ -338,36 +335,28 @@ read_handle_encryption_key (struct GNUNET_MESSENGER_Handle *handle,
                                  sizeof (record->nonce_data))))
       return;
 
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      get_room_key (room), sizeof (room->key),
-      &skey,
-      sizeof skey,
-      GNUNET_CRYPTO_kdf_arg (record->nonce_data, sizeof (record->nonce_data)));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          room_key,
+          sizeof (*room_key),
+          &skey,
+          sizeof skey,
+          GNUNET_CRYPTO_kdf_arg (record->nonce_data, sizeof (record->nonce_data))))
+      return;
 
 
     if (-1 == GNUNET_CRYPTO_symmetric_decrypt (record->encrypted_key_data,
                                                sizeof (encryption_key_data),
                                                &skey,
-                                               &iv,
+                                               &iv[0],
                                                encryption_key_data))
       return;
-
-    // FIXME previous IV as salt
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      &iv,
-      sizeof iv,
-      &skey,
-      sizeof skey);
 
     if (-1 == GNUNET_CRYPTO_symmetric_decrypt (&(record->encrypted_key_checksum)
                                                ,
                                                sizeof (encrypted_key_checksum),
                                                &skey,
-                                               &iv,
+                                               &iv[1],
                                                &encrypted_key_checksum))
       return;
 
@@ -733,7 +722,7 @@ get_handle_room (struct GNUNET_MESSENGER_Handle *handle,
 
 enum GNUNET_GenericReturnValue
 store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
-                        const struct GNUNET_HashCode *key,
+                        const struct GNUNET_MESSENGER_Room *room,
                         const struct GNUNET_HashCode *hash,
                         const struct GNUNET_ShortHashCode *identifier,
                         const struct GNUNET_CRYPTO_SymmetricSessionKey *
@@ -745,11 +734,12 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
 {
   const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
   struct GNUNET_TIME_Absolute expiration;
+  const struct GNUNET_HashCode *room_key;
   struct GNUNET_GNSRECORD_Data data;
   struct GNUNET_MESSENGER_RoomEpochKeyRecord record;
   char *label;
 
-  GNUNET_assert ((handle) && (key) && (hash) && (identifier) && (query));
+  GNUNET_assert ((handle) && (room) && (hash) && (identifier) && (query));
 
   if (! handle->namestore)
     return GNUNET_SYSERR;
@@ -764,15 +754,17 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
   memset (&data, 0, sizeof (data));
   memset (&record, 0, sizeof (record));
 
+  room_key = get_room_key (room);
+
   if (shared_key)
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
-    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv [2];
     int32_t checksum;
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          key, sizeof (*key),
+          room_key, sizeof (*room_key),
           &(handle->secret),
           sizeof (handle->secret),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
@@ -780,46 +772,35 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
           GNUNET_CRYPTO_kdf_arg_auto (identifier)))
       return GNUNET_SYSERR;
 
-    GNUNET_memcpy (&(record.key), key, sizeof (record.key));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          room_key, sizeof (*room_key),
+          &skey,
+          sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg_auto (hash),
+          GNUNET_CRYPTO_kdf_arg_auto (identifier)))
+      return GNUNET_SYSERR;
+
+    GNUNET_memcpy (&(record.key), room_key, sizeof (record.key));
     GNUNET_memcpy (&(record.hash), hash, sizeof (record.hash));
     GNUNET_memcpy (
       &(record.identifier),
       identifier,
       sizeof (record.identifier));
 
-    // FIXME smelly derivation from key as salt
-    GNUNET_CRYPTO_hkdf_gnunet (&iv,
-                               sizeof iv,
-                               key,
-                               sizeof *key,
-                               &skey,
-                               sizeof skey,
-                               GNUNET_CRYPTO_kdf_arg_auto (hash),
-                               GNUNET_CRYPTO_kdf_arg_auto (identifier));
-
-
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (shared_key,
                                                sizeof (*shared_key),
                                                &skey,
-                                               &iv,
+                                               &iv[0],
                                                &(record.shared_key)))
       return GNUNET_SYSERR;
-
-
-    // FIXME previous iv as salt??
-    GNUNET_CRYPTO_hkdf_gnunet (&iv,
-                               sizeof iv,
-                               &iv,
-                               sizeof iv,
-                               &skey,
-                               sizeof skey);
 
     checksum = GNUNET_CRYPTO_crc32_n (shared_key, sizeof (*shared_key));
 
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (&checksum,
                                                sizeof (checksum),
                                                &skey,
-                                               &iv,
+                                               &iv[1],
                                                &(record.checksum)))
       return GNUNET_SYSERR;
 
@@ -844,7 +825,7 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
     memset (lower_hash, 0, sizeof (lower_hash));
     memset (lower_id, 0, sizeof (lower_id));
 
-    s = GNUNET_h2s (key);
+    s = GNUNET_h2s (room_key);
     for (size_t i=0; '\0' != s[i]; i++)
     {
       GNUNET_assert (i < sizeof (lower_key));
@@ -899,7 +880,7 @@ store_handle_epoch_key (const struct GNUNET_MESSENGER_Handle *handle,
 
 enum GNUNET_GenericReturnValue
 store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
-                             const struct GNUNET_HashCode *key,
+                             const struct GNUNET_MESSENGER_Room *room,
                              const struct GNUNET_CRYPTO_HpkePrivateKey
                              *encryption_key,
                              GNUNET_NAMESTORE_ContinuationWithStatus cont,
@@ -908,12 +889,13 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
 {
   const struct GNUNET_CRYPTO_BlindablePrivateKey *zone;
   struct GNUNET_TIME_Absolute expiration;
+  const struct GNUNET_HashCode *room_key;
   struct GNUNET_GNSRECORD_Data data;
   struct GNUNET_MESSENGER_EncryptionKeyRecord record;
   struct GNUNET_HashCode nonce_hash;
   char *label;
 
-  GNUNET_assert ((handle) && (key) && (encryption_key) && (query));
+  GNUNET_assert ((handle) && (room) && (encryption_key) && (query));
 
   if (! handle->namestore)
     return GNUNET_SYSERR;
@@ -924,12 +906,13 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
     return GNUNET_SYSERR;
 
   expiration = GNUNET_TIME_absolute_get_forever_ ();
+  room_key = get_room_key (room);
 
   memset (&data, 0, sizeof (data));
 
   {
     struct GNUNET_CRYPTO_SymmetricSessionKey skey;
-    struct GNUNET_CRYPTO_SymmetricInitializationVector iv;
+    struct GNUNET_CRYPTO_SymmetricInitializationVector iv [2];
     uint8_t encryption_key_data [GNUNET_MESSENGER_ENCRYPTION_KEY_DATA_BYTES];
     int32_t encryption_key_checksum;
     size_t encryption_key_len;
@@ -942,13 +925,13 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
         )
       return GNUNET_SYSERR;
 
-    GNUNET_memcpy (&(record.key), key, sizeof (record.key));
+    GNUNET_memcpy (&(record.key), room_key, sizeof (record.key));
     GNUNET_CRYPTO_random_block (GNUNET_CRYPTO_QUALITY_NONCE, record.nonce_data,
                                 GNUNET_MESSENGER_ENCRYPTION_KEY_NONCE_BYTES);
 
     if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
           &skey, sizeof (skey),
-          key, sizeof (*key),
+          room_key, sizeof (*room_key),
           &(handle->secret),
           sizeof (handle->secret),
           GNUNET_CRYPTO_kdf_arg_auto (zone),
@@ -956,15 +939,14 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
                                  sizeof (record.nonce_data))))
       return GNUNET_SYSERR;
 
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      key,
-      sizeof *key,
-      &skey,
-      sizeof skey,
-      GNUNET_CRYPTO_kdf_arg (record.nonce_data,
-                             sizeof record.nonce_data));
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &iv, sizeof (iv),
+          room_key, sizeof (*room_key),
+          &skey,
+          sizeof (skey),
+          GNUNET_CRYPTO_kdf_arg (record.nonce_data,
+                                sizeof record.nonce_data)))
+      return GNUNET_SYSERR;
 
     offset = GNUNET_CRYPTO_write_hpke_sk_to_buffer (
       encryption_key, encryption_key_data, encryption_key_len);
@@ -989,23 +971,14 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (encryption_key_data,
                                                sizeof (encryption_key_data),
                                                &skey,
-                                               &iv,
+                                               &iv[0],
                                                record.encrypted_key_data))
       return GNUNET_SYSERR;
-
-    GNUNET_CRYPTO_hkdf_gnunet (
-      &iv,
-      sizeof iv,
-      &iv,
-      sizeof iv,
-      &skey,
-      sizeof skey);
-
 
     if (-1 == GNUNET_CRYPTO_symmetric_encrypt (&encryption_key_checksum,
                                                sizeof (encryption_key_checksum),
                                                &skey,
-                                               &iv,
+                                               &iv[1],
                                                &(record.encrypted_key_checksum))
         )
       return GNUNET_SYSERR;
@@ -1027,7 +1000,7 @@ store_handle_encryption_key (const struct GNUNET_MESSENGER_Handle *handle,
     char *lower_nonce;
     const char *s;
 
-    s = GNUNET_h2s (key);
+    s = GNUNET_h2s (room_key);
     lower_key = GNUNET_STRINGS_utf8_tolower (s);
     if (! lower_key)
       lower_key = GNUNET_strdup (s);

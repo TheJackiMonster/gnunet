@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2020--2025 GNUnet e.V.
+   Copyright (C) 2020--2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -208,8 +208,9 @@ sign_message_by_peer (struct GNUNET_MESSENGER_Message *message,
  *
  * @param[in,out] message Message
  * @param[in] key Shared key
+ * @return #GNUNET_YES on succes, #GNUNET_NO on failure, otherwise #GNUNET_SYSERR
  */
-void
+enum GNUNET_GenericReturnValue
 sign_message_by_key (struct GNUNET_MESSENGER_Message *message,
                      const struct GNUNET_CRYPTO_SymmetricSessionKey *key);
 
