@@ -1824,8 +1824,8 @@ encrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
       goto cleanup;
     }
 
-    GNUNET_CRYPTO_hmac (&auth_key, data, padded_length, &(message->body.secret.
-                                                          hmac));
+    GNUNET_CRYPTO_hmac (&auth_key, message->body.secret.data, padded_length,
+                        &(message->body.secret.hmac));
   }
 
   destroy_message_body (shortened.kind, &(shortened.body));
@@ -1850,6 +1850,32 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
 
   padded_length = message->body.secret.length;
 
+  {
+    struct GNUNET_CRYPTO_AuthKey auth_key;
+    struct GNUNET_HashCode hmac;
+
+    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+          &auth_key, sizeof (auth_key),
+          GNUNET_MESSENGER_SALT_SECRET_KEY,
+          sizeof (GNUNET_MESSENGER_SALT_SECRET_KEY),
+          key, sizeof (*key),
+          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
+      return GNUNET_NO;
+    }
+
+    GNUNET_CRYPTO_hmac (&auth_key, message->body.secret.data, padded_length,
+                        &hmac);
+
+    if (0 != GNUNET_CRYPTO_hash_cmp (&(message->body.secret.hmac), &hmac))
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                  "Decrypted message does not match HMAC!\n");
+      return GNUNET_NO;
+    }
+  }
+
   result = GNUNET_NO;
   data = GNUNET_malloc (padded_length);
 
@@ -1873,31 +1899,6 @@ decrypt_secret_message (struct GNUNET_MESSENGER_Message *message,
                                                key, &iv, data))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Decrypting message failed!\n");
-      goto cleanup;
-    }
-  }
-
-  {
-    struct GNUNET_CRYPTO_AuthKey auth_key;
-    struct GNUNET_HashCode hmac;
-
-    if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
-          &auth_key, sizeof (auth_key),
-          GNUNET_MESSENGER_SALT_SECRET_KEY,
-          sizeof (GNUNET_MESSENGER_SALT_SECRET_KEY),
-          key, sizeof (*key),
-          GNUNET_CRYPTO_kdf_arg (message->body.secret.iv, GNUNET_MESSENGER_SECRET_IV_BYTES)))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving authentication key failed!\n");
-      goto cleanup;
-    }
-
-    GNUNET_CRYPTO_hmac (&auth_key, data, padded_length, &hmac);
-
-    if (0 != GNUNET_CRYPTO_hash_cmp (&(message->body.secret.hmac), &hmac))
-    {
-      GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                  "Decrypted message does not match HMAC!\n");
       goto cleanup;
     }
   }
@@ -2007,7 +2008,6 @@ extract_authorization_message_key (struct GNUNET_MESSENGER_Message *message,
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING, "Deriving initialization vector failed!\n");
     return GNUNET_NO;
   }
-
 
   if (-1 == GNUNET_CRYPTO_symmetric_decrypt (message->body.authorization.key,
                                              GNUNET_MESSENGER_AUTHORIZATION_KEY_BYTES,

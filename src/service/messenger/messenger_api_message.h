@@ -30,11 +30,11 @@
 
 #include "gnunet_messenger_service.h"
 
-#define GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY "gnunet-messenger-announcement-key"
-#define GNUNET_MESSENGER_SALT_EPOCH_KEY "gnunet-messenger-epoch-key"
-#define GNUNET_MESSENGER_SALT_GROUP_KEY "gnunet-messenger-group-key"
-#define GNUNET_MESSENGER_SALT_SECRET_KEY "gnunet-messenger-secret-key"
-#define GNUNET_MESSENGER_SALT_ENCRYPTION_KEY "gnunet-messenger-encryption-key"
+#define GNUNET_MESSENGER_SALT_ANNOUNCEMENT_KEY "gnunet-messenger-announcement-key-k*d-p!80"
+#define GNUNET_MESSENGER_SALT_EPOCH_KEY        "gnunet-messenger-epoch-key-ePGN3bGR-}*i$<2"
+#define GNUNET_MESSENGER_SALT_GROUP_KEY        "gnunet-messenger-group-key-L)&7{4i(WSEPpR-"
+#define GNUNET_MESSENGER_SALT_SECRET_KEY       "gnunet-messenger-secret-key-}xJ(eTuk[+xu{S"
+#define GNUNET_MESSENGER_SALT_ENCRYPTION_KEY   "gnunet-messenger-encryption-key-9*Qaj7A+zv"
 
 #define GNUNET_MESSENGER_SALT_EPOCH_IV "gnunet-messenger-epoch-iv"
 #define GNUNET_MESSENGER_SALT_ENCRYPTION_IV "gnunet-messenger-encryption-iv"
