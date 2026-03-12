@@ -207,12 +207,13 @@ GNUNET_xstrdup_ (const char *str,
                  const char *filename,
                  int linenumber)
 {
-  size_t slen = strlen (str) + 1;
+  size_t slen;
   char *res;
 
   GNUNET_assert_at (str != NULL,
                     filename,
                     linenumber);
+  slen = strlen (str) + 1;
   res = GNUNET_xmalloc_ (slen,
                          filename,
                          linenumber);
