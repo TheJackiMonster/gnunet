@@ -1727,7 +1727,8 @@ GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
 
 
 int
-GNUNET_DISK_internal_file_handle2_ (const struct GNUNET_DISK_FileHandle *fh)
+GNUNET_DISK_internal_file_handle (
+  const struct GNUNET_DISK_FileHandle *fh)
 {
   if (NULL == fh)
     return -1;

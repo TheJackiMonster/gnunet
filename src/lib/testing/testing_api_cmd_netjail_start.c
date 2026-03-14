@@ -46,7 +46,7 @@ struct NetJailState
   /**
    * The process id of the start script.
    */
-  struct GNUNET_OS_Process *start_proc;
+  struct GNUNET_Process *start_proc;
 
   /**
    * Configuration file for the test topology.
@@ -79,12 +79,15 @@ netjail_start_cleanup (void *cls)
   }
   if (NULL != ns->start_proc)
   {
-    GNUNET_assert (0 ==
-                   GNUNET_OS_process_kill (ns->start_proc,
-                                           SIGKILL));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_OS_process_wait (ns->start_proc));
-    GNUNET_OS_process_destroy (ns->start_proc);
+                   GNUNET_process_kill (ns->start_proc,
+                                        SIGKILL));
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_wait (ns->start_proc,
+                                        true,
+                                        NULL,
+                                        NULL));
+    GNUNET_process_destroy (ns->start_proc);
     ns->start_proc = NULL;
   }
   GNUNET_free (ns);
@@ -101,7 +104,7 @@ child_completed_callback (void *cls,
 {
   struct NetJailState *ns = cls;
 
-  GNUNET_OS_process_destroy (ns->start_proc);
+  GNUNET_process_destroy (ns->start_proc);
   ns->start_proc = NULL;
   ns->cwh = NULL;
   if ( (GNUNET_OS_PROCESS_EXITED != type) ||
@@ -176,23 +179,21 @@ netjail_start_run (void *cls,
                    sizeof (pid),
                    "%u",
                    getpid ());
+  ns->start_proc = GNUNET_process_create ();
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_va (ns->start_proc,
+                                       script_name,
+                                       script_name,
+                                       (char *) topology_data,
+                                       pid,
+                                       (char*) "0",
+                                       NULL)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (ns->start_proc)) )
   {
-    char *const script_argv[] = {
-      script_name,
-      (char *) topology_data,
-      pid,
-      (char*) "0",
-      NULL
-    };
-
-    ns->start_proc
-      = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ERR,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     script_name,
-                                     script_argv);
-
+    GNUNET_break (0);
+    GNUNET_TESTING_FAIL (is);
+    return;
   }
   ns->cwh = GNUNET_wait_child (ns->start_proc,
                                &child_completed_callback,

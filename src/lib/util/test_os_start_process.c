@@ -65,8 +65,8 @@ static void
 end_task (void *cls)
 {
   if (GNUNET_OK !=
-      GNUNET_process_kill2 (proc,
-                            GNUNET_TERM_SIG))
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
@@ -276,8 +276,8 @@ check_kill (void)
   sleep (1);  /* give process time to start, so we actually use the pipe-kill mechanism! */
   GNUNET_free (fn);
   if (GNUNET_OK !=
-      GNUNET_process_kill2 (proc,
-                            GNUNET_TERM_SIG))
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
   GNUNET_assert (GNUNET_OK ==
@@ -321,12 +321,20 @@ check_instant_kill (void)
                                                         STDIN_FILENO),
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
-                                                fn,
-                                                "gnunet-service-resolver",
-                                                "-",
-                                                NULL));
+  if (GNUNET_OK !=
+      GNUNET_process_set_command_va (proc,
+                                     fn,
+                                     "gnunet-service-resolver",
+                                     "-",
+                                     NULL))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");
+    GNUNET_process_destroy (proc);
+    proc = NULL;
+    GNUNET_free (fn);
+    return 77;
+  }
   if (GNUNET_OK !=
       GNUNET_process_start (proc))
   {
@@ -338,8 +346,8 @@ check_instant_kill (void)
     return 77;
   }
   if (GNUNET_OK !=
-      GNUNET_process_kill2 (proc,
-                            GNUNET_TERM_SIG))
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");

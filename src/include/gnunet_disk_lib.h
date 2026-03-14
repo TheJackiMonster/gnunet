@@ -77,6 +77,18 @@ struct GNUNET_DISK_FileHandle
 };
 
 
+/**
+ * Retrieve OS file handle
+ *
+ * @internal
+ * @param fh GNUnet file descriptor
+ * @return file handle, -1 on error
+ */
+int
+GNUNET_DISK_internal_file_handle (
+  const struct GNUNET_DISK_FileHandle *fh);
+
+
 /* we need size_t, and since it can be both unsigned int
    or unsigned long long, this IS platform dependent;
    but "stdlib.h" should be portable 'enough' to be

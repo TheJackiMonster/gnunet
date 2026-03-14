@@ -783,7 +783,7 @@ GNUNET_TESTING_make_plugin (
 
 #define GNUNET_TESTING_MAKE_PLUGIN(prefix,name,...)            \
         void *                                                 \
-          libgnunet_plugin_testing_ ## prefix ## _ ## name ## _init (void *cls) { \
+        libgnunet_plugin_testing_ ## prefix ## _ ## name ## _init (void *cls) { \
           const char *my_node_id = cls; (void) my_node_id;     \
           struct GNUNET_TESTING_Command commands[] = {         \
             __VA_ARGS__,                                       \
@@ -869,7 +869,7 @@ GNUNET_TESTING_get_trait (
         enum GNUNET_GenericReturnValue                           \
         prefix ## _get_trait_ ## name (                          \
           const struct GNUNET_TESTING_Command *cmd,              \
-          type * *ret);                                          \
+          type **ret);                                          \
         struct GNUNET_TESTING_Trait                              \
         prefix ## _make_trait_ ## name (                         \
           type * value);
@@ -920,11 +920,11 @@ GNUNET_TESTING_get_trait (
         prefix ## _get_trait_ ## name (                          \
           const struct GNUNET_TESTING_Command *cmd,              \
           unsigned int index,                                    \
-          type * *ret);                                          \
+          type **ret);                                          \
         struct GNUNET_TESTING_Trait                              \
         prefix ## _make_trait_ ## name (                         \
           unsigned int index,                                    \
-          type * value);
+          type *value);
 
 
 /**
@@ -965,7 +965,7 @@ GNUNET_TESTING_get_trait (
  * @param prefix prefix to pass to @e op
  */
 #define GNUNET_TESTING_SIMPLE_TRAITS(op,prefix)                  \
-        op (prefix, process, struct GNUNET_OS_Process *)         \
+        op (prefix, process, struct GNUNET_Process *)            \
         op (prefix, cmd, const struct GNUNET_TESTING_Command)    \
         op (prefix, batch_cmds, struct GNUNET_TESTING_Command *)
 

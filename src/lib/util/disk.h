@@ -42,15 +42,4 @@ GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
                                    int *dst);
 
 
-/**
- * Retrieve OS file handle
- *
- * @internal
- * @param fh GNUnet file descriptor
- * @return file handle, -1 on error
- */
-int
-GNUNET_DISK_internal_file_handle2_ (const struct GNUNET_DISK_FileHandle *fh);
-
-
 #endif /* GNUNET_DISK_H_ */

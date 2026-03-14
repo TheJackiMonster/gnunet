@@ -56,6 +56,8 @@
 #ifndef GNUNET_OS_LIB_H
 #define GNUNET_OS_LIB_H
 
+#include "gnunet_disk_lib.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -703,6 +705,23 @@ GNUNET_process_set_command_ap (
  * @param[in,out] p process handle for the process to setup
  * @param filename name of the binary.  It is valid to have the arguments
  *         in this string when they are separated by spaces.
+ * @param argv process arguments, array MUST be NULL-terminated
+ * @return #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_command_argv (
+  struct GNUNET_Process *p,
+  const char *filename,
+  const char **argv);
+
+
+/**
+ * Set the command to start a process.  Client must pass
+ * the filename and arguments.
+ *
+ * @param[in,out] p process handle for the process to setup
+ * @param filename name of the binary.  It is valid to have the arguments
+ *         in this string when they are separated by spaces.
  * @param ... the process arguments, usually including @a filename
  *        as argv[0] again.  Should all be of type `const char *`.
  *         The last argument MUST be NULL.
@@ -902,7 +921,7 @@ struct GNUNET_ProcessOptionValue
           .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
           .details.inherit_fd.target_fd = child_fd,            \
           .details.inherit_fd.parent_fd \
-            = GNUNET_DISK_internal_file_handle2_ ( \
+            = GNUNET_DISK_internal_file_handle ( \
                 GNUNET_DISK_pipe_handle (rpipe, \
                                          GNUNET_DISK_PIPE_END_READ)) \
         }
@@ -920,7 +939,7 @@ struct GNUNET_ProcessOptionValue
           .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
           .details.inherit_fd.target_fd = child_fd,            \
           .details.inherit_fd.parent_fd \
-            = GNUNET_DISK_internal_file_handle2_ ( \
+            = GNUNET_DISK_internal_file_handle ( \
                 GNUNET_DISK_pipe_handle (wpipe, \
                                          GNUNET_DISK_PIPE_END_WRITE)) \
         }
@@ -1043,8 +1062,8 @@ GNUNET_process_get_pid (const struct GNUNET_Process *proc);
  * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
  */
 enum GNUNET_GenericReturnValue
-GNUNET_process_kill2 (struct GNUNET_Process *proc,
-                      int sig);
+GNUNET_process_kill (struct GNUNET_Process *proc,
+                     int sig);
 
 
 /**

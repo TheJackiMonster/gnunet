@@ -50,7 +50,7 @@ struct BashScriptState
   /**
   * The process id of the script.
   */
-  struct GNUNET_OS_Process *start_proc;
+  struct GNUNET_Process *start_proc;
 
   /**
    * NULL-terminated array of command-line arguments.
@@ -89,12 +89,15 @@ exec_bash_script_cleanup (void *cls)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Kill process\n");
-    GNUNET_assert (0 ==
-                   GNUNET_OS_process_kill (bss->start_proc,
-                                           SIGKILL));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_OS_process_wait (bss->start_proc));
-    GNUNET_OS_process_destroy (bss->start_proc);
+                   GNUNET_process_kill (bss->start_proc,
+                                        SIGKILL));
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_wait (bss->start_proc,
+                                        true,
+                                        NULL,
+                                        NULL));
+    GNUNET_process_destroy (bss->start_proc);
     bss->start_proc = NULL;
   }
   for (unsigned int i = 0; NULL != bss->args[i]; i++)
@@ -116,7 +119,7 @@ child_completed_callback (void *cls,
   struct BashScriptState *bss = cls;
 
   bss->cwh = NULL;
-  GNUNET_OS_process_destroy (bss->start_proc);
+  GNUNET_process_destroy (bss->start_proc);
   bss->start_proc = NULL;
   if ( (bss->expected_type != type) ||
        (bss->expected_exit_code != exit_code) )
@@ -146,14 +149,18 @@ exec_bash_script_run (void *cls,
   struct BashScriptState *bss = cls;
 
   GNUNET_assert (NULL == bss->cwh);
-  bss->start_proc
-    = GNUNET_OS_start_process_vap (
-        GNUNET_OS_INHERIT_STD_ERR,
-        NULL,
-        NULL,
-        NULL,
-        bss->args[0],
-        bss->args);
+  bss->start_proc = GNUNET_process_create ();
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_argv (bss->start_proc,
+                                         bss->args[0],
+                                         (const char **) bss->args)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (bss->start_proc)) )
+  {
+    GNUNET_break (0);
+    GNUNET_TESTING_FAIL (is);
+    return;
+  }
   bss->cwh = GNUNET_wait_child (bss->start_proc,
                                 &child_completed_callback,
                                 bss);

@@ -290,14 +290,6 @@ GNUNET_process_install_parent_control_handler ()
 }
 
 
-/**
- * Get process structure for current process
- *
- * The pointer it returns points to static memory location and must
- * not be deallocated/closed.
- *
- * @return pointer to the process sturcutre for this process
- */
 struct GNUNET_Process *
 GNUNET_process_current ()
 {
@@ -307,8 +299,8 @@ GNUNET_process_current ()
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_process_kill2 (struct GNUNET_Process *proc,
-                      int sig)
+GNUNET_process_kill (struct GNUNET_Process *proc,
+                     int sig)
 {
   if (NULL != proc->control_pipe)
   {
@@ -450,11 +442,6 @@ open_dev_null (int target_fd,
 }
 
 
-/**
- * Create a process handle. Does not yet start it!
- *
- * @return process handle
- */
 struct GNUNET_Process *
 GNUNET_process_create ()
 {
@@ -462,7 +449,7 @@ GNUNET_process_create ()
 
   p = GNUNET_new (struct GNUNET_Process);
   p->pid = -1;
-  p->std_inheritance = 0; // FIXME: good default!?
+  p->std_inheritance = GNUNET_OS_INHERIT_STD_ERR;
   return p;
 }
 
@@ -849,6 +836,33 @@ GNUNET_process_start (struct GNUNET_Process *proc)
                      "execvp",
                      proc->filename);
   _exit (1);
+}
+
+
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_command_argv (
+  struct GNUNET_Process *p,
+  const char *filename,
+  const char **argv)
+{
+  const char *av;
+  int argc;
+
+  if (GNUNET_SYSERR ==
+      GNUNET_OS_check_helper_binary (filename,
+                                     GNUNET_NO,
+                                     NULL))
+    return GNUNET_SYSERR; /* not executable */
+  GNUNET_assert (NULL == p->argv);
+  p->filename = GNUNET_strdup (filename);
+  argc = 0;
+  while (NULL != argv[argc])
+    argc++;
+  p->argv = GNUNET_new_array (argc + 1,
+                              char *);
+  for (argc = 0; NULL != argv[argc]; argc++)
+    p->argv[argc] = GNUNET_strdup (argv[argc]);
+  return GNUNET_OK;
 }
 
 

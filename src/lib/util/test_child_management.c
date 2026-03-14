@@ -1,6 +1,6 @@
 /*
   This file is part of GNUnet
-  Copyright (C) 2014-2021 GNUnet e.V.
+  Copyright (C) 2014-2021, 2026 GNUnet e.V.
 
   GNUNET is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as
@@ -32,7 +32,7 @@ static struct GNUNET_ChildWaitHandle *cwh;
 
 static int global_ret;
 
-static struct GNUNET_OS_Process *pid;
+static struct GNUNET_Process *pid;
 
 
 static void
@@ -74,7 +74,7 @@ child_completed_callback (void *cls,
     global_ret = 1;
     return;
   }
-  GNUNET_OS_process_destroy (pid);
+  GNUNET_process_destroy (pid);
   pid = NULL;
   GNUNET_break (0 == unlink ("child_management_test.txt"));
   GNUNET_SCHEDULER_shutdown ();
@@ -92,12 +92,15 @@ do_shutdown (void *cls)
   }
   if (NULL != pid)
   {
-    GNUNET_assert (0 ==
-                   GNUNET_OS_process_kill (pid,
-                                           SIGKILL));
     GNUNET_assert (GNUNET_OK ==
-                   GNUNET_OS_process_wait (pid));
-    GNUNET_OS_process_destroy (pid);
+                   GNUNET_process_kill (pid,
+                                        SIGKILL));
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_wait (pid,
+                                        true,
+                                        NULL,
+                                        NULL));
+    GNUNET_process_destroy (pid);
     pid = NULL;
   }
 }
@@ -119,16 +122,23 @@ test_child_management (void *cls)
     global_ret = 2;
     return;
   }
-  pid = GNUNET_OS_start_process (0,
-                                 p,
-                                 NULL,
-                                 NULL,
-                                 command,
-                                 command,
-                                 "1234",
-                                 "5678",
-                                 NULL);
-  if (NULL == pid)
+  pid = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   pid,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_NONE),
+                   GNUNET_process_option_inherit_rpipe (p,
+                                                        STDIN_FILENO)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_va (pid,
+                                       command,
+                                       command,
+                                       "1234",
+                                       "5678",
+                                       NULL)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (pid)) )
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
                          "fork");
@@ -148,7 +158,8 @@ test_child_management (void *cls)
 
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,"Alright");
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Alright");
   cwh = GNUNET_wait_child (pid,
                            &child_completed_callback,
                            cls);
@@ -175,4 +186,4 @@ main (int argc,
 }
 
 
-/* end of test_anastasis_child_management.c */
+/* end of test_child_management.c */

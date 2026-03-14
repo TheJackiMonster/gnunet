@@ -66,7 +66,7 @@ typedef void
  * @return GNUNET_ChildWaitHandle is returned
  */
 struct GNUNET_ChildWaitHandle *
-GNUNET_wait_child (struct GNUNET_OS_Process *proc,
+GNUNET_wait_child (struct GNUNET_Process *proc,
                    GNUNET_ChildCompletedCallback cb,
                    void *cb_cls);
 

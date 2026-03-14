@@ -40,14 +40,14 @@
  * Global exit code.
  * Set to non-zero if an error occurs after the scheduler has started.
  */
-static int exit_code = 0;
+static int exit_code;
 
 /**
  * Video device to capture from.
  * Used by default if PNG support is disabled or no PNG file is specified.
  * Defaults to /dev/video0.
  */
-static char *device = NULL;
+static char *device;
 
 #if HAVE_PNG
 /**
@@ -55,23 +55,23 @@ static char *device = NULL;
  * If the file is not a PNG-encoded image of a QR code, an error will be
  * thrown.
  */
-static char *pngfilename = NULL;
+static char *pngfilename;
 #endif
 
 /**
  * Requested verbosity.
  */
-static unsigned int verbosity = 0;
+static unsigned int verbosity;
 
 /**
  * Child process handle.
  */
-struct GNUNET_OS_Process *childproc = NULL;
+struct GNUNET_Process *childproc;
 
 /**
  * Child process handle for waiting.
  */
-static struct GNUNET_ChildWaitHandle *waitchildproc = NULL;
+static struct GNUNET_ChildWaitHandle *waitchildproc;
 
 /**
  * Macro to handle verbosity when printing messages.
@@ -103,7 +103,9 @@ shutdown_program (void *cls)
   if (NULL != childproc)
   {
     /* A bit brutal, but this process is terminating so we're out of time */
-    GNUNET_OS_process_kill (childproc, SIGKILL);
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_process_kill (childproc,
+                                       SIGKILL));
   }
 }
 
@@ -121,22 +123,23 @@ wait_child (void *cls,
             long unsigned int code)
 {
   char *uri = cls;
-  GNUNET_OS_process_destroy (childproc);
+
+  GNUNET_process_destroy (childproc);
   childproc = NULL;
   waitchildproc = NULL;
-
-
   if (0 != exit_code)
   {
-    fprintf (stdout, _ ("Failed to add URI %s\n"), uri);
+    fprintf (stdout,
+             _ ("Failed to add URI %s\n"),
+             uri);
   }
   else
   {
-    fprintf (stdout, _ ("Added URI %s\n"), uri);
+    fprintf (stdout,
+             _ ("Added URI %s\n"),
+             uri);
   }
-
   GNUNET_free (uri);
-
   GNUNET_SCHEDULER_shutdown ();
 }
 
@@ -157,10 +160,11 @@ handle_uri (void *cls,
 {
   const char *cursor = uri;
   const char *slash;
-  char *subsystem;
-  char *program = NULL;
+  char *program;
 
-  if (0 != strncasecmp ("gnunet://", uri, strlen ("gnunet://")))
+  if (0 != strncasecmp ("gnunet://",
+                        uri,
+                        strlen ("gnunet://")))
   {
     fprintf (stderr,
              _ ("Invalid URI: does not start with `gnunet://'\n"));
@@ -170,66 +174,71 @@ handle_uri (void *cls,
 
   cursor += strlen ("gnunet://");
 
-  slash = strchr (cursor, '/');
+  slash = strchr (cursor,
+                  '/');
   if (NULL == slash)
   {
-    fprintf (stderr, _ ("Invalid URI: fails to specify a subsystem\n"));
+    fprintf (stderr,
+             _ ("Invalid URI: fails to specify a subsystem\n"));
     exit_code = 1;
     return;
   }
 
-  subsystem = GNUNET_strndup (cursor, slash - cursor);
-  program = NULL;
-
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (cfg, "uri", subsystem, &program))
   {
-    fprintf (stderr, _ ("No known handler for subsystem `%s'\n"), subsystem);
+    char *subsystem;
+
+    subsystem = GNUNET_strndup (cursor,
+                                slash - cursor);
+    if (GNUNET_OK !=
+        GNUNET_CONFIGURATION_get_value_string (cfg,
+                                               "uri",
+                                               subsystem,
+                                               &program))
+    {
+      fprintf (stderr,
+               _ ("No known handler for subsystem `%s'\n"),
+               subsystem);
+      GNUNET_free (subsystem);
+      exit_code = 1;
+      return;
+    }
     GNUNET_free (subsystem);
-    exit_code = 1;
-    return;
   }
 
-  GNUNET_free (subsystem);
-
   {
-    char **childargv = NULL;
-    unsigned int childargc = 0;
+    char *fullcmd;
 
-    for (const char *token = strtok (program, " ");
-         NULL!=token;
-         token = strtok (NULL, " "))
-    {
-      GNUNET_array_append (childargv, childargc, GNUNET_strdup (token));
-    }
-    GNUNET_array_append (childargv, childargc, GNUNET_strdup (uri));
-    GNUNET_array_append (childargv, childargc, NULL);
-
-    childproc = GNUNET_OS_start_process_vap (GNUNET_OS_INHERIT_STD_ALL,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             childargv[0],
-                                             childargv);
-    for (size_t i = 0; i<childargc - 1; ++i)
-    {
-      GNUNET_free (childargv[i]);
-    }
-
-    GNUNET_array_grow (childargv, childargc, 0);
-
-    if (NULL == childproc)
+    GNUNET_asprintf (&fullcmd,
+                     "%s -- %s",
+                     program,
+                     uri);
+    childproc = GNUNET_process_create ();
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_set_options (
+                     childproc,
+                     GNUNET_process_option_std_inheritance (
+                       GNUNET_OS_INHERIT_STD_ALL)));
+    if ( (GNUNET_OK !=
+          GNUNET_process_set_command (childproc,
+                                      fullcmd)) ||
+         (GNUNET_OK !=
+          GNUNET_process_start (childproc)) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ ("Unable to start child process `%s'\n"),
                   program);
-      GNUNET_free (program);
-      exit_code = 1;
-      return;
     }
-
-    waitchildproc = GNUNET_wait_child (childproc, &wait_child, (void *) uri);
+    GNUNET_free (fullcmd);
   }
+  GNUNET_free (program);
+  if (NULL == childproc)
+  {
+    exit_code = 1;
+    return;
+  }
+  waitchildproc = GNUNET_wait_child (childproc,
+                                     &wait_child,
+                                     (void *) uri);
 }
 
 
@@ -606,7 +615,7 @@ main (int argc, char *const *argv)
   };
 
   enum GNUNET_GenericReturnValue ret =
-    GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+    GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                         argc,
                         argv,
                         "gnunet-qr",

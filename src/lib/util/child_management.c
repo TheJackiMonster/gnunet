@@ -51,7 +51,7 @@ struct GNUNET_ChildWaitHandle
   /**
    * Child process which is managed
    */
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
   /**
    * Callback which is called upon completion/death of the child task
    */
@@ -109,9 +109,10 @@ maint_child_death (void *cls)
 
     nxt = cwh->next;
     if (GNUNET_OK ==
-        GNUNET_OS_process_status (cwh->proc,
-                                  &type,
-                                  &exit_code))
+        GNUNET_process_wait (cwh->proc,
+                             false,
+                             &type,
+                             &exit_code))
     {
       GNUNET_CONTAINER_DLL_remove (cwh_head,
                                    cwh_tail,
@@ -147,7 +148,8 @@ sighandler_child_death (void)
   GNUNET_break (
     1 ==
     GNUNET_DISK_file_write (GNUNET_DISK_pipe_handle (sigpipe,
-                                                     GNUNET_DISK_PIPE_END_WRITE),
+                                                     GNUNET_DISK_PIPE_END_WRITE)
+                            ,
                             &c,
                             sizeof(c)));
   errno = old_errno; /* restore errno */
@@ -195,7 +197,7 @@ child_management_done (void)
 
 
 struct GNUNET_ChildWaitHandle *
-GNUNET_wait_child (struct GNUNET_OS_Process *proc,
+GNUNET_wait_child (struct GNUNET_Process *proc,
                    GNUNET_ChildCompletedCallback cb,
                    void *cb_cls)
 {

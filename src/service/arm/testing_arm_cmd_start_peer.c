@@ -64,7 +64,7 @@ struct GNUNET_TESTING_StartPeerState
   /**
    * Handle to the ARM process information.
    */
-  struct GNUNET_OS_Process *arm;
+  struct GNUNET_Process *arm;
 
   /**
    * The config of the peer
@@ -190,15 +190,21 @@ start_peer_run (void *cls,
       main_binary = prefix;
       args = libexec_binary;
     }
-    sps->arm
-      = GNUNET_OS_start_process_s (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                   NULL,
-                                   main_binary,
-                                   args,
-                                   "-c",
-                                   config_filename,
-                                   NULL);
-    if (NULL == sps->arm)
+    sps->arm = GNUNET_process_create ();
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_set_options (
+                     sps->arm,
+                     GNUNET_process_option_std_inheritance (
+                       GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
+    if ( (GNUNET_OK !=
+          GNUNET_process_set_command_va (sps->arm,
+                                         main_binary,
+                                         args,
+                                         "-c",
+                                         config_filename,
+                                         NULL)) ||
+         (GNUNET_OK !=
+          GNUNET_process_start (sps->arm)) )
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ ("Failed to start `%s': %s\n"),
@@ -235,12 +241,15 @@ start_peer_cleanup (void *cls)
   }
   if (NULL != sps->arm)
   {
-    GNUNET_break (0 ==
-                  GNUNET_OS_process_kill (sps->arm,
-                                          SIGTERM));
     GNUNET_break (GNUNET_OK ==
-                  GNUNET_OS_process_wait (sps->arm));
-    GNUNET_OS_process_destroy (sps->arm);
+                  GNUNET_process_kill (sps->arm,
+                                       SIGTERM));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_process_wait (sps->arm,
+                                       true,
+                                       NULL,
+                                       NULL));
+    GNUNET_process_destroy (sps->arm);
     sps->ah = NULL;
   }
 

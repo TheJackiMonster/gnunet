@@ -98,7 +98,7 @@ struct GNUNET_HELPER_Handle
   /**
    * The process id of the helper
    */
-  struct GNUNET_OS_Process *helper_proc;
+  struct GNUNET_Process *helper_proc;
 
   /**
    * The Message-Tokenizer that tokenizes the messages coming from the helper
@@ -196,7 +196,9 @@ GNUNET_HELPER_kill (struct GNUNET_HELPER_Handle *h, int soft_kill)
     h->fh_to_helper = NULL;
     return ret;
   }
-  if (0 != GNUNET_OS_process_kill (h->helper_proc, GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (h->helper_proc,
+                           GNUNET_TERM_SIG))
     return GNUNET_SYSERR;
   return GNUNET_OK;
 }
@@ -206,13 +208,16 @@ enum GNUNET_GenericReturnValue
 GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h)
 {
   struct GNUNET_HELPER_SendHandle *sh;
-  int ret;
+  enum GNUNET_GenericReturnValue ret;
 
   ret = GNUNET_SYSERR;
   if (NULL != h->helper_proc)
   {
-    ret = GNUNET_OS_process_wait (h->helper_proc);
-    GNUNET_OS_process_destroy (h->helper_proc);
+    ret = GNUNET_process_wait (h->helper_proc,
+                               true,
+                               NULL,
+                               NULL);
+    GNUNET_process_destroy (h->helper_proc);
     h->helper_proc = NULL;
   }
   if (NULL != h->read_task)
@@ -239,14 +244,21 @@ GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h)
   }
   while (NULL != (sh = h->sh_head))
   {
-    GNUNET_CONTAINER_DLL_remove (h->sh_head, h->sh_tail, sh);
+    GNUNET_CONTAINER_DLL_remove (h->sh_head,
+                                 h->sh_tail,
+                                 sh);
     if (NULL != sh->cont)
-      sh->cont (sh->cont_cls, GNUNET_NO);
+      sh->cont (sh->cont_cls,
+                GNUNET_NO);
     GNUNET_free (sh);
   }
   /* purge MST buffer */
   if (NULL != h->mst)
-    (void) GNUNET_MST_from_buffer (h->mst, NULL, 0, GNUNET_YES, GNUNET_NO);
+    (void) GNUNET_MST_from_buffer (h->mst,
+                                   NULL,
+                                   0,
+                                   GNUNET_YES,
+                                   GNUNET_NO);
   return ret;
 }
 
@@ -259,7 +271,8 @@ GNUNET_HELPER_wait (struct GNUNET_HELPER_Handle *h)
  *          stdin; #GNUNET_NO to signal termination by sending SIGTERM to helper
  */
 static void
-stop_helper (struct GNUNET_HELPER_Handle *h, int soft_kill)
+stop_helper (struct GNUNET_HELPER_Handle *h,
+             int soft_kill)
 {
   if (NULL != h->restart_task)
   {
@@ -268,8 +281,11 @@ stop_helper (struct GNUNET_HELPER_Handle *h, int soft_kill)
   }
   else
   {
-    GNUNET_break (GNUNET_OK == GNUNET_HELPER_kill (h, soft_kill));
-    GNUNET_break (GNUNET_OK == GNUNET_HELPER_wait (h));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_HELPER_kill (h,
+                                      soft_kill));
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_HELPER_wait (h));
   }
 }
 
@@ -405,21 +421,31 @@ start_helper (struct GNUNET_HELPER_Handle *h)
     GNUNET_DISK_pipe_handle (h->helper_out, GNUNET_DISK_PIPE_END_READ);
   h->fh_to_helper =
     GNUNET_DISK_pipe_handle (h->helper_in, GNUNET_DISK_PIPE_END_WRITE);
-  h->helper_proc = GNUNET_OS_start_process_vap (h->with_control_pipe
-                                                ? GNUNET_OS_INHERIT_STD_ERR
-                                                | GNUNET_OS_USE_PIPE_CONTROL
-                                                : GNUNET_OS_INHERIT_STD_ERR,
-                                                h->helper_in,
-                                                h->helper_out,
-                                                NULL,
-                                                h->binary_name,
-                                                h->binary_argv);
-  if (NULL == h->helper_proc)
+  h->helper_proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   h->helper_proc,
+                   GNUNET_process_option_std_inheritance (
+                     h->with_control_pipe
+                     ? GNUNET_OS_INHERIT_STD_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL
+                     : GNUNET_OS_INHERIT_STD_ERR),
+                   GNUNET_process_option_inherit_rpipe (h->helper_in,
+                                                        STDIN_FILENO),
+                   GNUNET_process_option_inherit_wpipe (h->helper_out,
+                                                        STDOUT_FILENO)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_argv (h->helper_proc,
+                                         h->binary_name,
+                                         (const char **) h->binary_argv)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (h->helper_proc)) )
   {
     /* failed to start process? try again later... */
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "failed to start process? try again later\n");
-    stop_helper (h, GNUNET_NO);
+    stop_helper (h,
+                 GNUNET_NO);
     h->restart_task = GNUNET_SCHEDULER_add_delayed (
       GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS,
                                      h->retry_back_off),
@@ -427,8 +453,10 @@ start_helper (struct GNUNET_HELPER_Handle *h)
       h);
     return;
   }
-  GNUNET_DISK_pipe_close_end (h->helper_out, GNUNET_DISK_PIPE_END_WRITE);
-  GNUNET_DISK_pipe_close_end (h->helper_in, GNUNET_DISK_PIPE_END_READ);
+  GNUNET_DISK_pipe_close_end (h->helper_out,
+                              GNUNET_DISK_PIPE_END_WRITE);
+  GNUNET_DISK_pipe_close_end (h->helper_in,
+                              GNUNET_DISK_PIPE_END_READ);
   if (NULL != h->mst)
     h->read_task = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                                    h->fh_from_helper,
