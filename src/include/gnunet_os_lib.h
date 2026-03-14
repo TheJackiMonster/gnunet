@@ -664,6 +664,361 @@ GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
 
 
 /**
+ * Process information (new API)
+ */
+struct GNUNET_Process;
+
+/**
+ * Create a process handle. Does not yet start it!
+ *
+ * @return process handle
+ */
+struct GNUNET_Process *
+GNUNET_process_create (void);
+
+
+/**
+ * Set the command to start a process.  Client must pass
+ * the filename and arguments.
+ *
+ * @param[in,out] p process handle for the process to setup
+ * @param filename name of the binary.  It is valid to have the arguments
+ *         in this string when they are separated by spaces.
+ * @param va process arguments, usually including @a filename as
+ *        argv[0] again.  Should all be of type `const char *`.
+ *         The last argument MUST be NULL.
+ * @return #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_command_ap (
+  struct GNUNET_Process *p,
+  const char *filename,
+  va_list va);
+
+
+/**
+ * Set the command to start a process.  Client must pass
+ * the filename and arguments.
+ *
+ * @param[in,out] p process handle for the process to setup
+ * @param filename name of the binary.  It is valid to have the arguments
+ *         in this string when they are separated by spaces.
+ * @param ... the process arguments, usually including @a filename
+ *        as argv[0] again.  Should all be of type `const char *`.
+ *         The last argument MUST be NULL.
+ * @return #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_command_va (struct GNUNET_Process *p,
+                               const char *filename,
+                               ...);
+
+/**
+ * Set the command to start a process.  Client must pass
+ * the full command, which must include the filename and arguments.
+ *
+ * @param[in,out] p process handle for the process to setup
+ * @param command the command-line to run; quoting with '"' is
+ *         supported to not separate arguments on whitespace;
+ *         similarly, you can use '\"' to escape quotes
+ * @return #GNUNET_OK on success
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_command (struct GNUNET_Process *p,
+                            const char *command);
+
+
+/**
+ * Possible options we can set for a process.
+ */
+enum GNUNET_ProcessOption
+{
+  /**
+   * End of list of options.
+   */
+  GNUNET_PROCESS_OPTION_END = 0,
+
+  /**
+   * Option to set inheritance flags.
+   */
+  GNUNET_PROCESS_OPTION_STD_INHERITANCE = 1,
+
+  /**
+   * Option to set environment variables.
+   */
+  GNUNET_PROCESS_OPTION_SET_ENVIRONMENT = 2,
+
+  /**
+   * Option to inherit file descriptors.
+   */
+  GNUNET_PROCESS_OPTION_INHERIT_FD = 3,
+
+  /**
+   * Option to inherit a listen socket systemd-style.
+   */
+  GNUNET_PROCESS_OPTION_INHERIT_LSOCK = 4
+};
+
+
+/**
+ * Maximum number of process options we can set in one pass.
+ */
+#define GNUNET_PROCESS_OPTIONS_ARRAY_MAX_SIZE 32
+
+
+/**
+ * Possible options we can set for a process.
+ */
+struct GNUNET_ProcessOptionValue
+{
+
+  /**
+   * Type of the option being set.
+   */
+  enum GNUNET_ProcessOption option;
+
+  /**
+   * Specific option value.
+   */
+  union
+  {
+
+    /**
+     * Value of if @e option is #GNUNET_PROCESS_OPTION_STD_INHERITANCE.
+     */
+    enum GNUNET_OS_InheritStdioFlags std_inheritance;
+
+    /**
+     * Value of if @e option is #GNUNET_PROCESS_OPTION_SET_ENVIRONMENT.
+     */
+    struct
+    {
+      /**
+       * Name of the environment variable to set.
+       */
+      const char *key;
+
+      /**
+       * Value to set, NULL to clear.
+       */
+      const char *value;
+
+    } set_environment;
+
+    /**
+     * Value of if @e option is #GNUNET_PROCESS_OPTION_INHERIT_FD.
+     */
+    struct
+    {
+
+      /**
+       * File descriptor in the target process.
+       */
+      int target_fd;
+
+      /**
+       * File descriptor in the parent process (must be open!).
+       */
+      int parent_fd;
+
+    } inherit_fd;
+
+    /**
+     * Value of if @e option is #GNUNET_PROCESS_OPTION_INHERIT_LSOCK.
+     * Listen socket in the parent process (must be open)!
+     */
+    int inherit_lsock;
+
+  } details;
+
+};
+
+
+/**
+ * Terminate the list of the options.
+ *
+ * @return the terminating object of struct GNUNET_ProcessOptionValue
+ */
+#define GNUNET_process_option_end_()             \
+        (const struct GNUNET_ProcessOptionValue) \
+        {                                        \
+          .option = GNUNET_PROCESS_OPTION_END    \
+        }
+
+/**
+ * Set environment variable in child process.
+ *
+ * @param key name of the variable
+ * @param value value to set, NULL to clear
+ * @return the option
+ */
+#define GNUNET_process_option_set_environment(key,value)   \
+        (const struct GNUNET_ProcessOptionValue)           \
+        {                                                  \
+          .option = GNUNET_PROCESS_OPTION_INHERIT_LSOCK,   \
+          .details.set_environment.key = key,              \
+          .details.set_environment.value = value           \
+        }
+
+/**
+ * Have child process inherit a file descriptor.
+ *
+ * @param parent_fd open file descriptor in this process
+ * @param child_fd target file descriptor in the child process
+ * @return the terminating object of struct GNUNET_ProcessOptionValue
+ */
+#define GNUNET_process_option_inherit_fd(parent_fd, child_fd)  \
+        (const struct GNUNET_ProcessOptionValue)               \
+        {                                                      \
+          .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
+          .details.inherit_fd.target_fd = child_fd,            \
+          .details.inherit_fd.parent_fd = parent_fd              \
+        }
+
+/**
+ * Pass listen socket to child systemd-style.
+ *
+ * @param lsock open listen socket to pass to the child
+ * @return the option
+ */
+#define GNUNET_process_option_inherit_lsock(lsock)        \
+        (const struct GNUNET_ProcessOptionValue)          \
+        {                                                 \
+          .option = GNUNET_PROCESS_OPTION_INHERIT_LSOCK,  \
+          .details.inherit_lsock = lsock                  \
+        }
+
+
+/**
+ * Set the requested options for the process.
+ * If any option fail other options may be or may be not applied.
+ *
+ * @param[in,out] proc the process to set the options for
+ * @param num_options maximum length of the @a options array
+ * @param options array of options, possibly terminated early
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO on failure,
+ *         #GNUNET_SYSERR on internal error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_set_options_ (
+  struct GNUNET_Process *proc,
+  unsigned int num_options,
+  const struct GNUNET_ProcessOptionValue options[]);
+
+
+/**
+ * Set the requested options for the process.
+ *
+ * If any option fail other options may be or may be not applied.
+ *
+ * It should be used with helpers that creates required options, for example:
+ *
+ * GNUNET_process_set_options (
+ *   proc,
+ *   GNUNET_process_option_std_inheritance_(si));
+ *
+ * @param proc the process to set the options for
+ * @param ... the list of the options, each option must be created
+ *            by helpers GNUNET_process_option_NAME(VALUE)
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO on failure,
+ *         #GNUNET_SYSERR on internal error
+ */
+#define GNUNET_process_set_options(proc,...)              \
+        GNUNET_process_set_options_ (                     \
+          proc,                                           \
+          GNUNET_PROCESS_OPTIONS_ARRAY_MAX_SIZE,          \
+          ((const struct GNUNET_ProcessOptionValue[])     \
+           {__VA_ARGS__, GNUNET_process_option_end_ () }  \
+          ))
+
+
+/**
+ * Start a process.
+ *
+ * @param[in,out] proc process to start
+ * @return process ID of the new process, -1 on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_start (struct GNUNET_Process *proc);
+
+
+/**
+ * Wait for a process to terminate.
+ * Retrieve the status of a process.
+ * This function may be called repeatedly, it will
+ * always return the last status of the process.
+ *
+ * @param proc pointer to process structure
+ * @param blocking true to wait for the process to terminate
+ * @param[out] type set to process status type
+ * @param[out] code return code/signal number
+ * @return #GNUNET_OK on success,
+ *         #GNUNET_NO if the process is still running,
+ *         #GNUNET_SYSERR otherwise
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_wait (struct GNUNET_Process *proc,
+                     bool blocking,
+                     enum GNUNET_OS_ProcessStatusType *type,
+                     unsigned long *code);
+
+
+/**
+ * Cleans up process structure contents (OS-dependent) and deallocates it.
+ * Does NOT kill a running process.
+ *
+ * @param[in] proc pointer to process structure
+ */
+void
+GNUNET_process_destroy (struct GNUNET_Process *proc);
+
+
+/**
+ * Get the pid of the process in question.
+ *
+ * @param proc the process to get the pid of
+ * @return the current process id, -1 if the process is not running
+ */
+pid_t
+GNUNET_process_get_pid (const struct GNUNET_Process *proc);
+
+
+/**
+ * Sends a signal to the process
+ *
+ * @param proc pointer to process structure
+ * @param sig signal
+ * @return #GNUNET_OK on success, #GNUNET_SYSERR on error
+ */
+enum GNUNET_GenericReturnValue
+GNUNET_process_kill2 (struct GNUNET_Process *proc,
+                      int sig);
+
+
+/**
+ * Get process structure for current process
+ *
+ * The pointer it returns points to static memory location and must
+ * not be deallocated/closed.
+ *
+ * @return pointer to the process sturcutre for this process
+ */
+struct GNUNET_Process *
+GNUNET_process_current (void);
+
+
+/**
+ * Connects this process to its parent via pipe; essentially, the parent
+ * control handler will read signal numbers from the #GNUNET_OS_CONTROL_PIPE
+ * (as given in an environment variable) and raise those signals.
+ */
+void
+GNUNET_process_install_parent_control_handler (void);
+
+
+/**
  * Connects this process to its parent via pipe;
  * essentially, the parent control handler will read signal numbers
  * from the #GNUNET_OS_CONTROL_PIPE (as given in an environment

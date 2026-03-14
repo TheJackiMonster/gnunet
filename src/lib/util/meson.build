@@ -56,6 +56,7 @@ libgnunetutil_src = [
     'os_installation.c',
     'os_network.c',
     'os_priority.c',
+    'os_process.c',
     'peer.c',
     'plugin.c',
     'program.c',

@@ -793,8 +793,9 @@ GNUNET_logger_remove (GNUNET_Logger logger,
 
   prev = NULL;
   pos = loggers;
-  while ((NULL != pos) &&
-         ((pos->logger != logger) || (pos->logger_cls != logger_cls)))
+  while ( (NULL != pos) &&
+          ( (pos->logger != logger) ||
+            (pos->logger_cls != logger_cls) ) )
   {
     prev = pos;
     pos = pos->next;
@@ -910,7 +911,11 @@ output_message (enum GNUNET_ErrorType kind,
   pos = loggers;
   while (NULL != pos)
   {
-    pos->logger (pos->logger_cls, kind, comp, datestr, msg);
+    pos->logger (pos->logger_cls,
+                 kind,
+                 comp,
+                 datestr,
+                 msg);
     pos = pos->next;
   }
 }
@@ -955,7 +960,10 @@ flush_bulk (const char *datestr)
             ft);
   if (rev == 1)
     last[0] = '\n';
-  output_message (last_bulk_kind, last_bulk_comp, datestr, msg);
+  output_message (last_bulk_kind,
+                  last_bulk_comp,
+                  datestr,
+                  msg);
   last_bulk_time = GNUNET_TIME_absolute_get ();
   last_bulk_repeat = 0;
 }
@@ -1011,9 +1019,13 @@ mylog (enum GNUNET_ErrorType kind,
   struct tm *tmptr;
   size_t size;
   va_list vacp;
+  int eno = errno;
 
   va_copy (vacp, va);
-  size = vsnprintf (NULL, 0, message, vacp) + 1;
+  size = vsnprintf (NULL,
+                    0,
+                    message,
+                    vacp) + 1;
   GNUNET_assert (0 != size);
   va_end (vacp);
   memset (date, 0, DATE_STR_SIZE);
@@ -1023,7 +1035,8 @@ mylog (enum GNUNET_ErrorType kind,
 
     struct timeval timeofday;
 
-    gettimeofday (&timeofday, NULL);
+    gettimeofday (&timeofday,
+                  NULL);
     offset = GNUNET_TIME_get_offset ();
     if (offset > 0)
     {
@@ -1056,11 +1069,16 @@ mylog (enum GNUNET_ErrorType kind,
     else
     {
       /* RFC 3339 timestamp, with snprintf placeholder for microseconds */
-      if (0 == strftime (date2, DATE_STR_SIZE, "%Y-%m-%dT%H:%M:%S.%%06u%z",
+      if (0 == strftime (date2,
+                         DATE_STR_SIZE,
+                         "%Y-%m-%dT%H:%M:%S.%%06u%z",
                          tmptr))
         abort ();
       /* Fill in microseconds */
-      if (0 > snprintf (date, sizeof(date), date2, timeofday.tv_usec))
+      if (0 > snprintf (date,
+                        sizeof(date),
+                        date2,
+                        timeofday.tv_usec))
         abort ();
     }
 
@@ -1081,13 +1099,21 @@ mylog (enum GNUNET_ErrorType kind,
       return;
     }
     flush_bulk (date);
-    GNUNET_strlcpy (last_bulk, buf, sizeof(last_bulk));
+    GNUNET_strlcpy (last_bulk,
+                    buf,
+                    sizeof(last_bulk));
     last_bulk_repeat = 0;
     last_bulk_kind = kind;
     last_bulk_time = GNUNET_TIME_absolute_get ();
-    GNUNET_strlcpy (last_bulk_comp, comp, sizeof(last_bulk_comp));
-    output_message (kind, comp, date, buf);
+    GNUNET_strlcpy (last_bulk_comp,
+                    comp,
+                    sizeof(last_bulk_comp));
+    output_message (kind,
+                    comp,
+                    date,
+                    buf);
   }
+  errno = eno;
 }
 
 
@@ -1099,12 +1125,17 @@ mylog (enum GNUNET_ErrorType kind,
  * @param ... arguments for format string
  */
 void
-GNUNET_log_nocheck (enum GNUNET_ErrorType kind, const char *message, ...)
+GNUNET_log_nocheck (enum GNUNET_ErrorType kind,
+                    const char *message,
+                    ...)
 {
   va_list va;
 
-  va_start (va, message);
-  mylog (kind, component, message, va);
+  va_start (va,
+            message);
+  mylog (kind,
+         component,
+         message, va);
   va_end (va);
 }
 
@@ -1126,14 +1157,23 @@ GNUNET_log_from_nocheck (enum GNUNET_ErrorType kind,
 {
   va_list va;
   char comp_w_pid[128];
+  int eno = errno;
 
-  if (comp == NULL)
+  if (NULL == comp)
     comp = component_nopid;
 
   va_start (va, message);
-  GNUNET_snprintf (comp_w_pid, sizeof(comp_w_pid), "%s-%d", comp, getpid ());
-  mylog (kind, comp_w_pid, message, va);
+  GNUNET_snprintf (comp_w_pid,
+                   sizeof(comp_w_pid),
+                   "%s-%d",
+                   comp,
+                   getpid ());
+  mylog (kind,
+         comp_w_pid,
+         message,
+         va);
   va_end (va);
+  errno = eno;
 }
 
 
@@ -1167,7 +1207,8 @@ GNUNET_h2s (const struct GNUNET_HashCode *hc)
 {
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
 
-  GNUNET_CRYPTO_hash_to_enc (hc, &ret);
+  GNUNET_CRYPTO_hash_to_enc (hc,
+                             &ret);
   ret.encoding[8] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1188,7 +1229,8 @@ GNUNET_h2s2 (const struct GNUNET_HashCode *hc)
 {
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
 
-  GNUNET_CRYPTO_hash_to_enc (hc, &ret);
+  GNUNET_CRYPTO_hash_to_enc (hc,
+                             &ret);
   ret.encoding[8] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1200,8 +1242,11 @@ GNUNET_p2s (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
   struct GNUNET_HashCode hc;
 
-  GNUNET_CRYPTO_hash (p, sizeof(*p), &hc);
-  GNUNET_CRYPTO_hash_to_enc (&hc, &ret);
+  GNUNET_CRYPTO_hash (p,
+                      sizeof(*p),
+                      &hc);
+  GNUNET_CRYPTO_hash_to_enc (&hc,
+                             &ret);
   ret.encoding[6] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1213,8 +1258,11 @@ GNUNET_p2s2 (const struct GNUNET_CRYPTO_EddsaPublicKey *p)
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
   struct GNUNET_HashCode hc;
 
-  GNUNET_CRYPTO_hash (p, sizeof(*p), &hc);
-  GNUNET_CRYPTO_hash_to_enc (&hc, &ret);
+  GNUNET_CRYPTO_hash (p,
+                      sizeof(*p),
+                      &hc);
+  GNUNET_CRYPTO_hash_to_enc (&hc,
+                             &ret);
   ret.encoding[6] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1226,8 +1274,11 @@ GNUNET_e2s (const struct GNUNET_CRYPTO_EcdhePublicKey *p)
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
   struct GNUNET_HashCode hc;
 
-  GNUNET_CRYPTO_hash (p, sizeof(*p), &hc);
-  GNUNET_CRYPTO_hash_to_enc (&hc, &ret);
+  GNUNET_CRYPTO_hash (p,
+                      sizeof(*p),
+                      &hc);
+  GNUNET_CRYPTO_hash_to_enc (&hc,
+                             &ret);
   ret.encoding[6] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1239,8 +1290,11 @@ GNUNET_e2s2 (const struct GNUNET_CRYPTO_EcdhePublicKey *p)
   static GNUNET_THREAD_LOCAL struct GNUNET_CRYPTO_HashAsciiEncoded ret;
   struct GNUNET_HashCode hc;
 
-  GNUNET_CRYPTO_hash (p, sizeof(*p), &hc);
-  GNUNET_CRYPTO_hash_to_enc (&hc, &ret);
+  GNUNET_CRYPTO_hash (p,
+                      sizeof(*p),
+                      &hc);
+  GNUNET_CRYPTO_hash_to_enc (&hc,
+                             &ret);
   ret.encoding[6] = '\0';
   return (const char *) ret.encoding;
 }
@@ -1260,7 +1314,10 @@ GNUNET_sh2s (const struct GNUNET_ShortHashCode *shc)
 {
   static GNUNET_THREAD_LOCAL char buf[64];
 
-  GNUNET_STRINGS_data_to_string (shc, sizeof(*shc), buf, sizeof(buf));
+  GNUNET_STRINGS_data_to_string (shc,
+                                 sizeof(*shc),
+                                 buf,
+                                 sizeof(buf));
   buf[6] = '\0';
   return (const char *) buf;
 }
@@ -1383,7 +1440,8 @@ GNUNET_i2s_full (const struct GNUNET_PeerIdentity *pid)
  *  will be overwritten by next call to #GNUNET_a2s.
  */
 const char *
-GNUNET_a2s (const struct sockaddr *addr, socklen_t addrlen)
+GNUNET_a2s (const struct sockaddr *addr,
+            socklen_t addrlen)
 {
 #define LEN                           \
         GNUNET_MAX ((INET6_ADDRSTRLEN + 8), \
@@ -1532,7 +1590,10 @@ GNUNET_async_scope_get (struct GNUNET_AsyncScopeSave *scope_ret)
 
 
 size_t
-GNUNET_hex2b (const char *src, void *dst, size_t dstlen, int invert)
+GNUNET_hex2b (const char *src,
+              void *dst,
+              size_t dstlen,
+              int invert)
 {
   const char *line = src;
   const char *data = line;
@@ -1555,7 +1616,10 @@ GNUNET_hex2b (const char *src, void *dst, size_t dstlen, int invert)
 
 
 void
-GNUNET_print_bytes (const void *buf, size_t buf_len, int fold, int in_be)
+GNUNET_print_bytes (const void *buf,
+                    size_t buf_len,
+                    int fold,
+                    int in_be)
 {
   int i;
 
@@ -1585,19 +1649,6 @@ void __attribute__ ((constructor))
 GNUNET_util_cl_init (void)
 {
   GNUNET_stderr = stderr;
-}
-
-
-void
-GNUNET_util_cl_fini (void);
-
-/**
- * Destructor
- */
-void __attribute__ ((destructor))
-GNUNET_util_cl_fini (void)
-{
-
 }
 
 
