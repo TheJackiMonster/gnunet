@@ -40,13 +40,13 @@
  * How long do we give upnpc to remove a mapping?
  */
 #define UNMAP_TIMEOUT \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 1)
 
 /**
  * How often do we check for changes in the mapping?
  */
 #define MAP_REFRESH_FREQ \
-  GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
+        GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_MINUTES, 5)
 
 
 /* ************************* external-ip calling ************************ */
@@ -74,7 +74,7 @@ struct GNUNET_NAT_ExternalHandle
   /**
    * Handle to `external-ip` process.
    */
-  struct GNUNET_OS_Process *eip;
+  struct GNUNET_Process *eip;
 
   /**
    * Handle to stdout pipe of `external-ip`.
@@ -199,18 +199,26 @@ GNUNET_NAT_mini_get_external_ipv4_ (GNUNET_NAT_IPCallback cb, void *cb_cls)
     eh->task = GNUNET_SCHEDULER_add_now (&signal_external_ip_error, eh);
     return eh;
   }
-  eh->eip = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_NONE,
-                                     NULL,
-                                     eh->opipe,
-                                     NULL,
-                                     "external-ip",
-                                     "external-ip",
-                                     NULL);
-  if (NULL == eh->eip)
+  eh->eip = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   eh->eip,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_NONE),
+                   GNUNET_process_option_inherit_wpipe (eh->opipe,
+                                                        STDOUT_FILENO)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command (eh->eip,
+                                    "external-ip")) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (eh->eip)) )
   {
+    GNUNET_process_destroy (eh->eip);
+    eh->eip = NULL;
     GNUNET_DISK_pipe_close (eh->opipe);
     eh->ret = GNUNET_NAT_ERROR_EXTERNAL_IP_UTILITY_FAILED;
-    eh->task = GNUNET_SCHEDULER_add_now (&signal_external_ip_error, eh);
+    eh->task = GNUNET_SCHEDULER_add_now (&signal_external_ip_error,
+                                         eh);
     return eh;
   }
   GNUNET_DISK_pipe_close_end (eh->opipe, GNUNET_DISK_PIPE_END_WRITE);
@@ -233,9 +241,14 @@ GNUNET_NAT_mini_get_external_ipv4_cancel_ (struct GNUNET_NAT_ExternalHandle *eh)
 {
   if (NULL != eh->eip)
   {
-    (void) GNUNET_OS_process_kill (eh->eip, SIGKILL);
-    GNUNET_break (GNUNET_OK == GNUNET_OS_process_wait (eh->eip));
-    GNUNET_OS_process_destroy (eh->eip);
+    (void) GNUNET_process_kill (eh->eip,
+                                SIGKILL);
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_process_wait (eh->eip,
+                                       true,
+                                       NULL,
+                                       NULL));
+    GNUNET_process_destroy (eh->eip);
   }
   if (NULL != eh->opipe)
   {
