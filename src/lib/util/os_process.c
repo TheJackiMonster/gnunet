@@ -116,7 +116,7 @@ struct GNUNET_Process
   unsigned int envs_size;
 
   /**
-   * Environmet variables to set in the target process.
+   * Environment variables to set in the target process.
    */
   struct EnviEntry *envs;
 
@@ -310,21 +310,19 @@ enum GNUNET_GenericReturnValue
 GNUNET_process_kill2 (struct GNUNET_Process *proc,
                       int sig)
 {
-  int ret;
-
   if (NULL != proc->control_pipe)
   {
     char csig = (char) sig;
-    ssize_t ret;
+    ssize_t iret;
 
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Sending signal %d to pid: %u via pipe\n",
          sig,
          proc->pid);
-    ret = GNUNET_DISK_file_write (proc->control_pipe,
-                                  &csig,
-                                  sizeof(csig));
-    if (sizeof(csig) == ret)
+    iret = GNUNET_DISK_file_write (proc->control_pipe,
+                                   &csig,
+                                   sizeof(csig));
+    if (sizeof(csig) == iret)
       return GNUNET_OK;
   }
   /* pipe failed or non-existent, try other methods */
@@ -332,16 +330,20 @@ GNUNET_process_kill2 (struct GNUNET_Process *proc,
        "Sending signal %d to pid: %u via system call\n",
        sig,
        proc->pid);
-  ret = kill (proc->pid,
-              sig);
-  if (0 != ret)
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
-                         "kill");
-  }
-  return (0 == ret)
+    int ret;
+
+    ret = kill (proc->pid,
+                sig);
+    if (0 != ret)
+    {
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                           "kill");
+    }
+    return (0 == ret)
     ? GNUNET_OK
     : GNUNET_SYSERR;
+  }
 }
 
 
@@ -715,6 +717,7 @@ GNUNET_process_start (struct GNUNET_Process *proc)
 
       GNUNET_break (0 ==
                     close (me->parent_fd));
+      me->parent_fd = -1;
     }
     return GNUNET_OK;
   }
@@ -839,7 +842,7 @@ GNUNET_process_start (struct GNUNET_Process *proc)
                              1));
   }
 
-  /* finaly execute */
+  /* finally execute */
   execvp (proc->filename,
           proc->argv);
   LOG_STRERROR_FILE (GNUNET_ERROR_TYPE_ERROR,
@@ -1037,7 +1040,29 @@ GNUNET_process_set_options_ (
       }
       continue;
     case GNUNET_PROCESS_OPTION_INHERIT_FD:
+      {
+        struct ProcessFileMapEntry pme = {
+          .target_fd = ov->details.inherit_fd.target_fd,
+          .parent_fd = ov->details.inherit_fd.parent_fd
+        };
+
+        GNUNET_array_append (proc->map,
+                             proc->map_size,
+                             pme);
+      }
+      continue;
     case GNUNET_PROCESS_OPTION_INHERIT_LSOCK:
+      {
+        struct ProcessFileMapEntry pme = {
+          .target_fd = -1, /* any */
+          .parent_fd = ov->details.inherit_fd.parent_fd,
+          .systemd_listen_socket = true
+        };
+
+        GNUNET_array_append (proc->map,
+                             proc->map_size,
+                             pme);
+      }
       continue;
     }
     GNUNET_break (0);

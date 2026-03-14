@@ -869,7 +869,7 @@ struct GNUNET_ProcessOptionValue
 #define GNUNET_process_option_set_environment(key,value)   \
         (const struct GNUNET_ProcessOptionValue)           \
         {                                                  \
-          .option = GNUNET_PROCESS_OPTION_INHERIT_LSOCK,   \
+          .option = GNUNET_PROCESS_OPTION_SET_ENVIRONMENT, \
           .details.set_environment.key = key,              \
           .details.set_environment.value = value           \
         }

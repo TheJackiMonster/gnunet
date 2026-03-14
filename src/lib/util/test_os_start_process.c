@@ -258,8 +258,11 @@ check_kill (void)
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command (proc,
-                                             "gnunet-service-resolver -"));
+                 GNUNET_process_set_command_va (proc,
+                                                fn,
+                                                "gnunet-service-resolver",
+                                                "-",
+                                                NULL));
   if (GNUNET_OK !=
       GNUNET_process_start (proc))
   {
@@ -267,6 +270,7 @@ check_kill (void)
                 "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");
     GNUNET_process_destroy (proc);
     proc = NULL;
+    GNUNET_free (fn);
     return 77;
   }
   sleep (1);  /* give process time to start, so we actually use the pipe-kill mechanism! */
@@ -318,8 +322,11 @@ check_instant_kill (void)
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command (proc,
-                                             "gnunet-service-resolver -"));
+                 GNUNET_process_set_command_va (proc,
+                                                fn,
+                                                "gnunet-service-resolver",
+                                                "-",
+                                                NULL));
   if (GNUNET_OK !=
       GNUNET_process_start (proc))
   {
@@ -327,6 +334,7 @@ check_instant_kill (void)
                 "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");
     GNUNET_process_destroy (proc);
     proc = NULL;
+    GNUNET_free (fn);
     return 77;
   }
   if (GNUNET_OK !=
