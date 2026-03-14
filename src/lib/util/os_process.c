@@ -977,7 +977,7 @@ GNUNET_process_set_command (struct GNUNET_Process *p,
   }
   if (i != start)
     p->argv[cnt] = GNUNET_strndup (&cmd[start],
-                                   i = start);
+                                   i - start);
   GNUNET_free (cmd);
   if (quote_on)
   {
@@ -995,7 +995,12 @@ GNUNET_process_set_command (struct GNUNET_Process *p,
       GNUNET_OS_check_helper_binary (p->argv[0],
                                      GNUNET_NO,
                                      NULL))
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Specified binary `%s' is not executable\n",
+                p->argv[0]);
     return GNUNET_SYSERR;
+  }
   p->filename = GNUNET_strdup (p->argv[0]);
   return GNUNET_OK;
 }
@@ -1053,8 +1058,10 @@ GNUNET_process_wait (struct GNUNET_Process *proc,
 
   if (-1 == proc->pid)
   {
-    *type = proc->exit_type;
-    *code = proc->exit_code;
+    if (NULL != type)
+      *type = proc->exit_type;
+    if (NULL != code)
+      *code = proc->exit_code;
     return GNUNET_OK;
   }
   while ( (proc->pid !=
@@ -1065,16 +1072,20 @@ GNUNET_process_wait (struct GNUNET_Process *proc,
     ;
   if (0 == ret)
   {
-    *type = GNUNET_OS_PROCESS_RUNNING;
-    *code = 0;
+    if (NULL != type)
+      *type = GNUNET_OS_PROCESS_RUNNING;
+    if (NULL != code)
+      *code = 0;
     return GNUNET_NO;
   }
 #ifdef WIFCONTINUED
   if ( (proc->pid == ret) &&
        (WIFCONTINUED (status)) )
   {
-    *type = GNUNET_OS_PROCESS_RUNNING;
-    *code = 0;
+    if (NULL != type)
+      *type = GNUNET_OS_PROCESS_RUNNING;
+    if (NULL != code)
+      *code = 0;
     return GNUNET_NO;
   }
 #endif
@@ -1106,8 +1117,10 @@ GNUNET_process_wait (struct GNUNET_Process *proc,
     proc->exit_type = GNUNET_OS_PROCESS_UNKNOWN;
     proc->exit_code = 0;
   }
-  *type = proc->exit_type;
-  *code = proc->exit_code;
+  if (NULL != type)
+    *type = proc->exit_type;
+  if (NULL != code)
+    *code = proc->exit_code;
   return GNUNET_OK;
 }
 

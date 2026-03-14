@@ -23,8 +23,6 @@
  * @brief Methods to set process priority
  * @author Nils Durner
  */
-
-
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "disk.h"

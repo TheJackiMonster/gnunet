@@ -1726,6 +1726,15 @@ GNUNET_DISK_internal_file_handle_ (const struct GNUNET_DISK_FileHandle *fh,
 }
 
 
+int
+GNUNET_DISK_internal_file_handle2_ (const struct GNUNET_DISK_FileHandle *fh)
+{
+  if (NULL == fh)
+    return -1;
+  return fh->fd;
+}
+
+
 /**
  * Helper function for #GNUNET_DISK_purge_cfg_dir.
  *

@@ -846,6 +846,20 @@ struct GNUNET_ProcessOptionValue
         }
 
 /**
+ * Set flags about standard inheritance options.
+ *
+ * @param flags flags to set
+ * @return the option
+ */
+#define GNUNET_process_option_std_inheritance(flags)  \
+        (const struct GNUNET_ProcessOptionValue)               \
+        {                                                      \
+          .option = GNUNET_PROCESS_OPTION_STD_INHERITANCE,     \
+          .details.std_inheritance = flags                     \
+        }
+
+
+/**
  * Set environment variable in child process.
  *
  * @param key name of the variable
@@ -873,6 +887,42 @@ struct GNUNET_ProcessOptionValue
           .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
           .details.inherit_fd.target_fd = child_fd,            \
           .details.inherit_fd.parent_fd = parent_fd              \
+        }
+
+/**
+ * Have child process inherit a pipe for reading.
+ *
+ * @param rpipe open pipe in this process the child should read from
+ * @param child_fd target file descriptor in the child process
+ * @return the terminating object of struct GNUNET_ProcessOptionValue
+ */
+#define GNUNET_process_option_inherit_rpipe(rpipe, child_fd)  \
+        (const struct GNUNET_ProcessOptionValue)               \
+        {                                                      \
+          .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
+          .details.inherit_fd.target_fd = child_fd,            \
+          .details.inherit_fd.parent_fd \
+            = GNUNET_DISK_internal_file_handle2_ ( \
+                GNUNET_DISK_pipe_handle (rpipe, \
+                                         GNUNET_DISK_PIPE_END_READ)) \
+        }
+
+/**
+ * Have child process inherit a pipe for writing.
+ *
+ * @param wpipe open pipe in this process the child should write to
+ * @param child_fd target file descriptor in the child process
+ * @return the terminating object of struct GNUNET_ProcessOptionValue
+ */
+#define GNUNET_process_option_inherit_wpipe(wpipe, child_fd)  \
+        (const struct GNUNET_ProcessOptionValue)               \
+        {                                                      \
+          .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
+          .details.inherit_fd.target_fd = child_fd,            \
+          .details.inherit_fd.parent_fd \
+            = GNUNET_DISK_internal_file_handle2_ ( \
+                GNUNET_DISK_pipe_handle (wpipe, \
+                                         GNUNET_DISK_PIPE_END_WRITE)) \
         }
 
 /**
