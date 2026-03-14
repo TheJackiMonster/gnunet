@@ -337,47 +337,65 @@ main (int argc, char *argv[])
 {
   int ok = 1 + 2 + 4 + 8;
   char *fn;
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
   char *const argvx[] = {
     (char*) "test-resolver-api",
     (char*) "-c",
     (char*) "test_resolver_api_data.conf",
     NULL
   };
-  struct GNUNET_GETOPT_CommandLineOption options[] =
-  { GNUNET_GETOPT_OPTION_END };
+  struct GNUNET_GETOPT_CommandLineOption options[] = {
+    GNUNET_GETOPT_OPTION_END
+  };
 
   GNUNET_log_setup ("test-resolver-api",
                     "WARNING",
                     NULL);
   fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                           "gnunet-service-resolver");
-  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                  | GNUNET_OS_USE_PIPE_CONTROL,
-                                  NULL, NULL, NULL,
-                                  fn,
-                                  "gnunet-service-resolver",
-                                  "-c", "test_resolver_api_data.conf", NULL);
-  GNUNET_assert (NULL != proc);
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (
+                   proc,
+                   fn,
+                   "gnunet-service-resolver",
+                   "-c", "test_resolver_api_data.conf",
+                   NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
   GNUNET_free (fn);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                                      (sizeof(argvx) / sizeof(char *)) - 1,
-                                     argvx, "test-resolver-api", "nohelp",
+                                     argvx,
+                                     "test-resolver-api",
+                                     "nohelp",
                                      options,
                                      &run, &ok));
-  if (0 != GNUNET_OS_process_kill (proc,
-                                   GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
     ok = 1;
   }
-  GNUNET_OS_process_wait (proc);
-  GNUNET_OS_process_destroy (proc);
+  GNUNET_process_wait (proc,
+                       true,
+                       NULL,
+                       NULL);
+  GNUNET_process_destroy (proc);
   proc = NULL;
   if (0 != ok)
-    fprintf (stderr, "Missed some resolutions: %u\n", ok);
+    fprintf (stderr,
+             "Missed some resolutions: %u\n",
+             ok);
   return ok;
 }
 

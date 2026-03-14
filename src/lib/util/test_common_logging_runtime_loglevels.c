@@ -47,7 +47,7 @@ static int ok;
 
 static int phase = 0;
 
-static struct GNUNET_OS_Process *proc;
+static struct GNUNET_Process *proc;
 
 /* Pipe to read from started processes stdout (on read end) */
 static struct GNUNET_DISK_PipeHandle *pipe_stdout;
@@ -63,16 +63,24 @@ runone (void);
 static void
 end_task (void *cls)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, "Ending phase %d, ok is %d\n", phase,
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Ending phase %d, ok is %d\n",
+              phase,
               ok);
   if (NULL != proc)
   {
-    if (0 != GNUNET_OS_process_kill (proc, GNUNET_TERM_SIG))
+    if (GNUNET_OK !=
+        GNUNET_process_kill (proc,
+                             GNUNET_TERM_SIG))
     {
-      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+      GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                           "kill");
     }
-    GNUNET_OS_process_wait (proc);
-    GNUNET_OS_process_destroy (proc);
+    GNUNET_process_wait (proc,
+                         true,
+                         NULL,
+                         NULL);
+    GNUNET_process_destroy (proc);
     proc = NULL;
   }
   if (NULL != read_task)
@@ -346,7 +354,7 @@ read_call (void *cls)
 
 
 static void
-runone ()
+runone (void)
 {
   const struct GNUNET_DISK_FileHandle *stdout_read_handle;
 
@@ -405,30 +413,42 @@ runone ()
     break;
   }
 
-  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                  NULL, pipe_stdout, NULL,
-                                  "./test_common_logging_dummy",
-                                  "test_common_logging_dummy", NULL);
-  GNUNET_assert (NULL != proc);
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_inherit_wpipe (pipe_stdout,
+                                                        STDOUT_FILENO)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (proc,
+                                                "./test_common_logging_dummy",
+                                                "test_common_logging_dummy",
+                                                NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
   putenv ((char*) "GNUNET_FORCE_LOG=");
   putenv ((char*) "GNUNET_LOG=");
 
   /* Close the write end of the read pipe */
-  GNUNET_DISK_pipe_close_end (pipe_stdout, GNUNET_DISK_PIPE_END_WRITE);
+  GNUNET_DISK_pipe_close_end (pipe_stdout,
+                              GNUNET_DISK_PIPE_END_WRITE);
 
   stdout_read_handle =
-    GNUNET_DISK_pipe_handle (pipe_stdout, GNUNET_DISK_PIPE_END_READ);
+    GNUNET_DISK_pipe_handle (pipe_stdout,
+                             GNUNET_DISK_PIPE_END_READ);
 
   die_task =
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply
-                                    (GNUNET_TIME_UNIT_SECONDS, 10),
+    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
+                                    GNUNET_TIME_UNIT_SECONDS,
+                                    10),
                                   &end_task,
                                   NULL);
 
   bytes = 0;
   buf_ptr = buf;
-  memset (&buf, 0, sizeof(buf));
-
+  memset (&buf,
+          0,
+          sizeof(buf));
   read_task = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                               stdout_read_handle,
                                               &read_call,
@@ -445,13 +465,15 @@ task (void *cls)
 
 
 int
-main (int argc, char *argv[])
+main (int argc,
+      char *argv[])
 {
   GNUNET_log_setup ("test-common-logging-runtime-loglevels",
                     "WARNING",
                     NULL);
   ok = 1;
-  GNUNET_SCHEDULER_run (&task, &ok);
+  GNUNET_SCHEDULER_run (&task,
+                        &ok);
   return ok;
 }
 

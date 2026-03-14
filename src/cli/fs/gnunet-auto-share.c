@@ -154,7 +154,7 @@ static struct GNUNET_DISK_PipeHandle *sigpipe;
 /**
  * Handle to the 'gnunet-publish' process that we executed.
  */
-static struct GNUNET_OS_Process *publish_proc;
+static struct GNUNET_Process *publish_proc;
 
 
 /**
@@ -318,7 +318,9 @@ do_stop_task (void *cls)
   do_shutdown = GNUNET_YES;
   if (NULL != publish_proc)
   {
-    GNUNET_OS_process_kill (publish_proc, SIGKILL);
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_process_kill (publish_proc,
+                                       SIGKILL));
     return;
   }
   if (NULL != run_task)
@@ -370,7 +372,10 @@ maint_child_death (void *cls)
   /* consume the signal */
   GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
 
-  retval = GNUNET_OS_process_status (publish_proc, &type, &code);
+  retval = GNUNET_process_wait (publish_proc,
+                                false,
+                                &type,
+                                &code);
   GNUNET_assert (GNUNET_SYSERR != retval);
   if (GNUNET_NO == retval)
   {
@@ -386,7 +391,7 @@ maint_child_death (void *cls)
   }
   GNUNET_assert (GNUNET_OK == retval);
 
-  GNUNET_OS_process_destroy (publish_proc);
+  GNUNET_process_destroy (publish_proc);
   publish_proc = NULL;
 
   if (GNUNET_YES == do_shutdown)
@@ -480,23 +485,35 @@ work (void *cls)
   argv[argc] = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("Publishing `%s'\n"), wi->filename);
   GNUNET_assert (NULL == publish_proc);
-  publish_proc = GNUNET_OS_start_process_vap (GNUNET_OS_USE_PIPE_CONTROL,
-                                              NULL,
-                                              NULL,
-                                              NULL,
-                                              "gnunet-publish",
-                                              (char * const*) argv);
-  if (NULL == publish_proc)
+  publish_proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   publish_proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_USE_PIPE_CONTROL)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_argv (publish_proc,
+                                         "gnunet-publish",
+                                         (const char **) argv)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (publish_proc)) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to run `%s'\n"),
                 "gnunet-publish");
-    GNUNET_CONTAINER_DLL_insert (work_head, work_tail, wi);
+    GNUNET_CONTAINER_DLL_insert (work_head,
+                                 work_tail,
+                                 wi);
+    GNUNET_process_destroy (publish_proc);
+    publish_proc = NULL;
     run_task =
-      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES, &work, NULL);
+      GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+                                    &work,
+                                    NULL);
     return;
   }
-  pr = GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ);
+  pr = GNUNET_DISK_pipe_handle (sigpipe,
+                                GNUNET_DISK_PIPE_END_READ);
   run_task = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                              pr,
                                              &maint_child_death,

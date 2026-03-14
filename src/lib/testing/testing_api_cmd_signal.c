@@ -54,7 +54,7 @@ signal_run (void *cls,
 {
   struct SignalState *ss = cls;
   const struct GNUNET_TESTING_Command *pcmd;
-  struct GNUNET_OS_Process **process;
+  struct GNUNET_Process **process;
 
   pcmd
     = GNUNET_TESTING_interpreter_lookup_command (is,
@@ -70,9 +70,9 @@ signal_run (void *cls,
       GNUNET_TESTING_get_trait_process (pcmd,
                                         &process))
     GNUNET_TESTING_FAIL (is);
-  GNUNET_break (0 ==
-                GNUNET_OS_process_kill (*process,
-                                        ss->signal));
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_kill (*process,
+                                     ss->signal));
   GNUNET_log (GNUNET_ERROR_TYPE_INFO,
               "Signaling '%d'..\n",
               ss->signal);

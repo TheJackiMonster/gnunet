@@ -655,43 +655,15 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                    enum GNUNET_OS_InheritStdioFlags std_inheritance,
                    struct GNUNET_DISK_FileHandle *sigfd)
 {
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
   char *cbinary;
   char *binary;
   char *quotedbinary;
   char *config;
   char *loprefix;
   char *lopostfix;
-  int ld[2];
-  int *lsocks;
+  enum GNUNET_GenericReturnValue ret;
 
-  if (NULL == sigfd)
-  {
-    lsocks = NULL;
-  }
-  else
-  {
-    ld[0] = sigfd->fd;
-    ld[1] = -1;
-    lsocks = ld;
-  }
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (h->cfg,
-                                             "arm",
-                                             "PREFIX",
-                                             &loprefix))
-    loprefix = GNUNET_strdup ("");
-  else
-    loprefix = GNUNET_CONFIGURATION_expand_dollar (h->cfg, loprefix);
-  if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (h->cfg,
-                                             "arm",
-                                             "OPTIONS",
-                                             &lopostfix))
-    lopostfix = GNUNET_strdup ("");
-  else
-    lopostfix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
-                                                    lopostfix);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (h->cfg,
                                              "arm",
@@ -705,18 +677,53 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     GNUNET_free (lopostfix);
     return GNUNET_ARM_RESULT_IS_NOT_KNOWN;
   }
+
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     std_inheritance)));
+  if (NULL != sigfd)
+  {
+    GNUNET_assert (
+      GNUNET_OK ==
+      GNUNET_process_set_options (
+        proc,
+        GNUNET_process_option_inherit_lsock (sigfd->fd)));
+  }
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (h->cfg,
+                                             "arm",
+                                             "PREFIX",
+                                             &loprefix))
+    loprefix = GNUNET_strdup ("");
+  else
+    loprefix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
+                                                   loprefix);
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (h->cfg,
+                                             "arm",
+                                             "OPTIONS",
+                                             &lopostfix))
+    lopostfix = GNUNET_strdup ("");
+  else
+    lopostfix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
+                                                    lopostfix);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_filename (h->cfg,
                                                "arm",
                                                "CONFIG",
                                                &config))
     config = NULL;
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              cbinary);
+  binary = GNUNET_OS_get_libexec_binary_path (
+    GNUNET_OS_project_data_gnunet (),
+    cbinary);
   GNUNET_asprintf (&quotedbinary,
                    "\"%s\"",
                    binary);
   GNUNET_free (cbinary);
+
   if ( (GNUNET_YES ==
         GNUNET_CONFIGURATION_have_value (h->cfg,
                                          "TESTING",
@@ -733,54 +740,52 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     /* Means we are ONLY running locally */
     /* we're clearly running a test, don't daemonize */
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (std_inheritance,
-                                        lsocks,
-                                        loprefix,
-                                        quotedbinary,
-                                        /* no daemonization! */
-                                        lopostfix,
-                                        NULL);
+      ret = GNUNET_process_set_command_va (proc,
+                                           loprefix,
+                                           quotedbinary,
+                                           /* no daemonization! */
+                                           lopostfix,
+                                           NULL);
     else
-      proc = GNUNET_OS_start_process_s (std_inheritance,
-                                        lsocks,
-                                        loprefix,
-                                        quotedbinary,
-                                        "-c",
-                                        config,
-                                        /* no daemonization! */
-                                        lopostfix,
-                                        NULL);
+      ret = GNUNET_process_set_command_va (proc,
+                                           loprefix,
+                                           quotedbinary,
+                                           "-c",
+                                           config,
+                                           /* no daemonization! */
+                                           lopostfix,
+                                           NULL);
   }
   else
   {
     if (NULL == config)
-      proc = GNUNET_OS_start_process_s (std_inheritance,
-                                        lsocks,
-                                        loprefix,
-                                        quotedbinary,
-                                        "-d",  /* do daemonize */
-                                        lopostfix,
-                                        NULL);
+      ret = GNUNET_process_set_command_va (proc,
+                                           loprefix,
+                                           quotedbinary,
+                                           "-d",  /* do daemonize */
+                                           lopostfix,
+                                           NULL);
     else
-      proc = GNUNET_OS_start_process_s (std_inheritance,
-                                        lsocks,
-                                        loprefix,
-                                        quotedbinary,
-                                        "-c",
-                                        config,
-                                        "-d",  /* do daemonize */
-                                        lopostfix,
-                                        NULL);
+      ret = GNUNET_process_set_command_va (proc,
+                                           loprefix,
+                                           quotedbinary,
+                                           "-c",
+                                           config,
+                                           "-d",  /* do daemonize */
+                                           lopostfix,
+                                           NULL);
   }
   GNUNET_free (binary);
   GNUNET_free (quotedbinary);
-  if (NULL != config)
-    GNUNET_free (config);
+  GNUNET_free (config);
   GNUNET_free (loprefix);
   GNUNET_free (lopostfix);
-  if (NULL == proc)
+  if (GNUNET_OK != ret)
     return GNUNET_ARM_RESULT_START_FAILED;
-  GNUNET_OS_process_destroy (proc);
+  ret = GNUNET_process_start (proc);
+  GNUNET_process_destroy (proc);
+  if (GNUNET_OK != ret)
+    return GNUNET_ARM_RESULT_START_FAILED;
   return GNUNET_ARM_RESULT_STARTING;
 }
 

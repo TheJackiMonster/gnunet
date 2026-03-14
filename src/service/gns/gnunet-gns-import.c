@@ -18,7 +18,7 @@
      SPDX-License-Identifier: AGPL3.0-or-later
  */
 /**
- * @file gnunet-gns.c
+ * @file gnunet-gns-import.c
  * @brief binary version of gnunet-gns-import.sh
  *        (for OSes that have no POSIX shell).
  * @author LRN
@@ -88,22 +88,23 @@ static int ret;
 
 static int
 run_process_and_wait (enum GNUNET_OS_InheritStdioFlags std_inheritance,
-                      struct GNUNET_DISK_PipeHandle *pipe_stdin,
-                      struct GNUNET_DISK_PipeHandle *pipe_stdout,
                       enum GNUNET_OS_ProcessStatusType *st,
                       unsigned long *code,
                       const char *filename, ...)
 {
-  static struct GNUNET_OS_Process *p;
+  struct GNUNET_Process *p;
   int arglen;
   char *arg;
   char *args;
   char *argp;
   va_list ap, apc1, apc2;
 
-  va_start (ap, filename);
-  va_copy (apc1, ap);
-  va_copy (apc2, ap);
+  va_start (ap,
+            filename);
+  va_copy (apc1,
+           ap);
+  va_copy (apc2,
+           ap);
   arglen = 0;
   while (NULL != (arg = va_arg (apc1, char *)))
     arglen += strlen (arg) + 1;
@@ -119,43 +120,47 @@ run_process_and_wait (enum GNUNET_OS_InheritStdioFlags std_inheritance,
   va_end (apc2);
   if (arglen > 0)
     argp[-1] = '\0';
-  p = GNUNET_OS_start_process_va (std_inheritance,
-                                  pipe_stdin,
-                                  pipe_stdout,
-                                  NULL,
-                                  filename, ap);
-  va_end (ap);
-  if (NULL == p)
+  p = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   publish_proc,
+                   GNUNET_process_option_std_inheritance (
+                     std_inheritance)));
+  if (GNUNET_OK !=
+      GNUNET_process_set_command_ap (p,
+                                     filename,
+                                     ap))
   {
+    va_end (ap);
+    GNUNET_process_destroy (p);
     ret = 3;
-    fprintf (stderr, "Failed to run `%s'\n", args);
+    fprintf (stderr,
+             "Failed to run `%s'\n",
+             args);
     GNUNET_free (args);
     return 1;
   }
+  va_end (ap);
 
-  if (GNUNET_OK != GNUNET_OS_process_wait (p))
-  {
-    ret = 4;
-    fprintf (stderr, "Failed to wait for `%s'\n", args);
-    GNUNET_free (args);
-    return 1;
-  }
-
-  switch (GNUNET_OS_process_status (p, st, code))
+  switch (GNUNET_process_wait (p,
+                               true,
+                               st,
+                               code))
   {
   case GNUNET_OK:
     break;
-
   case GNUNET_NO:
     ret = 5;
-    fprintf (stderr, "`%s' is still running\n", args);
+    fprintf (stderr,
+             "`%s' is still running\n",
+             args);
     GNUNET_free (args);
     return 1;
-
-  default:
   case GNUNET_SYSERR:
     ret = 6;
-    fprintf (stderr, "Failed to check the status of `%s'\n", args);
+    fprintf (stderr,
+             "Failed to check the status of `%s'\n",
+             args);
     GNUNET_free (args);
     return 1;
   }
@@ -164,8 +169,10 @@ run_process_and_wait (enum GNUNET_OS_InheritStdioFlags std_inheritance,
 
 
 static void
-check_pkey (unsigned int rd_len, const struct GNUNET_GNSRECORD_Data *rd,
-            char *pk, int *found_rec)
+check_pkey (unsigned int rd_len,
+            const struct GNUNET_GNSRECORD_Data *rd,
+            char *pk,
+            int *found_rec)
 {
   int i;
   struct GNUNET_CRYPTO_BlindablePublicKey pubkey;
@@ -175,10 +182,11 @@ check_pkey (unsigned int rd_len, const struct GNUNET_GNSRECORD_Data *rd,
     char *s;
     if (sizeof (uint32_t) > rd[i].data_size)
       continue;
-    if (GNUNET_OK != GNUNET_GNSRECORD_identity_from_data (rd[i].data,
-                                                          rd[i].data_size,
-                                                          rd[i].record_type,
-                                                          &pubkey))
+    if (GNUNET_OK !=
+        GNUNET_GNSRECORD_identity_from_data (rd[i].data,
+                                             rd[i].data_size,
+                                             rd[i].record_type,
+                                             &pubkey))
       continue;
     s = GNUNET_GNSRECORD_value_to_string (rd[i].record_type,
                                           rd[i].data,
@@ -227,7 +235,7 @@ zone_iteration_error (void *cls)
   if (! found_private_rec)
   {
     if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                   NULL, NULL, &st, &code,
+                                   &st, &code,
                                    "gnunet-namestore",
                                    "gnunet-namestore", "-z", "master-zone",
                                    "-a", "-e", "never", "-n", "private", "-p",
@@ -241,7 +249,7 @@ zone_iteration_error (void *cls)
   if (! found_pin_rec)
   {
     if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                   NULL, NULL, &st, &code,
+                                   &st, &code,
                                    "gnunet-namestore",
                                    "gnunet-namestore", "-z", "master-zone",
                                    "-a", "-e", "never", "-n", "pin", "-p", "-t",
@@ -389,7 +397,7 @@ run (void *cls, char *const *args, const char *cfgfile,
   cfg = c;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_NONE,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-arm",
                                  "gnunet-arm", "-I", NULL))
   {
@@ -400,60 +408,60 @@ run (void *cls, char *const *args, const char *cfgfile,
   }
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "master-zone", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "private-zone", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-C", "sks-zone", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-master", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "namestore", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-proxy", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "master-zone", "-s",
                                  "gns-intercept", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "private-zone", "-s",
                                  "gns-private", NULL))
     return;
 
   if (0 != run_process_and_wait (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                 NULL, NULL, &st, &code,
+                                 &st, &code,
                                  "gnunet-identity",
                                  "gnunet-identity", "-e", "sks-zone", "-s",
                                  "fs-sks", NULL))
@@ -480,9 +488,13 @@ main (int argc, char *const *argv)
   };
   int r;
 
-  GNUNET_log_setup ("gnunet-gns-import", "WARNING", NULL);
+  GNUNET_log_setup ("gnunet-gns-import",
+                    "WARNING",
+                    NULL);
   ret = 0;
-  r = GNUNET_PROGRAM_run (argc, argv, "gnunet-gns-import",
+  r = GNUNET_PROGRAM_run (argc,
+                          argv,
+                          "gnunet-gns-import",
                           _ (
                             "This program will import some GNS authorities into your GNS namestore."),
                           options,

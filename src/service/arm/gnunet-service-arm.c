@@ -158,7 +158,7 @@ struct ServiceList
   /**
    * Process structure pointer of the child.
    */
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
 
   /**
    * Process exponential backoff time
@@ -750,31 +750,35 @@ start_process (struct ServiceList *sl,
   char *options;
   enum GNUNET_GenericReturnValue use_debug;
   bool is_simple_service;
-  int *lsocks;
-  unsigned int ls;
   char *binary;
   char *quotedbinary;
+  enum GNUNET_GenericReturnValue ret;
 
-  /* calculate listen socket list */
-  lsocks = NULL;
-  ls = 0;
+  GNUNET_assert (NULL == sl->proc);
+  sl->proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   sl->proc,
+                   GNUNET_process_option_std_inheritance (
+                     sl->pipe_control
+                     ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL
+                     : GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
   for (struct ServiceListeningInfo *sli = sl->listen_head;
        NULL != sli;
        sli = sli->next)
   {
-    GNUNET_array_append (lsocks,
-                         ls,
-                         GNUNET_NETWORK_get_fd (sli->listen_socket));
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_set_options (
+                     sl->proc,
+                     GNUNET_process_option_inherit_lsock (
+                       GNUNET_NETWORK_get_fd (sli->listen_socket))));
     if (NULL != sli->accept_task)
     {
       GNUNET_SCHEDULER_cancel (sli->accept_task);
       sli->accept_task = NULL;
     }
   }
-
-  GNUNET_array_append (lsocks,
-                       ls,
-                       -1);
 
   /* obtain configuration */
   if (GNUNET_OK !=
@@ -817,7 +821,10 @@ start_process (struct ServiceList *sl,
     {
       /* combine "fin_options" with "options" */
       optpos = options;
-      GNUNET_asprintf (&options, "%s %s", fin_options, optpos);
+      GNUNET_asprintf (&options,
+                       "%s %s",
+                       fin_options,
+                       optpos);
       GNUNET_free (fin_options);
       GNUNET_free (optpos);
     }
@@ -848,11 +855,10 @@ start_process (struct ServiceList *sl,
                                                  choices,
                                                  &service_type)) &&
          (0 == strcasecmp (service_type,
-                           "SIMPLE")))
+                           "SIMPLE")) )
       is_simple_service = true;
   }
 
-  GNUNET_assert (NULL == sl->proc);
   if (is_simple_service)
   {
     /* A simple service will receive no GNUnet specific
@@ -872,15 +878,11 @@ start_process (struct ServiceList *sl,
     if (NULL != options)
       options = GNUNET_CONFIGURATION_expand_dollar (cfg,
                                                     options);
-    sl->proc = GNUNET_OS_start_process_s (sl->pipe_control
-                                          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                          | GNUNET_OS_USE_PIPE_CONTROL
-                                          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                          lsocks,
-                                          loprefix,
-                                          quotedbinary,
-                                          options,
-                                          NULL);
+    ret = GNUNET_process_set_command_va (sl->proc,
+                                         loprefix,
+                                         quotedbinary,
+                                         options,
+                                         NULL);
   }
   else
   {
@@ -890,22 +892,17 @@ start_process (struct ServiceList *sl,
                 sl->name,
                 sl->binary,
                 sl->config);
-    binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet ()
-                                                ,
-                                                sl->binary);
+    binary = GNUNET_OS_get_libexec_binary_path (
+      GNUNET_OS_project_data_gnunet (),
+      sl->binary);
     GNUNET_asprintf (&quotedbinary,
                      "\"%s\"",
                      binary);
-
     if (GNUNET_YES == use_debug)
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (
-          sl->pipe_control
-          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-          | GNUNET_OS_USE_PIPE_CONTROL
-          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-          lsocks,
+        ret = GNUNET_process_set_command_va (
+          sl->proc,
           loprefix,
           quotedbinary,
           "-L",
@@ -913,12 +910,8 @@ start_process (struct ServiceList *sl,
           options,
           NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (
-          sl->pipe_control
-          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-          | GNUNET_OS_USE_PIPE_CONTROL
-          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-          lsocks,
+        ret = GNUNET_process_set_command_va (
+          sl->proc,
           loprefix,
           quotedbinary,
           "-c",
@@ -931,23 +924,15 @@ start_process (struct ServiceList *sl,
     else
     {
       if (NULL == sl->config)
-        sl->proc = GNUNET_OS_start_process_s (
-          sl->pipe_control
-          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-          | GNUNET_OS_USE_PIPE_CONTROL
-          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-          lsocks,
+        ret = GNUNET_process_set_command_va (
+          sl->proc,
           loprefix,
           quotedbinary,
           options,
           NULL);
       else
-        sl->proc = GNUNET_OS_start_process_s (
-          sl->pipe_control
-          ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-          | GNUNET_OS_USE_PIPE_CONTROL
-          : GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-          lsocks,
+        ret = GNUNET_process_set_command_va (
+          sl->proc,
           loprefix,
           quotedbinary,
           "-c",
@@ -956,40 +941,45 @@ start_process (struct ServiceList *sl,
           NULL);
     }
   }
+
+  if (GNUNET_OK != ret)
+  {
+    GNUNET_break (0);
+    goto failure;
+  }
+
+  sl->last_started_at = GNUNET_TIME_absolute_get ();
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "Starting service `%s'\n",
+              sl->name);
+  broadcast_status (sl->name,
+                    GNUNET_ARM_SERVICE_STARTING,
+                    NULL);
+  if (client)
+    signal_result (client,
+                   sl->name,
+                   request_id,
+                   GNUNET_ARM_RESULT_STARTING);
+  goto cleanup;
+failure:
+  if (NULL != sl->proc)
+  {
+    GNUNET_process_destroy (sl->proc);
+    sl->proc = NULL;
+  }
+  GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+              "Failed to start service `%s'\n",
+              sl->name);
+  if (client)
+    signal_result (client,
+                   sl->name,
+                   request_id,
+                   GNUNET_ARM_RESULT_START_FAILED);
+cleanup:
   GNUNET_free (binary);
   GNUNET_free (quotedbinary);
-  sl->last_started_at = GNUNET_TIME_absolute_get ();
-  if (NULL == sl->proc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to start service `%s'\n",
-                sl->name);
-    if (client)
-      signal_result (client,
-                     sl->name,
-                     request_id,
-                     GNUNET_ARM_RESULT_START_FAILED);
-  }
-  else
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
-                "Starting service `%s'\n",
-                sl->name);
-    broadcast_status (sl->name,
-                      GNUNET_ARM_SERVICE_STARTING,
-                      NULL);
-    if (client)
-      signal_result (client,
-                     sl->name,
-                     request_id,
-                     GNUNET_ARM_RESULT_STARTING);
-  }
-  /* clean up */
   GNUNET_free (loprefix);
   GNUNET_free (options);
-  GNUNET_array_grow (lsocks,
-                     ls,
-                     0);
 }
 
 
@@ -1350,8 +1340,11 @@ handle_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
   broadcast_status (servicename, GNUNET_ARM_SERVICE_STOPPING, NULL);
   /* no signal_start - only when it's STOPPED */
   sl->killed_at = GNUNET_TIME_absolute_get ();
-  if (0 != GNUNET_OS_process_kill (sl->proc, GNUNET_TERM_SIG))
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+  if (GNUNET_OK !=
+      GNUNET_process_kill (sl->proc,
+                           GNUNET_TERM_SIG))
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
   sl->killing_client = client;
   sl->killing_client_request_id = request_id;
 }
@@ -1576,10 +1569,15 @@ shutdown_task (void *cls)
     nxt = pos->next;
     if (NULL != pos->proc)
     {
-      GNUNET_log (GNUNET_ERROR_TYPE_INFO, "Stopping service `%s'\n", pos->name);
+      GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                  "Stopping service `%s'\n",
+                  pos->name);
       pos->killed_at = GNUNET_TIME_absolute_get ();
-      if (0 != GNUNET_OS_process_kill (pos->proc, GNUNET_TERM_SIG))
-        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+      if (GNUNET_OK !=
+          GNUNET_process_kill (pos->proc,
+                               GNUNET_TERM_SIG))
+        GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                             "kill");
     }
     else
     {
@@ -1718,8 +1716,11 @@ maint_child_death (void *cls)
       int status;
       pid_t pid;
 
-      pid = GNUNET_OS_process_get_pid (pos->proc);
-      ret = wait4 (pid, &status, WNOHANG, &ru);
+      pid = GNUNET_process_get_pid (pos->proc);
+      ret = wait4 (pid,
+                   &status,
+                   WNOHANG,
+                   &ru);
       if (ret <= 0)
         continue;     /* no process done */
       if (WIFEXITED (status))
@@ -1769,10 +1770,13 @@ maint_child_death (void *cls)
     }
     else   /* continue with JUST this "if" as "else" (intentionally no brackets!) */
 #endif
-    if ((GNUNET_SYSERR == (ret = GNUNET_OS_process_status (pos->proc,
-                                                           &statusType,
-                                                           &statusCode))) ||
-        (ret == GNUNET_NO) || (statusType == GNUNET_OS_PROCESS_STOPPED) ||
+    if ((GNUNET_SYSERR ==
+         (ret = GNUNET_process_wait (pos->proc,
+                                     true,
+                                     &statusType,
+                                     &statusCode))) ||
+        (ret == GNUNET_NO) ||
+        (statusType == GNUNET_OS_PROCESS_STOPPED) ||
         (statusType == GNUNET_OS_PROCESS_UNKNOWN) ||
         (statusType == GNUNET_OS_PROCESS_RUNNING))
       continue;
@@ -1801,9 +1805,11 @@ maint_child_death (void *cls)
                     GNUNET_TIME_absolute_get_duration (pos->killed_at),
                     GNUNET_YES));
     }
-    GNUNET_OS_process_destroy (pos->proc);
+    GNUNET_process_destroy (pos->proc);
     pos->proc = NULL;
-    broadcast_status (pos->name, GNUNET_ARM_SERVICE_STOPPED, NULL);
+    broadcast_status (pos->name,
+                      GNUNET_ARM_SERVICE_STOPPED,
+                      NULL);
     if (NULL != pos->killing_client)
     {
       signal_result (pos->killing_client,
