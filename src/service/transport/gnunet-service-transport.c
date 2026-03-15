@@ -13158,6 +13158,13 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
     GNUNET_SERVICE_client_drop (tc->client);
     return;
   }
+  if (NULL == GST_my_identity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Still waiting for own identity!\n");
+    GNUNET_SERVICE_client_continue (tc->client);
+    return;
+  }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Client suggested we talk to %s with preference %d at rate %u\n",
               GNUNET_i2s (&msg->peer),
@@ -13167,6 +13174,7 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Client suggested connection to ourselves, ignoring...\n");
+    GNUNET_SERVICE_client_continue (tc->client);
     return;
   }
   pr = GNUNET_new (struct PeerRequest);
