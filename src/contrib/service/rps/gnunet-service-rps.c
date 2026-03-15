@@ -811,7 +811,8 @@ get_random_peer_from_peermap (struct GNUNET_CONTAINER_MultiPeerMap *valid_peers)
 
   iterator_cls = GNUNET_new (struct GetRandPeerIteratorCls);
   iterator_cls->index = GNUNET_CRYPTO_random_u32 (GNUNET_CRYPTO_QUALITY_WEAK,
-                                                  GNUNET_CONTAINER_multipeermap_size (
+                                                  GNUNET_CONTAINER_multipeermap_size
+                                                  (
                                                     valid_peers));
   (void) GNUNET_CONTAINER_multipeermap_iterate (valid_peers,
                                                 get_rand_peer_iterator,
@@ -1414,7 +1415,8 @@ mq_notify_sent_cb (void *cls)
         (NULL != map_single_hop) &&
         (GNUNET_NO == GNUNET_CONTAINER_multipeermap_contains (map_single_hop,
                                                               &pending_msg->
-                                                              peer_ctx->peer_id)) )
+                                                              peer_ctx->peer_id)
+        ) )
       GNUNET_STATISTICS_update (stats,
                                 "# pull requests sent (multi-hop peer)",
                                 1,
@@ -3656,7 +3658,8 @@ handle_peer_pull_request (void *cls,
                               GNUNET_NO);
     if ((NULL != map_single_hop) &&
         (GNUNET_NO == GNUNET_CONTAINER_multipeermap_contains (map_single_hop,
-                                                              &peer_ctx->peer_id)))
+                                                              &peer_ctx->peer_id
+                                                              )))
     {
       GNUNET_STATISTICS_update (stats,
                                 "# pull request message received (multi-hop peer)",
@@ -3776,7 +3779,8 @@ handle_peer_pull_reply (void *cls,
     if ((NULL != map_single_hop) &&
         (GNUNET_NO == GNUNET_CONTAINER_multipeermap_contains (map_single_hop,
                                                               &channel_ctx->
-                                                              peer_ctx->peer_id)) )
+                                                              peer_ctx->peer_id)
+        ) )
     {
       GNUNET_STATISTICS_update (stats,
                                 "# pull reply messages received (multi-hop peer)",
@@ -3942,7 +3946,8 @@ send_pull_request (struct PeerContext *peer_ctx)
                               GNUNET_NO);
     if ((NULL != map_single_hop) &&
         (GNUNET_NO == GNUNET_CONTAINER_multipeermap_contains (map_single_hop,
-                                                              &peer_ctx->peer_id)))
+                                                              &peer_ctx->peer_id
+                                                              )))
     {
       GNUNET_STATISTICS_update (stats,
                                 "# pull request send issued (multi-hop peer)",
@@ -3977,7 +3982,8 @@ send_push (struct PeerContext *peer_ctx)
                               GNUNET_NO);
     if ((NULL != map_single_hop) &&
         (GNUNET_NO == GNUNET_CONTAINER_multipeermap_contains (map_single_hop,
-                                                              &peer_ctx->peer_id)))
+                                                              &peer_ctx->peer_id
+                                                              )))
     {
       GNUNET_STATISTICS_update (stats,
                                 "# push send issued (multi-hop peer)",
@@ -4709,7 +4715,7 @@ process_peerinfo_peers (void *cls,
        "Got peer_id %s from peerinfo\n",
        GNUNET_i2s (&record->peer));
   got_peer (sub, &record->peer);
-  GNUNET_PEERSTORE_monitor_next(peerstore_notify, 1);
+  GNUNET_PEERSTORE_monitor_next (peerstore_notify, 1);
 }
 
 
@@ -4721,9 +4727,9 @@ process_peerinfo_peers (void *cls,
 static void
 shutdown_task (void *cls)
 {
-  (void) cls;
   struct ClientContext *client_ctx;
 
+  (void) cls;
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "RPS service is going down\n");
 
@@ -4742,15 +4748,20 @@ shutdown_task (void *cls)
 
   /* Disconnect from other services */
   GNUNET_PEERSTORE_monitor_stop (peerstore_notify);
+  peerstore_notify = NULL;
   GNUNET_PEERSTORE_disconnect (peerstore);
   peerstore = NULL;
   GNUNET_NSE_disconnect (nse);
-  if (NULL != map_single_hop)
+  nse = NULL;
+  if (NULL != core_handle)
   {
     /* core_init was called - core was initialised */
     /* disconnect first, so no callback tries to access missing peermap */
     GNUNET_CORE_disconnect (core_handle);
     core_handle = NULL;
+  }
+  if (NULL != map_single_hop)
+  {
     GNUNET_CONTAINER_multipeermap_destroy (map_single_hop);
     map_single_hop = NULL;
   }
@@ -4764,21 +4775,24 @@ shutdown_task (void *cls)
   GNUNET_CADET_disconnect (cadet_handle);
   cadet_handle = NULL;
 #if ENABLE_MALICIOUS
-  struct AttackedPeer *tmp_att_peer;
-  GNUNET_array_grow (mal_peers,
-                     num_mal_peers,
-                     0);
-  if (NULL != mal_peer_set)
-    GNUNET_CONTAINER_multipeermap_destroy (mal_peer_set);
-  if (NULL != att_peer_set)
-    GNUNET_CONTAINER_multipeermap_destroy (att_peer_set);
-  while (NULL != att_peers_head)
   {
-    tmp_att_peer = att_peers_head;
-    GNUNET_CONTAINER_DLL_remove (att_peers_head,
-                                 att_peers_tail,
-                                 tmp_att_peer);
-    GNUNET_free (tmp_att_peer);
+    struct AttackedPeer *tmp_att_peer;
+
+    GNUNET_array_grow (mal_peers,
+                       num_mal_peers,
+                       0);
+    if (NULL != mal_peer_set)
+      GNUNET_CONTAINER_multipeermap_destroy (mal_peer_set);
+    if (NULL != att_peer_set)
+      GNUNET_CONTAINER_multipeermap_destroy (att_peer_set);
+    while (NULL != att_peers_head)
+    {
+      tmp_att_peer = att_peers_head;
+      GNUNET_CONTAINER_DLL_remove (att_peers_head,
+                                   att_peers_tail,
+                                   tmp_att_peer);
+      GNUNET_free (tmp_att_peer);
+    }
   }
 #endif /* ENABLE_MALICIOUS */
   close_all_files ();
@@ -4880,8 +4894,7 @@ run (void *cls,
   long long unsigned int sampler_size;
   char hash_port_string[] = GNUNET_APPLICATION_PORT_RPS;
   struct GNUNET_HashCode hash;
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_RPS,
     .version = { 1, 0 },
     .version_max = { 1, 0 },
@@ -4993,8 +5006,8 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN
-(GNUNET_OS_project_data_gnunet(),
- "rps",
+  (GNUNET_OS_project_data_gnunet (),
+  "rps",
   GNUNET_SERVICE_OPTION_NONE,
   &run,
   &client_connect_cb,

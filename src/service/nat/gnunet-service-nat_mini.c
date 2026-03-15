@@ -221,8 +221,10 @@ GNUNET_NAT_mini_get_external_ipv4_ (GNUNET_NAT_IPCallback cb, void *cb_cls)
                                          eh);
     return eh;
   }
-  GNUNET_DISK_pipe_close_end (eh->opipe, GNUNET_DISK_PIPE_END_WRITE);
-  eh->r = GNUNET_DISK_pipe_handle (eh->opipe, GNUNET_DISK_PIPE_END_READ);
+  GNUNET_DISK_pipe_close_end (eh->opipe,
+                              GNUNET_DISK_PIPE_END_WRITE);
+  eh->r = GNUNET_DISK_pipe_handle (eh->opipe,
+                                   GNUNET_DISK_PIPE_END_READ);
   eh->task = GNUNET_SCHEDULER_add_read_file (GNUNET_TIME_UNIT_FOREVER_REL,
                                              eh->r,
                                              &read_external_ipv4,

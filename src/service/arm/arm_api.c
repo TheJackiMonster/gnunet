@@ -676,6 +676,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                "BINARY");
     GNUNET_free (loprefix);
     GNUNET_free (lopostfix);
+    GNUNET_DISK_file_close (sigfd);
     return GNUNET_ARM_RESULT_IS_NOT_KNOWN;
   }
 
@@ -933,8 +934,7 @@ struct GNUNET_ARM_Operation *
 GNUNET_ARM_request_service_start (
   struct GNUNET_ARM_Handle *h,
   const char *service_name,
-  enum GNUNET_OS_InheritStdioFlags
-  std_inheritance,
+  enum GNUNET_OS_InheritStdioFlags std_inheritance,
   GNUNET_ARM_ResultCallback cont,
   void *cont_cls)
 {
@@ -996,7 +996,6 @@ GNUNET_ARM_request_service_start (
     ret = start_arm_service (h,
                              std_inheritance,
                              wsig);
-    GNUNET_DISK_file_close (wsig);
     if (GNUNET_ARM_RESULT_STARTING == ret)
       reconnect_arm (h);
   }

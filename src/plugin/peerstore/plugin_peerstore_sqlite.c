@@ -347,7 +347,7 @@ peerstore_sqlite_iterate_records (void *cls,
     {
       LOG_SQLITE (plugin,
                   GNUNET_ERROR_TYPE_ERROR,
-                  "sqlite_step");
+                  "sqlite3_step");
       ret = GNUNET_SYSERR;
       break;
     }
@@ -683,6 +683,7 @@ database_shutdown (struct Plugin *plugin)
   GNUNET_free (plugin->fn);
 }
 
+
 void *
 libgnunet_plugin_peerstore_sqlite_init (void *cls);
 
@@ -719,6 +720,7 @@ libgnunet_plugin_peerstore_sqlite_init (void *cls)
        "Sqlite plugin is running\n");
   return api;
 }
+
 
 void *
 libgnunet_plugin_peerstore_sqlite_done (void *cls);

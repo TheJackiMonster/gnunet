@@ -227,7 +227,7 @@ do_generate_pid (const struct GNUNET_HELLO_Parser *parser)
                           &my_private_key);
   GNUNET_CRYPTO_eddsa_key_get_public (&my_private_key, &my_public_key);
   have_id = GNUNET_YES;
-  LOG (GNUNET_ERROR_TYPE_ERROR,
+  LOG (GNUNET_ERROR_TYPE_INFO,
        "Successfully generated a new peer id %s - inform clients\n",
        GNUNET_p2s (&my_public_key));
 

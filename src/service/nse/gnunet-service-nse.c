@@ -1362,11 +1362,14 @@ identity_changed (const struct GNUNET_PeerIdentity *identity)
 
   if (NULL == identity)
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Connection to core FAILED!\n");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Connection to core FAILED!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  GNUNET_assert (0 == GNUNET_memcmp (&my_identity, identity));
+  GNUNET_assert (0 ==
+                 GNUNET_memcmp (&my_identity,
+                                identity));
   now = GNUNET_TIME_absolute_get ();
   current_timestamp.abs_value_us =
     (now.abs_value_us / gnunet_nse_interval.rel_value_us)

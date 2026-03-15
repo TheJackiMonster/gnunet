@@ -61,6 +61,11 @@ struct ProcessFileMapEntry
    * listen socket with the respective environment variables being set.
    */
   bool systemd_listen_socket;
+
+  /**
+   * True if we own this socket (and thus should also close it).
+   */
+  bool owned;
 };
 
 
@@ -368,9 +373,12 @@ GNUNET_process_destroy (struct GNUNET_Process *proc)
   GNUNET_free (proc->envs);
   for (unsigned int i = 0; i < proc->map_size; i++)
   {
-    int pfd = proc->map[i].parent_fd;
+    struct ProcessFileMapEntry *me = &proc->map[i];
+    int pfd = me->parent_fd;
 
     if (-1 == pfd)
+      continue;
+    if (! me->owned)
       continue;
     GNUNET_break (0 == close (pfd));
   }
@@ -522,7 +530,8 @@ map_std (struct GNUNET_Process *proc,
           safe_dup2 (me->parent_fd,
                      fd))
         return GNUNET_SYSERR;
-      GNUNET_break (0 == close (me->parent_fd));
+      if (me->owned)
+        GNUNET_break (0 == close (me->parent_fd));
       me->parent_fd = -1;
       return GNUNET_OK;
     }
@@ -642,8 +651,10 @@ GNUNET_process_start (struct GNUNET_Process *proc)
             }
             /* leaves interrupt/busy, try again */
           }
-          GNUNET_break (0 == close (me->parent_fd));
+          if (me->owned)
+            GNUNET_break (0 == close (me->parent_fd));
           me->parent_fd = dst;
+          me->owned = true;
         }
       }
     }
@@ -675,10 +686,12 @@ GNUNET_process_start (struct GNUNET_Process *proc)
     {
       struct ProcessFileMapEntry *me = &proc->map[i];
 
+      if (! me->owned)
+        continue;
       if (-1 != me->parent_fd)
       {
-        GNUNET_break (0 ==
-                      close (me->parent_fd));
+        GNUNET_assert (0 ==
+                       close (me->parent_fd));
         me->parent_fd = -1;
       }
     }
@@ -746,17 +759,21 @@ GNUNET_process_start (struct GNUNET_Process *proc)
       {
         me->target_fd = dup (me->parent_fd);
         GNUNET_assert (-1 != me->target_fd);
-        GNUNET_assert (0 == close (me->parent_fd));
+        if (me->owned)
+          GNUNET_assert (0 == close (me->parent_fd));
       }
       else if (me->parent_fd != me->target_fd)
       {
         GNUNET_assert (me->target_fd ==
                        safe_dup2 (me->parent_fd,
                                   me->target_fd));
-        GNUNET_assert (0 == close (me->parent_fd));
+        if (me->owned)
+          GNUNET_assert (0 == close (me->parent_fd));
       }
       else
       {
+        GNUNET_assert (! me->systemd_listen_socket);
+        GNUNET_assert (me->owned);
         GNUNET_assert (GNUNET_OK ==
                        clear_cloexec (me->target_fd));
       }
@@ -1036,7 +1053,8 @@ GNUNET_process_set_options_ (
       {
         struct ProcessFileMapEntry pme = {
           .target_fd = ov->details.inherit_fd.target_fd,
-          .parent_fd = ov->details.inherit_fd.parent_fd
+          .parent_fd = ov->details.inherit_fd.parent_fd,
+          .owned = true
         };
 
         GNUNET_array_append (proc->map,
@@ -1048,8 +1066,9 @@ GNUNET_process_set_options_ (
       {
         struct ProcessFileMapEntry pme = {
           .target_fd = -1, /* any */
-          .parent_fd = ov->details.inherit_fd.parent_fd,
-          .systemd_listen_socket = true
+          .parent_fd = ov->details.inherit_lsock,
+          .systemd_listen_socket = true,
+          .owned = false
         };
 
         GNUNET_array_append (proc->map,

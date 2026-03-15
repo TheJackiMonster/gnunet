@@ -1398,6 +1398,7 @@ GNUNET_DISK_file_close (struct GNUNET_DISK_FileHandle *h)
   {
     LOG_STRERROR (GNUNET_ERROR_TYPE_WARNING,
                   "close");
+    GNUNET_assert (0);
     ret = GNUNET_SYSERR;
   }
   GNUNET_free (h);
@@ -1621,7 +1622,7 @@ GNUNET_DISK_pipe_close_end (struct GNUNET_DISK_PipeHandle *p,
 
   if (end == GNUNET_DISK_PIPE_END_READ)
   {
-    if (p->fd[0])
+    if (NULL != p->fd[0])
     {
       ret = GNUNET_DISK_file_close (p->fd[0]);
       p->fd[0] = NULL;
@@ -1629,7 +1630,7 @@ GNUNET_DISK_pipe_close_end (struct GNUNET_DISK_PipeHandle *p,
   }
   else if (end == GNUNET_DISK_PIPE_END_WRITE)
   {
-    if (p->fd[1])
+    if (NULL != p->fd[1])
     {
       ret = GNUNET_DISK_file_close (p->fd[1]);
       p->fd[1] = NULL;

@@ -58,7 +58,7 @@
 /**
  * Check each file descriptor before adding
  */
-#define DEBUG_FDS GNUNET_NO
+#define DEBUG_FDS GNUNET_YES
 
 /**
  * Depth of the traces collected via EXECINFO.

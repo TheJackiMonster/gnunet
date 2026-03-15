@@ -142,10 +142,12 @@ static void
 arm_conn (void *cls,
           int connected)
 {
+  GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+              "ARM connection is up\n");
   if (GNUNET_SYSERR == connected)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                _ ("Fatal error initializing ARM API.\n"));
+                "Fatal error initializing ARM API.\n");
     GNUNET_SCHEDULER_shutdown ();
     GNUNET_assert (0);
     return;
@@ -191,8 +193,9 @@ arm_start_cb (void *cls,
   GNUNET_break (status == GNUNET_ARM_REQUEST_SENT_OK);
   GNUNET_break (phase == 0);
   LOG ("Sent 'START' request for arm to ARM %s\n",
-       (status == GNUNET_ARM_REQUEST_SENT_OK) ? "successfully" :
-       "unsuccessfully");
+       (status == GNUNET_ARM_REQUEST_SENT_OK)
+       ? "successfully"
+       : "unsuccessfully");
   GNUNET_break (result == GNUNET_ARM_RESULT_STARTING);
   phase++;
 }
@@ -243,6 +246,8 @@ main (int argc, char *argvx[])
     (char*) "test-arm-api",
     (char*) "-c",
     (char*) "test_arm_api_data.conf",
+    (char*) "-L",
+    (char*) "-INFO",
     NULL
   };
   struct GNUNET_GETOPT_CommandLineOption options[] = {

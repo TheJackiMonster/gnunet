@@ -895,6 +895,8 @@ struct GNUNET_ProcessOptionValue
 
 /**
  * Have child process inherit a file descriptor.
+ * The ownership over the file descriptor is afterwards
+ * with the process handle.
  *
  * @param parent_fd open file descriptor in this process
  * @param child_fd target file descriptor in the child process
@@ -910,6 +912,7 @@ struct GNUNET_ProcessOptionValue
 
 /**
  * Have child process inherit a pipe for reading.
+ * The read-end is detached from the pipe.
  *
  * @param rpipe open pipe in this process the child should read from
  * @param child_fd target file descriptor in the child process
@@ -922,12 +925,13 @@ struct GNUNET_ProcessOptionValue
           .details.inherit_fd.target_fd = child_fd,            \
           .details.inherit_fd.parent_fd \
             = GNUNET_DISK_internal_file_handle ( \
-                GNUNET_DISK_pipe_handle (rpipe, \
-                                         GNUNET_DISK_PIPE_END_READ)) \
+                GNUNET_DISK_pipe_detach_end (rpipe, \
+                                             GNUNET_DISK_PIPE_END_READ)) \
         }
 
 /**
  * Have child process inherit a pipe for writing.
+ * The write-end is detached from the pipe.
  *
  * @param wpipe open pipe in this process the child should write to
  * @param child_fd target file descriptor in the child process
@@ -940,12 +944,14 @@ struct GNUNET_ProcessOptionValue
           .details.inherit_fd.target_fd = child_fd,            \
           .details.inherit_fd.parent_fd \
             = GNUNET_DISK_internal_file_handle ( \
-                GNUNET_DISK_pipe_handle (wpipe, \
-                                         GNUNET_DISK_PIPE_END_WRITE)) \
+                GNUNET_DISK_pipe_detach_end (wpipe, \
+                                             GNUNET_DISK_PIPE_END_WRITE)) \
         }
 
 /**
  * Pass listen socket to child systemd-style.
+ * The ownership over the file descriptor remains
+ * with the caller!
  *
  * @param lsock open listen socket to pass to the child
  * @return the option

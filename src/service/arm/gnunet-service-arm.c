@@ -1523,7 +1523,9 @@ shutdown_task (void *cls)
   {
     while (NULL != (sli = pos->listen_head))
     {
-      GNUNET_CONTAINER_DLL_remove (pos->listen_head, pos->listen_tail, sli);
+      GNUNET_CONTAINER_DLL_remove (pos->listen_head,
+                                   pos->listen_tail,
+                                   sli);
       if (NULL != sli->accept_task)
       {
         GNUNET_SCHEDULER_cancel (sli->accept_task);
@@ -1664,7 +1666,8 @@ maint_child_death (void *cls)
   const struct GNUNET_DISK_FileHandle *pr;
 
   (void) cls;
-  pr = GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ);
+  pr = GNUNET_DISK_pipe_handle (sigpipe,
+                                GNUNET_DISK_PIPE_END_READ);
   child_death_task = NULL;
   /* consume the signal */
   GNUNET_break (0 < GNUNET_DISK_file_read (pr, &c, sizeof(c)));
@@ -1898,7 +1901,8 @@ sighandler_child_death ()
  * @return #GNUNET_OK (continue)
  */
 static void
-setup_service (void *cls, const char *section)
+setup_service (void *cls,
+               const char *section)
 {
   struct ServiceList *sl;
   char *binary;
@@ -2070,7 +2074,8 @@ client_disconnect_cb (void *cls,
  *         #GNUNET_SYSERR to close it (signal serious error)
  */
 static void
-handle_monitor (void *cls, const struct GNUNET_MessageHeader *message)
+handle_monitor (void *cls,
+                const struct GNUNET_MessageHeader *message)
 {
   struct GNUNET_SERVICE_Client *client = cls;
 
@@ -2080,7 +2085,9 @@ handle_monitor (void *cls, const struct GNUNET_MessageHeader *message)
   /* Removal is handled by the server implementation, internally. */
   GNUNET_notification_context_add (notifier,
                                    GNUNET_SERVICE_client_get_mq (client));
-  broadcast_status ("arm", GNUNET_ARM_SERVICE_MONITORING_STARTED, client);
+  broadcast_status ("arm",
+                    GNUNET_ARM_SERVICE_MONITORING_STARTED,
+                    client);
   GNUNET_SERVICE_client_continue (client);
 }
 
@@ -2104,7 +2111,8 @@ run (void *cls,
   (void) cls;
   cfg = c;
   service = serv;
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
   child_death_task = GNUNET_SCHEDULER_add_read_file (
     GNUNET_TIME_UNIT_FOREVER_REL,
     GNUNET_DISK_pipe_handle (sigpipe,
@@ -2134,7 +2142,8 @@ run (void *cls,
                                              &prefix_command))
     prefix_command = GNUNET_strdup ("");
   else
-    prefix_command = GNUNET_CONFIGURATION_expand_dollar (cfg, prefix_command);
+    prefix_command = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                                         prefix_command);
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              "ARM",
@@ -2142,7 +2151,8 @@ run (void *cls,
                                              &final_option))
     final_option = GNUNET_strdup ("");
   else
-    final_option = GNUNET_CONFIGURATION_expand_dollar (cfg, final_option);
+    final_option = GNUNET_CONFIGURATION_expand_dollar (cfg,
+                                                       final_option);
   ret1 = GNUNET_CONFIGURATION_get_value_yesno (cfg,
                                                "ARM",
                                                "START_SYSTEM_SERVICES");
@@ -2232,17 +2242,18 @@ main (int argc, char *const *argv)
   shc_chld =
     GNUNET_SIGNAL_handler_install (GNUNET_SIGCHLD,
                                    &sighandler_child_death);
-  if (0 != GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
-                                argc,
-                                argv,
-                                "arm",
-                                GNUNET_SERVICE_OPTION_MANUAL_SHUTDOWN
-                                | GNUNET_SERVICE_OPTION_CLOSE_LSOCKS,
-                                &run,
-                                &client_connect_cb,
-                                &client_disconnect_cb,
-                                NULL,
-                                handlers))
+  if (0 !=
+      GNUNET_SERVICE_run_ (GNUNET_OS_project_data_gnunet (),
+                           argc,
+                           argv,
+                           "arm",
+                           GNUNET_SERVICE_OPTION_MANUAL_SHUTDOWN
+                           | GNUNET_SERVICE_OPTION_CLOSE_LSOCKS,
+                           &run,
+                           &client_connect_cb,
+                           &client_disconnect_cb,
+                           NULL,
+                           handlers))
     global_ret = 2;
 #if HAVE_WAIT4
   if (NULL != wait_file)

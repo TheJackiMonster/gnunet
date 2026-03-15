@@ -764,18 +764,20 @@ monitor_iterate_cb (void *cls,
     record->expiry,
     0,
     GNUNET_MESSAGE_TYPE_PEERSTORE_RECORD);
-  GNUNET_MQ_send (mc->pc->mq, env);
-
+  GNUNET_MQ_send (mc->pc->mq,
+                  env);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sent records.\n");
   mc->limit--;
   mc->iteration_cnt--;
-  if ((0 == mc->iteration_cnt) && (0 != mc->limit))
+  if ( (0 == mc->iteration_cnt) &&
+       (0 != mc->limit) )
   {
     /* We are done with the current iteration batch, AND the
        client would right now accept more, so go again! */
     GNUNET_assert (NULL == mc->task);
-    mc->task = GNUNET_SCHEDULER_add_now (&monitor_iteration_next, mc);
+    mc->task = GNUNET_SCHEDULER_add_now (&monitor_iteration_next,
+                                         mc);
   }
 }
 
@@ -809,6 +811,14 @@ monitor_iteration_next (void *cls)
                              mc);
   if (GNUNET_SYSERR == ret)
   {
+    if (NULL != mc->task)
+    {
+      GNUNET_SCHEDULER_cancel (mc->task);
+      mc->task = NULL;
+    }
+    GNUNET_CONTAINER_DLL_remove (monitors_head,
+                                 monitors_tail,
+                                 mc);
     GNUNET_free (mc->key);
     GNUNET_free (mc->sub_system);
     GNUNET_SERVICE_client_drop (mc->pc->client);
@@ -834,7 +844,8 @@ monitor_iteration_next (void *cls)
  * @return #GNUNET_OK if @a srm is well-formed
  */
 static int
-check_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *srm)
+check_monitor_start (void *cls,
+                     const struct PeerstoreMonitorStartMessage *srm)
 {
   uint16_t ss_size;
   uint16_t key_size;
@@ -843,7 +854,6 @@ check_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *srm)
   ss_size = ntohs (srm->sub_system_size);
   key_size = ntohs (srm->key_size);
   size = ntohs (srm->header.size);
-
   if (size < key_size + ss_size + sizeof(*srm))
   {
     GNUNET_break (0);
@@ -860,15 +870,22 @@ check_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *srm)
  * @param srm the actual message
  */
 static void
-handle_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *msm)
+handle_monitor_start (void *cls,
+                      const struct PeerstoreMonitorStartMessage *msm)
 {
-  struct Monitor *mc = GNUNET_new (struct Monitor);
-
+  struct PeerstoreClient *pc = cls;
+  struct Monitor *mc;
   uint16_t ss_size;
   char *ptr;
 
+  if (NULL == monitor_nc)
+  {
+    GNUNET_break (0);
+    GNUNET_SERVICE_client_drop (pc->client);
+    return; /* post-shutdown */
+  }
+  mc = GNUNET_new (struct Monitor);
   ss_size = ntohs (msm->sub_system_size);
-
   mc->pc = cls;
   mc->peer_set = (ntohs (msm->peer_set)) ? GNUNET_YES : GNUNET_NO;
   if (GNUNET_YES == mc->peer_set)
@@ -892,9 +909,11 @@ handle_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *msm)
                                mc);
   GNUNET_SERVICE_client_mark_monitor (mc->pc->client);
   GNUNET_SERVICE_client_continue (mc->pc->client);
-  GNUNET_notification_context_add (monitor_nc, mc->pc->mq);
+  GNUNET_notification_context_add (monitor_nc,
+                                   mc->pc->mq);
   if (mc->in_first_iteration)
-    mc->task = GNUNET_SCHEDULER_add_now (&monitor_iteration_next, mc);
+    mc->task = GNUNET_SCHEDULER_add_now (&monitor_iteration_next,
+                                         mc);
   else
     monitor_sync (mc);
 }
@@ -907,7 +926,8 @@ handle_monitor_start (void *cls, const struct PeerstoreMonitorStartMessage *msm)
  * @param nm message from the client
  */
 static void
-handle_monitor_next (void *cls, const struct PeerstoreMonitorNextMessage *nm)
+handle_monitor_next (void *cls,
+                     const struct PeerstoreMonitorNextMessage *nm)
 {
   struct PeerstoreClient *pc = cls;
   struct Monitor *mc;
@@ -1087,7 +1107,9 @@ client_disconnect_cb (void *cls,
   {
     if (pc != mo->pc)
       continue;
-    GNUNET_CONTAINER_DLL_remove (monitors_head, monitors_tail, mo);
+    GNUNET_CONTAINER_DLL_remove (monitors_head,
+                                 monitors_tail,
+                                 mo);
     if (NULL != mo->task)
     {
       GNUNET_SCHEDULER_cancel (mo->task);
@@ -1105,7 +1127,9 @@ client_disconnect_cb (void *cls,
   }
   while (NULL != (iter = pc->op_head))
   {
-    GNUNET_CONTAINER_DLL_remove (pc->op_head, pc->op_tail, iter);
+    GNUNET_CONTAINER_DLL_remove (pc->op_head,
+                                 pc->op_tail,
+                                 iter);
     destroy_iteration (iter);
   }
   GNUNET_free (pc);
@@ -1208,10 +1232,11 @@ run (void *cls,
 
   cfg = c;
 
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (cfg,
-                                                          "peerstore",
-                                                          "DATABASE",
-                                                          &database))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             "peerstore",
+                                             "DATABASE",
+                                             &database))
   {
     GNUNET_log_config_missing (GNUNET_ERROR_TYPE_ERROR,
                                "peerstore",
@@ -1234,8 +1259,8 @@ run (void *cls,
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
-  expire_task = GNUNET_SCHEDULER_add_now (&cleanup_expired_records, NULL);
-
+  expire_task = GNUNET_SCHEDULER_add_now (&cleanup_expired_records,
+                                          NULL);
   use_included = GNUNET_CONFIGURATION_get_value_yesno (cfg,
                                                        "peerstore",
                                                        "USE_INCLUDED_HELLOS");
@@ -1251,7 +1276,6 @@ run (void *cls,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 _ ("Importing HELLOs from `%s'\n"),
                 peerdir);
-
     GNUNET_DISK_directory_scan (peerdir,
                                 &hosts_directory_scan_callback,
                                 NULL);
@@ -1263,8 +1287,8 @@ run (void *cls,
                 _ ("Skipping import of included HELLOs\n"));
   }
   monitor_nc = GNUNET_notification_context_create (1);
-
-  GNUNET_SCHEDULER_add_shutdown (&shutdown_task, NULL);
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
 }
 
 
@@ -1272,7 +1296,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "peerstore", GNUNET_SERVICE_OPTION_SOFT_SHUTDOWN, &run, &client_connect_cb,
   &client_disconnect_cb, NULL,
   GNUNET_MQ_hd_var_size (store, GNUNET_MESSAGE_TYPE_PEERSTORE_STORE,
