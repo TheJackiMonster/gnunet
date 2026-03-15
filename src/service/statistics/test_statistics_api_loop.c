@@ -93,30 +93,44 @@ main (int argc, char *argv_ign[])
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
   char *binary;
 
   binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                               "gnunet-service-statistics");
-  proc =
-    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                             | GNUNET_OS_USE_PIPE_CONTROL,
-                             NULL, NULL, NULL,
-                             binary,
-                             "gnunet-service-statistics",
-                             "-c", "test_statistics_api_data.conf", NULL);
-  GNUNET_assert (NULL != proc);
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (proc,
+                                                binary,
+                                                "gnunet-service-statistics",
+                                                "-c",
+                                                "test_statistics_api_data.conf",
+                                                NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
   GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
-                      3, argv, "test-statistics-api", "nohelp", options, &run,
+                      3, argv, "test-statistics-api",
+                      "nohelp", options, &run,
                       &ok);
-  if (0 != GNUNET_OS_process_kill (proc,
-                                   GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
     ok = 1;
   }
-  GNUNET_OS_process_wait (proc);
-  GNUNET_OS_process_destroy (proc);
+  GNUNET_process_wait (proc,
+                       true,
+                       NULL,
+                       NULL);
+  GNUNET_process_destroy (proc);
   proc = NULL;
   GNUNET_free (binary);
   return ok;

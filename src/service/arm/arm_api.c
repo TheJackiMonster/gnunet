@@ -663,6 +663,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   char *loprefix;
   char *lopostfix;
   enum GNUNET_GenericReturnValue ret;
+  bool daemonize;
 
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (h->cfg,
@@ -686,6 +687,9 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                      std_inheritance)));
   if (NULL != sigfd)
   {
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Passing listen socket %d\n",
+                sigfd->fd);
     GNUNET_assert (
       GNUNET_OK ==
       GNUNET_process_set_options (
@@ -697,7 +701,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                              "arm",
                                              "PREFIX",
                                              &loprefix))
-    loprefix = GNUNET_strdup ("");
+    loprefix = NULL;
   else
     loprefix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
                                                    loprefix);
@@ -706,7 +710,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                                              "arm",
                                              "OPTIONS",
                                              &lopostfix))
-    lopostfix = GNUNET_strdup ("");
+    lopostfix = NULL;
   else
     lopostfix = GNUNET_CONFIGURATION_expand_dollar (h->cfg,
                                                     lopostfix);
@@ -723,57 +727,37 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
                    "\"%s\"",
                    binary);
   GNUNET_free (cbinary);
+  daemonize = ! ( (GNUNET_YES ==
+                   GNUNET_CONFIGURATION_have_value (h->cfg,
+                                                    "TESTING",
+                                                    "WEAKRANDOM")) &&
+                  (GNUNET_YES ==
+                   GNUNET_CONFIGURATION_get_value_yesno (h->cfg,
+                                                         "TESTING",
+                                                         "WEAKRANDOM")) &&
+                  (GNUNET_NO ==
+                   GNUNET_CONFIGURATION_have_value (h->cfg,
+                                                    "TESTING",
+                                                    "HOSTFILE")) );
+  {
+    char *command;
 
-  if ( (GNUNET_YES ==
-        GNUNET_CONFIGURATION_have_value (h->cfg,
-                                         "TESTING",
-                                         "WEAKRANDOM")) &&
-       (GNUNET_YES ==
-        GNUNET_CONFIGURATION_get_value_yesno (h->cfg,
-                                              "TESTING",
-                                              "WEAKRANDOM")) &&
-       (GNUNET_NO ==
-        GNUNET_CONFIGURATION_have_value (h->cfg,
-                                         "TESTING",
-                                         "HOSTFILE")) )
-  {
-    /* Means we are ONLY running locally */
-    /* we're clearly running a test, don't daemonize */
-    if (NULL == config)
-      ret = GNUNET_process_set_command_va (proc,
-                                           loprefix,
-                                           quotedbinary,
-                                           /* no daemonization! */
-                                           lopostfix,
-                                           NULL);
-    else
-      ret = GNUNET_process_set_command_va (proc,
-                                           loprefix,
-                                           quotedbinary,
-                                           "-c",
-                                           config,
-                                           /* no daemonization! */
-                                           lopostfix,
-                                           NULL);
-  }
-  else
-  {
-    if (NULL == config)
-      ret = GNUNET_process_set_command_va (proc,
-                                           loprefix,
-                                           quotedbinary,
-                                           "-d",  /* do daemonize */
-                                           lopostfix,
-                                           NULL);
-    else
-      ret = GNUNET_process_set_command_va (proc,
-                                           loprefix,
-                                           quotedbinary,
-                                           "-c",
-                                           config,
-                                           "-d",  /* do daemonize */
-                                           lopostfix,
-                                           NULL);
+    GNUNET_asprintf (&command,
+                     "%s%s%s%s%s%s%s%s",
+                     NULL == loprefix ? "" : loprefix,
+                     NULL == loprefix ? "" : " ",
+                     quotedbinary,
+                     NULL == config ? "" : " -c ",
+                     NULL == config ? "" : config,
+                     daemonize ? " -d" : "",
+                     NULL == lopostfix ? "" : " ",
+                     NULL == lopostfix ? "" : lopostfix);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Trying to run ARM command: `%s'\n",
+                command);
+    ret = GNUNET_process_set_command (proc,
+                                      command);
+    GNUNET_free (command);
   }
   GNUNET_free (binary);
   GNUNET_free (quotedbinary);
@@ -781,11 +765,19 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   GNUNET_free (loprefix);
   GNUNET_free (lopostfix);
   if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to start ARM service: could not set command\n");
     return GNUNET_ARM_RESULT_START_FAILED;
+  }
   ret = GNUNET_process_start (proc);
   GNUNET_process_destroy (proc);
   if (GNUNET_OK != ret)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
+                "Failed to start ARM service\n");
     return GNUNET_ARM_RESULT_START_FAILED;
+  }
   return GNUNET_ARM_RESULT_STARTING;
 }
 
@@ -951,7 +943,7 @@ GNUNET_ARM_request_service_start (
   struct GNUNET_DISK_PipeHandle *sig;
   struct GNUNET_DISK_FileHandle *wsig;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  LOG (GNUNET_ERROR_TYPE_INFO,
        "Starting service `%s'\n",
        service_name);
   if (0 != strcasecmp ("arm",
@@ -970,7 +962,7 @@ GNUNET_ARM_request_service_start (
    */
   if (GNUNET_YES == h->currently_up)
   {
-    LOG (GNUNET_ERROR_TYPE_DEBUG,
+    LOG (GNUNET_ERROR_TYPE_INFO,
          "ARM is already running\n");
     op = GNUNET_new (struct GNUNET_ARM_Operation);
     op->h = h;
@@ -989,7 +981,7 @@ GNUNET_ARM_request_service_start (
      are unlikely to hammer 'gnunet-arm -s' on a busy system,
      the above check should catch 99.99% of the cases where ARM
      is already running. */
-  LOG (GNUNET_ERROR_TYPE_DEBUG,
+  LOG (GNUNET_ERROR_TYPE_INFO,
        "Starting ARM service\n");
   if (NULL == (sig = GNUNET_DISK_pipe (GNUNET_DISK_PF_NONE)))
   {

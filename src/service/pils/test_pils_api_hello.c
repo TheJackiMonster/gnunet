@@ -40,7 +40,7 @@ struct PeerContext
   struct GNUNET_CONFIGURATION_Handle *cfg;
   struct GNUNET_PILS_Handle *ch;
   struct GNUNET_PeerIdentity id;
-  struct GNUNET_OS_Process *arm_proc;
+  struct GNUNET_Process *arm_proc;
 };
 
 /**
@@ -286,14 +286,22 @@ setup_peer (struct PeerContext *p,
   binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                               "gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
-  p->arm_proc =
-    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                             | GNUNET_OS_USE_PIPE_CONTROL,
-                             NULL, NULL, NULL,
-                             binary,
-                             "gnunet-service-arm",
-                             "-c", cfgname,
-                             NULL);
+  p->arm_proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   p->arm_proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (p->arm_proc,
+                                                binary,
+                                                "gnunet-service-arm",
+                                                "-c",
+                                                cfgname,
+                                                NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (p->arm_proc));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONFIGURATION_load (p->cfg,
                                             cfgname));
@@ -351,20 +359,19 @@ run (void *cls,
 static void
 stop_arm (struct PeerContext *p)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Stopping peer\n");
-  if (0 != GNUNET_OS_process_kill (p->arm_proc,
-                                   GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (p->arm_proc,
+                           GNUNET_TERM_SIG))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
   if (GNUNET_OK !=
-      GNUNET_OS_process_wait (p->arm_proc))
+      GNUNET_process_wait (p->arm_proc,
+                           true,
+                           NULL,
+                           NULL))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "waitpid");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "ARM process %u stopped\n",
-              (unsigned int) GNUNET_OS_process_get_pid (p->arm_proc));
-  GNUNET_OS_process_destroy (p->arm_proc);
+  GNUNET_process_destroy (p->arm_proc);
   p->arm_proc = NULL;
   GNUNET_CONFIGURATION_destroy (p->cfg);
 }

@@ -36,7 +36,7 @@ static struct GNUNET_PQ_Context *db;
 /**
  * Global return value, 0 on success.
  */
-static int ret;
+static int global_ret;
 
 /**
  * An event handler.
@@ -1249,7 +1249,7 @@ run_struct_arrays_with_nulls (struct GNUNET_PQ_Context *db)
       }
 
       /* Success! */
-      ret = 0;
+      global_ret = 0;
       GNUNET_PQ_cleanup_result (result_spec);
 
       fprintf (stdout,
@@ -1585,7 +1585,7 @@ static void
 timeout_cb (void *cls)
 {
   (void) cls;
-  ret = 2;
+  global_ret = 2;
   GNUNET_break (0);
   tt = NULL;
   GNUNET_SCHEDULER_shutdown ();
@@ -1733,40 +1733,40 @@ main (int argc,
     GNUNET_PQ_disconnect (db);
     return 1;
   }
-  ret = run_queries (db);
-  if (0 != ret)
+  global_ret = run_queries (db);
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
-  ret = run_array_with_null_entries_in_results (db);
-  if (0 != ret)
+  global_ret = run_array_with_null_entries_in_results (db);
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
-  ret = run_array_with_nulls_str_queries (db);
-  if (0 != ret)
+  global_ret = run_array_with_nulls_str_queries (db);
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
-  ret = run_time_arrays_with_nulls (db);
-  if (0 != ret)
+  global_ret = run_time_arrays_with_nulls (db);
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
-  ret = run_struct_arrays_with_nulls (db);
-  if (0 != ret)
+  global_ret = run_struct_arrays_with_nulls (db);
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
 
   /* ensure oid lookup works */
@@ -1805,19 +1805,20 @@ main (int argc,
 
   GNUNET_SCHEDULER_run (&sched_tests,
                         NULL);
-  if (0 != ret)
+  if (0 != global_ret)
   {
     GNUNET_break (0);
     GNUNET_PQ_disconnect (db);
-    return ret;
+    return global_ret;
   }
 #if TEST_RESTART
   fprintf (stderr, "Please restart Postgres database now!\n");
   sleep (60);
-  ret |= run_queries (db);
-  fprintf (stderr, "Result: %d (expect: 1 -- if you restarted the DB)\n", ret);
-  ret |= run_queries (db);
-  fprintf (stderr, "Result: %d (expect: 0)\n", ret);
+  global_ret |= run_queries (db);
+  fprintf (stderr, "Result: %d (expect: 1 -- if you restarted the DB)\n",
+           global_ret);
+  global_ret |= run_queries (db);
+  fprintf (stderr, "Result: %d (expect: 0)\n", global_ret);
 #endif
   {
     struct GNUNET_PQ_ExecuteStatement es_tmp[] = {
@@ -1839,7 +1840,7 @@ main (int argc,
     }
   }
   GNUNET_PQ_disconnect (db);
-  return ret;
+  return global_ret;
 }
 
 

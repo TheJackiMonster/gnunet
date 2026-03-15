@@ -94,7 +94,7 @@ main (int argc, char *const argv[])
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
-  struct GNUNET_OS_Process *gns;
+  struct GNUNET_Process *gns;
   int nat_res;
   char *const argv_prog[] = {
     "test-nat-test",
@@ -106,8 +106,8 @@ main (int argc, char *const argv[])
   GNUNET_log_setup ("test-nat-test",
                     "WARNING",
                     NULL);
-
-  nat_res = GNUNET_OS_check_helper_binary ("gnunet-nat-server", GNUNET_NO,
+  nat_res = GNUNET_OS_check_helper_binary ("gnunet-nat-server",
+                                           GNUNET_NO,
                                            NULL);
   if (GNUNET_SYSERR == nat_res)
   {
@@ -116,22 +116,36 @@ main (int argc, char *const argv[])
                 "gnunet-nat-server");
     return 0;
   }
-
-  gns = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                 | GNUNET_OS_USE_PIPE_CONTROL,
-                                 NULL, NULL, NULL,
-                                 "gnunet-nat-server",
-                                 "gnunet-nat-server",
-                                 "-c", "test_nat_test_data.conf",
-                                 "12345", NULL);
-  GNUNET_assert (NULL != gns);
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK !=
+                 GNUNET_process_set_command_va (
+                   proc,
+                   "gnunet-nat-server",
+                   "gnunet-nat-server",
+                   "-c", "test_nat_test_data.conf",
+                   "12345",
+                   NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
   GNUNET_PROGRAM_run (3, argv_prog,
                       "test-nat-test", "nohelp",
                       options, &run,
                       NULL);
-  GNUNET_break (0 == GNUNET_OS_process_kill (gns, GNUNET_TERM_SIG));
-  GNUNET_break (GNUNET_OK == GNUNET_OS_process_wait (gns));
-  GNUNET_OS_process_destroy (gns);
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_kill (gns,
+                                     GNUNET_TERM_SIG));
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_wait (gns,
+                                     true,
+                                     NULL,
+                                     NULL));
+  GNUNET_process_destroy (gns);
   if (0 != ret)
     fprintf (stderr,
              "NAT test failed to report success\n");

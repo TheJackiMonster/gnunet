@@ -1572,6 +1572,7 @@ setup_service (const struct GNUNET_OS_ProjectData *pd,
     }
     unsetenv ("LISTEN_FDS");
     cnt = pos;
+    GNUNET_free (fdnames);
   }
   if ( (0 != (GNUNET_SERVICE_OPTION_CLOSE_LSOCKS & sh->options)) &&
        (NULL != lsocks) )

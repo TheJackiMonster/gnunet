@@ -26,7 +26,7 @@
 #include "gnunet_arm_service.h"
 #include "gnunet_resolver_service.h"
 
-#define LOG(...) GNUNET_log (GNUNET_ERROR_TYPE_DEBUG, __VA_ARGS__)
+#define LOG(...) GNUNET_log (GNUNET_ERROR_TYPE_INFO, __VA_ARGS__)
 
 #define TIMEOUT GNUNET_TIME_relative_multiply (GNUNET_TIME_UNIT_SECONDS, 15)
 
@@ -81,6 +81,7 @@ resolver_stop_cb (void *cls,
                                         "arm",
                                         &arm_stop_cb,
                                         NULL);
+  GNUNET_assert (NULL != op);
 }
 
 
@@ -89,7 +90,7 @@ dns_notify (void *cls,
             const struct sockaddr *addr,
             socklen_t addrlen)
 {
-  if (addr == NULL)
+  if (NULL == addr)
   {
     /* (4), resolver should finish resolving localhost */
     GNUNET_break (phase == 4);
@@ -102,6 +103,7 @@ dns_notify (void *cls,
                                           "resolver",
                                           &resolver_stop_cb,
                                           NULL);
+    GNUNET_assert (NULL != op);
     return;
   }
   /* (3), resolver should resolve localhost */
@@ -160,6 +162,7 @@ arm_conn (void *cls,
                                            GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                            &resolver_start_cb,
                                            NULL);
+    GNUNET_assert (NULL != op);
   }
   else
   {
@@ -184,7 +187,8 @@ arm_start_cb (void *cls,
    * ("sent", because it isn't going anywhere, ARM API starts ARM service
    * by itself).
    * ARM API should report that ARM service is starting.
-   */GNUNET_break (status == GNUNET_ARM_REQUEST_SENT_OK);
+   */
+  GNUNET_break (status == GNUNET_ARM_REQUEST_SENT_OK);
   GNUNET_break (phase == 0);
   LOG ("Sent 'START' request for arm to ARM %s\n",
        (status == GNUNET_ARM_REQUEST_SENT_OK) ? "successfully" :
@@ -220,8 +224,7 @@ task (void *cls,
   arm = GNUNET_ARM_connect (cfg,
                             &arm_conn,
                             NULL);
-  if (NULL == arm)
-    return;
+  GNUNET_assert (NULL != arm);
   GNUNET_SCHEDULER_add_shutdown (&do_shutdown,
                                  NULL);
   op = GNUNET_ARM_request_service_start (arm,
@@ -229,6 +232,7 @@ task (void *cls,
                                          GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
                                          &arm_start_cb,
                                          NULL);
+  GNUNET_assert (NULL != op);
 }
 
 
@@ -246,12 +250,15 @@ main (int argc, char *argvx[])
   };
 
   GNUNET_log_setup ("test-arm-api",
-                    "WARNING",
+                    "INFO",
                     NULL);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                                      (sizeof(argv) / sizeof(char *)) - 1,
-                                     argv, "test-arm-api", "nohelp", options,
+                                     argv,
+                                     "test-arm-api",
+                                     "nohelp",
+                                     options,
                                      &task, NULL));
   return ok;
 }

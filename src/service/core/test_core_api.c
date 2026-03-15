@@ -43,7 +43,7 @@ struct PeerContext
   struct GNUNET_ATS_ConnectivitySuggestHandle *ats_sh;
   struct GNUNET_MessageHeader *hello;
   int connect_status;
-  struct GNUNET_OS_Process *arm_proc;
+  struct GNUNET_Process *arm_proc;
 };
 
 static struct PeerContext p1;
@@ -55,15 +55,15 @@ static struct GNUNET_SCHEDULER_Task *err_task;
 static int ok;
 
 #define OKPP                                  \
-  do                                          \
-  {                                           \
-    ok++;                                     \
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,      \
-                "Now at stage %u at %s:%u\n", \
-                ok,                           \
-                __FILE__,                     \
-                __LINE__);                    \
-  } while (0)
+        do                                          \
+        {                                           \
+          ok++;                                     \
+          GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,      \
+                      "Now at stage %u at %s:%u\n", \
+                      ok,                           \
+                      __FILE__,                     \
+                      __LINE__);                    \
+        } while (0)
 
 
 static void
@@ -245,23 +245,32 @@ init_notify (void *cls, const struct GNUNET_PeerIdentity *my_identity)
 
 
 static void
-setup_peer (struct PeerContext *p, const char *cfgname)
+setup_peer (struct PeerContext *p,
+            const char *cfgname)
 {
   char *binary;
 
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create ();
-  p->arm_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                         | GNUNET_OS_USE_PIPE_CONTROL,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         binary,
-                                         "gnunet-service-arm",
-                                         "-c",
-                                         cfgname,
-                                         NULL);
-  GNUNET_assert (GNUNET_OK == GNUNET_CONFIGURATION_load (p->cfg, cfgname));
+  p->arm_proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   p->arm_proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (p->arm_proc,
+                                                binary,
+                                                "gnunet-service-arm",
+                                                "-c",
+                                                cfgname,
+                                                NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (p->arm_proc));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_CONFIGURATION_load (p->cfg,
+                                            cfgname));
   p->ats = GNUNET_ATS_connectivity_init (p->cfg);
   GNUNET_assert (NULL != p->ats);
   p->ghh = GNUNET_TRANSPORT_hello_get (p->cfg,
@@ -302,14 +311,19 @@ run (void *cls,
 static void
 stop_arm (struct PeerContext *p)
 {
-  if (0 != GNUNET_OS_process_kill (p->arm_proc, GNUNET_TERM_SIG))
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
-  if (GNUNET_OK != GNUNET_OS_process_wait (p->arm_proc))
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "waitpid");
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "ARM process %u stopped\n",
-              GNUNET_OS_process_get_pid (p->arm_proc));
-  GNUNET_OS_process_destroy (p->arm_proc);
+  if (GNUNET_OK !=
+      GNUNET_process_kill (p->arm_proc,
+                           GNUNET_TERM_SIG))
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
+  if (GNUNET_OK !=
+      GNUNET_process_wait (p->arm_proc,
+                           true,
+                           NULL,
+                           NULL))
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "waitpid");
+  GNUNET_process_destroy (p->arm_proc);
   p->arm_proc = NULL;
   GNUNET_CONFIGURATION_destroy (p->cfg);
 }
@@ -334,12 +348,12 @@ main (int argc, char *argv1[])
                       &ok);
   stop_arm (&p1);
   stop_arm (&p2);
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer1.conf", 
-       "GNUNET_TEST_HOME");
-  GNUNET_DISK_purge_cfg_dir 
-      ("test_core_api_peer2.conf", 
-       "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer1.conf",
+    "GNUNET_TEST_HOME");
+  GNUNET_DISK_purge_cfg_dir
+    ("test_core_api_peer2.conf",
+    "GNUNET_TEST_HOME");
 
   return ok;
 }

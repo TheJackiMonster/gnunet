@@ -57,8 +57,6 @@ static CURLM *multi;
 
 static char *url;
 
-static struct GNUNET_OS_Process *proxy_proc;
-
 static char*cafile_opt;
 
 static char*cafile_srv;
@@ -246,14 +244,6 @@ do_shutdown ()
     mhd = NULL;
   }
   GNUNET_free (url);
-
-  if (NULL != proxy_proc)
-  {
-    (void) GNUNET_OS_process_kill (proxy_proc, SIGKILL);
-    GNUNET_assert (GNUNET_OK == GNUNET_OS_process_wait (proxy_proc));
-    GNUNET_OS_process_destroy (proxy_proc);
-    proxy_proc = NULL;
-  }
   url = NULL;
   GNUNET_SCHEDULER_shutdown ();
 }

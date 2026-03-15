@@ -46,7 +46,7 @@ check ()
   struct GNUNET_GETOPT_CommandLineOption options[] = {
     GNUNET_GETOPT_OPTION_END
   };
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
   char *path = GNUNET_OS_get_libexec_binary_path ("gnunet-service-rps");
 
   if (NULL == path)
@@ -55,21 +55,39 @@ check ()
              "gnunet-service-rps");
     return;
   }
-
-  proc = GNUNET_OS_start_process (GNUNET_NO, GNUNET_OS_INHERIT_STD_ALL, NULL,
-                                  NULL, NULL, path, "gnunet-service-rps", NULL);
-
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_ALL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (
+                   proc,
+                   path,
+                   "gnunet-service-rps",
+                   NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
   GNUNET_free (path);
-  GNUNET_assert (NULL != proc);
-  GNUNET_PROGRAM_run (1, argv, "test-rps-api", "nohelp",
-                      options, &run, &ok);
-  if (0 != GNUNET_OS_process_kill (proc, SIGTERM))
+  GNUNET_PROGRAM_run (1, argv,
+                      "test-rps-api",
+                      "nohelp",
+                      options,
+                      &run, &ok);
+  if (GNUNET_OK !=
+      GNUNET_process_kill (proc,
+                           SIGTERM))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
     ok = 1;
   }
-  GNUNET_OS_process_wait (proc);
-  GNUNET_OS_process_destroy (proc);
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_wait (proc,
+                                     true,
+                                     NULL,
+                                     NULL));
+  GNUNET_process_destroy (proc);
   return ok;
 }
 

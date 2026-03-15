@@ -751,7 +751,6 @@ start_process (struct ServiceList *sl,
   enum GNUNET_GenericReturnValue use_debug;
   bool is_simple_service;
   char *binary;
-  char *quotedbinary;
   enum GNUNET_GenericReturnValue ret;
 
   GNUNET_assert (NULL == sl->proc);
@@ -866,26 +865,20 @@ start_process (struct ServiceList *sl,
     binary = GNUNET_strdup (sl->binary);
     binary = GNUNET_CONFIGURATION_expand_dollar (cfg,
                                                  binary);
-    GNUNET_asprintf (&quotedbinary,
-                     "\"%s\"",
-                     sl->binary);
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Starting simple service `%s' using binary `%s'\n",
                 sl->name,
                 sl->binary);
-    /* FIXME: dollar expansion should only be done outside
-     * of ''-quoted strings, escaping should be considered. */
-    if (NULL != options)
-      options = GNUNET_CONFIGURATION_expand_dollar (cfg,
-                                                    options);
     ret = GNUNET_process_set_command_va (sl->proc,
                                          loprefix,
-                                         quotedbinary,
+                                         binary,
                                          options,
                                          NULL);
   }
   else
   {
+    char *command;
+
     /* actually start process */
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Starting service `%s' using binary `%s' and configuration `%s'\n",
@@ -895,54 +888,28 @@ start_process (struct ServiceList *sl,
     binary = GNUNET_OS_get_libexec_binary_path (
       GNUNET_OS_project_data_gnunet (),
       sl->binary);
-    GNUNET_asprintf (&quotedbinary,
-                     "\"%s\"",
-                     binary);
-    if (GNUNET_YES == use_debug)
-    {
-      if (NULL == sl->config)
-        ret = GNUNET_process_set_command_va (
-          sl->proc,
-          loprefix,
-          quotedbinary,
-          "-L",
-          "DEBUG",
-          options,
-          NULL);
-      else
-        ret = GNUNET_process_set_command_va (
-          sl->proc,
-          loprefix,
-          quotedbinary,
-          "-c",
-          sl->config,
-          "-L",
-          "DEBUG",
-          options,
-          NULL);
-    }
-    else
-    {
-      if (NULL == sl->config)
-        ret = GNUNET_process_set_command_va (
-          sl->proc,
-          loprefix,
-          quotedbinary,
-          options,
-          NULL);
-      else
-        ret = GNUNET_process_set_command_va (
-          sl->proc,
-          loprefix,
-          quotedbinary,
-          "-c",
-          sl->config,
-          options,
-          NULL);
-    }
+    GNUNET_asprintf (&command,
+                     "%s%s%s%s%s%s%s%s",
+                     loprefix,
+                     (0 == strlen (loprefix)) ? "" : " ",
+                     binary,
+                     (use_debug) ? " -L DEBUG" : "",
+                     (NULL == sl->config) ? "" : " -c ",
+                     (NULL == sl->config) ? "" : sl->config,
+                     (0 == strlen (options)) ? "" : " ",
+                     options);
+    GNUNET_log (GNUNET_ERROR_TYPE_INFO,
+                "Launching GNUnet service `%s'\n",
+                command);
+    ret = GNUNET_process_set_command (
+      sl->proc,
+      command);
+    GNUNET_free (command);
   }
 
-  if (GNUNET_OK != ret)
+  if ( (GNUNET_OK != ret) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (sl->proc) ) )
   {
     GNUNET_break (0);
     goto failure;
@@ -977,7 +944,6 @@ failure:
                    GNUNET_ARM_RESULT_START_FAILED);
 cleanup:
   GNUNET_free (binary);
-  GNUNET_free (quotedbinary);
   GNUNET_free (loprefix);
   GNUNET_free (options);
 }
@@ -1261,7 +1227,8 @@ trigger_shutdown (void *cls)
  *         #GNUNET_SYSERR to close it (signal serious error)
  */
 static int
-check_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
+check_stop (void *cls,
+            const struct GNUNET_ARM_Message *amsg)
 {
   (void) cls;
   GNUNET_MQ_check_zero_termination (amsg);
@@ -1276,7 +1243,8 @@ check_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
  * @param amsg the actual message
  */
 static void
-handle_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
+handle_stop (void *cls,
+             const struct GNUNET_ARM_Message *amsg)
 {
   struct GNUNET_SERVICE_Client *client = cls;
   struct ServiceList *sl;
@@ -1292,7 +1260,10 @@ handle_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
   if (0 == strcasecmp (servicename, "arm"))
   {
     broadcast_status (servicename, GNUNET_ARM_SERVICE_STOPPING, NULL);
-    signal_result (client, servicename, request_id, GNUNET_ARM_RESULT_STOPPING);
+    signal_result (client,
+                   servicename,
+                   request_id,
+                   GNUNET_ARM_RESULT_STOPPING);
     GNUNET_SERVICE_client_persist (client);
     GNUNET_SCHEDULER_add_now (&trigger_shutdown, NULL);
     return;
@@ -1337,7 +1308,9 @@ handle_stop (void *cls, const struct GNUNET_ARM_Message *amsg)
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Sending kill signal to service `%s', waiting for process to die.\n",
               servicename);
-  broadcast_status (servicename, GNUNET_ARM_SERVICE_STOPPING, NULL);
+  broadcast_status (servicename,
+                    GNUNET_ARM_SERVICE_STOPPING,
+                    NULL);
   /* no signal_start - only when it's STOPPED */
   sl->killed_at = GNUNET_TIME_absolute_get ();
   if (GNUNET_OK !=
@@ -1939,7 +1912,10 @@ setup_service (void *cls, const char *section)
   if (0 == strcasecmp (section, "arm"))
     return;
   if (GNUNET_OK !=
-      GNUNET_CONFIGURATION_get_value_string (cfg, section, "BINARY", &binary))
+      GNUNET_CONFIGURATION_get_value_string (cfg,
+                                             section,
+                                             "BINARY",
+                                             &binary))
   {
     /* not a service section */
     return;

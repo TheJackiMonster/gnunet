@@ -47,7 +47,7 @@ struct PeerContext
   struct GNUNET_MessageHeader *hello;
   struct GNUNET_CORE_Handle *core;
   struct GNUNET_STATISTICS_Handle *stats;
-  struct GNUNET_OS_Process *arm_proc;
+  struct GNUNET_Process *arm_proc;
 };
 
 static int timeout;
@@ -136,27 +136,35 @@ shutdown_testcase ()
   }
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Killing hostlist server ARM process.\n");
-  if (0 != GNUNET_OS_process_kill (adv_peer.arm_proc,
-                                   GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (adv_peer.arm_proc,
+                           GNUNET_TERM_SIG))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
   if (GNUNET_OK !=
-      GNUNET_OS_process_wait (adv_peer.arm_proc))
+      GNUNET_process_wait (adv_peer.arm_proc,
+                           true,
+                           NULL,
+                           NULL))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "waitpid");
-  GNUNET_OS_process_destroy (adv_peer.arm_proc);
+  GNUNET_process_destroy (adv_peer.arm_proc);
   adv_peer.arm_proc = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Killing hostlist client ARM process.\n");
-  if (0 != GNUNET_OS_process_kill (learn_peer.arm_proc,
-                                   GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (learn_peer.arm_proc,
+                           GNUNET_TERM_SIG))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "kill");
   if (GNUNET_OK !=
-      GNUNET_OS_process_wait (learn_peer.arm_proc))
+      GNUNET_process_wait (learn_peer.arm_proc,
+                           true,
+                           NULL,
+                           NULL))
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
                          "waitpid");
-  GNUNET_OS_process_destroy (learn_peer.arm_proc);
+  GNUNET_process_destroy (learn_peer.arm_proc);
   learn_peer.arm_proc = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Shutdown complete....\n");
@@ -394,6 +402,34 @@ handle_ad_arrive (void *cls,
 }
 
 
+static struct GNUNET_Process *
+start_arm (const char *cfgname)
+{
+  struct GNUNET_Process *proc;
+  char *binary;
+
+  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_command_va (proc,
+                                                binary,
+                                                "gnunet-service-arm",
+                                                "-c",
+                                                cfgname,
+                                                NULL));
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_start (proc));
+  GNUNET_free (binary);
+  return proc;
+}
+
+
 static void
 setup_learn_peer (struct PeerContext *p,
                   const char *cfgname)
@@ -407,17 +443,9 @@ setup_learn_peer (struct PeerContext *p,
   };
   char *filename;
   unsigned int result;
-  char *binary;
 
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create ();
-  p->arm_proc =
-    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                             | GNUNET_OS_USE_PIPE_CONTROL,
-                             NULL, NULL, NULL,
-                             binary,
-                             "gnunet-service-arm",
-                             "-c", cfgname, NULL);
+  p->arm_proc = start_arm (cfgname);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONFIGURATION_load (p->cfg,
                                             cfgname));
@@ -447,7 +475,6 @@ setup_learn_peer (struct PeerContext *p,
   p->stats = GNUNET_STATISTICS_create ("hostlist",
                                        p->cfg);
   GNUNET_assert (NULL != p->stats);
-  GNUNET_free (binary);
 }
 
 
@@ -455,23 +482,14 @@ static void
 setup_adv_peer (struct PeerContext *p,
                 const char *cfgname)
 {
-  char *binary;
-
-  binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create ();
-  p->arm_proc =
-    GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                             | GNUNET_OS_USE_PIPE_CONTROL,
-                             NULL, NULL, NULL,
-                             binary,
-                             "gnunet-service-arm",
-                             "-c", cfgname, NULL);
+  p->arm_proc = start_arm (cfgname);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONFIGURATION_load (p->cfg,
                                             cfgname));
-  p->stats = GNUNET_STATISTICS_create ("hostlist", p->cfg);
+  p->stats = GNUNET_STATISTICS_create ("hostlist",
+                                       p->cfg);
   GNUNET_assert (NULL != p->stats);
-  GNUNET_free (binary);
 }
 
 

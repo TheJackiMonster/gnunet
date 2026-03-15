@@ -318,6 +318,14 @@ GNUNET_process_kill (struct GNUNET_Process *proc,
       return GNUNET_OK;
   }
   /* pipe failed or non-existent, try other methods */
+  if (-1 == proc->pid)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Refusing to send signal %d process `%s': not running\n",
+         sig,
+         proc->filename);
+    return GNUNET_NO; /* -1 means process is not running, refuse... */
+  }
   LOG (GNUNET_ERROR_TYPE_DEBUG,
        "Sending signal %d to pid: %u via system call\n",
        sig,
@@ -475,41 +483,6 @@ clear_cloexec (int fd)
   }
 
   flags &= ~FD_CLOEXEC;
-
-  if (-1 ==
-      fcntl (fd,
-             F_SETFD,
-             flags))
-  {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
-                         "fcntl(F_SETFD)");
-    return GNUNET_SYSERR;
-  }
-  return GNUNET_OK;
-}
-
-
-/**
- * Set the close-on-exec flag of @a fd.
- *
- * @param fd file descriptor to modify
- * @return #GNUNET_OK on success
- */
-static enum GNUNET_GenericReturnValue
-set_cloexec (int fd)
-{
-  int flags;
-
-  flags = fcntl (fd,
-                 F_GETFD);
-  if (flags == -1)
-  {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
-                         "fcntl(F_GETFD)");
-    return GNUNET_SYSERR;
-  }
-
-  flags |= FD_CLOEXEC;
 
   if (-1 ==
       fcntl (fd,
@@ -702,9 +675,12 @@ GNUNET_process_start (struct GNUNET_Process *proc)
     {
       struct ProcessFileMapEntry *me = &proc->map[i];
 
-      GNUNET_break (0 ==
-                    close (me->parent_fd));
-      me->parent_fd = -1;
+      if (-1 != me->parent_fd)
+      {
+        GNUNET_break (0 ==
+                      close (me->parent_fd));
+        me->parent_fd = -1;
+      }
     }
     return GNUNET_OK;
   }
@@ -770,17 +746,21 @@ GNUNET_process_start (struct GNUNET_Process *proc)
       {
         me->target_fd = dup (me->parent_fd);
         GNUNET_assert (-1 != me->target_fd);
+        GNUNET_assert (0 == close (me->parent_fd));
       }
       else if (me->parent_fd != me->target_fd)
       {
         GNUNET_assert (me->target_fd ==
                        safe_dup2 (me->parent_fd,
                                   me->target_fd));
+        GNUNET_assert (0 == close (me->parent_fd));
       }
-      GNUNET_assert (0 == close (me->parent_fd));
+      else
+      {
+        GNUNET_assert (GNUNET_OK ==
+                       clear_cloexec (me->target_fd));
+      }
       me->parent_fd = -1;
-      GNUNET_assert (GNUNET_OK ==
-                     set_cloexec (me->target_fd));
       if (me->systemd_listen_socket)
       {
         char *tmp;
@@ -845,7 +825,6 @@ GNUNET_process_set_command_argv (
   const char *filename,
   const char **argv)
 {
-  const char *av;
   int argc;
 
   if (GNUNET_SYSERR ==

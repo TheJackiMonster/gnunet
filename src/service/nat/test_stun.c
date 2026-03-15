@@ -269,7 +269,7 @@ main (int argc, char *const argv[])
     NULL
   };
   char *fn;
-  struct GNUNET_OS_Process *proc;
+  struct GNUNET_Process *proc;
 
   GNUNET_log_setup ("test-stun",
                     "WARNING",
@@ -277,14 +277,22 @@ main (int argc, char *const argv[])
 
   /* Lets start resolver */
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                  | GNUNET_OS_USE_PIPE_CONTROL,
-                                  NULL, NULL, NULL,
-                                  fn,
-                                  "gnunet-service-resolver",
-                                  "-c", "test_stun.conf", NULL);
-
-  if (NULL == proc)
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_va (
+          proc,
+          fn,
+          "gnunet-service-resolver",
+          "-c", "test_stun.conf",
+          NULL)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (proc)) )
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "This test was unable to start gnunet-service-resolver, and it is required to run ...\n");
@@ -297,15 +305,20 @@ main (int argc, char *const argv[])
                       &run, NULL);
 
   /* Now kill the resolver */
-  if (0 != GNUNET_OS_process_kill (proc, GNUNET_TERM_SIG))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (proc,
+                           GNUNET_TERM_SIG))
   {
-    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING, "kill");
+    GNUNET_log_strerror (GNUNET_ERROR_TYPE_WARNING,
+                         "kill");
   }
-  GNUNET_OS_process_wait (proc);
-  GNUNET_OS_process_destroy (proc);
-  proc = NULL;
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_wait (proc,
+                                     true,
+                                     NULL,
+                                     NULL));
+  GNUNET_process_destroy (proc);
   GNUNET_free (fn);
-
   return ret;
 }
 
