@@ -976,7 +976,7 @@ GNUNET_process_set_command (struct GNUNET_Process *p,
       while (' ' == cmd[i + 1])
         i++;
       if (! quote_on)
-        start = i;
+        start = i + 1;
       break;
     case '\\':
       i++;
