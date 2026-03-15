@@ -1748,7 +1748,7 @@ maint_child_death (void *cls)
 #endif
     if ((GNUNET_SYSERR ==
          (ret = GNUNET_process_wait (pos->proc,
-                                     true,
+                                     false,
                                      &statusType,
                                      &statusCode))) ||
         (ret == GNUNET_NO) ||
