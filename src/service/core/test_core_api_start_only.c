@@ -264,7 +264,7 @@ main (int argc,
   int ret;
 
   GNUNET_log_setup ("test-core-api-start-only",
-                    "WARNING",
+                    "INFO",
                     NULL);
   ret = check ();
   GNUNET_DISK_purge_cfg_dir

@@ -293,7 +293,9 @@ shutdown_task (void *cls)
               "Shutting down peerstore, bye.\n");
   if (NULL != db_lib_name)
   {
-    GNUNET_break (NULL == GNUNET_PLUGIN_unload (db_lib_name, db));
+    GNUNET_break (NULL ==
+                  GNUNET_PLUGIN_unload (db_lib_name,
+                                        db));
     GNUNET_free (db_lib_name);
     db_lib_name = NULL;
   }
