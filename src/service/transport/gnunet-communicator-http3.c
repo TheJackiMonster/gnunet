@@ -958,9 +958,12 @@ connection_destroy (struct Connection *connection)
  * @return A new nghttp3_nv.
  */
 static nghttp3_nv
-make_nv (const char *name, const char *value, uint8_t flag)
+make_nv (const char *name,
+         const char *value,
+         uint8_t flag)
 {
   nghttp3_nv nv;
+
   nv.name = (const uint8_t *) name;
   nv.namelen = strlen (name);
   nv.value = (const uint8_t *) value;
@@ -1064,11 +1067,11 @@ static int
 submit_get_request (struct Connection *connection,
                     struct Stream *stream)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "send get request\n");
   nghttp3_nv nva[6];
   int rv;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "send get request\n");
   nva[0] = make_nv (":method", "GET",
                     NGHTTP3_NV_FLAG_NO_COPY_NAME
                     | NGHTTP3_NV_FLAG_NO_COPY_VALUE);
@@ -1108,8 +1111,6 @@ submit_get_request (struct Connection *connection,
 static void
 long_poll_timeoutcb (void *cls)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "long_poll_timeoutcb called!\n");
   struct Long_Poll_Request *long_poll = cls;
   nghttp3_nv nva[2];
   struct Stream *stream;
@@ -1117,7 +1118,8 @@ long_poll_timeoutcb (void *cls)
   int rv;
 
   long_poll->timer = NULL;
-
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "long_poll_timeoutcb called!\n");
   stream = long_poll->stream;
   connection = stream->connection;
   if (NULL != long_poll->prev)
@@ -1541,11 +1543,11 @@ mq_error (void *cls, enum GNUNET_MQ_Error error)
 static void
 setup_connection_mq (struct Connection *connection)
 {
+  size_t base_mtu;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "setup_connection_mq: init = %u\n",
               connection->is_initiator);
-  size_t base_mtu;
-
   switch (connection->address->sa_family)
   {
   case AF_INET:
@@ -1553,13 +1555,11 @@ setup_connection_mq (struct Connection *connection)
                - sizeof(struct GNUNET_TUN_IPv4Header) /* 20 */
                - sizeof(struct GNUNET_TUN_UdpHeader) /* 8 */;
     break;
-
   case AF_INET6:
     base_mtu = 1280     /* Minimum MTU required by IPv6 */
                - sizeof(struct GNUNET_TUN_IPv6Header) /* 40 */
                - sizeof(struct GNUNET_TUN_UdpHeader) /* 8 */;
     break;
-
   default:
     GNUNET_assert (0);
     break;
@@ -1594,8 +1594,11 @@ setup_connection_mq (struct Connection *connection)
 static void
 http_consume (struct Connection *connection, int64_t stream_id, size_t consumed)
 {
-  ngtcp2_conn_extend_max_stream_offset (connection->conn, stream_id, consumed);
-  ngtcp2_conn_extend_max_offset (connection->conn, consumed);
+  ngtcp2_conn_extend_max_stream_offset (connection->conn,
+                                        stream_id,
+                                        consumed);
+  ngtcp2_conn_extend_max_offset (connection->conn,
+                                 consumed);
 }
 
 
@@ -1632,16 +1635,20 @@ http_stream_close_cb (nghttp3_conn *conn, int64_t stream_id,
  * The callback of nghttp3_callback.recv_data
  */
 static int
-http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
-                   size_t datalen, void *user_data, void *stream_user_data)
+http_recv_data_cb (nghttp3_conn *conn,
+                   int64_t stream_id,
+                   const uint8_t *data,
+                   size_t datalen,
+                   void *user_data,
+                   void *stream_user_data)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "http_recv_data_cb\n");
   struct Connection *connection = user_data;
   struct GNUNET_PeerIdentity *pid;
   struct GNUNET_MessageHeader *hdr;
   int rv;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "http_recv_data_cb\n");
   http_consume (connection, stream_id, datalen);
 
   if (GNUNET_NO == connection->is_initiator &&
@@ -1687,12 +1694,17 @@ http_recv_data_cb (nghttp3_conn *conn, int64_t stream_id, const uint8_t *data,
  * The callback of nghttp3_callback.deferred_consume
  */
 static int
-http_deferred_consume_cb (nghttp3_conn *conn, int64_t stream_id,
-                          size_t nconsumed, void *user_data,
+http_deferred_consume_cb (nghttp3_conn *conn,
+                          int64_t stream_id,
+                          size_t nconsumed,
+                          void *user_data,
                           void *stream_user_data)
 {
   struct Connection *connection = user_data;
-  http_consume (connection, stream_id, nconsumed);
+
+  http_consume (connection,
+                stream_id,
+                nconsumed);
   return 0;
 }
 
@@ -2081,7 +2093,9 @@ recv_stream_data_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
  * The callback function for ngtcp2_callbacks.stream_open
  */
 static int
-stream_open_cb (ngtcp2_conn *conn, int64_t stream_id, void *user_data)
+stream_open_cb (ngtcp2_conn *conn,
+                int64_t stream_id,
+                void *user_data)
 {
   struct Connection *connection = user_data;
   if (! ngtcp2_is_bidi_stream (stream_id))
@@ -2103,12 +2117,12 @@ stream_close_cb (ngtcp2_conn *conn, uint32_t flags, int64_t stream_id,
                  uint64_t app_error_code, void *user_data,
                  void *stream_user_data)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "stream_close id = %" PRIi64 "\n",
-              stream_id);
   struct Connection *connection = user_data;
   int rv;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "stream_close id = %" PRIi64 "\n",
+              stream_id);
   if (! (flags & NGTCP2_STREAM_CLOSE_FLAG_APP_ERROR_CODE_SET))
   {
     app_error_code = NGHTTP3_H3_NO_ERROR;
@@ -2282,13 +2296,13 @@ static int
 recv_tx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
                 void *user_data)
 {
+  struct Connection *connection = user_data;
+  int rv;
+
   if (NGTCP2_ENCRYPTION_LEVEL_1RTT != level)
   {
     return 0;
   }
-
-  struct Connection *connection = user_data;
-  int rv;
 
   rv = setup_httpconn (connection);
   if (0 != rv)
@@ -2306,16 +2320,16 @@ static int
 recv_rx_key_cb (ngtcp2_conn *conn, ngtcp2_encryption_level level,
                 void *user_data)
 {
-  if (NGTCP2_ENCRYPTION_LEVEL_1RTT != level)
-  {
-    return 0;
-  }
-
   struct Connection *connection = user_data;
   struct Stream *stream;
   struct Long_Poll_Request *long_poll;
   int i;
   int rv;
+
+  if (NGTCP2_ENCRYPTION_LEVEL_1RTT != level)
+  {
+    return 0;
+  }
 
   rv = setup_httpconn (connection);
   if (0 != rv)
@@ -2689,11 +2703,12 @@ handle_expiry (struct Connection *connection)
 static void
 timeoutcb (void *cls)
 {
+  struct Connection *connection = cls;
+  int rv;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "timeoutcb func called!\n");
-  struct Connection *connection = cls;
   connection->timer = NULL;
-  int rv;
 
   rv = handle_expiry (connection);
   if (GNUNET_NO != rv)
@@ -2740,12 +2755,12 @@ timeoutcb (void *cls)
 static void
 connection_update_timer (struct Connection *connection)
 {
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "update_timer!\n");
   ngtcp2_tstamp expiry;
   ngtcp2_tstamp now;
   struct GNUNET_TIME_Relative delay;
 
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "update_timer!\n");
   expiry = ngtcp2_conn_get_expiry (connection->conn);
   now = timestamp ();
 
@@ -3557,7 +3572,6 @@ server_read_pkt (struct Connection *connection,
 static void
 sock_read (void *cls)
 {
-  (void) cls;
   struct sockaddr_storage sa;
   socklen_t salen = sizeof (sa);
   ssize_t rcvd;
@@ -3569,6 +3583,7 @@ sock_read (void *cls)
   struct sockaddr *local_addr;
   socklen_t local_addrlen;
 
+  (void) cls;
   if (GNUNET_OK !=
       GNUNET_CONFIGURATION_get_value_string (cfg,
                                              COMMUNICATOR_CONFIG_SECTION,
@@ -3588,6 +3603,8 @@ sock_read (void *cls)
 
   while (1)
   {
+    char *addr_string;
+
     rcvd = GNUNET_NETWORK_socket_recvfrom (udp_sock,
                                            buf,
                                            sizeof(buf),
@@ -3619,7 +3636,7 @@ sock_read (void *cls)
       return;
     }
 
-    char *addr_string =
+    addr_string =
       sockaddr_to_udpaddr_string ((const struct sockaddr *) &sa,
                                   salen);
     GNUNET_CRYPTO_hash (addr_string, strlen (addr_string),
@@ -3627,9 +3644,10 @@ sock_read (void *cls)
     GNUNET_free (addr_string);
     connection = GNUNET_CONTAINER_multihashmap_get (addr_map, &addr_key);
 
-    ngtcp2_pkt_info pi = {0};
     if (NULL != connection && GNUNET_YES == connection->is_initiator)
     {
+      ngtcp2_pkt_info pi = {0};
+
       rv = connection_feed_data (connection, local_addr, local_addrlen,
                                  (struct sockaddr *) &sa,
                                  salen, &pi, buf, rcvd);
@@ -3647,6 +3665,8 @@ sock_read (void *cls)
     }
     else
     {
+      ngtcp2_pkt_info pi = {0};
+
       server_read_pkt (connection, &addr_key,
                        local_addr, local_addrlen,
                        (struct sockaddr *) &sa, salen,
@@ -3681,6 +3701,7 @@ run (void *cls,
   socklen_t sto_len;
   char *cert_file;
   char *key_file;
+  int rv;
 
   (void) cls;
   cfg = c;
@@ -3713,30 +3734,43 @@ run (void *cls,
   if ((GNUNET_OK != GNUNET_DISK_file_test (key_file)) ||
       (GNUNET_OK != GNUNET_DISK_file_test (cert_file)))
   {
+    struct GNUNET_Process *cert_creation;
+
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating new certificate\n");
-
-    struct GNUNET_OS_Process *cert_creation;
-
-    cert_creation = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                             NULL, NULL, NULL,
-                                             "gnunet-transport-certificate-creation",
-                                             "gnunet-transport-certificate-creation",
-                                             key_file,
-                                             cert_file,
-                                             NULL);
-    if (NULL == cert_creation)
+    cert_creation = GNUNET_process_create ();
+    GNUNET_assert (GNUNET_OK ==
+                   GNUNET_process_set_options (
+                     cert_creation,
+                     GNUNET_process_option_std_inheritance (
+                       GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
+    if ( (GNUNET_OK !=
+          GNUNET_process_set_command_va (
+            cert_creation,
+            "gnunet-transport-certificate-creation",
+            "gnunet-transport-certificate-creation",
+            key_file,
+            cert_file,
+            NULL)) ||
+         (GNUNET_OK !=
+          GNUNET_process_start (cert_creation)) )
     {
+      GNUNET_process_destroy (cert_creation);
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   "Can't create new key pair %s/%s\n",
-                  key_file, cert_file);
+                  key_file,
+                  cert_file);
       GNUNET_free (key_file);
       GNUNET_free (cert_file);
 
       return;
     }
-    GNUNET_OS_process_wait (cert_creation);
-    GNUNET_OS_process_destroy (cert_creation);
+    GNUNET_break (GNUNET_OK ==
+                  GNUNET_process_wait (cert_creation,
+                                       true,
+                                       NULL,
+                                       NULL));
+    GNUNET_process_destroy (cert_creation);
   }
 
   disable_v6 = GNUNET_NO;
@@ -3834,7 +3868,6 @@ run (void *cls,
   addr_map = GNUNET_CONTAINER_multihashmap_create (2, GNUNET_NO);
   is = GNUNET_NT_scanner_init ();
 
-  int rv;
   rv = gnutls_certificate_allocate_credentials (&cred);
   if (GNUNET_NO == rv)
     rv = gnutls_certificate_set_x509_system_trust (cred);

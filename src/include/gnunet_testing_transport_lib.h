@@ -22,8 +22,8 @@
  * @brief API for cmds working with transport sub system.
  * @author t3sserakt
  */
-#ifndef GNUNET_TRANSPORT_TESTING_NG_LIB_H
-#define GNUNET_TRANSPORT_TESTING_NG_LIB_H
+#ifndef GNUNET_TESTING_TRANSPORT_LIB_H
+#define GNUNET_TESTING_TRANSPORT_LIB_H
 
 
 #include "gnunet_util_lib.h"
@@ -133,7 +133,7 @@ struct GNUNET_TESTING_StartPeerState
    * File handle for log file.
    */
   struct GNUNET_DISK_FileHandle *fh;
-  
+
   /**
    * Flag indicating, if there are services not started completely.
    */
@@ -148,7 +148,7 @@ struct GNUNET_TESTING_StartPeerState
    * Number of communicators connecteds with transport service.
    */
   unsigned int num_coms_started;
-  
+
   /**
    * Hello
    */

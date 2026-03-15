@@ -762,23 +762,31 @@ transport_communicator_start (
 /**
  * @brief Task run at shutdown to kill communicator and clean up
  *
- * @param cls Closure - Process of communicator
+ * @param proc Process of communicator
  */
 static void
-shutdown_process (struct GNUNET_OS_Process *proc)
+shutdown_process (struct GNUNET_Process *proc)
 {
-  if (0 != GNUNET_OS_process_kill (proc, SIGTERM))
+  if (GNUNET_OK !=
+      GNUNET_process_kill (proc,
+                           SIGTERM))
   {
     LOG (GNUNET_ERROR_TYPE_WARNING,
          "Error shutting down process with SIGERM, trying SIGKILL\n");
-    if (0 != GNUNET_OS_process_kill (proc, SIGKILL))
+    if (GNUNET_OK !=
+        GNUNET_process_kill (proc,
+                             SIGKILL))
     {
       LOG (GNUNET_ERROR_TYPE_ERROR,
            "Error shutting down process with SIGERM and SIGKILL\n");
     }
   }
-  GNUNET_break (GNUNET_OK == GNUNET_OS_process_wait (proc));
-  GNUNET_OS_process_destroy (proc);
+  GNUNET_break (GNUNET_OK ==
+                GNUNET_process_wait (proc,
+                                     true,
+                                     NULL,
+                                     NULL));
+  GNUNET_process_destroy (proc);
 }
 
 
@@ -790,7 +798,8 @@ shutdown_process (struct GNUNET_OS_Process *proc)
 static void
 shutdown_statistics (void *cls)
 {
-  struct GNUNET_OS_Process *proc = cls;
+  struct GNUNET_Process *proc = cls;
+
   shutdown_process (proc);
 }
 
@@ -803,7 +812,8 @@ shutdown_statistics (void *cls)
 static void
 shutdown_peerstore (void *cls)
 {
-  struct GNUNET_OS_Process *proc = cls;
+  struct GNUNET_Process *proc = cls;
+
   shutdown_process (proc);
 }
 
@@ -816,7 +826,8 @@ shutdown_peerstore (void *cls)
 static void
 shutdown_communicator (void *cls)
 {
-  struct GNUNET_OS_Process *proc = cls;
+  struct GNUNET_Process *proc = cls;
+
   shutdown_process (proc);
 }
 
@@ -835,35 +846,51 @@ communicator_start (
   char *loprefix;
   char *section_name;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "communicator_start\n");
-
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "communicator_start\n");
   section_name = strchr (binary_name, '-');
   section_name++;
 
-  if (GNUNET_OK != GNUNET_CONFIGURATION_get_value_string (tc_h->cfg,
-                                                          section_name,
-                                                          "PREFIX",
-                                                          &loprefix))
+  if (GNUNET_OK !=
+      GNUNET_CONFIGURATION_get_value_string (tc_h->cfg,
+                                             section_name,
+                                             "PREFIX",
+                                             &loprefix))
     loprefix = GNUNET_strdup ("");
 
 
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              binary_name);
-  tc_h->c_proc = GNUNET_OS_start_process_s (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                            NULL,
-                                            loprefix,
-                                            binary,
-                                            binary_name,
-                                            "-c",
-                                            tc_h->cfg_filename,
-                                            NULL);
-  GNUNET_free (loprefix);
-  if (NULL == tc_h->c_proc)
+  binary = GNUNET_OS_get_libexec_binary_path (
+    GNUNET_OS_project_data_gnunet (),
+    binary_name);
+  tc_h->c_proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   tc_h->c_proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_va (
+          tc_h->c_proc,
+          loprefix,
+          binary,
+          binary_name,
+          "-c",
+          tc_h->cfg_filename,
+          NULL)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (tc_h->c_proc)) )
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start communicator!");
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to start communicator!");
+    GNUNET_process_destroy (tc_h->c_proc);
+    tc_h->c_proc = NULL;
+    GNUNET_free (loprefix);
+    GNUNET_free (binary);
     return;
   }
-  LOG (GNUNET_ERROR_TYPE_INFO, "started communicator\n");
+  LOG (GNUNET_ERROR_TYPE_INFO,
+       "started communicator\n");
+  GNUNET_free (loprefix);
   GNUNET_free (binary);
 }
 
@@ -876,7 +903,8 @@ communicator_start (
 static void
 shutdown_nat (void *cls)
 {
-  struct GNUNET_OS_Process *proc = cls;
+  struct GNUNET_Process *proc = cls;
+
   shutdown_process (proc);
 }
 
@@ -889,138 +917,59 @@ shutdown_nat (void *cls)
 static void
 shutdown_resolver (void *cls)
 {
-  struct GNUNET_OS_Process *proc = cls;
+  struct GNUNET_Process *proc = cls;
+
   shutdown_process (proc);
 }
 
 
 /**
- * @brief Start Resolver
+ * @brief Start service
  *
  */
-static void
-resolver_start (struct
-                GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
+static struct GNUNET_Process *
+service_start (
+  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h,
+  const char *service_name)
 {
+  struct GNUNET_Process *proc;
   char *binary;
 
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "resolver_start\n");
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              "gnunet-service-resolver");
-  tc_h->resolver_proc = GNUNET_OS_start_process (
-    GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-    | GNUNET_OS_USE_PIPE_CONTROL,
-    NULL,
-    NULL,
-    NULL,
-    binary,
-    "gnunet-service-resolver",
-    "-c",
-    tc_h->cfg_filename,
-    NULL);
-  if (NULL == tc_h->resolver_proc)
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "%s_start\n",
+       service_name);
+  binary = GNUNET_OS_get_libexec_binary_path (
+    GNUNET_OS_project_data_gnunet (),
+    service_name);
+  proc = GNUNET_process_create ();
+  GNUNET_assert (GNUNET_OK ==
+                 GNUNET_process_set_options (
+                   proc,
+                   GNUNET_process_option_std_inheritance (
+                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
+  if ( (GNUNET_OK !=
+        GNUNET_process_set_command_va (
+          proc,
+          binary,
+          service_name,
+          "-c",
+          tc_h->cfg_filename,
+          NULL)) ||
+       (GNUNET_OK !=
+        GNUNET_process_start (proc)) )
   {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start resolver service!");
-    return;
+    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                "Failed to start %s!",
+                service_name);
+    GNUNET_process_destroy (proc);
+    GNUNET_free (binary);
+    return NULL;
   }
-  LOG (GNUNET_ERROR_TYPE_INFO, "started resolver service\n");
+  LOG (GNUNET_ERROR_TYPE_INFO,
+       "started %s service\n",
+       service_name);
   GNUNET_free (binary);
-
-}
-
-
-/**
- * @brief Start Statistics
- *
- */
-static void
-statistics_start (
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
-{
-  char *binary;
-
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              "gnunet-service-statistics");
-  tc_h->stat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                             NULL,
-                                             NULL,
-                                             NULL,
-                                             binary,
-                                             "gnunet-service-statistics",
-                                             "-c",
-                                             tc_h->cfg_filename,
-                                             NULL);
-  if (NULL == tc_h->stat_proc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start Statistics!");
-    return;
-  }
-  LOG (GNUNET_ERROR_TYPE_INFO, "started Statistics\n");
-  GNUNET_free (binary);
-}
-
-
-/**
- * @brief Start Peerstore
- *
- */
-static void
-peerstore_start (
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
-{
-  char *binary;
-
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              "gnunet-service-peerstore");
-  tc_h->ps_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR,
-                                           NULL,
-                                           NULL,
-                                           NULL,
-                                           binary,
-                                           "gnunet-service-peerstore",
-                                           "-c",
-                                           tc_h->cfg_filename,
-                                           NULL);
-  if (NULL == tc_h->ps_proc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start Peerstore!");
-    return;
-  }
-  LOG (GNUNET_ERROR_TYPE_INFO, "started Peerstore\n");
-  GNUNET_free (binary);
-}
-
-
-/**
- * @brief Start NAT
- *
- */
-static void
-nat_start (
-  struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *tc_h)
-{
-  char *binary;
-
-  LOG (GNUNET_ERROR_TYPE_DEBUG, "nat_start\n");
-  binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
-                                              "gnunet-service-nat");
-  tc_h->nat_proc = GNUNET_OS_start_process (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                                            | GNUNET_OS_USE_PIPE_CONTROL,
-                                            NULL,
-                                            NULL,
-                                            NULL,
-                                            binary,
-                                            "gnunet-service-nat",
-                                            "-c",
-                                            tc_h->cfg_filename,
-                                            NULL);
-  if (NULL == tc_h->nat_proc)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR, "Failed to start NAT!");
-    return;
-  }
-  LOG (GNUNET_ERROR_TYPE_INFO, "started NAT\n");
-  GNUNET_free (binary);
+  return proc;
 }
 
 
@@ -1087,13 +1036,14 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_service_start (
   /* Start communicator part of service */
   transport_communicator_start (tc_h);
   /* Start NAT */
-  nat_start (tc_h);
-  /* Start resolver service */
-  resolver_start (tc_h);
-  /* Start peerstore service */
-  peerstore_start (tc_h);
-  /* Start statistic service */
-  statistics_start (tc_h);
+  tc_h->nat_proc = service_start (tc_h,
+                                  "gnunet-service-nat");
+  tc_h->resolver_proc = service_start (tc_h,
+                                       "gnunet-service-resolver");
+  tc_h->ps_proc = service_start (tc_h,
+                                 "gnunet-service-peerstore");
+  tc_h->stat_proc = service_start (tc_h,
+                                   "gnunet-service-statistics");
   /* Schedule start communicator */
   communicator_start (tc_h,
                       binary_name);

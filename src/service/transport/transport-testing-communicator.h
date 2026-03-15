@@ -50,8 +50,10 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorTransmission;
  */
 typedef struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle *
 (*GNUNET_TRANSPORT_TESTING_BackchannelCallback)(void *cls,
-                                                struct GNUNET_MessageHeader *msg,
-                                                struct GNUNET_PeerIdentity *pid);
+                                                struct GNUNET_MessageHeader *msg
+                                                ,
+                                                struct GNUNET_PeerIdentity *pid)
+;
 
 
 /**
@@ -187,27 +189,27 @@ struct GNUNET_TRANSPORT_TESTING_TransportCommunicatorHandle
   /**
    * @brief Process of the communicator
    */
-  struct GNUNET_OS_Process *c_proc;
+  struct GNUNET_Process *c_proc;
 
   /**
    * NAT process
    */
-  struct GNUNET_OS_Process *nat_proc;
+  struct GNUNET_Process *nat_proc;
 
   /**
    * resolver service process
    */
-  struct GNUNET_OS_Process *resolver_proc;
+  struct GNUNET_Process *resolver_proc;
 
   /**
    * statistics service process
    */
-  struct GNUNET_OS_Process *stat_proc;
+  struct GNUNET_Process *stat_proc;
 
   /**
    * peerstore service process
    */
-  struct GNUNET_OS_Process *ps_proc;
+  struct GNUNET_Process *ps_proc;
 
   /**
    * @brief Task that will be run on shutdown to stop and clean communicator
@@ -347,7 +349,8 @@ GNUNET_TRANSPORT_TESTING_transport_communicator_open_queue (struct
                                                             const struct
                                                             GNUNET_PeerIdentity
                                                             *peer_id,
-                                                            const char *address);
+                                                            const char *address)
+;
 
 
 /**
