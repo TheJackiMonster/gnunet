@@ -1101,12 +1101,20 @@ GNUNET_process_wait (struct GNUNET_Process *proc,
       *code = proc->exit_code;
     return GNUNET_OK;
   }
-  while ( (proc->pid !=
-           (ret = waitpid (proc->pid,
-                           &status,
-                           blocking ? 0 : WNOHANG))) &&
-          (EINTR == errno) )
-    ;
+  while (proc->pid !=
+         (ret = waitpid (proc->pid,
+                         &status,
+                         blocking ? 0 : WNOHANG)))
+  {
+    if ( (! blocking) &&
+         (EINTR == errno) )
+    {
+      ret = 0;
+      break;
+    }
+    if (EINTR != errno)
+      break;
+  }
   if (0 == ret)
   {
     if (NULL != type)

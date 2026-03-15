@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 # This file is in the public domain.
 trap "gnunet-arm -e -c test_gns_lookup.conf" INT
 
@@ -21,7 +22,7 @@ cp test_gns_lookup.conf $CFG || exit 77
 which timeout > /dev/null 2>&1 && DO_TIMEOUT="timeout 5"
 TEST_IP="dead::beef"
 gnunet-arm -s -c $CFG || exit 77
-gnunet-identity -C $MY_EGO -c $CFG 
+gnunet-identity -C $MY_EGO -c $CFG
 EPUB=`gnunet-identity -d -c $CFG | grep $MY_EGO | awk '{print $3}'`
 gnunet-arm -e -c $CFG
 gnunet-config -c $CFG -s "gns" -o ".google.com" -V $EPUB

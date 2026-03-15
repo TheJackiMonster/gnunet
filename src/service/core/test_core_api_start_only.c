@@ -181,7 +181,9 @@ run (void *cls,
   GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
                                  NULL);
   timeout_task_id =
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
+    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply (
+                                    GNUNET_TIME_UNIT_SECONDS,
+                                    15),
                                   &timeout_task,
                                   NULL);
   p1.ch = GNUNET_CORE_connect (p1.cfg,
