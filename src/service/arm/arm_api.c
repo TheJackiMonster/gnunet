@@ -941,7 +941,6 @@ GNUNET_ARM_request_service_start (
   struct GNUNET_ARM_Operation *op;
   enum GNUNET_ARM_Result ret;
   struct GNUNET_DISK_PipeHandle *sig;
-  struct GNUNET_DISK_FileHandle *wsig;
 
   LOG (GNUNET_ERROR_TYPE_INFO,
        "Starting service `%s'\n",
@@ -991,11 +990,14 @@ GNUNET_ARM_request_service_start (
   }
   else
   {
+    struct GNUNET_DISK_FileHandle *wsig;
+
     wsig = GNUNET_DISK_pipe_detach_end (sig,
                                         GNUNET_DISK_PIPE_END_WRITE);
     ret = start_arm_service (h,
                              std_inheritance,
                              wsig);
+    GNUNET_DISK_file_close (wsig);
     if (GNUNET_ARM_RESULT_STARTING == ret)
       reconnect_arm (h);
   }
