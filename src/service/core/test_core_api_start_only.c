@@ -28,8 +28,6 @@
 #include "gnunet_core_service.h"
 #include "gnunet_util_lib.h"
 
-#define TIMEOUT 5
-
 #define MTYPE 12345
 
 struct PeerContext
@@ -82,11 +80,21 @@ static struct GNUNET_MQ_MessageHandler handlers[] = {
 static void
 shutdown_task (void *cls)
 {
-  GNUNET_CORE_disconnect (p1.ch);
-  p1.ch = NULL;
-  GNUNET_CORE_disconnect (p2.ch);
-  p2.ch = NULL;
-  ok = 0;
+  if (NULL != timeout_task_id)
+  {
+    GNUNET_SCHEDULER_cancel (timeout_task_id);
+    timeout_task_id = NULL;
+  }
+  if (NULL != p1.ch)
+  {
+    GNUNET_CORE_disconnect (p1.ch);
+    p1.ch = NULL;
+  }
+  if (NULL != p2.ch)
+  {
+    GNUNET_CORE_disconnect (p2.ch);
+    p2.ch = NULL;
+  }
 }
 
 
@@ -110,10 +118,8 @@ init_notify (void *cls,
   else
   {
     GNUNET_assert (p == &p2);
-    GNUNET_SCHEDULER_cancel (timeout_task_id);
-    timeout_task_id = NULL;
-    GNUNET_SCHEDULER_add_now (&shutdown_task,
-                              NULL);
+    ok = 0;
+    GNUNET_SCHEDULER_shutdown ();
   }
 }
 
@@ -153,20 +159,12 @@ setup_peer (struct PeerContext *p,
 static void
 timeout_task (void *cls)
 {
+  timeout_task_id = NULL;
   fprintf (stderr,
            "%s",
            "Timeout.\n");
-  if (NULL != p1.ch)
-  {
-    GNUNET_CORE_disconnect (p1.ch);
-    p1.ch = NULL;
-  }
-  if (NULL != p2.ch)
-  {
-    GNUNET_CORE_disconnect (p2.ch);
-    p2.ch = NULL;
-  }
   ok = 42;
+  GNUNET_SCHEDULER_shutdown ();
 }
 
 
@@ -180,10 +178,10 @@ run (void *cls,
   ok++;
   setup_peer (&p1, "test_core_api_peer1.conf");
   setup_peer (&p2, "test_core_api_peer2.conf");
+  GNUNET_SCHEDULER_add_shutdown (&shutdown_task,
+                                 NULL);
   timeout_task_id =
-    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_relative_multiply
-                                    (GNUNET_TIME_UNIT_MINUTES,
-                                    TIMEOUT),
+    GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_UNIT_MINUTES,
                                   &timeout_task,
                                   NULL);
   p1.ch = GNUNET_CORE_connect (p1.cfg,
