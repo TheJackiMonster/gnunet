@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2024 GNUnet e.V.
+     Copyright (C) 2024, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -27,18 +27,139 @@
 #include "gnunet_constants.h"
 #include "gnunet_dht_block_types.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "dht_helper.h"
 #include <inttypes.h>
+#include <string.h>
 
-static const char*peers_str[] = {
+/**
+ * Handle for the pils service. (may be NULL but needed for linking)
+ */
+struct GNUNET_PILS_Handle *GDS_pils;
+
+#define NUM_PEERS 5
+
+static const char*peers_str[NUM_PEERS] = {
   "a4bba7746dfd3432da2a11c57b248b2d6b14eafb3ad54401c44bd37f232d1ce5",
   "02163d1dde228f9796c5327c781b4e5880ebf356204d3c4cceb9a77ae32157d7",
   "859836011003dc5d0cd84418812e381f3989797fb994464a52e3b7ad954c2695",
   "276881c5c18af46c2ad8ee5235c62c4d9d1df4bb2795d6f0ce190d51aa8b9ce0",
   "56045fd5e9d91426c6a4ec9c8c230ea4ee56fb5c0ad3b77000d863142ceb3b9b"
 };
+
+
+struct TVG_CallbackData
+{
+  struct GNUNET_PeerIdentity peers[NUM_PEERS];
+  struct GNUNET_CRYPTO_EddsaPrivateKey peers_sk[NUM_PEERS];
+  struct GNUNET_HashCode peers_hash[NUM_PEERS];
+  struct GNUNET_DHT_PathElement pp[NUM_PEERS + 1];
+  struct GNUNET_CONTAINER_BloomFilter *peer_bf;
+  struct GNUNET_HashCode key; // FIXME set to key
+  enum GNUNET_DHT_RouteOption ro;
+  unsigned int put_path_len;
+  uint8_t *block_data;
+  size_t block_len;
+  int index;
+};
+
+
+static void
+print_put_message (struct TVG_CallbackData *tvg);
+
+static bool
+cb_print_put_message (void *cls,
+                      size_t msize,
+                      struct PeerPutMessage *ppm)
+{
+  struct TVG_CallbackData *tvg = cls;
+  struct GNUNET_PeerIdentity *peers;
+  struct GNUNET_DHT_PathElement *pp;
+
+  peers = tvg->peers;
+  pp = tvg->pp;
+
+  if (ppm)
+  {
+    size_t putlen;
+    struct GNUNET_DHT_PathElement *put_path;
+    struct GNUNET_CRYPTO_EddsaSignature *last_sig;
+
+    printf ("Peer %d sends to peer %d PUT Message:\n",
+            tvg->index, tvg->index + 1);
+    GNUNET_print_bytes (ppm, msize, 8, 0);
+    putlen = ntohs (ppm->put_path_length);
+    put_path = (struct GNUNET_DHT_PathElement*) &ppm[1];
+    last_sig = (struct GNUNET_CRYPTO_EddsaSignature*) &put_path[putlen];
+    memcpy (pp, put_path, putlen * sizeof (struct GNUNET_DHT_PathElement));
+    pp[putlen].pred = peers[tvg->index];
+    pp[putlen].sig = *last_sig;
+    tvg->put_path_len++;
+    printf ("\n");
+    // printf ("Put path (len = %u):\n", put_path_len);
+    // GNUNET_print_bytes (pp, put_path_len * sizeof (*pp), 8, 0);
+  }
+
+  tvg->index++;
+  print_put_message (tvg);
+  return false;
+}
+
+
+static void
+print_put_message (struct TVG_CallbackData *tvg)
+{
+  struct GNUNET_PeerIdentity *peers;
+  struct GNUNET_CRYPTO_EddsaPrivateKey *peers_sk;
+  struct GNUNET_HashCode *peers_hash;
+  struct GNUNET_DHT_PathElement *pp;
+  struct GNUNET_PeerIdentity trunc_peer_out;
+  bool truncated;
+  enum GNUNET_GenericReturnValue ret;
+  size_t msize;
+  int i;
+
+  peers = tvg->peers;
+  peers_sk = tvg->peers_sk;
+  peers_hash = tvg->peers_hash;
+  pp = tvg->pp;
+
+  i = tvg->index;
+  if (i >= NUM_PEERS - 1)
+    return;
+
+  ret = GDS_helper_put_message_get_size (
+    &msize, &peers[i], tvg->ro, &tvg->ro, GNUNET_TIME_UNIT_FOREVER_ABS,
+    tvg->block_data, tvg->block_len, pp,
+    tvg->put_path_len, &tvg->put_path_len,
+    NULL, &trunc_peer_out, &truncated);
+  GNUNET_assert (GNUNET_OK == ret);
+  {
+    uint8_t buf[msize];
+    struct PeerPutMessage *ppm;
+    ppm = (struct PeerPutMessage*) buf;
+    GNUNET_CONTAINER_bloomfilter_add (tvg->peer_bf,
+                                      &peers_hash[i]);
+    GNUNET_CONTAINER_bloomfilter_add (tvg->peer_bf,
+                                      &peers_hash[i + 1]);
+    GDS_helper_make_put_message (ppm, msize,
+                                 &peers_sk[i], &peers[i + 1],
+                                 &peers_hash[i + 1],
+                                 tvg->peer_bf, &tvg->key, tvg->ro,
+                                 GNUNET_BLOCK_TYPE_TEST,
+                                 GNUNET_TIME_UNIT_FOREVER_ABS,
+                                 tvg->block_data,
+                                 tvg->block_len,
+                                 pp, tvg->put_path_len,
+                                 i, 7, NULL,
+                                 &cb_print_put_message,
+                                 0,
+                                 tvg);
+  }
+}
+
 
 /**
  * Main function that will be run.
@@ -54,26 +175,25 @@ run (void *cls,
      const char *cfgfile,
      const struct GNUNET_CONFIGURATION_Handle *cfg)
 {
-  int NUM_PEERS = 5;
-  struct GNUNET_PeerIdentity peers[NUM_PEERS];
-  struct GNUNET_CRYPTO_EddsaPrivateKey peers_sk[NUM_PEERS];
-  struct GNUNET_HashCode peers_hash[NUM_PEERS];
-  struct GNUNET_HashCode key; // FIXME set to key
-  enum GNUNET_DHT_RouteOption ro = GNUNET_DHT_RO_RECORD_ROUTE;
-  size_t msize;
+  struct TVG_CallbackData tvg;
+  struct GNUNET_PeerIdentity *peers;
+  struct GNUNET_CRYPTO_EddsaPrivateKey *peers_sk;
+  struct GNUNET_HashCode *peers_hash;
   uint64_t data_num = 23;
-  uint8_t *block_data = (uint8_t*) &data_num;
-  size_t block_len = 8;
-  unsigned int put_path_len = 0;
-  size_t putlen;
-  struct GNUNET_CRYPTO_EddsaSignature *last_sig;
-  struct GNUNET_DHT_PathElement *put_path;
-  struct GNUNET_DHT_PathElement pp[NUM_PEERS + 1];
-  enum GNUNET_GenericReturnValue ret;
-  struct GNUNET_CONTAINER_BloomFilter *peer_bf;
-  struct GNUNET_PeerIdentity trunc_peer_out;
-  bool truncated = false;
-  GNUNET_CRYPTO_hash ("testvector", strlen ("testvector"), &key);
+
+  GDS_pils = NULL;
+
+  GNUNET_CRYPTO_hash ("testvector", strlen ("testvector"), &tvg.key);
+
+  memset (&tvg, 0, sizeof (tvg));
+  tvg.ro = GNUNET_DHT_RO_RECORD_ROUTE;
+  tvg.put_path_len = 0;
+  tvg.block_data = (uint8_t*) &data_num;
+  tvg.block_len = sizeof (data_num);
+
+  peers = tvg.peers;
+  peers_sk = tvg.peers_sk;
+  peers_hash = tvg.peers_hash;
 
   for (int i = 0; i < NUM_PEERS; i++)
   {
@@ -91,47 +211,15 @@ run (void *cls,
     printf ("\n");
   }
 
-  peer_bf
+  tvg.peer_bf
     = GNUNET_CONTAINER_bloomfilter_init (NULL,
                                          DHT_BLOOM_SIZE,
                                          GNUNET_CONSTANTS_BLOOMFILTER_K);
-  for (int i = 0; i < NUM_PEERS - 1; i++)
-  {
-    ret = GDS_helper_put_message_get_size (
-      &msize, &peers[i], ro, &ro, GNUNET_TIME_UNIT_FOREVER_ABS,
-      block_data, block_len, pp, put_path_len, &put_path_len,
-      NULL, &trunc_peer_out, &truncated);
-    GNUNET_assert (GNUNET_OK == ret);
-    {
+  tvg.index = 0;
+  print_put_message (&tvg);
 
-      uint8_t buf[msize];
-      struct PeerPutMessage *ppm;
-      ppm = (struct PeerPutMessage*) buf;
-      GNUNET_CONTAINER_bloomfilter_add (peer_bf,
-                                        &peers_hash[i]);
-      GNUNET_CONTAINER_bloomfilter_add (peer_bf, &peers_hash[i + 1]);
-      GDS_helper_make_put_message (ppm, msize,
-                                   &peers_sk[i], &peers[i + 1],
-                                   &peers_hash[i + 1],
-                                   peer_bf, &key, ro,
-                                   GNUNET_BLOCK_TYPE_TEST,
-                                   GNUNET_TIME_UNIT_FOREVER_ABS,
-                                   block_data, 10,
-                                   pp, put_path_len, i, 7, NULL);
-      printf ("Peer %d sends to peer %d PUT Message:\n", i, i + 1);
-      GNUNET_print_bytes (ppm, msize, 8, 0);
-      putlen = ntohs (ppm->put_path_length);
-      put_path = (struct GNUNET_DHT_PathElement*) &ppm[1];
-      last_sig = (struct GNUNET_CRYPTO_EddsaSignature*) &put_path[putlen];
-      memcpy (pp, put_path, putlen * sizeof (struct GNUNET_DHT_PathElement));
-      pp[putlen].pred = peers[i];
-      pp[putlen].sig = *last_sig;
-      put_path_len++;
-      printf ("\n");
-      // printf ("Put path (len = %u):\n", put_path_len);
-      // GNUNET_print_bytes (pp, put_path_len * sizeof (*pp), 8, 0);
-    }
-  }
+  GDS_helper_cleanup_operations ();
+  GDS_pils = NULL;
 }
 
 
@@ -157,7 +245,7 @@ main (int argc,
   // gcry_control (GCRYCTL_SET_DEBUG_FLAGS, 1u, 0);
   // gcry_control (GCRYCTL_SET_VERBOSITY, 99);
   if (GNUNET_OK !=
-      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet(),
+      GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                           argc, argv,
                           "gnunet-dht-tvg",
                           "Generate test vectors for R5N",

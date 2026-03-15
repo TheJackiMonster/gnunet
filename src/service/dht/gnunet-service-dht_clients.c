@@ -475,6 +475,20 @@ check_dht_local_put (void *cls,
 }
 
 
+static void
+cb_forwarded_dht_local_put (void *cls,
+                            enum GNUNET_GenericReturnValue forwarded)
+{
+  if (GNUNET_OK != forwarded)
+  {
+    GNUNET_STATISTICS_update (GDS_stats,
+                              "# Local PUT requests not routed",
+                              1,
+                              GNUNET_NO);
+  }
+}
+
+
 /**
  * Handler for PUT messages.
  *
@@ -539,17 +553,12 @@ handle_dht_local_put (void *cls,
                                peer_bf)))
       GDS_DATACACHE_handle_put (&bd);
     /* route to other peers */
-    if (GNUNET_OK !=
-        GDS_NEIGHBOURS_handle_put (&bd,
-                                   replication_level,
-                                   0 /* hop count */,
-                                   peer_bf))
-    {
-      GNUNET_STATISTICS_update (GDS_stats,
-                                "# Local PUT requests not routed",
-                                1,
-                                GNUNET_NO);
-    }
+    GDS_NEIGHBOURS_handle_put (&bd,
+                               replication_level,
+                               0 /* hop count */,
+                               peer_bf,
+                               &cb_forwarded_dht_local_put,
+                               NULL);
     GNUNET_CONTAINER_bloomfilter_free (peer_bf);
   }
   GDS_CLIENTS_process_put (

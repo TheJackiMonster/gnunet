@@ -84,6 +84,7 @@ executable(
         m_dep,
         libgnunetblockgroup_dep,
         libgnunethello_dep,
+        libgnunetpils_dep,
     ],
     include_directories: [incdir, configuration_inc],
     install: false,

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2016, 2026 GNUnet e.V.
+     Copyright (C) 2009-2011, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -37,6 +37,7 @@
 #include "gnunet-service-dht_routing.h"
 #include "plugin_dhtu_ip.h"
 #include "plugin_dhtu_gnunet.h"
+#include "dht_helper.h"
 
 /**
  * How often do we broadcast our HELLO to neighbours if
@@ -150,11 +151,6 @@ static struct PilsRequest *pils_requests_tail;
  * Our HELLO
  */
 struct GNUNET_MessageHeader *GDS_my_hello;
-
-/**
- * PILS key ring.
- */
-struct GNUNET_PILS_KeyRing *GDS_key_ring;
 
 /**
  * Handles for the DHT underlays.
@@ -396,15 +392,11 @@ shutdown_task (void *cls)
       GNUNET_PILS_cancel (pr->op);
     GNUNET_free (pr);
   }
+  GDS_helper_cleanup_operations ();
   if (NULL != GDS_pils)
   {
     GNUNET_PILS_disconnect (GDS_pils);
     GDS_pils = NULL;
-  }
-  if (NULL != GDS_key_ring)
-  {
-    GNUNET_PILS_destroy_key_ring (GDS_key_ring);
-    GDS_key_ring = NULL;
   }
 }
 
@@ -501,8 +493,6 @@ run (void *cls,
 {
   GDS_cfg = c;
   GDS_service = service;
-  GDS_key_ring = GNUNET_PILS_create_key_ring (GDS_cfg, NULL, NULL);
-  GNUNET_assert (NULL != GDS_key_ring);
   GDS_pils = GNUNET_PILS_connect (GDS_cfg, pid_change_cb, NULL);
   GNUNET_assert (NULL != GDS_pils);
 

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2011, 2022 GNUnet e.V.
+     Copyright (C) 2011, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -180,7 +180,7 @@ process (void *cls,
     /* If we do not know the block type, we still filter
        exact duplicates by the block content */
     struct GNUNET_HashCode chash;
-    
+
     GNUNET_CRYPTO_hash (bdx.data,
                         bdx.data_size,
                         &chash);
@@ -212,11 +212,13 @@ process (void *cls,
                     GNUNET_h2s (query_hash));
         return GNUNET_OK;
       }
-      GNUNET_break (GDS_NEIGHBOURS_handle_reply (pi,
-                                                 &bdx,
-                                                 query_hash,
-                                                 get_path_length,
-                                                 pc->get_path));
+      GDS_NEIGHBOURS_handle_reply (pi,
+                                   &bdx,
+                                   query_hash,
+                                   get_path_length,
+                                   pc->get_path,
+                                   NULL,
+                                   NULL);
     }
     break;
   case GNUNET_BLOCK_REPLY_OK_DUPLICATE:

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2024 GNUnet e.V.
+     Copyright (C) 2024, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -29,8 +29,31 @@
 #include "dht.h"
 #include "gnunet_common.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
+
+
+/**
+ * Handle for the pils service.
+ */
+extern struct GNUNET_PILS_Handle *GDS_pils;
+
+
+typedef bool (* GDS_HelperCallback) (void *cls,
+                                     const struct GNUNET_CRYPTO_EddsaSignature *
+                                     sig);
+
+typedef bool (* GDS_HelperMsgCallback) (void *cls,
+                                        size_t msize,
+                                        struct PeerPutMessage *ppm);
+
+struct GDS_HelperOperation;
+
+
+void
+GDS_helper_cleanup_operations (void);
+
 
 enum GNUNET_GenericReturnValue
 GDS_helper_put_message_get_size (size_t *msize_out,
@@ -62,16 +85,18 @@ GDS_helper_put_message_get_size (size_t *msize_out,
  * @param[out] sig where to write the signature
  *      (of purpose #GNUNET_SIGNATURE_PURPOSE_DHT_PUT_HOP)
  */
-void
+bool
 GDS_helper_sign_path (const void *data,
                       size_t data_size,
                       const struct GNUNET_CRYPTO_EddsaPrivateKey *sk,
                       struct GNUNET_TIME_Absolute exp_time,
                       const struct GNUNET_PeerIdentity *pred,
                       const struct GNUNET_PeerIdentity *succ,
-                      struct GNUNET_CRYPTO_EddsaSignature *sig);
+                      GDS_HelperCallback cb,
+                      size_t cb_data_size,
+                      void *cb_data);
 
-void
+bool
 GDS_helper_make_put_message (struct PeerPutMessage *ppm,
                              size_t msize,
                              const struct GNUNET_CRYPTO_EddsaPrivateKey *sk,
@@ -88,6 +113,9 @@ GDS_helper_make_put_message (struct PeerPutMessage *ppm,
                              unsigned int put_path_len,
                              size_t hop_count,
                              uint32_t desired_replication_level,
-                             const struct GNUNET_PeerIdentity *trunc_peer);
+                             const struct GNUNET_PeerIdentity *trunc_peer,
+                             GDS_HelperMsgCallback cb,
+                             size_t cb_data_size,
+                             void *cb_data);
 
 #endif

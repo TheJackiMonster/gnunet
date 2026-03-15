@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2024 GNUnet e.V.
+     Copyright (C) 2024, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -23,14 +23,74 @@
  * @brief Helper functions for DHT.
  * @author Martin Schanzenbach
  */
+#include "gnunet-service-dht.h"
 #include "gnunet_constants.h"
 #include "gnunet_common.h"
 #include "gnunet_signatures.h"
 #include "gnunet_dht_service.h"
+#include "gnunet_pils_service.h"
 #include "gnunet_time_lib.h"
 #include "gnunet_util_lib.h"
 #include "dht.h"
 #include "dht_helper.h"
+
+
+struct GDS_HelperOperation
+{
+  struct GDS_HelperOperation *prev;
+  struct GDS_HelperOperation *next;
+
+  struct GNUNET_PILS_Operation *sign_op;
+
+  GDS_HelperCallback cb;
+  void *cb_data;
+  bool heap;
+};
+
+static struct GDS_HelperOperation *op_head;
+static struct GDS_HelperOperation *op_tail;
+
+struct GDS_HelperMsgData
+{
+  struct PeerPutMessage *ppm;
+  size_t msize;
+
+  struct GNUNET_CRYPTO_EddsaSignature *sig;
+  bool heap_msg;
+
+  GDS_HelperMsgCallback cb;
+  void *cb_data;
+  bool heap;
+};
+
+
+static void
+cleanup_helper_operation (struct GDS_HelperOperation *op, bool free_data)
+{
+  GNUNET_assert (op);
+  if (op->sign_op)
+    GNUNET_PILS_cancel (op->sign_op);
+  if ((free_data) && (op->cb_data) && (op->heap))
+    GNUNET_free (op->cb_data);
+  GNUNET_CONTAINER_DLL_remove (op_head, op_tail, op);
+  GNUNET_free (op);
+}
+
+
+void
+GDS_helper_cleanup_operations (void)
+{
+  struct GDS_HelperOperation *op;
+  while (op_head)
+  {
+    bool free_data = true;
+    op = op_head;
+    if (op->cb)
+      free_data = op->cb (op->cb_data, NULL);
+    cleanup_helper_operation (op, free_data);
+  }
+}
+
 
 enum GNUNET_GenericReturnValue
 GDS_helper_put_message_get_size (size_t *msize_out,
@@ -147,14 +207,31 @@ GDS_helper_put_message_get_size (size_t *msize_out,
 }
 
 
-void
+static void
+cb_sign_result (void *cls,
+                const struct GNUNET_PeerIdentity *pid,
+                const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GDS_HelperOperation *op = cls;
+  bool free_data;
+  if (op->cb)
+    free_data = op->cb (op->cb_data, sig);
+  else
+    free_data = true;
+  cleanup_helper_operation (op, free_data);
+}
+
+
+bool
 GDS_helper_sign_path (const void *data,
                       size_t data_size,
                       const struct GNUNET_CRYPTO_EddsaPrivateKey *sk,
                       struct GNUNET_TIME_Absolute exp_time,
                       const struct GNUNET_PeerIdentity *pred,
                       const struct GNUNET_PeerIdentity *succ,
-                      struct GNUNET_CRYPTO_EddsaSignature *sig)
+                      GDS_HelperCallback cb,
+                      size_t cb_data_size,
+                      void *cb_data)
 {
   struct GNUNET_DHT_HopSignature hs = {
     .purpose.purpose = htonl (GNUNET_SIGNATURE_PURPOSE_DHT_HOP),
@@ -168,13 +245,84 @@ GDS_helper_sign_path (const void *data,
   GNUNET_CRYPTO_hash (data,
                       data_size,
                       &hs.h_data);
-  GNUNET_CRYPTO_eddsa_sign (sk,
-                            &hs,
-                            sig);
+
+  if (sk)
+  {
+    struct GNUNET_CRYPTO_EddsaSignature sig;
+    GNUNET_CRYPTO_eddsa_sign (sk,
+                              &hs,
+                              &sig);
+    if (cb)
+      return cb (cb_data, &sig);
+    else
+      return true;
+  }
+  else
+  {
+    struct GDS_HelperOperation *op;
+    op = GNUNET_new (struct GDS_HelperOperation);
+    op->cb = cb;
+    if (cb_data_size > 0)
+    {
+      op->cb_data = GNUNET_memdup (cb_data, cb_data_size);
+      op->heap = true;
+    }
+    else
+    {
+      op->cb_data = cb_data;
+      op->heap = false;
+    }
+    GNUNET_CONTAINER_DLL_insert (op_head, op_tail, op);
+    op->sign_op = GNUNET_PILS_sign_by_peer_identity (GDS_pils,
+                                                     &hs.purpose,
+                                                     &cb_sign_result,
+                                                     op);
+    if (NULL == op->sign_op)
+    {
+      cleanup_helper_operation (op, true);
+      return true;
+    }
+    else
+      return (cb_data_size > 0);
+  }
 }
 
 
-void
+static bool
+cb_path_signed (void *cls,
+                const struct GNUNET_CRYPTO_EddsaSignature *sig)
+{
+  struct GDS_HelperMsgData *msg_data = cls;
+  bool free_data;
+
+  if (sig)
+  {
+    unsigned int put_path_len;
+    put_path_len = ntohs (msg_data->ppm->put_path_length);
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Signing PUT PATH %u => %s\n",
+                put_path_len,
+                GNUNET_B2S (sig));
+    memcpy (msg_data->sig, sig, sizeof (*sig));
+  }
+
+  if (msg_data->cb)
+    free_data = msg_data->cb (msg_data->cb_data,
+                              msg_data->msize,
+                              sig? msg_data->ppm : NULL);
+  else
+    free_data = true;
+
+  if ((free_data) && (msg_data->cb_data) && (msg_data->heap))
+    GNUNET_free (msg_data->cb_data);
+  if (msg_data->heap_msg)
+    GNUNET_free (msg_data->ppm);
+
+  return true;
+}
+
+
+bool
 GDS_helper_make_put_message (struct PeerPutMessage *ppm,
                              size_t msize,
                              const struct GNUNET_CRYPTO_EddsaPrivateKey *sk,
@@ -191,7 +339,10 @@ GDS_helper_make_put_message (struct PeerPutMessage *ppm,
                              unsigned int put_path_len,
                              size_t hop_count,
                              uint32_t desired_replication_level,
-                             const struct GNUNET_PeerIdentity *trunc_peer)
+                             const struct GNUNET_PeerIdentity *trunc_peer,
+                             GDS_HelperMsgCallback cb,
+                             size_t cb_data_size,
+                             void *cb_data)
 {
   struct GNUNET_DHT_PathElement *pp;
   bool truncated = (0 != (ro & GNUNET_DHT_RO_TRUNCATED));
@@ -234,44 +385,85 @@ GDS_helper_make_put_message (struct PeerPutMessage *ppm,
   if (tracking)
   {
     void *tgt = &pp[put_path_len];
-    struct GNUNET_CRYPTO_EddsaSignature last_sig;
+    data = tgt + sizeof (struct GNUNET_CRYPTO_EddsaSignature);
+  }
+  else
+  {
+    data = &ppm[1];
+  }
+
+  GNUNET_memcpy (data,
+                 block_data,
+                 block_data_len);
+  if (tracking)
+  {
+    const struct GNUNET_PeerIdentity *pred;
+    void *tgt = &pp[put_path_len];
 
     if (0 == put_path_len)
     {
       /* Note that the signature in 'put_path' was not initialized before,
          so this is crucial to avoid sending garbage. */
-      GDS_helper_sign_path (block_data,
-                            block_data_len,
-                            sk,
-                            block_expiration_time,
-                            trunc_peer,
-                            target,
-                            &last_sig);
+      pred = trunc_peer;
+    }
+    else
+      pred = &pp[put_path_len - 1].pred;
+
+    if (sk)
+    {
+      struct GDS_HelperMsgData msg_data;
+      msg_data.ppm = ppm;
+      msg_data.msize = msize;
+      msg_data.sig = tgt;
+      msg_data.heap_msg = false;
+      msg_data.cb = cb;
+      msg_data.cb_data = cb_data;
+      msg_data.heap = false;
+
+      return GDS_helper_sign_path (block_data,
+                                   block_data_len,
+                                   sk,
+                                   block_expiration_time,
+                                   pred,
+                                   target,
+                                   &cb_path_signed,
+                                   sizeof (msg_data),
+                                   &msg_data) && (cb_data_size > 0);
     }
     else
     {
-      GDS_helper_sign_path (block_data,
-                            block_data_len,
-                            sk,
-                            block_expiration_time,
-                            &pp[put_path_len - 1].pred,
-                            target,
-                            &last_sig);
+      struct GDS_HelperMsgData msg_data;
+      msg_data.ppm = GNUNET_memdup (ppm, msize);
+      msg_data.msize = msize;
+      msg_data.sig = (struct GNUNET_CRYPTO_EddsaSignature*) (
+        ((size_t) msg_data.ppm) + ((size_t) tgt) - ((size_t) ppm));
+      msg_data.heap_msg = true;
+      msg_data.cb = cb;
+
+      if (cb_data_size > 0)
+      {
+        msg_data.cb_data = GNUNET_memdup (cb_data, cb_data_size);
+        msg_data.heap = true;
+      }
+      else
+      {
+        msg_data.cb_data = cb_data;
+        msg_data.heap = false;
+      }
+
+      return GDS_helper_sign_path (block_data,
+                                   block_data_len,
+                                   sk,
+                                   block_expiration_time,
+                                   pred,
+                                   target,
+                                   &cb_path_signed,
+                                   sizeof (msg_data),
+                                   &msg_data) && (cb_data_size > 0);
     }
-    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-                "Signing PUT PATH %u => %s\n",
-                put_path_len,
-                GNUNET_B2S (&last_sig));
-    memcpy (tgt,
-            &last_sig,
-            sizeof (last_sig));
-    data = tgt + sizeof (last_sig);
   }
-  else   /* ! tracking */
-  {
-    data = &ppm[1];
-  }
-  GNUNET_memcpy (data,
-                 block_data,
-                 block_data_len);
+  else if (cb)
+    return cb (cb_data, msize, ppm);
+  else
+    return true;
 }

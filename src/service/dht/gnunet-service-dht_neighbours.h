@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2022 GNUnet e.V.
+     Copyright (C) 2009-2011, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -27,6 +27,7 @@
 #ifndef GNUNET_SERVICE_DHT_NEIGHBOURS_H
 #define GNUNET_SERVICE_DHT_NEIGHBOURS_H
 
+#include "gnunet_common.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_block_lib.h"
 #include "gnunet_dht_service.h"
@@ -35,6 +36,10 @@
 
 
 struct PeerInfo;
+
+typedef void (* GDS_PutOperationCallback) (void *cls,
+                                           enum GNUNET_GenericReturnValue
+                                           forwarded);
 
 /**
  * Lookup peer by peer's identity.
@@ -59,11 +64,13 @@ GDS_NEIGHBOURS_lookup_peer (const struct GNUNET_PeerIdentity *target);
  * @param bf Bloom filter of peers this PUT has already traversed
  * @return #GNUNET_OK if the request was forwarded, #GNUNET_NO if not
  */
-enum GNUNET_GenericReturnValue
+void
 GDS_NEIGHBOURS_handle_put (const struct GNUNET_DATACACHE_Block *bd,
                            uint16_t desired_replication_level,
                            uint16_t hop_count,
-                           struct GNUNET_CONTAINER_BloomFilter *bf);
+                           struct GNUNET_CONTAINER_BloomFilter *bf,
+                           GDS_PutOperationCallback cb,
+                           void *cb_cls);
 
 
 /**
@@ -107,12 +114,14 @@ GDS_NEIGHBOURS_handle_get (enum GNUNET_BLOCK_Type type,
  * @param get_path peers this reply has traversed so far (if tracked)
  * @return true on success
  */
-bool
+void
 GDS_NEIGHBOURS_handle_reply (struct PeerInfo *pi,
                              const struct GNUNET_DATACACHE_Block *bd,
                              const struct GNUNET_HashCode *query_hash,
                              unsigned int get_path_length,
-                             const struct GNUNET_DHT_PathElement *get_path);
+                             const struct GNUNET_DHT_PathElement *get_path,
+                             GNUNET_SCHEDULER_TaskCallback cb,
+                             void *cb_cls);
 
 
 /**

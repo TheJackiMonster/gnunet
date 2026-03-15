@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2010,2011, 2026 GNUnet e.V.
+     Copyright (C) 2010-2011, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -27,7 +27,6 @@
 #define GNUNET_SERVICE_TRANSPORT_H
 
 #include "gnunet_util_lib.h"
-#include "gnunet_pils_service.h"
 #include "gnunet_statistics_service.h"
 #include "gnunet_ats_service.h"
 #include "gnunet_transport_service.h"
@@ -43,11 +42,6 @@ extern struct GNUNET_STATISTICS_Handle *GST_stats;
  * Configuration handle.
  */
 extern const struct GNUNET_CONFIGURATION_Handle *GST_cfg;
-
-/**
- * PILS key ring
- */
-extern struct GNUNET_PILS_KeyRing *key_ring;
 
 /**
  * Handle to peerinfo service.
