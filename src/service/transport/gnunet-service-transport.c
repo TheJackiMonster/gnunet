@@ -13225,7 +13225,8 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
     GNUNET_SERVICE_client_drop (tc->client);
     return;
   }
-  if (NULL == GST_my_identity)
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (NULL == my_identity)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 "Still waiting for own identity!\n");
@@ -13237,8 +13238,6 @@ handle_suggest (void *cls, const struct ExpressPreferenceMessage *msg)
               GNUNET_i2s (&msg->peer),
               (int) ntohl (msg->pk),
               (int) ntohl (msg->bw.value__));
-  my_identity = GNUNET_PILS_get_identity (pils);
-  GNUNET_assert (my_identity);
   if (0 == GNUNET_memcmp (my_identity, &msg->peer))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

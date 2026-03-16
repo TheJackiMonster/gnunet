@@ -95,12 +95,12 @@ regex_found (GNUNET_UNUSED void *cls,
   get_path_size = sizeof (struct GNUNET_PeerIdentity) * get_path_length;
   put_path_size = sizeof (struct GNUNET_PeerIdentity) * put_path_length;
 
-  if (GNUNET_YES != GNUNET_CRYPTO_kdf (&hash, sizeof (hash),
-                                       "regex_match", 11,
-                                       id, sizeof (*id),
-                                       get_path, get_path_size,
-                                       put_path, put_path_size,
-                                       NULL))
+  if (GNUNET_YES != GNUNET_CRYPTO_hkdf_gnunet (
+        &hash, sizeof (hash),
+        "regex_match", 11,
+        id, sizeof (*id),
+        GNUNET_CRYPTO_kdf_arg (get_path, get_path_size),
+        GNUNET_CRYPTO_kdf_arg (put_path, put_path_size)))
     return;
 
   if (GNUNET_YES == GNUNET_CONTAINER_multihashmap_contains (matches, &hash))
