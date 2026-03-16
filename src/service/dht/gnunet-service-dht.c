@@ -475,6 +475,21 @@ pid_change_cb (void *cls,
     GNUNET_break (0);
     return;
   }
+
+  if (NULL == u_head)
+  {
+    GNUNET_CONFIGURATION_iterate_sections (GDS_cfg,
+                                           &load_underlay,
+                                           NULL);
+    if (NULL == u_head)
+    {
+      GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
+                  "No DHT underlays configured!\n");
+      GNUNET_SCHEDULER_shutdown ();
+      return;
+    }
+  }
+
   GDS_NEIGHBOURS_broadcast (GDS_my_hello);
 }
 
@@ -507,16 +522,6 @@ run (void *cls,
   if (GNUNET_OK !=
       GDS_NEIGHBOURS_init ())
   {
-    GNUNET_SCHEDULER_shutdown ();
-    return;
-  }
-  GNUNET_CONFIGURATION_iterate_sections (GDS_cfg,
-                                         &load_underlay,
-                                         NULL);
-  if (NULL == u_head)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "No DHT underlays configured!\n");
     GNUNET_SCHEDULER_shutdown ();
     return;
   }
