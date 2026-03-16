@@ -4670,9 +4670,6 @@ handle_communicator_available (
   struct TransportClient *tc = cls;
   uint16_t size;
 
-  my_identity = GNUNET_PILS_get_identity (pils);
-  GNUNET_assert (my_identity);
-
   size = ntohs (cam->header.size) - sizeof(*cam);
   if (0 == size)
   {
@@ -4684,12 +4681,24 @@ handle_communicator_available (
     GNUNET_strdup ((const char *) &cam[1]);
   tc->details.communicator.cc = ntohl (cam->cc);
   tc->details.communicator.can_burst = ntohl (cam->can_burst);
-  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
-              "Communicator for peer %s with prefix '%s' connected %s\n",
-              GNUNET_i2s (my_identity),
-              tc->details.communicator.address_prefix,
-              tc->details.communicator.can_burst ? "can burst" :
-              "can not burst");
+  my_identity = GNUNET_PILS_get_identity (pils);
+  if (NULL != my_identity)
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Communicator for peer %s with prefix '%s' connected %s\n",
+                GNUNET_i2s (my_identity),
+                tc->details.communicator.address_prefix,
+                tc->details.communicator.can_burst ? "can burst" :
+                "can not burst");
+  }
+  else
+  {
+    GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+                "Communicator for local peer with prefix '%s' connected %s\n",
+                tc->details.communicator.address_prefix,
+                tc->details.communicator.can_burst ? "can burst" :
+                "can not burst");
+  }
   GNUNET_SERVICE_client_continue (tc->client);
 }
 
