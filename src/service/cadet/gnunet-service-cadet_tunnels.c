@@ -1615,6 +1615,10 @@ update_ax_by_kx (void *cls,
 
   as->ecdh_op = NULL;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Updating AX by KX with result from ECDH using ephemeral %s\n",
+       GNUNET_e2s (ephemeral_key));
+
   if (GNUNET_SYSERR == (am_I_alice = GCT_alice_or_betty (pid)))
   {
     GNUNET_break_op (0);
@@ -1822,6 +1826,11 @@ cont_GCT_handle_kx (void *cls,
   if (t->unverified_ax)
     *(t->unverified_ax) = t->as.ax;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Continue handling KX message from %s from %s\n",
+       GCT_2s (t),
+       GNUNET_i2s (GCP_get_id (t->destination)));
+
   GNUNET_break (GNUNET_SYSERR != ret);
   if (GNUNET_OK != ret)
   {
@@ -1927,6 +1936,20 @@ GCT_handle_kx (struct CadetTConnection *ct,
       return;
 #endif
     }
+    if ((t->as.ecdh_op) &&
+        (0 ==
+         memcmp (&t->as.ratchet_key,
+                 &msg->ratchet_key,
+                 sizeof(msg->ratchet_key))) &&
+        (0 ==
+         memcmp (&t->as.ephemeral_key,
+                 &msg->ephemeral_key,
+                 sizeof(msg->ephemeral_key))))
+    {
+      LOG (GNUNET_ERROR_TYPE_DEBUG,
+           "Waiting for previous ECDH operation\n");
+      return;
+    }
     LOG (GNUNET_ERROR_TYPE_DEBUG,
          "Dropping old unverified KX state.\n");
     GNUNET_STATISTICS_update (stats,
@@ -1971,7 +1994,12 @@ GCT_handle_kx (struct CadetTConnection *ct,
   t->as.cb = &cont_GCT_handle_kx;
 
   if (t->as.ecdh_op)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Cancelling previous ECDH operation\n");
+
     GNUNET_PILS_cancel (t->as.ecdh_op);
+  }
 
   t->as.ecdh_op = GNUNET_PILS_ecdh (pils, &msg->ephemeral_key,
                                     &update_ax_by_kx, &t->as);
@@ -1993,6 +2021,10 @@ cont_GCT_handle_kx_auth (void *cls,
   struct GNUNET_HashCode kx_auth;
 
   ax_tmp = &t->as.ax;
+
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Continue handling KX_AUTH message from %s\n",
+       GCT_2s (t));
 
   if (GNUNET_OK != ret)
   {
@@ -2114,6 +2146,20 @@ GCT_handle_kx_auth (struct CadetTConnection *ct,
        "Handling KX_AUTH message from %s with ephemeral %s\n",
        GCT_2s (t),
        GNUNET_e2s (&msg->kx.ephemeral_key));
+  if ((t->as.ecdh_op) &&
+      (0 ==
+       memcmp (&t->as.ratchet_key,
+               &msg->kx.ratchet_key,
+               sizeof(msg->kx.ratchet_key))) &&
+      (0 ==
+       memcmp (&t->as.ephemeral_key,
+               &msg->kx.ephemeral_key,
+               sizeof(msg->kx.ephemeral_key))))
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Waiting for previous ECDH operation\n");
+    return;
+  }
   /* We do everything in a copy until we've checked the authentication
      so we don't clobber anything we care about by accident. */
   t->as.ax = t->ax;
@@ -2129,7 +2175,12 @@ GCT_handle_kx_auth (struct CadetTConnection *ct,
   t->as.cb = &cont_GCT_handle_kx_auth;
 
   if (t->as.ecdh_op)
+  {
+    LOG (GNUNET_ERROR_TYPE_DEBUG,
+         "Cancelling previous ECDH operation\n");
+
     GNUNET_PILS_cancel (t->as.ecdh_op);
+  }
 
   /* Update 'ax' by the new key material */
   t->as.ecdh_op = GNUNET_PILS_ecdh (pils, &msg->kx.ephemeral_key,

@@ -1210,39 +1210,6 @@ handle_tunnel_encrypted (void *cls,
 
 
 /**
- * Function called after #GNUNET_CORE_connect has succeeded (or failed
- * for good).  Note that the private key of the peer is intentionally
- * not exposed here; if you need it, your process should try to read
- * the private key file directly (which should work if you are
- * authorized...).  Implementations of this function must not call
- * #GNUNET_CORE_disconnect (other than by scheduling a new task to
- * do this later).
- *
- * @param cls closure
- * @param my_identity ID of this peer, NULL if we failed
- */
-static void
-core_init_cb (void *cls, const struct GNUNET_PeerIdentity *identity)
-{
-  const struct GNUNET_PeerIdentity *my_identity;
-
-  my_identity = GNUNET_PILS_get_identity (pils);
-  if (NULL == my_identity)
-  {
-    GNUNET_break (0);
-    return;
-  }
-
-  if (NULL == identity)
-  {
-    GNUNET_break (0);
-    return;
-  }
-  GNUNET_break (0 == GNUNET_memcmp (identity, my_identity));
-}
-
-
-/**
  * Method called whenever a given peer connects.
  *
  * @param cls closure
@@ -1345,7 +1312,7 @@ GCO_init (const struct GNUNET_CONFIGURATION_Handle *c)
   route_heap = GNUNET_CONTAINER_heap_create (GNUNET_CONTAINER_HEAP_ORDER_MIN);
   core = GNUNET_CORE_connect (c,
                               NULL,
-                              &core_init_cb,
+                              NULL,
                               &core_connect_cb,
                               &core_disconnect_cb,
                               handlers,

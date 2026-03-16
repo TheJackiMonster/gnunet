@@ -154,7 +154,14 @@ announce_id (void*cls)
   struct GNUNET_TIME_Relative next_put;
 
   my_identity = GNUNET_PILS_get_identity (pils);
-  GNUNET_assert (my_identity);
+  if (NULL == my_identity)
+  {
+    announce_id_task
+      = GNUNET_SCHEDULER_add_delayed (CHANGE_DELAY,
+                                      &announce_id,
+                                      NULL);
+    return;
+  }
 
   hello = GCH_get_mine ();
   size = (NULL != hello) ? ntohs (hello->size) : 0;
