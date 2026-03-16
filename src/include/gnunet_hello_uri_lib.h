@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2022 GNUnet e.V.
+     Copyright (C) 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -112,10 +112,12 @@ GNUNET_HELLO_parser_free (struct GNUNET_HELLO_Parser *parser);
  * Parse @a msg.
  *
  * @param msg message to parse
+ * @param pid peer identity
  * @return builder, NULL on failure
  */
 struct GNUNET_HELLO_Parser *
-GNUNET_HELLO_parser_from_msg (const struct GNUNET_MessageHeader *msg);
+GNUNET_HELLO_parser_from_msg (const struct GNUNET_MessageHeader *msg,
+                              const struct GNUNET_PeerIdentity *pid);
 
 
 /**

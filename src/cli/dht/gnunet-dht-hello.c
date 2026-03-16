@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2022 GNUnet e.V.
+     Copyright (C) 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -87,9 +87,10 @@ hello_result_cb (void *cls,
                  const char *url)
 {
   get_hello_handle = NULL;
-  fprintf (stdout,
-           "%s\n",
-           url);
+  if (NULL != url)
+    fprintf (stdout,
+             "%s\n",
+             url);
   GNUNET_SCHEDULER_shutdown ();
 }
 

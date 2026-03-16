@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2007-2016 GNUnet e.V.
+     Copyright (C) 2007-2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -265,7 +265,7 @@ attempt_connect (struct Peer *pos)
 
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Checking if we want to attempt connection to `%s'\n",
-              GNUNET_i2s(&pos->pid));
+              GNUNET_i2s (&pos->pid));
   if (0 == GNUNET_memcmp (&my_identity, &pos->pid))
     return; /* This is myself, nothing to do. */
   if (connection_count < target_connection_count)
@@ -677,7 +677,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
   struct Peer *peer;
   uint16_t size;
 
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, NULL);
   if (NULL == parser)
   {
     return;
@@ -706,7 +706,7 @@ consider_for_advertising (const struct GNUNET_MessageHeader *hello)
     struct GNUNET_TIME_Absolute old_hello_exp =
       GNUNET_HELLO_get_expiration_time_from_msg (peer->hello);
     struct GNUNET_HELLO_Parser *parser_old =
-      GNUNET_HELLO_parser_from_msg (peer->hello);
+      GNUNET_HELLO_parser_from_msg (peer->hello, &peer->pid);
 
     GNUNET_HELLO_parser_iterate (parser_old,
                                  &address_iterator,
@@ -861,6 +861,7 @@ start_notify (void *cls)
                                     NULL);
 }
 
+
 static void
 pid_change_cb (void *cls,
                const struct GNUNET_HELLO_Parser *parser,
@@ -868,6 +869,7 @@ pid_change_cb (void *cls,
 {
   my_identity = *GNUNET_HELLO_parser_get_id (parser);
 }
+
 
 /**
  * Function called after #GNUNET_CORE_connect has succeeded
@@ -908,7 +910,7 @@ core_init (void *cls, const struct GNUNET_PeerIdentity *my_id)
 static int
 check_hello (void *cls, const struct GNUNET_MessageHeader *msg)
 {
-  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg);
+  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg, NULL);
   const struct GNUNET_PeerIdentity *pid = GNUNET_HELLO_parser_get_id (parser);
 
   if (NULL == pid)
@@ -958,7 +960,7 @@ handle_hello (void *cls, const struct GNUNET_MessageHeader *msg)
                             gettext_noop ("# HELLO messages received"),
                             1,
                             GNUNET_NO);
-  parser = GNUNET_HELLO_parser_from_msg (msg);
+  parser = GNUNET_HELLO_parser_from_msg (msg, NULL);
   she = GNUNET_new (struct StoreHelloEntry);
   she->sc = GNUNET_PEERSTORE_hello_add (ps, msg, &shc_cont, she);
   if (NULL != she->sc)
@@ -1004,7 +1006,7 @@ cleaning_task (void *cls)
     GNUNET_PILS_disconnect (pils);
     pils = NULL;
   }
-   if (NULL != handle)
+  if (NULL != handle)
   {
     GNUNET_CORE_disconnect (handle);
     handle = NULL;
@@ -1056,8 +1058,7 @@ run (void *cls,
                            NULL),
     GNUNET_MQ_handler_end () };
   unsigned long long opt;
-  const struct GNUNET_CORE_ServiceInfo service_info =
-  {
+  const struct GNUNET_CORE_ServiceInfo service_info = {
     .service = GNUNET_CORE_SERVICE_TOPOLOGY,
     .version = { 1, 0 },
     .version_max = { 1, 0 },

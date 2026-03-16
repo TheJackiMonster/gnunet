@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2008, 2009, 2010, 2014, 2016 GNUnet e.V.
+     Copyright (C) 2008-2010, 2014, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -183,7 +183,7 @@ build_json_response (const struct HostSet *host_set)
   while (offset < host_set->size)
   {
     hello = (struct GNUNET_MessageHeader*) (host_set->data + offset);
-    hparser = GNUNET_HELLO_parser_from_msg (hello);
+    hparser = GNUNET_HELLO_parser_from_msg (hello, NULL);
     if (NULL == hparser)
     {
       GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

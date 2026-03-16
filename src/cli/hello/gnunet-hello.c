@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2024 GNUnet e.V.
+     Copyright (C) 2024, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -243,7 +243,8 @@ hello_iter (void *cls, const struct GNUNET_PEERSTORE_Record *record,
     GNUNET_PEERSTORE_iteration_next (iter_ctx, 1);
     return;
   }
-  hp = GNUNET_HELLO_parser_from_msg (record->value);
+  hp = GNUNET_HELLO_parser_from_msg (record->value,
+                                     &record->peer);
   if (NULL == hp)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,

@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009-2012, 2016, 2018, 2022 GNUnet e.V.
+     Copyright (C) 2009-2012, 2016, 2018, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -365,7 +365,8 @@ send_get_known_results (struct GNUNET_DHT_GetHandle *gh,
       delta = max;
     env = GNUNET_MQ_msg_extra (msg,
                                delta * sizeof(struct GNUNET_HashCode),
-                               GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN);
+                               GNUNET_MESSAGE_TYPE_DHT_CLIENT_GET_RESULTS_KNOWN)
+    ;
     msg->key = gh->key;
     msg->unique_id = gh->unique_id;
     GNUNET_memcpy (&msg[1],
@@ -923,6 +924,9 @@ check_client_hello (void *cls,
   const char *buf = (const char *) &hdr[1];
 
   (void) cls;
+  if (len == sizeof (*hdr))
+    return GNUNET_OK;
+
   if ('\0' != buf[len - sizeof (*hdr) - 1])
   {
     GNUNET_break (0);
@@ -943,7 +947,9 @@ handle_client_hello (void *cls,
                      const struct GNUNET_MessageHeader *hdr)
 {
   struct GNUNET_DHT_Handle *handle = cls;
-  const char *url = (const char *) &hdr[1];
+  uint16_t len = ntohs (hdr->size);
+  const char *url = len == sizeof (*hdr)?
+                    NULL : (const char *) &hdr[1];
   struct GNUNET_DHT_HelloGetHandle *hgh;
 
   while (NULL != (hgh = handle->hgh_head))

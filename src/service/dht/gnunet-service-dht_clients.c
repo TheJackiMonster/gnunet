@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010, 2011, 2016, 2017, 2022, 2026 GNUnet e.V.
+     Copyright (C) 2009-2011, 2016-2017, 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -25,6 +25,8 @@
  * @author Nathan Evans
  */
 #include "gnunet-service-dht_clients.h"
+#include "gnunet_pils_service.h"
+#include "gnunet_util_lib.h"
 
 /**
  * Enable slow sanity checks to debug issues.
@@ -1161,26 +1163,44 @@ handle_dht_local_hello_get (void *cls,
                             const struct GNUNET_MessageHeader *msg)
 {
   struct ClientHandle *ch = cls;
+  const struct GNUNET_PeerIdentity *my_identity;
   struct GNUNET_HELLO_Parser *p;
-  char *url;
-  size_t slen;
   struct GNUNET_MessageHeader *hdr;
   struct GNUNET_MQ_Envelope *env;
 
-  p = GNUNET_HELLO_parser_from_msg (GDS_my_hello);
-  GNUNET_assert (NULL != p);
-  url = GNUNET_HELLO_parser_to_url (p);
-  slen = strlen (url) + 1;
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
+
+  if (NULL != GDS_my_hello)
+    p = GNUNET_HELLO_parser_from_msg (GDS_my_hello, my_identity);
+  else
+    p = NULL;
+
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "Handling request from local client for my HELLO\n");
-  env = GNUNET_MQ_msg_extra (hdr,
-                             slen,
-                             GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
-  memcpy (&hdr[1],
-          url,
-          slen);
-  GNUNET_free (url);
-  GNUNET_HELLO_parser_free (p);
+
+  if (NULL != p)
+  {
+    char *url;
+    size_t slen;
+
+    url = GNUNET_HELLO_parser_to_url (p);
+    slen = strlen (url) + 1;
+
+    env = GNUNET_MQ_msg_extra (hdr,
+                               slen,
+                               GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL);
+    memcpy (&hdr[1],
+            url,
+            slen);
+    GNUNET_free (url);
+    GNUNET_HELLO_parser_free (p);
+  }
+  else
+  {
+    env = GNUNET_MQ_msg_extra (hdr, 0, GNUNET_MESSAGE_TYPE_DHT_CLIENT_HELLO_URL)
+    ;
+  }
+
   GNUNET_MQ_send (ch->mq,
                   env);
   GNUNET_SERVICE_client_continue (ch->client);

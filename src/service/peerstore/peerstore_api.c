@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2013-2016, 2019 GNUnet e.V.
+     Copyright (C) 2013-2016, 2019, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -924,7 +924,7 @@ GNUNET_PEERSTORE_hello_add (struct GNUNET_PEERSTORE_Handle *h,
                             GNUNET_PEERSTORE_Continuation cont,
                             void *cont_cls)
 {
-  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg);
+  struct GNUNET_HELLO_Parser *parser = GNUNET_HELLO_parser_from_msg (msg, NULL);
   struct GNUNET_PEERSTORE_StoreHelloContext *huc;
   const struct GNUNET_PeerIdentity *pid;
   struct GNUNET_TIME_Absolute now = GNUNET_TIME_absolute_get ();

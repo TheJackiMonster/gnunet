@@ -1,6 +1,6 @@
 /*
    This file is part of GNUnet.
-   Copyright (C) 2010-2016, 2018, 2019, 2026 GNUnet e.V.
+   Copyright (C) 2010-2016, 2018-2019, 2026 GNUnet e.V.
 
    GNUnet is free software: you can redistribute it and/or modify it
    under the terms of the GNU Affero General Public License as published
@@ -9635,7 +9635,7 @@ handle_hello_for_incoming (void *cls,
     GNUNET_PEERSTORE_monitor_next (ir->nc, 1);
     return;
   }
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, &record->peer);
   GNUNET_HELLO_parser_iterate (parser,
                                hello_for_incoming_cb,
                                NULL);
@@ -10332,7 +10332,7 @@ check_for_burst_address (void *cls,
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "check_for_burst_address\n");
   hello = record->value;
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, &record->peer);
   GNUNET_HELLO_parser_iterate (parser,
                                &iterate_address_start_burst,
                                vl);
@@ -12697,7 +12697,7 @@ check_for_global_natted (void *cls,
   }
   queue->is_global_natted = GNUNET_YES;
   hello = record->value;
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, &record->peer);
   GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
               "before not global natted %u\n",
               queue->is_global_natted);
@@ -13157,7 +13157,7 @@ handle_hello_for_client (void *cls,
     GNUNET_PEERSTORE_monitor_next (pr->nc, 1);
     return;
   }
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, &record->peer);
   if (NULL == parser)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

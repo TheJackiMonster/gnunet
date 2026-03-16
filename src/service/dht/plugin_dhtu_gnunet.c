@@ -422,7 +422,7 @@ peerinfo_cb (void *cls,
     GNUNET_PEERSTORE_monitor_next (plugin->peerstore_notify, 1);
     return;
   }
-  parser = GNUNET_HELLO_parser_from_msg (hello);
+  parser = GNUNET_HELLO_parser_from_msg (hello, &record->peer);
   GNUNET_HELLO_parser_iterate (parser,
                                add_addr,
                                plugin);

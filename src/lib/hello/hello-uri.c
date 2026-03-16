@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2022 GNUnet e.V.
+     Copyright (C) 2022, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -34,6 +34,7 @@
  *   that does this to create bootstrap HELLOs shipped with
  *   the TGZ.
  */
+#include "gnunet_time_lib.h"
 #include "platform.h"
 #include "gnunet_util_lib.h"
 #include "gnunet_signatures.h"
@@ -412,25 +413,61 @@ GNUNET_HELLO_builder_free (struct GNUNET_HELLO_Builder *builder)
 
 
 struct GNUNET_HELLO_Parser *
-GNUNET_HELLO_parser_from_msg (const struct GNUNET_MessageHeader *msg)
+GNUNET_HELLO_parser_from_msg (const struct GNUNET_MessageHeader *msg,
+                              const struct GNUNET_PeerIdentity *pid)
 {
-  const struct HelloUriMessage *h;
   uint16_t size = ntohs (msg->size);
 
-  if (GNUNET_MESSAGE_TYPE_HELLO_URI != ntohs (msg->type))
+  switch (ntohs (msg->type))
   {
+  case GNUNET_MESSAGE_TYPE_HELLO_URI:
+    {
+      const struct HelloUriMessage *h;
+
+      if (sizeof (struct HelloUriMessage) > size)
+      {
+        GNUNET_break_op (0);
+        return NULL;
+      }
+
+      h = (const struct HelloUriMessage *) msg;
+      size -= sizeof (*h);
+      return GNUNET_HELLO_parser_from_block (&h[1],
+                                             size);
+    }
+  case GNUNET_MESSAGE_TYPE_DHT_P2P_HELLO:
+    {
+      struct GNUNET_TIME_Absolute block_expiration;
+      struct GNUNET_HELLO_Parser *p;
+      size_t block_size;
+      void *block;
+
+      if (sizeof (struct DhtHelloMessage) > size)
+      {
+        GNUNET_break_op (0);
+        return NULL;
+      }
+
+      if (GNUNET_SYSERR == GNUNET_HELLO_dht_msg_to_block (
+            msg,
+            pid,
+            &block,
+            &block_size,
+            &block_expiration))
+      {
+        GNUNET_break_op (0);
+        return NULL;
+      }
+
+      p = GNUNET_HELLO_parser_from_block (block,
+                                          block_size);
+      GNUNET_free (block);
+      return p;
+    }
+  default:
     GNUNET_break (0);
     return NULL;
   }
-  if (sizeof (struct HelloUriMessage) > size)
-  {
-    GNUNET_break_op (0);
-    return NULL;
-  }
-  h = (const struct HelloUriMessage *) msg;
-  size -= sizeof (*h);
-  return GNUNET_HELLO_parser_from_block (&h[1],
-                                         size);
 }
 
 
@@ -571,7 +608,6 @@ GNUNET_HELLO_parser_from_block_ (const void *block,
   }
   {
     struct GNUNET_TIME_Absolute et;
-
     et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
     if (GNUNET_YES != noverify)
     {
@@ -586,7 +622,7 @@ GNUNET_HELLO_parser_from_block_ (const void *block,
         return NULL;
       }
     }
-    p->et = GNUNET_TIME_absolute_ntoh (bh->expiration_time);
+    p->et = et;
     p->sig = bh->sig;
   }
   return p;
