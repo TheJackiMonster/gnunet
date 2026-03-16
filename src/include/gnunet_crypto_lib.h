@@ -941,7 +941,7 @@ GNUNET_CRYPTO_symmetric_create_session_key (
  *        for streams.
  * @return the size of the encrypted block, -1 for errors
  */
-[[ deprecated ( "Use HPKE or other AEAD schemes for encryption" ) ]]
+[[ deprecated ("Use HPKE or other AEAD schemes for encryption") ]]
 ssize_t
 GNUNET_CRYPTO_symmetric_encrypt (
   const void *block,
@@ -962,7 +962,7 @@ GNUNET_CRYPTO_symmetric_encrypt (
  * @param result address to store the result at
  * @return -1 on failure, size of decrypted block on success
  */
-[[ deprecated ( "Use HPKE or other AEAD schemes for encryption" ) ]]
+[[ deprecated ("Use HPKE or other AEAD schemes for encryption") ]]
 ssize_t
 GNUNET_CRYPTO_symmetric_decrypt (
   const void *block,
@@ -1350,7 +1350,7 @@ struct GNUNET_CRYPTO_KdfInputArgument
 {
 
   // The data that is input into HKDF-Expand
-  void*data;
+  const void *data;
 
   // The length of data in bytes
   size_t data_length;
@@ -1360,7 +1360,7 @@ struct GNUNET_CRYPTO_KdfInputArgument
 #define GNUNET_CRYPTO_kdf_arg_string(d) \
         ((struct GNUNET_CRYPTO_KdfInputArgument) \
   {                                   \
-    (void*) d,                                \
+    (const void*) d,                                \
     strlen (d)                        \
   })
 
@@ -1368,7 +1368,7 @@ struct GNUNET_CRYPTO_KdfInputArgument
 #define GNUNET_CRYPTO_kdf_arg_auto(d) \
         ((struct GNUNET_CRYPTO_KdfInputArgument) \
   {                                   \
-    (void*) d,                                \
+    (const void*) d,                                \
     sizeof (*d)                        \
   })
 
@@ -1376,7 +1376,7 @@ struct GNUNET_CRYPTO_KdfInputArgument
 #define GNUNET_CRYPTO_kdf_arg(d,s) \
         ((struct GNUNET_CRYPTO_KdfInputArgument) \
   {                                   \
-    (void*) d,                                \
+    (const void*) d,                                \
     s                                 \
   })
 
@@ -1404,16 +1404,16 @@ struct GNUNET_CRYPTO_KdfInputArgument
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
-                             size_t out_len,
-                             const void *xts,
-                             size_t xts_len,
-                             const void *skm,
-                             size_t skm_len,
-                             size_t hkdf_args_count,
-                             const struct
-                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
-                               hkdf_args_count]);
+GNUNET_CRYPTO_hkdf_gnunet_v (
+  void *result,
+  size_t out_len,
+  const void *xts,
+  size_t xts_len,
+  const void *skm,
+  size_t skm_len,
+  size_t hkdf_args_count,
+  const struct GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+    hkdf_args_count]);
 
 
 /**
@@ -1469,13 +1469,13 @@ GNUNET_CRYPTO_hkdf_gnunet_v (void *result,
  * @return #GNUNET_YES on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_CRYPTO_hkdf_expand_v (void *result,
-                             size_t out_len,
-                             const struct GNUNET_ShortHashCode *prk,
-                             size_t hkdf_args_count,
-                             const struct
-                             GNUNET_CRYPTO_KdfInputArgument hkdf_args[
-                               hkdf_args_count]);
+GNUNET_CRYPTO_hkdf_expand_v (
+  void *result,
+  size_t out_len,
+  const struct GNUNET_ShortHashCode *prk,
+  size_t hkdf_args_count,
+  const struct GNUNET_CRYPTO_KdfInputArgument hkdf_args[
+    hkdf_args_count]);
 
 /**
  * @ingroup hash
