@@ -116,23 +116,16 @@ main (int argc, char *const argv[])
                 "gnunet-nat-server");
     return 0;
   }
-  proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK !=
-                 GNUNET_process_set_command_va (
+                 GNUNET_process_run_command_va (
                    proc,
                    "gnunet-nat-server",
                    "gnunet-nat-server",
                    "-c", "test_nat_test_data.conf",
                    "12345",
                    NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_PROGRAM_run (3, argv_prog,
                       "test-nat-test", "nohelp",
                       options, &run,

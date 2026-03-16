@@ -116,12 +116,6 @@ enum GNUNET_OS_InheritStdioFlags
 
 
 /**
- * Process information (OS-dependent)
- */
-struct GNUNET_OS_Process;
-
-
-/**
  * Possible installation paths to request
  */
 enum GNUNET_OS_InstallationPathKind
@@ -426,157 +420,6 @@ GNUNET_OS_network_interfaces_list (GNUNET_OS_NetworkInterfaceProcessor proc,
 
 
 /**
- * Get process structure for current process
- *
- * The pointer it returns points to static memory location and must not be
- * deallocated/closed
- *
- * @return pointer to the process sturcutre for this process
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_process_current (void);
-
-
-/**
- * Sends a signal to the process
- *
- * @param proc pointer to process structure
- * @param sig signal
- * @return 0 on success, -1 on error
- */
-int
-GNUNET_OS_process_kill (struct GNUNET_OS_Process *proc,
-                        int sig);
-
-
-/**
- * Cleans up process structure contents (OS-dependent) and deallocates it
- *
- * @param proc pointer to process structure
- */
-void
-GNUNET_OS_process_destroy (struct GNUNET_OS_Process *proc);
-
-
-/**
- * Get the pid of the process in question
- *
- * @param proc the process to get the pid of
- *
- * @return the current process id
- */
-pid_t
-GNUNET_OS_process_get_pid (struct GNUNET_OS_Process *proc);
-
-
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param pipe_stderr pipe to use to get error output from child process (or NULL)
- * @param filename name of the binary
- * @param argv NULL-terminated array of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_start_process_vap (
-  enum GNUNET_OS_InheritStdioFlags std_inheritance,
-  struct GNUNET_DISK_PipeHandle *pipe_stdin,
-  struct GNUNET_DISK_PipeHandle *pipe_stdout,
-  struct GNUNET_DISK_PipeHandle *pipe_stderr,
-  const char *filename,
-  char *const argv[]);
-
-
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param pipe_stderr pipe to use to get error output from child process (or NULL)
- * @param filename name of the binary
- * @param ... NULL-terminated list of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_start_process (
-  enum GNUNET_OS_InheritStdioFlags std_inheritance,
-  struct GNUNET_DISK_PipeHandle *pipe_stdin,
-  struct GNUNET_DISK_PipeHandle *pipe_stdout,
-  struct GNUNET_DISK_PipeHandle *pipe_stderr,
-  const char *filename,
-  ...);
-
-
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param pipe_stdin pipe to use to send input to child process (or NULL)
- * @param pipe_stdout pipe to use to get output from child process (or NULL)
- * @param pipe_stderr pipe to use to get error output from child process (or NULL)
- * @param filename name of the binary
- * @param va NULL-terminated list of arguments to the process
- * @return pointer to process structure of the new process, NULL on error
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_start_process_va (
-  enum GNUNET_OS_InheritStdioFlags std_inheritance,
-  struct GNUNET_DISK_PipeHandle *pipe_stdin,
-  struct GNUNET_DISK_PipeHandle *pipe_stdout,
-  struct GNUNET_DISK_PipeHandle *pipe_stderr,
-  const char *filename,
-  va_list va);
-
-
-/**
- * Start a process.
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param lsocks array of listen sockets to dup systemd-style (or NULL);
- *         must be NULL on platforms where dup is not supported
- * @param filename name of the binary
- * @param argv NULL-terminated list of arguments to the process,
- *             including the process name as the first argument
- * @return pointer to process structure of the new process, NULL on error
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_start_process_v (
-  enum GNUNET_OS_InheritStdioFlags std_inheritance,
-  const int *lsocks,
-  const char *filename,
-  char *const argv[]);
-
-
-/**
- * Start a process.  This function is similar to the GNUNET_OS_start_process_*
- * except that the filename and arguments can have whole strings which contain
- * the arguments.  These arguments are to be separated by spaces and are parsed
- * in the order they appear.  Arguments containing spaces can be used by
- * quoting them with @em ".
- *
- * @param std_inheritance a set of GNUNET_OS_INHERIT_STD_* flags
- * @param lsocks array of listen sockets to dup systemd-style (or NULL);
- *         must be NULL on platforms where dup is not supported
- * @param filename name of the binary.  It is valid to have the arguments
- *         in this string when they are separated by spaces.
- * @param ... more arguments.  Should be of type `char *`.  It is valid
- *         to have the arguments in these strings when they are separated by
- *         spaces.  The last argument MUST be NULL.
- * @return pointer to process structure of the new process, NULL on error
- */
-struct GNUNET_OS_Process *
-GNUNET_OS_start_process_s (
-  enum GNUNET_OS_InheritStdioFlags std_inheritance,
-  const int *lsocks,
-  const char *filename,
-  ...);
-
-
-/**
  * Handle to a command action.
  */
 struct GNUNET_OS_CommandHandle;
@@ -589,7 +432,8 @@ struct GNUNET_OS_CommandHandle;
  * @param line line of output from a command, NULL for the end
  */
 typedef void
-(*GNUNET_OS_LineProcessor) (void *cls, const char *line);
+(*GNUNET_OS_LineProcessor) (void *cls,
+                            const char *line);
 
 
 /**
@@ -622,51 +466,7 @@ GNUNET_OS_command_run (
 
 
 /**
- * Retrieve the status of a process.
- * Nonblocking version.
- *
- * @param proc pointer to process structure
- * @param type status type
- * @param code return code/signal number
- * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
- */
-enum GNUNET_GenericReturnValue
-GNUNET_OS_process_status (struct GNUNET_OS_Process *proc,
-                          enum GNUNET_OS_ProcessStatusType *type,
-                          unsigned long *code);
-
-
-/**
- * Wait for a process to terminate.  The return code is discarded.
- * You must not use #GNUNET_OS_process_status() on the same process
- * after calling this function!  This function is blocking and should
- * thus only be used if the child process is known to have terminated
- * or to terminate very soon.
- *
- * @param proc pointer to process structure of the process to wait for
- * @return #GNUNET_OK on success, #GNUNET_SYSERR otherwise
- */
-enum GNUNET_GenericReturnValue
-GNUNET_OS_process_wait (struct GNUNET_OS_Process *proc);
-
-
-/**
- * Retrieve the status of a process, waiting on it if dead.
- * Blocking version.
- *
- * @param proc pointer to process structure
- * @param type status type
- * @param code return code/signal number
- * @return #GNUNET_OK on success, #GNUNET_NO if the process is still running, #GNUNET_SYSERR otherwise
- */
-enum GNUNET_GenericReturnValue
-GNUNET_OS_process_wait_status (struct GNUNET_OS_Process *proc,
-                               enum GNUNET_OS_ProcessStatusType *type,
-                               unsigned long *code);
-
-
-/**
- * Process information (new API)
+ * Process information.
  */
 struct GNUNET_Process;
 
@@ -676,12 +476,14 @@ struct GNUNET_Process;
  * @return process handle
  */
 struct GNUNET_Process *
-GNUNET_process_create (void);
+GNUNET_process_create (enum GNUNET_OS_InheritStdioFlags std_inheritance);
 
 
 /**
- * Set the command to start a process.  Client must pass
+ * Set the command and start a process.  Client must pass
  * the filename and arguments.
+ * Can only be called once per ``struct GNUNET_Process``.
+ * Should be called after setting options (if there are any).
  *
  * @param[in,out] p process handle for the process to setup
  * @param filename name of the binary.  It is valid to have the arguments
@@ -692,15 +494,17 @@ GNUNET_process_create (void);
  * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_ap (
+GNUNET_process_run_command_ap (
   struct GNUNET_Process *p,
   const char *filename,
   va_list va);
 
 
 /**
- * Set the command to start a process.  Client must pass
+ * Set the command and start a process.  Client must pass
  * the filename and arguments.
+ * Can only be called once per ``struct GNUNET_Process``.
+ * Should be called after setting options (if there are any).
  *
  * @param[in,out] p process handle for the process to setup
  * @param filename name of the binary.  It is valid to have the arguments
@@ -709,15 +513,17 @@ GNUNET_process_set_command_ap (
  * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_argv (
+GNUNET_process_run_command_argv (
   struct GNUNET_Process *p,
   const char *filename,
   const char **argv);
 
 
 /**
- * Set the command to start a process.  Client must pass
+ * Set the command and start a process.  Client must pass
  * the filename and arguments.
+ * Can only be called once per ``struct GNUNET_Process``.
+ * Should be called after setting options (if there are any).
  *
  * @param[in,out] p process handle for the process to setup
  * @param filename name of the binary.  It is valid to have the arguments
@@ -728,13 +534,15 @@ GNUNET_process_set_command_argv (
  * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_va (struct GNUNET_Process *p,
+GNUNET_process_run_command_va (struct GNUNET_Process *p,
                                const char *filename,
                                ...);
 
 /**
- * Set the command to start a process.  Client must pass
+ * Set the command and start a process.  Client must pass
  * the full command, which must include the filename and arguments.
+ * Can only be called once per ``struct GNUNET_Process``.
+ * Should be called after setting options (if there are any).
  *
  * @param[in,out] p process handle for the process to setup
  * @param command the command-line to run; quoting with '"' is
@@ -743,7 +551,7 @@ GNUNET_process_set_command_va (struct GNUNET_Process *p,
  * @return #GNUNET_OK on success
  */
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command (struct GNUNET_Process *p,
+GNUNET_process_run_command (struct GNUNET_Process *p,
                             const char *command);
 
 
@@ -758,24 +566,19 @@ enum GNUNET_ProcessOption
   GNUNET_PROCESS_OPTION_END = 0,
 
   /**
-   * Option to set inheritance flags.
-   */
-  GNUNET_PROCESS_OPTION_STD_INHERITANCE = 1,
-
-  /**
    * Option to set environment variables.
    */
-  GNUNET_PROCESS_OPTION_SET_ENVIRONMENT = 2,
+  GNUNET_PROCESS_OPTION_SET_ENVIRONMENT = 1,
 
   /**
    * Option to inherit file descriptors.
    */
-  GNUNET_PROCESS_OPTION_INHERIT_FD = 3,
+  GNUNET_PROCESS_OPTION_INHERIT_FD = 2,
 
   /**
    * Option to inherit a listen socket systemd-style.
    */
-  GNUNET_PROCESS_OPTION_INHERIT_LSOCK = 4
+  GNUNET_PROCESS_OPTION_INHERIT_LSOCK = 3
 };
 
 
@@ -801,11 +604,6 @@ struct GNUNET_ProcessOptionValue
    */
   union
   {
-
-    /**
-     * Value of if @e option is #GNUNET_PROCESS_OPTION_STD_INHERITANCE.
-     */
-    enum GNUNET_OS_InheritStdioFlags std_inheritance;
 
     /**
      * Value of if @e option is #GNUNET_PROCESS_OPTION_SET_ENVIRONMENT.
@@ -863,20 +661,6 @@ struct GNUNET_ProcessOptionValue
         {                                        \
           .option = GNUNET_PROCESS_OPTION_END    \
         }
-
-/**
- * Set flags about standard inheritance options.
- *
- * @param flags flags to set
- * @return the option
- */
-#define GNUNET_process_option_std_inheritance(flags)  \
-        (const struct GNUNET_ProcessOptionValue)               \
-        {                                                      \
-          .option = GNUNET_PROCESS_OPTION_STD_INHERITANCE,     \
-          .details.std_inheritance = flags                     \
-        }
-
 
 /**
  * Set environment variable in child process.
@@ -967,6 +751,8 @@ struct GNUNET_ProcessOptionValue
 /**
  * Set the requested options for the process.
  * If any option fail other options may be or may be not applied.
+ * Options must be set before calling the "GNUNET_process_run_command()"
+ * family of functions.
  *
  * @param[in,out] proc the process to set the options for
  * @param num_options maximum length of the @a options array
@@ -1010,16 +796,6 @@ GNUNET_process_set_options_ (
 
 
 /**
- * Start a process.
- *
- * @param[in,out] proc process to start
- * @return process ID of the new process, -1 on error
- */
-enum GNUNET_GenericReturnValue
-GNUNET_process_start (struct GNUNET_Process *proc);
-
-
-/**
  * Wait for a process to terminate.
  * Retrieve the status of a process.
  * This function may be called repeatedly, it will
@@ -1055,6 +831,7 @@ GNUNET_process_destroy (struct GNUNET_Process *proc);
  *
  * @param proc the process to get the pid of
  * @return the current process id, -1 if the process is not running
+ *   (both not yet started and already terminated with status)
  */
 pid_t
 GNUNET_process_get_pid (const struct GNUNET_Process *proc);

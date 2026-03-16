@@ -136,20 +136,13 @@ run (void *cls,
     GNUNET_DISK_pipe_handle (sigpipe, GNUNET_DISK_PIPE_END_READ),
     &maint_child_death,
     NULL);
-  p = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   p,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (p,
-                                       program,
-                                       program,
-                                       args[0],
-                                       NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (p)) )
+  p = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (p,
+                                     program,
+                                     program,
+                                     args[0],
+                                     NULL))
   {
     GNUNET_process_destroy (p);
     p = NULL;

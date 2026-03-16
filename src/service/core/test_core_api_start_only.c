@@ -133,22 +133,15 @@ setup_peer (struct PeerContext *p,
   binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                               "gnunet-service-arm");
   p->cfg = GNUNET_CONFIGURATION_create (GNUNET_OS_project_data_gnunet ());
-  p->arm_proc = GNUNET_process_create ();
+  p->arm_proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                       | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   p->arm_proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (p->arm_proc,
+                 GNUNET_process_run_command_va (p->arm_proc,
                                                 binary,
                                                 "gnunet-service-arm",
                                                 "-c",
                                                 cfgname,
                                                 NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (p->arm_proc));
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_CONFIGURATION_load (p->cfg,
                                             cfgname));

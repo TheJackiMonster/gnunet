@@ -353,22 +353,15 @@ main (int argc, char *argv[])
                     NULL);
   fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                           "gnunet-service-resolver");
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (
+                 GNUNET_process_run_command_va (
                    proc,
                    fn,
                    "gnunet-service-resolver",
                    "-c", "test_resolver_api_data.conf",
                    NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_free (fn);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),

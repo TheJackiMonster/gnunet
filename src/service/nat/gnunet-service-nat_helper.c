@@ -247,22 +247,18 @@ restart_nat_server (void *cls)
               "Starting `%s' at `%s'\n",
               "gnunet-helper-nat-server",
               ia);
-  h->server_proc = GNUNET_process_create ();
+  h->server_proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    h->server_proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE),
                    GNUNET_process_option_inherit_wpipe (h->server_stdout,
                                                         STDOUT_FILENO)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (h->server_proc,
-                                       binary,
-                                       "gnunet-helper-nat-server",
-                                       ia,
-                                       NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (h->server_proc)) )
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (h->server_proc,
+                                     binary,
+                                     "gnunet-helper-nat-server",
+                                     ia,
+                                     NULL))
   {
     GNUNET_process_destroy (h->server_proc);
     h->server_proc = NULL;
@@ -409,23 +405,16 @@ GN_request_connection_reversal (const struct in_addr *internal_address,
   binary = GNUNET_OS_get_suid_binary_path (GNUNET_OS_project_data_gnunet (),
                                            cfg,
                                            "gnunet-helper-nat-client");
-  proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (
-          proc,
-          binary,
-          "gnunet-helper-nat-client",
-          intv4,
-          remv4,
-          port_as_string,
-          NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (proc)) )
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (
+        proc,
+        binary,
+        "gnunet-helper-nat-client",
+        intv4,
+        remv4,
+        port_as_string,
+        NULL))
   {
     GNUNET_process_destroy (proc);
     GNUNET_free (binary);

@@ -199,19 +199,15 @@ GNUNET_NAT_mini_get_external_ipv4_ (GNUNET_NAT_IPCallback cb, void *cb_cls)
     eh->task = GNUNET_SCHEDULER_add_now (&signal_external_ip_error, eh);
     return eh;
   }
-  eh->eip = GNUNET_process_create ();
+  eh->eip = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    eh->eip,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE),
                    GNUNET_process_option_inherit_wpipe (eh->opipe,
                                                         STDOUT_FILENO)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command (eh->eip,
-                                    "external-ip")) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (eh->eip)) )
+  if (GNUNET_OK !=
+      GNUNET_process_run_command (eh->eip,
+                                  "external-ip"))
   {
     GNUNET_process_destroy (eh->eip);
     eh->eip = NULL;

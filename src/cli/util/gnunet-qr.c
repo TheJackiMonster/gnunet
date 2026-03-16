@@ -212,17 +212,10 @@ handle_uri (void *cls,
                      "%s -- %s",
                      program,
                      uri);
-    childproc = GNUNET_process_create ();
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_process_set_options (
-                     childproc,
-                     GNUNET_process_option_std_inheritance (
-                       GNUNET_OS_INHERIT_STD_ALL)));
-    if ( (GNUNET_OK !=
-          GNUNET_process_set_command (childproc,
-                                      fullcmd)) ||
-         (GNUNET_OK !=
-          GNUNET_process_start (childproc)) )
+    childproc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ALL);
+    if (GNUNET_OK !=
+        GNUNET_process_run_command (childproc,
+                                    fullcmd))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ ("Unable to start child process `%s'\n"),

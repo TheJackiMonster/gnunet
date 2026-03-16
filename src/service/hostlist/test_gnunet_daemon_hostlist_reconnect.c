@@ -105,29 +105,23 @@ start_arm (const char *cfgname)
   char *binary;
 
   binary = GNUNET_OS_get_libexec_binary_path ("gnunet-service-arm");
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
+                 GNUNET_process_run_command_va (proc,
                                                 binary,
                                                 "gnunet-service-arm",
                                                 "-c",
                                                 cfgname,
                                                 NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_free (binary);
   return proc;
 }
 
 
 static void
-setup_peer (struct PeerContext *p, const char *cfgname)
+setup_peer (struct PeerContext *p,
+            const char *cfgname)
 {
   p->cfg = GNUNET_CONFIGURATION_create ();
   p->arm_proc = start_arm (cfgname);

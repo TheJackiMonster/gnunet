@@ -413,19 +413,17 @@ runone (void)
     break;
   }
 
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    proc,
                    GNUNET_process_option_inherit_wpipe (pipe_stdout,
                                                         STDOUT_FILENO)));
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
+                 GNUNET_process_run_command_va (proc,
                                                 "./test_common_logging_dummy",
                                                 "test_common_logging_dummy",
                                                 NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   putenv ((char*) "GNUNET_FORCE_LOG=");
   putenv ((char*) "GNUNET_LOG=");
 

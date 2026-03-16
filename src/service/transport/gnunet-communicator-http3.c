@@ -3738,22 +3738,15 @@ run (void *cls,
 
     GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
                 "Creating new certificate\n");
-    cert_creation = GNUNET_process_create ();
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_process_set_options (
-                     cert_creation,
-                     GNUNET_process_option_std_inheritance (
-                       GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
-    if ( (GNUNET_OK !=
-          GNUNET_process_set_command_va (
-            cert_creation,
-            "gnunet-transport-certificate-creation",
-            "gnunet-transport-certificate-creation",
-            key_file,
-            cert_file,
-            NULL)) ||
-         (GNUNET_OK !=
-          GNUNET_process_start (cert_creation)) )
+    cert_creation = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR);
+    if (GNUNET_OK !=
+        GNUNET_process_run_command_va (
+          cert_creation,
+          "gnunet-transport-certificate-creation",
+          "gnunet-transport-certificate-creation",
+          key_file,
+          cert_file,
+          NULL))
     {
       GNUNET_process_destroy (cert_creation);
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
@@ -3762,7 +3755,6 @@ run (void *cls,
                   cert_file);
       GNUNET_free (key_file);
       GNUNET_free (cert_file);
-
       return;
     }
     GNUNET_break (GNUNET_OK ==

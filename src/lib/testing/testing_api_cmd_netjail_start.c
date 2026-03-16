@@ -179,17 +179,15 @@ netjail_start_run (void *cls,
                    sizeof (pid),
                    "%u",
                    getpid ());
-  ns->start_proc = GNUNET_process_create ();
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (ns->start_proc,
-                                       script_name,
-                                       script_name,
-                                       (char *) topology_data,
-                                       pid,
-                                       (char*) "0",
-                                       NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (ns->start_proc)) )
+  ns->start_proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (ns->start_proc,
+                                     script_name,
+                                     script_name,
+                                     (char *) topology_data,
+                                     pid,
+                                     (char*) "0",
+                                     NULL))
   {
     GNUNET_break (0);
     GNUNET_TESTING_FAIL (is);

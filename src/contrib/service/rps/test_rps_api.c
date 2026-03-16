@@ -55,20 +55,13 @@ check ()
              "gnunet-service-rps");
     return;
   }
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ALL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ALL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (
+                 GNUNET_process_run_command_va (
                    proc,
                    path,
                    "gnunet-service-rps",
                    NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_free (path);
   GNUNET_PROGRAM_run (1, argv,
                       "test-rps-api",

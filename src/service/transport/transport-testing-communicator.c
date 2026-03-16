@@ -862,23 +862,16 @@ communicator_start (
   binary = GNUNET_OS_get_libexec_binary_path (
     GNUNET_OS_project_data_gnunet (),
     binary_name);
-  tc_h->c_proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   tc_h->c_proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (
-          tc_h->c_proc,
-          loprefix,
-          binary,
-          binary_name,
-          "-c",
-          tc_h->cfg_filename,
-          NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (tc_h->c_proc)) )
+  tc_h->c_proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (
+        tc_h->c_proc,
+        loprefix,
+        binary,
+        binary_name,
+        "-c",
+        tc_h->cfg_filename,
+        NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to start communicator!");
@@ -941,22 +934,15 @@ service_start (
   binary = GNUNET_OS_get_libexec_binary_path (
     GNUNET_OS_project_data_gnunet (),
     service_name);
-  proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (
-          proc,
-          binary,
-          service_name,
-          "-c",
-          tc_h->cfg_filename,
-          NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (proc)) )
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (
+        proc,
+        binary,
+        service_name,
+        "-c",
+        tc_h->cfg_filename,
+        NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to start %s!",

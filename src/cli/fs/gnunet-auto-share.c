@@ -485,18 +485,11 @@ work (void *cls)
   argv[argc] = NULL;
   GNUNET_log (GNUNET_ERROR_TYPE_INFO, _ ("Publishing `%s'\n"), wi->filename);
   GNUNET_assert (NULL == publish_proc);
-  publish_proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   publish_proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_USE_PIPE_CONTROL)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_argv (publish_proc,
-                                         "gnunet-publish",
-                                         (const char **) argv)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (publish_proc)) )
+  publish_proc = GNUNET_process_create (GNUNET_OS_USE_PIPE_CONTROL);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_argv (publish_proc,
+                                       "gnunet-publish",
+                                       (const char **) argv))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 _ ("Failed to run `%s'\n"),

@@ -277,22 +277,15 @@ main (int argc, char *const argv[])
 
   /* Lets start resolver */
   fn = GNUNET_OS_get_libexec_binary_path ("gnunet-service-resolver");
-  proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (
-          proc,
-          fn,
-          "gnunet-service-resolver",
-          "-c", "test_stun.conf",
-          NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (proc)) )
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (
+        proc,
+        fn,
+        "gnunet-service-resolver",
+        "-c", "test_stun.conf",
+        NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "This test was unable to start gnunet-service-resolver, and it is required to run ...\n");

@@ -680,12 +680,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     return GNUNET_ARM_RESULT_IS_NOT_KNOWN;
   }
 
-  proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     std_inheritance)));
+  proc = GNUNET_process_create (std_inheritance);
   if (NULL != sigfd)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
@@ -756,7 +751,7 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Trying to run ARM command: `%s'\n",
                 command);
-    ret = GNUNET_process_set_command (proc,
+    ret = GNUNET_process_run_command (proc,
                                       command);
     GNUNET_free (command);
   }
@@ -765,18 +760,11 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
   GNUNET_free (config);
   GNUNET_free (loprefix);
   GNUNET_free (lopostfix);
-  if (GNUNET_OK != ret)
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed to start ARM service: could not set command\n");
-    return GNUNET_ARM_RESULT_START_FAILED;
-  }
-  ret = GNUNET_process_start (proc);
   GNUNET_process_destroy (proc);
   if (GNUNET_OK != ret)
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
-                "Failed to start ARM service\n");
+                "Failed to start ARM service: could not set command\n");
     return GNUNET_ARM_RESULT_START_FAILED;
   }
   return GNUNET_ARM_RESULT_STARTING;

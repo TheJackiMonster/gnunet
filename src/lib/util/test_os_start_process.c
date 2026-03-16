@@ -144,24 +144,20 @@ run_task (void *cls)
     return;
   }
 
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR),
                    GNUNET_process_option_inherit_rpipe (hello_pipe_stdin,
                                                         STDIN_FILENO),
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
-                                                "cat",
-                                                "cat",
-                                                "-",
-                                                NULL));
   if (GNUNET_OK !=
-      GNUNET_process_start (proc))
+      GNUNET_process_run_command_va (proc,
+                                     "cat",
+                                     "cat",
+                                     "-",
+                                     NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to launch cat!?\n");
@@ -246,25 +242,21 @@ check_kill (void)
   }
   fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                           "gnunet-service-resolver");
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL),
                    GNUNET_process_option_inherit_rpipe (hello_pipe_stdin,
                                                         STDIN_FILENO),
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
-                                                fn,
-                                                "gnunet-service-resolver",
-                                                "-",
-                                                NULL));
   if (GNUNET_OK !=
-      GNUNET_process_start (proc))
+      GNUNET_process_run_command_va (proc,
+                                     fn,
+                                     "gnunet-service-resolver",
+                                     "-",
+                                     NULL))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");
@@ -310,33 +302,21 @@ check_instant_kill (void)
   }
   fn = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                           "gnunet-service-resolver");
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL),
                    GNUNET_process_option_inherit_rpipe (hello_pipe_stdin,
                                                         STDIN_FILENO),
                    GNUNET_process_option_inherit_wpipe (hello_pipe_stdout,
                                                         STDOUT_FILENO)));
   if (GNUNET_OK !=
-      GNUNET_process_set_command_va (proc,
+      GNUNET_process_run_command_va (proc,
                                      fn,
                                      "gnunet-service-resolver",
                                      "-",
                                      NULL))
-  {
-    GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
-                "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");
-    GNUNET_process_destroy (proc);
-    proc = NULL;
-    GNUNET_free (fn);
-    return 77;
-  }
-  if (GNUNET_OK !=
-      GNUNET_process_start (proc))
   {
     GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                 "Failed to launch gnunet-service-resolver. Is your system setup correct?\n");

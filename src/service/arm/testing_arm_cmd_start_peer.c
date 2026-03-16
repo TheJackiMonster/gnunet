@@ -190,26 +190,21 @@ start_peer_run (void *cls,
       main_binary = prefix;
       args = libexec_binary;
     }
-    sps->arm = GNUNET_process_create ();
-    GNUNET_assert (GNUNET_OK ==
-                   GNUNET_process_set_options (
-                     sps->arm,
-                     GNUNET_process_option_std_inheritance (
-                       GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
-    if ( (GNUNET_OK !=
-          GNUNET_process_set_command_va (sps->arm,
-                                         main_binary,
-                                         args,
-                                         "-c",
-                                         config_filename,
-                                         NULL)) ||
-         (GNUNET_OK !=
-          GNUNET_process_start (sps->arm)) )
+    sps->arm = GNUNET_process_create (GNUNET_OS_INHERIT_STD_OUT_AND_ERR);
+    if (GNUNET_OK !=
+        GNUNET_process_run_command_va (sps->arm,
+                                       main_binary,
+                                       args,
+                                       "-c",
+                                       config_filename,
+                                       NULL))
     {
       GNUNET_log (GNUNET_ERROR_TYPE_ERROR,
                   _ ("Failed to start `%s': %s\n"),
                   main_binary,
                   strerror (errno));
+      GNUNET_process_destroy (sps->arm);
+      sps->arm = NULL;
       GNUNET_TESTING_FAIL (is);
     }
     GNUNET_free (config_filename);

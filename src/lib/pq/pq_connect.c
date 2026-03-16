@@ -341,29 +341,23 @@ GNUNET_PQ_exec_sql (struct GNUNET_PQ_Context *db,
               "Applying SQL file `%s' on database %s\n",
               fn,
               db->config_str);
-  psql = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   psql,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (psql,
-                                       "psql",
-                                       "psql",
-                                       db->config_str,
-                                       "-f",
-                                       fn,
-                                       "-q",
-                                       "--set",
-                                       "ON_ERROR_STOP=1",
-                                       NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (psql)) )
+  psql = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (psql,
+                                     "psql",
+                                     "psql",
+                                     db->config_str,
+                                     "-f",
+                                     fn,
+                                     "-q",
+                                     "--set",
+                                     "ON_ERROR_STOP=1",
+                                     NULL))
   {
     GNUNET_log_strerror_file (GNUNET_ERROR_TYPE_ERROR,
                               "exec",
                               "psql");
+    GNUNET_process_destroy (psql);
     GNUNET_free (fn);
     return GNUNET_SYSERR;
   }

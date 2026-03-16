@@ -421,25 +421,21 @@ start_helper (struct GNUNET_HELPER_Handle *h)
     GNUNET_DISK_pipe_handle (h->helper_out, GNUNET_DISK_PIPE_END_READ);
   h->fh_to_helper =
     GNUNET_DISK_pipe_handle (h->helper_in, GNUNET_DISK_PIPE_END_WRITE);
-  h->helper_proc = GNUNET_process_create ();
+  h->helper_proc = GNUNET_process_create (h->with_control_pipe
+                     ? GNUNET_OS_INHERIT_STD_ERR
+                                          | GNUNET_OS_USE_PIPE_CONTROL
+                     : GNUNET_OS_INHERIT_STD_ERR);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    h->helper_proc,
-                   GNUNET_process_option_std_inheritance (
-                     h->with_control_pipe
-                     ? GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL
-                     : GNUNET_OS_INHERIT_STD_ERR),
                    GNUNET_process_option_inherit_rpipe (h->helper_in,
                                                         STDIN_FILENO),
                    GNUNET_process_option_inherit_wpipe (h->helper_out,
                                                         STDOUT_FILENO)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_argv (h->helper_proc,
-                                         h->binary_name,
-                                         (const char **) h->binary_argv)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (h->helper_proc)) )
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_argv (h->helper_proc,
+                                       h->binary_name,
+                                       (const char **) h->binary_argv))
   {
     /* failed to start process? try again later... */
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,

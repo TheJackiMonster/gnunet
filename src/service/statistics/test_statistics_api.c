@@ -197,22 +197,15 @@ main (int argc, char *argv_ign[])
                     NULL);
   binary = GNUNET_OS_get_libexec_binary_path (GNUNET_OS_project_data_gnunet (),
                                               "gnunet-service-statistics");
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
+                 GNUNET_process_run_command_va (proc,
                                                 binary,
                                                 "gnunet-service-statistics",
                                                 "-c",
                                                 "test_statistics_api_data.conf",
                                                 NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                       5, argv,
                       "test-statistics-api", "nohelp",
@@ -240,25 +233,19 @@ main (int argc, char *argv_ign[])
   }
   ok = 1;
   /* restart to check persistence! */
-  proc = GNUNET_process_create ();
+  proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR
+                                | GNUNET_OS_USE_PIPE_CONTROL);
   GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   proc,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL)));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_command_va (proc,
+                 GNUNET_process_run_command_va (proc,
                                                 binary,
                                                 "gnunet-service-statistics",
                                                 "-c",
                                                 "test_statistics_api_data.conf",
                                                 NULL));
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_start (proc));
   GNUNET_PROGRAM_run (GNUNET_OS_project_data_gnunet (),
                       5, argv,
-                      "test-statistics-api", "nohelp",
+                      "test-statistics-api",
+                      "nohelp",
                       options,
                       &run_more, &ok);
   if (GNUNET_OK !=

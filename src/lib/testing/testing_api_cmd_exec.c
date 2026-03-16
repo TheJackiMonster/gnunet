@@ -149,13 +149,11 @@ exec_bash_script_run (void *cls,
   struct BashScriptState *bss = cls;
 
   GNUNET_assert (NULL == bss->cwh);
-  bss->start_proc = GNUNET_process_create ();
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_argv (bss->start_proc,
-                                         bss->args[0],
-                                         (const char **) bss->args)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (bss->start_proc)) )
+  bss->start_proc = GNUNET_process_create (GNUNET_OS_INHERIT_STD_ERR);
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_argv (bss->start_proc,
+                                       bss->args[0],
+                                       (const char **) bss->args))
   {
     GNUNET_break (0);
     GNUNET_TESTING_FAIL (is);

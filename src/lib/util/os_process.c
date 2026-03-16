@@ -459,13 +459,13 @@ open_dev_null (int target_fd,
 
 
 struct GNUNET_Process *
-GNUNET_process_create ()
+GNUNET_process_create (enum GNUNET_OS_InheritStdioFlags std_inheritance)
 {
   struct GNUNET_Process *p;
 
   p = GNUNET_new (struct GNUNET_Process);
   p->pid = -1;
-  p->std_inheritance = GNUNET_OS_INHERIT_STD_ERR;
+  p->std_inheritance = std_inheritance;
   return p;
 }
 
@@ -541,8 +541,8 @@ map_std (struct GNUNET_Process *proc,
 }
 
 
-enum GNUNET_GenericReturnValue
-GNUNET_process_start (struct GNUNET_Process *proc)
+static enum GNUNET_GenericReturnValue
+process_start (struct GNUNET_Process *proc)
 {
   pid_t ret;
   int childpipe_read_fd;
@@ -837,7 +837,7 @@ GNUNET_process_start (struct GNUNET_Process *proc)
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_argv (
+GNUNET_process_run_command_argv (
   struct GNUNET_Process *p,
   const char *filename,
   const char **argv)
@@ -858,12 +858,12 @@ GNUNET_process_set_command_argv (
                               char *);
   for (argc = 0; NULL != argv[argc]; argc++)
     p->argv[argc] = GNUNET_strdup (argv[argc]);
-  return GNUNET_OK;
+  return process_start (p);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_ap (
+GNUNET_process_run_command_ap (
   struct GNUNET_Process *p,
   const char *filename,
   va_list va)
@@ -895,12 +895,12 @@ GNUNET_process_set_command_ap (
                                const char *)))
     p->argv[argc++] = GNUNET_strdup (av);
   va_end (ap);
-  return GNUNET_OK;
+  return process_start (p);
 }
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command_va (struct GNUNET_Process *p,
+GNUNET_process_run_command_va (struct GNUNET_Process *p,
                                const char *filename,
                                ...)
 {
@@ -909,7 +909,7 @@ GNUNET_process_set_command_va (struct GNUNET_Process *p,
 
   va_start (ap,
             filename);
-  ret = GNUNET_process_set_command_ap (p,
+  ret = GNUNET_process_run_command_ap (p,
                                        filename,
                                        ap);
   va_end (ap);
@@ -918,7 +918,7 @@ GNUNET_process_set_command_va (struct GNUNET_Process *p,
 
 
 enum GNUNET_GenericReturnValue
-GNUNET_process_set_command (struct GNUNET_Process *p,
+GNUNET_process_run_command (struct GNUNET_Process *p,
                             const char *command)
 {
   char *cmd = GNUNET_strdup (command);
@@ -1015,7 +1015,7 @@ GNUNET_process_set_command (struct GNUNET_Process *p,
     return GNUNET_SYSERR;
   }
   p->filename = GNUNET_strdup (p->argv[0]);
-  return GNUNET_OK;
+  return process_start (p);
 }
 
 
@@ -1033,9 +1033,6 @@ GNUNET_process_set_options_ (
     {
     case GNUNET_PROCESS_OPTION_END:
       return GNUNET_OK;
-    case GNUNET_PROCESS_OPTION_STD_INHERITANCE:
-      proc->std_inheritance = ov->details.std_inheritance;
-      continue;
     case GNUNET_PROCESS_OPTION_SET_ENVIRONMENT:
       {
         struct EnviEntry ee = {

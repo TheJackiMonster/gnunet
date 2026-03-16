@@ -754,15 +754,10 @@ start_process (struct ServiceList *sl,
   enum GNUNET_GenericReturnValue ret;
 
   GNUNET_assert (NULL == sl->proc);
-  sl->proc = GNUNET_process_create ();
-  GNUNET_assert (GNUNET_OK ==
-                 GNUNET_process_set_options (
-                   sl->proc,
-                   GNUNET_process_option_std_inheritance (
-                     sl->pipe_control
+  sl->proc = GNUNET_process_create (sl->pipe_control
                      ? GNUNET_OS_INHERIT_STD_OUT_AND_ERR
-                     | GNUNET_OS_USE_PIPE_CONTROL
-                     : GNUNET_OS_INHERIT_STD_OUT_AND_ERR)));
+                                    | GNUNET_OS_USE_PIPE_CONTROL
+                     : GNUNET_OS_INHERIT_STD_OUT_AND_ERR);
   for (struct ServiceListeningInfo *sli = sl->listen_head;
        NULL != sli;
        sli = sli->next)
@@ -869,7 +864,7 @@ start_process (struct ServiceList *sl,
                 "Starting simple service `%s' using binary `%s'\n",
                 sl->name,
                 sl->binary);
-    ret = GNUNET_process_set_command_va (sl->proc,
+    ret = GNUNET_process_run_command_va (sl->proc,
                                          loprefix,
                                          binary,
                                          options,
@@ -901,15 +896,13 @@ start_process (struct ServiceList *sl,
     GNUNET_log (GNUNET_ERROR_TYPE_INFO,
                 "Launching GNUnet service `%s'\n",
                 command);
-    ret = GNUNET_process_set_command (
+    ret = GNUNET_process_run_command (
       sl->proc,
       command);
     GNUNET_free (command);
   }
 
-  if ( (GNUNET_OK != ret) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (sl->proc) ) )
+  if (GNUNET_OK != ret)
   {
     GNUNET_break (0);
     goto failure;

@@ -122,23 +122,19 @@ test_child_management (void *cls)
     global_ret = 2;
     return;
   }
-  pid = GNUNET_process_create ();
+  pid = GNUNET_process_create (GNUNET_OS_INHERIT_STD_NONE);
   GNUNET_assert (GNUNET_OK ==
                  GNUNET_process_set_options (
                    pid,
-                   GNUNET_process_option_std_inheritance (
-                     GNUNET_OS_INHERIT_STD_NONE),
                    GNUNET_process_option_inherit_rpipe (p,
                                                         STDIN_FILENO)));
-  if ( (GNUNET_OK !=
-        GNUNET_process_set_command_va (pid,
-                                       command,
-                                       command,
-                                       "1234",
-                                       "5678",
-                                       NULL)) ||
-       (GNUNET_OK !=
-        GNUNET_process_start (pid)) )
+  if (GNUNET_OK !=
+      GNUNET_process_run_command_va (pid,
+                                     command,
+                                     command,
+                                     "1234",
+                                     "5678",
+                                     NULL))
   {
     GNUNET_log_strerror (GNUNET_ERROR_TYPE_ERROR,
                          "fork");
