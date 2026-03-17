@@ -364,7 +364,7 @@ handle_ecdh_result (void *cls, const struct EcdhResultMessage *msg)
          ntohl (msg->rid));
     return;
   }
-  if (NULL != op->decaps_cb)
+  if (NULL != op->ecdh_cb)
     op->ecdh_cb (op->cb_cls,
                  &msg->key);
   GNUNET_CONTAINER_DLL_remove (h->op_head,
