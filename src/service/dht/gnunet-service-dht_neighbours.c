@@ -2238,7 +2238,16 @@ handle_find_my_hello (struct PeerInfo *pi,
                       void *cb_cls)
 {
   const struct GNUNET_HashCode *my_identity_hash;
+  const struct GNUNET_PeerIdentity *my_identity;
+  struct GNUNET_TIME_Absolute block_expiration;
+  size_t block_size;
+  void *block;
+
   my_identity_hash = GNUNET_PILS_get_identity_hash (GDS_pils);
+  my_identity = GNUNET_PILS_get_identity (GDS_pils);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handle finding my own HELLO %s\n",
+              GNUNET_h2s (my_identity_hash));
   if (NULL == GDS_my_hello)
   {
     GNUNET_STATISTICS_update (GDS_stats,
@@ -2247,15 +2256,28 @@ handle_find_my_hello (struct PeerInfo *pi,
                               GNUNET_NO);
     if (cb)
       cb (cb_cls);
+    return;
   }
-  else if (GNUNET_BLOCK_REPLY_OK_MORE ==
-           GNUNET_BLOCK_check_reply (GDS_block_context,
-                                     GNUNET_BLOCK_TYPE_DHT_HELLO,
-                                     bg,
-                                     my_identity_hash,
-                                     NULL, 0,
-                                     GDS_my_hello,
-                                     ntohs (GDS_my_hello->size)))
+
+  if (GNUNET_SYSERR == GNUNET_HELLO_dht_msg_to_block (GDS_my_hello,
+                                                      my_identity,
+                                                      &block,
+                                                      &block_size,
+                                                      &block_expiration))
+  {
+    if (cb)
+      cb (cb_cls);
+    return;
+  }
+
+  if (GNUNET_BLOCK_REPLY_OK_MORE ==
+      GNUNET_BLOCK_check_reply (GDS_block_context,
+                                GNUNET_BLOCK_TYPE_DHT_HELLO,
+                                bg,
+                                my_identity_hash,
+                                NULL, 0,
+                                block,
+                                block_size))
   {
     struct GNUNET_DATACACHE_Block bd = {
       .type = GNUNET_BLOCK_TYPE_DHT_HELLO,
@@ -2263,8 +2285,8 @@ handle_find_my_hello (struct PeerInfo *pi,
         = GNUNET_TIME_relative_to_absolute (
             GNUNET_HELLO_ADDRESS_EXPIRATION),
       .key = *my_identity_hash,
-      .data = GDS_my_hello,
-      .data_size = ntohs (GDS_my_hello->size)
+      .data = block,
+      .data_size = block_size
     };
 
     GDS_NEIGHBOURS_handle_reply (pi,
@@ -2283,6 +2305,8 @@ handle_find_my_hello (struct PeerInfo *pi,
     if (cb)
       cb (cb_cls);
   }
+
+  GNUNET_free (block);
 }
 
 
@@ -2307,6 +2331,9 @@ handle_find_local_hello (struct PeerInfo *pi,
   peer = select_peer (query_hash,
                       NULL,
                       GDS_NSE_get () + 1);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handle finding local HELLO %s\n",
+              GNUNET_h2s (&peer->phash));
   if ( (NULL != peer->hello) &&
        (! GNUNET_TIME_absolute_is_past (peer->hello_expiration)) &&
        (GNUNET_BLOCK_REPLY_OK_MORE ==
@@ -2466,6 +2493,11 @@ cb_handle_dht_p2p_get_local_hello (void *cls)
 {
   struct HandleCallbackGet *handle = cls;
   enum GNUNET_BLOCK_Type type = ntohl (handle->get->type);
+
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Handle getting local HELLO %s of type %u\n",
+              GNUNET_h2s (&handle->get->key),
+              type);
 
   if (GNUNET_BLOCK_TYPE_DHT_HELLO != type)
   {
