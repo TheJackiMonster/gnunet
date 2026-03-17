@@ -312,11 +312,19 @@ handle_decaps_result (void *cls, const struct DecapsResultMessage *msg)
   struct GNUNET_PILS_Handle *h = cls;
   struct GNUNET_PILS_Operation *op;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Received KEM_DECAPS result from service!\n");
+
   h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
   op = find_op (h, ntohl (msg->rid));
 
   if (NULL == op)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Didn't find the operation corresponding to id %u\n",
+         ntohl (msg->rid));
     return;
+  }
   if (NULL != op->decaps_cb)
   {
     // FIXME maybe return NULL of key is 0ed
@@ -343,11 +351,19 @@ handle_ecdh_result (void *cls, const struct EcdhResultMessage *msg)
   struct GNUNET_PILS_Handle *h = cls;
   struct GNUNET_PILS_Operation *op;
 
+  LOG (GNUNET_ERROR_TYPE_DEBUG,
+       "Received ECDH result from service!\n");
+
   h->reconnect_delay = GNUNET_TIME_UNIT_ZERO;
   op = find_op (h, ntohl (msg->rid));
 
   if (NULL == op)
+  {
+    LOG (GNUNET_ERROR_TYPE_WARNING,
+         "Didn't find the operation corresponding to id %u\n",
+         ntohl (msg->rid));
     return;
+  }
   if (NULL != op->decaps_cb)
     op->ecdh_cb (op->cb_cls,
                  &msg->key);
