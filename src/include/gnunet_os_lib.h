@@ -665,16 +665,16 @@ struct GNUNET_ProcessOptionValue
 /**
  * Set environment variable in child process.
  *
- * @param key name of the variable
- * @param value value to set, NULL to clear
+ * @param k name of the variable
+ * @param v value to set, NULL to clear
  * @return the option
  */
-#define GNUNET_process_option_set_environment(key,value)   \
+#define GNUNET_process_option_set_environment(k,v)         \
         (const struct GNUNET_ProcessOptionValue)           \
         {                                                  \
           .option = GNUNET_PROCESS_OPTION_SET_ENVIRONMENT, \
-          .details.set_environment.key = key,              \
-          .details.set_environment.value = value           \
+          .details.set_environment.key = k,                \
+          .details.set_environment.value = v               \
         }
 
 /**
@@ -682,16 +682,16 @@ struct GNUNET_ProcessOptionValue
  * The ownership over the file descriptor is afterwards
  * with the process handle.
  *
- * @param parent_fd open file descriptor in this process
- * @param child_fd target file descriptor in the child process
+ * @param p open file descriptor in this process
+ * @param c target file descriptor in the child process
  * @return the terminating object of struct GNUNET_ProcessOptionValue
  */
-#define GNUNET_process_option_inherit_fd(parent_fd, child_fd)  \
+#define GNUNET_process_option_inherit_fd(p, c)  \
         (const struct GNUNET_ProcessOptionValue)               \
         {                                                      \
           .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
-          .details.inherit_fd.target_fd = child_fd,            \
-          .details.inherit_fd.parent_fd = parent_fd              \
+          .details.inherit_fd.target_fd = c,                   \
+          .details.inherit_fd.parent_fd = p                    \
         }
 
 /**
@@ -702,14 +702,14 @@ struct GNUNET_ProcessOptionValue
  * @param child_fd target file descriptor in the child process
  * @return the terminating object of struct GNUNET_ProcessOptionValue
  */
-#define GNUNET_process_option_inherit_rpipe(rpipe, child_fd)  \
+#define GNUNET_process_option_inherit_rpipe(rpipe, child_fd)   \
         (const struct GNUNET_ProcessOptionValue)               \
         {                                                      \
           .option = GNUNET_PROCESS_OPTION_INHERIT_FD,          \
           .details.inherit_fd.target_fd = child_fd,            \
-          .details.inherit_fd.parent_fd \
-            = GNUNET_DISK_internal_file_handle ( \
-                GNUNET_DISK_pipe_detach_end (rpipe, \
+          .details.inherit_fd.parent_fd                        \
+            = GNUNET_DISK_internal_file_handle (               \
+                GNUNET_DISK_pipe_detach_end (rpipe,            \
                                              GNUNET_DISK_PIPE_END_READ)) \
         }
 
