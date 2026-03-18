@@ -674,9 +674,6 @@ start_arm_service (struct GNUNET_ARM_Handle *h,
     GNUNET_log_config_missing (GNUNET_ERROR_TYPE_WARNING,
                                "arm",
                                "BINARY");
-    GNUNET_free (loprefix);
-    GNUNET_free (lopostfix);
-    GNUNET_DISK_file_close (sigfd);
     return GNUNET_ARM_RESULT_IS_NOT_KNOWN;
   }
 
