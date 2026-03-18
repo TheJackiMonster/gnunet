@@ -326,7 +326,7 @@ GNUNET_OS_command_run (GNUNET_OS_LineProcessor proc,
                    GNUNET_process_option_inherit_wpipe (opipe,
                                                         STDOUT_FILENO)));
   if (GNUNET_OK !=
-      GNUNET_process_run_command_va (eip,
+      GNUNET_process_run_command_ap (eip,
                                      binary,
                                      ap))
   {
