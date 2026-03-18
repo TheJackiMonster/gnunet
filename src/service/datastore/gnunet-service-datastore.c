@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet
-     Copyright (C) 2004-2014, 2016 GNUnet e.V.
+     Copyright (C) 2004-2014, 2016, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -633,6 +633,11 @@ handle_reserve (void *cls, const struct ReserveMessage *msg)
   e->amount = amount;
   e->entries = entries;
   e->rid = ++reservation_gen;
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Reserve space for %u entries with up to %lu bytes under rid %u\n",
+              entries,
+              amount,
+              e->rid);
   if (reservation_gen < 0)
     reservation_gen = 0; /* wrap around */
   transmit_status (client, e->rid, NULL);
@@ -803,6 +808,10 @@ handle_put (void *cls, const struct DataMessage *dm)
               (uint32_t) ntohl (dm->type));
   rid = ntohl (dm->rid);
   size = ntohl (dm->size);
+  GNUNET_log (GNUNET_ERROR_TYPE_DEBUG,
+              "Put entry into space with %u bytes under rid %u\n",
+              size,
+              rid);
   if (rid > 0)
   {
     pos = reservations;
@@ -828,7 +837,7 @@ handle_put (void *cls, const struct DataMessage *dm)
     plugin->api->put (plugin->api->cls,
                       &dm->key,
                       absent,
-                      ntohl (dm->size),
+                      size,
                       &dm[1],
                       ntohl (dm->type),
                       ntohl (dm->priority),
@@ -1609,7 +1618,7 @@ run (void *cls,
  * Define "main" method using service macro.
  */
 GNUNET_SERVICE_MAIN (
-  GNUNET_OS_project_data_gnunet(),
+  GNUNET_OS_project_data_gnunet (),
   "datastore",
   GNUNET_SERVICE_OPTION_NONE,
   &run,

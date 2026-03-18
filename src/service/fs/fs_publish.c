@@ -1,6 +1,6 @@
 /*
      This file is part of GNUnet.
-     Copyright (C) 2009, 2010 GNUnet e.V.
+     Copyright (C) 2009-2010, 2026 GNUnet e.V.
 
      GNUnet is free software: you can redistribute it and/or modify it
      under the terms of the GNU Affero General Public License as published
@@ -832,7 +832,8 @@ hash_for_index_cb (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ (
-                  "Can not index file `%s': %s.  Will try to insert instead.\n"),
+                  "Can not index file `%s': %s.  Will try to insert instead.\n")
+                ,
                 p->filename,
                 _ ("failed to compute hash"));
     p->data.file.do_index = GNUNET_NO;
@@ -884,7 +885,8 @@ hash_for_index_cb (void *cls,
   {
     GNUNET_log (GNUNET_ERROR_TYPE_WARNING,
                 _ (
-                  "Can not index file `%s': %s.  Will try to insert instead.\n"),
+                  "Can not index file `%s': %s.  Will try to insert instead.\n")
+                ,
                 p->filename,
                 _ ("could not connect to `fs' service"));
     p->data.file.do_index = GNUNET_NO;
@@ -1214,10 +1216,11 @@ fip_signal_start (void *cls,
               "Starting publish operation\n");
   if (*do_index)
   {
+    uint64_t dblocks = ((length + DBLOCK_SIZE - 1) / DBLOCK_SIZE);
     /* space for on-demand blocks */
-    pc->reserve_space +=
-      ((length + DBLOCK_SIZE
-        - 1) / DBLOCK_SIZE) * sizeof(struct OnDemandBlock);
+    if (0 == dblocks)
+      dblocks++;
+    pc->reserve_space += dblocks * sizeof(struct OnDemandBlock);
   }
   else
   {
