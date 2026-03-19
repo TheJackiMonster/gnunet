@@ -346,7 +346,6 @@ src/service/gns/gns_tld_api.c
 src/service/gns/gnunet-bcd.c
 src/service/gns/gnunet-dns2gns.c
 src/service/gns/gnunet-gns-benchmark.c
-src/service/gns/gnunet-gns-import.c
 src/service/gns/gnunet-gns-proxy.c
 src/service/gns/gnunet-service-gns.c
 src/service/gns/gnunet-service-gns_interceptor.c
