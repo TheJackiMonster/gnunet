@@ -12303,6 +12303,8 @@ sign_dv_init_cb (void *cls,
   queue_send_msg (qqc.q, NULL, &dvl, sizeof(dvl));
   /* reschedule this job, randomizing the time it runs (but no
      actual backoff!) */
+  if (NULL != dvlearn_task)
+    GNUNET_SCHEDULER_cancel (dvlearn_task);
   dvlearn_task = GNUNET_SCHEDULER_add_delayed (GNUNET_TIME_randomize (
                                                  DV_LEARN_BASE_FREQUENCY),
                                                &start_dv_learn,
@@ -13460,6 +13462,17 @@ do_shutdown (void *cls)
     GNUNET_SCHEDULER_cancel (dvlearn_task);
     dvlearn_task = NULL;
   }
+  if (NULL != burst_task)
+  {
+    GNUNET_SCHEDULER_cancel (burst_task);
+    burst_task = NULL;
+  }
+  if (NULL != burst_timeout_task)
+  {
+    GNUNET_SCHEDULER_cancel (burst_timeout_task);
+    burst_timeout_task = NULL;
+  }
+  burst_running = GNUNET_NO;
   GNUNET_CONTAINER_multishortmap_destroy (dvlearn_map);
   dvlearn_map = NULL;
   GNUNET_CONTAINER_multipeermap_iterate (dv_routes, &free_dv_routes_cb, NULL);

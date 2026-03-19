@@ -903,6 +903,8 @@ connection_destroy (struct Connection *connection)
   {
     long_poll_temp = long_poll_curr;
     long_poll_curr = long_poll_curr->next;
+    if (long_poll_temp->timer)
+      GNUNET_SCHEDULER_cancel (long_poll_temp->timer);
     GNUNET_free (long_poll_temp);
   }
 
